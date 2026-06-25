@@ -13,6 +13,10 @@ Rules for this layout:
 - AgentCore-owned governance and integration docs live in `D:\github\agentcore-control-plane`.
 - First-responder and house-fire data is private by default and must remain local-only unless a future approval explicitly allows a hosted path.
 
+## Environment Variable Policy
+
+AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
+
 ## Source Roots
 
 ```text

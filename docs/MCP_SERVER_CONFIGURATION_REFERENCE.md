@@ -55,6 +55,12 @@ All IDEs should use `global-memory-gateway` for normal memory operations.
 }
 ```
 
+## Environment Variable Policy
+
+AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
+
+If a variable is missing, stop and report the variable name rather than creating a local fallback. See `docs\restart_after_env_changes.md` after any env-var update.
+
 ## Full JSON Shapes
 
 ## Prompt: MiniMax Configure Open Interpreter MCP And Global Rules

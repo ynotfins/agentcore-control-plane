@@ -42,35 +42,41 @@ foreach ($rel in $files) {
 
 $projectKey = "mcp-control-plane"
 $projectName = "MCP Control Plane"
-$rootJson = (@{ root = $Root } | ConvertTo-Json -Compress).Replace("'", "''")
-& $psql -h $HostName -p $Port -U $User -d $Database -v ON_ERROR_STOP=1 -c "INSERT INTO projects(project_key, display_name, root_path, metadata) VALUES ('$projectKey', '$projectName', '$Root', '$rootJson'::jsonb) ON CONFLICT (project_key) DO NOTHING;"
+$rootJson = @{ root = $Root } | ConvertTo-Json -Compress
+$projectKeySql = $projectKey.Replace("'", "''")
+$projectNameSql = $projectName.Replace("'", "''")
+$rootSql = $Root.Replace("'", "''")
+$rootJsonBase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($rootJson))
+& $psql -h $HostName -p $Port -U $User -d $Database -v ON_ERROR_STOP=1 `
+  -c "INSERT INTO projects(project_key, display_name, root_path, metadata) VALUES ('$projectKeySql', '$projectNameSql', '$rootSql', convert_from(decode('$rootJsonBase64', 'base64'), 'UTF8')::jsonb) ON CONFLICT (project_key) DO NOTHING;"
 if ($LASTEXITCODE -ne 0) { throw "project upsert failed" }
 
-$changed = 0
 foreach ($fact in $facts) {
-  $key = $fact.fact_key.Replace("'", "''")
-  $value = ($fact.fact_value | ConvertTo-Json -Compress).Replace("'", "''")
+  $key = $fact.fact_key
+  $value = $fact.fact_value | ConvertTo-Json -Compress
+  $keySql = $key.Replace("'", "''")
+  $valueBase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($value))
   $sql = @"
 WITH p AS (
-  SELECT id FROM projects WHERE project_key = '$projectKey'
+  SELECT id FROM projects WHERE project_key = '$projectKeySql'
 ), current_fact AS (
   SELECT pf.*
   FROM project_facts pf, p
-  WHERE pf.project_id = p.id AND pf.fact_key = '$key' AND pf.is_current = true
+  WHERE pf.project_id = p.id AND pf.fact_key = '$keySql' AND pf.is_current = true
   ORDER BY pf.version DESC
   LIMIT 1
 ), inserted AS (
   INSERT INTO project_facts(project_id, fact_key, fact_value, version, supersedes_fact_id, source, is_current)
   SELECT
     p.id,
-    '$key',
-    '$value'::jsonb,
+    '$keySql',
+    convert_from(decode('$valueBase64', 'base64'), 'UTF8')::jsonb,
     COALESCE((SELECT version + 1 FROM current_fact), 1),
     (SELECT id FROM current_fact),
     'Test-AgentCoreDrift.ps1',
     true
   FROM p
-  WHERE NOT EXISTS (SELECT 1 FROM current_fact WHERE fact_value = '$value'::jsonb)
+  WHERE NOT EXISTS (SELECT 1 FROM current_fact WHERE fact_value = convert_from(decode('$valueBase64', 'base64'), 'UTF8')::jsonb)
   RETURNING id
 )
 UPDATE project_facts

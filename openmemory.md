@@ -17,6 +17,10 @@
 - Governed cross-project memory:
   - `global-memory-gateway` backed by local PostgreSQL/pgvector
 
+## Environment Variable Policy
+
+AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
+
 ## User Defined Namespaces
 - [Leave blank - user populates]
 
@@ -52,4 +56,6 @@
 - Keep vendor source, runtime state, and backups physically separated by root path.
 - Keep private first-responder data local-only by default.
 - Use `global-memory-gateway` for governed persistent memory; do not bypass it with local memory runtimes.
+- Read project facts and static facts before planning or making architectural decisions.
+- If an AgentCore environment variable is missing, stop and report the variable name instead of creating a local fallback.
 - Do not place runtime DBs, dumps, `raw/`, `wiki/`, or incident data in the control-plane repo.

@@ -10,6 +10,10 @@ AgentCore defaults to local-first and least-exposure.
 - Hosted services are opt-in, not baseline.
 - If a component has both local and hosted modes, local mode is the default until a later approval explicitly allows broader routing.
 
+## Environment Variable Policy
+
+AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
+
 ## Privacy Zones
 
 ### Zone A: Private Local-Only

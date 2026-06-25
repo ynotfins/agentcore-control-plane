@@ -4,8 +4,11 @@
 
 - Never hard-code API keys, bearer tokens, refresh tokens, cookies, private keys, passwords, license files, or PAT values.
 - Use Windows User-scope environment variables for durable local secrets.
+- AgentCore does not use `.env`, `.env.local`, `.env.production`, `.env.example`, dotenv loaders, or local secret files unless an operator explicitly orders an exception.
 - Generated config fragments may reference secrets only with placeholders such as `${env:ARTIFORGE_PAT}` or `${ENV:OPENAI_API_KEY}`.
 - Do not write secret values into reports, Markdown, registry files, validators, renderers, or logs.
+- Documentation may list variable names only, never values.
+- If a secret variable is missing, stop and report the variable name instead of creating a local fallback.
 
 ## Approval Gates
 

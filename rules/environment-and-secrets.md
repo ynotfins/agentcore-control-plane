@@ -5,7 +5,14 @@
 - Durable local secrets belong in Windows User-scope environment variables.
 - Process-scope values are acceptable for one-off validation but are not durable.
 - Machine-scope secrets require explicit user approval.
-- Never persist secrets in `.env`, JSON, YAML, Markdown, logs, reports, screenshots, or email.
+- AgentCore uses Windows environment variables, not `.env` files.
+- Never create `.env`, `.env.local`, `.env.production`, `.env.example`, dotenv files, or dotenv loaders for AgentCore unless an operator explicitly orders an exception.
+- Never persist secrets in `.env`, JSON, YAML, Markdown, logs, reports, screenshots, email, SQLite, pgvector payloads, or memory.
+- Config files may reference environment variable names only; documentation may list variable names only, never values.
+- If a tool asks for a `.env` file, adapt it to Windows environment variables instead.
+- If an environment variable is missing, stop and report the variable name instead of creating a local `.env` fallback.
+- `global-memory-gateway` must use `agent_ingest` through Windows environment variables.
+- Normal IDE agents must never direct-SQL into PostgreSQL.
 
 ## Allowed References
 

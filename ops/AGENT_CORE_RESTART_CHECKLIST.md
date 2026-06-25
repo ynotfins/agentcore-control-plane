@@ -15,6 +15,10 @@ The MCP memory gateway and IDE configs do not launch PostgreSQL directly, but th
 
 `127.0.0.1:55432/agent_core`
 
+## Environment Variable Policy
+
+AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
+
 ## Before Restart
 
 - Confirm the current engine path exists: `F:\AgentCore\postgres_runtime_engine\pgsql`
@@ -60,10 +64,12 @@ Then update the control-plane contract and docs if the new letter is permanent.
 After PostgreSQL health passes:
 
 1. Cursor
-2. OpenClaw
-3. MiniMax
-4. Open Interpreter
-5. Android Studio if/when an MCP config exists
+2. Codex
+3. OpenClaw
+4. Claude Code
+5. MiniMax
+6. Open Interpreter
+7. Android Studio if/when an MCP config exists
 
 Each IDE should load `global-memory-gateway` with:
 
@@ -72,3 +78,5 @@ Each IDE should load `global-memory-gateway` with:
 - `AGENT_CORE_PGPORT=55432`
 - `OPENAI_EMBEDDING_MODEL=text-embedding-3-small`
 - `MEMORY_GATEWAY_EMBEDDING_PROVIDER=auto`
+
+Use `docs\restart_after_env_changes.md` for the full restart and env-propagation checklist.

@@ -415,6 +415,8 @@ def canonical_model(_legacy_context7_opencode_supported: bool = False) -> dict[s
                 "Primary memory path for normal agents. Stop if unavailable; do not fall back to raw Mem0 unless explicitly approved.",
                 "Backed by PostgreSQL agent_core on 127.0.0.1:55432 with pgvector VECTOR(1536).",
                 "Uses OpenAI text-embedding-3-small when OPENAI_API_KEY is available; local_hash_v1 is offline fallback only.",
+                "AgentCore uses Windows environment variables only. Do not create .env fallbacks for gateway credentials.",
+                "Gateway launches with AGENT_CORE_PGUSER=agent_ingest and AGENT_CORE_PGPASSWORD=${ENV:AGENT_CORE_AGENT_INGEST_PASSWORD}.",
                 "Normal agents use memory_append/search/state; trusted ingest/admin jobs are the only direct PostgreSQL writers.",
             ]
         if "filesystem" in model["servers"]:
@@ -1000,6 +1002,7 @@ This repository, `D:\\MCP-Control-Plane`, is the single source of truth for MCP 
 - Patch `scripts/mcp_control_plane.py` first when generated outputs would otherwise drift.
 - Keep supervisor JSON, supervisor YAML, registry, renderers, and validators aligned.
 - Use deterministic validators before reporting completion.
+- AgentCore does not use `.env` files for secrets or local runtime configuration. Use Windows environment variables only.
 - Agents must read `AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` before persistent memory writes or database ingestion.
 
 ## Tool Routing
@@ -1026,6 +1029,7 @@ For `global-memory-gateway`, `arabold-docs`, `artiforge`, and `sequential-thinki
 - Vector store: `global_vector_memory_store` with pgvector `VECTOR(1536)`
 - Normal write path: `global-memory-gateway` tools only
 - Trusted direct SQL path: explicit ingest/admin runners approved by the control plane
+- Gateway runtime credentials: `AGENT_CORE_PGUSER=agent_ingest` and `AGENT_CORE_PGPASSWORD=${ENV:AGENT_CORE_AGENT_INGEST_PASSWORD}`
 """
     security = """# Security Policy
 
@@ -1033,8 +1037,11 @@ For `global-memory-gateway`, `arabold-docs`, `artiforge`, and `sequential-thinki
 
 - Never hard-code API keys, bearer tokens, refresh tokens, cookies, private keys, passwords, license files, or PAT values.
 - Use Windows User-scope environment variables for durable local secrets.
+- AgentCore does not use `.env`, `.env.local`, `.env.production`, `.env.example`, dotenv loaders, or local secret files unless an operator explicitly orders an exception.
 - Generated config fragments may reference secrets only with placeholders such as `${env:ARTIFORGE_PAT}` or `${ENV:OPENAI_API_KEY}`.
 - Do not write secret values into reports, Markdown, registry files, validators, renderers, or logs.
+- Documentation may list variable names only, never values.
+- If a secret variable is missing, stop and report the variable name instead of creating a local fallback.
 
 ## Approval Gates
 
@@ -1093,7 +1100,14 @@ If a critical primary fails:
 - Durable local secrets belong in Windows User-scope environment variables.
 - Process-scope values are acceptable for one-off validation but are not durable.
 - Machine-scope secrets require explicit user approval.
-- Never persist secrets in `.env`, JSON, YAML, Markdown, logs, reports, screenshots, or email.
+- AgentCore uses Windows environment variables, not `.env` files.
+- Never create `.env`, `.env.local`, `.env.production`, `.env.example`, dotenv files, or dotenv loaders for AgentCore unless an operator explicitly orders an exception.
+- Never persist secrets in `.env`, JSON, YAML, Markdown, logs, reports, screenshots, email, SQLite, pgvector payloads, or memory.
+- Config files may reference environment variable names only; documentation may list variable names only, never values.
+- If a tool asks for a `.env` file, adapt it to Windows environment variables instead.
+- If an environment variable is missing, stop and report the variable name instead of creating a local `.env` fallback.
+- `global-memory-gateway` must use `agent_ingest` through Windows environment variables.
+- Normal IDE agents must never direct-SQL into PostgreSQL.
 
 ## Allowed References
 

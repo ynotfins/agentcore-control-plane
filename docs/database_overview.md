@@ -42,7 +42,11 @@ Generated role passwords are stored as Windows User-scope environment variables:
 - `AGENT_CORE_AGENT_INGEST_PASSWORD`
 - `AGENT_CORE_AGENT_READ_PASSWORD`
 - `AGENT_CORE_POSTGRES_PASSWORD`
-- `AGENT_CORE_PGPASSWORD` for the default gateway password
+- `AGENT_CORE_PGPASSWORD` only as an environment-variable alias when a process expects `PGPASSWORD`
+
+## Environment Variable Policy
+
+AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
 
 ## Schema
 

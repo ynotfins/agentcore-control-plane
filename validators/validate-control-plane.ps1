@@ -36,8 +36,11 @@ $critical = @("global-memory-gateway", "arabold-docs", "artiforge", "sequential-
 $managedRelative = @(
   "AGENTS.md",
   "SECURITY.md",
+  ".cursor\rules\agentcore-env-policy.mdc",
   "rules\global-mcp-routing.md",
   "rules\environment-and-secrets.md",
+  "docs\GLOBAL_AGENT_RULES.md",
+  "docs\restart_after_env_changes.md",
   "registry\tool-registry.json",
   "registry\tool-registry.schema.json",
   "supervisor\servers.json",
@@ -47,14 +50,21 @@ $managedRelative = @(
   "renderers\openclaw.openclaw.fragment.json",
   "renderers\minimax.mcp.json",
   "renderers\android-studio.mcp.json",
+  "ops\Test-AgentCoreEnvPolicy.ps1",
+  "automations\env-policy-audit.md",
   "validators\validate-control-plane.ps1"
 )
 
 $requiredFiles = @(
   "AGENTS.md",
   "SECURITY.md",
+  ".cursor\rules\agentcore-env-policy.mdc",
   "rules\global-mcp-routing.md",
   "rules\environment-and-secrets.md",
+  "docs\GLOBAL_AGENT_RULES.md",
+  "docs\restart_after_env_changes.md",
+  "ops\Test-AgentCoreEnvPolicy.ps1",
+  "automations\env-policy-audit.md",
   "registry\tool-registry.json",
   "registry\tool-registry.schema.json"
 )

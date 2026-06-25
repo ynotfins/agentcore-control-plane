@@ -11,7 +11,12 @@ This repository, `D:\MCP-Control-Plane`, is the single source of truth for MCP g
 - Patch `scripts/mcp_control_plane.py` first when generated outputs would otherwise drift.
 - Keep supervisor JSON, supervisor YAML, registry, renderers, and validators aligned.
 - Use deterministic validators before reporting completion.
+- AgentCore does not use `.env` files for secrets or local runtime configuration. Use Windows environment variables only.
 - Agents must read `AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` before persistent memory writes or database ingestion.
+
+## Environment Variable Policy
+
+AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
 
 ## Tool Routing
 
@@ -37,3 +42,4 @@ For `global-memory-gateway`, `arabold-docs`, `artiforge`, and `sequential-thinki
 - Vector store: `global_vector_memory_store` with pgvector `VECTOR(1536)`
 - Normal write path: `global-memory-gateway` tools only
 - Trusted direct SQL path: explicit ingest/admin runners approved by the control plane
+- Gateway runtime credentials: `AGENT_CORE_PGUSER=agent_ingest` and `AGENT_CORE_PGPASSWORD=${ENV:AGENT_CORE_AGENT_INGEST_PASSWORD}`

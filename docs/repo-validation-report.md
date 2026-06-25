@@ -1,7 +1,7 @@
-# Repo Validation Report
+﻿# Repo Validation Report
 
-Generated: 2026-06-25T00:59:36.4614872Z
-Root: `D:\MCP-Control-Plane`
+Generated: 2026-06-25T02:48:56.0411214Z
+Root: `D:\github\agentcore-control-plane`
 Overall: PASS
 
 - PASS - core governance files: missing=none

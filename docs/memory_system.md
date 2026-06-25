@@ -12,6 +12,10 @@ AgentCore memory is local-first.
 - Obsidian/local Markdown remain the long-form human-readable knowledge layer.
 - QMD/LCM-style local memory remains separate and must not bypass the gateway for global memory writes.
 
+## Environment Variable Policy
+
+AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
+
 ## Current Runtime Facts
 
 - Active database: `127.0.0.1:55432/agent_core`
