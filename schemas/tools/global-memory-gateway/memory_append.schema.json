@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "text": {
+      "type": "string"
+    },
+    "agent_id": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "text",
+    "agent_id",
+    "run_id"
+  ]
+}

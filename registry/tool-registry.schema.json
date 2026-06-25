@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "tools"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "canonical_id",
+          "lifecycle",
+          "criticality",
+          "transport",
+          "health"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "canonical_id": {
+            "type": "string"
+          },
+          "lifecycle": {
+            "enum": [
+              "active",
+              "quarantined",
+              "retired"
+            ]
+          },
+          "criticality": {
+            "enum": [
+              "critical",
+              "normal"
+            ]
+          },
+          "transport": {
+            "type": "string"
+          },
+          "health": {
+            "type": "string"
+          },
+          "fallback_policy": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

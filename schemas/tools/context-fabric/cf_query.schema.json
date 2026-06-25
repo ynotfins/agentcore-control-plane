@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "What context you need. Task description, component name, or question."
+    },
+    "budget_pct": {
+      "default": 0.08,
+      "description": "Fraction of model context window to use. Default: 0.08",
+      "type": "number",
+      "minimum": 0.01,
+      "maximum": 0.2
+    },
+    "model": {
+      "default": "default",
+      "description": "Model name for context size lookup. Default: 200K tokens.",
+      "type": "string",
+      "maxLength": 120
+    },
+    "include_drift": {
+      "default": true,
+      "description": "Check drift and inject warnings. Default: true.",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "query"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "required": [
+    "servers"
+  ],
+  "properties": {
+    "servers": {
+      "type": "object"
+    }
+  }
+}

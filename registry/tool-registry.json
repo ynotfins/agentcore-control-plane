@@ -1,0 +1,398 @@
+{
+  "schema_version": "2026-06-10",
+  "generated_at": "2026-06-25T00:55:52.515773+00:00",
+  "source": {
+    "supervisor": "D:\\MCP-Control-Plane\\supervisor\\servers.json",
+    "health": "D:\\MCP-Control-Plane\\artifacts\\probe-results.json"
+  },
+  "tools": [
+    {
+      "id": "arabold-docs",
+      "canonical_id": "arabold-docs",
+      "lifecycle": "active",
+      "criticality": "critical",
+      "transport": "stdio",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code",
+        "Open Interpreter"
+      ],
+      "capabilities": [
+        "current_docs",
+        "version_grounding",
+        "documentation_indexing"
+      ],
+      "env_expectations": [
+        "OPENAI_API_KEY"
+      ],
+      "health": "healthy",
+      "fallback_policy": "Only use a fallback when it preserves quality. If a critical primary fails and no high-quality equivalent exists, stop and notify the user.",
+      "render_by_default": true,
+      "notes": [
+        "Replaces Context7 in this control plane.",
+        "Vendored install is preferred on this Windows host to avoid npx cache ABI drift with native modules like better-sqlite3.",
+        "Embedded stdio mode is preferred for Cursor global config; the package can also expose HTTP/SSE on localhost:6280 when explicitly launched that way.",
+        "Semantic search quality improves when OPENAI_API_KEY is present, but the server still runs without storing any secrets in config files."
+      ]
+    },
+    {
+      "id": "artiforge",
+      "canonical_id": "artiforge",
+      "lifecycle": "active",
+      "criticality": "critical",
+      "transport": "http",
+      "client_bindings": [
+        "Codex",
+        "Cursor",
+        "OpenClaw",
+        "MiniMax Code",
+        "Open Interpreter"
+      ],
+      "capabilities": [
+        "codebase_scanning",
+        "architecture_analysis",
+        "refactor_strategy"
+      ],
+      "env_expectations": [
+        "ARTIFORGE_PAT"
+      ],
+      "health": "healthy",
+      "fallback_policy": "Only use a fallback when it preserves quality. If a critical primary fails and no high-quality equivalent exists, stop and notify the user.",
+      "render_by_default": true,
+      "notes": [
+        "High-leverage only; not for routine file edits.",
+        "Live working client shape is http + url https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}."
+      ]
+    },
+    {
+      "id": "context-fabric",
+      "canonical_id": "context-fabric",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw"
+      ],
+      "capabilities": [
+        "git_drift_tracking",
+        "commit_context_capture",
+        "agent_briefings"
+      ],
+      "env_expectations": [],
+      "health": "healthy",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "The published package exposes a CLI at `dist/cli.js` and the real MCP stdio server at `dist/index.js`; Cursor must target `dist/index.js` directly on Windows.",
+        "The requested Python package `context-fabric` may be installed separately, but the VIKAS9793 MCP server wiring uses the Node package `context-fabric`.",
+        "Run `context-fabric init` only inside a Git-managed target chosen by the active workspace/control-plane policy.",
+        "Do not create a new Git repository in global infrastructure directories just to satisfy init."
+      ]
+    },
+    {
+      "id": "cursor-agent-mcp",
+      "canonical_id": "cursor-agent-mcp",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "Cursor",
+        "OpenClaw"
+      ],
+      "capabilities": [
+        "cursor_agent_bridge"
+      ],
+      "env_expectations": [
+        "CURSOR_API_KEY",
+        "CURSOR_API_URL"
+      ],
+      "health": "not_probed",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "Matches the live Cursor/OpenClaw stdio entry; requires CURSOR_API_KEY from user/process environment."
+      ]
+    },
+    {
+      "id": "filesystem",
+      "canonical_id": "filesystem",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "capabilities": [
+        "file_read_write",
+        "approved_root_access"
+      ],
+      "env_expectations": [],
+      "health": "not_probed",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "Preserves the existing approved root list instead of collapsing to a relative ./workspace path.",
+        "Use native Cursor file tools for routine local work when available.",
+        "Includes active AgentCore NVMe root and cold archive root for local agent workflows."
+      ]
+    },
+    {
+      "id": "global-memory-gateway",
+      "canonical_id": "global-memory-gateway",
+      "lifecycle": "active",
+      "criticality": "critical",
+      "transport": "stdio",
+      "client_bindings": [
+        "Codex",
+        "Cursor",
+        "Open Interpreter",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "capabilities": [
+        "governed_memory",
+        "postgresql_vector_memory",
+        "append_only_contract",
+        "project_scoped_writes",
+        "global_reads"
+      ],
+      "env_expectations": [
+        "AGENT_CORE_PGDATABASE",
+        "AGENT_CORE_PGHOST",
+        "AGENT_CORE_PGPASSWORD",
+        "AGENT_CORE_PGPORT",
+        "AGENT_CORE_PGUSER",
+        "MEM0_DEFAULT_USER_ID",
+        "MEMORY_GATEWAY_BACKEND",
+        "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS",
+        "MEMORY_GATEWAY_EMBEDDING_PROVIDER",
+        "OPENAI_API_KEY",
+        "OPENAI_EMBEDDING_MODEL"
+      ],
+      "health": "healthy",
+      "fallback_policy": "Only use a fallback when it preserves quality. If a critical primary fails and no high-quality equivalent exists, stop and notify the user.",
+      "render_by_default": true,
+      "notes": [
+        "Primary memory path for normal agents. Stop if unavailable; do not fall back to raw Mem0 unless explicitly approved.",
+        "Backed by PostgreSQL agent_core on 127.0.0.1:55432 with pgvector VECTOR(1536).",
+        "Uses OpenAI text-embedding-3-small when OPENAI_API_KEY is available; local_hash_v1 is offline fallback only.",
+        "Normal agents use memory_append/search/state; trusted ingest/admin jobs are the only direct PostgreSQL writers."
+      ]
+    },
+    {
+      "id": "github-mcp",
+      "canonical_id": "github-mcp",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw"
+      ],
+      "capabilities": [
+        "github_repo_access",
+        "pull_request_automation",
+        "actions_intelligence"
+      ],
+      "env_expectations": [
+        "GITHUB_PERSONAL_ACCESS_TOKEN"
+      ],
+      "health": "not_probed",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "Uses the official GitHub-maintained Docker image because the legacy npm package is deprecated.",
+        "Keep the PAT in a Windows environment variable only; never write it into config or prompt inputs."
+      ]
+    },
+    {
+      "id": "mcp-debugger",
+      "canonical_id": "mcp-debugger",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw"
+      ],
+      "capabilities": [
+        "debug_sessions",
+        "breakpoints",
+        "stack_frame_inspection"
+      ],
+      "env_expectations": [],
+      "health": "not_probed",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "Use with Playwright or local runtimes when a failure needs runtime evidence instead of guesswork."
+      ]
+    },
+    {
+      "id": "mem0_mcp_server",
+      "canonical_id": "mem0_mcp_server",
+      "lifecycle": "quarantined",
+      "criticality": "normal",
+      "transport": "streamable-http",
+      "client_bindings": [
+        "Codex",
+        "Cursor",
+        "OpenClaw",
+        "Open Interpreter",
+        "MiniMax Code",
+        "Android Studio"
+      ],
+      "capabilities": [
+        "semantic_memory",
+        "cross_session_memory"
+      ],
+      "env_expectations": [
+        "MEM0_API_KEY",
+        "MEM0_DEFAULT_USER_ID"
+      ],
+      "health": "skipped",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": false,
+      "notes": [
+        "Raw Mem0 is not a normal-agent path. Use global-memory-gateway for governed memory."
+      ]
+    },
+    {
+      "id": "obsidian-vault",
+      "canonical_id": "obsidian-vault",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "capabilities": [
+        "vault_search",
+        "markdown_notes",
+        "architecture_handoffs"
+      ],
+      "env_expectations": [
+        "OBSIDIAN_API_KEY",
+        "OBSIDIAN_BASE_URL",
+        "OBSIDIAN_LOCAL_REST_API",
+        "OBSIDIAN_VERIFY_SSL"
+      ],
+      "health": "not_probed",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "Uses the local REST-backed wrapper already present on this Windows host.",
+        "The vault location is determined by the wrapper/runtime rather than hardcoding secrets or machine-specific tokens into config."
+      ]
+    },
+    {
+      "id": "playwright",
+      "canonical_id": "playwright",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "capabilities": [
+        "browser_automation",
+        "page_snapshots",
+        "ui_validation"
+      ],
+      "env_expectations": [],
+      "health": "not_probed",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "Uses the current official Microsoft package `@playwright/mcp@latest`.",
+        "The older `@playwright/mcp-server` naming in the request is stale."
+      ]
+    },
+    {
+      "id": "sequential-thinking",
+      "canonical_id": "sequential-thinking",
+      "lifecycle": "active",
+      "criticality": "critical",
+      "transport": "stdio",
+      "client_bindings": [
+        "Codex",
+        "Cursor",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "capabilities": [
+        "planning",
+        "strategy",
+        "debugging"
+      ],
+      "env_expectations": [
+        "DISABLE_THOUGHT_LOGGING"
+      ],
+      "health": "healthy",
+      "fallback_policy": "Only use a fallback when it preserves quality. If a critical primary fails and no high-quality equivalent exists, stop and notify the user.",
+      "render_by_default": true,
+      "notes": [
+        "Only reasoning/planning MCP. thinking-patterns remains retired."
+      ]
+    },
+    {
+      "id": "serena",
+      "canonical_id": "serena",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw"
+      ],
+      "capabilities": [
+        "symbol_navigation",
+        "precise_refactors",
+        "agent_handoffs"
+      ],
+      "env_expectations": [],
+      "health": "not_probed",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "Use Serena before broad cross-file edits or architecture-aware refactors."
+      ]
+    },
+    {
+      "id": "composio",
+      "canonical_id": "composio",
+      "lifecycle": "quarantined",
+      "criticality": "normal",
+      "transport": "streamable-http",
+      "client_bindings": [],
+      "capabilities": [
+        "connected_app_workflows"
+      ],
+      "env_expectations": [
+        "COMPOSIO_API_KEY"
+      ],
+      "health": "skipped",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": false,
+      "notes": [
+        "Quarantined by default because current runtime state is unstable. Do not render into clients until explicitly re-enabled."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2043 @@
+generated_at: "2026-06-25T00:55:42.460817+00:00"
+assets:
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    required: true
+    discovered: false
+    exists: true
+    is_file: true
+    parse_error: null
+    server_count: 12
+    servers:
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: "arabold-docs"
+        canonical: "arabold-docs"
+        transport: stdio
+        command: "C:\\Program Files\\nodejs\\node.exe"
+        url: null
+        args:
+          - "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+        env_keys_only:
+          - OPENAI_API_KEY
+        header_keys_only:
+          []
+        detected_auth:
+          - OPENAI_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: artiforge
+        canonical: artiforge
+        transport: "streamable-http"
+        command: null
+        url: "https://tools.artiforge.ai/mcp?pat=${REDACTED}"
+        args:
+          []
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: "context-fabric"
+        canonical: "context-fabric"
+        transport: stdio
+        command: "C:\\Program Files\\nodejs\\node.exe"
+        url: null
+        args:
+          - "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: "cursor-agent-mcp"
+        canonical: "cursor-agent-mcp"
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "cursor-agent-mcp@latest"
+        env_keys_only:
+          - CURSOR_API_KEY
+          - CURSOR_API_URL
+        header_keys_only:
+          []
+        detected_auth:
+          - CURSOR_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: filesystem
+        canonical: filesystem
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@modelcontextprotocol/server-filesystem"
+          - "C:\\Users\\ynotf"
+          - "D:\\Codex_Managed"
+          - "D:\\cursor_setup"
+          - "D:\\openclaw"
+          - "D:\\Obsidian"
+          - "F:\\AgentCore"
+          - "E:\\AgentCoreArchive"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: "global-memory-gateway"
+        canonical: "global-memory-gateway"
+        transport: stdio
+        command: "D:\\Codex_Managed\\.venv\\Scripts\\python.exe"
+        url: null
+        args:
+          - "-m"
+          - autonomy_factory.global_memory_gateway
+          - "--user-id"
+          - master_developer_profile
+        env_keys_only:
+          - AGENT_CORE_PGDATABASE
+          - AGENT_CORE_PGHOST
+          - AGENT_CORE_PGPORT
+          - AGENT_CORE_PGUSER
+          - MEM0_DEFAULT_USER_ID
+          - MEMORY_GATEWAY_BACKEND
+          - MEMORY_GATEWAY_EMBEDDING_DIMENSIONS
+          - MEMORY_GATEWAY_EMBEDDING_PROVIDER
+          - OPENAI_API_KEY
+          - OPENAI_EMBEDDING_MODEL
+        header_keys_only:
+          []
+        detected_auth:
+          - OPENAI_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: "github-mcp"
+        canonical: "github-mcp"
+        transport: stdio
+        command: docker
+        url: null
+        args:
+          - run
+          - "-i"
+          - "--rm"
+          - "-e"
+          - GITHUB_PERSONAL_ACCESS_TOKEN
+          - "ghcr.io/github/github-mcp-server"
+        env_keys_only:
+          - GITHUB_PERSONAL_ACCESS_TOKEN
+        header_keys_only:
+          []
+        detected_auth:
+          - GITHUB_PERSONAL_ACCESS_TOKEN
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: "mcp-debugger"
+        canonical: "mcp-debugger"
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@debugmcp/mcp-debugger@latest"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: "obsidian-vault"
+        canonical: "obsidian-vault"
+        transport: stdio
+        command: pwsh
+        url: null
+        args:
+          - "-NoProfile"
+          - "-NonInteractive"
+          - "-File"
+          - "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+        env_keys_only:
+          - OBSIDIAN_API_KEY
+          - OBSIDIAN_BASE_URL
+          - OBSIDIAN_LOCAL_REST_API
+          - OBSIDIAN_VERIFY_SSL
+        header_keys_only:
+          []
+        detected_auth:
+          - OBSIDIAN_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: playwright
+        canonical: playwright
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@playwright/mcp@latest"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: "sequential-thinking"
+        canonical: "sequential-thinking"
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@modelcontextprotocol/server-sequential-thinking"
+        env_keys_only:
+          - DISABLE_THOUGHT_LOGGING
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Cursor Global
+        file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+        server_name: serena
+        canonical: serena
+        transport: stdio
+        command: "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe"
+        url: null
+        args:
+          - "--from"
+          - "git+https://github.com/oraios/serena"
+          - serena
+          - "start-mcp-server"
+          - "--project-from-cwd"
+          - "--transport"
+          - stdio
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+  -
+    client: Cursor Project
+    file_path: "D:\\Codex_Managed\\.cursor\\mcp.json"
+    required: false
+    discovered: false
+    exists: false
+    is_file: false
+    parse_error: null
+    server_count: 0
+    servers:
+      []
+  -
+    client: Open Interpreter
+    file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json"
+    required: true
+    discovered: false
+    exists: true
+    is_file: true
+    parse_error: null
+    server_count: 3
+    servers:
+      -
+        client: Open Interpreter
+        file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json"
+        server_name: "arabold-docs"
+        canonical: "arabold-docs"
+        transport: stdio
+        command: "C:\\Program Files\\nodejs\\node.exe"
+        url: null
+        args:
+          - "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+        env_keys_only:
+          - OPENAI_API_KEY
+        header_keys_only:
+          []
+        detected_auth:
+          - OPENAI_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Open Interpreter
+        file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json"
+        server_name: artiforge
+        canonical: artiforge
+        transport: "streamable-http"
+        command: null
+        url: "https://tools.artiforge.ai/mcp?pat=${REDACTED}"
+        args:
+          []
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: Open Interpreter
+        file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json"
+        server_name: "global-memory-gateway"
+        canonical: "global-memory-gateway"
+        transport: stdio
+        command: "D:\\Codex_Managed\\.venv\\Scripts\\python.exe"
+        url: null
+        args:
+          - "-m"
+          - autonomy_factory.global_memory_gateway
+          - "--user-id"
+          - master_developer_profile
+        env_keys_only:
+          - AGENT_CORE_PGDATABASE
+          - AGENT_CORE_PGHOST
+          - AGENT_CORE_PGPORT
+          - AGENT_CORE_PGUSER
+          - MEM0_DEFAULT_USER_ID
+          - MEMORY_GATEWAY_BACKEND
+          - MEMORY_GATEWAY_EMBEDDING_DIMENSIONS
+          - MEMORY_GATEWAY_EMBEDDING_PROVIDER
+          - OPENAI_API_KEY
+          - OPENAI_EMBEDDING_MODEL
+        header_keys_only:
+          []
+        detected_auth:
+          - OPENAI_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+  -
+    client: MiniMax Code
+    file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+    required: true
+    discovered: false
+    exists: true
+    is_file: true
+    parse_error: null
+    server_count: 7
+    servers:
+      -
+        client: MiniMax Code
+        file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+        server_name: "arabold-docs"
+        canonical: "arabold-docs"
+        transport: stdio
+        command: "C:\\Program Files\\nodejs\\node.exe"
+        url: null
+        args:
+          - "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+        env_keys_only:
+          - OPENAI_API_KEY
+        header_keys_only:
+          []
+        detected_auth:
+          - OPENAI_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: MiniMax Code
+        file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+        server_name: artiforge
+        canonical: artiforge
+        transport: stdio
+        command: pwsh
+        url: null
+        args:
+          - "-NoProfile"
+          - "-ExecutionPolicy"
+          - Bypass
+          - "-File"
+          - "C:\\Users\\ynotf\\.codex\\mcp-wrappers\\artiforge-mcp.ps1"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: MiniMax Code
+        file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+        server_name: filesystem
+        canonical: filesystem
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@modelcontextprotocol/server-filesystem"
+          - "C:\\Users\\ynotf"
+          - "D:\\Codex_Managed"
+          - "D:\\cursor_setup"
+          - "D:\\openclaw"
+          - "D:\\Obsidian"
+          - "F:\\AgentCore"
+          - "E:\\AgentCoreArchive"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: MiniMax Code
+        file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+        server_name: "global-memory-gateway"
+        canonical: "global-memory-gateway"
+        transport: stdio
+        command: "D:\\Codex_Managed\\.venv\\Scripts\\python.exe"
+        url: null
+        args:
+          - "-m"
+          - autonomy_factory.global_memory_gateway
+          - "--user-id"
+          - master_developer_profile
+        env_keys_only:
+          - AGENT_CORE_PGDATABASE
+          - AGENT_CORE_PGHOST
+          - AGENT_CORE_PGPORT
+          - AGENT_CORE_PGUSER
+          - MEM0_DEFAULT_USER_ID
+          - MEMORY_GATEWAY_BACKEND
+          - MEMORY_GATEWAY_EMBEDDING_DIMENSIONS
+          - MEMORY_GATEWAY_EMBEDDING_PROVIDER
+          - OPENAI_API_KEY
+          - OPENAI_EMBEDDING_MODEL
+        header_keys_only:
+          []
+        detected_auth:
+          - OPENAI_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: MiniMax Code
+        file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+        server_name: "obsidian-vault"
+        canonical: "obsidian-vault"
+        transport: stdio
+        command: pwsh
+        url: null
+        args:
+          - "-NoProfile"
+          - "-NonInteractive"
+          - "-File"
+          - "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+        env_keys_only:
+          - OBSIDIAN_API_KEY
+          - OBSIDIAN_BASE_URL
+          - OBSIDIAN_LOCAL_REST_API
+          - OBSIDIAN_VERIFY_SSL
+        header_keys_only:
+          []
+        detected_auth:
+          - OBSIDIAN_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: MiniMax Code
+        file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+        server_name: playwright
+        canonical: playwright
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@playwright/mcp@latest"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: MiniMax Code
+        file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+        server_name: "sequential-thinking"
+        canonical: "sequential-thinking"
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@modelcontextprotocol/server-sequential-thinking"
+        env_keys_only:
+          - DISABLE_THOUGHT_LOGGING
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    required: true
+    discovered: false
+    exists: true
+    is_file: true
+    parse_error: null
+    server_count: 12
+    servers:
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: "arabold-docs"
+        canonical: "arabold-docs"
+        transport: stdio
+        command: "C:\\Program Files\\nodejs\\node.exe"
+        url: null
+        args:
+          - "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+        env_keys_only:
+          - OPENAI_API_KEY
+        header_keys_only:
+          []
+        detected_auth:
+          - OPENAI_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: artiforge
+        canonical: artiforge
+        transport: "streamable-http"
+        command: null
+        url: "https://tools.artiforge.ai/mcp?pat=${REDACTED}"
+        args:
+          []
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: "context-fabric"
+        canonical: "context-fabric"
+        transport: stdio
+        command: "C:\\Program Files\\nodejs\\node.exe"
+        url: null
+        args:
+          - "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: "cursor-agent-mcp"
+        canonical: "cursor-agent-mcp"
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "cursor-agent-mcp@latest"
+        env_keys_only:
+          - CURSOR_API_KEY
+          - CURSOR_API_URL
+        header_keys_only:
+          []
+        detected_auth:
+          - CURSOR_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: filesystem
+        canonical: filesystem
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@modelcontextprotocol/server-filesystem"
+          - "C:\\Users\\ynotf"
+          - "D:\\Codex_Managed"
+          - "D:\\cursor_setup"
+          - "D:\\openclaw"
+          - "D:\\Obsidian"
+          - "F:\\AgentCore"
+          - "E:\\AgentCoreArchive"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: "global-memory-gateway"
+        canonical: "global-memory-gateway"
+        transport: stdio
+        command: "D:\\Codex_Managed\\.venv\\Scripts\\python.exe"
+        url: null
+        args:
+          - "-m"
+          - autonomy_factory.global_memory_gateway
+          - "--user-id"
+          - master_developer_profile
+        env_keys_only:
+          - AGENT_CORE_PGDATABASE
+          - AGENT_CORE_PGHOST
+          - AGENT_CORE_PGPORT
+          - AGENT_CORE_PGUSER
+          - MEM0_DEFAULT_USER_ID
+          - MEMORY_GATEWAY_BACKEND
+          - MEMORY_GATEWAY_EMBEDDING_DIMENSIONS
+          - MEMORY_GATEWAY_EMBEDDING_PROVIDER
+          - OPENAI_API_KEY
+          - OPENAI_EMBEDDING_MODEL
+        header_keys_only:
+          []
+        detected_auth:
+          - OPENAI_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: "github-mcp"
+        canonical: "github-mcp"
+        transport: stdio
+        command: docker
+        url: null
+        args:
+          - run
+          - "-i"
+          - "--rm"
+          - "-e"
+          - GITHUB_PERSONAL_ACCESS_TOKEN
+          - "ghcr.io/github/github-mcp-server"
+        env_keys_only:
+          - GITHUB_PERSONAL_ACCESS_TOKEN
+        header_keys_only:
+          []
+        detected_auth:
+          - GITHUB_PERSONAL_ACCESS_TOKEN
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: "mcp-debugger"
+        canonical: "mcp-debugger"
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@debugmcp/mcp-debugger@latest"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: "obsidian-vault"
+        canonical: "obsidian-vault"
+        transport: stdio
+        command: pwsh
+        url: null
+        args:
+          - "-NoProfile"
+          - "-NonInteractive"
+          - "-File"
+          - "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+        env_keys_only:
+          - OBSIDIAN_API_KEY
+          - OBSIDIAN_BASE_URL
+          - OBSIDIAN_LOCAL_REST_API
+          - OBSIDIAN_VERIFY_SSL
+        header_keys_only:
+          []
+        detected_auth:
+          - OBSIDIAN_API_KEY
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: playwright
+        canonical: playwright
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@playwright/mcp@latest"
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: "sequential-thinking"
+        canonical: "sequential-thinking"
+        transport: stdio
+        command: npx.cmd
+        url: null
+        args:
+          - "-y"
+          - "@modelcontextprotocol/server-sequential-thinking"
+        env_keys_only:
+          - DISABLE_THOUGHT_LOGGING
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: critical
+        health: probe_pending
+        notes:
+          []
+      -
+        client: OpenClaw
+        file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+        server_name: serena
+        canonical: serena
+        transport: stdio
+        command: "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe"
+        url: null
+        args:
+          - "--from"
+          - "git+https://github.com/oraios/serena"
+          - serena
+          - "start-mcp-server"
+          - "--project-from-cwd"
+          - "--transport"
+          - stdio
+        env_keys_only:
+          []
+        header_keys_only:
+          []
+        detected_auth:
+          []
+        expected_capabilities:
+          - tools
+          - resources
+          - prompts
+        ownership: "local-user"
+        criticality: normal
+        health: probe_pending
+        notes:
+          []
+  -
+    client: Android Studio Config Dir
+    file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\Google\\AndroidStudio2025.1.2\\options\\mcp.json"
+    required: false
+    discovered: true
+    exists: false
+    is_file: false
+    parse_error: null
+    server_count: 0
+    servers:
+      []
+  -
+    client: Android Studio Config Dir
+    file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\Google\\AndroidStudio2025.2.2\\options\\mcp.json"
+    required: false
+    discovered: true
+    exists: false
+    is_file: false
+    parse_error: null
+    server_count: 0
+    servers:
+      []
+  -
+    client: Android Studio Config Dir
+    file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\Google\\AndroidStudio2025.3.4\\options\\mcp.json"
+    required: false
+    discovered: true
+    exists: false
+    is_file: false
+    parse_error: null
+    server_count: 0
+    servers:
+      []
+servers:
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: "arabold-docs"
+    canonical: "arabold-docs"
+    transport: stdio
+    command: "C:\\Program Files\\nodejs\\node.exe"
+    url: null
+    args:
+      - "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+    env_keys_only:
+      - OPENAI_API_KEY
+    header_keys_only:
+      []
+    detected_auth:
+      - OPENAI_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: artiforge
+    canonical: artiforge
+    transport: "streamable-http"
+    command: null
+    url: "https://tools.artiforge.ai/mcp?pat=${REDACTED}"
+    args:
+      []
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: "context-fabric"
+    canonical: "context-fabric"
+    transport: stdio
+    command: "C:\\Program Files\\nodejs\\node.exe"
+    url: null
+    args:
+      - "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: "cursor-agent-mcp"
+    canonical: "cursor-agent-mcp"
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "cursor-agent-mcp@latest"
+    env_keys_only:
+      - CURSOR_API_KEY
+      - CURSOR_API_URL
+    header_keys_only:
+      []
+    detected_auth:
+      - CURSOR_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: filesystem
+    canonical: filesystem
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "C:\\Users\\ynotf"
+      - "D:\\Codex_Managed"
+      - "D:\\cursor_setup"
+      - "D:\\openclaw"
+      - "D:\\Obsidian"
+      - "F:\\AgentCore"
+      - "E:\\AgentCoreArchive"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: "global-memory-gateway"
+    canonical: "global-memory-gateway"
+    transport: stdio
+    command: "D:\\Codex_Managed\\.venv\\Scripts\\python.exe"
+    url: null
+    args:
+      - "-m"
+      - autonomy_factory.global_memory_gateway
+      - "--user-id"
+      - master_developer_profile
+    env_keys_only:
+      - AGENT_CORE_PGDATABASE
+      - AGENT_CORE_PGHOST
+      - AGENT_CORE_PGPORT
+      - AGENT_CORE_PGUSER
+      - MEM0_DEFAULT_USER_ID
+      - MEMORY_GATEWAY_BACKEND
+      - MEMORY_GATEWAY_EMBEDDING_DIMENSIONS
+      - MEMORY_GATEWAY_EMBEDDING_PROVIDER
+      - OPENAI_API_KEY
+      - OPENAI_EMBEDDING_MODEL
+    header_keys_only:
+      []
+    detected_auth:
+      - OPENAI_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: "github-mcp"
+    canonical: "github-mcp"
+    transport: stdio
+    command: docker
+    url: null
+    args:
+      - run
+      - "-i"
+      - "--rm"
+      - "-e"
+      - GITHUB_PERSONAL_ACCESS_TOKEN
+      - "ghcr.io/github/github-mcp-server"
+    env_keys_only:
+      - GITHUB_PERSONAL_ACCESS_TOKEN
+    header_keys_only:
+      []
+    detected_auth:
+      - GITHUB_PERSONAL_ACCESS_TOKEN
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: "mcp-debugger"
+    canonical: "mcp-debugger"
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@debugmcp/mcp-debugger@latest"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: "obsidian-vault"
+    canonical: "obsidian-vault"
+    transport: stdio
+    command: pwsh
+    url: null
+    args:
+      - "-NoProfile"
+      - "-NonInteractive"
+      - "-File"
+      - "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+    env_keys_only:
+      - OBSIDIAN_API_KEY
+      - OBSIDIAN_BASE_URL
+      - OBSIDIAN_LOCAL_REST_API
+      - OBSIDIAN_VERIFY_SSL
+    header_keys_only:
+      []
+    detected_auth:
+      - OBSIDIAN_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: playwright
+    canonical: playwright
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@playwright/mcp@latest"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: "sequential-thinking"
+    canonical: "sequential-thinking"
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-sequential-thinking"
+    env_keys_only:
+      - DISABLE_THOUGHT_LOGGING
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Cursor Global
+    file_path: "C:\\Users\\ynotf\\.cursor\\mcp.json"
+    server_name: serena
+    canonical: serena
+    transport: stdio
+    command: "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe"
+    url: null
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - serena
+      - "start-mcp-server"
+      - "--project-from-cwd"
+      - "--transport"
+      - stdio
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Open Interpreter
+    file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json"
+    server_name: "arabold-docs"
+    canonical: "arabold-docs"
+    transport: stdio
+    command: "C:\\Program Files\\nodejs\\node.exe"
+    url: null
+    args:
+      - "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+    env_keys_only:
+      - OPENAI_API_KEY
+    header_keys_only:
+      []
+    detected_auth:
+      - OPENAI_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Open Interpreter
+    file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json"
+    server_name: artiforge
+    canonical: artiforge
+    transport: "streamable-http"
+    command: null
+    url: "https://tools.artiforge.ai/mcp?pat=${REDACTED}"
+    args:
+      []
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: Open Interpreter
+    file_path: "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json"
+    server_name: "global-memory-gateway"
+    canonical: "global-memory-gateway"
+    transport: stdio
+    command: "D:\\Codex_Managed\\.venv\\Scripts\\python.exe"
+    url: null
+    args:
+      - "-m"
+      - autonomy_factory.global_memory_gateway
+      - "--user-id"
+      - master_developer_profile
+    env_keys_only:
+      - AGENT_CORE_PGDATABASE
+      - AGENT_CORE_PGHOST
+      - AGENT_CORE_PGPORT
+      - AGENT_CORE_PGUSER
+      - MEM0_DEFAULT_USER_ID
+      - MEMORY_GATEWAY_BACKEND
+      - MEMORY_GATEWAY_EMBEDDING_DIMENSIONS
+      - MEMORY_GATEWAY_EMBEDDING_PROVIDER
+      - OPENAI_API_KEY
+      - OPENAI_EMBEDDING_MODEL
+    header_keys_only:
+      []
+    detected_auth:
+      - OPENAI_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: MiniMax Code
+    file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+    server_name: "arabold-docs"
+    canonical: "arabold-docs"
+    transport: stdio
+    command: "C:\\Program Files\\nodejs\\node.exe"
+    url: null
+    args:
+      - "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+    env_keys_only:
+      - OPENAI_API_KEY
+    header_keys_only:
+      []
+    detected_auth:
+      - OPENAI_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: MiniMax Code
+    file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+    server_name: artiforge
+    canonical: artiforge
+    transport: stdio
+    command: pwsh
+    url: null
+    args:
+      - "-NoProfile"
+      - "-ExecutionPolicy"
+      - Bypass
+      - "-File"
+      - "C:\\Users\\ynotf\\.codex\\mcp-wrappers\\artiforge-mcp.ps1"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: MiniMax Code
+    file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+    server_name: filesystem
+    canonical: filesystem
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "C:\\Users\\ynotf"
+      - "D:\\Codex_Managed"
+      - "D:\\cursor_setup"
+      - "D:\\openclaw"
+      - "D:\\Obsidian"
+      - "F:\\AgentCore"
+      - "E:\\AgentCoreArchive"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: MiniMax Code
+    file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+    server_name: "global-memory-gateway"
+    canonical: "global-memory-gateway"
+    transport: stdio
+    command: "D:\\Codex_Managed\\.venv\\Scripts\\python.exe"
+    url: null
+    args:
+      - "-m"
+      - autonomy_factory.global_memory_gateway
+      - "--user-id"
+      - master_developer_profile
+    env_keys_only:
+      - AGENT_CORE_PGDATABASE
+      - AGENT_CORE_PGHOST
+      - AGENT_CORE_PGPORT
+      - AGENT_CORE_PGUSER
+      - MEM0_DEFAULT_USER_ID
+      - MEMORY_GATEWAY_BACKEND
+      - MEMORY_GATEWAY_EMBEDDING_DIMENSIONS
+      - MEMORY_GATEWAY_EMBEDDING_PROVIDER
+      - OPENAI_API_KEY
+      - OPENAI_EMBEDDING_MODEL
+    header_keys_only:
+      []
+    detected_auth:
+      - OPENAI_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: MiniMax Code
+    file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+    server_name: "obsidian-vault"
+    canonical: "obsidian-vault"
+    transport: stdio
+    command: pwsh
+    url: null
+    args:
+      - "-NoProfile"
+      - "-NonInteractive"
+      - "-File"
+      - "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+    env_keys_only:
+      - OBSIDIAN_API_KEY
+      - OBSIDIAN_BASE_URL
+      - OBSIDIAN_LOCAL_REST_API
+      - OBSIDIAN_VERIFY_SSL
+    header_keys_only:
+      []
+    detected_auth:
+      - OBSIDIAN_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: MiniMax Code
+    file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+    server_name: playwright
+    canonical: playwright
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@playwright/mcp@latest"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: MiniMax Code
+    file_path: "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json"
+    server_name: "sequential-thinking"
+    canonical: "sequential-thinking"
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-sequential-thinking"
+    env_keys_only:
+      - DISABLE_THOUGHT_LOGGING
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: "arabold-docs"
+    canonical: "arabold-docs"
+    transport: stdio
+    command: "C:\\Program Files\\nodejs\\node.exe"
+    url: null
+    args:
+      - "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+    env_keys_only:
+      - OPENAI_API_KEY
+    header_keys_only:
+      []
+    detected_auth:
+      - OPENAI_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: artiforge
+    canonical: artiforge
+    transport: "streamable-http"
+    command: null
+    url: "https://tools.artiforge.ai/mcp?pat=${REDACTED}"
+    args:
+      []
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: "context-fabric"
+    canonical: "context-fabric"
+    transport: stdio
+    command: "C:\\Program Files\\nodejs\\node.exe"
+    url: null
+    args:
+      - "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: "cursor-agent-mcp"
+    canonical: "cursor-agent-mcp"
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "cursor-agent-mcp@latest"
+    env_keys_only:
+      - CURSOR_API_KEY
+      - CURSOR_API_URL
+    header_keys_only:
+      []
+    detected_auth:
+      - CURSOR_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: filesystem
+    canonical: filesystem
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "C:\\Users\\ynotf"
+      - "D:\\Codex_Managed"
+      - "D:\\cursor_setup"
+      - "D:\\openclaw"
+      - "D:\\Obsidian"
+      - "F:\\AgentCore"
+      - "E:\\AgentCoreArchive"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: "global-memory-gateway"
+    canonical: "global-memory-gateway"
+    transport: stdio
+    command: "D:\\Codex_Managed\\.venv\\Scripts\\python.exe"
+    url: null
+    args:
+      - "-m"
+      - autonomy_factory.global_memory_gateway
+      - "--user-id"
+      - master_developer_profile
+    env_keys_only:
+      - AGENT_CORE_PGDATABASE
+      - AGENT_CORE_PGHOST
+      - AGENT_CORE_PGPORT
+      - AGENT_CORE_PGUSER
+      - MEM0_DEFAULT_USER_ID
+      - MEMORY_GATEWAY_BACKEND
+      - MEMORY_GATEWAY_EMBEDDING_DIMENSIONS
+      - MEMORY_GATEWAY_EMBEDDING_PROVIDER
+      - OPENAI_API_KEY
+      - OPENAI_EMBEDDING_MODEL
+    header_keys_only:
+      []
+    detected_auth:
+      - OPENAI_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: "github-mcp"
+    canonical: "github-mcp"
+    transport: stdio
+    command: docker
+    url: null
+    args:
+      - run
+      - "-i"
+      - "--rm"
+      - "-e"
+      - GITHUB_PERSONAL_ACCESS_TOKEN
+      - "ghcr.io/github/github-mcp-server"
+    env_keys_only:
+      - GITHUB_PERSONAL_ACCESS_TOKEN
+    header_keys_only:
+      []
+    detected_auth:
+      - GITHUB_PERSONAL_ACCESS_TOKEN
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: "mcp-debugger"
+    canonical: "mcp-debugger"
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@debugmcp/mcp-debugger@latest"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: "obsidian-vault"
+    canonical: "obsidian-vault"
+    transport: stdio
+    command: pwsh
+    url: null
+    args:
+      - "-NoProfile"
+      - "-NonInteractive"
+      - "-File"
+      - "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+    env_keys_only:
+      - OBSIDIAN_API_KEY
+      - OBSIDIAN_BASE_URL
+      - OBSIDIAN_LOCAL_REST_API
+      - OBSIDIAN_VERIFY_SSL
+    header_keys_only:
+      []
+    detected_auth:
+      - OBSIDIAN_API_KEY
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: playwright
+    canonical: playwright
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@playwright/mcp@latest"
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: "sequential-thinking"
+    canonical: "sequential-thinking"
+    transport: stdio
+    command: npx.cmd
+    url: null
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-sequential-thinking"
+    env_keys_only:
+      - DISABLE_THOUGHT_LOGGING
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: critical
+    health: probe_pending
+    notes:
+      []
+  -
+    client: OpenClaw
+    file_path: "C:\\Users\\ynotf\\.openclaw\\openclaw.json"
+    server_name: serena
+    canonical: serena
+    transport: stdio
+    command: "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe"
+    url: null
+    args:
+      - "--from"
+      - "git+https://github.com/oraios/serena"
+      - serena
+      - "start-mcp-server"
+      - "--project-from-cwd"
+      - "--transport"
+      - stdio
+    env_keys_only:
+      []
+    header_keys_only:
+      []
+    detected_auth:
+      []
+    expected_capabilities:
+      - tools
+      - resources
+      - prompts
+    ownership: "local-user"
+    criticality: normal
+    health: probe_pending
+    notes:
+      []

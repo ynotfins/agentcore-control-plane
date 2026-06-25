@@ -1,0 +1,115 @@
+{
+  "schema_version": "2026-06-21",
+  "authority": "D:\\MCP-Control-Plane",
+  "contract_id": "mcp-control-plane.global-memory.v1",
+  "database": {
+    "engine": "postgresql",
+    "version": "16.6",
+    "host": "127.0.0.1",
+    "port": 55432,
+    "database": "agent_core",
+    "cluster_directory": "F:\\AgentCore\\database_cluster",
+    "engine_directory": "F:\\AgentCore\\postgres_runtime_engine\\pgsql",
+    "archive_directory": "E:\\AgentCoreArchive",
+    "extensions": {
+      "vector": "0.8.2",
+      "pgcrypto": "required"
+    }
+  },
+  "vector_store": {
+    "table": "global_vector_memory_store",
+    "dimensions": 1536,
+    "index": "hnsw",
+    "distance": "cosine",
+    "embedding_contract": {
+      "default_provider": "auto",
+      "preferred_provider": "openai_text_embedding_3_small",
+      "preferred_model": "text-embedding-3-small",
+      "fallback_provider": "local_hash_v1",
+      "status": "openai_when_key_available_local_fallback",
+      "upgrade_path": "replace provider behind the governed gateway without changing agent tool contracts"
+    }
+  },
+  "telemetry": {
+    "table": "agent_cross_project_telemetry"
+  },
+  "workspace_roots": {
+    "cursor": "F:\\AgentCore\\agents_workspace\\Cursor",
+    "autonomy": "F:\\AgentCore\\agents_workspace\\Autonomy",
+    "codex": "F:\\AgentCore\\agents_workspace\\Codex",
+    "openclaw": "F:\\AgentCore\\agents_workspace\\OpenClaw",
+    "minimax": "F:\\AgentCore\\agents_workspace\\MiniMax",
+    "android_studio": "F:\\AgentCore\\agents_workspace\\AndroidStudio"
+  },
+  "write_classes": {
+    "normal_agent": {
+      "description": "Default class for IDE agents and project agents.",
+      "allowed_path": "global-memory-gateway MCP tools",
+      "direct_postgres": false,
+      "required_tools": [
+        "memory_append",
+        "memory_search",
+        "memory_state"
+      ]
+    },
+    "trusted_ingest": {
+      "description": "Temporary class for controlled ingestion of system inventory and investigation artifacts.",
+      "allowed_path": "control-plane-approved ingestion runner",
+      "direct_postgres": true,
+      "approved_callers": [
+        "D:\\Autonomy\\scripts\\ingest_agent_core_memory.py",
+        "D:\\Codex_Managed\\src\\autonomy_factory\\global_memory_gateway.py"
+      ]
+    },
+    "admin_migration": {
+      "description": "Schema/bootstrap/maintenance operations only.",
+      "direct_postgres": true,
+      "requires_explicit_operator_intent": true
+    }
+  },
+  "secret_policy": {
+    "store_raw_secrets": false,
+    "allowed_secret_metadata": [
+      "secret_ref",
+      "provider",
+      "scope",
+      "present",
+      "length",
+      "fingerprint_prefix",
+      "rotation_status"
+    ],
+    "forbidden": [
+      "api keys",
+      "bearer tokens",
+      "passwords",
+      "private keys",
+      "refresh tokens",
+      "session cookies",
+      "connection strings with credentials"
+    ]
+  },
+  "required_metadata": [
+    "user_id",
+    "app_id",
+    "agent_id",
+    "run_id",
+    "platform",
+    "associated_project_path",
+    "document_source",
+    "source_kind",
+    "storage_contract"
+  ],
+  "autonomy_ingest": {
+    "workspace_root": "F:\\AgentCore\\agents_workspace\\Cursor",
+    "source_project": "D:\\Autonomy",
+    "purpose": "Ingest IDE settings, MCP inventories, drift findings, probes, and configuration reports for centralized analysis.",
+    "default_source_kinds": [
+      "ide_config_inventory",
+      "mcp_config_inventory",
+      "drift_report",
+      "probe_result",
+      "system_topology",
+      "runbook"
+    ]
+  }
+}

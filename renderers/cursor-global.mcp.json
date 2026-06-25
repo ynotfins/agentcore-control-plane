@@ -1,0 +1,146 @@
+{
+  "mcpServers": {
+    "arabold-docs": {
+      "type": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+      ],
+      "env": {
+        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
+      }
+    },
+    "artiforge": {
+      "type": "http",
+      "url": "https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}"
+    },
+    "context-fabric": {
+      "type": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+      ]
+    },
+    "cursor-agent-mcp": {
+      "type": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "cursor-agent-mcp@latest"
+      ],
+      "env": {
+        "CURSOR_API_KEY": "${env:CURSOR_API_KEY}",
+        "CURSOR_API_URL": "https://api.cursor.com"
+      }
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\ynotf",
+        "D:\\Codex_Managed",
+        "D:\\cursor_setup",
+        "D:\\openclaw",
+        "D:\\Obsidian",
+        "F:\\AgentCore",
+        "E:\\AgentCoreArchive"
+      ]
+    },
+    "global-memory-gateway": {
+      "type": "stdio",
+      "command": "D:\\Codex_Managed\\.venv\\Scripts\\python.exe",
+      "args": [
+        "-m",
+        "autonomy_factory.global_memory_gateway",
+        "--user-id",
+        "master_developer_profile"
+      ],
+      "env": {
+        "MEM0_DEFAULT_USER_ID": "master_developer_profile",
+        "MEMORY_GATEWAY_BACKEND": "postgres",
+        "AGENT_CORE_PGHOST": "127.0.0.1",
+        "AGENT_CORE_PGPORT": "55432",
+        "AGENT_CORE_PGDATABASE": "agent_core",
+        "AGENT_CORE_PGUSER": "agent_ingest",
+        "AGENT_CORE_PGPASSWORD": "${env:AGENT_CORE_AGENT_INGEST_PASSWORD}",
+        "MEMORY_GATEWAY_EMBEDDING_PROVIDER": "auto",
+        "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
+        "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS": "1536",
+        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
+      }
+    },
+    "github-mcp": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "mcp-debugger": {
+      "type": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@debugmcp/mcp-debugger@latest"
+      ]
+    },
+    "obsidian-vault": {
+      "type": "stdio",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+      ],
+      "env": {
+        "OBSIDIAN_API_KEY": "${env:OBSIDIAN_API_KEY}",
+        "OBSIDIAN_LOCAL_REST_API": "${env:OBSIDIAN_LOCAL_REST_API}",
+        "OBSIDIAN_BASE_URL": "https://127.0.0.1:27124",
+        "OBSIDIAN_VERIFY_SSL": "false"
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      }
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--project-from-cwd",
+        "--transport",
+        "stdio"
+      ]
+    }
+  }
+}

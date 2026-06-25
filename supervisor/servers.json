@@ -1,0 +1,543 @@
+{
+  "schema_version": "2026-06-16",
+  "generated_at": "2026-06-25T00:55:42.466427+00:00",
+  "system_id": "CHAOSCENTRAL",
+  "global_identity": {
+    "user_id": "master_developer_profile",
+    "primary_username": "ynotf"
+  },
+  "fallback_policy": {
+    "critical_tools": [
+      "global-memory-gateway",
+      "arabold-docs",
+      "artiforge",
+      "sequential-thinking"
+    ],
+    "rule": "Only use a fallback when it preserves quality. If a critical primary fails and no high-quality equivalent exists, stop and notify the user."
+  },
+  "servers": {
+    "arabold-docs": {
+      "canonical_id": "arabold-docs",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code",
+        "Open Interpreter"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+        ]
+      },
+      "env_expectations": {
+        "OPENAI_API_KEY": "${ENV:OPENAI_API_KEY}"
+      },
+      "healthcheck": {
+        "kind": "mcp_stdio",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+        ]
+      },
+      "criticality": "critical",
+      "lifecycle": "active",
+      "capabilities": [
+        "current_docs",
+        "version_grounding",
+        "documentation_indexing"
+      ],
+      "notes": [
+        "Replaces Context7 in this control plane.",
+        "Vendored install is preferred on this Windows host to avoid npx cache ABI drift with native modules like better-sqlite3.",
+        "Embedded stdio mode is preferred for Cursor global config; the package can also expose HTTP/SSE on localhost:6280 when explicitly launched that way.",
+        "Semantic search quality improves when OPENAI_API_KEY is present, but the server still runs without storing any secrets in config files."
+      ]
+    },
+    "artiforge": {
+      "canonical_id": "artiforge",
+      "client_bindings": [
+        "Codex",
+        "Cursor",
+        "OpenClaw",
+        "MiniMax Code",
+        "Open Interpreter"
+      ],
+      "transport": "http",
+      "launch_contract": {
+        "url": "https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}"
+      },
+      "env_expectations": {
+        "ARTIFORGE_PAT": "${ENV:ARTIFORGE_PAT}"
+      },
+      "healthcheck": {
+        "kind": "http_reachable",
+        "url": "https://tools.artiforge.ai/mcp"
+      },
+      "criticality": "critical",
+      "lifecycle": "active",
+      "capabilities": [
+        "codebase_scanning",
+        "architecture_analysis",
+        "refactor_strategy"
+      ],
+      "notes": [
+        "High-leverage only; not for routine file edits.",
+        "Live working client shape is http + url https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}."
+      ]
+    },
+    "context-fabric": {
+      "canonical_id": "context-fabric",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+        ]
+      },
+      "healthcheck": {
+        "kind": "mcp_stdio",
+        "command": "C:\\Program Files\\nodejs\\node.exe",
+        "args": [
+          "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+        ]
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "capabilities": [
+        "git_drift_tracking",
+        "commit_context_capture",
+        "agent_briefings"
+      ],
+      "notes": [
+        "The published package exposes a CLI at `dist/cli.js` and the real MCP stdio server at `dist/index.js`; Cursor must target `dist/index.js` directly on Windows.",
+        "The requested Python package `context-fabric` may be installed separately, but the VIKAS9793 MCP server wiring uses the Node package `context-fabric`.",
+        "Run `context-fabric init` only inside a Git-managed target chosen by the active workspace/control-plane policy.",
+        "Do not create a new Git repository in global infrastructure directories just to satisfy init."
+      ]
+    },
+    "cursor-agent-mcp": {
+      "canonical_id": "cursor-agent-mcp",
+      "client_bindings": [
+        "Cursor",
+        "OpenClaw"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "cursor-agent-mcp@latest"
+        ]
+      },
+      "env_expectations": {
+        "CURSOR_API_KEY": "${ENV:CURSOR_API_KEY}",
+        "CURSOR_API_URL": "https://api.cursor.com"
+      },
+      "healthcheck": {
+        "kind": "mcp_stdio",
+        "methods": [
+          "initialize",
+          "tools/list"
+        ]
+      },
+      "capabilities": [
+        "cursor_agent_bridge"
+      ],
+      "criticality": "normal",
+      "lifecycle": "active",
+      "notes": [
+        "Matches the live Cursor/OpenClaw stdio entry; requires CURSOR_API_KEY from user/process environment."
+      ]
+    },
+    "filesystem": {
+      "canonical_id": "filesystem",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "C:\\Users\\ynotf",
+          "D:\\Codex_Managed",
+          "D:\\cursor_setup",
+          "D:\\openclaw",
+          "D:\\Obsidian",
+          "F:\\AgentCore",
+          "E:\\AgentCoreArchive"
+        ]
+      },
+      "healthcheck": {
+        "kind": "mcp_stdio",
+        "methods": [
+          "initialize",
+          "tools/list"
+        ]
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "capabilities": [
+        "file_read_write",
+        "approved_root_access"
+      ],
+      "notes": [
+        "Preserves the existing approved root list instead of collapsing to a relative ./workspace path.",
+        "Use native Cursor file tools for routine local work when available.",
+        "Includes active AgentCore NVMe root and cold archive root for local agent workflows."
+      ]
+    },
+    "global-memory-gateway": {
+      "canonical_id": "global-memory-gateway",
+      "client_bindings": [
+        "Codex",
+        "Cursor",
+        "Open Interpreter",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "D:\\Codex_Managed\\.venv\\Scripts\\python.exe",
+        "args": [
+          "-m",
+          "autonomy_factory.global_memory_gateway",
+          "--user-id",
+          "master_developer_profile"
+        ],
+        "working_dir": "D:\\Codex_Managed"
+      },
+      "env_expectations": {
+        "MEM0_DEFAULT_USER_ID": "master_developer_profile",
+        "MEMORY_GATEWAY_BACKEND": "postgres",
+        "AGENT_CORE_PGHOST": "127.0.0.1",
+        "AGENT_CORE_PGPORT": "55432",
+        "AGENT_CORE_PGDATABASE": "agent_core",
+        "AGENT_CORE_PGUSER": "agent_ingest",
+        "AGENT_CORE_PGPASSWORD": "${ENV:AGENT_CORE_AGENT_INGEST_PASSWORD}",
+        "MEMORY_GATEWAY_EMBEDDING_PROVIDER": "auto",
+        "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
+        "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS": "1536",
+        "OPENAI_API_KEY": "${ENV:OPENAI_API_KEY}"
+      },
+      "healthcheck": {
+        "kind": "mcp_stdio",
+        "methods": [
+          "initialize",
+          "tools/list"
+        ]
+      },
+      "capabilities": [
+        "governed_memory",
+        "postgresql_vector_memory",
+        "append_only_contract",
+        "project_scoped_writes",
+        "global_reads"
+      ],
+      "criticality": "critical",
+      "lifecycle": "active",
+      "notes": [
+        "Primary memory path for normal agents. Stop if unavailable; do not fall back to raw Mem0 unless explicitly approved.",
+        "Backed by PostgreSQL agent_core on 127.0.0.1:55432 with pgvector VECTOR(1536).",
+        "Uses OpenAI text-embedding-3-small when OPENAI_API_KEY is available; local_hash_v1 is offline fallback only.",
+        "Normal agents use memory_append/search/state; trusted ingest/admin jobs are the only direct PostgreSQL writers."
+      ]
+    },
+    "github-mcp": {
+      "canonical_id": "github-mcp",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "docker",
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "GITHUB_PERSONAL_ACCESS_TOKEN",
+          "ghcr.io/github/github-mcp-server"
+        ]
+      },
+      "env_expectations": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${ENV:GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "healthcheck": {
+        "kind": "docker_image_available",
+        "image": "ghcr.io/github/github-mcp-server"
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "capabilities": [
+        "github_repo_access",
+        "pull_request_automation",
+        "actions_intelligence"
+      ],
+      "notes": [
+        "Uses the official GitHub-maintained Docker image because the legacy npm package is deprecated.",
+        "Keep the PAT in a Windows environment variable only; never write it into config or prompt inputs."
+      ]
+    },
+    "mcp-debugger": {
+      "canonical_id": "mcp-debugger",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "@debugmcp/mcp-debugger@latest"
+        ]
+      },
+      "healthcheck": {
+        "kind": "package_help",
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "@debugmcp/mcp-debugger@latest",
+          "--help"
+        ]
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "capabilities": [
+        "debug_sessions",
+        "breakpoints",
+        "stack_frame_inspection"
+      ],
+      "notes": [
+        "Use with Playwright or local runtimes when a failure needs runtime evidence instead of guesswork."
+      ]
+    },
+    "mem0_mcp_server": {
+      "canonical_id": "mem0_mcp_server",
+      "client_bindings": [
+        "Codex",
+        "Cursor",
+        "OpenClaw",
+        "Open Interpreter",
+        "MiniMax Code",
+        "Android Studio"
+      ],
+      "transport": "streamable-http",
+      "launch_contract": {
+        "url": "https://mcp.mem0.ai/mcp"
+      },
+      "env_expectations": {
+        "MEM0_API_KEY": "${ENV:MEM0_API_KEY}",
+        "MEM0_DEFAULT_USER_ID": "master_developer_profile"
+      },
+      "headers": {
+        "Authorization": "Bearer ${ENV:MEM0_API_KEY}"
+      },
+      "healthcheck": {
+        "kind": "mem0_rest_ping",
+        "url": "https://api.mem0.ai/v1/ping/"
+      },
+      "capabilities": [
+        "semantic_memory",
+        "cross_session_memory"
+      ],
+      "criticality": "normal",
+      "lifecycle": "quarantined",
+      "render_by_default": false,
+      "notes": [
+        "Raw Mem0 is not a normal-agent path. Use global-memory-gateway for governed memory."
+      ]
+    },
+    "obsidian-vault": {
+      "canonical_id": "obsidian-vault",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "pwsh",
+        "args": [
+          "-NoProfile",
+          "-NonInteractive",
+          "-File",
+          "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+        ]
+      },
+      "env_expectations": {
+        "OBSIDIAN_API_KEY": "${ENV:OBSIDIAN_API_KEY}",
+        "OBSIDIAN_LOCAL_REST_API": "${ENV:OBSIDIAN_LOCAL_REST_API}",
+        "OBSIDIAN_BASE_URL": "https://127.0.0.1:27124",
+        "OBSIDIAN_VERIFY_SSL": "false"
+      },
+      "healthcheck": {
+        "kind": "http_reachable",
+        "url": "https://127.0.0.1:27124"
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "capabilities": [
+        "vault_search",
+        "markdown_notes",
+        "architecture_handoffs"
+      ],
+      "notes": [
+        "Uses the local REST-backed wrapper already present on this Windows host.",
+        "The vault location is determined by the wrapper/runtime rather than hardcoding secrets or machine-specific tokens into config."
+      ]
+    },
+    "playwright": {
+      "canonical_id": "playwright",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "@playwright/mcp@latest"
+        ]
+      },
+      "healthcheck": {
+        "kind": "package_help",
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "@playwright/mcp@latest",
+          "--help"
+        ]
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "capabilities": [
+        "browser_automation",
+        "page_snapshots",
+        "ui_validation"
+      ],
+      "notes": [
+        "Uses the current official Microsoft package `@playwright/mcp@latest`.",
+        "The older `@playwright/mcp-server` naming in the request is stale."
+      ]
+    },
+    "sequential-thinking": {
+      "canonical_id": "sequential-thinking",
+      "client_bindings": [
+        "Codex",
+        "Cursor",
+        "OpenClaw",
+        "MiniMax Code"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "npx.cmd",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ]
+      },
+      "env_expectations": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      },
+      "healthcheck": {
+        "kind": "mcp_stdio",
+        "methods": [
+          "initialize",
+          "tools/list"
+        ]
+      },
+      "criticality": "critical",
+      "lifecycle": "active",
+      "capabilities": [
+        "planning",
+        "strategy",
+        "debugging"
+      ],
+      "notes": [
+        "Only reasoning/planning MCP. thinking-patterns remains retired."
+      ]
+    },
+    "serena": {
+      "canonical_id": "serena",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe",
+        "args": [
+          "--from",
+          "git+https://github.com/oraios/serena",
+          "serena",
+          "start-mcp-server",
+          "--project-from-cwd",
+          "--transport",
+          "stdio"
+        ]
+      },
+      "healthcheck": {
+        "kind": "mcp_stdio",
+        "methods": [
+          "initialize",
+          "tools/list"
+        ]
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "capabilities": [
+        "symbol_navigation",
+        "precise_refactors",
+        "agent_handoffs"
+      ],
+      "notes": [
+        "Use Serena before broad cross-file edits or architecture-aware refactors."
+      ]
+    },
+    "composio": {
+      "canonical_id": "composio",
+      "client_bindings": [],
+      "transport": "streamable-http",
+      "launch_contract": {
+        "url": "https://connect.composio.dev/mcp"
+      },
+      "env_expectations": {
+        "COMPOSIO_API_KEY": "${ENV:COMPOSIO_API_KEY}"
+      },
+      "healthcheck": {
+        "kind": "quarantined"
+      },
+      "criticality": "normal",
+      "lifecycle": "quarantined",
+      "render_by_default": false,
+      "capabilities": [
+        "connected_app_workflows"
+      ],
+      "notes": [
+        "Quarantined by default because current runtime state is unstable. Do not render into clients until explicitly re-enabled."
+      ]
+    }
+  }
+}

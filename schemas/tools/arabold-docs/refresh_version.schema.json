@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "properties": {
+    "library": {
+      "type": "string",
+      "description": "Library name."
+    },
+    "version": {
+      "type": "string",
+      "description": "Library version (optional, refreshes latest if omitted)."
+    }
+  },
+  "required": [
+    "library"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

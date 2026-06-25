@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "description": "The question or task you need help with. This is used to rank library results by relevance to what the user is trying to accomplish. The query is sent to the Context7 API for processing. Do not include any sensitive or confidential information such as API keys, passwords, credentials, personal data, or proprietary code in your query."
+    },
+    "libraryName": {
+      "type": "string",
+      "description": "Library name to search for and retrieve a Context7-compatible library ID. Use the official library name with proper punctuation â€” e.g., 'Next.js' instead of 'nextjs', 'Customer.io' instead of 'customerio', 'Three.js' instead of 'threejs'."
+    }
+  },
+  "required": [
+    "query",
+    "libraryName"
+  ]
+}

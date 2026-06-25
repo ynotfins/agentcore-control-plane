@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to fetch and convert to Markdown."
+    },
+    "followRedirects": {
+      "type": "boolean",
+      "default": true,
+      "description": "Follow HTTP redirects (3xx responses)."
+    }
+  },
+  "required": [
+    "url"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

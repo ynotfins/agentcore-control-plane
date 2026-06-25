@@ -1,0 +1,53 @@
+{
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Documentation root URL to scrape."
+    },
+    "library": {
+      "type": "string",
+      "description": "Library name."
+    },
+    "version": {
+      "type": "string",
+      "description": "Library version (optional)."
+    },
+    "maxPages": {
+      "type": "number",
+      "default": 1000,
+      "description": "Maximum number of pages to scrape (default: 1000)."
+    },
+    "maxDepth": {
+      "type": "number",
+      "default": 3,
+      "description": "Maximum navigation depth (default: 3)."
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "subpages",
+        "hostname",
+        "domain"
+      ],
+      "default": "subpages",
+      "description": "Crawling boundary: 'subpages', 'hostname', or 'domain'."
+    },
+    "followRedirects": {
+      "type": "boolean",
+      "default": true,
+      "description": "Follow HTTP redirects (3xx responses)."
+    },
+    "preserveHashes": {
+      "type": "boolean",
+      "description": "Preserve hash fragments for hash-routed SPA documentation sites."
+    }
+  },
+  "required": [
+    "url",
+    "library"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
