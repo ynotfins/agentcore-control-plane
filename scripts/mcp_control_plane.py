@@ -17,7 +17,10 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 
-ROOT = Path("D:/MCP-Control-Plane")
+DEFAULT_SOURCE_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_LIVE_OPS_ROOT = Path("D:/MCP-Control-Plane")
+ROOT = DEFAULT_SOURCE_ROOT
+LIVE_OPS_ROOT = Path(os.environ.get("AGENTCORE_LIVE_OPS_ROOT", str(DEFAULT_LIVE_OPS_ROOT)))
 MANAGED_ROOT = Path("D:/Codex_Managed")
 PYTHON = Path("D:/Codex_Managed/.venv/Scripts/python.exe")
 NODE_HOME = Path("D:/Codex_Managed/runtimes/node-v22.22.3-win-x64")
@@ -83,6 +86,16 @@ def now_stamp() -> str:
 
 def iso_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def display_path(path: Path) -> str:
+    return str(path).replace("/", "\\")
+
+
+def configure_roots(source_root: Path, live_ops_root: Path) -> None:
+    global ROOT, LIVE_OPS_ROOT
+    ROOT = source_root.resolve()
+    LIVE_OPS_ROOT = live_ops_root.resolve() if live_ops_root.exists() else live_ops_root
 
 
 def ensure_dirs() -> None:
@@ -989,13 +1002,17 @@ def render_clients(model: dict[str, Any], probes: list[ProbeResult]) -> dict[str
 
 
 def write_governance_files(model: dict[str, Any]) -> None:
-    agents = """# CHAOSCENTRAL MCP Control Plane Agent Contract
+    source_root = display_path(ROOT)
+    live_ops_root = display_path(LIVE_OPS_ROOT)
+    agents = f"""# CHAOSCENTRAL MCP Control Plane Agent Contract
 
-This repository, `D:\\MCP-Control-Plane`, is the single source of truth for MCP governance, renderer candidates, and repo validators.
+This repository, `{source_root}`, is the canonical Git source repo for MCP governance, renderer candidates, and repo validators.
+
+The current live deployed ops root remains `{live_ops_root}` until a deliberate migration is approved.
 
 ## Operating Rules
 
-- Work only in this repository unless the user explicitly authorizes live rollout.
+- Work primarily in this repository unless the user explicitly authorizes live rollout.
 - Do not edit live client configs during repo-only phases.
 - Create a timestamped rollback copy before editing existing managed files.
 - Use unlock -> edit -> validate -> re-lock for managed files.
@@ -1022,30 +1039,32 @@ For `global-memory-gateway`, `arabold-docs`, `artiforge`, and `sequential-thinki
 
 ## Database Contract
 
-- Control-plane authority: `D:\\MCP-Control-Plane`
-- Bootstrap contract: `D:\\MCP-Control-Plane\\AGENT_DATABASE_BOOTSTRAP.md`
-- Machine contract: `D:\\MCP-Control-Plane\\contracts\\global-memory-database-contract.json`
+- Canonical Git source repo: `{source_root}`
+- Current live deployed ops root: `{live_ops_root}`
+- Bootstrap contract in source repo: `{source_root}\\AGENT_DATABASE_BOOTSTRAP.md`
+- Machine contract in source repo: `{source_root}\\contracts\\global-memory-database-contract.json`
 - Database: PostgreSQL `agent_core` on `127.0.0.1:55432`
 - Vector store: `global_vector_memory_store` with pgvector `VECTOR(1536)`
 - Normal write path: `global-memory-gateway` tools only
 - Trusted direct SQL path: explicit ingest/admin runners approved by the control plane
-- Gateway runtime credentials: `AGENT_CORE_PGUSER=agent_ingest` and `AGENT_CORE_PGPASSWORD=${ENV:AGENT_CORE_AGENT_INGEST_PASSWORD}`
+- Gateway runtime credentials: `AGENT_CORE_PGUSER=agent_ingest` and `AGENT_CORE_PGPASSWORD=${{ENV:AGENT_CORE_AGENT_INGEST_PASSWORD}}`
 """
-    security = """# Security Policy
+    security = f"""# Security Policy
 
 ## Secrets
 
 - Never hard-code API keys, bearer tokens, refresh tokens, cookies, private keys, passwords, license files, or PAT values.
 - Use Windows User-scope environment variables for durable local secrets.
 - AgentCore does not use `.env`, `.env.local`, `.env.production`, `.env.example`, dotenv loaders, or local secret files unless an operator explicitly orders an exception.
-- Generated config fragments may reference secrets only with placeholders such as `${env:ARTIFORGE_PAT}` or `${ENV:OPENAI_API_KEY}`.
+- Generated config fragments may reference secrets only with placeholders such as `${{env:ARTIFORGE_PAT}}` or `${{ENV:OPENAI_API_KEY}}`.
 - Do not write secret values into reports, Markdown, registry files, validators, renderers, or logs.
 - Documentation may list variable names only, never values.
 - If a secret variable is missing, stop and report the variable name instead of creating a local fallback.
 
 ## Approval Gates
 
-- Repo-only hardening may update files under `D:\\MCP-Control-Plane`.
+- Repo-only hardening may update files under `{source_root}`.
+- `{live_ops_root}` remains the live ops root for scheduled tasks and current archive hooks until a separate approved migration.
 - Live client config writes require an explicit user instruction for that rollout.
 - Composio is quarantined by default and must not be rendered into client fragments.
 - Raw Mem0 is not a normal-agent memory route; use PostgreSQL-backed `global-memory-gateway`.
@@ -1279,6 +1298,8 @@ def write_text(path: Path, content: str) -> None:
 
 
 def write_docs(model: dict[str, Any], probes: list[ProbeResult], render_status: dict[str, Any], backup_manifest: dict[str, Any], inventory_payload: dict[str, Any]) -> None:
+    source_root = display_path(ROOT)
+    live_ops_root = display_path(LIVE_OPS_ROOT)
     docs_sources = [
         {
             "name": "Model Context Protocol specification",
@@ -1412,17 +1433,17 @@ def write_docs(model: dict[str, Any], probes: list[ProbeResult], render_status: 
         catalog.append(f"- `{result.canonical}`: `{result.status}`")
     (ROOT / "docs/contract-catalog.md").write_text("\n".join(catalog) + "\n", encoding="utf-8")
 
-    runbook = """# Rollout Runbook
+    runbook = f"""# Rollout Runbook
 
-Manual corrective one-liner for OpenClaw Artiforge while automated rollout is gated: set `mcp.servers.artiforge` to `{ "type": "http", "url": "https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}" }`.
+Manual corrective one-liner for OpenClaw Artiforge while automated rollout is gated: set `mcp.servers.artiforge` to `{{ "type": "http", "url": "https://tools.artiforge.ai/mcp?pat=${{env:ARTIFORGE_PAT}}" }}`.
 
-1. Fix any blockers in `D:\\MCP-Control-Plane\\artifacts\\final-status.json`.
-2. Run `D:\\Codex_Managed\\.venv\\Scripts\\python.exe D:\\MCP-Control-Plane\\scripts\\mcp_control_plane.py --apply` from a fresh shell.
-3. Confirm `D:\\MCP-Control-Plane\\artifacts\\probe-results.json` has no `auth_failed` critical servers.
+1. Fix any blockers in `{source_root}\\artifacts\\final-status.json` for source-repo validation.
+2. Use `{source_root}` as the canonical Git source for docs, renderers, contracts, and validators.
+3. Treat `{live_ops_root}` as the current live ops root for scheduled tasks, WAL archiving, and approved live rollout steps until migration is explicitly approved.
 4. Restart Cursor, Open Interpreter, MiniMax Code, OpenClaw, and Android Studio after config changes.
-5. Re-run probes and compare `D:\\MCP-Control-Plane\\artifacts\\drift-report.json`.
+5. Re-run probes and compare `{source_root}\\artifacts\\drift-report.json`.
 
-Rollback copies are under the `rollback` location in `D:\\MCP-Control-Plane\\artifacts\\backup-manifest.json`.
+Rollback copies are under the `rollback` location in `{source_root}\\artifacts\\backup-manifest.json`.
 """
     (ROOT / "docs/rollout-runbook.md").write_text(runbook, encoding="utf-8")
 
@@ -1474,13 +1495,13 @@ Rollback copies are under the `rollback` location in `D:\\MCP-Control-Plane\\art
         "",
         "## Files Created",
         "",
-        "- `D:\\MCP-Control-Plane\\inventory\\assets.json`",
-        "- `D:\\MCP-Control-Plane\\inventory\\assets.yaml`",
-        "- `D:\\MCP-Control-Plane\\supervisor\\servers.yaml`",
-        "- `D:\\MCP-Control-Plane\\artifacts\\probe-results.json`",
-        "- `D:\\MCP-Control-Plane\\artifacts\\drift-report.json`",
-        "- `D:\\MCP-Control-Plane\\docs\\rollout-runbook.md`",
-        "- `D:\\MCP-Control-Plane\\artifacts\\final-status.json`",
+        f"- `{source_root}\\inventory\\assets.json`",
+        f"- `{source_root}\\inventory\\assets.yaml`",
+        f"- `{source_root}\\supervisor\\servers.yaml`",
+        f"- `{source_root}\\artifacts\\probe-results.json`",
+        f"- `{source_root}\\artifacts\\drift-report.json`",
+        f"- `{source_root}\\docs\\rollout-runbook.md`",
+        f"- `{source_root}\\artifacts\\final-status.json`",
         "",
         "## Remaining User Actions",
         "",
@@ -1556,7 +1577,10 @@ def apply_rendered_configs() -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--apply", action="store_true", help="apply rendered client configs after critical probes pass")
+    parser.add_argument("--source-root", default=str(DEFAULT_SOURCE_ROOT), help="source repo root for generated docs, contracts, renderers, and validators")
+    parser.add_argument("--live-ops-root", default=str(LIVE_OPS_ROOT), help="current live deployed ops root referenced by scheduled tasks and rollout docs")
     args = parser.parse_args()
+    configure_roots(Path(args.source_root), Path(args.live_ops_root))
     ensure_dirs()
     if args.apply:
         apply_rendered_configs()

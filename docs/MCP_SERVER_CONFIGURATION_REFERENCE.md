@@ -1,18 +1,20 @@
 # MCP Server Configuration Reference
 
-`D:\MCP-Control-Plane` is the source of truth for MCP server configuration on this PC.
+`D:\github\agentcore-control-plane` is the canonical Git source repo for MCP server configuration policy on this PC.
+
+`D:\MCP-Control-Plane` remains the current live deployed ops root used by scheduled tasks, inherited rollout scripts, and live archive hooks until a separate migration is approved.
 
 Use this document when an IDE needs to be repaired, manually configured, or compared against the rendered control-plane outputs.
 
-For drive layout and active/archive storage policy, see `D:\MCP-Control-Plane\docs\AGENTCORE_STORAGE_DESIGN.md`.
+For drive layout and active/archive storage policy, see `D:\github\agentcore-control-plane\docs\AGENTCORE_STORAGE_DESIGN.md`.
 
 ## Source Renderers
 
-- Cursor: `D:\MCP-Control-Plane\renderers\cursor-global.mcp.json`
-- OpenClaw: `D:\MCP-Control-Plane\renderers\openclaw.openclaw.fragment.json`
-- MiniMax / Mavis legacy: `D:\MCP-Control-Plane\renderers\minimax.mcp.json`
-- Open Interpreter: `D:\MCP-Control-Plane\renderers\open-interpreter.config.fragment.json`
-- Android Studio: `D:\MCP-Control-Plane\renderers\android-studio.mcp.json`
+- Cursor: `D:\github\agentcore-control-plane\renderers\cursor-global.mcp.json`
+- OpenClaw: `D:\github\agentcore-control-plane\renderers\openclaw.openclaw.fragment.json`
+- MiniMax / Mavis legacy: `D:\github\agentcore-control-plane\renderers\minimax.mcp.json`
+- Open Interpreter: `D:\github\agentcore-control-plane\renderers\open-interpreter.config.fragment.json`
+- Android Studio: `D:\github\agentcore-control-plane\renderers\android-studio.mcp.json`
 
 ## Live Config Paths
 
@@ -73,11 +75,12 @@ Act as a senior Windows MCP control-plane engineer.
 Goal: Configure Open Interpreter to use the MCP server JSON I paste below and enforce the AgentCore drive write boundary for future agents.
 
 Authority:
-- `D:\MCP-Control-Plane` is the source of truth.
-- Read `D:\MCP-Control-Plane\AGENT_DATABASE_BOOTSTRAP.md`.
-- Read `D:\MCP-Control-Plane\docs\MCP_SERVER_CONFIGURATION_REFERENCE.md`.
-- Read `D:\MCP-Control-Plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`.
-- Use `D:\MCP-Control-Plane\renderers\open-interpreter.config.fragment.json` as the reference shape.
+- `D:\github\agentcore-control-plane` is the canonical Git source repo.
+- `D:\MCP-Control-Plane` remains the live ops root until migration is approved.
+- Read `D:\github\agentcore-control-plane\AGENT_DATABASE_BOOTSTRAP.md`.
+- Read `D:\github\agentcore-control-plane\docs\MCP_SERVER_CONFIGURATION_REFERENCE.md`.
+- Read `D:\github\agentcore-control-plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`.
+- Use `D:\github\agentcore-control-plane\renderers\open-interpreter.config.fragment.json` as the reference shape.
 
 Target:
 - Open Interpreter live config: `C:\Users\ynotf\AppData\Roaming\interpreter\config.json`
@@ -132,11 +135,12 @@ Act as a senior Windows MCP control-plane engineer.
 Goal: Add the MCP server JSON I paste below to the Codex MCP configuration on this PC and enforce the AgentCore drive write boundary while preserving existing working servers and secrets.
 
 Authority:
-- `D:\MCP-Control-Plane` is the source of truth.
-- Read `D:\MCP-Control-Plane\AGENT_DATABASE_BOOTSTRAP.md`.
-- Read `D:\MCP-Control-Plane\docs\MCP_SERVER_CONFIGURATION_REFERENCE.md`.
-- Read `D:\MCP-Control-Plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`.
-- Use existing renderer/config patterns from `D:\MCP-Control-Plane\renderers\`.
+- `D:\github\agentcore-control-plane` is the canonical Git source repo.
+- `D:\MCP-Control-Plane` remains the live ops root until migration is approved.
+- Read `D:\github\agentcore-control-plane\AGENT_DATABASE_BOOTSTRAP.md`.
+- Read `D:\github\agentcore-control-plane\docs\MCP_SERVER_CONFIGURATION_REFERENCE.md`.
+- Read `D:\github\agentcore-control-plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`.
+- Use existing renderer/config patterns from `D:\github\agentcore-control-plane\renderers\`.
 
 Safety requirements:
 - Do not print, summarize, or store secret values.
@@ -263,6 +267,68 @@ Agents do not automatically save every chat token or every file they read. Durab
 
 Do not store raw secrets, raw logs, full transcripts, or full source dumps in the vector store.
 
+## Local-Only Candidate MCPs
+
+These are validated local-only candidates and are not yet enabled in live client configs by default.
+
+### SwarmVault candidate
+
+- Source: `D:\github\vendor\swarm\swarmvault`
+- Runtime root: `F:\AgentCore\agentmemory\swarmvault`
+- Wrapper: `D:\github\agentcore-control-plane\ops\Invoke-AgentCoreSwarmVault.ps1`
+- Validator: `D:\github\agentcore-control-plane\ops\Test-AgentCoreSwarmVault.ps1`
+- MCP command shape:
+
+```json
+{
+  "command": "node",
+  "args": [
+    "D:\\github\\vendor\\swarm\\swarmvault\\packages\\cli\\dist\\index.js",
+    "mcp"
+  ]
+}
+```
+
+- Role: local retrieval/wiki/context only
+- Not a replacement for `global-memory-gateway`
+
+### SwarmRecall candidate
+
+- Source: `D:\github\vendor\swarm\swarmrecall`
+- Runtime root: `F:\AgentCore\agentmemory\swarmrecall`
+- Wrapper: `D:\github\agentcore-control-plane\ops\Invoke-AgentCoreSwarmRecall.ps1`
+- Validator: `D:\github\agentcore-control-plane\ops\Test-AgentCoreSwarmRecall.ps1`
+- Required local override:
+  - `SWARMRECALL_API_URL=http://127.0.0.1:3300`
+- Required local auth:
+  - `SWARMRECALL_API_KEY` from the Windows environment
+- Verified local listener posture:
+  - API binds only to `127.0.0.1:3300`
+  - exactly one Meilisearch instance binds to `127.0.0.1:7700`
+- MCP command shape:
+
+```json
+{
+  "command": "node",
+  "args": [
+    "D:\\github\\vendor\\swarm\\swarmrecall\\packages\\cli\\dist\\index.js",
+    "mcp"
+  ],
+  "env": {
+    "SWARMRECALL_API_URL": "http://127.0.0.1:3300",
+    "SWARMRECALL_API_KEY": "${env:AGENT_CORE_SWARMRECALL_API_KEY}"
+  }
+}
+```
+
+- Local-only rules:
+  - no hosted `swarmrecall-api.onrender.com`
+  - no Upstash
+  - no Firebase cloud dependency for the agent API path
+  - no Docker-backed persistent storage
+  - no `--master-key` in the Meilisearch process command line
+- Not a replacement for `global-memory-gateway`
+
 ## MiniMax Notes
 
 This PC has two MiniMax/Mavis MCP config trees:
@@ -278,14 +344,26 @@ The GUI app config at `C:\Users\ynotf\AppData\Roaming\MiniMax Agent\minimax-agen
 
 Drive boundary authority:
 
-`D:\MCP-Control-Plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`
+`D:\github\agentcore-control-plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`
+
+Source-repo dry-run validation:
 
 ```powershell
-D:\MCP-Control-Plane\validators\validate-control-plane.ps1 -Root D:\MCP-Control-Plane
+powershell -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\validators\validate-control-plane.ps1
+powershell -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Test-AgentCoreEnvPolicy.ps1
 ```
 
+Source-repo report-writing validation:
+
 ```powershell
-D:\MCP-Control-Plane\ops\Start-AgentCorePostgres.ps1
+powershell -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\validators\validate-control-plane.ps1 -WriteReport
+powershell -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Test-AgentCoreEnvPolicy.ps1 -WriteReport
+```
+
+Live runtime validation:
+
+```powershell
+D:\github\agentcore-control-plane\ops\Start-AgentCorePostgres.ps1
 ```
 
 ```powershell

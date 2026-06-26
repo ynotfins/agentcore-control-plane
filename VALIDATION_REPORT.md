@@ -1,5 +1,15 @@
 # Validation Report
 
+Historical baseline report: this document captures the initial repo/bootstrap validation pass from 2026-06-24. Current source-of-truth status should be read from the newer control-plane docs, current validators, and current handoff documents.
+
+Follow-up hardening after this historical baseline added:
+
+- local-only SwarmVault runtime initialization under `F:\AgentCore\agentmemory\swarmvault`
+- local-only SwarmRecall runtime under `F:\AgentCore\agentmemory\swarmrecall`
+- scoped `hostssl` PostgreSQL auth for `swarmrecall_app`
+- native Meilisearch on `F:` with `--no-analytics`
+- loopback-only SwarmRecall API on `127.0.0.1:3300`
+
 Generated: 2026-06-24
 
 ## Scope
@@ -24,6 +34,7 @@ All required repositories were cloned into the isolated vendor roots and were no
 | `swarmdock` | `D:\github\vendor\swarm\swarmdock` | `fc6babd3b804539735496ec456cc20a808828b35` |
 | `swarmfeed` | `D:\github\vendor\swarm\swarmfeed` | `0a1ec85b395e9b6a20eada6c3253fa2927874b2f` |
 | `swarmrelay` | `D:\github\vendor\swarm\swarmrelay` | `4e73ea8db6f9285f37ac90e280185f16fa91318b` |
+| `swarmrecall` | `D:\github\vendor\swarm\swarmrecall` | current local checkout after 2026-06-25 hardening pass |
 | `lossless-memory4agent` | `D:\github\vendor\memory\lossless-memory4agent` | `213a6ccae874ad542dc94242de68abb4b93550ad` |
 | `lossless-claw` | `D:\github\vendor\memory\lossless-claw` | `753721fc95b763c95a620f535c6743ba70b1c34a` |
 

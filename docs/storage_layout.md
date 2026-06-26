@@ -23,6 +23,7 @@ D:\
         swarmdock\
         swarmfeed\
         swarmrelay\
+        swarmrecall\
       memory\
         lossless-memory4agent\
         lossless-claw\
@@ -33,6 +34,7 @@ F:\
     postgres\
     agentmemory\
       swarmvault\
+      swarmrecall\
       lcm\
       swarmclaw\
       swarmrelay\
@@ -97,6 +99,7 @@ E:\
 
 - `swarmclaw` runtime state belongs under `F:\AgentCore\agentmemory\swarmclaw`.
 - `swarmvault` runtime state belongs under `F:\AgentCore\agentmemory\swarmvault`.
+- `swarmrecall` runtime state belongs under `F:\AgentCore\agentmemory\swarmrecall`.
 - local LCM/lossless-memory state belongs under `F:\AgentCore\agentmemory\lcm`.
 - `swarmrelay` runtime state belongs under `F:\AgentCore\agentmemory\swarmrelay`.
 - PostgreSQL active data should stay on `F:\AgentCore`, with the current contract still referencing:

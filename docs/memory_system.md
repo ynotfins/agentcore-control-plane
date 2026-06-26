@@ -24,6 +24,8 @@ AgentCore does not use `.env` files. All secrets and runtime credentials are sto
 - Active normalized tables: `system_info`, `projects`, `project_facts`, `messages`, `embeddings`
 - Active drive: `F:\AgentCore`
 - Archive drive: `E:\AgentCoreArchive`
+- Canonical Git source repo: `D:\github\agentcore-control-plane`
+- Current live ops root: `D:\MCP-Control-Plane`
 
 ## Memory Flow
 
@@ -53,11 +55,48 @@ flowchart TD
 | System inventory | `system_info`, vector memory | trusted ingest |
 | Long-form runbooks | Markdown/Obsidian; compact index in pgvector | documentation agent |
 
-## LCM And SwarmVault Status
+## Local Memory Status
 
-Requested SwarmVault repo `D:\github\swarmvault-setup` was not present during this hardening pass.
+SwarmVault source and runtime:
 
-Requested LCM file `F:\agentmemory\lcm.db` was not present.
+- Source checkout exists at `D:\github\vendor\swarm\swarmvault`
+- Vendored CLI build exists at `D:\github\vendor\swarm\swarmvault\packages\cli\dist\index.js`
+- Runtime root exists at `F:\AgentCore\agentmemory\swarmvault`
+- Verified initialized dirs:
+  - `raw`
+  - `wiki`
+  - `state`
+  - `agent`
+- Verified local files:
+  - `swarmvault.config.json`
+  - `swarmvault.schema.md`
+- Verified local posture:
+  - heuristic provider
+  - sqlite retrieval
+  - no `.env` files in the runtime root
+
+SwarmRecall source and runtime:
+
+- Source checkout exists at `D:\github\vendor\swarm\swarmrecall`
+- Built local artifacts exist for API, CLI, and MCP packages
+- Runtime root exists at `F:\AgentCore\agentmemory\swarmrecall`
+- Local config exists at `F:\AgentCore\agentmemory\swarmrecall\config\agentcore.swarmrecall.local.json`
+- Local API is configured for `http://127.0.0.1:3300`
+- Local search is configured for `http://127.0.0.1:7700`
+- Local database is `swarmrecall` on the native PostgreSQL engine
+- Local role is `swarmrecall_app`
+- API listener is loopback-only on `127.0.0.1:3300`
+- Exactly one native Meilisearch instance is expected on `127.0.0.1:7700`
+- Meilisearch must not expose `--master-key` in its process command line
+- Local-only posture is verified with:
+  - no Upstash
+  - dashboard auth disabled unless separately configured
+  - local API-key registration
+  - local CLI call
+  - local MCP probe
+- SwarmRecall remains separate from `global-memory-gateway` and is not yet enabled in live client configs.
+
+LCM/lossless state:
 
 Detected local memory file:
 
@@ -67,7 +106,7 @@ Policy:
 
 - Do not enable cloud services for SwarmVault.
 - Keep SwarmVault/LCM local-only when the repo/runtime is installed.
-- SwarmVault/LCM may provide local retrieval context, but global persistent memory writes must still use `global-memory-gateway` unless the caller is a trusted ingest/admin runner.
+- SwarmVault, SwarmRecall, and LCM may provide local retrieval/context paths, but global persistent memory writes must still use `global-memory-gateway` unless the caller is a trusted ingest/admin runner.
 
 ## Context Assembly
 

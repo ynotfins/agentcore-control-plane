@@ -1,6 +1,7 @@
 {
   "schema_version": "2026-06-21",
-  "authority": "D:\\MCP-Control-Plane",
+  "authority": "D:\\github\\agentcore-control-plane",
+  "live_ops_root": "D:\\MCP-Control-Plane",
   "contract_id": "mcp-control-plane.global-memory.v1",
   "database": {
     "engine": "postgresql",

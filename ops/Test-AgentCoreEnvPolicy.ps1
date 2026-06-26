@@ -1,5 +1,6 @@
 param(
-  [string]$Root = "D:\github\agentcore-control-plane"
+  [string]$Root = "D:\github\agentcore-control-plane",
+  [switch]$WriteReport
 )
 
 $ErrorActionPreference = "Stop"
@@ -82,11 +83,11 @@ $secretPatterns = @(
   },
   @{
     Name = "PGPASSWORD literal"
-    Regex = '(?im)(?:\$env:)?PGPASSWORD\b\s*[:=]\s*["'']?(?!\$\{(?:env|ENV):)(?!\$env:)(?!process\.env\.)(?!AGENT_CORE_[A-Z0-9_]+)(?!\[Environment\]::GetEnvironmentVariable)(?!GetEnvironmentVariable\()[^\s"'']{4,}'
+    Regex = '(?im)(?:\$env:)?PGPASSWORD\b\s*[:=]\s*["'']?(?!\$\{\{(?:env|ENV):)(?!\$\{(?:env|ENV):)(?!\$env:)(?!process\.env\.)(?!AGENT_CORE_[A-Z0-9_]+)(?!\[Environment\]::GetEnvironmentVariable)(?!GetEnvironmentVariable\()[^\s"'']{4,}'
   },
   @{
     Name = "AgentCore password literal"
-    Regex = '(?im)AGENT_CORE_[A-Z0-9_]*PASSWORD["'']?\s*[:=]\s*["''](?!\$\{(?:env|ENV):)(?!\$env:)(?!process\.env\.)(?!AGENT_CORE_[A-Z0-9_]+)(?!\[Environment\]::GetEnvironmentVariable)(?!GetEnvironmentVariable\()[^"'']+["'']'
+    Regex = '(?im)AGENT_CORE_[A-Z0-9_]*PASSWORD["'']?\s*[:=]\s*["''](?!\$\{\{(?:env|ENV):)(?!\$\{(?:env|ENV):)(?!\$env:)(?!process\.env\.)(?!AGENT_CORE_[A-Z0-9_]+)(?!\[Environment\]::GetEnvironmentVariable)(?!GetEnvironmentVariable\()[^"'']+["'']'
   }
 )
 
@@ -261,12 +262,6 @@ $report = [pscustomobject]@{
   results = $results
 }
 
-$artifactDir = Join-Path $rootPath "artifacts"
-New-Item -ItemType Directory -Force -Path $artifactDir | Out-Null
-$jsonPath = Join-Path $artifactDir "env-policy-report.json"
-$mdPath = Join-Path $artifactDir "env-policy-report.md"
-$report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $jsonPath -Encoding utf8
-
 $lines = [System.Collections.Generic.List[string]]::new()
 $lines.Add("# AgentCore Environment Policy Report") | Out-Null
 $lines.Add("") | Out-Null
@@ -278,12 +273,30 @@ foreach ($result in $results) {
   $status = if ($result.passed) { "PASS" } else { "FAIL" }
   $lines.Add("- $status - $($result.name): $($result.detail)") | Out-Null
 }
-$lines | Set-Content -LiteralPath $mdPath -Encoding utf8
+
+if ($WriteReport) {
+  $artifactDir = Join-Path $rootPath "artifacts"
+  New-Item -ItemType Directory -Force -Path $artifactDir | Out-Null
+  $jsonPath = Join-Path $artifactDir "env-policy-report.json"
+  $mdPath = Join-Path $artifactDir "env-policy-report.md"
+  $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $jsonPath -Encoding utf8
+  $lines | Set-Content -LiteralPath $mdPath -Encoding utf8
+}
+
+$lines | ForEach-Object { Write-Output $_ }
 
 if ($allPassed) {
-  Write-Output "PASS: AgentCore env policy validation succeeded. Report: $mdPath"
+  if ($WriteReport) {
+    Write-Output "PASS: AgentCore env policy validation succeeded. Report written."
+  } else {
+    Write-Output "PASS: AgentCore env policy validation succeeded. Dry-run only; no report files written."
+  }
   exit 0
 }
 
-Write-Output "FAIL: AgentCore env policy validation failed. Report: $mdPath"
+if ($WriteReport) {
+  Write-Output "FAIL: AgentCore env policy validation failed. Report written."
+} else {
+  Write-Output "FAIL: AgentCore env policy validation failed. Dry-run only; no report files written."
+}
 exit 1

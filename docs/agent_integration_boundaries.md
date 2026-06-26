@@ -33,6 +33,7 @@ Allowed systems:
 - `swarmrelay` local stack
 - `lossless-memory4agent`
 - `lossless-claw` in a local OpenClaw runtime
+- `swarmrecall` in validated local-only mode with local API and local storage
 - `global-memory-gateway` for governed, redacted, policy-safe memory writes
 - Obsidian/local Markdown for human-readable runbooks
 
@@ -42,7 +43,7 @@ Blocked by default:
 - `swarmdock`
 - hosted `swarmrelay` endpoint
 - hosted `swarmvault` or external model providers not explicitly approved
-- any future `swarmrecall` or other hosted memory service
+- hosted `swarmrecall` endpoint or hosted memory service
 
 Rules:
 
@@ -137,6 +138,17 @@ Rules:
 - Memory rule:
   - store SQLite state under `F:\AgentCore\agentmemory\lcm`
   - do not bypass `global-memory-gateway` for governed persistence
+
+### `swarmrecall`
+
+- Role: local API-backed memory/search service for memories, knowledge graph, learnings, skills, and pools.
+- Boundary:
+  - allowed only with explicit local API override and local persistent storage
+  - not allowed to fall back to hosted endpoints, hosted dashboard auth requirements, or Docker-managed persistent volumes
+- Memory rule:
+  - local runtime state belongs under `F:\AgentCore\agentmemory\swarmrecall`
+  - native PostgreSQL storage uses the local `swarmrecall` database on the existing AgentCore engine
+  - do not use SwarmRecall as the governed cross-project writer; that remains `global-memory-gateway`
 
 ### `swarmdock`
 

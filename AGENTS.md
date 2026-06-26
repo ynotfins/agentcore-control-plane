@@ -1,10 +1,12 @@
 # CHAOSCENTRAL MCP Control Plane Agent Contract
 
-This repository, `D:\MCP-Control-Plane`, is the single source of truth for MCP governance, renderer candidates, and repo validators.
+This repository, `D:\github\agentcore-control-plane`, is the canonical Git source repo for MCP governance, renderer candidates, and repo validators.
+
+The current live deployed ops root remains `D:\MCP-Control-Plane` until a deliberate migration is approved.
 
 ## Operating Rules
 
-- Work only in this repository unless the user explicitly authorizes live rollout.
+- Work primarily in this repository unless the user explicitly authorizes live rollout.
 - Do not edit live client configs during repo-only phases.
 - Create a timestamped rollback copy before editing existing managed files.
 - Use unlock -> edit -> validate -> re-lock for managed files.
@@ -35,9 +37,10 @@ For `global-memory-gateway`, `arabold-docs`, `artiforge`, and `sequential-thinki
 
 ## Database Contract
 
-- Control-plane authority: `D:\MCP-Control-Plane`
-- Bootstrap contract: `D:\MCP-Control-Plane\AGENT_DATABASE_BOOTSTRAP.md`
-- Machine contract: `D:\MCP-Control-Plane\contracts\global-memory-database-contract.json`
+- Canonical Git source repo: `D:\github\agentcore-control-plane`
+- Current live deployed ops root: `D:\MCP-Control-Plane`
+- Bootstrap contract in source repo: `D:\github\agentcore-control-plane\AGENT_DATABASE_BOOTSTRAP.md`
+- Machine contract in source repo: `D:\github\agentcore-control-plane\contracts\global-memory-database-contract.json`
 - Database: PostgreSQL `agent_core` on `127.0.0.1:55432`
 - Vector store: `global_vector_memory_store` with pgvector `VECTOR(1536)`
 - Normal write path: `global-memory-gateway` tools only

@@ -1,5 +1,7 @@
 param(
-  [string]$Root = "D:\MCP-Control-Plane"
+  [string]$Root = "D:\github\agentcore-control-plane",
+  [switch]$WriteReport,
+  [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,6 +34,7 @@ function Get-ServerContainer {
 
 $results = [System.Collections.Generic.List[object]]::new()
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
+if ($DryRun) { $WriteReport = $false }
 $critical = @("global-memory-gateway", "arabold-docs", "artiforge", "sequential-thinking")
 $managedRelative = @(
   "AGENTS.md",
@@ -216,13 +219,6 @@ $report = [pscustomobject]@{
   results = $results
 }
 
-$artifactDir = Join-Path $rootPath "artifacts"
-$docsDir = Join-Path $rootPath "docs"
-New-Item -ItemType Directory -Force -Path $artifactDir, $docsDir | Out-Null
-$jsonPath = Join-Path $artifactDir "repo-validation-report.json"
-$mdPath = Join-Path $docsDir "repo-validation-report.md"
-$report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $jsonPath -Encoding utf8
-
 $lines = [System.Collections.Generic.List[string]]::new()
 $lines.Add("# Repo Validation Report") | Out-Null
 $lines.Add("") | Out-Null
@@ -235,12 +231,31 @@ foreach ($result in $results) {
   if ($result.passed) { $status = "PASS" } else { $status = "FAIL" }
   $lines.Add("- $status - $($result.name): $($result.detail)") | Out-Null
 }
-$lines | Set-Content -LiteralPath $mdPath -Encoding utf8
+
+if ($WriteReport) {
+  $artifactDir = Join-Path $rootPath "artifacts"
+  $docsDir = Join-Path $rootPath "docs"
+  New-Item -ItemType Directory -Force -Path $artifactDir, $docsDir | Out-Null
+  $jsonPath = Join-Path $artifactDir "repo-validation-report.json"
+  $mdPath = Join-Path $docsDir "repo-validation-report.md"
+  $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $jsonPath -Encoding utf8
+  $lines | Set-Content -LiteralPath $mdPath -Encoding utf8
+}
+
+$lines | ForEach-Object { Write-Output $_ }
 
 if ($allPassed) {
-  Write-Output "PASS: Repo validation succeeded. Report: $mdPath"
+  if ($WriteReport) {
+    Write-Output "PASS: Repo validation succeeded. Report written."
+  } else {
+    Write-Output "PASS: Repo validation succeeded. Dry-run only; no report files written."
+  }
   exit 0
 }
 
-Write-Output "FAIL: Repo validation failed. Report: $mdPath"
+if ($WriteReport) {
+  Write-Output "FAIL: Repo validation failed. Report written."
+} else {
+  Write-Output "FAIL: Repo validation failed. Dry-run only; no report files written."
+}
 exit 1

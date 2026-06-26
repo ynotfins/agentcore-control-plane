@@ -27,6 +27,7 @@ D:\github\vendor\
     swarmdock\
     swarmfeed\
     swarmrelay\
+    swarmrecall\
   memory\
     lossless-memory4agent\
     lossless-claw\
@@ -41,6 +42,7 @@ D:\github\vendor\
 | `swarmdock` | `D:\github\vendor\swarm\swarmdock` | Agent marketplace and escrow workflow | `npm i -g @swarmdock/cli` or local `pnpm` stack | No private incident runtime path approved; if self-hosted, isolate outside app repos | Partly; self-hosted dev stack exists but marketplace semantics are public-facing | Hosted MCP/API and wallet/payment flows | No for private incident payloads |
 | `swarmfeed` | `D:\github\vendor\swarm\swarmfeed` | Public social network for agents | local `docker compose up -d`, `pnpm install`, `pnpm db:push`, `pnpm db:seed`, `pnpm dev` | No approved private runtime path | Dev stack can run locally, but the product is public by design | Public feed, API keys, hosted/public distribution | No |
 | `swarmrelay` | `D:\github\vendor\swarm\swarmrelay` | Encrypted agent messaging | `pnpm install`, `docker-compose up -d`, `pnpm --filter @swarmrelay/api db:push`, `pnpm dev` | `F:\AgentCore\agentmemory\swarmrelay` | Yes | Optional hosted MCP endpoint; local stack preferred | Yes, preferred messaging path because it is E2E encrypted |
+| `swarmrecall` | `D:\github\vendor\swarm\swarmrecall` | Agent memory API, MCP surface, knowledge graph, learnings, skills, and pools | `pnpm install`, `pnpm build`, native local API + native Meilisearch + native PostgreSQL wiring | `F:\AgentCore\agentmemory\swarmrecall` | Yes, when forced to local API and local storage | Public defaults exist upstream, but AgentCore must override them to local-only values | Yes, only in validated local-only mode and never as a hosted path for private data |
 | `lossless-memory4agent` | `D:\github\vendor\memory\lossless-memory4agent` | Framework-agnostic DAG memory SDK | `npm install lossless-memory4agent` | `F:\AgentCore\agentmemory\lcm` | Yes | Only the summarizer callback you choose | Yes, if paired with local or approved summarizers |
 | `lossless-claw` | `D:\github\vendor\memory\lossless-claw` | OpenClaw plugin for DAG-based long-term context | `openclaw plugins install @martian-engineering/lossless-claw@latest` | `F:\AgentCore\agentmemory\lcm` | Yes | Depends on the LLM provider configured in OpenClaw | Yes, if OpenClaw stays on approved local/provider routes |
 
@@ -153,6 +155,34 @@ D:\github\vendor\
 - First-responder stance:
   - Approved as the default secure messaging candidate because the content is E2E encrypted.
 
+### `swarmrecall`
+
+- Purpose: agent memory API plus MCP surface for memories, knowledge graph, learnings, skills, pools, and dream cycles.
+- Install:
+  - `pnpm install`
+  - `pnpm build`
+- Runtime path:
+  - Standardized AgentCore path: `F:\AgentCore\agentmemory\swarmrecall`
+  - Local config: `F:\AgentCore\agentmemory\swarmrecall\config\agentcore.swarmrecall.local.json`
+  - Native Meilisearch data: `F:\AgentCore\agentmemory\swarmrecall\meilisearch\data`
+- Local-only:
+  - Yes, if the API base URL is explicitly overridden to `http://127.0.0.1:3300`.
+  - AgentCore uses the native PostgreSQL engine on `127.0.0.1:55432` with a separate `swarmrecall` database and `swarmrecall_app` role.
+  - Upstash remains unset and dashboard Firebase auth is disabled unless separately configured.
+  - Validated listener posture is loopback-only:
+    - API on `127.0.0.1:3300`
+    - Meilisearch on `127.0.0.1:7700`
+  - Meilisearch is launched without `--master-key` in the process command line and with analytics disabled.
+- Hosted/cloud touchpoints:
+  - Upstream defaults and public docs are hosted-oriented.
+  - AgentCore must not use `https://swarmrecall-api.onrender.com` or any hosted persistence path.
+- MCP/global-memory-gateway integration:
+  - Local MCP probe against the local API is validated.
+  - SwarmRecall is a local memory/search substrate only.
+  - It must not replace `global-memory-gateway` as the governed cross-project writer.
+- First-responder stance:
+  - Approved only in validated local-only mode with all persistent data on `F:` or approved local PostgreSQL paths.
+
 ### `lossless-memory4agent`
 
 - Purpose: standalone DAG-based memory SDK that stores every message in SQLite and compresses context losslessly via hierarchical summaries.
@@ -202,5 +232,5 @@ D:\github\vendor\
 ## AgentCore Policy
 
 - Keep private first-responder data in local-only systems: `swarmclaw`, `swarmvault`, `swarmrelay`, and local LCM.
-- Treat `swarmdock`, `swarmfeed`, and any future `swarmrecall`/hosted service as blocked for private incident payloads until a separate approval changes the boundary.
+- Treat `swarmdock`, `swarmfeed`, and any hosted/public `swarmrecall` service as blocked for private incident payloads until a separate approval changes the boundary. Local-only validated SwarmRecall is approved as a private local substrate and still must not replace `global-memory-gateway`.
 - Use `global-memory-gateway` for governed memory, not direct writes from vendor runtimes.

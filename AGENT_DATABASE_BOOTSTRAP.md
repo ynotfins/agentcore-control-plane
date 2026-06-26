@@ -1,10 +1,12 @@
 # Agent Database Bootstrap Contract
 
-`D:\MCP-Control-Plane` is the single operational authority for MCP servers, persistent cross-project memory, and the local PostgreSQL vector database.
+`D:\github\agentcore-control-plane` is the canonical Git source repo for MCP server governance, persistent cross-project memory contracts, and the local PostgreSQL vector database.
+
+`D:\MCP-Control-Plane` remains the current live deployed ops root used by scheduled tasks, WAL archiving hooks, and inherited operational paths until a deliberate migration is approved.
 
 Every local IDE agent that needs memory or database context must read this file before writing memory or ingesting project evidence.
 
-Agents must also read `D:\MCP-Control-Plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md` before any persistent filesystem write.
+Agents must also read `D:\github\agentcore-control-plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md` before any persistent filesystem write.
 
 ## Database
 
@@ -66,6 +68,12 @@ Current approved temporary ingest runner:
 - `D:\Autonomy\scripts\ingest_agent_core_memory.py`
 
 Trusted ingest is for loading structured system evidence such as IDE inventories, MCP configs, drift reports, probe results, runbooks, and topology snapshots.
+
+## Source And Live Root Split
+
+- Canonical Git source repo: `D:\github\agentcore-control-plane`
+- Current live deployed ops root: `D:\MCP-Control-Plane`
+- Live migration from `D:\MCP-Control-Plane` to the Git repo path is a separate controlled rollout and is not implied by source-repo edits alone.
 
 ### Admin Migration
 

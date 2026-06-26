@@ -16,6 +16,8 @@ powershell -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\T
 powershell -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\validators\validate-control-plane.ps1
 ```
 
+Use `-WriteReport` when the audit is intentionally updating tracked report artifacts; otherwise these validators run in dry-run mode and report to stdout only.
+
 2. If `scripts/mcp_control_plane.py`, `renderers/`, `registry/`, `supervisor/`, `contracts/`, or schema-adjacent files changed, rerun the control-plane generator before validating.
 3. If a gateway auth failure appears, verify Windows environment variable presence and restart IDE/MCP processes before changing database auth.
 4. Never print, log, or persist secret values.
