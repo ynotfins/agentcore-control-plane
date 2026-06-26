@@ -180,6 +180,10 @@ Verified local state:
 - Local Meilisearch URL: `http://127.0.0.1:7700`
 - Local database: `swarmrecall` on native PostgreSQL at `127.0.0.1:55432`
 - Local role: `swarmrecall_app`
+- AgentCore scheduled tasks:
+  - `\AgentCore\SwarmRecallMeilisearch`
+  - `\AgentCore\SwarmRecallApi`
+- Runtime owner after the 2026-06-26 takeover pass: Windows Task Scheduler, not Cursor background terminals
 
 Validated local-only posture:
 
@@ -195,6 +199,7 @@ Validated local-only posture:
 - Meilisearch is launched without `--master-key` in the process command line
 - no `.env` files were created for the local runtime
 - persistent Meilisearch data is on `F:`
+- aggregate runtime validator passes: `D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1`
 
 Required live exception already made:
 
@@ -209,6 +214,26 @@ Current non-activation boundaries:
 - no live client MCP config has been edited to point at SwarmRecall
 - no hosted URL may be active in AgentCore wrappers/config
 - SwarmRecall does not replace `global-memory-gateway` as the governed cross-project writer
+
+### AgentCore Runtime Automation
+
+The 2026-06-26 takeover pass added these repo-owned operations scripts:
+
+- `D:\github\agentcore-control-plane\ops\Start-AgentCoreSwarmRecallComponent.ps1`
+- `D:\github\agentcore-control-plane\ops\Install-AgentCoreSwarmRecallScheduledTasks.ps1`
+- `D:\github\agentcore-control-plane\ops\Stop-AgentCoreSwarmRecallRuntime.ps1`
+- `D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1`
+
+The SwarmRecall scheduled tasks are current-user logon tasks. They are intentionally limited-runlevel tasks because the local API and Meilisearch do not require administrative privileges, and highest-runlevel registration failed from the non-elevated Codex inner shell.
+
+Codex automations created for ongoing monitoring:
+
+- `agentcore-context-window-optimizer`
+- `agentcore-pgvector-database-monitor`
+- `agentcore-rag-runtime-monitor`
+- `agentcore-mcp-drift-monitor`
+
+These automations are active on the initial high-frequency stabilization cadence. They are monitors and constrained repair agents; broad live IDE MCP rollout remains a separate controlled change.
 
 ## 3. Memory Pipelines
 
@@ -435,7 +460,7 @@ Gateway policy:
 ## 7. Open Gaps And Do-Not-Assume Rules
 
 - Do not route SwarmRecall to hosted defaults; require an explicit local API override.
-- Do not enable live client MCP configs for SwarmRecall until a separate rollout is approved.
+- Do not confuse runtime ownership with live client MCP exposure; SwarmRecall is now service-owned by AgentCore scheduled tasks, but live IDE MCP configs still require a separate controlled rollout.
 - Do not use hidden Docker volumes for persistent SwarmVault or SwarmRecall storage.
 - Do not assume `lossless-claw` has already migrated its SQLite database onto `F:\AgentCore\agentmemory\lcm`.
 - Do not collapse `E:\AgentCoreArchive` into `E:\AgentCoreBackups` without an explicit migration plan.

@@ -269,7 +269,7 @@ Do not store raw secrets, raw logs, full transcripts, or full source dumps in th
 
 ## Local-Only Candidate MCPs
 
-These are validated local-only candidates and are not yet enabled in live client configs by default.
+These are validated local-only candidates. SwarmRecall's API and Meilisearch runtime are now owned by AgentCore scheduled tasks, but live IDE MCP configs are still governed rollout targets rather than ad hoc per-client edits.
 
 ### SwarmVault candidate
 
@@ -298,6 +298,10 @@ These are validated local-only candidates and are not yet enabled in live client
 - Runtime root: `F:\AgentCore\agentmemory\swarmrecall`
 - Wrapper: `D:\github\agentcore-control-plane\ops\Invoke-AgentCoreSwarmRecall.ps1`
 - Validator: `D:\github\agentcore-control-plane\ops\Test-AgentCoreSwarmRecall.ps1`
+- Runtime tasks:
+  - `\AgentCore\SwarmRecallApi`
+  - `\AgentCore\SwarmRecallMeilisearch`
+- Aggregate runtime validator: `D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1`
 - Required local override:
   - `SWARMRECALL_API_URL=http://127.0.0.1:3300`
 - Required local auth:

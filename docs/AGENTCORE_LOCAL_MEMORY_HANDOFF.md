@@ -67,11 +67,11 @@ The normal governed memory path is:
 3. Gateway generates or accepts a compliant 1536-dimensional embedding.
 4. Gateway writes to PostgreSQL/pgvector using the approved role.
 
-Current issue captured during this handoff:
+Gateway credential issue captured during the earlier handoff:
 
 - A direct attempt to append this context into `global-memory-gateway` failed because the gateway attempted to connect to `127.0.0.1:55432` without a supplied password.
 - Do not bypass this by writing raw SQL as a normal agent.
-- The correct fix is to repair gateway environment/credential resolution so `AGENT_CORE_PGUSER` and `AGENT_CORE_PGPASSWORD` resolve to the intended governed role values without printing secrets.
+- The Codex config was later corrected to supply the PostgreSQL-backed `global-memory-gateway` contract through Windows environment variables without printing secrets. Keep validating this with the global-memory-system validator before broad MCP rollout.
 
 ## SwarmVault
 
@@ -164,11 +164,19 @@ Current validated state:
 - API listener is loopback-only on `127.0.0.1:3300`.
 - Exactly one Meilisearch listener is active on `127.0.0.1:7700`.
 - Meilisearch process args no longer expose `--master-key`.
+- SwarmRecall API and Meilisearch are now owned by AgentCore scheduled tasks, not Cursor background terminals:
+  - `\AgentCore\SwarmRecallApi`
+  - `\AgentCore\SwarmRecallMeilisearch`
+- Aggregate runtime validator passes: `D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1`.
 
 Required deliverables:
 
 - `ops\Invoke-AgentCoreSwarmRecall.ps1`
 - `ops\Test-AgentCoreSwarmRecall.ps1`
+- `ops\Start-AgentCoreSwarmRecallComponent.ps1`
+- `ops\Install-AgentCoreSwarmRecallScheduledTasks.ps1`
+- `ops\Stop-AgentCoreSwarmRecallRuntime.ps1`
+- `ops\Test-AgentCoreRuntimeSuite.ps1`
 - Updated docs that make the local-only posture explicit.
 - Handoff proof that the hosted SDK default is neutralized by local configuration.
 
@@ -233,24 +241,22 @@ If generated outputs drift from source scripts, patch generator scripts first ra
 
 ## Next Safe Execution Sequence
 
-1. Verify active Postgres state and gateway credential resolution without printing secrets.
-2. Repair `global-memory-gateway` environment if it still cannot authenticate.
-3. Initialize SwarmVault local runtime under `F:\AgentCore\agentmemory\swarmvault`.
-4. Vendor or fetch SwarmRecall source into the approved vendor path.
-5. Create `swarmrecall` database and least-privilege role on native Postgres.
-6. Configure SwarmRecall API with local `DATABASE_URL`, local `MEILISEARCH_URL`, local `HF_HOME`, and local-only `SWARMRECALL_API_URL`.
-7. Add invoke/test scripts.
-8. Run deterministic validation.
-9. Update docs from validated runtime state.
-10. Only after local validation, consider MCP client exposure through the governed control plane.
+1. Keep `global-memory-gateway` as the governed cross-project memory writer.
+2. Use `Test-AgentCoreRuntimeSuite.ps1` as the first local runtime validation gate.
+3. Use the AgentCore scheduled tasks for SwarmRecall service ownership; do not relaunch long-running SwarmRecall services from Cursor chat terminals.
+4. Validate Codex and IDE MCP configs against the control-plane policy before live rollout.
+5. Roll out SwarmVault/SwarmRecall MCP exposure only through the governed control-plane generator/validator path.
+6. Continue the high-frequency Codex monitors until context-window pressure, DB health, RAG health, and MCP drift are stable; then reduce cadence.
 
 ## Current Open Risks
 
-- `global-memory-gateway` authentication is not currently proven after the failed append attempt.
+- `global-memory-gateway` authentication was corrected in Codex config, but must remain under recurring validation because all-agent MCP rollout can drift.
 - SwarmVault local runtime is initialized and validated.
 - SwarmRecall source/runtime is locally installed and validated as a local-only runtime path.
+- SwarmRecall API and Meilisearch are now owned by AgentCore scheduled tasks.
 - The hosted default in SwarmRecall SDK must be explicitly overridden before any agent uses it.
-- Scheduled tasks and WAL archive still reference `D:\MCP-Control-Plane`, so source hardening in this repo is not live rollout by itself.
+- Some legacy scheduled tasks and WAL archive references still point at `D:\MCP-Control-Plane`; source hardening in this repo is not full control-plane migration by itself.
+- Live IDE MCP configs have not yet been broadly rolled out to expose SwarmVault or SwarmRecall.
 
 ## Source References
 

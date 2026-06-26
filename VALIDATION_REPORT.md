@@ -9,6 +9,10 @@ Follow-up hardening after this historical baseline added:
 - scoped `hostssl` PostgreSQL auth for `swarmrecall_app`
 - native Meilisearch on `F:` with `--no-analytics`
 - loopback-only SwarmRecall API on `127.0.0.1:3300`
+- AgentCore scheduled-task ownership for SwarmRecall API and Meilisearch:
+  - `\AgentCore\SwarmRecallApi`
+  - `\AgentCore\SwarmRecallMeilisearch`
+- aggregate runtime validator: `D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1`
 
 Generated: 2026-06-24
 
