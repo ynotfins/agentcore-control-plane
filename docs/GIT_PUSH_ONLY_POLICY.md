@@ -1,28 +1,36 @@
-# Git Push-Only Policy — AgentCore Working Repos
+# Git Remote Policy — AgentCore Working Repos
 
 **Status:** Enforced. **Owner:** ynotfins. **Date:** 2026-06-30.
 
-The working repos under `D:\github` (the AgentCore control plane and the vendor Swarm clones) are configured as **push-only**. This prevents an accidental `git pull`/`git fetch` from importing remote files into the live working trees on CHAOSCENTRAL.
+Working repos under `D:\github` use **normal GitHub `origin` remotes** for both fetch and push:
+
+```text
+origin  https://github.com/ynotfins/<repo>.git  (fetch)
+origin  https://github.com/ynotfins/<repo>.git  (push)
+```
+
+This does **not** authorize autonomous remote sync. It only restores a standard remote shape so local repos can push cleanly to GitHub without the over-engineered push-only hack.
 
 ## Hard rules
-- **Never** run `git pull`, `git fetch`, `git merge`, or `git rebase` from a remote in these working repos.
-- The `origin` remote has a deliberately invalid FETCH URL (`no_fetch://push-only`) and a real GitHub PUSH URL. A fetch/pull will fail by design.
-- Push with `git push origin HEAD:main` (or `git push` after `push.default current`). Never force-push without explicit operator approval.
-- For any future read-only clone or doc lookup, clone into a SEPARATE tree such as `D:\github-readonly\<repo>` — never into these working repos.
+- Agents must **not** run `git pull`, `git fetch`, `git merge`, or `git rebase` in these working repos unless the user explicitly asks for remote sync.
+- Normal push is allowed after local review and secret/junk scan.
+- Never force-push without explicit operator approval.
+- Before any push, run `git status` and confirm no secrets, runtime state, or generated junk are being staged.
+- Before any remote sync, ask the user.
 
-## Remote shape (every working repo)
-```
-origin  no_fetch://push-only                                   (fetch)   <- invalid by design
-origin  https://github.com/ynotfins/<repo>.git                 (push)    <- real GitHub
-```
-Verify: `git remote -v` and `git config --get-all remote.origin.fetch` (must be empty).
+## Read-only lookup policy
+- Remote docs/lookups and safe comparison work should happen in separate read-only clones under `D:\github-readonly\<repo>`, not by pulling into the working repos under `D:\github`.
+- Treat the working repos as the active implementation trees.
 
 ## Repos covered
 - `agentcore-control-plane` (primary source authority)
 - `swarmclaw`, `swarmrecall`, `swarmvault`, `swarmrelay`, `swarmfeed`, `swarmdock` (vendor Swarm clones)
 
-## Provenance note
-As of 2026-06-30 the vendor working repos' `origin` no longer points at any upstream Swarm URL — a prior setup step already replaced `origin` with the push-only shape, so the original upstream clone URLs are NOT recorded in the current git config. If upstream sync is ever needed, do it in a separate read-only clone under `D:\github-readonly\` (recovering the upstream URL from the upstream project), never in these push-only working trees.
+## Practical workflow
+1. Local work in `D:\github\<repo>`
+2. `git status`
+3. Secret/junk scan
+4. Commit after review
+5. `git push`
 
-## If a push is rejected (non-fast-forward)
-Do NOT fetch/pull/force here. Stop and report the exact error, local branch, and remote URL. Resolve via a separate read-only clone or explicit operator decision.
+If remote synchronization is ever needed, stop and ask the user before any `pull`, `fetch`, `merge`, or `rebase`.
