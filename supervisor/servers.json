@@ -1,6 +1,6 @@
 {
   "schema_version": "2026-06-16",
-  "generated_at": "2026-06-25T00:55:42.466427+00:00",
+  "generated_at": "2026-06-27T06:17:55.331110+00:00",
   "system_id": "CHAOSCENTRAL",
   "global_identity": {
     "user_id": "master_developer_profile",
@@ -23,7 +23,8 @@
         "Codex",
         "OpenClaw",
         "MiniMax Code",
-        "Open Interpreter"
+        "Open Interpreter",
+        "Antigravity"
       ],
       "transport": "stdio",
       "launch_contract": {
@@ -63,7 +64,8 @@
         "Cursor",
         "OpenClaw",
         "MiniMax Code",
-        "Open Interpreter"
+        "Open Interpreter",
+        "Antigravity"
       ],
       "transport": "http",
       "launch_contract": {
@@ -111,6 +113,7 @@
       },
       "criticality": "normal",
       "lifecycle": "active",
+      "render_by_default": false,
       "capabilities": [
         "git_drift_tracking",
         "commit_context_capture",
@@ -153,6 +156,7 @@
       ],
       "criticality": "normal",
       "lifecycle": "active",
+      "render_by_default": false,
       "notes": [
         "Matches the live Cursor/OpenClaw stdio entry; requires CURSOR_API_KEY from user/process environment."
       ]
@@ -163,7 +167,8 @@
         "Cursor",
         "Codex",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "transport": "stdio",
       "launch_contract": {
@@ -206,7 +211,8 @@
         "Cursor",
         "Open Interpreter",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "transport": "stdio",
       "launch_contract": {
@@ -252,6 +258,8 @@
         "Primary memory path for normal agents. Stop if unavailable; do not fall back to raw Mem0 unless explicitly approved.",
         "Backed by PostgreSQL agent_core on 127.0.0.1:55432 with pgvector VECTOR(1536).",
         "Uses OpenAI text-embedding-3-small when OPENAI_API_KEY is available; local_hash_v1 is offline fallback only.",
+        "AgentCore uses Windows environment variables only. Do not create .env fallbacks for gateway credentials.",
+        "Gateway launches with AGENT_CORE_PGUSER=agent_ingest and AGENT_CORE_PGPASSWORD=${ENV:AGENT_CORE_AGENT_INGEST_PASSWORD}.",
         "Normal agents use memory_append/search/state; trusted ingest/admin jobs are the only direct PostgreSQL writers."
       ]
     },
@@ -283,6 +291,7 @@
       },
       "criticality": "normal",
       "lifecycle": "active",
+      "render_by_default": false,
       "capabilities": [
         "github_repo_access",
         "pull_request_automation",
@@ -319,6 +328,7 @@
       },
       "criticality": "normal",
       "lifecycle": "active",
+      "render_by_default": false,
       "capabilities": [
         "debug_sessions",
         "breakpoints",
@@ -370,7 +380,8 @@
         "Cursor",
         "Codex",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "transport": "stdio",
       "launch_contract": {
@@ -410,7 +421,8 @@
         "Cursor",
         "Codex",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "transport": "stdio",
       "launch_contract": {
@@ -447,7 +459,8 @@
         "Codex",
         "Cursor",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "transport": "stdio",
       "launch_contract": {
@@ -483,7 +496,8 @@
       "client_bindings": [
         "Cursor",
         "Codex",
-        "OpenClaw"
+        "OpenClaw",
+        "Antigravity"
       ],
       "transport": "stdio",
       "launch_contract": {
@@ -516,6 +530,96 @@
         "Use Serena before broad cross-file edits or architecture-aware refactors."
       ]
     },
+    "swarmrecall": {
+      "canonical_id": "swarmrecall",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code",
+        "Open Interpreter",
+        "Antigravity"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "pwsh",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmRecall.ps1",
+          "-Mode",
+          "Mcp"
+        ]
+      },
+      "healthcheck": {
+        "kind": "http_reachable",
+        "url": "http://127.0.0.1:3300/api/v1/health"
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "render_by_default": true,
+      "capabilities": [
+        "agent_memory",
+        "semantic_recall",
+        "knowledge_graph",
+        "learnings",
+        "skills",
+        "shared_pools"
+      ],
+      "notes": [
+        "Local-first native SwarmRecall memory runtime. Launched through the governed wrapper ops\\Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp, which forces local-only env (strips Upstash/Firebase) and reads credentials from Windows environment variables.",
+        "Backed by local PostgreSQL `swarmrecall` DB on 127.0.0.1:55432 (separate from `agent_core`) plus Meilisearch on 127.0.0.1:7700. No hosted fallback; no onrender URLs.",
+        "Normal durable task-end memory still routes through global-memory-gateway; SwarmRecall MCP is for native sessions/knowledge/learnings/skills/pools and recall."
+      ]
+    },
+    "swarmvault": {
+      "canonical_id": "swarmvault",
+      "client_bindings": [
+        "Cursor",
+        "Codex",
+        "OpenClaw",
+        "MiniMax Code",
+        "Open Interpreter",
+        "Antigravity"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "pwsh",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmVault.ps1",
+          "-Mode",
+          "Mcp"
+        ]
+      },
+      "healthcheck": {
+        "kind": "mcp_stdio",
+        "methods": [
+          "initialize",
+          "tools/list"
+        ]
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "render_by_default": true,
+      "capabilities": [
+        "local_rag",
+        "wiki",
+        "knowledge_graph",
+        "context_packs",
+        "task_ledger"
+      ],
+      "notes": [
+        "Local-first SwarmVault knowledge/RAG substrate rooted at F:\\AgentCore\\agentmemory\\swarmvault (raw/wiki/state/graph/retrieval/context-packs/task ledger). Not a Postgres database; do not move primary state into Postgres.",
+        "Launched through the governed wrapper ops\\Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp (sets SWARMVAULT_OUT and runs the local CLI `mcp`). Offline-capable heuristic provider; no hosted/cloud persistence.",
+        "Replaces the rogue-added broken reference to C:\\Users\\ynotf\\.agentcore\\mcp-wrappers\\swarmvault-mcp.ps1 (that wrapper does not exist)."
+      ]
+    },
     "composio": {
       "canonical_id": "composio",
       "client_bindings": [],
@@ -537,6 +641,34 @@
       ],
       "notes": [
         "Quarantined by default because current runtime state is unstable. Do not render into clients until explicitly re-enabled."
+      ]
+    },
+    "eye2byte": {
+      "canonical_id": "eye2byte",
+      "client_bindings": [
+        "OpenClaw"
+      ],
+      "transport": "stdio",
+      "launch_contract": {
+        "command": "python",
+        "args": [
+          "C:\\Users\\ynotf\\.openclaw\\eye2byte_mcp.py"
+        ]
+      },
+      "healthcheck": {
+        "kind": "mcp_stdio",
+        "methods": [
+          "initialize",
+          "tools/list"
+        ]
+      },
+      "criticality": "normal",
+      "lifecycle": "active",
+      "capabilities": [
+        "openclaw_user_extension"
+      ],
+      "notes": [
+        "User-approved OpenClaw-only MCP server. Preserve during renderer apply; do not copy to other IDEs."
       ]
     }
   }

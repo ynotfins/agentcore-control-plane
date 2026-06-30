@@ -1,7 +1,8 @@
 param(
   [string]$TaskPath = "\AgentCore\",
   [string]$ConfigPath = "F:\AgentCore\agentmemory\swarmrecall\config\agentcore.swarmrecall.local.json",
-  [switch]$StartAfterInstall
+  [switch]$StartAfterInstall,
+  [switch]$UseHighestRunLevel
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,6 +37,7 @@ function Register-AgentCoreComponentTask {
 
   $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $argument -WorkingDirectory $workingDirectory
   $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
+  $trigger.Delay = if ($Component -eq "Meilisearch") { "PT45S" } else { "PT75S" }
   $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries `
@@ -45,7 +47,8 @@ function Register-AgentCoreComponentTask {
     -RestartInterval (New-TimeSpan -Minutes 1) `
     -StartWhenAvailable
 
-  $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
+  $runLevel = if ($UseHighestRunLevel) { "Highest" } else { "Limited" }
+  $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel $runLevel
   $task = New-ScheduledTask -Action $action -Trigger $trigger -Settings $settings -Principal $principal
 
   Register-ScheduledTask -TaskPath $TaskPath -TaskName $Name -InputObject $task -Force | Out-Null

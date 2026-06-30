@@ -1,0 +1,44 @@
+{
+  "schema_version": "2026-06-26",
+  "contract_id": "agentcore.chaoscentral-workhorse.v1",
+  "authority": "D:\\github\\agentcore-control-plane",
+  "workhorse_root": "D:\\ChaosCentral-Current-Build",
+  "purpose": "Defines how ChaosCentral collects local PC evidence and feeds AgentCore authority docs without becoming a second control plane.",
+  "roles": {
+    "agentcore": "source-controlled authority for runtime, memory, MCP, docs, renderers, validators, and automation policy",
+    "chaoscentral": "inventory, evidence, planning, and security-surface workhorse",
+    "live_ops_legacy": "compatibility path for existing scheduled tasks and delegates"
+  },
+  "allowed_chaoscentral_writes": [
+    "D:\\ChaosCentral-Current-Build\\MACHINE_STATE.manifest.json",
+    "D:\\ChaosCentral-Current-Build\\_evidence\\*.json",
+    "D:\\ChaosCentral-Current-Build\\*.md",
+    "D:\\ChaosCentral-Current-Build\\scripts\\*.ps1"
+  ],
+  "required_exports": [
+    "MACHINE_STATE.manifest.json",
+    "_evidence\\machine-state-*.json",
+    "CURRENT_STATE.md",
+    "AUTOMATION_BACKLOG.md",
+    "SECURITY_REMEDIATION_TRACKER.md"
+  ],
+  "agentcore_update_targets": [
+    "docs\\CHAOSCENTRAL_WORKHORSE_INTEGRATION.md",
+    "docs\\CONTEXT_WINDOW_OPTIMIZATION_POLICY.md",
+    "docs\\PLUGIN_EXTENSION_SECURITY_MONITORING.md",
+    "docs\\AGENTCORE_AUTOMATION_OPERATIONS.md",
+    "contracts\\master-mcp-server-config.json"
+  ],
+  "validation": {
+    "chaoscentral_refresh": "powershell -NoProfile -ExecutionPolicy Bypass -File D:\\ChaosCentral-Current-Build\\scripts\\Refresh-ChaosCentralInventory.ps1",
+    "chaoscentral_test": "powershell -NoProfile -ExecutionPolicy Bypass -File D:\\ChaosCentral-Current-Build\\scripts\\Test-ChaosCentralInventory.ps1",
+    "agentcore_source_validator": "powershell -NoProfile -ExecutionPolicy Bypass -File D:\\github\\agentcore-control-plane\\validators\\validate-control-plane.ps1 -DryRun",
+    "context_policy_validator": "powershell -NoProfile -ExecutionPolicy Bypass -File D:\\github\\agentcore-control-plane\\ops\\Test-AgentCoreContextWindowPolicy.ps1",
+    "plugin_security_validator": "powershell -NoProfile -ExecutionPolicy Bypass -File D:\\github\\agentcore-control-plane\\ops\\Test-AgentCorePluginExtensionSecurity.ps1"
+  },
+  "secret_policy": {
+    "store_secret_values": false,
+    "record_environment_variable_names_only": true,
+    "redact_command_lines_when_secret_values_are_detected": true
+  }
+}

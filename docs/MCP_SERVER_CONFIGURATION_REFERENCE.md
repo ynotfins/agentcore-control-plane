@@ -6,6 +6,12 @@
 
 Use this document when an IDE needs to be repaired, manually configured, or compared against the rendered control-plane outputs.
 
+Machine-readable master contract:
+
+- `D:\github\agentcore-control-plane\contracts\master-mcp-server-config.json`
+- Use this first when another IDE agent needs to install or verify the mandatory/essential AgentCore MCP surface.
+- The renderer files remain the executable per-client outputs; the master contract records the shared policy, per-client server sets, unique client setup notes, and default exclusions in one place.
+
 For drive layout and active/archive storage policy, see `D:\github\agentcore-control-plane\docs\AGENTCORE_STORAGE_DESIGN.md`.
 
 ## Source Renderers
@@ -25,9 +31,50 @@ For drive layout and active/archive storage policy, see `D:\github\agentcore-con
 - Open Interpreter: `C:\Users\ynotf\AppData\Roaming\interpreter\config.json`
 - Android Studio: no live MCP config found under `%APPDATA%\Google` as of this audit
 
+## Core vs Optional MCP Exposure
+
+Use the smallest approved MCP surface that still preserves the governed routing contract.
+
+Core governed routes:
+
+- `global-memory-gateway` is the governed memory path and must remain the default memory server.
+- `arabold-docs` is the current-docs path.
+- `artiforge` remains the approved architecture/codebase scan path.
+- `sequential-thinking` remains the approved planning/debugging MCP where reasoning MCP exposure is needed.
+- `serena` remains the repo-code navigation/refactor MCP for the clients that perform code-aware editing.
+
+Optional high-surface routes:
+
+- `context-fabric`, `filesystem`, `github-mcp`, `obsidian-vault`, `playwright`, `cursor-agent-mcp`, and `mcp-debugger` are useful, but each adds more tools and more context-window pressure.
+- Keep them only on the clients that actually need them, and treat additions beyond the approved renderer sets as drift unless the exception is promoted into the source renderer and master contract.
+- `context-fabric`, `cursor-agent-mcp`, `github-mcp`, and `mcp-debugger` are task-specific opt-ins for Cursor/OpenClaw rather than part of the bounded default surface.
+
+Current approved renderer surfaces:
+
+- Codex: bounded to 11 or fewer live MCP servers; `global-memory-gateway`, `arabold-docs`, `artiforge`, `sequential-thinking`, and `serena` must remain present, while direct Firecrawl routes are not part of the default AgentCore memory rollout surface.
+- Cursor: 8 servers (`arabold-docs`, `artiforge`, `filesystem`, `global-memory-gateway`, `obsidian-vault`, `playwright`, `sequential-thinking`, `serena`)
+- OpenClaw: 9 servers (same reduced approved set as Cursor plus the user-approved `eye2byte` OpenClaw-only MCP)
+- MiniMax Code: 7 servers (`arabold-docs`, `artiforge`, `filesystem`, `global-memory-gateway`, `obsidian-vault`, `playwright`, `sequential-thinking`)
+- Open Interpreter: 3 servers (`arabold-docs`, `artiforge`, `global-memory-gateway`)
+
+Validation note:
+
+- `validators\validate-control-plane.ps1` enforces the approved source renderer server sets and keeps repo validation separate from live rollout timing.
+- `ops\Test-AgentCoreLiveClientAdoption.ps1` is the live-state proof after restart; it verifies that the running clients actually adopted the governed config set.
+- `eye2byte` is intentionally approved only for OpenClaw and must not be copied into Codex, Cursor, MiniMax, Mavis, or Open Interpreter.
+
 ## Default Memory Server
 
 All IDEs should use `global-memory-gateway` for normal memory operations.
+
+Unified memory rollout rules:
+
+- `global-memory-gateway` is the only normal agent write path.
+- `agent_core` on `127.0.0.1:55432` is the canonical governed memory database.
+- `SwarmRecall` stays local-only as a backend runtime and retrieval service, not a default broad MCP surface for every IDE.
+- `SwarmVault` stays local-first under `F:\AgentCore\agentmemory\swarmvault` as the shared RAG/wiki substrate.
+- Projection into `SwarmRecall` and `SwarmVault` is handled by control-plane jobs, not client-side dual writes.
+- Direct `SwarmRecall` MCP exposure is intentionally absent from the default renderer set.
 
 ```json
 {
@@ -38,7 +85,11 @@ All IDEs should use `global-memory-gateway` for normal memory operations.
       "-m",
       "autonomy_factory.global_memory_gateway",
       "--user-id",
-      "master_developer_profile"
+      "master_developer_profile",
+      "--project-id",
+      "codex-managed",
+      "--platform",
+      "cursor"
     ],
     "env": {
       "MEM0_DEFAULT_USER_ID": "master_developer_profile",
@@ -56,6 +107,20 @@ All IDEs should use `global-memory-gateway` for normal memory operations.
   }
 }
 ```
+
+The rendered client fragments use the same governed contract but set `--platform` per client:
+
+- Codex: `codex`
+- Cursor: `cursor`
+- OpenClaw: `openclaw`
+- Open Interpreter: `open-interpreter`
+- MiniMax Code: `minimax-code`
+
+After a live apply:
+
+1. Restart the affected client.
+2. Run `D:\github\agentcore-control-plane\ops\Test-AgentCoreLiveClientAdoption.ps1`.
+3. Do not claim live rollout completion until that verifier passes for the clients in scope.
 
 ## Environment Variable Policy
 

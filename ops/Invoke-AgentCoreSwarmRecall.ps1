@@ -2,6 +2,8 @@ param(
   [ValidateSet("ShowConfig", "StartMeilisearch", "StartApi", "Register", "Health", "Mcp", "CliHelp", "MemoryList")]
   [string]$Mode = "ShowConfig",
   [string]$ConfigPath = "F:\AgentCore\agentmemory\swarmrecall\config\agentcore.swarmrecall.local.json",
+  [string]$PostgresBin = "F:\AgentCore\postgres_runtime_engine\pgsql\bin",
+  [int]$PostgresReadyTimeoutSeconds = 90,
   [switch]$PersistApiKey
 )
 
@@ -57,6 +59,60 @@ function Set-LocalEnv {
   }
 }
 
+function Invoke-AgentCoreNative {
+  param(
+    [string]$Command,
+    [string[]]$Arguments
+  )
+
+  $previousNativePref = $null
+  $hadNativePref = Test-Path Variable:PSNativeCommandUseErrorActionPreference
+  if ($hadNativePref) {
+    $previousNativePref = $PSNativeCommandUseErrorActionPreference
+    $PSNativeCommandUseErrorActionPreference = $false
+  }
+  try {
+    $output = & $Command @Arguments 2>&1
+    return [pscustomobject]@{
+      ExitCode = $LASTEXITCODE
+      Output = (($output | ForEach-Object { [string]$_ }) -join "`n").Trim()
+    }
+  } catch {
+    return [pscustomobject]@{
+      ExitCode = 1
+      Output = $_.Exception.Message
+    }
+  } finally {
+    if ($hadNativePref) {
+      $PSNativeCommandUseErrorActionPreference = $previousNativePref
+    }
+  }
+}
+
+function Wait-PostgresReady {
+  param(
+    [object]$Config,
+    [string]$BinRoot,
+    [int]$TimeoutSeconds
+  )
+
+  $pgIsReady = Join-Path $BinRoot "pg_isready.exe"
+  if (-not (Test-Path -LiteralPath $pgIsReady)) {
+    throw "pg_isready.exe not found: $pgIsReady"
+  }
+
+  $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+  do {
+    $probe = Invoke-AgentCoreNative -Command $pgIsReady -Arguments @("-h", $Config.database.host, "-p", [string]$Config.database.port)
+    if ($probe.ExitCode -eq 0) {
+      return
+    }
+    Start-Sleep -Seconds 3
+  } while ((Get-Date) -lt $deadline)
+
+  throw "PostgreSQL was not ready after $TimeoutSeconds seconds at $($Config.database.host):$($Config.database.port). Last check: $($probe.Output)"
+}
+
 $config = Get-Config -Path $ConfigPath
 
 switch ($Mode) {
@@ -91,6 +147,7 @@ switch ($Mode) {
     exit $LASTEXITCODE
   }
   "StartApi" {
+    Wait-PostgresReady -Config $config -BinRoot $PostgresBin -TimeoutSeconds $PostgresReadyTimeoutSeconds
     Set-LocalEnv -Config $config
     if (-not (Test-Path -LiteralPath $config.runtime.hfHome)) {
       New-Item -ItemType Directory -Path $config.runtime.hfHome | Out-Null

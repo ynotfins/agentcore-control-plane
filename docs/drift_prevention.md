@@ -12,7 +12,7 @@ The authoritative database table is:
 
 The daily drift script is:
 
-`D:\MCP-Control-Plane\ops\Test-AgentCoreDrift.ps1`
+`D:\github\agentcore-control-plane\ops\Test-AgentCoreDrift.ps1`
 
 ## What Gets Tracked
 
@@ -45,7 +45,7 @@ This preserves immutable historical facts while exposing the latest version.
 
 The designated maintenance agent should:
 
-1. Run `D:\MCP-Control-Plane\ops\Test-AgentCoreDrift.ps1`.
+1. Run `D:\github\agentcore-control-plane\ops\Test-AgentCoreDrift.ps1`.
 2. Review new `project_facts` versions.
 3. If a change reflects an intended architecture decision, update relevant docs and store a compact memory through `global-memory-gateway`.
 4. If a change is unintended, stop and notify the user.
@@ -57,7 +57,13 @@ Windows scheduled task:
 
 - Task: `AgentCore\DailyDriftCheck`
 - Time: `04:00`
-- Command: `D:\MCP-Control-Plane\ops\Test-AgentCoreDrift.ps1`
+- Command: `D:\github\agentcore-control-plane\ops\Test-AgentCoreDrift.ps1`
+
+Related readiness task:
+
+- Task: `AgentCore\ContextFabricReadiness`
+- Cadence: every 2 hours
+- Command: `D:\github\agentcore-control-plane\ops\Test-AgentCoreContextFabricReadiness.ps1`
 
 ## Notifications
 

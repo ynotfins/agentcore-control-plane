@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-25T00:55:42.460817+00:00",
+  "generated_at": "2026-06-27T06:17:55.326436+00:00",
   "assets": [
     {
       "client": "Cursor Global",
@@ -9,7 +9,7 @@
       "exists": true,
       "is_file": true,
       "parse_error": null,
-      "server_count": 12,
+      "server_count": 8,
       "servers": [
         {
           "client": "Cursor Global",
@@ -64,60 +64,6 @@
         {
           "client": "Cursor Global",
           "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
-          "server_name": "context-fabric",
-          "canonical": "context-fabric",
-          "transport": "stdio",
-          "command": "C:\\Program Files\\nodejs\\node.exe",
-          "url": null,
-          "args": [
-            "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
-          ],
-          "env_keys_only": [],
-          "header_keys_only": [],
-          "detected_auth": [],
-          "expected_capabilities": [
-            "tools",
-            "resources",
-            "prompts"
-          ],
-          "ownership": "local-user",
-          "criticality": "normal",
-          "health": "probe_pending",
-          "notes": []
-        },
-        {
-          "client": "Cursor Global",
-          "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
-          "server_name": "cursor-agent-mcp",
-          "canonical": "cursor-agent-mcp",
-          "transport": "stdio",
-          "command": "npx.cmd",
-          "url": null,
-          "args": [
-            "-y",
-            "cursor-agent-mcp@latest"
-          ],
-          "env_keys_only": [
-            "CURSOR_API_KEY",
-            "CURSOR_API_URL"
-          ],
-          "header_keys_only": [],
-          "detected_auth": [
-            "CURSOR_API_KEY"
-          ],
-          "expected_capabilities": [
-            "tools",
-            "resources",
-            "prompts"
-          ],
-          "ownership": "local-user",
-          "criticality": "normal",
-          "health": "probe_pending",
-          "notes": []
-        },
-        {
-          "client": "Cursor Global",
-          "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
           "server_name": "filesystem",
           "canonical": "filesystem",
           "transport": "stdio",
@@ -159,11 +105,16 @@
             "-m",
             "autonomy_factory.global_memory_gateway",
             "--user-id",
-            "master_developer_profile"
+            "master_developer_profile",
+            "--project-id",
+            "codex-managed",
+            "--platform",
+            "cursor"
           ],
           "env_keys_only": [
             "AGENT_CORE_PGDATABASE",
             "AGENT_CORE_PGHOST",
+            "AGENT_CORE_PGPASSWORD",
             "AGENT_CORE_PGPORT",
             "AGENT_CORE_PGUSER",
             "MEM0_DEFAULT_USER_ID",
@@ -175,6 +126,7 @@
           ],
           "header_keys_only": [],
           "detected_auth": [
+            "AGENT_CORE_PGPASSWORD",
             "OPENAI_API_KEY"
           ],
           "expected_capabilities": [
@@ -184,64 +136,6 @@
           ],
           "ownership": "local-user",
           "criticality": "critical",
-          "health": "probe_pending",
-          "notes": []
-        },
-        {
-          "client": "Cursor Global",
-          "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
-          "server_name": "github-mcp",
-          "canonical": "github-mcp",
-          "transport": "stdio",
-          "command": "docker",
-          "url": null,
-          "args": [
-            "run",
-            "-i",
-            "--rm",
-            "-e",
-            "GITHUB_PERSONAL_ACCESS_TOKEN",
-            "ghcr.io/github/github-mcp-server"
-          ],
-          "env_keys_only": [
-            "GITHUB_PERSONAL_ACCESS_TOKEN"
-          ],
-          "header_keys_only": [],
-          "detected_auth": [
-            "GITHUB_PERSONAL_ACCESS_TOKEN"
-          ],
-          "expected_capabilities": [
-            "tools",
-            "resources",
-            "prompts"
-          ],
-          "ownership": "local-user",
-          "criticality": "normal",
-          "health": "probe_pending",
-          "notes": []
-        },
-        {
-          "client": "Cursor Global",
-          "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
-          "server_name": "mcp-debugger",
-          "canonical": "mcp-debugger",
-          "transport": "stdio",
-          "command": "npx.cmd",
-          "url": null,
-          "args": [
-            "-y",
-            "@debugmcp/mcp-debugger@latest"
-          ],
-          "env_keys_only": [],
-          "header_keys_only": [],
-          "detected_auth": [],
-          "expected_capabilities": [
-            "tools",
-            "resources",
-            "prompts"
-          ],
-          "ownership": "local-user",
-          "criticality": "normal",
           "health": "probe_pending",
           "notes": []
         },
@@ -368,11 +262,368 @@
       "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
       "required": false,
       "discovered": false,
-      "exists": false,
-      "is_file": false,
+      "exists": true,
+      "is_file": true,
       "parse_error": null,
-      "server_count": 0,
-      "servers": []
+      "server_count": 12,
+      "servers": [
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "arabold-docs",
+          "canonical": "arabold-docs",
+          "transport": "stdio",
+          "command": "C:\\Program Files\\nodejs\\node.exe",
+          "url": null,
+          "args": [
+            "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+          ],
+          "env_keys_only": [
+            "OPENAI_API_KEY"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [
+            "OPENAI_API_KEY"
+          ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "critical",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "artiforge",
+          "canonical": "artiforge",
+          "transport": "streamable-http",
+          "command": null,
+          "url": "https://tools.artiforge.ai/mcp?pat=${REDACTED}",
+          "args": [],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "critical",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "context-fabric",
+          "canonical": "context-fabric",
+          "transport": "stdio",
+          "command": "C:\\Program Files\\nodejs\\node.exe",
+          "url": null,
+          "args": [
+            "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "cursor-agent-mcp",
+          "canonical": "cursor-agent-mcp",
+          "transport": "stdio",
+          "command": "npx.cmd",
+          "url": null,
+          "args": [
+            "-y",
+            "cursor-agent-mcp@latest"
+          ],
+          "env_keys_only": [
+            "CURSOR_API_KEY",
+            "CURSOR_API_URL"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [
+            "CURSOR_API_KEY"
+          ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "filesystem",
+          "canonical": "filesystem",
+          "transport": "stdio",
+          "command": "npx.cmd",
+          "url": null,
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-filesystem",
+            "C:\\Users\\ynotf",
+            "D:\\Codex_Managed",
+            "D:\\cursor_setup",
+            "D:\\openclaw",
+            "D:\\Obsidian",
+            "F:\\AgentCore",
+            "E:\\AgentCoreArchive"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "global-memory-gateway",
+          "canonical": "global-memory-gateway",
+          "transport": "stdio",
+          "command": "D:\\Codex_Managed\\.venv\\Scripts\\python.exe",
+          "url": null,
+          "args": [
+            "-m",
+            "autonomy_factory.global_memory_gateway",
+            "--user-id",
+            "master_developer_profile",
+            "--project-id",
+            "codex-managed",
+            "--platform",
+            "cursor"
+          ],
+          "env_keys_only": [
+            "AGENT_CORE_PGDATABASE",
+            "AGENT_CORE_PGHOST",
+            "AGENT_CORE_PGPASSWORD",
+            "AGENT_CORE_PGPORT",
+            "AGENT_CORE_PGUSER",
+            "MEM0_DEFAULT_USER_ID",
+            "MEMORY_GATEWAY_BACKEND",
+            "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS",
+            "MEMORY_GATEWAY_EMBEDDING_PROVIDER",
+            "OPENAI_API_KEY",
+            "OPENAI_EMBEDDING_MODEL"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [
+            "AGENT_CORE_PGPASSWORD",
+            "OPENAI_API_KEY"
+          ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "critical",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "github-mcp",
+          "canonical": "github-mcp",
+          "transport": "stdio",
+          "command": "docker",
+          "url": null,
+          "args": [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "ghcr.io/github/github-mcp-server"
+          ],
+          "env_keys_only": [
+            "GITHUB_PERSONAL_ACCESS_TOKEN"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [
+            "GITHUB_PERSONAL_ACCESS_TOKEN"
+          ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "mcp-debugger",
+          "canonical": "mcp-debugger",
+          "transport": "stdio",
+          "command": "npx.cmd",
+          "url": null,
+          "args": [
+            "-y",
+            "@debugmcp/mcp-debugger@latest"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "obsidian-vault",
+          "canonical": "obsidian-vault",
+          "transport": "stdio",
+          "command": "pwsh",
+          "url": null,
+          "args": [
+            "-NoProfile",
+            "-NonInteractive",
+            "-File",
+            "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+          ],
+          "env_keys_only": [
+            "OBSIDIAN_API_KEY",
+            "OBSIDIAN_BASE_URL",
+            "OBSIDIAN_LOCAL_REST_API",
+            "OBSIDIAN_VERIFY_SSL"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [
+            "OBSIDIAN_API_KEY"
+          ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "playwright",
+          "canonical": "playwright",
+          "transport": "stdio",
+          "command": "npx.cmd",
+          "url": null,
+          "args": [
+            "-y",
+            "@playwright/mcp@latest"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "sequential-thinking",
+          "canonical": "sequential-thinking",
+          "transport": "stdio",
+          "command": "npx.cmd",
+          "url": null,
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-sequential-thinking"
+          ],
+          "env_keys_only": [
+            "DISABLE_THOUGHT_LOGGING"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "critical",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Cursor Project",
+          "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+          "server_name": "serena",
+          "canonical": "serena",
+          "transport": "stdio",
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe",
+          "url": null,
+          "args": [
+            "--from",
+            "git+https://github.com/oraios/serena",
+            "serena",
+            "start-mcp-server",
+            "--project-from-cwd",
+            "--transport",
+            "stdio"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        }
+      ]
     },
     {
       "client": "Open Interpreter",
@@ -446,11 +697,16 @@
             "-m",
             "autonomy_factory.global_memory_gateway",
             "--user-id",
-            "master_developer_profile"
+            "master_developer_profile",
+            "--project-id",
+            "codex-managed",
+            "--platform",
+            "open-interpreter"
           ],
           "env_keys_only": [
             "AGENT_CORE_PGDATABASE",
             "AGENT_CORE_PGHOST",
+            "AGENT_CORE_PGPASSWORD",
             "AGENT_CORE_PGPORT",
             "AGENT_CORE_PGUSER",
             "MEM0_DEFAULT_USER_ID",
@@ -462,8 +718,241 @@
           ],
           "header_keys_only": [],
           "detected_auth": [
+            "AGENT_CORE_PGPASSWORD",
             "OPENAI_API_KEY"
           ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "critical",
+          "health": "probe_pending",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "client": "MiniMax Code",
+      "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "required": true,
+      "discovered": false,
+      "exists": true,
+      "is_file": true,
+      "parse_error": null,
+      "server_count": 7,
+      "servers": [
+        {
+          "client": "MiniMax Code",
+          "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+          "server_name": "arabold-docs",
+          "canonical": "arabold-docs",
+          "transport": "stdio",
+          "command": "C:\\Program Files\\nodejs\\node.exe",
+          "url": null,
+          "args": [
+            "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+          ],
+          "env_keys_only": [
+            "OPENAI_API_KEY"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [
+            "OPENAI_API_KEY"
+          ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "critical",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "MiniMax Code",
+          "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+          "server_name": "artiforge",
+          "canonical": "artiforge",
+          "transport": "stdio",
+          "command": "pwsh",
+          "url": null,
+          "args": [
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            "C:\\Users\\ynotf\\.codex\\mcp-wrappers\\artiforge-mcp.ps1"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "critical",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "MiniMax Code",
+          "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+          "server_name": "filesystem",
+          "canonical": "filesystem",
+          "transport": "stdio",
+          "command": "npx.cmd",
+          "url": null,
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-filesystem",
+            "C:\\Users\\ynotf",
+            "D:\\Codex_Managed",
+            "D:\\cursor_setup",
+            "D:\\openclaw",
+            "D:\\Obsidian",
+            "F:\\AgentCore",
+            "E:\\AgentCoreArchive"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "MiniMax Code",
+          "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+          "server_name": "global-memory-gateway",
+          "canonical": "global-memory-gateway",
+          "transport": "stdio",
+          "command": "D:\\Codex_Managed\\.venv\\Scripts\\python.exe",
+          "url": null,
+          "args": [
+            "-m",
+            "autonomy_factory.global_memory_gateway",
+            "--user-id",
+            "master_developer_profile",
+            "--project-id",
+            "codex-managed",
+            "--platform",
+            "minimax-code"
+          ],
+          "env_keys_only": [
+            "AGENT_CORE_PGDATABASE",
+            "AGENT_CORE_PGHOST",
+            "AGENT_CORE_PGPASSWORD",
+            "AGENT_CORE_PGPORT",
+            "AGENT_CORE_PGUSER",
+            "MEM0_DEFAULT_USER_ID",
+            "MEMORY_GATEWAY_BACKEND",
+            "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS",
+            "MEMORY_GATEWAY_EMBEDDING_PROVIDER",
+            "OPENAI_API_KEY",
+            "OPENAI_EMBEDDING_MODEL"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [
+            "AGENT_CORE_PGPASSWORD",
+            "OPENAI_API_KEY"
+          ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "critical",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "MiniMax Code",
+          "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+          "server_name": "obsidian-vault",
+          "canonical": "obsidian-vault",
+          "transport": "stdio",
+          "command": "pwsh",
+          "url": null,
+          "args": [
+            "-NoProfile",
+            "-NonInteractive",
+            "-File",
+            "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+          ],
+          "env_keys_only": [
+            "OBSIDIAN_API_KEY",
+            "OBSIDIAN_BASE_URL",
+            "OBSIDIAN_LOCAL_REST_API",
+            "OBSIDIAN_VERIFY_SSL"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [
+            "OBSIDIAN_API_KEY"
+          ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "MiniMax Code",
+          "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+          "server_name": "playwright",
+          "canonical": "playwright",
+          "transport": "stdio",
+          "command": "npx.cmd",
+          "url": null,
+          "args": [
+            "-y",
+            "@playwright/mcp@latest"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "MiniMax Code",
+          "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+          "server_name": "sequential-thinking",
+          "canonical": "sequential-thinking",
+          "transport": "stdio",
+          "command": "npx.cmd",
+          "url": null,
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-sequential-thinking"
+          ],
+          "env_keys_only": [
+            "DISABLE_THOUGHT_LOGGING"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [],
           "expected_capabilities": [
             "tools",
             "resources",
@@ -586,11 +1075,16 @@
             "-m",
             "autonomy_factory.global_memory_gateway",
             "--user-id",
-            "master_developer_profile"
+            "master_developer_profile",
+            "--project-id",
+            "codex-managed",
+            "--platform",
+            "minimax-code"
           ],
           "env_keys_only": [
             "AGENT_CORE_PGDATABASE",
             "AGENT_CORE_PGHOST",
+            "AGENT_CORE_PGPASSWORD",
             "AGENT_CORE_PGPORT",
             "AGENT_CORE_PGUSER",
             "MEM0_DEFAULT_USER_ID",
@@ -602,6 +1096,7 @@
           ],
           "header_keys_only": [],
           "detected_auth": [
+            "AGENT_CORE_PGPASSWORD",
             "OPENAI_API_KEY"
           ],
           "expected_capabilities": [
@@ -710,7 +1205,7 @@
       "exists": true,
       "is_file": true,
       "parse_error": null,
-      "server_count": 12,
+      "server_count": 9,
       "servers": [
         {
           "client": "OpenClaw",
@@ -765,60 +1260,6 @@
         {
           "client": "OpenClaw",
           "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
-          "server_name": "context-fabric",
-          "canonical": "context-fabric",
-          "transport": "stdio",
-          "command": "C:\\Program Files\\nodejs\\node.exe",
-          "url": null,
-          "args": [
-            "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
-          ],
-          "env_keys_only": [],
-          "header_keys_only": [],
-          "detected_auth": [],
-          "expected_capabilities": [
-            "tools",
-            "resources",
-            "prompts"
-          ],
-          "ownership": "local-user",
-          "criticality": "normal",
-          "health": "probe_pending",
-          "notes": []
-        },
-        {
-          "client": "OpenClaw",
-          "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
-          "server_name": "cursor-agent-mcp",
-          "canonical": "cursor-agent-mcp",
-          "transport": "stdio",
-          "command": "npx.cmd",
-          "url": null,
-          "args": [
-            "-y",
-            "cursor-agent-mcp@latest"
-          ],
-          "env_keys_only": [
-            "CURSOR_API_KEY",
-            "CURSOR_API_URL"
-          ],
-          "header_keys_only": [],
-          "detected_auth": [
-            "CURSOR_API_KEY"
-          ],
-          "expected_capabilities": [
-            "tools",
-            "resources",
-            "prompts"
-          ],
-          "ownership": "local-user",
-          "criticality": "normal",
-          "health": "probe_pending",
-          "notes": []
-        },
-        {
-          "client": "OpenClaw",
-          "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
           "server_name": "filesystem",
           "canonical": "filesystem",
           "transport": "stdio",
@@ -860,11 +1301,16 @@
             "-m",
             "autonomy_factory.global_memory_gateway",
             "--user-id",
-            "master_developer_profile"
+            "master_developer_profile",
+            "--project-id",
+            "codex-managed",
+            "--platform",
+            "openclaw"
           ],
           "env_keys_only": [
             "AGENT_CORE_PGDATABASE",
             "AGENT_CORE_PGHOST",
+            "AGENT_CORE_PGPASSWORD",
             "AGENT_CORE_PGPORT",
             "AGENT_CORE_PGUSER",
             "MEM0_DEFAULT_USER_ID",
@@ -876,6 +1322,7 @@
           ],
           "header_keys_only": [],
           "detected_auth": [
+            "AGENT_CORE_PGPASSWORD",
             "OPENAI_API_KEY"
           ],
           "expected_capabilities": [
@@ -885,64 +1332,6 @@
           ],
           "ownership": "local-user",
           "criticality": "critical",
-          "health": "probe_pending",
-          "notes": []
-        },
-        {
-          "client": "OpenClaw",
-          "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
-          "server_name": "github-mcp",
-          "canonical": "github-mcp",
-          "transport": "stdio",
-          "command": "docker",
-          "url": null,
-          "args": [
-            "run",
-            "-i",
-            "--rm",
-            "-e",
-            "GITHUB_PERSONAL_ACCESS_TOKEN",
-            "ghcr.io/github/github-mcp-server"
-          ],
-          "env_keys_only": [
-            "GITHUB_PERSONAL_ACCESS_TOKEN"
-          ],
-          "header_keys_only": [],
-          "detected_auth": [
-            "GITHUB_PERSONAL_ACCESS_TOKEN"
-          ],
-          "expected_capabilities": [
-            "tools",
-            "resources",
-            "prompts"
-          ],
-          "ownership": "local-user",
-          "criticality": "normal",
-          "health": "probe_pending",
-          "notes": []
-        },
-        {
-          "client": "OpenClaw",
-          "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
-          "server_name": "mcp-debugger",
-          "canonical": "mcp-debugger",
-          "transport": "stdio",
-          "command": "npx.cmd",
-          "url": null,
-          "args": [
-            "-y",
-            "@debugmcp/mcp-debugger@latest"
-          ],
-          "env_keys_only": [],
-          "header_keys_only": [],
-          "detected_auth": [],
-          "expected_capabilities": [
-            "tools",
-            "resources",
-            "prompts"
-          ],
-          "ownership": "local-user",
-          "criticality": "normal",
           "health": "probe_pending",
           "notes": []
         },
@@ -1061,16 +1450,291 @@
           "criticality": "normal",
           "health": "probe_pending",
           "notes": []
+        },
+        {
+          "client": "OpenClaw",
+          "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
+          "server_name": "eye2byte",
+          "canonical": "eye2byte",
+          "transport": "stdio",
+          "command": "python",
+          "url": null,
+          "args": [
+            "C:\\Users\\ynotf\\.openclaw\\eye2byte_mcp.py"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
         }
       ]
+    },
+    {
+      "client": "Antigravity",
+      "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "required": true,
+      "discovered": false,
+      "exists": true,
+      "is_file": true,
+      "parse_error": null,
+      "server_count": 6,
+      "servers": [
+        {
+          "client": "Antigravity",
+          "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+          "server_name": "GitKraken",
+          "canonical": "GitKraken",
+          "transport": "stdio",
+          "command": "c:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\globalStorage\\eamodio.gitlens\\gk.exe",
+          "url": null,
+          "args": [
+            "mcp",
+            "--host=antigravity",
+            "--source=gitlens",
+            "--scheme=antigravity"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Antigravity",
+          "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+          "server_name": "cloudrun",
+          "canonical": "cloudrun",
+          "transport": "stdio",
+          "command": "npx",
+          "url": null,
+          "args": [
+            "-y",
+            "@google-cloud/cloud-run-mcp"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Antigravity",
+          "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+          "server_name": "context7-mcp",
+          "canonical": "context7-retired",
+          "transport": "stdio",
+          "command": "cmd",
+          "url": null,
+          "args": [
+            "/c",
+            "npx",
+            "-y",
+            "@smithery/cli@latest",
+            "run",
+            "@upstash/context7-mcp",
+            "--key",
+            "2fdec5a2-cde8-4678-8995-96087f120c87"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Antigravity",
+          "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+          "server_name": "firebase-mcp-server",
+          "canonical": "firebase-mcp-server",
+          "transport": "stdio",
+          "command": "npx",
+          "url": null,
+          "args": [
+            "-y",
+            "firebase-tools@latest",
+            "mcp"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Antigravity",
+          "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+          "server_name": "github-mcp-server",
+          "canonical": "github-mcp-server",
+          "transport": "stdio",
+          "command": "docker",
+          "url": null,
+          "args": [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "ghcr.io/github/github-mcp-server"
+          ],
+          "env_keys_only": [
+            "GITHUB_PERSONAL_ACCESS_TOKEN"
+          ],
+          "header_keys_only": [],
+          "detected_auth": [
+            "GITHUB_PERSONAL_ACCESS_TOKEN"
+          ],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        },
+        {
+          "client": "Antigravity",
+          "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+          "server_name": "sequential-thinking",
+          "canonical": "sequential-thinking",
+          "transport": "stdio",
+          "command": "npx",
+          "url": null,
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-sequential-thinking"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "critical",
+          "health": "probe_pending",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "client": "Antigravity Roaming",
+      "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json",
+      "required": false,
+      "discovered": true,
+      "exists": true,
+      "is_file": true,
+      "parse_error": null,
+      "server_count": 1,
+      "servers": [
+        {
+          "client": "Antigravity Roaming",
+          "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json",
+          "server_name": "GitKraken",
+          "canonical": "GitKraken",
+          "transport": "stdio",
+          "command": "c:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\globalStorage\\eamodio.gitlens\\gk.exe",
+          "url": null,
+          "args": [
+            "mcp",
+            "--host=antigravity",
+            "--source=gitlens",
+            "--scheme=antigravity"
+          ],
+          "env_keys_only": [],
+          "header_keys_only": [],
+          "detected_auth": [],
+          "expected_capabilities": [
+            "tools",
+            "resources",
+            "prompts"
+          ],
+          "ownership": "local-user",
+          "criticality": "normal",
+          "health": "probe_pending",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "client": "Android Studio",
+      "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Google\\AndroidStudio2025.1.2\\options\\mcp.json",
+      "required": false,
+      "discovered": true,
+      "exists": true,
+      "is_file": true,
+      "parse_error": null,
+      "server_count": 0,
+      "servers": []
+    },
+    {
+      "client": "Android Studio",
+      "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Google\\AndroidStudio2025.2.2\\options\\mcp.json",
+      "required": false,
+      "discovered": true,
+      "exists": true,
+      "is_file": true,
+      "parse_error": null,
+      "server_count": 0,
+      "servers": []
+    },
+    {
+      "client": "Android Studio",
+      "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Google\\AndroidStudio2025.3.4\\options\\mcp.json",
+      "required": false,
+      "discovered": true,
+      "exists": true,
+      "is_file": true,
+      "parse_error": null,
+      "server_count": 0,
+      "servers": []
     },
     {
       "client": "Android Studio Config Dir",
       "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Google\\AndroidStudio2025.1.2\\options\\mcp.json",
       "required": false,
       "discovered": true,
-      "exists": false,
-      "is_file": false,
+      "exists": true,
+      "is_file": true,
       "parse_error": null,
       "server_count": 0,
       "servers": []
@@ -1080,8 +1744,8 @@
       "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Google\\AndroidStudio2025.2.2\\options\\mcp.json",
       "required": false,
       "discovered": true,
-      "exists": false,
-      "is_file": false,
+      "exists": true,
+      "is_file": true,
       "parse_error": null,
       "server_count": 0,
       "servers": []
@@ -1091,8 +1755,8 @@
       "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Google\\AndroidStudio2025.3.4\\options\\mcp.json",
       "required": false,
       "discovered": true,
-      "exists": false,
-      "is_file": false,
+      "exists": true,
+      "is_file": true,
       "parse_error": null,
       "server_count": 0,
       "servers": []
@@ -1152,60 +1816,6 @@
     {
       "client": "Cursor Global",
       "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
-      "server_name": "context-fabric",
-      "canonical": "context-fabric",
-      "transport": "stdio",
-      "command": "C:\\Program Files\\nodejs\\node.exe",
-      "url": null,
-      "args": [
-        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
-      ],
-      "env_keys_only": [],
-      "header_keys_only": [],
-      "detected_auth": [],
-      "expected_capabilities": [
-        "tools",
-        "resources",
-        "prompts"
-      ],
-      "ownership": "local-user",
-      "criticality": "normal",
-      "health": "probe_pending",
-      "notes": []
-    },
-    {
-      "client": "Cursor Global",
-      "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
-      "server_name": "cursor-agent-mcp",
-      "canonical": "cursor-agent-mcp",
-      "transport": "stdio",
-      "command": "npx.cmd",
-      "url": null,
-      "args": [
-        "-y",
-        "cursor-agent-mcp@latest"
-      ],
-      "env_keys_only": [
-        "CURSOR_API_KEY",
-        "CURSOR_API_URL"
-      ],
-      "header_keys_only": [],
-      "detected_auth": [
-        "CURSOR_API_KEY"
-      ],
-      "expected_capabilities": [
-        "tools",
-        "resources",
-        "prompts"
-      ],
-      "ownership": "local-user",
-      "criticality": "normal",
-      "health": "probe_pending",
-      "notes": []
-    },
-    {
-      "client": "Cursor Global",
-      "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
       "server_name": "filesystem",
       "canonical": "filesystem",
       "transport": "stdio",
@@ -1247,11 +1857,16 @@
         "-m",
         "autonomy_factory.global_memory_gateway",
         "--user-id",
-        "master_developer_profile"
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        "cursor"
       ],
       "env_keys_only": [
         "AGENT_CORE_PGDATABASE",
         "AGENT_CORE_PGHOST",
+        "AGENT_CORE_PGPASSWORD",
         "AGENT_CORE_PGPORT",
         "AGENT_CORE_PGUSER",
         "MEM0_DEFAULT_USER_ID",
@@ -1263,6 +1878,7 @@
       ],
       "header_keys_only": [],
       "detected_auth": [
+        "AGENT_CORE_PGPASSWORD",
         "OPENAI_API_KEY"
       ],
       "expected_capabilities": [
@@ -1272,64 +1888,6 @@
       ],
       "ownership": "local-user",
       "criticality": "critical",
-      "health": "probe_pending",
-      "notes": []
-    },
-    {
-      "client": "Cursor Global",
-      "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
-      "server_name": "github-mcp",
-      "canonical": "github-mcp",
-      "transport": "stdio",
-      "command": "docker",
-      "url": null,
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
-      ],
-      "env_keys_only": [
-        "GITHUB_PERSONAL_ACCESS_TOKEN"
-      ],
-      "header_keys_only": [],
-      "detected_auth": [
-        "GITHUB_PERSONAL_ACCESS_TOKEN"
-      ],
-      "expected_capabilities": [
-        "tools",
-        "resources",
-        "prompts"
-      ],
-      "ownership": "local-user",
-      "criticality": "normal",
-      "health": "probe_pending",
-      "notes": []
-    },
-    {
-      "client": "Cursor Global",
-      "file_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
-      "server_name": "mcp-debugger",
-      "canonical": "mcp-debugger",
-      "transport": "stdio",
-      "command": "npx.cmd",
-      "url": null,
-      "args": [
-        "-y",
-        "@debugmcp/mcp-debugger@latest"
-      ],
-      "env_keys_only": [],
-      "header_keys_only": [],
-      "detected_auth": [],
-      "expected_capabilities": [
-        "tools",
-        "resources",
-        "prompts"
-      ],
-      "ownership": "local-user",
-      "criticality": "normal",
       "health": "probe_pending",
       "notes": []
     },
@@ -1450,6 +2008,362 @@
       "notes": []
     },
     {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "arabold-docs",
+      "canonical": "arabold-docs",
+      "transport": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "url": null,
+      "args": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+      ],
+      "env_keys_only": [
+        "OPENAI_API_KEY"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [
+        "OPENAI_API_KEY"
+      ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "critical",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "artiforge",
+      "canonical": "artiforge",
+      "transport": "streamable-http",
+      "command": null,
+      "url": "https://tools.artiforge.ai/mcp?pat=${REDACTED}",
+      "args": [],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "critical",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "context-fabric",
+      "canonical": "context-fabric",
+      "transport": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "url": null,
+      "args": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "cursor-agent-mcp",
+      "canonical": "cursor-agent-mcp",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "url": null,
+      "args": [
+        "-y",
+        "cursor-agent-mcp@latest"
+      ],
+      "env_keys_only": [
+        "CURSOR_API_KEY",
+        "CURSOR_API_URL"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [
+        "CURSOR_API_KEY"
+      ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "filesystem",
+      "canonical": "filesystem",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "url": null,
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\ynotf",
+        "D:\\Codex_Managed",
+        "D:\\cursor_setup",
+        "D:\\openclaw",
+        "D:\\Obsidian",
+        "F:\\AgentCore",
+        "E:\\AgentCoreArchive"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "global-memory-gateway",
+      "canonical": "global-memory-gateway",
+      "transport": "stdio",
+      "command": "D:\\Codex_Managed\\.venv\\Scripts\\python.exe",
+      "url": null,
+      "args": [
+        "-m",
+        "autonomy_factory.global_memory_gateway",
+        "--user-id",
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        "cursor"
+      ],
+      "env_keys_only": [
+        "AGENT_CORE_PGDATABASE",
+        "AGENT_CORE_PGHOST",
+        "AGENT_CORE_PGPASSWORD",
+        "AGENT_CORE_PGPORT",
+        "AGENT_CORE_PGUSER",
+        "MEM0_DEFAULT_USER_ID",
+        "MEMORY_GATEWAY_BACKEND",
+        "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS",
+        "MEMORY_GATEWAY_EMBEDDING_PROVIDER",
+        "OPENAI_API_KEY",
+        "OPENAI_EMBEDDING_MODEL"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [
+        "AGENT_CORE_PGPASSWORD",
+        "OPENAI_API_KEY"
+      ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "critical",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "github-mcp",
+      "canonical": "github-mcp",
+      "transport": "stdio",
+      "command": "docker",
+      "url": null,
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env_keys_only": [
+        "GITHUB_PERSONAL_ACCESS_TOKEN"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [
+        "GITHUB_PERSONAL_ACCESS_TOKEN"
+      ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "mcp-debugger",
+      "canonical": "mcp-debugger",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "url": null,
+      "args": [
+        "-y",
+        "@debugmcp/mcp-debugger@latest"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "obsidian-vault",
+      "canonical": "obsidian-vault",
+      "transport": "stdio",
+      "command": "pwsh",
+      "url": null,
+      "args": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+      ],
+      "env_keys_only": [
+        "OBSIDIAN_API_KEY",
+        "OBSIDIAN_BASE_URL",
+        "OBSIDIAN_LOCAL_REST_API",
+        "OBSIDIAN_VERIFY_SSL"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [
+        "OBSIDIAN_API_KEY"
+      ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "playwright",
+      "canonical": "playwright",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "url": null,
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "sequential-thinking",
+      "canonical": "sequential-thinking",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "url": null,
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "env_keys_only": [
+        "DISABLE_THOUGHT_LOGGING"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "critical",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Cursor Project",
+      "file_path": "D:\\Codex_Managed\\.cursor\\mcp.json",
+      "server_name": "serena",
+      "canonical": "serena",
+      "transport": "stdio",
+      "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe",
+      "url": null,
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--project-from-cwd",
+        "--transport",
+        "stdio"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
       "client": "Open Interpreter",
       "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json",
       "server_name": "arabold-docs",
@@ -1511,11 +2425,16 @@
         "-m",
         "autonomy_factory.global_memory_gateway",
         "--user-id",
-        "master_developer_profile"
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        "open-interpreter"
       ],
       "env_keys_only": [
         "AGENT_CORE_PGDATABASE",
         "AGENT_CORE_PGHOST",
+        "AGENT_CORE_PGPASSWORD",
         "AGENT_CORE_PGPORT",
         "AGENT_CORE_PGUSER",
         "MEM0_DEFAULT_USER_ID",
@@ -1527,8 +2446,229 @@
       ],
       "header_keys_only": [],
       "detected_auth": [
+        "AGENT_CORE_PGPASSWORD",
         "OPENAI_API_KEY"
       ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "critical",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "MiniMax Code",
+      "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "server_name": "arabold-docs",
+      "canonical": "arabold-docs",
+      "transport": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "url": null,
+      "args": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+      ],
+      "env_keys_only": [
+        "OPENAI_API_KEY"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [
+        "OPENAI_API_KEY"
+      ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "critical",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "MiniMax Code",
+      "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "server_name": "artiforge",
+      "canonical": "artiforge",
+      "transport": "stdio",
+      "command": "pwsh",
+      "url": null,
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\Users\\ynotf\\.codex\\mcp-wrappers\\artiforge-mcp.ps1"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "critical",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "MiniMax Code",
+      "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "server_name": "filesystem",
+      "canonical": "filesystem",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "url": null,
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\ynotf",
+        "D:\\Codex_Managed",
+        "D:\\cursor_setup",
+        "D:\\openclaw",
+        "D:\\Obsidian",
+        "F:\\AgentCore",
+        "E:\\AgentCoreArchive"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "MiniMax Code",
+      "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "server_name": "global-memory-gateway",
+      "canonical": "global-memory-gateway",
+      "transport": "stdio",
+      "command": "D:\\Codex_Managed\\.venv\\Scripts\\python.exe",
+      "url": null,
+      "args": [
+        "-m",
+        "autonomy_factory.global_memory_gateway",
+        "--user-id",
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        "minimax-code"
+      ],
+      "env_keys_only": [
+        "AGENT_CORE_PGDATABASE",
+        "AGENT_CORE_PGHOST",
+        "AGENT_CORE_PGPASSWORD",
+        "AGENT_CORE_PGPORT",
+        "AGENT_CORE_PGUSER",
+        "MEM0_DEFAULT_USER_ID",
+        "MEMORY_GATEWAY_BACKEND",
+        "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS",
+        "MEMORY_GATEWAY_EMBEDDING_PROVIDER",
+        "OPENAI_API_KEY",
+        "OPENAI_EMBEDDING_MODEL"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [
+        "AGENT_CORE_PGPASSWORD",
+        "OPENAI_API_KEY"
+      ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "critical",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "MiniMax Code",
+      "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "server_name": "obsidian-vault",
+      "canonical": "obsidian-vault",
+      "transport": "stdio",
+      "command": "pwsh",
+      "url": null,
+      "args": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+      ],
+      "env_keys_only": [
+        "OBSIDIAN_API_KEY",
+        "OBSIDIAN_BASE_URL",
+        "OBSIDIAN_LOCAL_REST_API",
+        "OBSIDIAN_VERIFY_SSL"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [
+        "OBSIDIAN_API_KEY"
+      ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "MiniMax Code",
+      "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "server_name": "playwright",
+      "canonical": "playwright",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "url": null,
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "MiniMax Code",
+      "file_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "server_name": "sequential-thinking",
+      "canonical": "sequential-thinking",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "url": null,
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "env_keys_only": [
+        "DISABLE_THOUGHT_LOGGING"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [],
       "expected_capabilities": [
         "tools",
         "resources",
@@ -1639,11 +2779,16 @@
         "-m",
         "autonomy_factory.global_memory_gateway",
         "--user-id",
-        "master_developer_profile"
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        "minimax-code"
       ],
       "env_keys_only": [
         "AGENT_CORE_PGDATABASE",
         "AGENT_CORE_PGHOST",
+        "AGENT_CORE_PGPASSWORD",
         "AGENT_CORE_PGPORT",
         "AGENT_CORE_PGUSER",
         "MEM0_DEFAULT_USER_ID",
@@ -1655,6 +2800,7 @@
       ],
       "header_keys_only": [],
       "detected_auth": [
+        "AGENT_CORE_PGPASSWORD",
         "OPENAI_API_KEY"
       ],
       "expected_capabilities": [
@@ -1806,60 +2952,6 @@
     {
       "client": "OpenClaw",
       "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
-      "server_name": "context-fabric",
-      "canonical": "context-fabric",
-      "transport": "stdio",
-      "command": "C:\\Program Files\\nodejs\\node.exe",
-      "url": null,
-      "args": [
-        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
-      ],
-      "env_keys_only": [],
-      "header_keys_only": [],
-      "detected_auth": [],
-      "expected_capabilities": [
-        "tools",
-        "resources",
-        "prompts"
-      ],
-      "ownership": "local-user",
-      "criticality": "normal",
-      "health": "probe_pending",
-      "notes": []
-    },
-    {
-      "client": "OpenClaw",
-      "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
-      "server_name": "cursor-agent-mcp",
-      "canonical": "cursor-agent-mcp",
-      "transport": "stdio",
-      "command": "npx.cmd",
-      "url": null,
-      "args": [
-        "-y",
-        "cursor-agent-mcp@latest"
-      ],
-      "env_keys_only": [
-        "CURSOR_API_KEY",
-        "CURSOR_API_URL"
-      ],
-      "header_keys_only": [],
-      "detected_auth": [
-        "CURSOR_API_KEY"
-      ],
-      "expected_capabilities": [
-        "tools",
-        "resources",
-        "prompts"
-      ],
-      "ownership": "local-user",
-      "criticality": "normal",
-      "health": "probe_pending",
-      "notes": []
-    },
-    {
-      "client": "OpenClaw",
-      "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
       "server_name": "filesystem",
       "canonical": "filesystem",
       "transport": "stdio",
@@ -1901,11 +2993,16 @@
         "-m",
         "autonomy_factory.global_memory_gateway",
         "--user-id",
-        "master_developer_profile"
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        "openclaw"
       ],
       "env_keys_only": [
         "AGENT_CORE_PGDATABASE",
         "AGENT_CORE_PGHOST",
+        "AGENT_CORE_PGPASSWORD",
         "AGENT_CORE_PGPORT",
         "AGENT_CORE_PGUSER",
         "MEM0_DEFAULT_USER_ID",
@@ -1917,6 +3014,7 @@
       ],
       "header_keys_only": [],
       "detected_auth": [
+        "AGENT_CORE_PGPASSWORD",
         "OPENAI_API_KEY"
       ],
       "expected_capabilities": [
@@ -1926,64 +3024,6 @@
       ],
       "ownership": "local-user",
       "criticality": "critical",
-      "health": "probe_pending",
-      "notes": []
-    },
-    {
-      "client": "OpenClaw",
-      "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
-      "server_name": "github-mcp",
-      "canonical": "github-mcp",
-      "transport": "stdio",
-      "command": "docker",
-      "url": null,
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
-      ],
-      "env_keys_only": [
-        "GITHUB_PERSONAL_ACCESS_TOKEN"
-      ],
-      "header_keys_only": [],
-      "detected_auth": [
-        "GITHUB_PERSONAL_ACCESS_TOKEN"
-      ],
-      "expected_capabilities": [
-        "tools",
-        "resources",
-        "prompts"
-      ],
-      "ownership": "local-user",
-      "criticality": "normal",
-      "health": "probe_pending",
-      "notes": []
-    },
-    {
-      "client": "OpenClaw",
-      "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
-      "server_name": "mcp-debugger",
-      "canonical": "mcp-debugger",
-      "transport": "stdio",
-      "command": "npx.cmd",
-      "url": null,
-      "args": [
-        "-y",
-        "@debugmcp/mcp-debugger@latest"
-      ],
-      "env_keys_only": [],
-      "header_keys_only": [],
-      "detected_auth": [],
-      "expected_capabilities": [
-        "tools",
-        "resources",
-        "prompts"
-      ],
-      "ownership": "local-user",
-      "criticality": "normal",
       "health": "probe_pending",
       "notes": []
     },
@@ -2089,6 +3129,224 @@
         "--project-from-cwd",
         "--transport",
         "stdio"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "OpenClaw",
+      "file_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
+      "server_name": "eye2byte",
+      "canonical": "eye2byte",
+      "transport": "stdio",
+      "command": "python",
+      "url": null,
+      "args": [
+        "C:\\Users\\ynotf\\.openclaw\\eye2byte_mcp.py"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Antigravity",
+      "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "server_name": "GitKraken",
+      "canonical": "GitKraken",
+      "transport": "stdio",
+      "command": "c:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\globalStorage\\eamodio.gitlens\\gk.exe",
+      "url": null,
+      "args": [
+        "mcp",
+        "--host=antigravity",
+        "--source=gitlens",
+        "--scheme=antigravity"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Antigravity",
+      "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "server_name": "cloudrun",
+      "canonical": "cloudrun",
+      "transport": "stdio",
+      "command": "npx",
+      "url": null,
+      "args": [
+        "-y",
+        "@google-cloud/cloud-run-mcp"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Antigravity",
+      "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "server_name": "context7-mcp",
+      "canonical": "context7-retired",
+      "transport": "stdio",
+      "command": "cmd",
+      "url": null,
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@upstash/context7-mcp",
+        "--key",
+        "2fdec5a2-cde8-4678-8995-96087f120c87"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Antigravity",
+      "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "server_name": "firebase-mcp-server",
+      "canonical": "firebase-mcp-server",
+      "transport": "stdio",
+      "command": "npx",
+      "url": null,
+      "args": [
+        "-y",
+        "firebase-tools@latest",
+        "mcp"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Antigravity",
+      "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "server_name": "github-mcp-server",
+      "canonical": "github-mcp-server",
+      "transport": "stdio",
+      "command": "docker",
+      "url": null,
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env_keys_only": [
+        "GITHUB_PERSONAL_ACCESS_TOKEN"
+      ],
+      "header_keys_only": [],
+      "detected_auth": [
+        "GITHUB_PERSONAL_ACCESS_TOKEN"
+      ],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "normal",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Antigravity",
+      "file_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "server_name": "sequential-thinking",
+      "canonical": "sequential-thinking",
+      "transport": "stdio",
+      "command": "npx",
+      "url": null,
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "env_keys_only": [],
+      "header_keys_only": [],
+      "detected_auth": [],
+      "expected_capabilities": [
+        "tools",
+        "resources",
+        "prompts"
+      ],
+      "ownership": "local-user",
+      "criticality": "critical",
+      "health": "probe_pending",
+      "notes": []
+    },
+    {
+      "client": "Antigravity Roaming",
+      "file_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json",
+      "server_name": "GitKraken",
+      "canonical": "GitKraken",
+      "transport": "stdio",
+      "command": "c:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\globalStorage\\eamodio.gitlens\\gk.exe",
+      "url": null,
+      "args": [
+        "mcp",
+        "--host=antigravity",
+        "--source=gitlens",
+        "--scheme=antigravity"
       ],
       "env_keys_only": [],
       "header_keys_only": [],

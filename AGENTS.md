@@ -16,10 +16,6 @@ The current live deployed ops root remains `D:\MCP-Control-Plane` until a delibe
 - AgentCore does not use `.env` files for secrets or local runtime configuration. Use Windows environment variables only.
 - Agents must read `AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` before persistent memory writes or database ingestion.
 
-## Environment Variable Policy
-
-AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
-
 ## Tool Routing
 
 - Planning: use `sequential-thinking` for ambiguous multi-step strategy.

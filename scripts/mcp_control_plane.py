@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -24,6 +25,7 @@ LIVE_OPS_ROOT = Path(os.environ.get("AGENTCORE_LIVE_OPS_ROOT", str(DEFAULT_LIVE_
 MANAGED_ROOT = Path("D:/Codex_Managed")
 PYTHON = Path("D:/Codex_Managed/.venv/Scripts/python.exe")
 NODE_HOME = Path("D:/Codex_Managed/runtimes/node-v22.22.3-win-x64")
+CODEX_CONFIG = Path.home() / ".codex/config.toml"
 
 SECRET_HINTS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "AUTH", "PAT", "COOKIE", "LICENSE")
 SECRET_VALUE_PATTERNS = (
@@ -31,6 +33,45 @@ SECRET_VALUE_PATTERNS = (
     (r"Bearer\s+[A-Za-z0-9._~+/=-]+", "Bearer ${REDACTED}"),
     (r"Token\s+[A-Za-z0-9._~+/=-]+", "Token ${REDACTED}"),
 )
+
+ANTIGRAVITY_PRIMARY_CONFIG = Path.home() / ".gemini/config/mcp_config.json"
+ANTIGRAVITY_ROAMING_CONFIG = Path.home() / "AppData/Roaming/Antigravity/User/mcp.json"
+ANTIGRAVITY_RENDERER = "antigravity.mcp_config.json"
+ANTIGRAVITY_DEFAULT_SERVERS = [
+    "arabold-docs",
+    "artiforge",
+    "filesystem",
+    "global-memory-gateway",
+    "obsidian-vault",
+    "playwright",
+    "sequential-thinking",
+    "serena",
+]
+
+GATEWAY_PLATFORM_BY_CLIENT = {
+    "Codex": "codex",
+    "Cursor": "cursor",
+    "Open Interpreter": "open-interpreter",
+    "OpenClaw": "openclaw",
+    "MiniMax Code": "minimax-code",
+    "Android Studio": "android-studio",
+    "Antigravity": "antigravity",
+}
+
+EYE2BYTE_OPENCLAW_SERVER = {
+    "canonical_id": "eye2byte",
+    "client_bindings": ["OpenClaw"],
+    "transport": "stdio",
+    "launch_contract": {
+        "command": "python",
+        "args": ["C:\\Users\\ynotf\\.openclaw\\eye2byte_mcp.py"],
+    },
+    "healthcheck": {"kind": "mcp_stdio", "methods": ["initialize", "tools/list"]},
+    "criticality": "normal",
+    "lifecycle": "active",
+    "capabilities": ["openclaw_user_extension"],
+    "notes": ["User-approved OpenClaw-only MCP server. Preserve during renderer apply; do not copy to other IDEs."],
+}
 
 
 class ClientConfigTarget(BaseModel):
@@ -131,16 +172,33 @@ def read_json(path: Path) -> tuple[dict[str, Any] | None, str | None]:
 
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    was_read_only = path.exists() and not os.access(path, os.W_OK)
+    if was_read_only:
+        os.chmod(path, 0o666)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    if was_read_only:
+        os.chmod(path, 0o444)
 
 
 def redact_sensitive_text(value: str) -> str:
-    import re
-
     redacted = value
     for pattern, replacement in SECRET_VALUE_PATTERNS:
         redacted = re.sub(pattern, replacement, redacted, flags=re.IGNORECASE)
     return redacted
+
+
+def gateway_args_for_client(client: str) -> list[str]:
+    platform = GATEWAY_PLATFORM_BY_CLIENT[client]
+    return [
+        "-m",
+        "autonomy_factory.global_memory_gateway",
+        "--user-id",
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        platform,
+    ]
 
 
 def yaml_scalar(value: Any) -> str:
@@ -183,7 +241,12 @@ def to_yaml(data: Any, indent: int = 0) -> str:
 
 def write_yaml(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    was_read_only = path.exists() and not os.access(path, os.W_OK)
+    if was_read_only:
+        os.chmod(path, 0o666)
     path.write_text(to_yaml(data) + "\n", encoding="utf-8")
+    if was_read_only:
+        os.chmod(path, 0o444)
 
 
 def discover_targets() -> list[ClientConfigTarget]:
@@ -191,8 +254,11 @@ def discover_targets() -> list[ClientConfigTarget]:
         ClientConfigTarget(client="Cursor Global", file_path=str(Path.home() / ".cursor/mcp.json"), required=True),
         ClientConfigTarget(client="Cursor Project", file_path=str(MANAGED_ROOT / ".cursor/mcp.json")),
         ClientConfigTarget(client="Open Interpreter", file_path=str(Path.home() / "AppData/Roaming/interpreter/config.json"), required=True),
+        ClientConfigTarget(client="MiniMax Code", file_path=str(Path.home() / ".minimax/mcp/mcp.json"), required=True),
         ClientConfigTarget(client="MiniMax Code", file_path=str(Path.home() / ".mavis/mcp/mcp.json"), required=True),
         ClientConfigTarget(client="OpenClaw", file_path=str(Path.home() / ".openclaw/openclaw.json"), required=True),
+        ClientConfigTarget(client="Antigravity", file_path=str(ANTIGRAVITY_PRIMARY_CONFIG), required=True),
+        ClientConfigTarget(client="Antigravity Roaming", file_path=str(ANTIGRAVITY_ROAMING_CONFIG), discovered=True),
     ]
     google = Path(os.environ.get("APPDATA", str(Path.home() / "AppData/Roaming"))) / "Google"
     if google.exists():
@@ -221,6 +287,7 @@ def backup_repo_managed_files(stamp: str) -> dict[str, Any]:
         "renderers/openclaw.openclaw.fragment.json",
         "renderers/minimax.mcp.json",
         "renderers/android-studio.mcp.json",
+        f"renderers/{ANTIGRAVITY_RENDERER}",
         "validators/validate-control-plane.ps1",
         "scripts/mcp_control_plane.py",
     ]
@@ -385,6 +452,15 @@ def first_env(key: str) -> str | None:
     return os.environ.get(key) or get_user_env(key) or get_machine_env(key)
 
 
+def ensure_client_binding(model: dict[str, Any], server_name: str, client: str) -> None:
+    server = model.get("servers", {}).get(server_name)
+    if not isinstance(server, dict):
+        return
+    bindings = server.setdefault("client_bindings", [])
+    if client not in bindings:
+        bindings.append(client)
+
+
 def canonical_model(_legacy_context7_opencode_supported: bool = False) -> dict[str, Any]:
     existing, error = read_json(ROOT / "supervisor/servers.json")
     if existing and isinstance(existing.get("servers"), dict):
@@ -441,6 +517,12 @@ def canonical_model(_legacy_context7_opencode_supported: bool = False) -> dict[s
             note = "Includes active AgentCore NVMe root and cold archive root for local agent workflows."
             if note not in notes:
                 notes.append(note)
+        for antigravity_server in ANTIGRAVITY_DEFAULT_SERVERS:
+            ensure_client_binding(model, antigravity_server, "Antigravity")
+        for default_off in ["context-fabric", "cursor-agent-mcp", "github-mcp", "mcp-debugger"]:
+            if default_off in model["servers"]:
+                model["servers"][default_off]["render_by_default"] = False
+        model["servers"]["eye2byte"] = EYE2BYTE_OPENCLAW_SERVER.copy()
         return model
     if error:
         print(f"warning: failed to read existing supervisor model: {error}", file=sys.stderr)
@@ -459,7 +541,7 @@ def canonical_model(_legacy_context7_opencode_supported: bool = False) -> dict[s
         "servers": {
             "arabold-docs": {
                 "canonical_id": "arabold-docs",
-                "client_bindings": ["Cursor", "Codex", "OpenClaw", "MiniMax Code", "Open Interpreter"],
+                "client_bindings": ["Cursor", "Codex", "OpenClaw", "MiniMax Code", "Open Interpreter", "Antigravity"],
                 "transport": "stdio",
                 "launch_contract": {
                     "command": "C:\\Program Files\\nodejs\\node.exe",
@@ -474,7 +556,7 @@ def canonical_model(_legacy_context7_opencode_supported: bool = False) -> dict[s
             },
             "artiforge": {
                 "canonical_id": "artiforge",
-                "client_bindings": ["Codex", "Cursor", "OpenClaw", "MiniMax Code", "Open Interpreter"],
+                "client_bindings": ["Codex", "Cursor", "OpenClaw", "MiniMax Code", "Open Interpreter", "Antigravity"],
                 "transport": "http",
                 "launch_contract": {"url": "https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}"},
                 "env_expectations": {"ARTIFORGE_PAT": "${ENV:ARTIFORGE_PAT}"},
@@ -489,7 +571,7 @@ def canonical_model(_legacy_context7_opencode_supported: bool = False) -> dict[s
             },
             "sequential-thinking": {
                 "canonical_id": "sequential-thinking",
-                "client_bindings": ["Codex", "Cursor", "OpenClaw", "MiniMax Code"],
+                "client_bindings": ["Codex", "Cursor", "OpenClaw", "MiniMax Code", "Antigravity"],
                 "transport": "stdio",
                 "launch_contract": {
                     "command": "npx.cmd",
@@ -513,6 +595,7 @@ def canonical_model(_legacy_context7_opencode_supported: bool = False) -> dict[s
                 "healthcheck": {"kind": "mcp_stdio", "methods": ["initialize", "tools/list"]},
                 "criticality": "normal",
                 "lifecycle": "active",
+                "render_by_default": False,
                 "capabilities": ["git_drift_tracking", "commit_context_capture", "agent_briefings"],
                 "notes": ["Run `context-fabric init` only inside an approved Git-managed target workspace."],
             },
@@ -529,10 +612,12 @@ def canonical_model(_legacy_context7_opencode_supported: bool = False) -> dict[s
                 "capabilities": ["cursor_agent_bridge"],
                 "criticality": "normal",
                 "lifecycle": "active",
+                "render_by_default": False,
                 "notes": [
                     "Matches the live Cursor/OpenClaw stdio entry; requires CURSOR_API_KEY from user/process environment."
                 ],
             },
+            "eye2byte": EYE2BYTE_OPENCLAW_SERVER.copy(),
             "mem0_mcp_server": {
                 "canonical_id": "mem0_mcp_server",
                 "client_bindings": ["Codex", "Cursor", "OpenClaw", "Open Interpreter", "MiniMax Code", "Android Studio"],
@@ -552,7 +637,7 @@ def canonical_model(_legacy_context7_opencode_supported: bool = False) -> dict[s
             },
             "global-memory-gateway": {
                 "canonical_id": "global-memory-gateway",
-                "client_bindings": ["Codex", "Cursor", "Open Interpreter", "OpenClaw", "MiniMax Code"],
+                "client_bindings": ["Codex", "Cursor", "Open Interpreter", "OpenClaw", "MiniMax Code", "Antigravity"],
                 "transport": "stdio",
                 "launch_contract": {
                     "command": str(PYTHON),
@@ -912,7 +997,7 @@ def validate_rendered_fragment(client: str, data: dict[str, Any]) -> bool:
 
 def render_clients(model: dict[str, Any], probes: list[ProbeResult]) -> dict[str, Any]:
     servers = model["servers"]
-    client_names = ["Cursor", "Open Interpreter", "OpenClaw", "MiniMax Code"]
+    client_names = ["Cursor", "Open Interpreter", "OpenClaw", "MiniMax Code", "Antigravity"]
 
     def env_for_client(server: dict[str, Any]) -> dict[str, str]:
         rendered: dict[str, str] = {}
@@ -943,7 +1028,7 @@ def render_clients(model: dict[str, Any], probes: list[ProbeResult]) -> dict[str
         rendered: dict[str, Any] = {
             "type": "stdio",
             "command": launch.get("command"),
-            "args": launch.get("args", []),
+            "args": gateway_args_for_client(client) if server_name == "global-memory-gateway" else launch.get("args", []),
         }
         env = env_for_client(server)
         if env:
@@ -966,6 +1051,7 @@ def render_clients(model: dict[str, Any], probes: list[ProbeResult]) -> dict[str
     open_interpreter = {"mcpServers": render_for_client("Open Interpreter")}
     openclaw = {"mcp": {"servers": render_for_client("OpenClaw")}}
     minimax = {"mcpServers": render_for_client("MiniMax Code")}
+    antigravity = {"mcpServers": render_for_client("Antigravity")}
 
     android = {"mcpServers": render_for_client("Android Studio")}
     rendered = {
@@ -973,6 +1059,7 @@ def render_clients(model: dict[str, Any], probes: list[ProbeResult]) -> dict[str
         "open-interpreter.config.fragment.json": ("Open Interpreter", open_interpreter),
         "openclaw.openclaw.fragment.json": ("OpenClaw", openclaw),
         "minimax.mcp.json": ("MiniMax Code", minimax),
+        ANTIGRAVITY_RENDERER: ("Antigravity", antigravity),
         "android-studio.mcp.json": ("Android Studio", android),
     }
     validation_errors: dict[str, str] = {}
@@ -1294,7 +1381,12 @@ def write_agent_team_evidence(model: dict[str, Any], probes: list[ProbeResult]) 
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    was_read_only = path.exists() and not os.access(path, os.W_OK)
+    if was_read_only:
+        os.chmod(path, 0o666)
     path.write_text(content, encoding="utf-8")
+    if was_read_only:
+        os.chmod(path, 0o444)
 
 
 def write_docs(model: dict[str, Any], probes: list[ProbeResult], render_status: dict[str, Any], backup_manifest: dict[str, Any], inventory_payload: dict[str, Any]) -> None:
@@ -1570,8 +1662,250 @@ if __name__ == "__main__":
     (ROOT / "probes/probe_stdio.py").write_text(harness, encoding="utf-8")
 
 
-def apply_rendered_configs() -> None:
-    raise SystemExit("Apply mode is intentionally blocked until critical probes are healthy. Use rendered candidates and rollout runbook after fixing blockers.")
+def backup_live_file(path: Path, backup_root: Path) -> str | None:
+    if not path.exists() or not path.is_file():
+        return None
+    backup_root.mkdir(parents=True, exist_ok=True)
+    destination = backup_root / safe_name(str(path))
+    shutil.copy2(path, destination)
+    return str(destination)
+
+
+def write_live_json(path: Path, data: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    was_read_only = path.exists() and not os.access(path, os.W_OK)
+    if was_read_only:
+        os.chmod(path, 0o666)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    if was_read_only:
+        os.chmod(path, 0o444)
+
+
+def apply_json_servers(path: Path, payload: dict[str, Any], openclaw: bool = False) -> None:
+    data, _ = read_json(path)
+    if data is None:
+        data = {}
+    if openclaw:
+        data.setdefault("mcp", {})
+        data["mcp"]["servers"] = payload["mcp"]["servers"]
+    else:
+        data["mcpServers"] = payload["mcpServers"]
+    write_live_json(path, data)
+
+
+def apply_antigravity_json(path: Path, payload: dict[str, Any]) -> None:
+    data, _ = read_json(path)
+    if data is None:
+        data = {}
+    emitted_servers = set(payload.get("mcpServers", {}).keys())
+    existing_names: set[str] = set()
+    for container_name in ["mcpServers", "servers"]:
+        container = data.get(container_name)
+        if isinstance(container, dict):
+            existing_names.update(str(name) for name in container.keys())
+    quarantined = {
+        name: {
+            "disabled": True,
+            "reason": "Retired or non-default Antigravity MCP server removed from active AgentCore surface. Raw values are intentionally not preserved here; see local rollback backup if restoration is needed.",
+        }
+        for name in sorted(existing_names - emitted_servers)
+    }
+    data["mcpServers"] = payload["mcpServers"]
+    if quarantined:
+        data["x_agentcore_quarantined_servers"] = quarantined
+    else:
+        data.pop("x_agentcore_quarantined_servers", None)
+    data.pop("servers", None)
+    write_live_json(path, data)
+
+
+def codex_gateway_block() -> str:
+    env_lines = [
+        'MEM0_DEFAULT_USER_ID = "master_developer_profile"',
+        'MEMORY_GATEWAY_BACKEND = "postgres"',
+        'AGENT_CORE_PGHOST = "127.0.0.1"',
+        'AGENT_CORE_PGPORT = "55432"',
+        'AGENT_CORE_PGDATABASE = "agent_core"',
+        'AGENT_CORE_PGUSER = "agent_ingest"',
+        'MEMORY_GATEWAY_EMBEDDING_PROVIDER = "auto"',
+        'OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"',
+        'MEMORY_GATEWAY_EMBEDDING_DIMENSIONS = "1536"',
+    ]
+    filesystem_args = [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\ynotf",
+        "D:\\Codex_Managed",
+        "D:\\cursor_setup",
+        "D:\\openclaw",
+        "D:\\Obsidian",
+        "F:\\AgentCore",
+        "E:\\AgentCoreArchive",
+    ]
+    serena_args = [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--project-from-cwd",
+        "--transport",
+        "stdio",
+    ]
+    return (
+        "# Generated by D:\\github\\agentcore-control-plane\\scripts\\mcp_control_plane.py.\n"
+        "[mcp_servers.arabold-docs]\n"
+        "command = 'C:\\Program Files\\nodejs\\node.exe'\n"
+        'args = ["C:\\\\Users\\\\ynotf\\\\.cursor\\\\vendor\\\\arabold-docs-mcp\\\\node_modules\\\\@arabold\\\\docs-mcp-server\\\\dist\\\\index.js"]\n'
+        'env_vars = ["OPENAI_API_KEY"]\n'
+        "startup_timeout_sec = 30.0\n"
+        "tool_timeout_sec = 300.0\n"
+        'default_tools_approval_mode = "prompt"\n'
+        "\n"
+        "[mcp_servers.global-memory-gateway]\n"
+        "command = 'D:\\Codex_Managed\\.venv\\Scripts\\python.exe'\n"
+        f'args = {json.dumps(gateway_args_for_client("Codex"))}\n'
+        'env_vars = ["AGENT_CORE_AGENT_INGEST_PASSWORD", "OPENAI_API_KEY"]\n'
+        "startup_timeout_sec = 30.0\n"
+        "tool_timeout_sec = 120.0\n"
+        'default_tools_approval_mode = "prompt"\n'
+        "\n"
+        "[mcp_servers.global-memory-gateway.env]\n"
+        + "\n".join(env_lines)
+        + "\n\n"
+        + "[mcp_servers.artiforge]\n"
+        + 'command = "pwsh"\n'
+        + 'args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\\\\Users\\\\ynotf\\\\.codex\\\\mcp-wrappers\\\\artiforge-mcp.ps1"]\n'
+        + 'env_vars = ["ARTIFORGE_PAT"]\n'
+        + 'enabled_tools = ["artiforge-make-development-task-plan", "codebase-scanner", "artiforge-make-project-docs"]\n'
+        + "startup_timeout_sec = 30.0\n"
+        + "tool_timeout_sec = 300.0\n\n"
+        + "[mcp_servers.filesystem]\n"
+        + 'command = "npx.cmd"\n'
+        + f"args = {json.dumps(filesystem_args)}\n"
+        + "startup_timeout_sec = 30.0\n"
+        + "tool_timeout_sec = 120.0\n\n"
+        + "[mcp_servers.obsidian-vault]\n"
+        + 'command = "pwsh"\n'
+        + 'args = ["-NoProfile", "-NonInteractive", "-File", "C:\\\\Users\\\\ynotf\\\\.openclaw\\\\start-obsidian-mcp-server.ps1"]\n'
+        + 'env_vars = ["OBSIDIAN_API_KEY", "OBSIDIAN_LOCAL_REST_API"]\n'
+        + "startup_timeout_sec = 30.0\n"
+        + "tool_timeout_sec = 120.0\n\n"
+        + "[mcp_servers.obsidian-vault.env]\n"
+        + 'OBSIDIAN_BASE_URL = "https://127.0.0.1:27124"\n'
+        + 'OBSIDIAN_VERIFY_SSL = "false"\n\n'
+        + "[mcp_servers.playwright]\n"
+        + 'command = "npx.cmd"\n'
+        + 'args = ["-y", "@playwright/mcp@latest"]\n'
+        + "startup_timeout_sec = 30.0\n"
+        + "tool_timeout_sec = 180.0\n\n"
+        + "[mcp_servers.sequential-thinking]\n"
+        + 'command = "npx.cmd"\n'
+        + 'args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]\n'
+        + "startup_timeout_sec = 30.0\n"
+        + "tool_timeout_sec = 120.0\n\n"
+        + "[mcp_servers.sequential-thinking.env]\n"
+        + 'DISABLE_THOUGHT_LOGGING = "true"\n\n'
+        + "[mcp_servers.serena]\n"
+        + 'command = "C:\\\\Users\\\\ynotf\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\Scripts\\\\uvx.exe"\n'
+        + f"args = {json.dumps(serena_args)}\n"
+        + "startup_timeout_sec = 30.0\n"
+        + "tool_timeout_sec = 300.0\n\n"
+    )
+
+
+def apply_codex_config(backup_root: Path) -> dict[str, Any]:
+    result: dict[str, Any] = {"target": str(CODEX_CONFIG), "exists": CODEX_CONFIG.exists(), "backup": None, "updated": False}
+    if not CODEX_CONFIG.exists():
+        return result
+    result["backup"] = backup_live_file(CODEX_CONFIG, backup_root)
+    text = CODEX_CONFIG.read_text(encoding="utf-8")
+    text = re.sub(r'(\[plugins\."mem0@mem0-plugins"\]\s*enabled\s*=\s*)true', r"\1false", text)
+    filtered_lines: list[str] = []
+    skip_section = False
+    generated_markers = (
+        "# Generated by D:\\Codex_Managed\\config\\global-memory-system.manifest.json.",
+        "# Generated by D:\\github\\agentcore-control-plane\\scripts\\mcp_control_plane.py.",
+    )
+    removable_headers = (
+        "[marketplaces.mem0-plugins]",
+        '[plugins."mem0@mem0-plugins"]',
+        '[hooks.state."mem0@mem0-plugins',
+        "[mcp_servers.arabold-docs]",
+        "[mcp_servers.global-memory-gateway]",
+        "[mcp_servers.global-memory-gateway.env]",
+        "[mcp_servers.artiforge]",
+        "[mcp_servers.mem0]",
+        "[mcp_servers.mem0.env]",
+        "[mcp_servers.artiforge__codebase_scanner]",
+        "[mcp_servers.firecrawl-direct]",
+        "[mcp_servers.firecrawl-direct.env]",
+        "[mcp_servers.filesystem]",
+        "[mcp_servers.obsidian-vault]",
+        "[mcp_servers.obsidian-vault.env]",
+        "[mcp_servers.playwright]",
+        "[mcp_servers.sequential-thinking]",
+        "[mcp_servers.sequential-thinking.env]",
+        "[mcp_servers.serena]",
+    )
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped in generated_markers:
+            continue
+        if stripped.startswith("[") and stripped.endswith("]"):
+            if stripped.startswith(removable_headers):
+                skip_section = True
+                continue
+            skip_section = False
+        if not skip_section:
+            filtered_lines.append(line)
+    text = "\n".join(filtered_lines).strip() + "\n"
+    marker = re.search(r"(?m)^\[projects\.", text)
+    block = codex_gateway_block()
+    if marker:
+        text = text[: marker.start()] + block + text[marker.start() :]
+    else:
+        text = text.rstrip() + "\n\n" + block
+    was_read_only = CODEX_CONFIG.exists() and not os.access(CODEX_CONFIG, os.W_OK)
+    if was_read_only:
+        os.chmod(CODEX_CONFIG, 0o666)
+    CODEX_CONFIG.write_text(text, encoding="utf-8")
+    if was_read_only:
+        os.chmod(CODEX_CONFIG, 0o444)
+    result["updated"] = True
+    return result
+
+
+def apply_rendered_configs(stamp: str) -> dict[str, Any]:
+    backup_root = ROOT / "artifacts" / "backups" / stamp / "live-client-configs" / "raw"
+    rendered_targets = {
+        "Cursor Global": ROOT / "renderers/cursor-global.mcp.json",
+        "Cursor Project": ROOT / "renderers/cursor-global.mcp.json",
+        "Open Interpreter": ROOT / "renderers/open-interpreter.config.fragment.json",
+        "MiniMax Code": ROOT / "renderers/minimax.mcp.json",
+        "OpenClaw": ROOT / "renderers/openclaw.openclaw.fragment.json",
+        "Antigravity": ROOT / "renderers" / ANTIGRAVITY_RENDERER,
+        "Antigravity Roaming": ROOT / "renderers" / ANTIGRAVITY_RENDERER,
+        "Android Studio": ROOT / "renderers/android-studio.mcp.json",
+        "Android Studio Config Dir": ROOT / "renderers/android-studio.mcp.json",
+    }
+    applied: list[dict[str, Any]] = [apply_codex_config(backup_root)]
+    for target in discover_targets():
+        rendered_path = rendered_targets.get(target.client)
+        if rendered_path is None or not rendered_path.exists():
+            continue
+        payload, error = read_json(rendered_path)
+        if payload is None:
+            raise SystemExit(f"Cannot parse rendered fragment {rendered_path}: {error}")
+        destination = Path(target.file_path)
+        backup = backup_live_file(destination, backup_root)
+        if target.client == "OpenClaw":
+            apply_json_servers(destination, payload, openclaw=True)
+        elif target.client in {"Antigravity", "Antigravity Roaming"}:
+            apply_antigravity_json(destination, payload)
+        else:
+            apply_json_servers(destination, payload, openclaw=False)
+        applied.append({"target": target.file_path, "backup": backup, "updated": True})
+    return {"backup_root": str(backup_root), "applied": applied}
 
 
 def main() -> int:
@@ -1582,8 +1916,6 @@ def main() -> int:
     args = parser.parse_args()
     configure_roots(Path(args.source_root), Path(args.live_ops_root))
     ensure_dirs()
-    if args.apply:
-        apply_rendered_configs()
     stamp = now_stamp()
     targets = discover_targets()
     backup_manifest = backup_repo_managed_files(stamp)
@@ -1600,7 +1932,12 @@ def main() -> int:
     write_tool_registry(model, probes)
     write_agent_team_evidence(model, probes)
     write_docs(model, probes, render_status, backup_manifest, inventory_payload)
-    log = {"stamp": stamp, "completed_at": iso_now(), "root": str(ROOT), "render_status": render_status}
+    apply_status: dict[str, Any] | None = None
+    if args.apply:
+        if render_status.get("write_gate") != "passed_repo_only":
+            raise SystemExit(f"Apply blocked because rendered output is not valid: {render_status}")
+        apply_status = apply_rendered_configs(stamp)
+    log = {"stamp": stamp, "completed_at": iso_now(), "root": str(ROOT), "render_status": render_status, "apply_status": apply_status}
     write_json(ROOT / "ops/logs" / f"bootstrap-{stamp}.json", log)
     print(json.dumps(log, indent=2))
     return 0

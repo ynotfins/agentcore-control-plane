@@ -13,6 +13,8 @@ Generated: 2026-06-24
 - Data directory: `F:\AgentCore\database_cluster`
 - WAL archive root: `E:\AgentCoreArchive\backups_cold\pgvector\wal`
 - Base backup root: `E:\AgentCoreArchive\backups_cold\pgvector\base`
+- Startup owner: Task Scheduler task `\AgentCore\PostgresRuntime`
+- Startup command: `D:\github\agentcore-control-plane\ops\Start-AgentCorePostgres.ps1 -StartIfStopped`
 
 ## Security Posture
 
@@ -136,13 +138,13 @@ Normal agents use the MCP gateway. Trusted ingest and admin jobs are the only ap
 Backup script:
 
 ```powershell
-D:\MCP-Control-Plane\ops\Backup-AgentCorePostgres.ps1
+D:\github\agentcore-control-plane\ops\Backup-AgentCorePostgres.ps1
 ```
 
 Restore validation script:
 
 ```powershell
-D:\MCP-Control-Plane\ops\Test-AgentCorePostgresRestore.ps1
+D:\github\agentcore-control-plane\ops\Test-AgentCorePostgresRestore.ps1
 ```
 
 Daily backup schedule:
@@ -150,23 +152,50 @@ Daily backup schedule:
 - Task: `AgentCore\NightlyBackup`
 - Time: `03:00`
 - Target: `E:\AgentCoreArchive\backups_cold\pgvector\base`
+- Codex mirror: `agentcore-nightly-backup`
 
 Daily restore verification:
 
 - Task: `AgentCore\NightlyRestoreTest`
 - Time: `03:30`
 - Behavior: restores latest dump into `agent_core_restore_test`, validates `global_vector_memory_store`, then drops the disposable database.
+- Codex mirror: `agentcore-nightly-restore-test`
 
 WAL archiving:
 
 - `archive_mode = on`
-- archive command: `D:\MCP-Control-Plane\ops\Archive-AgentCoreWal.ps1`
+- archive command: `D:\github\agentcore-control-plane\ops\Archive-AgentCoreWal.ps1`
 - target: `E:\AgentCoreArchive\backups_cold\pgvector\wal`
+
+Projection schedule:
+
+- Task: `AgentCore\MemoryProjection`
+- Cadence: every 2 hours
+- Behavior: reads canonical memory rows from `agent_core`, projects the governed set into local SwarmRecall, and materializes only the curated governed knowledge subset into SwarmVault
+- Codex mirror: `agentcore-memory-projection-monitor` validates projection health and can invoke the projector when safe
+
+Startup ownership:
+
+- Task: `AgentCore\PostgresRuntime`
+- Trigger: current-user logon
+- Behavior: starts native PostgreSQL from `F:\AgentCore\postgres_runtime_engine\pgsql` when `F:\AgentCore\database_cluster` is not already running.
+- This task is required before SwarmRecall can validate as healthy after reboot, because SwarmRecall uses the same native PostgreSQL engine for its local `swarmrecall` database.
+
+Projection rebuild:
+
+- Script: `D:\github\agentcore-control-plane\ops\Rebuild-AgentCoreSwarmVaultProjection.ps1`
+- Use when the SwarmVault corpus contains stale AgentCore projection artifacts or when the curation policy changes.
+- The rebuild path backs up the current projection-derived vault files under `E:\AgentCoreArchive\backups_cold\swarmvault-projection-rebuild\`, resets only the SwarmVault projection state, and replays the current curated projection from canonical memory.
+
+Operational ownership note:
+
+- If the legacy Windows tasks still reference `D:\MCP-Control-Plane\ops\...`, those entrypoints delegate into the source-controlled `D:\github\agentcore-control-plane\ops\...` scripts.
+- Codex cron automations mirror drift sync, backup, restore-test, and maintenance jobs, so the database operational model remains covered even before elevated Windows task re-registration is completed.
 
 ## Validation Commands
 
 ```powershell
-D:\MCP-Control-Plane\ops\Start-AgentCorePostgres.ps1
-D:\MCP-Control-Plane\ops\Backup-AgentCorePostgres.ps1
-D:\MCP-Control-Plane\ops\Test-AgentCorePostgresRestore.ps1
+D:\github\agentcore-control-plane\ops\Start-AgentCorePostgres.ps1 -StartIfStopped
+D:\github\agentcore-control-plane\ops\Backup-AgentCorePostgres.ps1
+D:\github\agentcore-control-plane\ops\Test-AgentCorePostgresRestore.ps1
 ```

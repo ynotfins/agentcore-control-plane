@@ -12,6 +12,37 @@ This document is the canonical architecture handoff for the current AgentCore lo
 - Active runtime root: `F:\AgentCore`
 - Source hardening in the Git repo does not by itself migrate scheduled tasks, WAL archive scripts, or live client configs away from `D:\MCP-Control-Plane`.
 
+## Unified Memory Architecture
+
+- Governed write path: `global-memory-gateway`
+- Canonical governed database: PostgreSQL `agent_core` on `127.0.0.1:55432`
+- Shared local memory runtime: `SwarmRecall` local API + local database + local Meilisearch
+- Shared local retrieval substrate: `SwarmVault`
+- Downstream sync model: control-plane-managed projection from governed Postgres memory into `SwarmRecall` and `SwarmVault`
+- Default IDE posture: do not expose direct `SwarmRecall` MCP broadly in v1; keep it as a backend runtime/admin surface
+
+## Modular Control-Plane Ownership
+
+- `scripts\mcp_control_plane.py` generates repo-owned MCP surfaces and inventory.
+- `contracts\master-mcp-server-config.json` is the machine-readable MCP contract for IDE setup.
+- `contracts\global-memory-database-contract.json` is the machine-readable database and memory contract.
+- `renderers\*.json` are executable per-client MCP fragments.
+- `validators\validate-control-plane.ps1` is the repo/source/live drift gate.
+- `ops\*.ps1` own runtime startup, projection, validation, backup, restore, and live adoption checks.
+- `supervisor\*`, `registry\*`, and `inventory\*` are generated operating inventories.
+- `docs\*.md` are human handoff/runbook surfaces.
+
+Approved client exception:
+
+- `eye2byte` is a user-approved OpenClaw-only MCP server.
+- It belongs in `renderers\openclaw.openclaw.fragment.json` and `contracts\master-mcp-server-config.json`.
+- It must not be copied into Codex, Cursor, MiniMax, Mavis, or Open Interpreter.
+
+Retired route:
+
+- The retired website-hosting connector is not part of active AgentCore MCP routing and should not be restored into default configs.
+- Historical logs, backups, or archived rollback artifacts may still contain retired connector names; those are not active routing authority.
+
 ## 1. PostgreSQL And pgvector Status
 
 ### Runtime Identity
@@ -70,14 +101,16 @@ This document is the canonical architecture handoff for the current AgentCore lo
 
 - PostgreSQL is deployed as a native local runtime on Windows filesystems.
 - It is not documented here as a Docker container.
-- It is not documented here as a Windows service.
+- It is not a Windows service in the current control-plane model.
+- Cold-boot/startup ownership is handled by Task Scheduler task `\AgentCore\PostgresRuntime`, which runs `D:\github\agentcore-control-plane\ops\Start-AgentCorePostgres.ps1 -StartIfStopped`.
 - Normal agent access is mediated through the `global-memory-gateway` MCP server.
 
 Operational model:
 
 1. Local PostgreSQL binaries run from the NVMe runtime tree.
-2. `global-memory-gateway` is the MCP access layer for normal IDE agents.
-3. Trusted ingest/admin jobs may use direct SQL only when approved by the control plane.
+2. `\AgentCore\PostgresRuntime` starts native PostgreSQL at user logon when it is not already running.
+3. `global-memory-gateway` is the MCP access layer for normal IDE agents.
+4. Trusted ingest/admin jobs may use direct SQL only when approved by the control plane.
 
 ### Initialized Vector And Schema State
 
@@ -181,6 +214,7 @@ Verified local state:
 - Local database: `swarmrecall` on native PostgreSQL at `127.0.0.1:55432`
 - Local role: `swarmrecall_app`
 - AgentCore scheduled tasks:
+  - `\AgentCore\PostgresRuntime`
   - `\AgentCore\SwarmRecallMeilisearch`
   - `\AgentCore\SwarmRecallApi`
 - Runtime owner after the 2026-06-26 takeover pass: Windows Task Scheduler, not Cursor background terminals
@@ -219,12 +253,13 @@ Current non-activation boundaries:
 
 The 2026-06-26 takeover pass added these repo-owned operations scripts:
 
+- `D:\github\agentcore-control-plane\ops\Start-AgentCorePostgres.ps1`
 - `D:\github\agentcore-control-plane\ops\Start-AgentCoreSwarmRecallComponent.ps1`
 - `D:\github\agentcore-control-plane\ops\Install-AgentCoreSwarmRecallScheduledTasks.ps1`
 - `D:\github\agentcore-control-plane\ops\Stop-AgentCoreSwarmRecallRuntime.ps1`
 - `D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1`
 
-The SwarmRecall scheduled tasks are current-user logon tasks. They are intentionally limited-runlevel tasks because the local API and Meilisearch do not require administrative privileges, and highest-runlevel registration failed from the non-elevated Codex inner shell.
+The PostgreSQL and SwarmRecall scheduled tasks are current-user logon tasks. They are intentionally limited-runlevel tasks because the native runtime paths do not require administrative privileges, and highest-runlevel registration failed from the non-elevated Codex inner shell.
 
 Codex automations created for ongoing monitoring:
 
@@ -465,5 +500,7 @@ Gateway policy:
 - Do not assume `lossless-claw` has already migrated its SQLite database onto `F:\AgentCore\agentmemory\lcm`.
 - Do not collapse `E:\AgentCoreArchive` into `E:\AgentCoreBackups` without an explicit migration plan.
 - Do not bypass `global-memory-gateway` for normal IDE writes.
+- Do not remove the OpenClaw-only `eye2byte` MCP as drift unless Tony explicitly retires it.
+- Do not restore retired website-hosting MCP routes unless Tony explicitly re-enables them.
 - Do not assume rolling-context numeric parameters are defined by the control plane; they are not documented here.
 

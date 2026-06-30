@@ -28,6 +28,17 @@ The target operating model is:
 
 Important rule: do not edit live client configs, live scheduled-task targets, or `D:\MCP-Control-Plane` from this repo unless explicitly approved as a live rollout.
 
+## Unified Memory Rollout Lock
+
+The current approved rollout is locked to a gateway-governed three-layer model:
+
+1. `global-memory-gateway` is the only normal agent write path.
+2. `agent_core` on `127.0.0.1:55432` is the canonical governed memory database.
+3. `SwarmRecall` is the shared local memory runtime and retrieval backend, but not a default broad MCP surface for every IDE.
+4. `SwarmVault` is the shared local wiki/RAG substrate on `F:\AgentCore\agentmemory\swarmvault`.
+5. Projection and synchronization into `SwarmRecall` and `SwarmVault` are handled by control-plane jobs, not by per-client dual-write behavior.
+6. Full rollout completion is not proven until the live clients have restarted onto the governed config set and `ops\Test-AgentCoreLiveClientAdoption.ps1` passes.
+
 ## PostgreSQL And pgvector
 
 Verified active database model:
@@ -40,6 +51,8 @@ Verified active database model:
 - Database: `agent_core`
 - PostgreSQL version: `16.6`
 - pgvector version: `0.8.2`
+- Startup owner: `\AgentCore\PostgresRuntime`
+- Startup command: `D:\github\agentcore-control-plane\ops\Start-AgentCorePostgres.ps1 -StartIfStopped`
 - Vector dimensions: `1536`
 - Main vector table: `global_vector_memory_store`
 - Telemetry table: `agent_cross_project_telemetry`
@@ -164,15 +177,18 @@ Current validated state:
 - API listener is loopback-only on `127.0.0.1:3300`.
 - Exactly one Meilisearch listener is active on `127.0.0.1:7700`.
 - Meilisearch process args no longer expose `--master-key`.
-- SwarmRecall API and Meilisearch are now owned by AgentCore scheduled tasks, not Cursor background terminals:
+- PostgreSQL, SwarmRecall API, and Meilisearch are now owned by AgentCore scheduled tasks, not Cursor background terminals:
+  - `\AgentCore\PostgresRuntime`
   - `\AgentCore\SwarmRecallApi`
   - `\AgentCore\SwarmRecallMeilisearch`
+- SwarmRecall API startup is gated on PostgreSQL readiness at `127.0.0.1:55432`.
 - Aggregate runtime validator passes: `D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1`.
 
 Required deliverables:
 
 - `ops\Invoke-AgentCoreSwarmRecall.ps1`
 - `ops\Test-AgentCoreSwarmRecall.ps1`
+- `ops\Start-AgentCorePostgres.ps1`
 - `ops\Start-AgentCoreSwarmRecallComponent.ps1`
 - `ops\Install-AgentCoreSwarmRecallScheduledTasks.ps1`
 - `ops\Stop-AgentCoreSwarmRecallRuntime.ps1`
@@ -246,7 +262,8 @@ If generated outputs drift from source scripts, patch generator scripts first ra
 3. Use the AgentCore scheduled tasks for SwarmRecall service ownership; do not relaunch long-running SwarmRecall services from Cursor chat terminals.
 4. Validate Codex and IDE MCP configs against the control-plane policy before live rollout.
 5. Roll out SwarmVault/SwarmRecall MCP exposure only through the governed control-plane generator/validator path.
-6. Continue the high-frequency Codex monitors until context-window pressure, DB health, RAG health, and MCP drift are stable; then reduce cadence.
+6. After any live config rollout, restart the affected clients and run `D:\github\agentcore-control-plane\ops\Test-AgentCoreLiveClientAdoption.ps1` before claiming live adoption.
+7. Continue the high-frequency Codex monitors until context-window pressure, DB health, RAG health, and MCP drift are stable; then reduce cadence.
 
 ## Current Open Risks
 

@@ -32,6 +32,79 @@ function Get-ServerContainer {
   return $null
 }
 
+function Get-ServerNames {
+  param([string]$Path)
+  $json = Read-Json $Path
+  $container = Get-ServerContainer $json
+  if (-not $container) { return @() }
+  return @($container.PSObject.Properties.Name)
+}
+
+function Test-ManagedMcpSecrets {
+  param([string]$Path)
+
+  if (-not (Test-Path -LiteralPath $Path)) {
+    return @("missing path=$Path")
+  }
+  $text = Get-Content -LiteralPath $Path -Raw
+  $activeText = $text
+  try {
+    $json = $text | ConvertFrom-Json
+    $container = Get-ServerContainer $json
+    if ($container) {
+      $activeText = ($container | ConvertTo-Json -Depth 20)
+    }
+  } catch {
+    $activeText = $text
+  }
+  $findings = [System.Collections.Generic.List[string]]::new()
+  $patterns = @(
+    "sk-[A-Za-z0-9_-]{20,}",
+    "gh[pousr]_[A-Za-z0-9_]{20,}",
+    "AIza[0-9A-Za-z_-]{20,}",
+    "Bearer\s+(?!\$\{env:|\$\{ENV:)[A-Za-z0-9._~+/=-]{20,}",
+    "Token\s+(?!\$\{env:|\$\{ENV:)[A-Za-z0-9._~+/=-]{20,}",
+    "pat=(?!\$\{env:|\$\{ENV:)[A-Za-z0-9._~+/=-]{10,}"
+  )
+  foreach ($pattern in $patterns) {
+    if ($activeText -match $pattern) {
+      $findings.Add("secret-like literal") | Out-Null
+      break
+    }
+  }
+  foreach ($retired in @("context7", "mcp.mem0.ai", "connect.composio.dev", "swarmrecall-api.onrender.com")) {
+    if ($activeText -match [regex]::Escape($retired)) {
+      $findings.Add("retired route: $retired") | Out-Null
+    }
+  }
+  return @($findings | Sort-Object -Unique)
+}
+
+function Get-LiveCodexServers {
+  try {
+    $raw = & codex mcp list --json 2>$null
+    if (-not $raw) { return @{ ok = $false; error = "codex mcp list returned no output"; names = @() } }
+    $parsed = $raw | ConvertFrom-Json
+    $names = @($parsed | Where-Object { $_.enabled } | ForEach-Object { $_.name } | Sort-Object -Unique)
+    return @{ ok = $true; error = $null; names = $names }
+  }
+  catch {
+    return @{ ok = $false; error = $_.Exception.Message; names = @() }
+  }
+}
+
+function Get-AgentCoreListener {
+  try {
+    $line = @(netstat -ano -p tcp | Select-String '127\.0\.0\.1:55432\s+.*LISTENING\s+\d+$' | Select-Object -First 1)[0]
+    if (-not $line) { return @{ ok = $false; detail = "no listener on 127.0.0.1:55432" } }
+    $parts = ($line.ToString() -replace "\s+", " ").Trim().Split(" ")
+    return @{ ok = $true; detail = ("listener pid=" + $parts[-1] + " endpoint=" + $parts[1]) }
+  }
+  catch {
+    return @{ ok = $false; detail = $_.Exception.Message }
+  }
+}
+
 $results = [System.Collections.Generic.List[object]]::new()
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
 if ($DryRun) { $WriteReport = $false }
@@ -53,6 +126,7 @@ $managedRelative = @(
   "renderers\openclaw.openclaw.fragment.json",
   "renderers\minimax.mcp.json",
   "renderers\android-studio.mcp.json",
+  "renderers\antigravity.mcp_config.json",
   "ops\Test-AgentCoreEnvPolicy.ps1",
   "automations\env-policy-audit.md",
   "validators\validate-control-plane.ps1"
@@ -67,6 +141,13 @@ $requiredFiles = @(
   "docs\GLOBAL_AGENT_RULES.md",
   "docs\restart_after_env_changes.md",
   "ops\Test-AgentCoreEnvPolicy.ps1",
+  "contracts\master-mcp-server-config.json",
+  "ops\Invoke-AgentCoreMemoryProjector.ps1",
+  "ops\Test-AgentCoreMemoryProjection.ps1",
+  "ops\Test-AgentCoreContextFabricReadiness.ps1",
+  "ops\Repair-AgentCoreContextFabricState.ps1",
+  "ops\Install-AgentCoreOperationalScheduledTasks.ps1",
+  "ops\Invoke-AgentCoreSwarmVaultIngest.ps1",
   "automations\env-policy-audit.md",
   "registry\tool-registry.json",
   "registry\tool-registry.schema.json"
@@ -82,7 +163,8 @@ $jsonFiles = @(
   "renderers\open-interpreter.config.fragment.json",
   "renderers\openclaw.openclaw.fragment.json",
   "renderers\minimax.mcp.json",
-  "renderers\android-studio.mcp.json"
+  "renderers\android-studio.mcp.json",
+  "renderers\antigravity.mcp_config.json"
 )
 $jsonErrors = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in $jsonFiles) {
@@ -146,7 +228,7 @@ $allowedEnv = @(
   "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS"
 )
 $envFindings = [System.Collections.Generic.List[string]]::new()
-foreach ($rel in @("supervisor\servers.json", "registry\tool-registry.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\android-studio.mcp.json")) {
+foreach ($rel in @("supervisor\servers.json", "registry\tool-registry.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\android-studio.mcp.json", "renderers\antigravity.mcp_config.json")) {
   $text = Get-Content -LiteralPath (Join-Path $rootPath $rel) -Raw
   foreach ($match in [regex]::Matches($text, "\$\{(?:env|ENV):([A-Z0-9_]+)\}")) {
     if ($allowedEnv -notcontains $match.Groups[1].Value) {
@@ -157,7 +239,7 @@ foreach ($rel in @("supervisor\servers.json", "registry\tool-registry.json", "re
 Add-Result $results "correct env references only" ($envFindings.Count -eq 0) (($envFindings -join "; ") -replace "^$", "all placeholder env vars are allowlisted")
 
 $retiredFindings = [System.Collections.Generic.List[string]]::new()
-foreach ($rel in @("supervisor\servers.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json")) {
+foreach ($rel in @("supervisor\servers.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\antigravity.mcp_config.json")) {
   $json = Read-Json (Join-Path $rootPath $rel)
   if ($rel -eq "supervisor\servers.json" -and $json.servers.context7) {
     $retiredFindings.Add("$rel active context7 server") | Out-Null
@@ -170,7 +252,7 @@ foreach ($rel in @("supervisor\servers.json", "renderers\cursor-global.mcp.json"
 Add-Result $results "Context7 retired from managed routing" ($retiredFindings.Count -eq 0) (($retiredFindings -join "; ") -replace "^$", "context7 is not active or emitted")
 
 $namingFindings = [System.Collections.Generic.List[string]]::new()
-foreach ($rel in @("supervisor\servers.json", "registry\tool-registry.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json")) {
+foreach ($rel in @("supervisor\servers.json", "registry\tool-registry.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\antigravity.mcp_config.json")) {
   $text = Get-Content -LiteralPath (Join-Path $rootPath $rel) -Raw
   if ($text.Contains("artiforge__codebase_scanner")) { $namingFindings.Add($rel) | Out-Null }
 }
@@ -180,7 +262,7 @@ $supervisor = Read-Json (Join-Path $rootPath "supervisor\servers.json")
 $registry = Read-Json (Join-Path $rootPath "registry\tool-registry.json")
 $composioRegistry = @($registry.tools | Where-Object { $_.id -eq "composio" })[0]
 $composioOk = $supervisor.servers.composio.lifecycle -eq "quarantined" -and $composioRegistry.lifecycle -eq "quarantined"
-foreach ($rel in @("renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\android-studio.mcp.json")) {
+foreach ($rel in @("renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\android-studio.mcp.json", "renderers\antigravity.mcp_config.json")) {
   $text = Get-Content -LiteralPath (Join-Path $rootPath $rel) -Raw
   if ($text.Contains('"composio"')) { $composioOk = $false }
 }
@@ -193,6 +275,176 @@ Add-Result $results "global-memory-gateway primary" $gatewayOk "gateway is criti
 
 $criticalMissing = @($critical | Where-Object { -not $supervisor.servers.$_ })
 Add-Result $results "critical tool set" ($criticalMissing.Count -eq 0) ("missing=" + (($criticalMissing -join ", ") -replace "^$", "none"))
+
+$liveCodex = Get-LiveCodexServers
+$codexExpected = @($critical + "serena" | Sort-Object -Unique)
+if (-not $liveCodex.ok) {
+  Add-Result $results "live Codex routing set" $false ("codex mcp list unavailable: " + $liveCodex.error)
+  Add-Result $results "live Codex retired servers absent" $false ("codex mcp list unavailable: " + $liveCodex.error)
+  Add-Result $results "live Codex server budget" $false ("codex mcp list unavailable: " + $liveCodex.error)
+}
+else {
+  $codexMissing = @($codexExpected | Where-Object { $liveCodex.names -notcontains $_ })
+  Add-Result $results "live Codex routing set" ($codexMissing.Count -eq 0) ("missing=" + (($codexMissing -join ", ") -replace "^$", "none") + "; active=" + ($liveCodex.names -join ", "))
+
+  $retiredLiveCodex = @($liveCodex.names | Where-Object { $_ -in @("context7", "mem0_mcp_server", "artiforge__codebase_scanner", "thinking-patterns") })
+  Add-Result $results "live Codex retired servers absent" ($retiredLiveCodex.Count -eq 0) (($retiredLiveCodex -join ", ") -replace "^$", "no retired Codex servers are active")
+
+  $codexServerBudget = $liveCodex.names.Count -le 16
+  Add-Result $results "live Codex server budget" $codexServerBudget ("count=" + $liveCodex.names.Count + " limit=16 (raised for mandatory swarmrecall+swarmvault baseline and reserved context-fabric/cursor-agent-mcp/mcp-debugger expansion)")
+}
+
+$agentCoreListener = Get-AgentCoreListener
+Add-Result $results "AgentCore PostgreSQL listener" $agentCoreListener.ok $agentCoreListener.detail
+
+try {
+  $postgresTask = Get-ScheduledTask -TaskPath "\AgentCore\" -TaskName "PostgresRuntime" -ErrorAction Stop
+  $postgresTaskInfo = Get-ScheduledTaskInfo -TaskPath "\AgentCore\" -TaskName "PostgresRuntime" -ErrorAction Stop
+  $postgresActionText = (($postgresTask.Actions | ForEach-Object { $_.Execute + " " + $_.Arguments }) -join " ")
+  $postgresTaskOk = $postgresActionText -match "Start-AgentCorePostgres\.ps1" -and $postgresActionText -match "-StartIfStopped"
+  Add-Result $results "Postgres startup ownership" $postgresTaskOk ("state=" + [string]$postgresTask.State + "; last_result=" + [string]$postgresTaskInfo.LastTaskResult + "; action=" + $postgresActionText)
+}
+catch {
+  Add-Result $results "Postgres startup ownership" $false $_.Exception.Message
+}
+
+$expectedRendererServers = [ordered]@{
+  "renderers\cursor-global.mcp.json" = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\openclaw.openclaw.fragment.json" = @("arabold-docs", "artiforge", "eye2byte", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "global-memory-gateway", "swarmrecall", "swarmvault")
+  "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault")
+  "renderers\antigravity.mcp_config.json" = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+}
+$surfaceFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in $expectedRendererServers.Keys) {
+  $actual = @(Get-ServerNames (Join-Path $rootPath $rel) | Sort-Object)
+  $expected = @($expectedRendererServers[$rel] | Sort-Object)
+  $missing = @($expected | Where-Object { $_ -notin $actual })
+  $extra = @($actual | Where-Object { $_ -notin $expected })
+  if ($missing.Count -gt 0 -or $extra.Count -gt 0) {
+    $surfaceFindings.Add("$rel missing=[$($missing -join ", ")] extra=[$($extra -join ", ")] count=$($actual.Count)") | Out-Null
+  } else {
+    $surfaceFindings.Add("$rel count=$($actual.Count)") | Out-Null
+  }
+}
+$surfaceMismatch = @($surfaceFindings | Where-Object { $_ -match "missing=\[|extra=\[" })
+Add-Result $results "approved renderer server sets" ($surfaceMismatch.Count -eq 0) (($surfaceFindings -join "; ") -replace "^$", "all renderer server sets match the approved bounded surface")
+
+$managedLiveConfigPaths = [ordered]@{
+  "Cursor" = "C:\Users\ynotf\.cursor\mcp.json"
+  "OpenClaw" = "C:\Users\ynotf\.openclaw\openclaw.json"
+  "Open Interpreter" = "C:\Users\ynotf\AppData\Roaming\interpreter\config.json"
+  "MiniMax Code" = "C:\Users\ynotf\.minimax\mcp\mcp.json"
+  "MiniMax Code Legacy" = "C:\Users\ynotf\.mavis\mcp\mcp.json"
+  "Antigravity" = "C:\Users\ynotf\.gemini\config\mcp_config.json"
+  "Antigravity Roaming" = "C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json"
+}
+$liveConfigReadFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($clientName in $managedLiveConfigPaths.Keys) {
+  $path = $managedLiveConfigPaths[$clientName]
+  if (-not (Test-Path -LiteralPath $path)) {
+    $liveConfigReadFindings.Add("$clientName missing path=$path") | Out-Null
+    continue
+  }
+  try {
+    $actual = @(Get-ServerNames $path | Sort-Object)
+    $liveConfigReadFindings.Add("$clientName count=$($actual.Count)") | Out-Null
+  }
+  catch {
+    $liveConfigReadFindings.Add("$clientName parse-error path=$path detail=$($_.Exception.Message)") | Out-Null
+  }
+}
+$liveConfigReadIssues = @($liveConfigReadFindings | Where-Object { $_ -match "missing path=|parse-error" })
+Add-Result $results "managed live client configs readable" ($liveConfigReadIssues.Count -eq 0) (($liveConfigReadFindings -join "; ") -replace "^$", "all managed live client configs are readable")
+
+$gatewayArgFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in @(
+  "renderers\cursor-global.mcp.json",
+  "renderers\open-interpreter.config.fragment.json",
+  "renderers\openclaw.openclaw.fragment.json",
+  "renderers\minimax.mcp.json",
+  "renderers\antigravity.mcp_config.json"
+)) {
+  $json = Read-Json (Join-Path $rootPath $rel)
+  $servers = Get-ServerContainer $json
+  $gateway = $servers."global-memory-gateway"
+  $args = @($gateway.args)
+  if ("--project-id" -notin $args -or "codex-managed" -notin $args -or "--platform" -notin $args) {
+    $gatewayArgFindings.Add("$rel missing governed gateway args") | Out-Null
+  }
+}
+Add-Result $results "gateway renderer args explicit" ($gatewayArgFindings.Count -eq 0) (($gatewayArgFindings -join "; ") -replace "^$", "all rendered gateway configs include --project-id codex-managed and --platform")
+
+# Mandatory baseline: swarmrecall + swarmvault must be present (local-only) in every first-class managed renderer.
+$swarmBaselineRenderers = @(
+  "renderers\cursor-global.mcp.json",
+  "renderers\open-interpreter.config.fragment.json",
+  "renderers\openclaw.openclaw.fragment.json",
+  "renderers\minimax.mcp.json",
+  "renderers\antigravity.mcp_config.json"
+)
+$swarmBaselineFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in $swarmBaselineRenderers) {
+  $names = @(Get-ServerNames (Join-Path $rootPath $rel))
+  $missing = @(@("swarmrecall", "swarmvault") | Where-Object { $_ -notin $names })
+  if ($missing.Count -gt 0) { $swarmBaselineFindings.Add("$rel missing=[$($missing -join ", ")]") | Out-Null }
+}
+Add-Result $results "swarmrecall + swarmvault baseline present" ($swarmBaselineFindings.Count -eq 0) (($swarmBaselineFindings -join "; ") -replace "^$", "swarmrecall and swarmvault are present in every first-class managed renderer")
+
+# Hosted Swarm routes are forbidden everywhere (local-only posture).
+$hostedSwarmFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in @(
+  "renderers\cursor-global.mcp.json",
+  "renderers\open-interpreter.config.fragment.json",
+  "renderers\openclaw.openclaw.fragment.json",
+  "renderers\minimax.mcp.json",
+  "renderers\android-studio.mcp.json",
+  "renderers\antigravity.mcp_config.json",
+  "supervisor\servers.json"
+)) {
+  $path = Join-Path $rootPath $rel
+  if (-not (Test-Path -LiteralPath $path)) { continue }
+  $text = Get-Content -LiteralPath $path -Raw
+  if ($text -match 'onrender\.com' -or $text -match 'swarmrecall-api\.onrender' -or $text -match 'swarmvault.*\.onrender') {
+    $hostedSwarmFindings.Add($rel) | Out-Null
+  }
+}
+Add-Result $results "no hosted Swarm routes" ($hostedSwarmFindings.Count -eq 0) (($hostedSwarmFindings -join ", ") -replace "^$", "no hosted SwarmRecall/SwarmVault URLs in renderers or supervisor")
+
+# Forbidden runtime port :65432 must not appear in source-controlled MCP config/contracts (archived evidence excepted).
+$portFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in @(
+  "supervisor\servers.json",
+  "supervisor\servers.yaml",
+  "contracts\master-mcp-server-config.json",
+  "renderers\cursor-global.mcp.json",
+  "renderers\open-interpreter.config.fragment.json",
+  "renderers\openclaw.openclaw.fragment.json",
+  "renderers\minimax.mcp.json",
+  "renderers\android-studio.mcp.json",
+  "renderers\antigravity.mcp_config.json"
+)) {
+  $path = Join-Path $rootPath $rel
+  if (-not (Test-Path -LiteralPath $path)) { continue }
+  $text = Get-Content -LiteralPath $path -Raw
+  if ($text -match '65432') { $portFindings.Add($rel) | Out-Null }
+}
+Add-Result $results "no active :65432 route" ($portFindings.Count -eq 0) (($portFindings -join ", ") -replace "^$", "no :65432 route present in managed configs/contracts")
+
+$liveMcpSecretFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($livePath in @(
+  "C:\Users\ynotf\.cursor\mcp.json",
+  "C:\Users\ynotf\.openclaw\openclaw.json",
+  "C:\Users\ynotf\.minimax\mcp\mcp.json",
+  "C:\Users\ynotf\.mavis\mcp\mcp.json",
+  "C:\Users\ynotf\.gemini\config\mcp_config.json",
+  "C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json"
+)) {
+  foreach ($finding in @(Test-ManagedMcpSecrets -Path $livePath)) {
+    $liveMcpSecretFindings.Add("$livePath -> $finding") | Out-Null
+  }
+}
+Add-Result $results "live managed MCP configs sanitized" ($liveMcpSecretFindings.Count -eq 0) (($liveMcpSecretFindings -join "; ") -replace "^$", "no raw MCP secrets or retired hosted routes found")
 
 $docsPath = "C:\Users\ynotf\.cursor\vendor\arabold-docs-mcp\node_modules\@arabold\docs-mcp-server\dist\index.js"
 $fabricPath = "C:\Users\ynotf\.cursor\vendor\context-fabric-mcp\node_modules\context-fabric\dist\index.js"

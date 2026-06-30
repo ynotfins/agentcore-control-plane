@@ -34,6 +34,25 @@
   "telemetry": {
     "table": "agent_cross_project_telemetry"
   },
+  "projection_layer": {
+    "mode": "gateway-governed",
+    "normal_agent_dual_write": false,
+    "swarmrecall": {
+      "role": "shared_local_memory_runtime",
+      "api_url": "http://127.0.0.1:3300",
+      "database": "swarmrecall",
+      "broad_mcp_rollout": false
+    },
+    "swarmvault": {
+      "role": "shared_local_rag_substrate",
+      "runtime_root": "F:\\AgentCore\\agentmemory\\swarmvault"
+    },
+    "projector": {
+      "runner": "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreMemoryProjector.ps1",
+      "validator": "D:\\github\\agentcore-control-plane\\ops\\Test-AgentCoreMemoryProjection.ps1",
+      "state_root": "F:\\AgentCore\\agentmemory\\projection-state"
+    }
+  },
   "workspace_roots": {
     "cursor": "F:\\AgentCore\\agents_workspace\\Cursor",
     "autonomy": "F:\\AgentCore\\agents_workspace\\Autonomy",

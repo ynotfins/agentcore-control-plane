@@ -12,7 +12,8 @@
 
 ## Approval Gates
 
-- Repo-only hardening may update files under `D:\MCP-Control-Plane`.
+- Repo-only hardening may update files under `D:\github\agentcore-control-plane`.
+- `D:\MCP-Control-Plane` remains the live ops root for scheduled tasks and current archive hooks until a separate approved migration.
 - Live client config writes require an explicit user instruction for that rollout.
 - Composio is quarantined by default and must not be rendered into client fragments.
 - Raw Mem0 is not a normal-agent memory route; use PostgreSQL-backed `global-memory-gateway`.

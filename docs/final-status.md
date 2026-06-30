@@ -1,12 +1,12 @@
 # Final Status
 
-Generated: 2026-06-25T00:55:54.999545+00:00
-Root: `D:\MCP-Control-Plane`
+Generated: 2026-06-27T06:18:01.607895+00:00
+Root: `D:\github\agentcore-control-plane`
 
 ## Summary
 
-- Inventory assets: 8
-- Inventory servers: 34
+- Inventory assets: 14
+- Inventory servers: 53
 - Client write status: `passed_repo_only`
 - Primary memory: `global-memory-gateway`
 - Raw Mem0 status: `skipped`
@@ -30,13 +30,13 @@ Root: `D:\MCP-Control-Plane`
 
 ## Files Created
 
-- `D:\MCP-Control-Plane\inventory\assets.json`
-- `D:\MCP-Control-Plane\inventory\assets.yaml`
-- `D:\MCP-Control-Plane\supervisor\servers.yaml`
-- `D:\MCP-Control-Plane\artifacts\probe-results.json`
-- `D:\MCP-Control-Plane\artifacts\drift-report.json`
-- `D:\MCP-Control-Plane\docs\rollout-runbook.md`
-- `D:\MCP-Control-Plane\artifacts\final-status.json`
+- `D:\github\agentcore-control-plane\inventory\assets.json`
+- `D:\github\agentcore-control-plane\inventory\assets.yaml`
+- `D:\github\agentcore-control-plane\supervisor\servers.yaml`
+- `D:\github\agentcore-control-plane\artifacts\probe-results.json`
+- `D:\github\agentcore-control-plane\artifacts\drift-report.json`
+- `D:\github\agentcore-control-plane\docs\rollout-runbook.md`
+- `D:\github\agentcore-control-plane\artifacts\final-status.json`
 
 ## Remaining User Actions
 

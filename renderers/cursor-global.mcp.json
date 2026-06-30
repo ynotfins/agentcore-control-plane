@@ -14,25 +14,6 @@
       "type": "http",
       "url": "https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}"
     },
-    "context-fabric": {
-      "type": "stdio",
-      "command": "C:\\Program Files\\nodejs\\node.exe",
-      "args": [
-        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
-      ]
-    },
-    "cursor-agent-mcp": {
-      "type": "stdio",
-      "command": "npx.cmd",
-      "args": [
-        "-y",
-        "cursor-agent-mcp@latest"
-      ],
-      "env": {
-        "CURSOR_API_KEY": "${env:CURSOR_API_KEY}",
-        "CURSOR_API_URL": "https://api.cursor.com"
-      }
-    },
     "filesystem": {
       "type": "stdio",
       "command": "npx.cmd",
@@ -55,7 +36,11 @@
         "-m",
         "autonomy_factory.global_memory_gateway",
         "--user-id",
-        "master_developer_profile"
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        "cursor"
       ],
       "env": {
         "MEM0_DEFAULT_USER_ID": "master_developer_profile",
@@ -70,29 +55,6 @@
         "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS": "1536",
         "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
       }
-    },
-    "github-mcp": {
-      "type": "stdio",
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
-      ],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
-    },
-    "mcp-debugger": {
-      "type": "stdio",
-      "command": "npx.cmd",
-      "args": [
-        "-y",
-        "@debugmcp/mcp-debugger@latest"
-      ]
     },
     "obsidian-vault": {
       "type": "stdio",
@@ -140,6 +102,32 @@
         "--project-from-cwd",
         "--transport",
         "stdio"
+      ]
+    },
+    "swarmrecall": {
+      "type": "stdio",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmRecall.ps1",
+        "-Mode",
+        "Mcp"
+      ]
+    },
+    "swarmvault": {
+      "type": "stdio",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmVault.ps1",
+        "-Mode",
+        "Mcp"
       ]
     }
   }

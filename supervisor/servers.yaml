@@ -1,5 +1,5 @@
 schema_version: "2026-06-16"
-generated_at: "2026-06-25T00:55:42.466427+00:00"
+generated_at: "2026-06-27T06:17:55.331110+00:00"
 system_id: CHAOSCENTRAL
 global_identity:
   user_id: master_developer_profile
@@ -20,6 +20,7 @@ servers:
       - OpenClaw
       - MiniMax Code
       - Open Interpreter
+      - Antigravity
     transport: stdio
     launch_contract:
       command: "C:\\Program Files\\nodejs\\node.exe"
@@ -51,6 +52,7 @@ servers:
       - OpenClaw
       - MiniMax Code
       - Open Interpreter
+      - Antigravity
     transport: http
     launch_contract:
       url: "https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}"
@@ -86,6 +88,7 @@ servers:
         - "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
     criticality: normal
     lifecycle: active
+    render_by_default: false
     capabilities:
       - git_drift_tracking
       - commit_context_capture
@@ -118,6 +121,7 @@ servers:
       - cursor_agent_bridge
     criticality: normal
     lifecycle: active
+    render_by_default: false
     notes:
       - Matches the live Cursor/OpenClaw stdio entry; requires CURSOR_API_KEY from user/process environment.
   filesystem:
@@ -127,6 +131,7 @@ servers:
       - Codex
       - OpenClaw
       - MiniMax Code
+      - Antigravity
     transport: stdio
     launch_contract:
       command: npx.cmd
@@ -162,6 +167,7 @@ servers:
       - Open Interpreter
       - OpenClaw
       - MiniMax Code
+      - Antigravity
     transport: stdio
     launch_contract:
       command: "D:\\Codex_Managed\\.venv\\Scripts\\python.exe"
@@ -200,6 +206,8 @@ servers:
       - Primary memory path for normal agents. Stop if unavailable; do not fall back to raw Mem0 unless explicitly approved.
       - "Backed by PostgreSQL agent_core on 127.0.0.1:55432 with pgvector VECTOR(1536)."
       - "Uses OpenAI text-embedding-3-small when OPENAI_API_KEY is available; local_hash_v1 is offline fallback only."
+      - AgentCore uses Windows environment variables only. Do not create .env fallbacks for gateway credentials.
+      - "Gateway launches with AGENT_CORE_PGUSER=agent_ingest and AGENT_CORE_PGPASSWORD=${ENV:AGENT_CORE_AGENT_INGEST_PASSWORD}."
       - Normal agents use memory_append/search/state; trusted ingest/admin jobs are the only direct PostgreSQL writers.
   github-mcp:
     canonical_id: "github-mcp"
@@ -224,6 +232,7 @@ servers:
       image: "ghcr.io/github/github-mcp-server"
     criticality: normal
     lifecycle: active
+    render_by_default: false
     capabilities:
       - github_repo_access
       - pull_request_automation
@@ -252,6 +261,7 @@ servers:
         - "--help"
     criticality: normal
     lifecycle: active
+    render_by_default: false
     capabilities:
       - debug_sessions
       - breakpoints
@@ -293,6 +303,7 @@ servers:
       - Codex
       - OpenClaw
       - MiniMax Code
+      - Antigravity
     transport: stdio
     launch_contract:
       command: pwsh
@@ -325,6 +336,7 @@ servers:
       - Codex
       - OpenClaw
       - MiniMax Code
+      - Antigravity
     transport: stdio
     launch_contract:
       command: npx.cmd
@@ -354,6 +366,7 @@ servers:
       - Cursor
       - OpenClaw
       - MiniMax Code
+      - Antigravity
     transport: stdio
     launch_contract:
       command: npx.cmd
@@ -381,6 +394,7 @@ servers:
       - Cursor
       - Codex
       - OpenClaw
+      - Antigravity
     transport: stdio
     launch_contract:
       command: "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe"
@@ -423,3 +437,23 @@ servers:
       - connected_app_workflows
     notes:
       - "Quarantined by default because current runtime state is unstable. Do not render into clients until explicitly re-enabled."
+  eye2byte:
+    canonical_id: eye2byte
+    client_bindings:
+      - OpenClaw
+    transport: stdio
+    launch_contract:
+      command: python
+      args:
+        - "C:\\Users\\ynotf\\.openclaw\\eye2byte_mcp.py"
+    healthcheck:
+      kind: mcp_stdio
+      methods:
+        - initialize
+        - tools/list
+    criticality: normal
+    lifecycle: active
+    capabilities:
+      - openclaw_user_extension
+    notes:
+      - "User-approved OpenClaw-only MCP server. Preserve during renderer apply; do not copy to other IDEs."

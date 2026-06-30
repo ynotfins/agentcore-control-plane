@@ -1,9 +1,9 @@
 {
   "schema_version": "2026-06-10",
-  "generated_at": "2026-06-25T00:55:52.515773+00:00",
+  "generated_at": "2026-06-27T06:17:58.728481+00:00",
   "source": {
-    "supervisor": "D:\\MCP-Control-Plane\\supervisor\\servers.json",
-    "health": "D:\\MCP-Control-Plane\\artifacts\\probe-results.json"
+    "supervisor": "D:\\github\\agentcore-control-plane\\supervisor\\servers.json",
+    "health": "D:\\github\\agentcore-control-plane\\artifacts\\probe-results.json"
   },
   "tools": [
     {
@@ -17,7 +17,8 @@
         "Codex",
         "OpenClaw",
         "MiniMax Code",
-        "Open Interpreter"
+        "Open Interpreter",
+        "Antigravity"
       ],
       "capabilities": [
         "current_docs",
@@ -48,7 +49,8 @@
         "Cursor",
         "OpenClaw",
         "MiniMax Code",
-        "Open Interpreter"
+        "Open Interpreter",
+        "Antigravity"
       ],
       "capabilities": [
         "codebase_scanning",
@@ -85,7 +87,7 @@
       "env_expectations": [],
       "health": "healthy",
       "fallback_policy": "No fallback unless it preserves governance and quality.",
-      "render_by_default": true,
+      "render_by_default": false,
       "notes": [
         "The published package exposes a CLI at `dist/cli.js` and the real MCP stdio server at `dist/index.js`; Cursor must target `dist/index.js` directly on Windows.",
         "The requested Python package `context-fabric` may be installed separately, but the VIKAS9793 MCP server wiring uses the Node package `context-fabric`.",
@@ -112,7 +114,7 @@
       ],
       "health": "not_probed",
       "fallback_policy": "No fallback unless it preserves governance and quality.",
-      "render_by_default": true,
+      "render_by_default": false,
       "notes": [
         "Matches the live Cursor/OpenClaw stdio entry; requires CURSOR_API_KEY from user/process environment."
       ]
@@ -127,7 +129,8 @@
         "Cursor",
         "Codex",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "capabilities": [
         "file_read_write",
@@ -154,7 +157,8 @@
         "Cursor",
         "Open Interpreter",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "capabilities": [
         "governed_memory",
@@ -183,6 +187,8 @@
         "Primary memory path for normal agents. Stop if unavailable; do not fall back to raw Mem0 unless explicitly approved.",
         "Backed by PostgreSQL agent_core on 127.0.0.1:55432 with pgvector VECTOR(1536).",
         "Uses OpenAI text-embedding-3-small when OPENAI_API_KEY is available; local_hash_v1 is offline fallback only.",
+        "AgentCore uses Windows environment variables only. Do not create .env fallbacks for gateway credentials.",
+        "Gateway launches with AGENT_CORE_PGUSER=agent_ingest and AGENT_CORE_PGPASSWORD=${ENV:AGENT_CORE_AGENT_INGEST_PASSWORD}.",
         "Normal agents use memory_append/search/state; trusted ingest/admin jobs are the only direct PostgreSQL writers."
       ]
     },
@@ -207,7 +213,7 @@
       ],
       "health": "not_probed",
       "fallback_policy": "No fallback unless it preserves governance and quality.",
-      "render_by_default": true,
+      "render_by_default": false,
       "notes": [
         "Uses the official GitHub-maintained Docker image because the legacy npm package is deprecated.",
         "Keep the PAT in a Windows environment variable only; never write it into config or prompt inputs."
@@ -232,7 +238,7 @@
       "env_expectations": [],
       "health": "not_probed",
       "fallback_policy": "No fallback unless it preserves governance and quality.",
-      "render_by_default": true,
+      "render_by_default": false,
       "notes": [
         "Use with Playwright or local runtimes when a failure needs runtime evidence instead of guesswork."
       ]
@@ -276,7 +282,8 @@
         "Cursor",
         "Codex",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "capabilities": [
         "vault_search",
@@ -307,7 +314,8 @@
         "Cursor",
         "Codex",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "capabilities": [
         "browser_automation",
@@ -333,7 +341,8 @@
         "Codex",
         "Cursor",
         "OpenClaw",
-        "MiniMax Code"
+        "MiniMax Code",
+        "Antigravity"
       ],
       "capabilities": [
         "planning",
@@ -359,7 +368,8 @@
       "client_bindings": [
         "Cursor",
         "Codex",
-        "OpenClaw"
+        "OpenClaw",
+        "Antigravity"
       ],
       "capabilities": [
         "symbol_navigation",
@@ -392,6 +402,26 @@
       "render_by_default": false,
       "notes": [
         "Quarantined by default because current runtime state is unstable. Do not render into clients until explicitly re-enabled."
+      ]
+    },
+    {
+      "id": "eye2byte",
+      "canonical_id": "eye2byte",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "OpenClaw"
+      ],
+      "capabilities": [
+        "openclaw_user_extension"
+      ],
+      "env_expectations": [],
+      "health": "not_probed",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "User-approved OpenClaw-only MCP server. Preserve during renderer apply; do not copy to other IDEs."
       ]
     }
   ]

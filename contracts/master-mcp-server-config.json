@@ -1,0 +1,478 @@
+{
+  "schema_version": "2026-06-26",
+  "contract_id": "agentcore.master-mcp-server-config.v1",
+  "authority": "D:\\github\\agentcore-control-plane",
+  "live_ops_root": "D:\\MCP-Control-Plane",
+  "purpose": "Canonical MCP server contract for AgentCore IDE clients. Use this to verify mandatory and essential MCP servers, client-specific surfaces, retired routes, and unique setup requirements without exposing secrets.",
+  "normal_memory_rule": {
+    "normal_write_path": "global-memory-gateway",
+    "canonical_database": "PostgreSQL agent_core on 127.0.0.1:55432",
+    "direct_sql_for_normal_agents": false,
+    "raw_mem0_default": false,
+    "swarmrecall_direct_mcp_default": true,
+    "swarmrecall_mcp_launch": "governed wrapper ops\\Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp (local-only; strips Upstash/Firebase; credentials from Windows env)",
+    "swarmvault_mcp_launch": "governed wrapper ops\\Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp (local-first file vault at F:\\AgentCore\\agentmemory\\swarmvault)",
+    "swarmrecall_backend_role": "shared local memory runtime and retrieval service; now a mandatory baseline MCP surface (local-only)",
+    "swarmvault_backend_role": "shared local RAG/wiki substrate; now a mandatory baseline MCP surface (local-first files)",
+    "swarmrecall_swarmvault_hosted_forbidden": true,
+    "projection_model": "control-plane projector (Invoke-AgentCoreMemoryProjector.ps1) mirrors approved governed memory and curated knowledge downstream; normal durable task-end memory still routes through global-memory-gateway"
+  },
+  "secret_policy": {
+    "store_secret_values_in_this_file": false,
+    "allowed_secret_reference_format": "${env:VARIABLE_NAME}",
+    "required_environment_variables": [
+      "AGENT_CORE_AGENT_INGEST_PASSWORD",
+      "OPENAI_API_KEY",
+      "ARTIFORGE_PAT",
+      "OBSIDIAN_API_KEY",
+      "OBSIDIAN_LOCAL_REST_API",
+      "CURSOR_API_KEY",
+      "GITHUB_PERSONAL_ACCESS_TOKEN",
+      "GITHUB_PAT_TOKEN"
+    ]
+  },
+  "server_catalog": {
+    "global-memory-gateway": {
+      "tier": "mandatory_everywhere",
+      "role": "governed durable memory write and search path",
+      "transport": "stdio",
+      "command": "D:\\Codex_Managed\\.venv\\Scripts\\python.exe",
+      "args_template": [
+        "-m",
+        "autonomy_factory.global_memory_gateway",
+        "--user-id",
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        "${client.platform}"
+      ],
+      "env": {
+        "MEM0_DEFAULT_USER_ID": "master_developer_profile",
+        "MEMORY_GATEWAY_BACKEND": "postgres",
+        "AGENT_CORE_PGHOST": "127.0.0.1",
+        "AGENT_CORE_PGPORT": "55432",
+        "AGENT_CORE_PGDATABASE": "agent_core",
+        "AGENT_CORE_PGUSER": "agent_ingest",
+        "AGENT_CORE_PGPASSWORD": "${env:AGENT_CORE_AGENT_INGEST_PASSWORD}",
+        "MEMORY_GATEWAY_EMBEDDING_PROVIDER": "auto",
+        "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
+        "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS": "1536",
+        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
+      }
+    },
+    "arabold-docs": {
+      "tier": "mandatory_everywhere",
+      "role": "local/current documentation server replacing context7",
+      "transport": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+      ],
+      "env": {
+        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
+      }
+    },
+    "artiforge": {
+      "tier": "mandatory_everywhere",
+      "role": "codebase orchestration, project docs, and architecture-sensitive planning",
+      "default_http_shape": {
+        "transport": "http",
+        "url": "https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}"
+      },
+      "codex_and_minimax_wrapper_shape": {
+        "transport": "stdio",
+        "command": "pwsh",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "C:\\Users\\ynotf\\.codex\\mcp-wrappers\\artiforge-mcp.ps1"
+        ],
+        "env_vars": [
+          "ARTIFORGE_PAT"
+        ]
+      },
+      "retired_names": [
+        "artiforge__codebase_scanner"
+      ]
+    },
+    "sequential-thinking": {
+      "tier": "mandatory_for_planning_clients",
+      "role": "approved reasoning/planning MCP; do not restore thinking-patterns",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      }
+    },
+    "serena": {
+      "tier": "essential_for_code_editing_clients",
+      "role": "repo navigation, symbol understanding, diagnostics, and refactors",
+      "transport": "stdio",
+      "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--project-from-cwd",
+        "--transport",
+        "stdio"
+      ]
+    },
+    "context-fabric": {
+      "tier": "essential_for_repo_context_clients",
+      "role": "Git-backed project context and drift checks; not durable memory",
+      "transport": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+      ]
+    },
+    "filesystem": {
+      "tier": "essential_for_file_work_clients",
+      "role": "bounded filesystem access for IDEs that need direct file tooling",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\ynotf",
+        "D:\\Codex_Managed",
+        "D:\\cursor_setup",
+        "D:\\openclaw",
+        "D:\\Obsidian",
+        "F:\\AgentCore",
+        "E:\\AgentCoreArchive"
+      ]
+    },
+    "obsidian-vault": {
+      "tier": "essential_for_knowledge_clients",
+      "role": "long-form notes, decisions, runbooks, and indexed handoffs",
+      "transport": "stdio",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+      ],
+      "env": {
+        "OBSIDIAN_API_KEY": "${env:OBSIDIAN_API_KEY}",
+        "OBSIDIAN_LOCAL_REST_API": "${env:OBSIDIAN_LOCAL_REST_API}",
+        "OBSIDIAN_BASE_URL": "https://127.0.0.1:27124",
+        "OBSIDIAN_VERIFY_SSL": "false"
+      }
+    },
+    "playwright": {
+      "tier": "essential_for_browser_testing_clients",
+      "role": "local browser automation and UI verification",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "github-mcp": {
+      "tier": "essential_for_repo_remote_clients",
+      "role": "GitHub repository, issue, PR, and remote workflow access",
+      "cursor_openclaw_shape": {
+        "transport": "stdio",
+        "command": "docker",
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "GITHUB_PERSONAL_ACCESS_TOKEN",
+          "ghcr.io/github/github-mcp-server"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+        }
+      },
+      "codex_shape": {
+        "transport": "http",
+        "url": "https://api.githubcopilot.com/mcp/",
+        "bearer_token_env_var": "GITHUB_PAT_TOKEN"
+      }
+    },
+    "cursor-agent-mcp": {
+      "tier": "cursor_openclaw_only",
+      "role": "Cursor agent bridge where Cursor/OpenClaw workflows need it",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "cursor-agent-mcp@latest"
+      ],
+      "env": {
+        "CURSOR_API_KEY": "${env:CURSOR_API_KEY}",
+        "CURSOR_API_URL": "https://api.cursor.com"
+      }
+    },
+    "mcp-debugger": {
+      "tier": "cursor_openclaw_only",
+      "role": "MCP debug tooling for clients with larger approved surfaces",
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@debugmcp/mcp-debugger@latest"
+      ]
+    },
+    "eye2byte": {
+      "tier": "openclaw_only_user_approved",
+      "role": "User-approved OpenClaw-only MCP server",
+      "transport": "stdio",
+      "command": "python",
+      "args": [
+        "C:\\Users\\ynotf\\.openclaw\\eye2byte_mcp.py"
+      ],
+      "notes": [
+        "Preserve in OpenClaw renderer and live config.",
+        "Do not copy into Codex, Cursor, MiniMax, Mavis, or Open Interpreter."
+      ]
+    },
+    "swarmrecall": {
+      "tier": "mandatory_everywhere",
+      "role": "local-first native SwarmRecall memory/recall/knowledge/learnings/skills/pools runtime",
+      "transport": "stdio",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmRecall.ps1",
+        "-Mode",
+        "Mcp"
+      ],
+      "local_only": true,
+      "hosted_fallback_forbidden": true,
+      "backends": "local PostgreSQL `swarmrecall` DB (127.0.0.1:55432, separate from agent_core) + Meilisearch (127.0.0.1:7700)",
+      "notes": [
+        "Governed wrapper forces local-only env and reads SwarmRecall API key + Meili master key from Windows environment variables.",
+        "Do not emit any hosted SwarmRecall URL (e.g. *.onrender.com).",
+        "Fallback per plan: if the wrapper fails stdio MCP discovery, the documented fallback is the vendored CLI `node ...\\swarmrecall\\packages\\cli\\dist\\index.js mcp` with local-only env (SWARMRECALL_API_URL=http://127.0.0.1:3300)."
+      ]
+    },
+    "swarmvault": {
+      "tier": "mandatory_everywhere",
+      "role": "local-first SwarmVault RAG/wiki/graph/context-packs/task-ledger substrate",
+      "transport": "stdio",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmVault.ps1",
+        "-Mode",
+        "Mcp"
+      ],
+      "local_only": true,
+      "runtime_root": "F:\\AgentCore\\agentmemory\\swarmvault",
+      "tool_profiles": {
+        "swarmvault-admin": "Codex, Cursor (full or near-full tool surface)",
+        "swarmvault-lite": "OpenClaw, Open Interpreter, MiniMax, Mavis, Antigravity, Claude Code (read/query/context/task-health subset)"
+      },
+      "notes": [
+        "Not a Postgres database. Local-first file vault; offline heuristic provider; no hosted/cloud persistence.",
+        "Replaces the rogue-added broken reference to C:\\Users\\ynotf\\.agentcore\\mcp-wrappers\\swarmvault-mcp.ps1."
+      ]
+    },
+    "codex-security": {
+      "tier": "codex_only",
+      "role": "Codex security plugin tools; enabled only when available through Codex plugin cache",
+      "transport": "stdio",
+      "managed_by": "Codex plugin system"
+    },
+    "node_repl": {
+      "tier": "codex_only",
+      "role": "Codex desktop runtime integration and browser/control helper",
+      "transport": "stdio",
+      "managed_by": "Codex desktop runtime"
+    }
+  },
+  "client_profiles": {
+    "codex": {
+      "platform": "codex",
+      "live_config": "C:\\Users\\ynotf\\.codex\\config.toml",
+      "expected_default_servers": [
+        "arabold-docs",
+        "artiforge",
+        "codex-security",
+        "filesystem",
+        "github",
+        "global-memory-gateway",
+        "node_repl",
+        "obsidian-vault",
+        "playwright",
+        "sequential-thinking",
+        "serena"
+      ],
+      "server_budget": {
+        "default_limit": 11,
+        "reason": "Codex context pressure is the tightest; optional direct app connectors should be installed only when the active task needs them."
+      },
+      "unique_notes": [
+        "GitHub appears as the Codex remote server name `github`, not `github-mcp`.",
+        "node_repl and codex-security are Codex-managed and should not be copied into other IDE JSON files.",
+        "Direct Firecrawl routes are not part of the default AgentCore memory rollout surface."
+      ]
+    },
+    "cursor": {
+      "platform": "cursor",
+      "live_config": "C:\\Users\\ynotf\\.cursor\\mcp.json",
+      "renderer": "D:\\github\\agentcore-control-plane\\renderers\\cursor-global.mcp.json",
+      "expected_default_servers": [
+        "arabold-docs",
+        "artiforge",
+        "filesystem",
+        "global-memory-gateway",
+        "obsidian-vault",
+        "playwright",
+        "sequential-thinking",
+        "serena"
+      ],
+      "server_budget": {
+        "default_limit": 8,
+        "reason": "Cursor keeps core repo/code and browser tooling by default; context-fabric, cursor-agent-mcp, github-mcp, and mcp-debugger are task-specific opt-ins."
+      },
+      "unique_notes": [
+        "Keep `context-fabric`, `cursor-agent-mcp`, `github-mcp`, and `mcp-debugger` off the default surface unless the active task needs that route."
+      ]
+    },
+    "openclaw": {
+      "platform": "openclaw",
+      "live_config": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
+      "renderer": "D:\\github\\agentcore-control-plane\\renderers\\openclaw.openclaw.fragment.json",
+      "expected_default_servers": [
+        "arabold-docs",
+        "artiforge",
+        "eye2byte",
+        "filesystem",
+        "global-memory-gateway",
+        "obsidian-vault",
+        "playwright",
+        "sequential-thinking",
+        "serena"
+      ],
+      "server_budget": {
+        "default_limit": 9,
+        "reason": "OpenClaw keeps the same reduced default surface as Cursor plus the approved `eye2byte` exception."
+      },
+      "json_container": "mcp.servers",
+      "unique_notes": [
+        "`eye2byte` is a user-approved OpenClaw-only exception and is part of the default OpenClaw renderer surface.",
+        "Do not remove `eye2byte` as drift unless the user explicitly retires it.",
+        "Keep `context-fabric`, `cursor-agent-mcp`, `github-mcp`, and `mcp-debugger` off the default surface unless the active task needs that route."
+      ]
+    },
+    "open-interpreter": {
+      "platform": "open-interpreter",
+      "live_config": "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json",
+      "renderer": "D:\\github\\agentcore-control-plane\\renderers\\open-interpreter.config.fragment.json",
+      "expected_default_servers": [
+        "arabold-docs",
+        "artiforge",
+        "global-memory-gateway"
+      ],
+      "unique_notes": [
+        "Keep this surface small. Interpreter stores profile and auth state in the same app data tree, so live config edits must preserve unrelated top-level config fields.",
+        "MCP server list lives under mcpServers."
+      ]
+    },
+    "minimax-code": {
+      "platform": "minimax-code",
+      "live_config": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "renderer": "D:\\github\\agentcore-control-plane\\renderers\\minimax.mcp.json",
+      "expected_default_servers": [
+        "arabold-docs",
+        "artiforge",
+        "filesystem",
+        "global-memory-gateway",
+        "obsidian-vault",
+        "playwright",
+        "sequential-thinking"
+      ]
+    },
+    "mavis": {
+      "platform": "minimax-code",
+      "live_config": "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json",
+      "renderer": "D:\\github\\agentcore-control-plane\\renderers\\minimax.mcp.json",
+      "expected_default_servers": [
+        "arabold-docs",
+        "artiforge",
+        "filesystem",
+        "global-memory-gateway",
+        "obsidian-vault",
+        "playwright",
+        "sequential-thinking"
+      ],
+      "unique_notes": [
+        "Mavis uses the MiniMax server surface but has a separate live config path."
+      ]
+    },
+    "antigravity": {
+      "platform": "antigravity",
+      "live_config": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "secondary_live_config": "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json",
+      "renderer": "D:\\github\\agentcore-control-plane\\renderers\\antigravity.mcp_config.json",
+      "expected_default_servers": [
+        "arabold-docs",
+        "artiforge",
+        "filesystem",
+        "global-memory-gateway",
+        "obsidian-vault",
+        "playwright",
+        "sequential-thinking",
+        "serena"
+      ],
+      "server_budget": {
+        "default_limit": 8,
+        "reason": "Antigravity uses the same bounded code-IDE surface as Cursor; GitKraken and other Antigravity-specific servers stay disabled or quarantined unless explicitly approved."
+      },
+      "json_container": "mcpServers",
+      "unique_notes": [
+        "Official Antigravity MCP configuration uses a top-level `mcpServers` object.",
+        "Primary managed config on this PC is `C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json`; the Roaming Antigravity User mcp.json is maintained as a secondary compatibility target.",
+        "Existing GitKraken, context7, cloudrun, firebase, and raw GitHub-token servers are not part of the default AgentCore surface."
+      ]
+    }
+  },
+  "default_exclusions": {
+    "must_not_emit": [
+      "context7",
+      "mem0",
+      "mem0_mcp_server",
+      "openmemory",
+      "composio",
+      "artiforge__codebase_scanner",
+      "thinking-patterns"
+    ],
+    "on_demand_not_default": [
+      "firecrawl-direct"
+    ],
+    "notes": [
+      "context7 is retired in favor of arabold-docs.",
+      "raw Mem0 is replaced by global-memory-gateway for normal memory.",
+      "Composio remains quarantined until a stable MCP/OAuth path is explicitly approved.",
+      "SwarmRecall stays backend/local runtime in v1; direct broad MCP exposure is intentionally absent."
+    ]
+  },
+  "validation": {
+    "source_validator": "D:\\github\\agentcore-control-plane\\validators\\validate-control-plane.ps1 -DryRun",
+    "live_adoption_validator": "D:\\github\\agentcore-control-plane\\ops\\Test-AgentCoreLiveClientAdoption.ps1",
+    "full_gate": "D:\\github\\agentcore-control-plane\\ops\\Test-AgentCoreRuntimeSuite.ps1 -IncludeLiveClientAdoption",
+    "post_config_change_requirement": "Restart affected clients before claiming adoption."
+  }
+}

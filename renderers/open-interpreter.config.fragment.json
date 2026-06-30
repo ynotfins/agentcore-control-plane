@@ -21,7 +21,11 @@
         "-m",
         "autonomy_factory.global_memory_gateway",
         "--user-id",
-        "master_developer_profile"
+        "master_developer_profile",
+        "--project-id",
+        "codex-managed",
+        "--platform",
+        "open-interpreter"
       ],
       "env": {
         "MEM0_DEFAULT_USER_ID": "master_developer_profile",
@@ -36,6 +40,32 @@
         "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS": "1536",
         "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
       }
+    },
+    "swarmrecall": {
+      "type": "stdio",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmRecall.ps1",
+        "-Mode",
+        "Mcp"
+      ]
+    },
+    "swarmvault": {
+      "type": "stdio",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmVault.ps1",
+        "-Mode",
+        "Mcp"
+      ]
     }
   }
 }
