@@ -2,7 +2,9 @@
 
 This repository, `D:\github\agentcore-control-plane`, is the canonical Git source repo for MCP governance, renderer candidates, and repo validators.
 
-The current live deployed ops root remains `D:\MCP-Control-Plane` until a deliberate migration is approved.
+`D:\MCP-Control-Plane` is compatibility/live-ops evidence only — not a design authority.
+
+**Start here (read in this order):** `PROJECT_ANCHOR.md` (immutable project constitution) → `DOC_AUTHORITY.md` (document hierarchy + what to attach to a new chat) → `database-plan.md` (schema/gateway design) → `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md` (latest handoff) → `artifacts/rollout-2026-06-30/ROLLOUT_REPORT.md` (latest rollout report).
 
 ## Operating Rules
 

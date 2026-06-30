@@ -2,6 +2,7 @@
 
 **Document type:** Source-controlled design specification  
 **Status:** Pre-migration — does not authorize live DB mutation  
+**Sequencing:** Post-native-stability and pre-migration. Apply only AFTER native SwarmRecall/SwarmVault are green and AgentCore gateway/projector wrapper verification passes. `memory_catalog` and the `agentcore_*` tools described here do NOT exist yet; they are created only by the gated migration in §13 with operator sign-off.  
 **Authority:** `D:\github\agentcore-control-plane` (canonical source)  
 **Live ops root:** `D:\MCP-Control-Plane` (compatibility/evidence only)  
 **Schema version:** 2026-06-30  

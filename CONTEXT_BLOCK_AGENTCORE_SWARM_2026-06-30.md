@@ -74,14 +74,20 @@ The AgentCore Swarm rollout has moved past P0 incident reconciliation and a safe
   - local-only loopback confirmed
   - 103 memories with gateway-governed projection metadata
   - confirms `gateway -> agent_core -> projector -> SwarmRecall` pipeline
-- `Test-AgentCoreSwarmVault.ps1` → **BLOCKED**
-  - CLI query hung for >8 minutes
-  - only the validator process tree was terminated
-  - AgentCore services remain up
-  - recommended isolation command:
+- `Test-AgentCoreSwarmVault.ps1` → **native-green smokes; query timeout-bounded BLOCKED** (validator rewritten 2026-06-30 to be native-first and timeout-bounded)
+  - native checks PASS: structure/config, `mcp help`, `doctor` (2465 sources, 5 managed sources, 7071 pages, 20545 nodes, retrieval fresh; warning only on 201 candidate pages to review), `retrieval status` (fresh), `graph stats` (rich graph)
+  - `query` → **BLOCKED** via fail-fast 60s timeout (process tree killed; no infinite retry). Overall RESULT BLOCKED (exit 2) by design — native baseline health is proven.
+  - `context build` → SKIP (mutates vault state; only with `-IncludeContextBuild`)
+  - completes in ~67s (previously hung >8 min)
+  - isolate/raise timeout:
     ```powershell
-    pwsh -NoProfile -ExecutionPolicy Bypass -File ops\Invoke-AgentCoreSwarmVault.ps1 -Mode Doctor -Json
+    pwsh -NoProfile -ExecutionPolicy Bypass -File ops\Test-AgentCoreSwarmVault.ps1 -SkipQuery
+    pwsh -NoProfile -ExecutionPolicy Bypass -File ops\Test-AgentCoreSwarmVault.ps1 -QueryTimeoutSeconds 180
     ```
+
+### Native-First Stabilization Policy (active)
+
+SwarmRecall and SwarmVault are stabilized **native-first**: native MCP/API/CLI health is proven before AgentCore governance wrappers are trusted. Current status: **SwarmRecall native-green** (25/25, 53 MCP tools, local-only); **SwarmVault native-green** on doctor/retrieval/graph, with the heavy semantic `query` timeout-bounded/BLOCKED pending tuning (heuristic query over ~7071 pages / ~20545 nodes is slow). AgentCore wrappers (`Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp`, `Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp`), the gateway/projector, and renderers wrap the proven native tools — they do not replace them. `memory_catalog`/`agentcore_*` checks remain SKIP/dry-run until migrations are applied.
 
 ---
 

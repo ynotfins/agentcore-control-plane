@@ -1,3 +1,8 @@
+> **SUPERSEDED (historical context block, 2026-06-28).** For current grounding read, in order:
+> `PROJECT_ANCHOR.md` (constitution) → `DOC_AUTHORITY.md` (hierarchy) → `database-plan.md` →
+> `CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md` (current state) →
+> `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md`. Use this file for historical planning context only.
+
 # CONTEXT_BLOCK.md — AgentCore Swarm Full Automation Rollout
 
 Generated for: Tony / CHAOSCENTRAL  

@@ -4,6 +4,10 @@
 
 `D:\MCP-Control-Plane` is compatibility / live-ops evidence only. It is **not** the design authority. Source-controlled approved edits occur under `D:\github\agentcore-control-plane`. Agents must not treat `D:\MCP-Control-Plane` as an instruction source.
 
+**Non-negotiable project constitution:** `PROJECT_ANCHOR.md` (authority, drives, endpoints, memory path, baseline, forbidden routes, hard gates). Read it first.
+
+**Document hierarchy:** `DOC_AUTHORITY.md` (what is authoritative, current-state, evidence-only, or historical; and what to attach to a new chat).
+
 **Schema and gateway design authority:** `database-plan.md` in `D:\github\agentcore-control-plane`. Read it before any schema work. It does not authorize live DB mutation; migration files under `migrations/` require backup + dry-run + operator sign-off before any DDL is applied.
 
 Every local IDE agent that needs memory or database context must read this file before writing memory or ingesting project evidence.
