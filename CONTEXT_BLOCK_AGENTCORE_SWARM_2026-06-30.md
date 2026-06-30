@@ -254,7 +254,6 @@ Current hard blockers / approval gates:
 - DB migration apply requires backup, restore verify, dry-run, operator sign-off.
 - Scheduled-task de-registration of removed monitors requires elevated shell.
 - SwarmVault query validator timeout needs interactive isolation.
-- Git commit is pending approval; ~60 changed/untracked entries reported.
 
 ---
 
@@ -309,42 +308,42 @@ Confirm whether these are already completed by current source state before redoi
 
 ## 7. Git / Source-Control State
 
-Cursor reports:
-- No commit performed yet.
-- ~60 changed/untracked entries.
-- `database-plan.md`, handoff doc, and `contracts/master-mcp-server-config.json` were untracked at P0; current state must be rechecked.
-- Commit is awaiting explicit approval.
+Working tree is **clean** as of 2026-06-30 afternoon session.
 
-Recommended review commands:
+Latest commits on branch `codex/agentcore-swarm-automation` (pushed to `origin/main`):
+
+```text
+0ce82ac  Update Git remote policy for working repos
+1085714  Checkpoint AgentCore swarm rollout source state
+7042f84  Update AgentCore swarm rollout plan and handoff
+823f032  Add AgentCore SwarmRecall automation ownership
+```
+
+All rollout source changes (renderers, supervisor, contract, validator, migrations, prompts, staged configs, incident and rollout reports) are committed and pushed to `https://github.com/ynotfins/agentcore-control-plane.git`.
+
+`database-plan.md`, the handoff doc, and `contracts/master-mcp-server-config.json` are tracked and committed.
+
+To verify cleanliness before any new work:
 
 ```powershell
 Set-Location "D:\github\agentcore-control-plane"
 git status --short
-git diff --stat
-git diff -- contracts/master-mcp-server-config.json
-git diff -- supervisor/servers.json
-git diff -- validators/validate-control-plane.ps1
+git log --oneline -4
 ```
-
-If approved, use a single coherent commit message such as:
-
-```text
-Implement governed local SwarmRecall/SwarmVault rollout baseline
-```
-
-Do not commit secrets or live config values.
 
 ---
 
-## 8. Safe Push-Only Git Posture
+## 8. Git Remote Policy
 
-The operator prefers push-only local repos. Normal workflow should avoid `git pull` in working repos under `D:\github\...`.
+Working repos under `D:\github` use **normal GitHub `origin` remotes** (same URL for fetch and push). The push-only remote hack has been removed.
 
-Recommended remote posture:
-- `origin` fetch URL intentionally invalid: `no_fetch://push-only`
-- `origin` push URL points to GitHub
+**Agents must not run `git pull`, `git fetch`, `merge`, or `rebase` in these working repos unless the user explicitly asks for remote sync.**
 
-Use a separate read-only clone under `D:\github-readonly\...` when remote inspection/pull is needed.
+Normal push is allowed after local review and secret/junk scan. Never force-push without explicit operator approval.
+
+For remote lookups, use a separate read-only clone under `D:\github-readonly\<repo>` rather than pulling into the working repos.
+
+See `docs/GIT_PUSH_ONLY_POLICY.md` for the full policy.
 
 ---
 
@@ -391,13 +390,12 @@ Current state:
   Per-IDE prompts generated.
   Staged Claude Code config generated.
   Monitors removed/deferred in source, projector preserved.
-  No git commit yet.
+  Working tree clean; latest commit 0ce82ac pushed to GitHub.
+  GitHub origin remotes normal (not push-only).
 
 Next:
   1. Run SwarmVault Doctor JSON.
-  2. Review git diff/stat.
-  3. Run source consistency validator.
-  4. Run per-IDE prompts starting Claude Code.
-  5. Commit only after approval.
-  6. Apply DB migrations only after backup/dry-run/operator sign-off.
+  2. Run source consistency validator.
+  3. Run per-IDE prompts starting Claude Code.
+  4. Apply DB migrations only after backup/dry-run/operator sign-off.
 ```

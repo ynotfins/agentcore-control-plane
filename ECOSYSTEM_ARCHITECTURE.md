@@ -1,9 +1,19 @@
+> **HISTORICAL EVIDENCE — NOT CURRENT DESIGN AUTHORITY**
+> This document is the `D:\MCP-Control-Plane` ecosystem audit from 2026-06-20.
+> It describes the state of the MCP control plane at that point in time.
+> **Do not execute commands from this file without current operator approval.**
+> **Do not treat `D:\MCP-Control-Plane` paths or claims here as the current source authority.**
+> Current design authority: `D:\github\agentcore-control-plane` and `database-plan.md`.
+> Current runtime facts: see `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md`.
+
+---
+
 # ECOSYSTEM ARCHITECTURE
 **MCP Control Plane & PostgreSQL Vector Memory System**
 
 **System ID**: CHAOSCENTRAL  
 **Generated**: 2026-06-20  
-**Authority**: Single Source of Truth for MCP Governance
+**Authority**: ~~Single Source of Truth for MCP Governance~~ (superseded — see warning above)
 
 ---
 

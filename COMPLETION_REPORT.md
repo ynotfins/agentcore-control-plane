@@ -1,3 +1,11 @@
+> **HISTORICAL `D:\MCP-Control-Plane` CLEANUP EVIDENCE — NOT CURRENT INSTRUCTIONS**
+> This document records the completion of the `D:\MCP-Control-Plane` infrastructure audit from 2026-06-20.
+> **Do not execute commands from this file without current operator approval.**
+> `D:\MCP-Control-Plane` is compatibility/live-ops evidence only — not the source authority.
+> Current source authority: `D:\github\agentcore-control-plane`.
+
+---
+
 # MCP CONTROL PLANE INFRASTRUCTURE AUDIT - COMPLETION REPORT
 
 **Date**: 2026-06-20 21:31 EDT  

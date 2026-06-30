@@ -2,6 +2,8 @@
 
 Historical baseline report: this document captures the initial repo/bootstrap validation pass from 2026-06-24. Current source-of-truth status should be read from the newer control-plane docs, current validators, and current handoff documents.
 
+**Superseded by:** `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md`, `artifacts/rollout-2026-06-30/ROLLOUT_REPORT.md`, `database-plan.md`, and the current validators under `validators/` and `ops/Test-AgentCore*.ps1`. Do not use pass/fail status from this file as a current acceptance gate.
+
 Follow-up hardening after this historical baseline added:
 
 - local-only SwarmVault runtime initialization under `F:\AgentCore\agentmemory\swarmvault`
