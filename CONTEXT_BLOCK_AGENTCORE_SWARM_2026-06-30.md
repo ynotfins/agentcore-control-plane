@@ -74,16 +74,12 @@ The AgentCore Swarm rollout has moved past P0 incident reconciliation and a safe
   - local-only loopback confirmed
   - 103 memories with gateway-governed projection metadata
   - confirms `gateway -> agent_core -> projector -> SwarmRecall` pipeline
-- `Test-AgentCoreSwarmVault.ps1` → **native-green smokes; query timeout-bounded BLOCKED** (validator rewritten 2026-06-30 to be native-first and timeout-bounded)
-  - native checks PASS: structure/config, `mcp help`, `doctor` (2465 sources, 5 managed sources, 7071 pages, 20545 nodes, retrieval fresh; warning only on 201 candidate pages to review), `retrieval status` (fresh), `graph stats` (rich graph)
-  - `query` → **BLOCKED** via fail-fast 60s timeout (process tree killed; no infinite retry). Overall RESULT BLOCKED (exit 2) by design — native baseline health is proven.
+- `Test-AgentCoreSwarmVault.ps1` → **FULL PASS** (2026-07-01; all checks including query)
+  - native checks PASS: structure/config, `mcp help`, `doctor` (2465 sources, 5 managed sources, 7053 pages, 20545 nodes, retrieval fresh; warning only on 201 candidate pages to review), `retrieval status` (fresh), `graph stats` (rich graph)
+  - `query` → **PASS** — completed in ~10s with `--no-save` flag and shorter query string. Previous BLOCKED at 60s was caused by wiki/outputs write-back overhead, not query latency.
   - `context build` → SKIP (mutates vault state; only with `-IncludeContextBuild`)
-  - completes in ~67s (previously hung >8 min)
-  - isolate/raise timeout:
-    ```powershell
-    pwsh -NoProfile -ExecutionPolicy Bypass -File ops\Test-AgentCoreSwarmVault.ps1 -SkipQuery
-    pwsh -NoProfile -ExecutionPolicy Bypass -File ops\Test-AgentCoreSwarmVault.ps1 -QueryTimeoutSeconds 180
-    ```
+  - validator defaults: `QueryTimeoutSeconds=180`, `--no-save`, short query string
+  - fast native-only pass: `pwsh ... Test-AgentCoreSwarmVault.ps1 -SkipQuery`
 
 ### Cutover Update (2026-06-30 evening)
 
@@ -99,7 +95,7 @@ The AgentCore Swarm rollout has moved past P0 incident reconciliation and a safe
 
 ### Native-First Stabilization Policy (active)
 
-SwarmRecall and SwarmVault are stabilized **native-first**: native MCP/API/CLI health is proven before AgentCore governance wrappers are trusted. Current status: **SwarmRecall native-green** (25/25, 53 MCP tools, local-only); **SwarmVault native-green** on doctor/retrieval/graph, with the heavy semantic `query` timeout-bounded/BLOCKED pending tuning (heuristic query over ~7071 pages / ~20545 nodes is slow). AgentCore wrappers (`Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp`, `Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp`), the gateway/projector, and renderers wrap the proven native tools — they do not replace them. `memory_catalog`/`agentcore_*` checks remain SKIP/dry-run until migrations are applied.
+SwarmRecall and SwarmVault are stabilized **native-first**: native MCP/API/CLI health is proven before AgentCore governance wrappers are trusted. Current status: **SwarmRecall native-green** (25/25, 53 MCP tools, local-only); **SwarmVault fully native-green** (FULL PASS including query — 2026-07-01; `--no-save` reduced completion from >60s blocked to ~10s). AgentCore wrappers (`Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp`, `Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp`), the gateway/projector, and renderers wrap the proven native tools — they do not replace them. `memory_catalog`/`agentcore_*` checks remain SKIP/dry-run until migrations are applied.
 
 ---
 
