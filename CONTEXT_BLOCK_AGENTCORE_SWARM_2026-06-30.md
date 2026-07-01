@@ -85,6 +85,16 @@ The AgentCore Swarm rollout has moved past P0 incident reconciliation and a safe
     pwsh -NoProfile -ExecutionPolicy Bypass -File ops\Test-AgentCoreSwarmVault.ps1 -QueryTimeoutSeconds 180
     ```
 
+### Cutover Update (2026-06-30 evening)
+
+- **Controlling setup baseline:** `MASTER_CONFIG_AND_PROMPT.md` (with verified canonical launchers in §4a).
+- **Env:** `SWARMRECALL_API_KEY` (User) aliased from canonical `AGENT_CORE_SWARMRECALL_API_KEY` (len 48, value never printed); `SWARMRECALL_API_URL=http://127.0.0.1:3300`; SwarmRecall health `ok`.
+- **Gateway launcher:** created source-controlled `ops/Invoke-AgentCoreGlobalMemoryGateway.ps1 -Mode Mcp -Platform <ide>` (uniform pwsh wrapper; sets cwd + inherits Windows env; replaces the previously-missing reference).
+- **Docker legacy RETIRED:** `local-agent-stack-n8n-1` + `local-agent-stack-postgres-1` containers and their volumes removed after verified tar backup to `G:\DockerLegacyRetire-<stamp>\` (rollback manifest included). n8n / n8n-Postgres / Qdrant are NOT canonical AgentCore. `agentops-qdrant` not present. Native `agent_core` Postgres `:55432` intact.
+- **E: archive USB is UNMOUNTED** — `E:\AgentCoreArchive` backup/WAL targets will fail until reconnected; G: is the available backup tier meanwhile. (Action: reconnect E:, or repoint backup/WAL to an available tier.)
+- **Claude Code:** configs (`.claude.json`, `.claude\config.json`) now carry the full 11-server baseline (added `cursor-agent-mcp`/`context-fabric`/`mcp-debugger`); `context7`/`hostinger` absent. Restart Claude Code to load. Other IDEs (Cursor/Codex/OpenClaw/MiniMax/Antigravity) updated by a separate operator pass; Codex/Antigravity are operator-managed.
+- **New global rule:** every new project/repo must have `AGENTS.md` + `CLAUDE.md` created (from the Root Agent Rules Template) and checked/updated regularly.
+
 ### Native-First Stabilization Policy (active)
 
 SwarmRecall and SwarmVault are stabilized **native-first**: native MCP/API/CLI health is proven before AgentCore governance wrappers are trusted. Current status: **SwarmRecall native-green** (25/25, 53 MCP tools, local-only); **SwarmVault native-green** on doctor/retrieval/graph, with the heavy semantic `query` timeout-bounded/BLOCKED pending tuning (heuristic query over ~7071 pages / ~20545 nodes is slow). AgentCore wrappers (`Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp`, `Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp`), the gateway/projector, and renderers wrap the proven native tools — they do not replace them. `memory_catalog`/`agentcore_*` checks remain SKIP/dry-run until migrations are applied.

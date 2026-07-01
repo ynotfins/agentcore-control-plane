@@ -185,6 +185,7 @@ $secretPatterns = @(
 $scanFiles = Get-ChildItem -LiteralPath $rootPath -Recurse -File |
   Where-Object {
     $_.FullName -notmatch "\\artifacts\\backups\\" -and
+    $_.FullName -notmatch "\\backups\\" -and
     $_.FullName -notmatch "\\__pycache__\\" -and
     $_.Extension -notin @(".pyc", ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".zip")
   }
@@ -309,7 +310,7 @@ catch {
 }
 
 $expectedRendererServers = [ordered]@{
-  "renderers\cursor-global.mcp.json" = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\cursor-global.mcp.json" = @("arabold-docs", "artiforge", "context-fabric", "cursor-agent-mcp", "filesystem", "global-memory-gateway", "mcp-debugger", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
   "renderers\openclaw.openclaw.fragment.json" = @("arabold-docs", "artiforge", "eye2byte", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
   "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "global-memory-gateway", "swarmrecall", "swarmvault")
   "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault")

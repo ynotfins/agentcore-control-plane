@@ -17,6 +17,7 @@ This repository, `D:\github\agentcore-control-plane`, is the canonical Git sourc
 - Use deterministic validators before reporting completion.
 - AgentCore does not use `.env` files for secrets or local runtime configuration. Use Windows environment variables only.
 - Agents must read `AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` before persistent memory writes or database ingestion.
+- On every new project/repo, the agent MUST create `AGENTS.md` and `CLAUDE.md` at the project root if missing (seed from the Root Agent Rules Template in `MASTER_CONFIG_AND_PROMPT.md`), and must read/verify both at the start of every session and update them when project rules or wiring change.
 
 ## Tool Routing
 

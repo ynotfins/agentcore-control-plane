@@ -13,28 +13,32 @@
 
 ## 2. Drive Roles
 
-| Drive | Role |
-|-------|------|
-| `C:` | OS, apps, user profile, live IDE configs (app-owned; not directly edited without approval) |
-| `D:` | Source repos, projects, worktrees, build evidence (code/source tier) |
-| `F:` | Hot local memory / database / RAG / search runtime (access via service/API/CLI wrappers only) |
-| `E:` | Archive / cold storage / backups / exports / emergency spool only (no primary SQL) |
-| `G:` | Backup target only |
+
+| Drive | Role                                                                                          |
+| ----- | --------------------------------------------------------------------------------------------- |
+| `C:`  | OS, apps, user profile, live IDE configs (app-owned; not directly edited without approval)    |
+| `D:`  | Source repos, projects, worktrees, build evidence (code/source tier)                          |
+| `F:`  | Hot local memory / database / RAG / search runtime (access via service/API/CLI wrappers only) |
+| `E:`  | Archive / cold storage / backups / exports / emergency spool only (no primary SQL)            |
+| `G:`  | Backup target only                                                                            |
+
 
 ## 3. Runtime Endpoints
 
-| Component | Endpoint / Path |
-|-----------|-----------------|
-| PostgreSQL cluster | `127.0.0.1:55432` |
-| `agent_core` DB | governed canonical AgentCore DB (same cluster) |
-| `swarmrecall` DB | native SwarmRecall app DB — **separate from `agent_core`; never merged** (same cluster) |
-| SwarmRecall API | `http://127.0.0.1:3300` |
-| SwarmRecall health | `http://127.0.0.1:3300/api/v1/health` |
-| Meilisearch | `http://127.0.0.1:7700` |
-| SwarmVault root | `F:\AgentCore\agentmemory\swarmvault` (file-based; not Postgres) |
-| Projection state | `F:\AgentCore\agentmemory\projection-state` |
-| Obsidian REST | `https://127.0.0.1:27124` |
-| OpenClaw gateway | `http://127.0.0.1:18789` |
+
+| Component          | Endpoint / Path                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| PostgreSQL cluster | `127.0.0.1:55432`                                                                       |
+| `agent_core` DB    | governed canonical AgentCore DB (same cluster)                                          |
+| `swarmrecall` DB   | native SwarmRecall app DB — **separate from `agent_core`; never merged** (same cluster) |
+| SwarmRecall API    | `http://127.0.0.1:3300`                                                                 |
+| SwarmRecall health | `http://127.0.0.1:3300/api/v1/health`                                                   |
+| Meilisearch        | `http://127.0.0.1:7700`                                                                 |
+| SwarmVault root    | `F:\AgentCore\agentmemory\swarmvault` (file-based; not Postgres)                        |
+| Projection state   | `F:\AgentCore\agentmemory\projection-state`                                             |
+| Obsidian REST      | `https://127.0.0.1:27124`                                                               |
+| OpenClaw gateway   | `http://127.0.0.1:18789`                                                                |
+
 
 **Forbidden port:** `:65432` has no active runtime route. Allowed only inside archived/historical evidence. Use `:55432`.
 
@@ -71,7 +75,7 @@ Normal agents must not: raw-SQL into `agent_core` or `swarmrecall`; dual-write i
 
 ## 6a. Native-First Principle
 
-SwarmRecall and SwarmVault must work **natively first**. Prove native behavior (native MCP/API health, tool discovery, `doctor`/`retrieval status`/`graph stats`) before adding AgentCore governance complexity. AgentCore wrappers, projectors, renderers, validators, and `memory_catalog` integration may **wrap** the native tools only after native behavior is proven — they must not replace or bypass native best practice. Validators must test native health first, then wrapper integration, and treat `memory_catalog`/`agentcore_*` checks as SKIP/dry-run until migrations are applied.
+SwarmRecall and SwarmVault must work **natively first**. Prove native behavior (native MCP/API health, tool discovery, `doctor`/`retrieval status`/`graph stats`) before adding AgentCore governance complexity. AgentCore wrappers, projectors, renderers, validators, and `memory_catalog` integration may **wrap** the native tools only after native behavior is proven — they must not replace or bypass native best practice. Validators must test native health first, then wrapper integration, and treat `memory_catalog`/`agentcore_`* checks as SKIP/dry-run until migrations are applied.
 
 ## 7. Swarm Ecosystem Scope
 

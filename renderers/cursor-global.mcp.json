@@ -25,8 +25,7 @@
         "D:\\cursor_setup",
         "D:\\openclaw",
         "D:\\Obsidian",
-        "F:\\AgentCore",
-        "E:\\AgentCoreArchive"
+        "F:\\AgentCore"
       ]
     },
     "global-memory-gateway": {
@@ -102,6 +101,33 @@
         "--project-from-cwd",
         "--transport",
         "stdio"
+      ]
+    },
+    "context-fabric": {
+      "type": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+      ]
+    },
+    "cursor-agent-mcp": {
+      "type": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "cursor-agent-mcp@latest"
+      ],
+      "env": {
+        "CURSOR_API_KEY": "${env:CURSOR_API_KEY}",
+        "CURSOR_API_URL": "https://api.cursor.com"
+      }
+    },
+    "mcp-debugger": {
+      "type": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@debugmcp/mcp-debugger@latest"
       ]
     },
     "swarmrecall": {

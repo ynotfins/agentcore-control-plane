@@ -46,8 +46,10 @@ function Test-ClientConfig {
 
   $config = Read-JsonFile -Path $Path
   $servers = Get-ServerNames -Config $config
-  Add-Result $results "$Name required servers present" (($RequiredServers | Where-Object { $servers -notcontains $_ }).Count -eq 0) ($servers -join ", ")
-  Add-Result $results "$Name forbidden servers absent" (($ForbiddenServers | Where-Object { $servers -contains $_ }).Count -eq 0) ($servers -join ", ")
+  $missingRequired = @($RequiredServers | Where-Object { $servers -notcontains $_ })
+  $presentForbidden = @($ForbiddenServers | Where-Object { $servers -contains $_ })
+  Add-Result $results "$Name required servers present" ($missingRequired.Count -eq 0) ("missing=" + (($missingRequired -join ", ") -replace "^$", "none") + "; present=" + ($servers -join ", "))
+  Add-Result $results "$Name forbidden servers absent" ($presentForbidden.Count -eq 0) ("present=" + (($presentForbidden -join ", ") -replace "^$", "none"))
   if ($ExpectedServers) {
     $missing = @($ExpectedServers | Where-Object { $servers -notcontains $_ })
     $extra = @($servers | Where-Object { $ExpectedServers -notcontains $_ })
@@ -80,16 +82,16 @@ function Get-ClientStartState {
 }
 
 $requiredCommon = @("global-memory-gateway", "artiforge", "sequential-thinking")
-$forbiddenCommon = @("context7", "mem0", "composio", "swarmrecall")
+$forbiddenCommon = @("context7", "mem0", "mem0_mcp_server", "openmemory", "composio", "hostinger", "Hostinger", "artiforge__codebase_scanner")
 $results = [System.Collections.Generic.List[object]]::new()
 
 $jsonClients = @(
-  @{ name = "Cursor"; path = "C:\Users\ynotf\.cursor\mcp.json"; process = "Cursor"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena") },
-  @{ name = "Open Interpreter"; path = "C:\Users\ynotf\AppData\Roaming\interpreter\config.json"; process = "Interpreter|Open Interpreter"; required = @("global-memory-gateway"); expected = @("arabold-docs", "artiforge", "global-memory-gateway") },
-  @{ name = "OpenClaw"; path = "C:\Users\ynotf\.openclaw\openclaw.json"; process = "ClawX|OpenClaw"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena"); expected = @("arabold-docs", "artiforge", "eye2byte", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena") },
-  @{ name = "MiniMax"; path = "C:\Users\ynotf\.minimax\mcp\mcp.json"; process = "MiniMax"; required = @("global-memory-gateway", "artiforge", "sequential-thinking"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking") },
-  @{ name = "Mavis"; path = "C:\Users\ynotf\.mavis\mcp\mcp.json"; process = "Mavis"; required = @("global-memory-gateway", "artiforge", "sequential-thinking"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking") },
-  @{ name = "Antigravity"; path = "C:\Users\ynotf\.gemini\config\mcp_config.json"; process = "Antigravity"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena") },
+  @{ name = "Cursor"; path = "C:\Users\ynotf\.cursor\mcp.json"; process = "Cursor"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault") },
+  @{ name = "Open Interpreter"; path = "C:\Users\ynotf\AppData\Roaming\interpreter\config.json"; process = "Interpreter|Open Interpreter"; required = @("global-memory-gateway", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "global-memory-gateway", "swarmrecall", "swarmvault") },
+  @{ name = "OpenClaw"; path = "C:\Users\ynotf\.openclaw\openclaw.json"; process = "ClawX|OpenClaw"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "eye2byte", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault") },
+  @{ name = "MiniMax"; path = "C:\Users\ynotf\.minimax\mcp\mcp.json"; process = "MiniMax"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault") },
+  @{ name = "Mavis"; path = "C:\Users\ynotf\.mavis\mcp\mcp.json"; process = "Mavis"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault") },
+  @{ name = "Antigravity"; path = "C:\Users\ynotf\.gemini\config\mcp_config.json"; process = "Antigravity"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault") },
   @{ name = "Antigravity Roaming"; path = "C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json"; process = "Antigravity"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena") }
 )
 

@@ -32,6 +32,7 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 | File | Purpose |
 |------|---------|
 | `PROJECT_ANCHOR.md` | Immutable project constitution: authority, drives, endpoints, memory path, baseline, forbidden routes, hard gates |
+| `MASTER_CONFIG_AND_PROMPT.md` | Controlling IDE MCP/rules setup baseline + verified canonical launchers (§4a) + per-IDE prompts |
 | `database-plan.md` | Finalized schema/gateway design spec (does not authorize live DDL) |
 | `SECURITY.md` | Secret and security policy |
 | `AGENTS.md` | Source-controlled agent operating contract (points to the anchors) |
