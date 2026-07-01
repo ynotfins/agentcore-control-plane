@@ -91,8 +91,10 @@ The AgentCore Swarm rollout has moved past P0 incident reconciliation and a safe
 - **Env:** `SWARMRECALL_API_KEY` (User) aliased from canonical `AGENT_CORE_SWARMRECALL_API_KEY` (len 48, value never printed); `SWARMRECALL_API_URL=http://127.0.0.1:3300`; SwarmRecall health `ok`.
 - **Gateway launcher:** created source-controlled `ops/Invoke-AgentCoreGlobalMemoryGateway.ps1 -Mode Mcp -Platform <ide>` (uniform pwsh wrapper; sets cwd + inherits Windows env; replaces the previously-missing reference).
 - **Docker legacy RETIRED:** `local-agent-stack-n8n-1` + `local-agent-stack-postgres-1` containers and their volumes removed after verified tar backup to `G:\DockerLegacyRetire-<stamp>\` (rollback manifest included). n8n / n8n-Postgres / Qdrant are NOT canonical AgentCore. `agentops-qdrant` not present. Native `agent_core` Postgres `:55432` intact.
-- **E: archive USB is UNMOUNTED** — `E:\AgentCoreArchive` backup/WAL targets will fail until reconnected; G: is the available backup tier meanwhile. (Action: reconnect E:, or repoint backup/WAL to an available tier.)
+- **E: archive USB is UNMOUNTED** — NightlyBackup FAILING (last result=1, next run 03:00 AM nightly). WAL ready-to-archive count=0 (no immediate disk risk). Source-controlled scripts (`ops/Backup-AgentCorePostgres.ps1`, `ops/Archive-AgentCoreWal.ps1`) updated to auto-detect E: and fall back to `G:\AgentCoreArchive\...` when E: unmounted. **Operator action required to update scheduled task paths.** See `artifacts/task-runs/backup-wal-e-drive-blocker-2026-07-01.md` for exact remediation commands.
+- **Secrets backup relocated:** `backups/mcp-config-baseline-2026-07-01/` (contained live IDE configs with `CONTEXT7_API_KEY` literal) moved to `D:\Autonomy\secrets-backups\mcp-config-baseline-2026-07-01\`. `backups/` dir is gitignored; folder was never tracked. **CONTEXT7_API_KEY rotation still required at provider** (literal present in `~/.claude.json`; Claude Code cleanup prompt is the correct mechanism).
 - **Claude Code:** configs (`.claude.json`, `.claude\config.json`) now carry the full 11-server baseline (added `cursor-agent-mcp`/`context-fabric`/`mcp-debugger`); `context7`/`hostinger` absent. Restart Claude Code to load. Other IDEs (Cursor/Codex/OpenClaw/MiniMax/Antigravity) updated by a separate operator pass; Codex/Antigravity are operator-managed.
+- **SwarmVault query tuned:** default `QueryTimeoutSeconds` raised 60→180, query uses `--no-save` (prevents wiki output write; faster) and shortened query string. BLOCKED behavior preserved (never hangs; process tree killed on timeout). Run `Test-AgentCoreSwarmVault.ps1 -QueryTimeoutSeconds 300` to further probe query completion.
 - **New global rule:** every new project/repo must have `AGENTS.md` + `CLAUDE.md` created (from the Root Agent Rules Template) and checked/updated regularly.
 
 ### Native-First Stabilization Policy (active)
@@ -275,15 +277,17 @@ Current hard blockers / approval gates:
 
 ## 6. Known Remaining Work
 
-### Immediate Next Step: SwarmVault Query Hang Isolation
+### SwarmVault Query Timeout (tuned 2026-07-01)
 
-Run from `D:\github\agentcore-control-plane`:
+Default `QueryTimeoutSeconds` raised from 60 → 180. Query now uses `--no-save` and a shorter query string.
+To probe whether the query completes in the heuristic provider context:
 
 ```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File ops\Invoke-AgentCoreSwarmVault.ps1 -Mode Doctor -Json
+pwsh -NoProfile -ExecutionPolicy Bypass -File ops\Test-AgentCoreSwarmVault.ps1 -QueryTimeoutSeconds 300
 ```
 
-Then decide whether to adjust the SwarmVault validator query mode, timeout, query scope, index state, or source registration before relying on full `Test-AgentCoreSwarmVault.ps1`.
+If still BLOCKED at 300s, the heuristic BM25 provider is too slow for this corpus (7071 pages, 20545 nodes).
+Further tuning options: switch retrieval provider to vector or hybrid, or reduce source corpus via `swarmvault source list` and deregister low-value sources.
 
 ### Re-confirm Source Consistency
 
@@ -410,8 +414,11 @@ Current state:
   GitHub origin remotes normal (not push-only).
 
 Next:
-  1. Run SwarmVault Doctor JSON.
-  2. Run source consistency validator.
-  3. Run per-IDE prompts starting Claude Code.
-  4. Apply DB migrations only after backup/dry-run/operator sign-off.
+  1. OPERATOR: Fix NightlyBackup task path + reconnect E: OR update to source-controlled script
+     (see artifacts/task-runs/backup-wal-e-drive-blocker-2026-07-01.md).
+  2. OPERATOR: Update WAL archive_command in postgresql.conf to D:/github/... path; reload Postgres.
+  3. OPERATOR: CONTEXT7_API_KEY rotation at provider; Claude Code cleanup prompt.
+  4. Probe SwarmVault query: Test-AgentCoreSwarmVault.ps1 -QueryTimeoutSeconds 300.
+  5. Run per-IDE prompts starting Claude Code.
+  6. Apply DB migrations only after backup/dry-run/operator sign-off.
 ```

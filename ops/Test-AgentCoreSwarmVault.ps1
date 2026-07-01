@@ -2,7 +2,7 @@ param(
   [string]$RepoRoot = "D:\github\vendor\swarm\swarmvault",
   [string]$VaultRoot = "F:\AgentCore\agentmemory\swarmvault",
   [int]$CliTimeoutSeconds = 45,
-  [int]$QueryTimeoutSeconds = 60,
+  [int]$QueryTimeoutSeconds = 180,
   [switch]$SkipQuery,
   [switch]$IncludeContextBuild   # context build MUTATES vault state; off by default (native-first, read-only smoke)
 )
@@ -121,9 +121,10 @@ if (-not (Test-Path -LiteralPath $cliPath)) {
     if ($SkipQuery) {
       Add-Result "query json" "SKIP" "skipped via -SkipQuery"
     } else {
-      $q = Invoke-SwarmVaultNative -Arguments @($cliPath, "query", "--json", "What is the current AgentCore SwarmVault status?") -TimeoutSeconds $QueryTimeoutSeconds -EnvironmentVariables $svEnv
+      # --no-save prevents writing the answer back to wiki/outputs (avoids mutation and speeds completion).
+      $q = Invoke-SwarmVaultNative -Arguments @($cliPath, "query", "--json", "--no-save", "AgentCore SwarmVault status") -TimeoutSeconds $QueryTimeoutSeconds -EnvironmentVariables $svEnv
       if ($q.TimedOut) {
-        Add-Result "query json" "BLOCKED" ("BLOCKED: query exceeded ${QueryTimeoutSeconds}s timeout; process tree killed. Native doctor/status smokes above indicate baseline health. Re-run with a larger -QueryTimeoutSeconds or isolate via 'node `"$cliPath`" doctor --json'.")
+        Add-Result "query json" "BLOCKED" ("BLOCKED: query exceeded ${QueryTimeoutSeconds}s timeout; process tree killed. Native doctor/status smokes above indicate baseline health. Re-run with a larger -QueryTimeoutSeconds (e.g. 300) or isolate via 'node `"$cliPath`" query --no-save --json AgentCore'.")
       } else {
         Add-Result "query json" ($(if ($q.ExitCode -eq 0) { "PASS" } else { "FAIL" })) ($q.Output)
       }

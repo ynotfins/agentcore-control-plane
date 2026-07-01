@@ -1,11 +1,23 @@
 param(
   [string]$EngineRoot = "F:\AgentCore\postgres_runtime_engine\pgsql",
-  [string]$BackupRoot = "E:\AgentCoreArchive\backups_cold\pgvector\base",
+  [string]$BackupRoot = "",   # auto-resolved below: E: preferred, G: fallback
   [string]$HostName = "127.0.0.1",
   [int]$Port = 55432,
   [string]$Database = "agent_core",
   [string]$User = "agent_admin"
 )
+
+# Resolve backup root: E:\AgentCoreArchive preferred (archive USB); G:\AgentCoreArchive fallback.
+# E: is the designated archive/WAL drive (PROJECT_ANCHOR §2). When E: is unmounted, write to G:
+# (backup-target drive) so nightly backups do not fail silently. Reconnect E: to restore canonical path.
+if ([string]::IsNullOrEmpty($BackupRoot)) {
+  if (Test-Path "E:\") {
+    $BackupRoot = "E:\AgentCoreArchive\backups_cold\pgvector\base"
+  } else {
+    Write-Warning "E: (archive USB) is not mounted. Falling back to G:\AgentCoreArchive\backups_cold\pgvector\base. Reconnect E: to restore canonical backup path."
+    $BackupRoot = "G:\AgentCoreArchive\backups_cold\pgvector\base"
+  }
+}
 
 $ErrorActionPreference = "Stop"
 
