@@ -131,9 +131,13 @@ SwarmRecall automatically using the SwarmVault DB
 
 ## 12. Git Policy
 
-- Working repos under `D:\github` use normal GitHub `origin` remotes (same URL for fetch and push).
-- Agents must **not** run `git pull`, `git fetch`, `merge`, or `rebase` in these working repos unless the user explicitly asks for remote sync.
-- Normal push is allowed after local review and a secret/junk scan. Never force-push without explicit operator approval.
+- Working repos under `D:\github` use normal GitHub `origin` remotes (same URL for fetch and push). GitHub is the current remote mirror and automation trigger target.
+- **Push after every completed task.** A completed task means all requested changes are done and validated, or the task is blocked and a blocker report with exact next commands was written to source control. Push the source-controlled delta immediately after passing validation and a secret/junk scan.
+- Do not pull, fetch, merge, rebase, or remote-update unless the operator explicitly asks.
+- Never force-push without explicit operator approval.
+- Never stage live secret-bearing configs, rendered PAT URLs, DB dumps, caches, node_modules, runtime artifacts, Docker inspect output with secrets, `.env` files, or `F:\AgentCore` runtime state.
+- If a task changes only live runtime state or live IDE configs, write an evidence report to `artifacts/task-runs/` or `artifacts/rollout-*/` and commit/push that instead.
+- If there are no source-controlled changes and no runtime/live-config changes: report "no source-controlled delta; no push required" — do not create an empty commit.
 - For remote lookups, use a separate read-only clone under `D:\github-readonly\<repo>`.
 
 ## 13. Hard Stop Gates (require explicit operator approval)

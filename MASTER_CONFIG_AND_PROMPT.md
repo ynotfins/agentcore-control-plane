@@ -548,10 +548,13 @@ Obsidian policy:
 - Prefer storing machine-retrievable memory through global-memory-gateway/SwarmRecall/SwarmVault.
 
 Git policy:
-- Normal GitHub origins are allowed.
-- Do not pull/fetch/merge/rebase unless the user explicitly asks.
-- Commit/push only after validation and secret/junk scan.
-- Never commit live secret-bearing configs, rendered PAT URLs, DB dumps, caches, node_modules, or runtime artifacts.
+- Normal GitHub origins are allowed. GitHub is the current remote mirror and automation trigger target.
+- Push after every completed task. Run the narrowest relevant validation, run a secret/junk scan, stage only intended source-controlled files, commit with a concise task-specific message, then push origin main.
+- Do not pull, fetch, merge, rebase, or remote-update unless the operator explicitly asks.
+- Never force-push without explicit operator approval.
+- Never commit live secret-bearing configs, rendered PAT URLs, DB dumps, caches, node_modules, Docker inspect output with secrets, .env files, F:\AgentCore runtime state, or runtime artifacts.
+- If a task changes only live runtime state or live IDE configs (no source-controlled files), write an evidence report to artifacts/task-runs/ or artifacts/rollout-*/ and commit/push that report.
+- If there are no source-controlled changes and no runtime/live-config changes: report "no source-controlled delta; no push required" — do not create an empty commit.
 
 Validation after setup:
 - Config syntax valid.
@@ -1181,9 +1184,12 @@ pgvector stays on local F: hot tier.
 Migrations require backup, restore verification, rollback dry-run, down verification, apply, post-checks, and rollback plan.
 memory_catalog and agentcore_* are target/post-migration unless proven.
 
-No pull/fetch/merge/rebase unless user explicitly asks.
-Commit/push only after validation and secret/junk scan.
-Never commit secrets, rendered PAT URLs, DB dumps, caches, node_modules, runtime artifacts.
+Push after every completed task. Run validation, run secret/junk scan, stage only source-controlled files, commit with a concise message, push origin main.
+Do not pull, fetch, merge, rebase, or remote-update unless the operator explicitly asks.
+Never force-push without explicit operator approval.
+Never commit secrets, rendered PAT URLs, DB dumps, caches, node_modules, Docker inspect output with secrets, .env files, F:\AgentCore runtime state, or runtime artifacts.
+If a task changes only live runtime/IDE configs, write an evidence report to artifacts/task-runs/ or artifacts/rollout-*/ and commit/push that instead.
+If there are no source-controlled changes and no runtime/live-config changes: report "no source-controlled delta; no push required" and skip the commit.
 ```
 
 ---

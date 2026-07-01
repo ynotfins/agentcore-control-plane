@@ -17,6 +17,7 @@ This repository, `D:\github\agentcore-control-plane`, is the canonical Git sourc
 - Use deterministic validators before reporting completion.
 - AgentCore does not use `.env` files for secrets or local runtime configuration. Use Windows environment variables only.
 - Agents must read `AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` before persistent memory writes or database ingestion.
+- **Git policy:** Push after every completed task. Run the narrowest relevant validation, run a secret/junk scan, stage only source-controlled files, commit with a concise message, push `origin main`. Do not pull, fetch, merge, rebase, or remote-update unless the operator explicitly asks. Never force-push without explicit operator approval. See `docs/GIT_PUSH_ONLY_POLICY.md` for the full policy including evidence-report guidance for live-config-only tasks.
 - On every new project/repo, the agent MUST create `AGENTS.md` and `CLAUDE.md` at the project root if missing (seed from the Root Agent Rules Template in `MASTER_CONFIG_AND_PROMPT.md`), and must read/verify both at the start of every session and update them when project rules or wiring change.
 
 ## Tool Routing
