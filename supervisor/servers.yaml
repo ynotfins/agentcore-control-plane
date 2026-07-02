@@ -6,7 +6,8 @@ global_identity:
   primary_username: ynotf
 fallback_policy:
   critical_tools:
-    - "global-memory-gateway"
+    - "swarmrecall"
+    - "swarmvault"
     - "arabold-docs"
     - artiforge
     - "sequential-thinking"
@@ -200,10 +201,10 @@ servers:
       - append_only_contract
       - project_scoped_writes
       - global_reads
-    criticality: critical
-    lifecycle: active
+    criticality: normal
+    lifecycle: retired
     notes:
-      - Primary memory path for normal agents. Stop if unavailable; do not fall back to raw Mem0 unless explicitly approved.
+      - RETIRED from the default baseline (2026-07-01 native-first override). Normal agents use native SwarmRecall/SwarmVault; not rendered into IDE baselines. Retained for governed/curated flows only.
       - "Backed by PostgreSQL agent_core on 127.0.0.1:55432 with pgvector VECTOR(1536)."
       - "Uses OpenAI text-embedding-3-small when OPENAI_API_KEY is available; local_hash_v1 is offline fallback only."
       - AgentCore uses Windows environment variables only. Do not create .env fallbacks for gateway credentials.

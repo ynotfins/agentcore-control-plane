@@ -8,7 +8,8 @@
   },
   "fallback_policy": {
     "critical_tools": [
-      "global-memory-gateway",
+      "swarmrecall",
+      "swarmvault",
       "arabold-docs",
       "artiforge",
       "sequential-thinking"
@@ -252,10 +253,10 @@
         "project_scoped_writes",
         "global_reads"
       ],
-      "criticality": "critical",
-      "lifecycle": "active",
+      "criticality": "normal",
+      "lifecycle": "retired",
       "notes": [
-        "Primary memory path for normal agents. Stop if unavailable; do not fall back to raw Mem0 unless explicitly approved.",
+        "RETIRED from the default baseline (2026-07-01 native-first override). Normal agents use native SwarmRecall/SwarmVault; not rendered into IDE baselines. Retained for governed/curated flows only.",
         "Backed by PostgreSQL agent_core on 127.0.0.1:55432 with pgvector VECTOR(1536).",
         "Uses OpenAI text-embedding-3-small when OPENAI_API_KEY is available; local_hash_v1 is offline fallback only.",
         "AgentCore uses Windows environment variables only. Do not create .env fallbacks for gateway credentials.",
@@ -571,7 +572,7 @@
       "notes": [
         "Local-first native SwarmRecall memory runtime. Launched through the governed wrapper ops\\Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp, which forces local-only env (strips Upstash/Firebase) and reads credentials from Windows environment variables.",
         "Backed by local PostgreSQL `swarmrecall` DB on 127.0.0.1:55432 (separate from `agent_core`) plus Meilisearch on 127.0.0.1:7700. No hosted fallback; no onrender URLs.",
-        "Normal durable task-end memory still routes through global-memory-gateway; SwarmRecall MCP is for native sessions/knowledge/learnings/skills/pools and recall."
+        "Normal durable memory now routes through native SwarmRecall (and SwarmVault for RAG/wiki); global-memory-gateway is retired from the baseline (2026-07-01)."
       ]
     },
     "swarmvault": {

@@ -81,18 +81,18 @@ function Get-ClientStartState {
   }
 }
 
-$requiredCommon = @("global-memory-gateway", "artiforge", "sequential-thinking")
-$forbiddenCommon = @("context7", "mem0", "mem0_mcp_server", "openmemory", "composio", "hostinger", "Hostinger", "artiforge__codebase_scanner")
+$requiredCommon = @("swarmrecall", "swarmvault", "artiforge", "sequential-thinking")
+$forbiddenCommon = @("global-memory-gateway", "context7", "mem0", "mem0_mcp_server", "openmemory", "composio", "hostinger", "Hostinger", "artiforge__codebase_scanner")
 $results = [System.Collections.Generic.List[object]]::new()
 
 $jsonClients = @(
-  @{ name = "Cursor"; path = "C:\Users\ynotf\.cursor\mcp.json"; process = "Cursor"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault") },
-  @{ name = "Open Interpreter"; path = "C:\Users\ynotf\AppData\Roaming\interpreter\config.json"; process = "Interpreter|Open Interpreter"; required = @("global-memory-gateway", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "global-memory-gateway", "swarmrecall", "swarmvault") },
-  @{ name = "OpenClaw"; path = "C:\Users\ynotf\.openclaw\openclaw.json"; process = "ClawX|OpenClaw"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "eye2byte", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault") },
-  @{ name = "MiniMax"; path = "C:\Users\ynotf\.minimax\mcp\mcp.json"; process = "MiniMax"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault") },
-  @{ name = "Mavis"; path = "C:\Users\ynotf\.mavis\mcp\mcp.json"; process = "Mavis"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault") },
-  @{ name = "Antigravity"; path = "C:\Users\ynotf\.gemini\config\mcp_config.json"; process = "Antigravity"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena", "swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault") },
-  @{ name = "Antigravity Roaming"; path = "C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json"; process = "Antigravity"; required = @("global-memory-gateway", "artiforge", "sequential-thinking", "serena"); expected = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena") }
+  @{ name = "Cursor"; path = "C:\Users\ynotf\.cursor\mcp.json"; process = "Cursor"; required = @("swarmrecall", "swarmvault", "artiforge", "sequential-thinking", "serena"); expected = @("arabold-docs", "artiforge", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "context-fabric", "cursor-agent-mcp", "mcp-debugger", "swarmrecall", "swarmvault") },
+  @{ name = "Open Interpreter"; path = "C:\Users\ynotf\AppData\Roaming\interpreter\config.json"; process = "Interpreter|Open Interpreter"; required = @("swarmrecall", "swarmvault"); expected = @("arabold-docs", "artiforge", "swarmrecall", "swarmvault", "serena", "sequential-thinking", "cursor-agent-mcp", "context-fabric", "mcp-debugger", "obsidian-vault") },
+  @{ name = "OpenClaw"; path = "C:\Users\ynotf\.openclaw\openclaw.json"; process = "ClawX|OpenClaw"; required = @("swarmrecall", "swarmvault", "artiforge", "sequential-thinking", "serena"); expected = @("arabold-docs", "artiforge", "filesystem", "context-fabric", "cursor-agent-mcp", "eye2byte", "mcp-debugger", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault") },
+  @{ name = "MiniMax"; path = "C:\Users\ynotf\.minimax\mcp\mcp.json"; process = "MiniMax"; required = @("swarmrecall", "swarmvault", "artiforge", "sequential-thinking"); expected = @("arabold-docs", "artiforge", "cursor-agent-mcp", "filesystem", "mcp-debugger", "obsidian-vault", "playwright", "serena", "sequential-thinking", "swarmrecall", "swarmvault", "context-fabric") },
+  @{ name = "Mavis"; path = "C:\Users\ynotf\.mavis\mcp\mcp.json"; process = "Mavis"; required = @("swarmrecall", "swarmvault", "artiforge", "sequential-thinking"); expected = @("arabold-docs", "artiforge", "cursor-agent-mcp", "filesystem", "mcp-debugger", "obsidian-vault", "playwright", "serena", "sequential-thinking", "swarmrecall", "swarmvault", "context-fabric") },
+  @{ name = "Antigravity"; path = "C:\Users\ynotf\.gemini\config\mcp_config.json"; process = "Antigravity"; required = @("swarmrecall", "swarmvault", "artiforge", "sequential-thinking", "serena"); expected = @("arabold-docs", "serena", "sequential-thinking", "cursor-agent-mcp", "context-fabric", "mcp-debugger", "artiforge", "obsidian-vault", "swarmrecall", "swarmvault", "filesystem", "playwright", "notebooks", "visualization") },
+  @{ name = "Antigravity Roaming"; path = "C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json"; process = "Antigravity"; required = @("swarmrecall", "swarmvault", "artiforge", "sequential-thinking", "serena"); expected = @("arabold-docs", "serena", "sequential-thinking", "cursor-agent-mcp", "context-fabric", "mcp-debugger", "artiforge", "obsidian-vault", "swarmrecall", "swarmvault", "filesystem", "playwright") }
 )
 
 foreach ($client in $jsonClients) {
@@ -108,8 +108,8 @@ $codexConfig = "C:\Users\ynotf\.codex\config.toml"
 Add-Result $results "Codex config exists" (Test-Path -LiteralPath $codexConfig) $codexConfig
 if (Test-Path -LiteralPath $codexConfig) {
   $codexText = Get-Content -LiteralPath $codexConfig -Raw
-  Add-Result $results "Codex gateway configured" ($codexText -match "\[mcp_servers\.global-memory-gateway\]") "global-memory-gateway stanza"
-  Add-Result $results "Codex forbidden servers absent" (-not ($codexText -match "\[mcp_servers\.context7\]" -or $codexText -match "\[mcp_servers\.mem0\]" -or $codexText -match "\[mcp_servers\.composio\]")) "checked context7/mem0/composio"
+  Add-Result $results "Codex swarm memory configured" (($codexText -match "\[mcp_servers\.swarmrecall\]") -and ($codexText -match "\[mcp_servers\.swarmvault\]")) "swarmrecall + swarmvault stanzas"
+  Add-Result $results "Codex forbidden servers absent" (-not ($codexText -match "\[mcp_servers\.context7\]" -or $codexText -match "\[mcp_servers\.mem0\]" -or $codexText -match "\[mcp_servers\.composio\]" -or $codexText -match "\[mcp_servers\.global-memory-gateway\]")) "checked context7/mem0/composio/global-memory-gateway"
   $codexList = & codex mcp list 2>&1
   Add-Result $results "Codex CLI mcp list" ($LASTEXITCODE -eq 0) (($codexList | ForEach-Object { [string]$_ }) -join "`n")
   $codexState = Get-ClientStartState -ClientName "Codex" -ProcessPattern "^Codex$" -ConfigPath $codexConfig

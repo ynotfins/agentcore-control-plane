@@ -108,7 +108,7 @@ function Get-AgentCoreListener {
 $results = [System.Collections.Generic.List[object]]::new()
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
 if ($DryRun) { $WriteReport = $false }
-$critical = @("global-memory-gateway", "arabold-docs", "artiforge", "sequential-thinking")
+$critical = @("swarmrecall", "swarmvault", "arabold-docs", "artiforge", "sequential-thinking")
 $managedRelative = @(
   "AGENTS.md",
   "SECURITY.md",
@@ -271,8 +271,8 @@ Add-Result $results "Composio quarantined" $composioOk "supervisor and registry 
 
 $gatewayRegistry = @($registry.tools | Where-Object { $_.id -eq "global-memory-gateway" })[0]
 $rawMem0Registry = @($registry.tools | Where-Object { $_.id -eq "mem0_mcp_server" })[0]
-$gatewayOk = $supervisor.servers."global-memory-gateway".criticality -eq "critical" -and $gatewayRegistry.lifecycle -eq "active" -and $rawMem0Registry.lifecycle -eq "quarantined"
-Add-Result $results "global-memory-gateway primary" $gatewayOk "gateway is critical/active and raw Mem0 is quarantined"
+$nativeOk = $gatewayRegistry.lifecycle -eq "retired" -and $rawMem0Registry.lifecycle -eq "quarantined" -and $null -ne $supervisor.servers.swarmrecall -and $null -ne $supervisor.servers.swarmvault
+Add-Result $results "native-first memory plane" $nativeOk "SwarmRecall+SwarmVault active, global-memory-gateway retired, raw Mem0 quarantined"
 
 $criticalMissing = @($critical | Where-Object { -not $supervisor.servers.$_ })
 Add-Result $results "critical tool set" ($criticalMissing.Count -eq 0) ("missing=" + (($criticalMissing -join ", ") -replace "^$", "none"))
@@ -310,11 +310,11 @@ catch {
 }
 
 $expectedRendererServers = [ordered]@{
-  "renderers\cursor-global.mcp.json" = @("arabold-docs", "artiforge", "context-fabric", "cursor-agent-mcp", "filesystem", "global-memory-gateway", "mcp-debugger", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
-  "renderers\openclaw.openclaw.fragment.json" = @("arabold-docs", "artiforge", "eye2byte", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
-  "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "global-memory-gateway", "swarmrecall", "swarmvault")
-  "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault")
-  "renderers\antigravity.mcp_config.json" = @("arabold-docs", "artiforge", "filesystem", "global-memory-gateway", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\cursor-global.mcp.json" = @("arabold-docs", "artiforge", "context-fabric", "cursor-agent-mcp", "filesystem", "mcp-debugger", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\openclaw.openclaw.fragment.json" = @("arabold-docs", "artiforge", "eye2byte", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "swarmrecall", "swarmvault")
+  "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault")
+  "renderers\antigravity.mcp_config.json" = @("arabold-docs", "artiforge", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
 }
 $surfaceFindings = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in $expectedRendererServers.Keys) {
@@ -366,15 +366,12 @@ foreach ($rel in @(
   "renderers\minimax.mcp.json",
   "renderers\antigravity.mcp_config.json"
 )) {
-  $json = Read-Json (Join-Path $rootPath $rel)
-  $servers = Get-ServerContainer $json
-  $gateway = $servers."global-memory-gateway"
-  $args = @($gateway.args)
-  if ("--project-id" -notin $args -or "codex-managed" -notin $args -or "--platform" -notin $args) {
-    $gatewayArgFindings.Add("$rel missing governed gateway args") | Out-Null
+  $text = Get-Content -LiteralPath (Join-Path $rootPath $rel) -Raw
+  if ($text.Contains("global-memory-gateway")) {
+    $gatewayArgFindings.Add("$rel still contains retired global-memory-gateway") | Out-Null
   }
 }
-Add-Result $results "gateway renderer args explicit" ($gatewayArgFindings.Count -eq 0) (($gatewayArgFindings -join "; ") -replace "^$", "all rendered gateway configs include --project-id codex-managed and --platform")
+Add-Result $results "global-memory-gateway retired from renderers" ($gatewayArgFindings.Count -eq 0) (($gatewayArgFindings -join "; ") -replace "^$", "no renderer emits the retired global-memory-gateway")
 
 # Mandatory baseline: swarmrecall + swarmvault must be present (local-only) in every first-class managed renderer.
 $swarmBaselineRenderers = @(

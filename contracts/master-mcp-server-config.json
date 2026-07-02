@@ -5,7 +5,7 @@
   "live_ops_root": "D:\\MCP-Control-Plane",
   "purpose": "Canonical MCP server contract for AgentCore IDE clients. Use this to verify mandatory and essential MCP servers, client-specific surfaces, retired routes, and unique setup requirements without exposing secrets.",
   "normal_memory_rule": {
-    "normal_write_path": "global-memory-gateway",
+    "normal_write_path": "swarmrecall",
     "canonical_database": "PostgreSQL agent_core on 127.0.0.1:55432",
     "direct_sql_for_normal_agents": false,
     "raw_mem0_default": false,
@@ -15,7 +15,7 @@
     "swarmrecall_backend_role": "shared local memory runtime and retrieval service; now a mandatory baseline MCP surface (local-only)",
     "swarmvault_backend_role": "shared local RAG/wiki substrate; now a mandatory baseline MCP surface (local-first files)",
     "swarmrecall_swarmvault_hosted_forbidden": true,
-    "projection_model": "control-plane projector (Invoke-AgentCoreMemoryProjector.ps1) mirrors approved governed memory and curated knowledge downstream; normal durable task-end memory still routes through global-memory-gateway"
+    "projection_model": "control-plane projector (Invoke-AgentCoreMemoryProjector.ps1) may mirror approved curated knowledge downstream; normal durable memory now routes through native SwarmRecall (global-memory-gateway retired from the baseline)."
   },
   "secret_policy": {
     "store_secret_values_in_this_file": false,
@@ -32,35 +32,6 @@
     ]
   },
   "server_catalog": {
-    "global-memory-gateway": {
-      "tier": "mandatory_everywhere",
-      "role": "governed durable memory write and search path",
-      "transport": "stdio",
-      "command": "D:\\Codex_Managed\\.venv\\Scripts\\python.exe",
-      "args_template": [
-        "-m",
-        "autonomy_factory.global_memory_gateway",
-        "--user-id",
-        "master_developer_profile",
-        "--project-id",
-        "codex-managed",
-        "--platform",
-        "${client.platform}"
-      ],
-      "env": {
-        "MEM0_DEFAULT_USER_ID": "master_developer_profile",
-        "MEMORY_GATEWAY_BACKEND": "postgres",
-        "AGENT_CORE_PGHOST": "127.0.0.1",
-        "AGENT_CORE_PGPORT": "55432",
-        "AGENT_CORE_PGDATABASE": "agent_core",
-        "AGENT_CORE_PGUSER": "agent_ingest",
-        "AGENT_CORE_PGPASSWORD": "${env:AGENT_CORE_AGENT_INGEST_PASSWORD}",
-        "MEMORY_GATEWAY_EMBEDDING_PROVIDER": "auto",
-        "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
-        "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS": "1536",
-        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
-      }
-    },
     "arabold-docs": {
       "tier": "mandatory_everywhere",
       "role": "local/current documentation server replacing context7",
@@ -312,7 +283,6 @@
         "codex-security",
         "filesystem",
         "github",
-        "global-memory-gateway",
         "node_repl",
         "obsidian-vault",
         "playwright",
@@ -337,7 +307,6 @@
         "arabold-docs",
         "artiforge",
         "filesystem",
-        "global-memory-gateway",
         "obsidian-vault",
         "playwright",
         "sequential-thinking",
@@ -360,7 +329,6 @@
         "artiforge",
         "eye2byte",
         "filesystem",
-        "global-memory-gateway",
         "obsidian-vault",
         "playwright",
         "sequential-thinking",
@@ -383,8 +351,7 @@
       "renderer": "D:\\github\\agentcore-control-plane\\renderers\\open-interpreter.config.fragment.json",
       "expected_default_servers": [
         "arabold-docs",
-        "artiforge",
-        "global-memory-gateway"
+        "artiforge"
       ],
       "unique_notes": [
         "Keep this surface small. Interpreter stores profile and auth state in the same app data tree, so live config edits must preserve unrelated top-level config fields.",
@@ -399,7 +366,6 @@
         "arabold-docs",
         "artiforge",
         "filesystem",
-        "global-memory-gateway",
         "obsidian-vault",
         "playwright",
         "sequential-thinking"
@@ -413,7 +379,6 @@
         "arabold-docs",
         "artiforge",
         "filesystem",
-        "global-memory-gateway",
         "obsidian-vault",
         "playwright",
         "sequential-thinking"
@@ -431,7 +396,6 @@
         "arabold-docs",
         "artiforge",
         "filesystem",
-        "global-memory-gateway",
         "obsidian-vault",
         "playwright",
         "sequential-thinking",
@@ -451,6 +415,7 @@
   },
   "default_exclusions": {
     "must_not_emit": [
+      "global-memory-gateway",
       "context7",
       "mem0",
       "mem0_mcp_server",
@@ -464,9 +429,9 @@
     ],
     "notes": [
       "context7 is retired in favor of arabold-docs.",
-      "raw Mem0 is replaced by global-memory-gateway for normal memory.",
+      "raw Mem0 is replaced by native SwarmRecall for normal memory.",
       "Composio remains quarantined until a stable MCP/OAuth path is explicitly approved.",
-      "SwarmRecall stays backend/local runtime in v1; direct broad MCP exposure is intentionally absent."
+      "SwarmRecall and SwarmVault are the mandatory native memory/RAG baseline MCP surfaces; global-memory-gateway is retired from the default baseline."
     ]
   },
   "validation": {

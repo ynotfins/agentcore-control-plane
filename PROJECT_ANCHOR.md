@@ -6,6 +6,21 @@
 
 ---
 
+## 0. Native-First Memory Override (2026-07-01, operator-approved)
+
+> **LIVE-STATE OVERRIDE.** Operator directive: native SwarmRecall + native SwarmVault are the
+> automatic default memory/RAG plane for every IDE and agent. `global-memory-gateway` is RETIRED
+> from the mandatory MCP baseline and removed from every IDE's live default config, from the
+> renderers, and from the master contract's default surfaces (it is now listed in
+> `default_exclusions.must_not_emit`). Any downstream text in this constitution or in
+> `MASTER_CONFIG_AND_PROMPT.md`, `database-plan.md`, or `DOC_AUTHORITY.md` that still treats
+> `global-memory-gateway` as the canonical/normal memory write path is superseded by this section:
+> route normal durable memory through native SwarmRecall (memory/graph/learnings/skills/pools) and
+> native SwarmVault (RAG/wiki/context/task ledger). The `agent_core` governed DB and the projector
+> remain available for governed/curated flows, but are not the default IDE memory route.
+
+---
+
 ## 1. Authority
 
 - **Source authority:** `D:\github\agentcore-control-plane` — all governance, contracts, renderers, validators, ops scripts, migrations, and docs.

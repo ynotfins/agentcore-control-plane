@@ -36,33 +36,6 @@
         "E:\\AgentCoreArchive"
       ]
     },
-    "global-memory-gateway": {
-      "type": "stdio",
-      "command": "D:\\Codex_Managed\\.venv\\Scripts\\python.exe",
-      "args": [
-        "-m",
-        "autonomy_factory.global_memory_gateway",
-        "--user-id",
-        "master_developer_profile",
-        "--project-id",
-        "codex-managed",
-        "--platform",
-        "minimax-code"
-      ],
-      "env": {
-        "MEM0_DEFAULT_USER_ID": "master_developer_profile",
-        "MEMORY_GATEWAY_BACKEND": "postgres",
-        "AGENT_CORE_PGHOST": "127.0.0.1",
-        "AGENT_CORE_PGPORT": "55432",
-        "AGENT_CORE_PGDATABASE": "agent_core",
-        "AGENT_CORE_PGUSER": "agent_ingest",
-        "AGENT_CORE_PGPASSWORD": "${env:AGENT_CORE_AGENT_INGEST_PASSWORD}",
-        "MEMORY_GATEWAY_EMBEDDING_PROVIDER": "auto",
-        "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
-        "MEMORY_GATEWAY_EMBEDDING_DIMENSIONS": "1536",
-        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
-      }
-    },
     "obsidian-vault": {
       "type": "stdio",
       "command": "pwsh",

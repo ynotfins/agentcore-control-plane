@@ -18,6 +18,18 @@ Secrets live only in Windows User-scope environment variables.
 
 ---
 
+## Native-First Update (2026-07-01) — supersedes downstream global-memory-gateway references
+
+Operator directive: native SwarmRecall + native SwarmVault are the automatic default memory/RAG
+plane for every IDE and agent. `global-memory-gateway` is RETIRED from the mandatory baseline and
+removed from every IDE default config, the renderers, and the master contract default surfaces
+(now in `default_exclusions.must_not_emit`). Where any section below still lists or routes through
+`global-memory-gateway`, treat it as historical and route normal durable memory through native
+SwarmRecall (memory/graph/learnings/skills/pools) and native SwarmVault (RAG/wiki/context/task
+ledger). Do not add `global-memory-gateway` to any IDE baseline. See `PROJECT_ANCHOR.md` §0.
+
+---
+
 ## 1. Authority and Runtime Facts
 
 Source authority:
@@ -150,7 +162,6 @@ cursor-agent-mcp
 context-fabric
 mcp-debugger
 artiforge
-global-memory-gateway
 obsidian-vault
 swarmrecall
 swarmvault
@@ -436,7 +447,6 @@ Required MCP baseline:
 - context-fabric
 - mcp-debugger
 - artiforge
-- global-memory-gateway
 - obsidian-vault
 - swarmrecall
 - swarmvault
@@ -1084,7 +1094,6 @@ Check these servers:
 - context-fabric
 - mcp-debugger
 - artiforge
-- global-memory-gateway
 - obsidian-vault
 - swarmrecall
 - swarmvault

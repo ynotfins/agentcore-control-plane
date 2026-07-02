@@ -149,8 +149,8 @@
     {
       "id": "global-memory-gateway",
       "canonical_id": "global-memory-gateway",
-      "lifecycle": "active",
-      "criticality": "critical",
+      "lifecycle": "retired",
+      "criticality": "normal",
       "transport": "stdio",
       "client_bindings": [
         "Codex",
@@ -269,7 +269,7 @@
       "fallback_policy": "No fallback unless it preserves governance and quality.",
       "render_by_default": false,
       "notes": [
-        "Raw Mem0 is not a normal-agent path. Use global-memory-gateway for governed memory."
+        "Raw Mem0 is not a normal-agent path. Use native SwarmRecall/SwarmVault for memory."
       ]
     },
     {
