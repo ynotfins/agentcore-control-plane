@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Reusable root-level master setup guide for AgentCore MCP configuration, IDE rules, memory routing, SwarmRecall, SwarmVault, Postgres/pgvector, Artiforge, Arabold/Grounded Docs, context-fabric, Serena, sequential-thinking, Obsidian, cursor-agent-mcp, and mcp-debugger.
+Reusable root-level master setup guide for AgentCore MCP configuration, IDE rules, memory routing, SwarmRecall, SwarmVault, Postgres/pgvector, DepWire, Artiforge, Arabold/Grounded Docs, context-fabric, Serena, sequential-thinking, Obsidian, cursor-agent-mcp, and mcp-debugger.
 
 Use this file in every project root and every IDE setup pass.
 
@@ -111,7 +111,10 @@ Expected variables:
 | `OBSIDIAN_BASE_URL`              | Obsidian REST URL                   | Required if Obsidian active  |
 | `OBSIDIAN_VAULT_PATH`            | Obsidian vault path                 | Required if Obsidian active  |
 | `GITHUB_PERSONAL_ACCESS_TOKEN`   | GitHub MCP token                    | Optional approved add-on     |
+| `DEPWIRE_NO_TELEMETRY`           | Disable DepWire CLI telemetry       | Required; set to `1`         |
 | repo-defined DB env              | AgentCore DB connection             | Governed scripts only        |
+
+DepWire credential boundary: the local `depwire-cli` MCP server does not consume a DepWire API/license environment variable. DepWire Pro uses the VS Code/Cursor extension setting `depwire.licenseKey` only. Enter it through `Depwire: Enter License Key`; never copy that value into MCP configuration or source control.
 
 
 Set Artiforge PAT:
@@ -162,6 +165,7 @@ cursor-agent-mcp
 context-fabric
 mcp-debugger
 artiforge
+depwire
 obsidian-vault
 swarmrecall
 swarmvault
@@ -228,6 +232,14 @@ For any server already defined in `D:\github\agentcore-control-plane\contracts\m
     "cursor-agent-mcp": {
       "command": "npx",
       "args": ["-y", "cursor-agent-mcp"]
+    },
+    "depwire": {
+      "type": "stdio",
+      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
+      "args": ["mcp"],
+      "env": {
+        "DEPWIRE_NO_TELEMETRY": "1"
+      }
     },
     "context-fabric": {
       "command": "context-fabric-mcp",
@@ -325,6 +337,7 @@ swarmrecall            pwsh -NoProfile -ExecutionPolicy Bypass -File D:\github\a
 swarmvault             pwsh -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp
 arabold-docs           stdio: node "C:\Users\ynotf\.cursor\vendor\arabold-docs-mcp\node_modules\@arabold\docs-mcp-server\dist\index.js"  (env OPENAI_API_KEY)   [SSE http://localhost:6280/sse only if a client requires SSE]
 context-fabric         stdio: node "C:\Users\ynotf\.cursor\vendor\context-fabric-mcp\node_modules\context-fabric\dist\index.js"
+depwire                "C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd" mcp   (depwire-cli@1.8.2; env DEPWIRE_NO_TELEMETRY=1; no MCP API/license key)
 serena                 uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant   (or --transport stdio --project-from-cwd)
 sequential-thinking    npx.cmd -y @modelcontextprotocol/server-sequential-thinking   (env DISABLE_THOUGHT_LOGGING=true)
 cursor-agent-mcp       npx.cmd -y cursor-agent-mcp@latest   (env CURSOR_API_KEY, CURSOR_API_URL=https://api.cursor.com)
@@ -410,6 +423,17 @@ args = [
   "--context",
   "ide-assistant"
 ]
+
+[mcp_servers.depwire]
+command = "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd"
+args = ["mcp"]
+startup_timeout_sec = 120.0
+tool_timeout_sec = 300.0
+required = false
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.depwire.env]
+DEPWIRE_NO_TELEMETRY = "1"
 ```
 
 Artiforge and Arabold/Grounded Docs are HTTP/SSE servers. Add them to Codex only if the installed Codex MCP client supports HTTP/SSE server definitions. If not, mark them unsupported for Codex rather than inventing a fake stdio command.
@@ -447,6 +471,7 @@ Required MCP baseline:
 - context-fabric
 - mcp-debugger
 - artiforge
+- depwire
 - obsidian-vault
 - swarmrecall
 - swarmvault
@@ -472,6 +497,14 @@ npx @arabold/docs-mcp-server@latest
 SSE URL:
 http://localhost:6280/sse
 If this IDE only supports stdio and no verified wrapper exists, report unsupported instead of inventing a fake command.
+
+DepWire:
+- Use the global local launcher `C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd mcp` with `DEPWIRE_NO_TELEMETRY=1`.
+- Do not add an MCP API/license key. DepWire Pro licensing is extension-only (`depwire.licenseKey`) for VS Code/Cursor.
+- Connect only verified local repository paths unless the operator explicitly approves a remote clone/pull.
+- `connect_repo` creates `.depwire/cache.db`; keep `.depwire/` and `depwire-output.json` globally ignored and never commit them.
+- Use `impact_analysis` and `simulate_change` before risky structural edits, then `verify_change` before completion.
+- Keep write/side-effect tools on approval and follow `docs\prompts\depwire-global-setup-prompt.md`.
 
 Forbidden active routes:
 - context7
@@ -569,7 +602,7 @@ Git policy:
 Validation after setup:
 - Config syntax valid.
 - MCP discovery shows all required servers or exact unsupported blockers.
-- swarmrecall, swarmvault, artiforge, arabold-docs, serena, sequential-thinking, context-fabric, mcp-debugger, cursor-agent-mcp, obsidian-vault, and global-memory-gateway discoverable where supported.
+- swarmrecall, swarmvault, artiforge, arabold-docs, depwire, serena, sequential-thinking, context-fabric, mcp-debugger, cursor-agent-mcp, obsidian-vault, and global-memory-gateway discoverable where supported.
 - No broken swarmvault wrapper path remains.
 - No forbidden active route remains.
 
@@ -1032,6 +1065,18 @@ uvx --from git+https://github.com/oraios/serena serena start-mcp-server --contex
 
 Use Serena for onboarding/activation, symbol overview, symbol references, code architecture, and safe symbol-level edits.
 
+### DepWire
+
+Canonical local MCP launcher:
+
+```text
+C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd mcp
+```
+
+Use `depwire-cli@1.8.2` with `DEPWIRE_NO_TELEMETRY=1`. The CLI/MCP server exposes 23 local tools and does not consume a DepWire API/license key. DepWire Pro activation belongs only to the VS Code/Cursor extension setting `depwire.licenseKey`; enter it through the extension command palette and never copy it into MCP config.
+
+DepWire complements Serena. Use Serena for semantic navigation and precise edits; use DepWire for deterministic dependency edges, blast radius, architecture health, graph-aware security, structural simulation, and pre-completion verification. Connect verified local repo paths only. `connect_repo` creates `.depwire/cache.db`, so keep `.depwire/` and `depwire-output.json` in the global Git excludes file and never commit them. Run `impact_analysis` plus `simulate_change` before risky delete/move/rename/split/merge work, and `verify_change` before completion. Keep remote `connect_repo`, docs generation, visualization, file claims, and decision writes behind explicit approval. See `docs\prompts\depwire-global-setup-prompt.md` for the universal cross-client setup and validation contract.
+
 ### Sequential-thinking
 
 Use before architecture decisions, multi-file changes, DB/migration decisions, tooling changes, debugging strategy, and risk analysis.
@@ -1094,6 +1139,7 @@ Check these servers:
 - context-fabric
 - mcp-debugger
 - artiforge
+- depwire
 - obsidian-vault
 - swarmrecall
 - swarmvault
@@ -1235,6 +1281,7 @@ Do not move Docker blindly. Do not lose n8n or Qdrant data.
 [ ] swarmvault points to canonical AgentCore launcher.
 [ ] broken rogue swarmvault wrapper path absent.
 [ ] Artiforge configured with env-backed PAT or documented unsupported.
+[ ] DepWire uses the absolute global launcher, telemetry is disabled, no MCP key is configured, and 23 tools handshake.
 [ ] Arabold/Grounded Docs configured as local SSE or documented unsupported.
 [ ] Serena configured and project onboarding rule installed.
 [ ] Sequential-thinking configured.
@@ -1259,6 +1306,7 @@ D:\github\agentcore-control-plane\DOC_AUTHORITY.md
 D:\github\agentcore-control-plane\database-plan.md
 D:\github\agentcore-control-plane\CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md
 D:\github\agentcore-control-plane\contracts\master-mcp-server-config.json
+D:\github\agentcore-control-plane\docs\prompts\depwire-global-setup-prompt.md
 D:\github\agentcore-control-plane\renderers\
 D:\github\agentcore-control-plane\ops\
 ```

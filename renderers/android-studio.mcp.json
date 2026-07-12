@@ -1,3 +1,14 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "depwire": {
+      "type": "stdio",
+      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
+      "args": [
+        "mcp"
+      ],
+      "env": {
+        "DEPWIRE_NO_TELEMETRY": "1"
+      }
+    }
+  }
 }

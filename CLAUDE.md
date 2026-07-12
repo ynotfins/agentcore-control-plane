@@ -23,6 +23,11 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
   is forbidden.
 - Renderers under `renderers/` are marked read-only by convention; clear the attribute only for an
   approved edit and restore it afterward.
+- DepWire uses global `depwire-cli@1.8.2` at
+  `C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd mcp` with `DEPWIRE_NO_TELEMETRY=1`. Its local
+  MCP server has no API/license key; Pro activation is the Cursor/VS Code extension setting
+  `depwire.licenseKey` only. Use verified local repo paths and require approval for remote clone/pull.
+  Keep the local `.depwire/` cache/runtime directory and `depwire-output.json` globally ignored.
 - Git: push after every completed task; do not pull/fetch/merge/rebase unless the operator asks.
 
 ## Runtime facts

@@ -106,6 +106,39 @@
         "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
       ]
     },
+    "depwire": {
+      "tier": "mandatory_for_code_editing_clients",
+      "role": "deterministic dependency graph, blast-radius analysis, change simulation, pre-action verification, architecture health, and graph-aware security scanning",
+      "transport": "stdio",
+      "package": "depwire-cli",
+      "package_version": "1.8.2",
+      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
+      "args": [
+        "mcp"
+      ],
+      "env": {
+        "DEPWIRE_NO_TELEMETRY": "1"
+      },
+      "mcp_requires_api_key": false,
+      "pro_license_scope": "vscode_cursor_extension_only",
+      "pro_license_setting": "depwire.licenseKey",
+      "tool_count": 23,
+      "write_capable_tools": [
+        "connect_repo",
+        "visualize_graph",
+        "update_project_docs",
+        "claim_files",
+        "release_files",
+        "record_decision"
+      ],
+      "notes": [
+        "The local depwire-cli MCP server does not read a DepWire API or license environment variable.",
+        "DepWire Pro licensing is entered through the VS Code/Cursor extension command and must not be copied into MCP configuration.",
+        "Connect only to verified local repository paths by default; remote GitHub clone/pull behavior requires explicit operator approval.",
+        "Use impact_analysis and simulate_change before risky structural edits, then verify_change before completion.",
+        "connect_repo creates .depwire/cache.db; the global Git excludes file must ignore .depwire/ and depwire-output.json before use."
+      ]
+    },
     "filesystem": {
       "tier": "essential_for_file_work_clients",
       "role": "bounded filesystem access for IDEs that need direct file tooling",
@@ -280,6 +313,7 @@
       "expected_default_servers": [
         "arabold-docs",
         "artiforge",
+        "depwire",
         "codex-security",
         "filesystem",
         "github",
@@ -306,6 +340,7 @@
       "expected_default_servers": [
         "arabold-docs",
         "artiforge",
+        "depwire",
         "filesystem",
         "obsidian-vault",
         "playwright",
@@ -327,6 +362,7 @@
       "expected_default_servers": [
         "arabold-docs",
         "artiforge",
+        "depwire",
         "eye2byte",
         "filesystem",
         "obsidian-vault",
@@ -351,7 +387,8 @@
       "renderer": "D:\\github\\agentcore-control-plane\\renderers\\open-interpreter.config.fragment.json",
       "expected_default_servers": [
         "arabold-docs",
-        "artiforge"
+        "artiforge",
+        "depwire"
       ],
       "unique_notes": [
         "Keep this surface small. Interpreter stores profile and auth state in the same app data tree, so live config edits must preserve unrelated top-level config fields.",
@@ -365,6 +402,7 @@
       "expected_default_servers": [
         "arabold-docs",
         "artiforge",
+        "depwire",
         "filesystem",
         "obsidian-vault",
         "playwright",
@@ -378,6 +416,7 @@
       "expected_default_servers": [
         "arabold-docs",
         "artiforge",
+        "depwire",
         "filesystem",
         "obsidian-vault",
         "playwright",
@@ -395,6 +434,7 @@
       "expected_default_servers": [
         "arabold-docs",
         "artiforge",
+        "depwire",
         "filesystem",
         "obsidian-vault",
         "playwright",

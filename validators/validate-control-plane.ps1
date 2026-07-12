@@ -128,6 +128,7 @@ $managedRelative = @(
   "renderers\android-studio.mcp.json",
   "renderers\antigravity.mcp_config.json",
   "ops\Test-AgentCoreEnvPolicy.ps1",
+  "ops\Test-AgentCoreDepwireIntegration.ps1",
   "automations\env-policy-audit.md",
   "validators\validate-control-plane.ps1"
 )
@@ -141,6 +142,7 @@ $requiredFiles = @(
   "docs\GLOBAL_AGENT_RULES.md",
   "docs\restart_after_env_changes.md",
   "ops\Test-AgentCoreEnvPolicy.ps1",
+  "ops\Test-AgentCoreDepwireIntegration.ps1",
   "contracts\master-mcp-server-config.json",
   "ops\Invoke-AgentCoreMemoryProjector.ps1",
   "ops\Test-AgentCoreMemoryProjection.ps1",
@@ -157,6 +159,7 @@ Add-Result $results "core governance files" ($missing.Count -eq 0) ("missing=" +
 
 $jsonFiles = @(
   "supervisor\servers.json",
+  "contracts\master-mcp-server-config.json",
   "registry\tool-registry.json",
   "registry\tool-registry.schema.json",
   "renderers\cursor-global.mcp.json",
@@ -208,6 +211,7 @@ $allowedEnv = @(
   "MEM0_DEFAULT_USER_ID",
   "COMPOSIO_API_KEY",
   "DISABLE_THOUGHT_LOGGING",
+  "DEPWIRE_NO_TELEMETRY",
   "CURSOR_API_KEY",
   "CURSOR_API_URL",
   "OBSIDIAN_API_KEY",
@@ -252,6 +256,27 @@ foreach ($rel in @("supervisor\servers.json", "renderers\cursor-global.mcp.json"
 }
 Add-Result $results "Context7 retired from managed routing" ($retiredFindings.Count -eq 0) (($retiredFindings -join "; ") -replace "^$", "context7 is not active or emitted")
 
+$depwireLauncher = "C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd"
+$depwireFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in @("renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\android-studio.mcp.json", "renderers\antigravity.mcp_config.json")) {
+  $json = Read-Json (Join-Path $rootPath $rel)
+  $server = (Get-ServerContainer $json).depwire
+  if ($null -eq $server -or $server.command -ne $depwireLauncher -or (@($server.args) -join "|") -ne "mcp" -or $server.env.DEPWIRE_NO_TELEMETRY -ne "1") {
+    $depwireFindings.Add($rel) | Out-Null
+  }
+}
+$depwireSupervisor = $null
+try { $depwireSupervisor = (Read-Json (Join-Path $rootPath "supervisor\servers.json")).servers.depwire } catch {}
+if ($null -eq $depwireSupervisor -or $depwireSupervisor.launch_contract.command -ne $depwireLauncher -or $depwireSupervisor.env_expectations.DEPWIRE_NO_TELEMETRY -ne "1") {
+  $depwireFindings.Add("supervisor\servers.json") | Out-Null
+}
+$depwireContract = $null
+try { $depwireContract = (Read-Json (Join-Path $rootPath "contracts\master-mcp-server-config.json")).server_catalog.depwire } catch {}
+if ($null -eq $depwireContract -or $depwireContract.mcp_requires_api_key -ne $false -or $depwireContract.pro_license_scope -ne "vscode_cursor_extension_only") {
+  $depwireFindings.Add("contracts\master-mcp-server-config.json") | Out-Null
+}
+Add-Result $results "DepWire governed launcher and credential scope" ($depwireFindings.Count -eq 0) (($depwireFindings -join ", ") -replace "^$", "global depwire-cli launcher, telemetry-off env, and extension-only Pro license scope enforced")
+
 $namingFindings = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in @("supervisor\servers.json", "registry\tool-registry.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\antigravity.mcp_config.json")) {
   $text = Get-Content -LiteralPath (Join-Path $rootPath $rel) -Raw
@@ -278,7 +303,7 @@ $criticalMissing = @($critical | Where-Object { -not $supervisor.servers.$_ })
 Add-Result $results "critical tool set" ($criticalMissing.Count -eq 0) ("missing=" + (($criticalMissing -join ", ") -replace "^$", "none"))
 
 $liveCodex = Get-LiveCodexServers
-$codexExpected = @($critical + "serena" | Sort-Object -Unique)
+$codexExpected = @($critical + "serena" + "depwire" | Sort-Object -Unique)
 if (-not $liveCodex.ok) {
   Add-Result $results "live Codex routing set" $false ("codex mcp list unavailable: " + $liveCodex.error)
   Add-Result $results "live Codex retired servers absent" $false ("codex mcp list unavailable: " + $liveCodex.error)
@@ -291,8 +316,8 @@ else {
   $retiredLiveCodex = @($liveCodex.names | Where-Object { $_ -in @("context7", "mem0_mcp_server", "artiforge__codebase_scanner", "thinking-patterns") })
   Add-Result $results "live Codex retired servers absent" ($retiredLiveCodex.Count -eq 0) (($retiredLiveCodex -join ", ") -replace "^$", "no retired Codex servers are active")
 
-  $codexServerBudget = $liveCodex.names.Count -le 16
-  Add-Result $results "live Codex server budget" $codexServerBudget ("count=" + $liveCodex.names.Count + " limit=16 (raised for mandatory swarmrecall+swarmvault baseline and reserved context-fabric/cursor-agent-mcp/mcp-debugger expansion)")
+  $codexServerBudget = $liveCodex.names.Count -le 18
+  Add-Result $results "live Codex server budget" $codexServerBudget ("count=" + $liveCodex.names.Count + " limit=18 (includes DepWire plus Codex-managed plugin MCP surfaces while preserving the 1M context window)")
 }
 
 $agentCoreListener = Get-AgentCoreListener
@@ -310,11 +335,12 @@ catch {
 }
 
 $expectedRendererServers = [ordered]@{
-  "renderers\cursor-global.mcp.json" = @("arabold-docs", "artiforge", "context-fabric", "cursor-agent-mcp", "filesystem", "mcp-debugger", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
-  "renderers\openclaw.openclaw.fragment.json" = @("arabold-docs", "artiforge", "eye2byte", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
-  "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "swarmrecall", "swarmvault")
-  "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault")
-  "renderers\antigravity.mcp_config.json" = @("arabold-docs", "artiforge", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\cursor-global.mcp.json" = @("arabold-docs", "artiforge", "context-fabric", "cursor-agent-mcp", "depwire", "filesystem", "mcp-debugger", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\openclaw.openclaw.fragment.json" = @("arabold-docs", "artiforge", "depwire", "eye2byte", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "depwire", "swarmrecall", "swarmvault")
+  "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "depwire", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault")
+  "renderers\antigravity.mcp_config.json" = @("arabold-docs", "artiforge", "depwire", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
+  "renderers\android-studio.mcp.json" = @("depwire")
 }
 $surfaceFindings = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in $expectedRendererServers.Keys) {
@@ -446,10 +472,12 @@ Add-Result $results "live managed MCP configs sanitized" ($liveMcpSecretFindings
 
 $docsPath = "C:\Users\ynotf\.cursor\vendor\arabold-docs-mcp\node_modules\@arabold\docs-mcp-server\dist\index.js"
 $fabricPath = "C:\Users\ynotf\.cursor\vendor\context-fabric-mcp\node_modules\context-fabric\dist\index.js"
+$depwirePath = "C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd"
 $installMissing = @()
 if (-not (Test-Path -LiteralPath $docsPath)) { $installMissing += "arabold-docs entrypoint missing" }
 if (-not (Test-Path -LiteralPath $fabricPath)) { $installMissing += "context-fabric entrypoint missing" }
-Add-Result $results "vendored MCP installs" ($installMissing.Count -eq 0) (($installMissing -join "; ") -replace "^$", "arabold-docs and context-fabric entrypoints exist")
+if (-not (Test-Path -LiteralPath $depwirePath)) { $installMissing += "depwire-cli global shim missing" }
+Add-Result $results "vendored/global MCP installs" ($installMissing.Count -eq 0) (($installMissing -join "; ") -replace "^$", "arabold-docs, context-fabric, and depwire-cli entrypoints exist")
 
 $readOnlyMissing = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in $managedRelative) {

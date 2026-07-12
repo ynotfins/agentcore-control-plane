@@ -13,6 +13,12 @@ Each prompt reconciles the live config to the **governed source renderer** for t
 
 ## Governed local launch (use these exact entries)
 
+DepWire (stdio):
+```
+C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd mcp
+```
+Use the globally installed `depwire-cli@1.8.2` with `DEPWIRE_NO_TELEMETRY=1`. The CLI/MCP server does not consume a DepWire API or license key. DepWire Pro licensing is scoped to the Cursor/VS Code extension setting `depwire.licenseKey`; enter it through the extension command and never commit it to an MCP config.
+
 SwarmRecall (stdio):
 ```
 pwsh -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp
@@ -24,14 +30,14 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\
 Both enforce local-only operation and read credentials from Windows environment variables. No `${env:}` is needed in the client config; no hosted URLs; no `.env` files.
 
 ## Mandatory MCP baseline (every managed IDE)
-`arabold-docs, serena, sequential-thinking, cursor-agent-mcp, context-fabric, mcp-debugger, artiforge, global-memory-gateway, obsidian-vault, swarmrecall, swarmvault`
+`arabold-docs, serena, sequential-thinking, cursor-agent-mcp, context-fabric, mcp-debugger, artiforge, depwire, global-memory-gateway, obsidian-vault, swarmrecall, swarmvault`
 (Note: `cursor-agent-mcp`/`context-fabric`/`mcp-debugger` baseline expansion is staged — current source renderers carry the memory/RAG/context core + swarmrecall + swarmvault; add the remaining three when the source renderers add them.)
 
 ## Forbidden active routes (remove from live configs/rules)
 `context7`, raw `mem0`/`openmemory` as memory, direct `composio`, `Hostinger`, hosted SwarmRecall/SwarmVault (`*.onrender.com`), direct SQL as normal memory, `:65432` active route, `D:\MCP-Control-Plane` as authority.
 
 ## Universal rule contract to enforce (two-tier, per database-plan.md §15)
-**Now (existing tools):** use `memory_append`/`memory_search` (global-memory-gateway) for durable memory; `swarmrecall` MCP for native sessions/knowledge/learnings/skills/pools/recall; `swarmvault` MCP for RAG/wiki/graph/context-packs/task-ledger; `obsidian-vault` MCP REST for notes; `arabold-docs` for docs (never context7). Never raw-SQL `agent_core`/`swarmrecall`; never dual-write; never write `F:\AgentCore` by filesystem; never store secrets.
+**Now (existing tools):** use `memory_append`/`memory_search` (global-memory-gateway) for durable memory; `swarmrecall` MCP for native sessions/knowledge/learnings/skills/pools/recall; `swarmvault` MCP for RAG/wiki/graph/context-packs/task-ledger; `depwire` for architecture, dependency-impact, change-simulation, and verification work; `obsidian-vault` MCP REST for notes; `arabold-docs` for docs (never context7). Never raw-SQL `agent_core`/`swarmrecall`; never dual-write; never write `F:\AgentCore` by filesystem; never store secrets.
 **Later (after migration):** `agentcore_get_startup_context` / `agentcore_retrieve_context` / `agentcore_store_memory` etc. (`agentcore_check_drift` excluded).
 
 ## Universal safety clauses (every prompt includes these)
@@ -42,6 +48,7 @@ Both enforce local-only operation and read credentials from Windows environment 
 5. Write a concise summary of changed files. Do not rewrite backups/history/logs.
 
 ## Files
+- `depwire-global-setup-prompt.md` — one universal setup/enforcement prompt for every supported IDE
 - `codex-cleanup-prompt.md`
 - `cursor-cleanup-prompt.md`
 - `openclaw-cleanup-prompt.md`

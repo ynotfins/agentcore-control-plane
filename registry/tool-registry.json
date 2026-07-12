@@ -385,6 +385,43 @@
       ]
     },
     {
+      "id": "depwire",
+      "canonical_id": "depwire",
+      "lifecycle": "active",
+      "criticality": "normal",
+      "transport": "stdio",
+      "client_bindings": [
+        "Codex",
+        "Cursor",
+        "OpenClaw",
+        "MiniMax Code",
+        "Open Interpreter",
+        "Antigravity",
+        "Android Studio"
+      ],
+      "capabilities": [
+        "deterministic_dependency_graph",
+        "symbol_impact_analysis",
+        "change_simulation",
+        "pre_action_verification",
+        "graph_aware_security_scan",
+        "architecture_health",
+        "multi_agent_file_claims"
+      ],
+      "env_expectations": [
+        "DEPWIRE_NO_TELEMETRY"
+      ],
+      "health": "healthy",
+      "fallback_policy": "No fallback unless it preserves governance and quality.",
+      "render_by_default": true,
+      "notes": [
+        "Global depwire-cli 1.8.2 launcher; telemetry disabled.",
+        "The MCP server requires no DepWire API/license key. DepWire Pro applies only to the VS Code/Cursor extension setting depwire.licenseKey.",
+        "Use verified local repository paths by default; remote clone/pull behavior requires explicit operator approval.",
+        "connect_repo creates .depwire/cache.db; keep .depwire/ and depwire-output.json globally ignored and never commit them."
+      ]
+    },
+    {
       "id": "composio",
       "canonical_id": "composio",
       "lifecycle": "quarantined",

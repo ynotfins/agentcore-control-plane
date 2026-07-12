@@ -24,6 +24,7 @@ This repository, `D:\github\agentcore-control-plane`, is the canonical Git sourc
 
 - Planning: use `sequential-thinking` for ambiguous multi-step strategy.
 - Repo code work: use Serena first for project activation, symbol discovery, and targeted refactors.
+- Deterministic code graph and change safety: use `depwire` for dependency edges, impact analysis, structural simulation, graph-aware security, and pre-completion verification. Connect verified local repo paths only; remote clone/pull requires explicit operator approval. `connect_repo` creates `.depwire/cache.db`; `.depwire/` and `depwire-output.json` must remain globally ignored.
 - Current software, SDK, CLI, API, cloud, and package docs: use `arabold-docs` first. Keep docs indexed/current before answering implementation guidance.
 - Project continuity and drift context: use `context-fabric` only for approved Git-managed workspaces; do not initialize it in global infrastructure directories.
 - Memory: use `global-memory-gateway` as the governed PostgreSQL/pgvector primary path. Do not route normal agents to raw Mem0 or ad hoc direct SQL.

@@ -21,6 +21,16 @@
         "C:\\Users\\ynotf\\.codex\\mcp-wrappers\\artiforge-mcp.ps1"
       ]
     },
+    "depwire": {
+      "type": "stdio",
+      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
+      "args": [
+        "mcp"
+      ],
+      "env": {
+        "DEPWIRE_NO_TELEMETRY": "1"
+      }
+    },
     "filesystem": {
       "type": "stdio",
       "command": "npx.cmd",

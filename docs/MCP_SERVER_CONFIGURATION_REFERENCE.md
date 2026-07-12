@@ -20,15 +20,18 @@ For drive layout and active/archive storage policy, see `D:\github\agentcore-con
 - OpenClaw: `D:\github\agentcore-control-plane\renderers\openclaw.openclaw.fragment.json`
 - MiniMax / Mavis legacy: `D:\github\agentcore-control-plane\renderers\minimax.mcp.json`
 - Open Interpreter: `D:\github\agentcore-control-plane\renderers\open-interpreter.config.fragment.json`
+- Antigravity / Gemini: `D:\github\agentcore-control-plane\renderers\antigravity.mcp_config.json`
 - Android Studio: `D:\github\agentcore-control-plane\renderers\android-studio.mcp.json`
 
 ## Live Config Paths
 
+- Codex: `C:\Users\ynotf\.codex\config.toml`
 - Cursor global: `C:\Users\ynotf\.cursor\mcp.json`
 - OpenClaw: `C:\Users\ynotf\.openclaw\openclaw.json`
 - MiniMax new platform: `C:\Users\ynotf\.minimax\mcp\mcp.json`
 - MiniMax / Mavis legacy: `C:\Users\ynotf\.mavis\mcp\mcp.json`
 - Open Interpreter: `C:\Users\ynotf\AppData\Roaming\interpreter\config.json`
+- Antigravity / Gemini: `C:\Users\ynotf\.gemini\config\mcp_config.json`
 - Android Studio: no live MCP config found under `%APPDATA%\Google` as of this audit
 
 ## Core vs Optional MCP Exposure
@@ -40,6 +43,7 @@ Core governed routes:
 - `global-memory-gateway` is the governed memory path and must remain the default memory server.
 - `arabold-docs` is the current-docs path.
 - `artiforge` remains the approved architecture/codebase scan path.
+- `depwire` is the governed architecture/dependency graph, impact-analysis, change-simulation, security-scan, and verification path.
 - `sequential-thinking` remains the approved planning/debugging MCP where reasoning MCP exposure is needed.
 - `serena` remains the repo-code navigation/refactor MCP for the clients that perform code-aware editing.
 
@@ -51,17 +55,51 @@ Optional high-surface routes:
 
 Current approved renderer surfaces:
 
-- Codex: bounded to 11 or fewer live MCP servers; `global-memory-gateway`, `arabold-docs`, `artiforge`, `sequential-thinking`, and `serena` must remain present, while direct Firecrawl routes are not part of the default AgentCore memory rollout surface.
-- Cursor: 8 servers (`arabold-docs`, `artiforge`, `filesystem`, `global-memory-gateway`, `obsidian-vault`, `playwright`, `sequential-thinking`, `serena`)
-- OpenClaw: 9 servers (same reduced approved set as Cursor plus the user-approved `eye2byte` OpenClaw-only MCP)
-- MiniMax Code: 7 servers (`arabold-docs`, `artiforge`, `filesystem`, `global-memory-gateway`, `obsidian-vault`, `playwright`, `sequential-thinking`)
-- Open Interpreter: 3 servers (`arabold-docs`, `artiforge`, `global-memory-gateway`)
+- Codex: bounded to 18 live MCP servers on this host; `depwire` is required alongside the existing governed baseline while preserving the 1M context-window configuration.
+- Cursor: 13 servers (`arabold-docs`, `artiforge`, `context-fabric`, `cursor-agent-mcp`, `depwire`, `filesystem`, `mcp-debugger`, `obsidian-vault`, `playwright`, `sequential-thinking`, `serena`, `swarmrecall`, `swarmvault`)
+- OpenClaw: 11 servers (`arabold-docs`, `artiforge`, `depwire`, `eye2byte`, `filesystem`, `obsidian-vault`, `playwright`, `sequential-thinking`, `serena`, `swarmrecall`, `swarmvault`)
+- MiniMax Code / Mavis: 9 servers (`arabold-docs`, `artiforge`, `depwire`, `filesystem`, `obsidian-vault`, `playwright`, `sequential-thinking`, `swarmrecall`, `swarmvault`)
+- Open Interpreter: 5 servers (`arabold-docs`, `artiforge`, `depwire`, `swarmrecall`, `swarmvault`)
+- Antigravity / Gemini: 10 servers (`arabold-docs`, `artiforge`, `depwire`, `filesystem`, `obsidian-vault`, `playwright`, `sequential-thinking`, `serena`, `swarmrecall`, `swarmvault`)
+- Android Studio: 1 server (`depwire`) until a broader Android Studio surface is explicitly approved.
 
 Validation note:
 
 - `validators\validate-control-plane.ps1` enforces the approved source renderer server sets and keeps repo validation separate from live rollout timing.
 - `ops\Test-AgentCoreLiveClientAdoption.ps1` is the live-state proof after restart; it verifies that the running clients actually adopted the governed config set.
 - `eye2byte` is intentionally approved only for OpenClaw and must not be copied into Codex, Cursor, MiniMax, Mavis, or Open Interpreter.
+
+## DepWire Default Server
+
+DepWire is installed globally as `depwire-cli@1.8.2` and exposed as a local stdio MCP server:
+
+```json
+{
+  "depwire": {
+    "type": "stdio",
+    "command": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
+    "args": ["mcp"],
+    "env": {
+      "DEPWIRE_NO_TELEMETRY": "1"
+    }
+  }
+}
+```
+
+Credential and license rules:
+
+- The DepWire CLI/MCP server does not accept or require a DepWire API key or Pro license key.
+- DepWire Pro licensing applies to the Cursor/VS Code extension (`depwire.depwire-vscode`, validated at version `1.0.13`) through the secret setting `depwire.licenseKey`.
+- Enter the Pro key through `Depwire: Enter License Key` in the editor command palette. Never place it in source renderers, Codex TOML, prompts, logs, reports, or environment-variable inventories.
+- Keep `DEPWIRE_NO_TELEMETRY=1` in the MCP environment and in the Windows User environment.
+
+Operational rules:
+
+- Connect the active repository before requesting graph-backed results.
+- Use `get_architecture_summary` before architecture-sensitive changes, `impact_analysis` or `simulate_change` before edits, and `verify_change` after edits.
+- Treat DepWire as dependency evidence, not as a replacement for tests, current documentation, source inspection, or security review.
+- Ignore `.depwire/` and `depwire-output.json` globally; `.depwire/cache.db` is local runtime state and must not be committed.
+- Use `docs\prompts\depwire-global-setup-prompt.md` as the one copy-paste setup and enforcement prompt for every IDE.
 
 ## Default Memory Server
 
@@ -420,6 +458,7 @@ Source-repo dry-run validation:
 ```powershell
 powershell -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\validators\validate-control-plane.ps1
 powershell -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Test-AgentCoreEnvPolicy.ps1
+powershell -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Test-AgentCoreDepwireIntegration.ps1 -IncludeLiveCodex
 ```
 
 Source-repo report-writing validation:

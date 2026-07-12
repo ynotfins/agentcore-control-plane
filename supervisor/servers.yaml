@@ -420,6 +420,47 @@ servers:
       - agent_handoffs
     notes:
       - "Use Serena before broad cross-file edits or architecture-aware refactors."
+  depwire:
+    canonical_id: depwire
+    client_bindings:
+      - Codex
+      - Cursor
+      - OpenClaw
+      - MiniMax Code
+      - Open Interpreter
+      - Antigravity
+      - Android Studio
+    transport: stdio
+    package: depwire-cli
+    package_version: "1.8.2"
+    launch_contract:
+      command: "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd"
+      args:
+        - mcp
+    env_expectations:
+      DEPWIRE_NO_TELEMETRY: "1"
+    healthcheck:
+      kind: mcp_stdio
+      methods:
+        - initialize
+        - tools/list
+    criticality: normal
+    lifecycle: active
+    render_by_default: true
+    capabilities:
+      - deterministic_dependency_graph
+      - symbol_impact_analysis
+      - change_simulation
+      - pre_action_verification
+      - graph_aware_security_scan
+      - architecture_health
+      - multi_agent_file_claims
+    notes:
+      - "Local CLI/MCP path. Connect only to verified local repository paths unless the operator explicitly approves a remote clone or pull."
+      - "The depwire-cli MCP server does not consume a DepWire API or license environment variable."
+      - "DepWire Pro licensing applies to the VS Code/Cursor extension setting depwire.licenseKey only; never copy that key into MCP configs."
+      - "Telemetry is disabled with DEPWIRE_NO_TELEMETRY=1."
+      - "connect_repo creates .depwire/cache.db; keep .depwire/ and depwire-output.json globally ignored and never commit them."
   composio:
     canonical_id: composio
     client_bindings:
