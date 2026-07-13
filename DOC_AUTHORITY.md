@@ -2,7 +2,7 @@
 
 **Source authority:** `D:\github\agentcore-control-plane`  
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`  
-**Updated:** 2026-06-30
+**Updated:** 2026-07-12
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -48,6 +48,12 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 | `artifacts/rollout-2026-06-30/ROLLOUT_REPORT.md` | Rollout implementation evidence and acceptance state |
 
 Supporting current/source-controlled references: `contracts/master-mcp-server-config.json`, `contracts/global-memory-database-contract.json`, `AGENT_DATABASE_BOOTSTRAP.md`, `docs/GIT_PUSH_ONLY_POLICY.md`, `swarmvault.schema.md`, `migrations/` (dry-run only), `validators/validate-control-plane.ps1`, `ops/Test-AgentCore*.ps1`, `docs/prompts/`.
+
+## Experiments (isolated POCs; not production authority)
+
+| Path | Notes |
+|------|-------|
+| `experiments/bifrost-go-sdk-smoke/` | Bifrost Go SDK (`core@v1.7.0`) in-process OpenAI smoke. **Not** the Bifrost MCP Gateway. See its README. |
 
 ## Evidence-only (read for facts; do not follow as instructions)
 

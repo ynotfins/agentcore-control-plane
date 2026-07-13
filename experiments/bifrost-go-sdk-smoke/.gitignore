@@ -1,0 +1,4 @@
+# Local build artifacts for the Bifrost Go SDK smoke experiment
+*.exe
+*.test
+*.out
