@@ -45,9 +45,14 @@ Recommended setup:
 
 Using the same desktop key does not make the IDEs smarter. Using separate keys does not split the Depwire account graph. The key authenticates the client; the useful intelligence comes from the connected Depwire Cloud graph and/or the local dependency graph.
 
-## Cursor install: Depwire Cloud MCP
+## Cursor install: Depwire Cloud MCP (rollback/diagnostic reference only)
 
-Use this when you want Cursor to query the persistent Depwire Cloud graph.
+> **Not the normal architecture.** Normal Depwire access is through `agentcore-gateway`; do not add
+> direct `depwire-cloud` or `depwire-local` entries to non-Swarm IDE configs except as an
+> operator-approved temporary diagnostic, and remove them afterward. Depwire Cloud remains
+> deferred/`enabled=false` in the registry.
+
+Use this only when the operator explicitly approves a temporary direct Cloud connection.
 
 ```json
 {
@@ -62,11 +67,11 @@ Use this when you want Cursor to query the persistent Depwire Cloud graph.
 }
 ```
 
-If Cursor does not resolve `${env:DEPWIRE_API_KEY}` in headers, use Cursor's MCP/secret/input-variable UI. If that still fails, use the literal key from Depwire Cloud only as a last resort.
+If Cursor does not resolve `${env:DEPWIRE_API_KEY}` in headers, use Cursor's MCP/secret/input-variable UI. Never paste a literal key into a config file or commit one to Git.
 
 After changing Windows environment variables, fully restart Cursor.
 
-## Local install: Depwire CLI/MCP
+## Local install: Depwire CLI/MCP (diagnostic fallback)
 
 Depwire local is useful even with Pro because it gives exact current-workspace analysis without depending on cloud state.
 
@@ -113,9 +118,9 @@ Cursor local MCP config:
 }
 ```
 
-## Recommended combined Cursor config
+## Combined Cursor config (rollback/diagnostic reference only)
 
-Use both local and cloud if Cursor supports both at once:
+> Not the normal architecture — normal access is via `agentcore-gateway`. Temporary diagnostic use only:
 
 ```json
 {
@@ -224,7 +229,7 @@ depwire-output.json
    [Environment]::GetEnvironmentVariable("DO_NOT_TRACK","User")
    ```
 4. Restart Cursor.
-5. Confirm `depwire-cloud` is green.
+5. Confirm the `depwire` upstream is healthy through `agentcore-gateway` (Depwire Cloud remains deferred in the registry; only check `depwire-cloud` if the operator has enabled it).
 6. Ask Cursor:
    ```text
    Use Depwire Cloud to identify the most critical files in the current repo. Do not edit files.

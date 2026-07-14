@@ -1,3 +1,7 @@
+> **SWARM ECOSYSTEM ONLY (2026-07-14).** SwarmVault is part of the independent Swarm ecosystem.
+> This procedure applies only inside Swarm work. It is not part of the non-Swarm IDE baseline or
+> the AgentCore memory platform (`docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`).
+
 # SwarmVault Source Registration — Safe Strategy
 
 **Native-first.** SwarmVault must be proven healthy natively (`doctor`, `retrieval status`, `graph stats`) before any new source registration. Do not mutate vault state without explicit approval.

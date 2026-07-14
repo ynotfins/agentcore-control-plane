@@ -1,3 +1,11 @@
+> **HISTORICAL RESEARCH INPUT — DO NOT EXECUTE (2026-07-14).**
+> This essay fed the rewritten `CONTEXT_BLOCK.md` and is preserved as research evidence only.
+> Known errors: wrong hardware/drive facts (RTX 5070, wrong drive map — actual machine facts live in
+> `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md`); a storage plan that contradicts `PROJECT_ANCHOR.md`
+> drive roles; and an embedded "Memory Broker" prompt that bypasses the Bifrost `agentcore-gateway`.
+> **Do not execute the embedded Cursor master prompt.** Current authority:
+> `CONTEXT_BLOCK.md` → `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`.
+
 # Master Blueprint for a Global Agent Memory and Context System
 
 ## Executive recommendation

@@ -8,11 +8,15 @@
 **Schema version:** 2026-06-30  
 **Prerequisite reads:** `contracts/global-memory-database-contract.json`, `docs/database_overview.md`, `AGENTS.md`
 
-> **Bifrost override (2026-07-14):** This database design still uses the historical
-> name `global-memory-gateway` for the future memory catalog/router. The current
-> non-Swarm IDE route is `agentcore-gateway` → `agentcore-memory` via Bifrost.
-> Treat `global-memory-gateway` references here as pre-migration design language,
-> not as the live IDE MCP baseline.
+> **HISTORICAL SCHEMA EVIDENCE ONLY — SUPERSEDED (2026-07-14). DO NOT IMPLEMENT.**
+> This 2026-06-30 design targets PostgreSQL 16.6 + pgvector 0.8.2, keeps SwarmRecall/SwarmVault as
+> active memory planes, mandates Swarm MCP in every IDE (§15.1, §18.10), and defines `memory_append`/
+> `memory_search`/`memory_state` plus `agentcore_*` tool contracts that were never built.
+> **The current implementation authority is `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`**
+> (PostgreSQL 18 + pgvector, Cognee behind an AgentCore adapter, lossless evidence/context, locked
+> Milestones M0–M8). The current non-Swarm IDE route is `agentcore-gateway` → `agentcore-memory` via
+> Bifrost. Do not apply this document's schema, migrations, tool names, or Swarm memory planes.
+> Retained as historical schema design evidence only.
 
 ---
 

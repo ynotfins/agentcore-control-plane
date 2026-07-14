@@ -1,5 +1,13 @@
 # Context Window Optimization Policy
 
+> **HISTORICAL — SUPERSEDED (2026-07-14).** The per-client MCP budget model below predates the
+> Bifrost cutover. Each non-Swarm IDE now has exactly one `agentcore-gateway` entry; tool exposure
+> is governed by capability profiles and progressive tool disclosure
+> (`docs/agent-policy/TOOL_LIFECYCLE_POLICY.md`), not per-IDE server budgets. Memory routes through
+> `agentcore-memory`, not `global-memory-gateway` or Swarm. The `agentcore-context-window-optimizer`
+> monitor was removed/deferred (2026-06-30). The core principle — do not expose every tool to every
+> model turn — remains current and is now enforced by the tool-lifecycle policy.
+
 Generated: 2026-06-26
 
 The goal is to maximize effective context for Codex, Cursor, Open Interpreter, OpenClaw, MiniMax, and Mavis without inflating every client with every possible MCP tool.

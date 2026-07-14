@@ -1,5 +1,12 @@
 # Agent Integration Boundaries
 
+> **Updated pointer (2026-07-14).** The privacy-zone framework (Zones A/B/C) below remains current
+> policy intent. Two corrections apply throughout: (1) every `global-memory-gateway` reference reads
+> as the current governed route `agentcore-gateway` → `agentcore-memory`; (2) the Swarm component
+> boundaries (swarmclaw/swarmvault/swarmrelay/swarmrecall/swarmdock/swarmfeed) are
+> **Swarm-ecosystem-only** — they are not part of the non-Swarm IDE baseline and must not be
+> required by non-Swarm agents.
+
 Generated: 2026-06-24
 
 ## Default Posture

@@ -1,3 +1,10 @@
+> **HISTORICAL — SUPERSEDED (2026-07-14). DO NOT FOLLOW AS CURRENT INSTRUCTIONS.**
+> This is the frozen 2026-06-30 Swarm rollout context. Its Swarm-first mandatory IDE baseline
+> (`global-memory-gateway` + `swarmrecall` + `swarmvault` in every IDE) is **not** current non-Swarm policy.
+> Current authority: `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `CONTEXT_BLOCK.md` →
+> `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`. Non-Swarm IDEs use one `agentcore-gateway` entry.
+> Swarm remains a separate ecosystem. Read this file for Swarm-era historical facts only.
+
 # CONTEXT_BLOCK.md — AgentCore Swarm Rollout New-Chat Context
 
 **Purpose:** Keep a new agent/chat aligned on the AgentCore control-plane skeleton, runtime wiring, current rollout state, hard safety gates, and next actions.  

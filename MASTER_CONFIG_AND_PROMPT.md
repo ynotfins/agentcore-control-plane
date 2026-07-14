@@ -28,6 +28,9 @@ Secrets live only in Windows User-scope environment variables. No `.env` files.
 
 Constitution: `PROJECT_ANCHOR.md`
 Document hierarchy: `DOC_AUTHORITY.md`
+Current state / target architecture: `CONTEXT_BLOCK.md`
+Memory/database implementation authority: `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`
+Project execution policy: `docs/agent-policy/`
 Agent contract: `AGENTS.md`
 Handoff: `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`
 
@@ -399,6 +402,14 @@ Use context-fabric only on approved Git workspaces via project router.
 Use mcp-debugger for runtime/test failures instead of guessing.
 Use Artiforge for complex multi-file strategy only.
 Use Obsidian for human-readable notes/handoffs.
+
+Project execution: follow docs/agent-policy/ in the control-plane repo —
+run New Project Bootstrap (Milestone 0) before broad implementation; use
+Milestones with entry/exit gates, Macro/Micro checklists with evidence,
+Context Fabric and Arabold checkpoints, and tool audits at every Milestone
+boundary. Expose only the tools the current Milestone needs (progressive
+tool disclosure); read .agentcore/PROJECT_CHARTER.md, MILESTONES.md, and
+TOOL_MANIFEST.yaml per docs/agent-policy/DOCUMENTATION_READ_ORDER.md.
 
 Never put Postgres credentials or whole-drive filesystem roots in IDE configs.
 Never use :65432. Never create .env files. Never print secrets.

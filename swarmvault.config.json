@@ -1,4 +1,5 @@
 {
+  "_agentcore_classification": "SWARM ECOSYSTEM ONLY (2026-07-14). SwarmVault config; not part of the non-Swarm IDE baseline or AgentCore memory platform.",
   "workspace": {
     "rawDir": "raw",
     "wikiDir": "wiki",

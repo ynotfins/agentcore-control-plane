@@ -1,3 +1,6 @@
+> *(Annotation, 2026-07-14: operator-authored locked Milestones, preserved verbatim below.
+> Rendered into the implementation authority `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`.)*
+
 Rock-solid milestones
 
 These Milestones should be locked. Cursor may freely optimize, add, remove, reorder, or split the Macro and Micro steps inside them based on repository and machine evidence.

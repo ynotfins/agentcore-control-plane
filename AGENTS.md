@@ -5,7 +5,7 @@ This repository, `D:\github\agentcore-control-plane`, is the canonical Git sourc
 `H:\AgentRuntime\bifrost` is the Bifrost runtime root (not design authority).
 `D:\MCP-Control-Plane` is compatibility/live-ops evidence only — not a design authority.
 
-**Start here (read in this order):** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `contracts/bifrost-upstream-mcp-registry.json` + `contracts/agentcore-gateway-client.json` → `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` → `docs/prompts/install-agentcore-gateway-in-ide.md` → `MASTER_CONFIG_AND_PROMPT.md`.
+**Start here (read in this order):** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `CONTEXT_BLOCK.md` → `contracts/bifrost-upstream-mcp-registry.json` + `contracts/agentcore-gateway-client.json` → `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` → `MASTER_CONFIG_AND_PROMPT.md`. For memory/database work, also read `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (implementation authority). Project execution policy: `docs/agent-policy/`.
 
 ## Operating Rules
 
@@ -17,7 +17,7 @@ This repository, `D:\github\agentcore-control-plane`, is the canonical Git sourc
 - Keep contracts, Bifrost renderers, gateway-client renderers, ops scripts, and validators aligned.
 - Use deterministic validators before reporting completion (`scripts/bifrost/validate_contracts.py`, project validators).
 - AgentCore does not use `.env` files for secrets or local runtime configuration. Use Windows environment variables only.
-- Agents must read `AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` before persistent memory writes or database ingestion that touch `agent_core`.
+- Persistent memory writes go through `agentcore-gateway` → `agentcore-memory` only. Memory/database implementation follows `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`. (`AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` are historical PG16-era evidence; read them only for live PG16 cluster facts, never as current instructions.)
 - **Git policy:** Push after every completed task. Run the narrowest relevant validation, run a secret/junk scan, stage only source-controlled files, commit with a concise message, push `origin main` (or the active task branch). Do not pull, fetch, merge, rebase, or remote-update unless the operator explicitly asks. Never force-push without explicit operator approval. See `docs/GIT_PUSH_ONLY_POLICY.md`.
 - On every new project/repo, the agent MUST create `AGENTS.md` and `CLAUDE.md` at the project root if missing (seed from the Root Agent Rules Template in `MASTER_CONFIG_AND_PROMPT.md`), and must read/verify both at the start of every session and update them when project rules or wiring change.
 
@@ -42,15 +42,20 @@ SwarmRecall, SwarmVault, and SwarmClaw are a **separate ecosystem**. This contro
 
 For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thinking`, and Depwire when structural verification is required: do not silently downgrade. If the primary fails and no high-quality fallback exists, stop and notify the user. Local Depwire CLI may be used as a diagnostic fallback when the gateway path is down — say so explicitly.
 
+## Project Execution (all managed projects)
+
+- Follow `docs/agent-policy/DOCUMENTATION_READ_ORDER.md` for the per-project read sequence.
+- New projects run Milestone 0 (Bootstrap) per `docs/agent-policy/NEW_PROJECT_BOOTSTRAP.md` before broad implementation.
+- Milestones use entry/exit gates per `docs/agent-policy/MILESTONE_EXECUTION_STANDARD.md`; Micro steps require evidence per `docs/agent-policy/CHECKLIST_STANDARD.md`.
+- Progressive tool disclosure per `docs/agent-policy/TOOL_LIFECYCLE_POLICY.md`: only currently needed tools exposed; tool audits at every Milestone entry and exit. Runtime lease enforcement arrives with memory-platform M6; until then `TOOL_MANIFEST.yaml` records policy/desired state only.
+
 ## Database Contract
 
 - Canonical Git source repo: `D:\github\agentcore-control-plane`
 - Bifrost runtime: `H:\AgentRuntime\bifrost`
 - Current live deployed ops evidence root: `D:\MCP-Control-Plane` (not design authority)
-- Bootstrap contract: `AGENT_DATABASE_BOOTSTRAP.md`
-- Machine contract: `contracts/global-memory-database-contract.json`
-- Database: PostgreSQL `agent_core` on `127.0.0.1:55432`
-- Vector store: `global_vector_memory_store` with pgvector `VECTOR(1536)`
+- **Memory/database implementation authority:** `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (PostgreSQL 18 + pgvector canonical; Cognee behind AgentCore adapter; Mem0 rejected)
+- Live legacy cluster (facts, preserved for rollback): PostgreSQL 16 `agent_core` on `127.0.0.1:55432`, vector store `global_vector_memory_store` pgvector `VECTOR(1536)` — historical contract in `AGENT_DATABASE_BOOTSTRAP.md` / `contracts/global-memory-database-contract.json`
 - Normal non-Swarm IDE memory identity: `agentcore-memory` via gateway (no direct SQL; no Postgres credentials in IDE configs)
-- Trusted direct SQL path: explicit ingest/admin runners approved by the control plane
+- Trusted direct SQL path: explicit ingest/admin runners approved by the control plane (none active by default)
 - Gateway/ops credentials (never in IDE configs): `AGENT_CORE_PGUSER=agent_ingest` and `AGENT_CORE_PGPASSWORD` from Windows User env `AGENT_CORE_AGENT_INGEST_PASSWORD`

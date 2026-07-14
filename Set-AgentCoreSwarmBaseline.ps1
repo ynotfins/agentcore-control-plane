@@ -1,5 +1,11 @@
 #Requires -Version 5.1
 <#
+    HISTORICAL / SWARM-ONLY — SUPERSEDED FOR NON-SWARM IDEs (2026-07-14).
+    This script installs the retired Swarm-first MCP baseline (swarmrecall/swarmvault/
+    global-memory-gateway) into Claude Code. Non-Swarm IDEs now use ONE MCP entry:
+    agentcore-gateway (http://127.0.0.1:8080/mcp). Do NOT run this script for non-Swarm
+    IDE setup. Current setup: docs/prompts/install-agentcore-gateway-in-ide.md.
+
 .SYNOPSIS
     Merge the AgentCore native-first Swarm MCP baseline into Claude Code's config.
 

@@ -1,3 +1,8 @@
+> **HISTORICAL — SUPERSEDED (2026-07-14). DO NOT FOLLOW AS CURRENT INSTRUCTIONS.**
+> Pre-Bifrost memory routing snapshot (`global-memory-gateway`, SwarmRecall/SwarmVault substrate).
+> Current route: `agentcore-gateway` → `agentcore-memory`. Current memory authority:
+> `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`.
+
 # AgentCore Restart Handoff - Final Leg
 
 Generated: 2026-06-26T22:29:49-04:00

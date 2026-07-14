@@ -10,10 +10,11 @@
   - `D:\github\agentcore-control-plane`
   - `D:\github\vendor\swarm`
   - `D:\github\vendor\memory`
-- Runtime root:
-  - `F:\AgentCore`
-- Backup root:
-  - `E:\AgentCoreBackups`
+- Runtime roots:
+  - `F:\AgentCore` (hot database/vector/index tier)
+  - `H:\AgentRuntime` (live Bifrost gateway + Tentra data — never format H:)
+- Archive/backup root:
+  - `E:\AgentCoreArchive` (canonical; live E: also carries `E:\AgentCore-Backups`)
 - Governed non-Swarm IDE memory:
   - `agentcore-gateway` at `http://127.0.0.1:8080/mcp`
   - stable `agentcore-memory` identity behind Bifrost (health/status now; fuller memory platform later)
@@ -50,14 +51,14 @@ AgentCore does not use `.env` files. All secrets and runtime credentials are sto
 - Location: `D:\github\vendor\memory`
 - Purpose: isolated upstream source clones for `lossless-memory4agent` and `lossless-claw`
 
-### Runtime Memory Zone
+### Runtime Memory Zone (Swarm ecosystem only)
 
 - Location: `F:\AgentCore\agentmemory`
-- Purpose: local runtime state for `swarmvault`, `lcm`, `swarmclaw`, and `swarmrelay`
+- Purpose: local runtime state for `swarmvault`, `lcm`, `swarmclaw`, and `swarmrelay` — **Swarm ecosystem components, not part of the non-Swarm AgentCore memory architecture**
 
 ### Backup Zone
 
-- Location: `E:\AgentCoreBackups`
+- Location: `E:\AgentCoreArchive`
 - Purpose: cold backups for PostgreSQL, local memory systems, vault exports, and logs
 
 ## Patterns

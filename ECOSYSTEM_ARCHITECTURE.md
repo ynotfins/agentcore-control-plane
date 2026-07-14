@@ -3,8 +3,10 @@
 > It describes the state of the MCP control plane at that point in time.
 > **Do not execute commands from this file without current operator approval.**
 > **Do not treat `D:\MCP-Control-Plane` paths or claims here as the current source authority.**
-> Current design authority: `D:\github\agentcore-control-plane` and `database-plan.md`.
-> Current runtime facts: see `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md`.
+> Current design authority: `D:\github\agentcore-control-plane` — read order in `DOC_AUTHORITY.md`
+> (`PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `CONTEXT_BLOCK.md` → `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`).
+> Current gateway facts: `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`.
+> Machine facts: `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md`.
 
 ---
 
@@ -821,4 +823,4 @@ Health Probes: D:\MCP-Control-Plane\artifacts\probe-results.json
 ## CHANGE LOG
 
 **2026-06-20**: Initial architecture document generated from live system state  
-**Authority**: This document is the canonical reference for all MCP Control Plane operations
+**Authority**: ~~This document is the canonical reference for all MCP Control Plane operations~~ (superseded — see the historical-evidence warning at the top of this file; current read order is in `DOC_AUTHORITY.md`)

@@ -1,16 +1,23 @@
 # MCP Server Configuration Reference
 
+> **HISTORICAL / ROLLBACK REFERENCE ONLY — SUPERSEDED (2026-07-14).**
+> This is the pre-Bifrost direct-per-IDE configuration reference. Its per-client server lists
+> (including `swarmrecall`/`swarmvault` in non-Swarm IDE surfaces) are **not** current policy.
+> **Current architecture:** every non-Swarm IDE has exactly one MCP entry — `agentcore-gateway`
+> at `http://127.0.0.1:8080/mcp` — with upstreams registered once in
+> `contracts/bifrost-upstream-mcp-registry.json`.
+> Current setup authority: `docs/bifrost/UNIFIED_GATEWAY_SETUP.md` and
+> `docs/prompts/install-agentcore-gateway-in-ide.md`. Per-IDE profiles: `ide-profiles/`.
+> Use this file only for rollback comparison or live-config forensics.
+
 `D:\github\agentcore-control-plane` is the canonical Git source repo for MCP server configuration policy on this PC.
 
-`D:\MCP-Control-Plane` remains the current live deployed ops root used by scheduled tasks, inherited rollout scripts, and live archive hooks until a separate migration is approved.
+`D:\MCP-Control-Plane` is compatibility/live-ops evidence only.
 
-Use this document when an IDE needs to be repaired, manually configured, or compared against the rendered control-plane outputs.
+Machine-readable master contract (historical direct-mode):
 
-Machine-readable master contract:
-
-- `D:\github\agentcore-control-plane\contracts\master-mcp-server-config.json`
-- Use this first when another IDE agent needs to install or verify the mandatory/essential AgentCore MCP surface.
-- The renderer files remain the executable per-client outputs; the master contract records the shared policy, per-client server sets, unique client setup notes, and default exclusions in one place.
+- `D:\github\agentcore-control-plane\contracts\master-mcp-server-config.json` — superseded by the Bifrost registry for non-Swarm IDE setup.
+- The legacy renderer files remain rollback-only outputs; current per-IDE outputs live in `renderers/gateway-clients/`.
 
 For drive layout and active/archive storage policy, see `D:\github\agentcore-control-plane\docs\AGENTCORE_STORAGE_DESIGN.md`.
 

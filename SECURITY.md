@@ -13,10 +13,10 @@
 ## Approval Gates
 
 - Repo-only hardening may update files under `D:\github\agentcore-control-plane`.
-- `D:\MCP-Control-Plane` remains the live ops root for scheduled tasks and current archive hooks until a separate approved migration.
+- `D:\MCP-Control-Plane` is compatibility/live-ops evidence only — not a design authority. Bifrost gateway lifecycle ownership lives with the `\AgentCore\AgentCore-Bifrost-Gateway` scheduled task and `ops/bifrost/` scripts.
 - Live client config writes require an explicit user instruction for that rollout.
 - Composio is quarantined by default and must not be rendered into client fragments.
-- Raw Mem0 is not a normal-agent memory route; use PostgreSQL-backed `global-memory-gateway`.
+- Raw Mem0 is not a normal-agent memory route (Mem0 is rejected for v1 and must not be installed); normal agents use `agentcore-gateway` → `agentcore-memory`.
 - Raw secrets must not be stored in PostgreSQL vector memory; store only secret references, scopes, status, and non-reversible fingerprints.
 
 ## Read-only Enforcement

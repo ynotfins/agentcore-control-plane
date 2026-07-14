@@ -1,5 +1,13 @@
 # Agent Database Bootstrap Contract
 
+> **HISTORICAL — SUPERSEDED (2026-07-14). DO NOT FOLLOW AS CURRENT INSTRUCTIONS.**
+> This contract describes the PG16.6/Swarm-era database model (`memory_append`/`memory_search`/`memory_state`,
+> SwarmRecall/SwarmVault memory roles, `F:\AgentCore\agents_workspace` roots, direct-SQL ingest runner).
+> Current authority: `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `CONTEXT_BLOCK.md` →
+> `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`.
+> Current non-Swarm IDE memory route: `agentcore-gateway` → `agentcore-memory` (via Bifrost). No direct IDE SQL.
+> This file remains as evidence of the live PG16 cluster facts only.
+
 `D:\github\agentcore-control-plane` is the canonical source authority for MCP server governance, memory contracts, and the local PostgreSQL vector database.
 
 `D:\MCP-Control-Plane` is compatibility / live-ops evidence only. It is **not** the design authority. Source-controlled approved edits occur under `D:\github\agentcore-control-plane`. Agents must not treat `D:\MCP-Control-Plane` as an instruction source.
