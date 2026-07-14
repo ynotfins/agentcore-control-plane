@@ -95,6 +95,128 @@ def stub_master_config_drift() -> list[str]:
     return []
 
 
+def authority_policy_checks(registry: dict[str, Any]) -> list[str]:
+    """Deterministic authority-reconciliation checks (2026-07-14)."""
+    errors: list[str] = []
+
+    # Policy contracts present and (for JSON) schema-valid.
+    policy_pairs = [
+        ("contracts/project-execution-policy.json", "contracts/schemas/project-execution-policy.schema.json"),
+        ("contracts/project-tool-lifecycle.json", "contracts/schemas/project-tool-lifecycle.schema.json"),
+    ]
+    for contract_rel, schema_rel in policy_pairs:
+        contract_path = REPO_ROOT / contract_rel
+        schema_path = REPO_ROOT / schema_rel
+        if not contract_path.exists():
+            errors.append(f"{contract_rel} missing")
+            continue
+        if not schema_path.exists():
+            errors.append(f"{schema_rel} missing")
+            continue
+        errors.extend(validate_schema(load(contract_path), load(schema_path), contract_rel))
+
+    # Canonical global agent policy (YAML) present and schema-valid.
+    gap_path = REPO_ROOT / "contracts" / "global-agent-policy.yaml"
+    gap_schema_path = REPO_ROOT / "contracts" / "schemas" / "global-agent-policy.schema.json"
+    if not gap_path.exists():
+        errors.append("contracts/global-agent-policy.yaml missing")
+    elif not gap_schema_path.exists():
+        errors.append("contracts/schemas/global-agent-policy.schema.json missing")
+    else:
+        try:
+            import yaml  # noqa: PLC0415 - optional dependency guarded at runtime
+
+            policy = yaml.safe_load(gap_path.read_text(encoding="utf-8"))
+            errors.extend(validate_schema(policy, load(gap_schema_path), "global-agent-policy"))
+        except ImportError:
+            errors.append("PyYAML required to validate contracts/global-agent-policy.yaml")
+
+    # Memory-platform execution authority present.
+    plan_path = REPO_ROOT / "docs" / "memory-platform" / "MEMORY_PLATFORM_EXECUTION_PLAN.md"
+    if not plan_path.exists():
+        errors.append("docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md missing")
+
+    # DOC_AUTHORITY classification checks.
+    doc_authority_path = REPO_ROOT / "DOC_AUTHORITY.md"
+    doc_authority = doc_authority_path.read_text(encoding="utf-8") if doc_authority_path.exists() else ""
+    if not doc_authority:
+        errors.append("DOC_AUTHORITY.md missing")
+    else:
+        if "MEMORY_PLATFORM_EXECUTION_PLAN.md" not in doc_authority:
+            errors.append("DOC_AUTHORITY.md does not reference the memory-platform execution plan")
+        if "ChaosCentral-Current-Build" not in doc_authority:
+            errors.append("DOC_AUTHORITY.md does not reference the machine-fact authority")
+        # database-plan.md must not be classified as authoritative-stable.
+        stable_section = doc_authority.split("## Authoritative — stable", 1)[-1].split("## Current-state", 1)[0]
+        if "database-plan.md" in stable_section:
+            errors.append("DOC_AUTHORITY.md still classifies database-plan.md as authoritative-stable")
+        # CONTEXT_BLOCK.md must appear as current-state, not only historical.
+        current_section = doc_authority.split("## Current-state", 1)[-1].split("## Bifrost", 1)[0]
+        if "CONTEXT_BLOCK.md" not in current_section:
+            errors.append("DOC_AUTHORITY.md does not classify CONTEXT_BLOCK.md as current-state")
+
+    # Historical banners on stale executable documents.
+    banner_required = {
+        "AGENT_DATABASE_BOOTSTRAP.md": "HISTORICAL",
+        "database-plan.md": "HISTORICAL SCHEMA EVIDENCE",
+        "CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md": "HISTORICAL",
+        "Global-memory-and-context-system-revised-2.md": "DO NOT EXECUTE",
+        "docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md": "DO NOT EXECUTE",
+    }
+    for rel, marker in banner_required.items():
+        path = REPO_ROOT / rel
+        if not path.exists():
+            continue
+        head = path.read_text(encoding="utf-8", errors="replace")[:1500]
+        if marker.lower() not in head.lower():
+            errors.append(f"{rel}: missing required banner marker '{marker}' near top of file")
+
+    # CONTEXT_BLOCK.md must be current: no stray opening code fence, no H:-provisioning language.
+    context_block_path = REPO_ROOT / "CONTEXT_BLOCK.md"
+    if context_block_path.exists():
+        text = context_block_path.read_text(encoding="utf-8", errors="replace")
+        if text.lstrip().startswith("```"):
+            errors.append("CONTEXT_BLOCK.md starts with a stray code fence")
+        if "provision H: as" in text:
+            errors.append("CONTEXT_BLOCK.md still contains H:-provisioning language (H: is live)")
+
+    # Wildcard grants must be covered by a documented transitional note.
+    wildcard_servers = [
+        key for key, server in (registry.get("servers") or {}).items()
+        if server.get("permitted_tools") == ["*"]
+    ]
+    if wildcard_servers and "tool_lifecycle_note" not in registry:
+        errors.append(
+            "registry has permitted_tools:['*'] grants without a tool_lifecycle_note transitional exception: "
+            + ", ".join(sorted(wildcard_servers))
+        )
+
+    # Current rule files must not teach retired routes.
+    current_rule_files = [
+        "AGENTS.md",
+        "CLAUDE.md",
+        "rules/canonical/GLOBAL_AGENT_RULES.md",
+        "rules/global-mcp-routing.md",
+        "rules/environment-and-secrets.md",
+        ".cursor/rules/agentcore-env-policy.mdc",
+    ]
+    retired_patterns = [
+        (re.compile(r"DEPWIRE_NO_TELEMETRY\s*=\s*1"), "sets DEPWIRE_NO_TELEMETRY=1"),
+        (re.compile(r"use\s+`?global-memory-gateway`?\s+only", re.IGNORECASE), "mandates retired global-memory-gateway"),
+        (re.compile(r"must\s+use\s+`?global-memory-gateway`?", re.IGNORECASE), "mandates retired global-memory-gateway"),
+    ]
+    for rel in current_rule_files:
+        path = REPO_ROOT / rel
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for pattern, description in retired_patterns:
+            if pattern.search(text):
+                errors.append(f"{rel}: current rule file {description}")
+
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict-master-drift", action="store_true", help="Treat master drift stub notices as errors")
@@ -111,6 +233,7 @@ def main() -> int:
     errors.extend(validate_schema(registry, registry_schema, "registry"))
     errors.extend(validate_schema(gateway, gateway_schema, "gateway-client"))
     errors.extend(semantic_registry_checks(registry))
+    errors.extend(authority_policy_checks(registry))
     notices.extend(stub_master_config_drift())
 
     if notices:
@@ -128,6 +251,7 @@ def main() -> int:
     enabled = [k for k, v in registry["servers"].items() if v.get("enabled")]
     print("OK: registry + gateway-client schemas valid")
     print(f"OK: enabled servers={len(enabled)} disabled/deferred={len(registry['servers']) - len(enabled)}")
+    print("OK: authority + policy contracts valid (hierarchy, banners, wildcard transitional note, rule files)")
     print("OK: master-config drift check stub (no hard failures)")
     return 0
 
