@@ -1,18 +1,29 @@
 # Memory Platform Implementation Handoff — 2026-07-14
 
 **For:** the agent that implements the AgentCore memory/context/database platform.
-**Produced by:** the authority-reconciliation task (branch `task/authority-reconciliation`), which satisfies Milestone **M0 — Authority and Execution Foundation**.
+**Produced by:** the authority-reconciliation task (branch `task/authority-reconciliation`, HEAD commit `935b273`), which satisfies Milestone **M0 — Authority and Execution Foundation**.
 
 ## 1. Exact authority read order (read nothing else first)
 
 1. `PROJECT_ANCHOR.md` — constitution (incl. §0 Bifrost Gateway Override, §0.1 Project Execution Boundaries)
-2. `DOC_AUTHORITY.md` — hierarchy and classification (six levels; nothing overrides the chain)
-3. `CONTEXT_BLOCK.md` — current state and target architecture (PG18 + pgvector + Cognee behind AgentCore adapter; Bifrost composition; drive facts)
-4. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — **your implementation authority**: locked Milestones M0–M8, lossless definition, state-projection model, governance rules
-5. Bifrost contracts and handoff: `contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`, `docs/bifrost/`
-6. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine facts (hardware, drives, installed software, runtime snapshots)
+2. `DOC_AUTHORITY.md` — hierarchy and classification (seven levels; nothing overrides the chain)
+3. `BLUEPRINT.md` — **locked implementation blueprint**: final goal, architecture, drive roles, allocation-unit targets, lossless guarantees, STATE model, Milestone exit criteria (M0–M8), change-control list. Cursor may optimize Macro/Micro steps but may not change locked items without explicit operator approval.
+4. `CONTEXT_BLOCK.md` — current mutable state (where it conflicts with BLUEPRINT.md, BLUEPRINT wins)
+5. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance (derives from BLUEPRINT.md)
+6. Bifrost contracts and handoff: `contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`, `docs/bifrost/`
+7. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine facts (hardware, drives, installed software, runtime snapshots)
 
-Plus for execution mechanics: `docs/agent-policy/` (Milestone entry/exit gates, checklist evidence rules, tool audits) and `MILESTONES.md` (operator's verbatim locked Milestones — evidence for the execution plan).
+Plus for execution mechanics: `docs/agent-policy/` (Milestone entry/exit gates, checklist evidence rules, tool audits) and `MILESTONES.md` + `BLUEPRINT.md` §8 (operator's verbatim locked Milestones — evidence for the execution plan).
+
+## 1a. Key BLUEPRINT.md facts to load immediately (from live evidence 2026-07-14)
+
+- **I: allocation units:** 512 bytes (target: 64KB; I: is empty — correction authorized and planned for M1)
+- **E:, F:, H: allocation units:** already 65536 (64KB) — no format needed
+- **F: used:** ~3.4 GB total (PG16 cluster 172 MB + PG16 binaries 778 MB + Swarm runtime 367 MB); 3722 GB free
+- **H: used:** ~3.9 GB (Bifrost runtime 110 MB binary + DBs + logs); 1857 GB free
+- **PG16 cluster:** stopped (port 55432 not listening); data at `F:\AgentCore\database_cluster`; PG16.6 binaries at `F:\AgentCore\postgres_runtime_engine\pgsql`
+- **No PG18 installer present** — download required in M1
+- **Existing ops:** `ops/Backup-AgentCorePostgres.ps1`, `ops/Start-AgentCorePostgres.ps1`, `ops/Test-AgentCorePostgresRestore.ps1` — already written, use them
 
 ## 2. What M0 established (do not re-litigate)
 

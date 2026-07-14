@@ -136,6 +136,11 @@ def authority_policy_checks(registry: dict[str, Any]) -> list[str]:
     if not plan_path.exists():
         errors.append("docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md missing")
 
+    # BLUEPRINT.md present and classified as current in DOC_AUTHORITY.
+    blueprint_path = REPO_ROOT / "BLUEPRINT.md"
+    if not blueprint_path.exists():
+        errors.append("BLUEPRINT.md missing from repository root")
+
     # DOC_AUTHORITY classification checks.
     doc_authority_path = REPO_ROOT / "DOC_AUTHORITY.md"
     doc_authority = doc_authority_path.read_text(encoding="utf-8") if doc_authority_path.exists() else ""
@@ -154,6 +159,10 @@ def authority_policy_checks(registry: dict[str, Any]) -> list[str]:
         current_section = doc_authority.split("## Current-state", 1)[-1].split("## Bifrost", 1)[0]
         if "CONTEXT_BLOCK.md" not in current_section:
             errors.append("DOC_AUTHORITY.md does not classify CONTEXT_BLOCK.md as current-state")
+        # BLUEPRINT.md must be classified as authoritative-stable.
+        stable_section_full = doc_authority.split("## Authoritative", 1)[-1].split("## Current-state", 1)[0] if "## Authoritative" in doc_authority else ""
+        if "BLUEPRINT.md" not in stable_section_full:
+            errors.append("DOC_AUTHORITY.md does not classify BLUEPRINT.md as authoritative")
 
     # Historical banners on stale executable documents.
     banner_required = {

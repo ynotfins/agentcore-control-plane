@@ -2,11 +2,13 @@
 
 > **STABLE / IMMUTABLE.** This is the non-negotiable project constitution. It contains no temporary rollout status.
 > Do not edit without explicit operator approval.
-> Document hierarchy: see `DOC_AUTHORITY.md`. Memory/database implementation authority: see `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (`database-plan.md` is historical schema evidence only).
+> Document hierarchy: see `DOC_AUTHORITY.md`. Locked implementation blueprint: `BLUEPRINT.md` (level 3 in hierarchy). Memory/database implementation authority: see `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (`database-plan.md` is historical schema evidence only).
 >
 > **Operator approval (2026-07-12):** This constitution edit was explicitly authorized by the Bifrost MCP Gateway cutover task. The previous §0 Native-First Swarm override remains historical for the Swarm ecosystem only; it is superseded below for **non-Swarm IDEs**.
 >
 > **Operator approval (2026-07-14):** The authority reconciliation task was explicitly authorized to add §0.1 (Project Execution Boundaries) and repoint the schema-design reference to the memory-platform execution plan.
+>
+> **Operator approval (2026-07-14):** `BLUEPRINT.md` was added as the locked implementation blueprint at hierarchy level 3. BLUEPRINT.md governs final architecture, storage roles, allocation-unit targets, lossless memory guarantees, STATE.md behavior, Cognee/Mem0 decision, Bifrost identities, Swarm isolation, and locked Milestones M0–M8 exit criteria.
 
 ---
 

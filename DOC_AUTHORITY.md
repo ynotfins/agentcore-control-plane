@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-14 (authority reconciliation: one hierarchy, memory-platform execution authority)
+**Updated:** 2026-07-14 (BLUEPRINT.md installed as locked implementation authority at hierarchy level 3)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -13,10 +13,11 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 
 1. `PROJECT_ANCHOR.md` — stable constitution and non-negotiable boundaries
 2. `DOC_AUTHORITY.md` — this file: exact read order and classification
-3. `CONTEXT_BLOCK.md` — current mutable system state and current memory-platform target architecture
-4. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — implementation authority for the upcoming memory/context/database build (locked Milestones M0–M8)
-5. Current Bifrost contracts, runbooks, and handoff (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`)
-6. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine-fact authority (hardware, drives, installed software, runtime snapshots)
+3. `BLUEPRINT.md` — locked goal, architecture, storage roles, lossless guarantees, and Milestone exit criteria (operator-approved; change requires explicit approval)
+4. `CONTEXT_BLOCK.md` — current mutable system state and implementation progress
+5. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance (derives from BLUEPRINT.md; BLUEPRINT wins on conflicts)
+6. Current Bifrost contracts, runbooks, and handoff (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`)
+7. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine-fact authority (hardware, drives, installed software, runtime snapshots)
 
 No other root or docs file may silently override this chain. If a document conflicts with a higher level, the higher level wins and the document must be reconciled or reclassified.
 
@@ -30,15 +31,16 @@ No other root or docs file may silently override this chain. If a document confl
 
 1. `PROJECT_ANCHOR.md` — immutable project constitution (includes Bifrost Gateway Override §0)
 2. `DOC_AUTHORITY.md` — this hierarchy
-3. `CONTEXT_BLOCK.md` — current system state + memory-platform target architecture
-4. `contracts/bifrost-upstream-mcp-registry.json` — canonical upstream MCP registry
-5. `contracts/agentcore-gateway-client.json` — single IDE gateway client contract
-6. `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` — Bifrost cutover handoff
-7. `MASTER_CONFIG_AND_PROMPT.md` — root setup guide with embedded reusable IDE prompt
+3. `BLUEPRINT.md` — locked architecture, storage roles, lossless guarantees, Milestone exit criteria
+4. `CONTEXT_BLOCK.md` — current system state + implementation progress
+5. `contracts/bifrost-upstream-mcp-registry.json` — canonical upstream MCP registry
+6. `contracts/agentcore-gateway-client.json` — single IDE gateway client contract
+7. `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` — Bifrost cutover handoff
+8. `MASTER_CONFIG_AND_PROMPT.md` — root setup guide with embedded reusable IDE prompt
 
 **For memory/context/database work, additionally attach:**
 
-- `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — the implementation authority (locked Milestones)
+- `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance
 - `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` — implementation handoff
 
 **Add as needed:**
@@ -60,7 +62,8 @@ No other root or docs file may silently override this chain. If a document confl
 | File | Purpose |
 | -- | -- |
 | `PROJECT_ANCHOR.md` | Immutable constitution: Bifrost gateway override, drives (incl. H/I/J), endpoints, memory path, baseline, forbidden routes |
-| `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` | Implementation authority for the memory/context/database build (locked Milestones M0–M8, lossless guarantees, state projections) |
+| `BLUEPRINT.md` | **Locked implementation blueprint** — final goal, architecture, drive roles, allocation-unit targets, lossless guarantees, STATE model, Milestone exit criteria (M0–M8), tool policy, security boundaries, change-control list. Operator-approved; Cursor may not change locked items without explicit approval. |
+| `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` | Detailed Milestone execution guidance; derives from BLUEPRINT.md; BLUEPRINT wins on conflicts |
 | `docs/agent-policy/*.md` | Global New Project Bootstrap, Milestone execution, checklist, tool-lifecycle, and read-order policy |
 | `contracts/global-agent-policy.yaml` | Canonical machine-readable semantic agent policy (source for per-IDE rule profiles) |
 | `MASTER_CONFIG_AND_PROMPT.md` | Controlling IDE MCP/rules setup after Bifrost rebuild |

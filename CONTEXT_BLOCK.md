@@ -1,18 +1,19 @@
 ---
 document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
-authority: current-state-and-target-architecture (level 3 in DOC_AUTHORITY.md hierarchy)
+authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
 verified_at: 2026-07-14
 canonical_repository: D:\github\agentcore-control-plane
+locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
 ---
 
 # AgentCore Canonical Context Block
 
-Read this file before planning, implementing, reviewing, or operating the AgentCore memory platform.
+Read `BLUEPRINT.md` before this file. BLUEPRINT.md is the locked implementation authority (architecture, storage roles, lossless guarantees, Milestone exit criteria). This file records current mutable state and implementation progress. Where this file's decisions conflict with BLUEPRINT.md, BLUEPRINT.md wins.
 
-This file defines the current target architecture. Older plans, reports, prompts, rules, and generated renderers are evidence only until they have been reconciled against this file and the live machine.
+Older plans, reports, prompts, rules, and generated renderers are evidence only until they have been reconciled against BLUEPRINT.md and the live machine.
 
 ## 0. Status language
 
@@ -686,11 +687,7 @@ compiler caches
 non-canonical scratch
 ```
 
-The filesystem is not yet a hard fact.
-
-Evaluate a ReFS Dev Drive using the actual Git, Node, pnpm/npm, Python/uv, Java, Serena, backup, antivirus, and build workflows.
-
-If every compatibility test passes, use ReFS Dev Drive. Otherwise use NTFS 4 KB.
+**BLUEPRINT.md §4 supersedes the ReFS evaluation above.** The target for I: is NTFS with 64 KB allocation units. Live evidence (2026-07-14): I: is currently NTFS with 512-byte allocation units and is empty — correction is authorized by BLUEPRINT.md §4. ReFS Dev Drive evaluation is deferred; the M1 storage step corrects I: to NTFS/64KB.
 
 Do not put PostgreSQL, Cognee canonical data, WAL, LangGraph checkpoints, or the only copy of any artifact on I:.
 
@@ -1038,8 +1035,8 @@ Stop and request operator review if:
 
 - The exact current filesystem, allocation unit, free space, BitLocker state, and health of every drive.
 - The exact active PostgreSQL 16 state and cause of prior process termination.
-- The final I: data inventory before any I: filesystem change (H: is live and must never be formatted).
-- Whether I: passes all ReFS Dev Drive compatibility tests.
+- I: allocation-unit correction (512B → 64KB) is authorized by BLUEPRINT.md §4; I: is confirmed empty (2026-07-14 live check); execution is part of M1.
+- H: is live with Bifrost runtime and must never be formatted; its allocation unit is already 64KB (verified 2026-07-14).
 - The distinct value and final disposition of `context-fabric`.
 - The lifecycle hooks available in each IDE and the measured capture percentage.
 - The final localhost port allocation from the existing port registry.

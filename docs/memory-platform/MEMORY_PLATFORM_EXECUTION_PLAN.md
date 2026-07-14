@@ -1,8 +1,8 @@
 # Memory Platform Execution Plan — Locked Milestones
 
-**Authority level:** 4 (see `DOC_AUTHORITY.md`). Implementation authority for the AgentCore memory/context/database build.
-**Status:** locked (operator-approved 2026-07-14). Source: operator-authored `MILESTONES.md` (root, preserved as evidence).
-**Prerequisite reads:** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `CONTEXT_BLOCK.md` → this file.
+**Authority level:** 5 (see `DOC_AUTHORITY.md`). Detailed Milestone execution guidance; derives from `BLUEPRINT.md` (level 3). Where they conflict, BLUEPRINT.md wins.
+**Status:** locked (operator-approved 2026-07-14). Lock source: `BLUEPRINT.md` §8 (locked Milestones). Also: `MILESTONES.md` (root, verbatim evidence).
+**Prerequisite reads:** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → this file.
 **Handoff:** `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md`
 
 ---
@@ -61,47 +61,66 @@ C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
 
 **Purpose (locked):** Every agent sees one accurate architecture and execution policy.
 
-**Exit criteria (locked):**
+**Exit criteria (locked — from BLUEPRINT.md §8 M0):**
 - One authoritative read order.
-- Stale Swarm-first and old database instructions neutralized.
+- Stale Swarm-first, old database, old storage, and direct-MCP instructions neutralized.
 - Current machine authority referenced.
-- Per-IDE global-rule profiles created.
+- `BLUEPRINT.md` classified as current in DOC_AUTHORITY.md.
 - New Project, Milestone, Macro/Micro, checklist, Context Fabric, Arabold, and tool-audit policies established.
-- This exact memory-platform Milestone plan is the execution authority.
-- No live memory/database implementation begins in M0.
+- Per-IDE global-rule profiles generated from one canonical semantic policy.
+- Memory implementation handoff identifies the exact branch, commit, worktree, and authority read list.
+- No live memory/database build occurs during M0.
 
-**Acceptance tests:** repo validators pass (`scripts/bifrost/validate_contracts.py`, `scripts/bifrost/test_contracts.py`, `validators/validate-control-plane.ps1 -DryRun`); no current-classified document teaches Swarm-first memory, direct IDE SQL, or `global-memory-gateway` as the final identity; `ide-profiles/` exists with editability declared per IDE.
+**Acceptance tests:** repo validators pass (`scripts/bifrost/validate_contracts.py`, `scripts/bifrost/test_contracts.py`, `validators/validate-control-plane.ps1 -DryRun`); `BLUEPRINT.md` appears in DOC_AUTHORITY.md under Authoritative — stable; no current-classified document teaches Swarm-first memory, direct IDE SQL, or `global-memory-gateway` as the final identity; `ide-profiles/` exists with editability declared per IDE.
 
 **Rollback point:** commit `65d741f` (inherited-state checkpoint) on `task/authority-reconciliation`.
 
-**Required evidence:** `audits/AUTHORITY_RECONCILIATION_MATRIX_2026-07-14.md`, `audits/VALIDATION_REPORT_2026-07-14.md`, the pushed task branch.
+**Required evidence:** `audits/AUTHORITY_RECONCILIATION_MATRIX_2026-07-14.md`, `audits/VALIDATION_REPORT_2026-07-14.md`, the pushed task branch (HEAD `935b273` + BLUEPRINT.md install commit).
 
-**Dependencies:** none. **Satisfied by the authority-reconciliation task (this task).**
+**Dependencies:** none. **Satisfied by the authority-reconciliation task (this commit).**
 
 ---
 
-## M1 — PostgreSQL 18 Safety Foundation
+## M1 — Storage and PostgreSQL 18 Safety Foundation
 
-**Purpose (locked):** A recoverable PostgreSQL 18 + pgvector platform exists beside the preserved old cluster.
+**Purpose (locked):** Correct storage foundations and a recoverable PostgreSQL 18 + pgvector platform exist beside the preserved prior cluster. (Source: `BLUEPRINT.md` §8 M1)
 
-**Exit criteria (locked):**
-- Existing cluster inventory completed.
+**Exit criteria (locked — from BLUEPRINT.md §8 M1):**
+- E:, F:, H:, and I: allocation units verified.
+- Any mismatched target is safely corrected with backup, hash verification, restore, and service validation.
+- Existing PostgreSQL cluster and roles inventoried.
 - Logical and physical backups created.
-- At least one restore test passes.
+- At least one isolated restore test passes.
 - PostgreSQL 18 and compatible pgvector run on F:.
 - Required databases and least-privilege service roles exist.
-- Old PostgreSQL installation remains recoverable.
+- Old PostgreSQL cluster remains preserved and recoverable.
 - Rollback is proven.
+- No durable database, WAL, checkpoint, queue, or lock workload is placed on I: or E:.
 
-**Acceptance tests:** restore a logical backup into a disposable database and verify row counts/hashes; PG18 service starts under native Windows lifecycle ownership; `CREATE EXTENSION vector` succeeds; role matrix (`agentcore_read/ingest/worker/admin/backup/cognee`) verified with negative permission tests; old PG16 cluster still starts.
+**Live storage state (2026-07-14 evidence):**
+- E:, F:, H: already 65536-byte (64KB) allocation units — verified, no correction needed
+- I: has 512-byte allocation units, is **empty** — correction to NTFS/64KB is authorized and safe
+- F: PG16 cluster stopped (155,432 not listening); 3722 GB free beside ~3.4 GB used content
 
-**Rollback point:** PG16 cluster untouched at `F:\AgentCore\database_cluster` (port 55432) + verified backups on E: and G:. PG18 uses a **new data directory**; never point PG18 at the PG16 data directory.
+**Acceptance tests:** I: formatted and service health verified; restore a logical backup into a disposable database and verify row counts/hashes; PG18 service starts under native Windows lifecycle ownership; `CREATE EXTENSION vector` succeeds; role matrix (`agentcore_read/ingest/worker/admin/backup/cognee`) verified with negative permission tests; old PG16 cluster still starts; no workload on I: or E:.
 
-**Required evidence:** backup manifests with hashes, restore-test transcript, service configuration, role grants dump (no credentials).
+**Rollback point:** pre-format manifests/backups and PG16 cluster untouched at `F:\AgentCore\database_cluster`. PG18 uses a **new data directory** on F:; never point PG18 at the PG16 data directory.
+
+**Required evidence:** allocation-unit verification report, I: format manifest with hash (empty — no data to preserve), backup manifests with hashes, restore-test transcript, service configuration, role grants dump (no credentials).
 
 **Dependencies:** M0.
 
-**Macro guidance:** inventory → backup → restore-test → install PG18 side-by-side on F: → build/install pgvector for PG18 → create `agent_core` (new) and roles → prove rollback. Exact PG18 minor version and pgvector build verified via Arabold at execution time (CONTEXT_BLOCK baseline: PG 18.4, pgvector 0.8.5).
+**Macro guidance (refined from live evidence — see M1 execution plan below):**
+1. Verify and record allocation units for all four drives (E:, F:, H:, I:) — three already correct, I: needs correction
+2. Quick-format I: to NTFS/64KB (I: confirmed empty; no data at risk; physical disk identity verified first per BLUEPRINT §4)
+3. Bring PG16 online and inventory databases/roles/schemas
+4. Logical backup (`pg_dump`) via existing `ops/Backup-AgentCorePostgres.ps1` to E: and G:
+5. Physical backup (`pg_basebackup`) to E:\AgentCoreArchive
+6. Restore test into isolated disposable instance
+7. Download and install PG18 to new directory on F: (e.g., `F:\PostgreSQL18`) — port 55433 during parallel operation
+8. Build/install pgvector for PG18 — exact version via Arabold at execution time
+9. Create `agent_core` (new), `cognee_core` databases; create roles with least-privilege grants
+10. Prove rollback: PG16 still starts; PG18 service can be removed without affecting PG16
 
 ---
 

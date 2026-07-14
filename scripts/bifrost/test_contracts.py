@@ -94,6 +94,16 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001
         check("template:checklist state items", False, str(exc)[:200])
 
+    # --- BLUEPRINT.md present and referenced ---
+    blueprint = read("BLUEPRINT.md")
+    check("blueprint:exists", bool(blueprint))
+    check("blueprint:locked-milestones", "## M0" in blueprint and "## M8" in blueprint)
+    check("blueprint:lossless", "Lossless" in blueprint or "lossless" in blueprint)
+    check("blueprint:no-mem0", "Mem0 is not installed" in blueprint or "Do not install Mem0" in blueprint)
+    doc_auth = read("DOC_AUTHORITY.md")
+    stable_chunk = doc_auth.split("## Authoritative")[1].split("## Current-state")[0] if "## Authoritative" in doc_auth and "## Current-state" in doc_auth else ""
+    check("blueprint:classified-current", "BLUEPRINT.md" in stable_chunk)
+
     # --- memory-platform authority ---
     plan = read("docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md")
     check("plan:exists", bool(plan))
