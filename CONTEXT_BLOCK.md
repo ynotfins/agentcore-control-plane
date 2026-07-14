@@ -1,13 +1,11 @@
-```
 ---
 document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
-authority: canonical-target-architecture
-status: planning-anchor
-verified_at: 2026-07-12
+authority: current-state-and-target-architecture (level 3 in DOC_AUTHORITY.md hierarchy)
+status: current
+verified_at: 2026-07-14
 canonical_repository: D:\github\agentcore-control-plane
-implementation_branch: ai/global-memory-platform-v1
-alternate_git_worktree: D:\AgentSwarm\runs\agentcore-memory-v1\worktree
+implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
 ---
 
 # AgentCore Canonical Context Block
@@ -57,7 +55,9 @@ ai/global-memory-platform-v1
 
 All implementation must remain in `agentcore-control-plane`.
 
-Use the isolated worktree for the feature branch unless the operator explicitly changes the active checkout. Do not independently edit both the main checkout and the feature worktree.
+Use an isolated worktree for feature-branch implementation unless the operator explicitly changes the active checkout. Do not independently edit both the main checkout and a feature worktree.
+
+The authority reconciliation (2026-07-14) was performed on branch `task/authority-reconciliation` in the main checkout. The memory-platform build follows `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` and the handoff in `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md`; the pre-existing `ai/global-memory-platform-v1` worktree at `D:\AgentSwarm\runs\agentcore-memory-v1\worktree` predates the locked Milestones and must be reconciled against them before reuse.
 
 The prior plans below are not authoritative because they contain stale drive facts and/or incorrectly make Swarm components part of AgentCore:
 
@@ -123,19 +123,31 @@ Claude Code / approved MCP clients / LangGraph workflows
      hot spool/scratch            cold immutable/archive
 ```
 
+### ADOPTED DECISION — Bifrost composition (completed cutover)
+
+The Bifrost MCP Gateway cutover is **complete and live**. The stable IDE-facing MCP path for every non-Swarm IDE is:
+
+```text
+IDE agent
+  -> agentcore-gateway (Bifrost, http://127.0.0.1:8080/mcp, Bearer ${env:BIFROST_MCP_VIRTUAL_KEY})
+  -> agentcore-memory  (stable Bifrost upstream identity)
+```
+
+The AgentCore memory system is exposed to IDEs **through** the existing `agentcore-memory` Bifrost upstream. The "thin MCP stdio bridge" in the diagram above is the `agentcore-memory` stdio server registered behind Bifrost — it is not a new per-IDE MCP entry. IDEs keep exactly one `agentcore-gateway` entry; no IDE configuration change is required when the memory platform lands (Milestone M4 exit criterion).
+
 ### ADOPTED DECISION
 
 Normal IDEs do not connect directly to PostgreSQL or Cognee.
 
 Normal IDEs use one AgentCore-owned contract exposed through:
 
-- a thin MCP stdio bridge;
+- the `agentcore-memory` upstream behind `agentcore-gateway` (the normal IDE path);
 - a local AgentCore client/SDK;
 - a localhost API for LangGraph, Cognigent, diagnostics, and administration.
 
 MCP is a transport, not the source of truth.
 
-A persistent AgentCore daemon owns business logic and the governed write path. Per-IDE stdio processes contain transport logic only.
+A persistent AgentCore daemon owns business logic and the governed write path. Per-IDE transport processes contain transport logic only.
 
 A durable AgentCore worker owns background jobs. It does not replace the synchronous hard-threshold context path.
 
@@ -635,22 +647,15 @@ G: is not a live database, vector index, context store, or runtime tier.
 
 H: is the internal 2 TB Crucial P5 Plus NVMe installed through the PCIe expansion path.
 
-### GATED DECISION
+**VERIFIED FACT — 2026-07-14 (supersedes any provisioning language)**
 
-After a fresh inventory, dependency scan, data migration, and explicit approval, provision H: as:
+H: is **already provisioned and live**. It hosts the running Bifrost MCP Gateway at `H:\AgentRuntime\bifrost` (binary, config, sqlite stores, logs, state) and Tentra data at `H:\AgentRuntime\tentra\data`. **H: must never be formatted, re-provisioned, or repartitioned.** Any earlier "provision H:" instruction is void.
 
-```text
-label: AgentRuntime
-filesystem: NTFS
-allocation unit: 4096 bytes
-```
+### ADOPTED DECISION
 
-Use H: for:
+Additional AgentCore runtime directories are created alongside the existing runtime (no formatting, no relocation of the live Bifrost runtime):
 
 ```text
-H:\AgentRuntime\docker\
-H:\AgentRuntime\models\
-H:\AgentRuntime\model-cache\
 H:\AgentRuntime\artifact-hot\
 H:\AgentRuntime\context-scratch\
 H:\AgentRuntime\compaction-scratch\
@@ -658,7 +663,7 @@ H:\AgentRuntime\service-logs\
 H:\AgentRuntime\temporary-indexes\
 ```
 
-Move Docker Desktop's disk image with Docker Desktop's supported relocation mechanism. Do not manually copy a live VHDX and do not confuse Docker Engine `data-root` with Docker Desktop disk-image location.
+Docker Desktop relocation to H: is **not** part of the memory platform (no Docker/WSL dependency for the core platform). Any Docker relocation is a separate operator-approved task.
 
 H: contains no sole canonical copy of durable memory.
 
@@ -1033,7 +1038,7 @@ Stop and request operator review if:
 
 - The exact current filesystem, allocation unit, free space, BitLocker state, and health of every drive.
 - The exact active PostgreSQL 16 state and cause of prior process termination.
-- The final H: and I: data inventory before formatting.
+- The final I: data inventory before any I: filesystem change (H: is live and must never be formatted).
 - Whether I: passes all ReFS Dev Drive compatibility tests.
 - The distinct value and final disposition of `context-fabric`.
 - The lifecycle hooks available in each IDE and the measured capture percentage.
@@ -1043,5 +1048,4 @@ Stop and request operator review if:
 - The off-machine/cloud backup target beyond E: and G:.
 
 These are explicit work items. They must not be filled with assumptions.
-```
 

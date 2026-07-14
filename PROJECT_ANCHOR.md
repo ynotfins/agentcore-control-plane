@@ -2,9 +2,11 @@
 
 > **STABLE / IMMUTABLE.** This is the non-negotiable project constitution. It contains no temporary rollout status.
 > Do not edit without explicit operator approval.
-> Document hierarchy: see `DOC_AUTHORITY.md`. Schema/gateway design: see `database-plan.md`.
+> Document hierarchy: see `DOC_AUTHORITY.md`. Memory/database implementation authority: see `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (`database-plan.md` is historical schema evidence only).
 >
 > **Operator approval (2026-07-12):** This constitution edit was explicitly authorized by the Bifrost MCP Gateway cutover task. The previous §0 Native-First Swarm override remains historical for the Swarm ecosystem only; it is superseded below for **non-Swarm IDEs**.
+>
+> **Operator approval (2026-07-14):** The authority reconciliation task was explicitly authorized to add §0.1 (Project Execution Boundaries) and repoint the schema-design reference to the memory-platform execution plan.
 
 ---
 
@@ -32,6 +34,17 @@
 > The 2026-07-01 Native-First Swarm override (former §0) is **superseded for non-Swarm IDEs** by this section. It may still describe Swarm-product-local behavior inside the Swarm ecosystem, but it is not the mandatory MCP baseline for Cursor, Codex, Claude Code/Desktop, MiniMax, Mavis, Antigravity, or Open Interpreter.
 >
 > The Go SDK experiment under `experiments/bifrost-go-sdk-smoke/` is **not** the workstation MCP gateway.
+
+---
+
+## 0.1 Project Execution Boundaries (2026-07-14, operator-approved)
+
+Non-negotiable invariants for every managed project:
+
+1. **Milestone governance.** New projects use Milestones (outcome boundaries), Macro steps, Micro steps, strict checklists, evidence-backed completion, project context checkpoints, and Milestone tool audits. Policy: `docs/agent-policy/`.
+2. **Progressive tool disclosure.** All approved tools remain available for activation, but only the tools needed for the current project and current Milestone are actively exposed to the model. A project begins with a safe Bootstrap profile, never with unrestricted administrative or destructive authority. The full builder catalog must not remain permanently loaded into every model turn.
+3. **Milestone-gated capability leases.** Tools outside the current Milestone's active set are activated through audited, expiring leases. Runtime lease enforcement is implemented by the memory platform (PostgreSQL-backed, Milestone M6 of `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`); until then the tool manifest records policy and desired state only.
+4. **Hardcoded standards.** The operating model in `docs/agent-policy/` and `contracts/global-agent-policy.yaml` is source-controlled authority; per-IDE rule renderings under `ide-profiles/` derive from it and may not contradict it.
 
 ---
 

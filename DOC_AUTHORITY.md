@@ -3,9 +3,24 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-14 (Bifrost runtime repair + Cursor global cutover)
+**Updated:** 2026-07-14 (authority reconciliation: one hierarchy, memory-platform execution authority)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
+
+---
+
+## Authority hierarchy (one chain; nothing else overrides it)
+
+1. `PROJECT_ANCHOR.md` — stable constitution and non-negotiable boundaries
+2. `DOC_AUTHORITY.md` — this file: exact read order and classification
+3. `CONTEXT_BLOCK.md` — current mutable system state and current memory-platform target architecture
+4. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — implementation authority for the upcoming memory/context/database build (locked Milestones M0–M8)
+5. Current Bifrost contracts, runbooks, and handoff (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`)
+6. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine-fact authority (hardware, drives, installed software, runtime snapshots)
+
+No other root or docs file may silently override this chain. If a document conflicts with a higher level, the higher level wins and the document must be reconciled or reclassified.
+
+`D:\github\memory-context-database` contains supporting corpus/template planning (`DOCS_PLAN.md`, `DEPWIRE.md`) — it is **not** the controlling memory architecture.
 
 ---
 
@@ -15,18 +30,24 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 
 1. `PROJECT_ANCHOR.md` — immutable project constitution (includes Bifrost Gateway Override §0)
 2. `DOC_AUTHORITY.md` — this hierarchy
-3. `contracts/bifrost-upstream-mcp-registry.json` — canonical upstream MCP registry
-4. `contracts/agentcore-gateway-client.json` — single IDE gateway client contract
-5. `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` — Bifrost cutover handoff
-6. `MASTER_CONFIG_AND_PROMPT.md` — root setup guide with embedded reusable IDE prompt
-7. `docs/prompts/install-agentcore-gateway-in-ide.md` — standalone reusable IDE install prompt
+3. `CONTEXT_BLOCK.md` — current system state + memory-platform target architecture
+4. `contracts/bifrost-upstream-mcp-registry.json` — canonical upstream MCP registry
+5. `contracts/agentcore-gateway-client.json` — single IDE gateway client contract
+6. `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` — Bifrost cutover handoff
+7. `MASTER_CONFIG_AND_PROMPT.md` — root setup guide with embedded reusable IDE prompt
+
+**For memory/context/database work, additionally attach:**
+
+- `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — the implementation authority (locked Milestones)
+- `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` — implementation handoff
 
 **Add as needed:**
 
+- `docs/agent-policy/` — global New Project / Milestone / checklist / tool-lifecycle policy
+- `docs/prompts/install-agentcore-gateway-in-ide.md` — standalone reusable IDE install prompt
 - `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md` — deployment ADR
 - `docs/adr/ADR-2026-07-12-configuration-source-of-truth.md` — config authority ADR
 - `docs/bifrost/` — classification matrix, profiles, Tentra, Depwire, migration/rollback runbooks
-- `database-plan.md` — schema/gateway design (DB platform; does not authorize live DDL)
 - `docs/evidence/PC-Master-Hardware-Software-Specs.md` — hardware/software facts
 - `SECURITY.md` — secret/security policy
 - `artifacts/bifrost-gateway-cutover-2026-07-12/` — cutover evidence / backup manifest
@@ -39,13 +60,15 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 | File | Purpose |
 | -- | -- |
 | `PROJECT_ANCHOR.md` | Immutable constitution: Bifrost gateway override, drives (incl. H/I/J), endpoints, memory path, baseline, forbidden routes |
+| `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` | Implementation authority for the memory/context/database build (locked Milestones M0–M8, lossless guarantees, state projections) |
+| `docs/agent-policy/*.md` | Global New Project Bootstrap, Milestone execution, checklist, tool-lifecycle, and read-order policy |
+| `contracts/global-agent-policy.yaml` | Canonical machine-readable semantic agent policy (source for per-IDE rule profiles) |
 | `MASTER_CONFIG_AND_PROMPT.md` | Controlling IDE MCP/rules setup after Bifrost rebuild |
 | `contracts/bifrost-upstream-mcp-registry.json` | Canonical upstream MCP servers + capability profiles |
 | `contracts/agentcore-gateway-client.json` | Single `agentcore-gateway` client connection contract |
 | `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md` | Why native Windows Bifrost Gateway, H: runtime, auth, pin |
 | `docs/adr/ADR-2026-07-12-configuration-source-of-truth.md` | Contracts → renderer → H: live config; IDEs get gateway entry only |
 | `docs/bifrost/*.md` | Classification, profiles, Tentra local mode, Depwire reconciliation, migration/rollback |
-| `database-plan.md` | Finalized schema/gateway design spec (does not authorize live DDL) |
 | `SECURITY.md` | Secret and security policy |
 | `AGENTS.md` | Source-controlled agent operating contract |
 
@@ -53,14 +76,17 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 
 | File | Purpose |
 | -- | -- |
+| `CONTEXT_BLOCK.md` | Current mutable system state and memory-platform target architecture (rewritten 2026-07-12; PG18 + pgvector + Cognee behind AgentCore adapter) |
 | `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` | Primary Bifrost gateway handoff |
+| `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` | Handoff for the memory-platform implementation agent |
 | `ops/bifrost/evidence/20260714-0204-runtime-repair/RUNTIME_REPAIR_EVIDENCE.md` | Current runtime repair evidence: scheduled task owner, MCP validation, Cursor MCP_DOCKER removal |
 | `artifacts/bifrost-gateway-cutover-2026-07-12/` | Cutover backups, hashes, evidence |
 | `ops/bifrost/` | Install/start/stop/test/backup/restore/cutover scripts |
 | `renderers/gateway-clients/` | Per-IDE sanitized gateway-only renderers |
 | `renderers/bifrost/` | Sanitized Bifrost config render output |
+| `ide-profiles/` | Source-controlled per-IDE global-rule profiles and capability matrix |
 
-Supporting contracts/scripts: `contracts/schemas/*`, `scripts/bifrost/`, `scripts/project_router/`, `scripts/agentcore_memory/`, `docs/GIT_PUSH_ONLY_POLICY.md`, `validators/`, `AGENT_DATABASE_BOOTSTRAP.md`.
+Supporting contracts/scripts: `contracts/schemas/*`, `scripts/bifrost/`, `scripts/project_router/`, `scripts/agentcore_memory/`, `docs/GIT_PUSH_ONLY_POLICY.md`, `validators/`, `templates/project-governance/`.
 
 ## Bifrost / upstream docs (Arabold-indexed)
 
@@ -109,13 +135,20 @@ Evidence: `artifacts/bifrost-gateway-cutover-2026-07-12/ARABOLD_DOCS_CROSSREF_20
 | -- | -- |
 | Former `PROJECT_ANCHOR` §0 Native-First Swarm override as **mandatory IDE baseline** | Superseded for non-Swarm IDEs by Bifrost Gateway Override (2026-07-12) |
 | Swarm-first mandatory MCP baseline (swarmrecall + swarmvault in every IDE) | Superseded for non-Swarm IDEs; Swarm remains a separate ecosystem |
-| `CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md` as primary attach for **gateway** work | Historical Swarm rollout state; use Bifrost handoff for gateway cutover |
-| `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md` | Swarm rollout handoff; not Bifrost gateway authority |
+| `database-plan.md` | **Historical schema evidence only.** 2026-06-30 PG16.6/Swarm-era design; replaced as implementation authority by `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`. Do not implement its schema, tool names, or Swarm memory planes. |
+| `AGENT_DATABASE_BOOTSTRAP.md` | Historical PG16.6/Swarm-era database bootstrap (memory_append tools, `F:\AgentCore\agents_workspace` roots). Memory work reads the memory-platform execution plan instead. |
+| `Global-memory-and-context-system-revised-2.md` | Research input that fed `CONTEXT_BLOCK.md`; wrong hardware/drive facts; its embedded "Memory Broker" prompt must never be executed. |
+| `CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md` | Frozen Swarm rollout status; Swarm-first baseline is not current non-Swarm policy |
+| `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md` | Swarm rollout handoff; its P1–P9 phases must not be executed |
+| `docs/RESTART_HANDOFF_20260626_AGENTCORE_FINAL_LEG.md` | Pre-Bifrost memory routing snapshot |
 | Direct per-IDE full-server MCP blocks in older `MASTER_CONFIG_AND_PROMPT.md` | Moved to historical appendix; normal architecture is single gateway entry |
 | `contracts/master-mcp-server-config.json`, `scripts/mcp_control_plane.py`, and legacy root `renderers/*.json` | Superseded for non-Swarm IDE setup by Bifrost contracts, `scripts/bifrost/render_bifrost_config.py`, and `renderers/gateway-clients/` |
 | `docs/prompts/*-cleanup-prompt.md` direct-server/Swarm cleanup instructions | Remediation references only; normal non-Swarm IDE setup uses `install-agentcore-gateway-in-ide.md` / embedded master prompt |
 | `global-memory-gateway` as IDE default memory route | Retired from mandatory baseline; non-Swarm path is `agentcore-memory` via gateway |
-| `ECOSYSTEM_ARCHITECTURE.md`, `CLEANUP_AUDIT.md`, `COMPLETION_REPORT.md`, `VALIDATION_REPORT.md`, `CONTEXT_BLOCK.md` | Pre-2026-06-30 / `D:\MCP-Control-Plane` era |
+| `ECOSYSTEM_ARCHITECTURE.md`, `CLEANUP_AUDIT.md`, `COMPLETION_REPORT.md`, `VALIDATION_REPORT.md` | Pre-2026-06-30 / `D:\MCP-Control-Plane` era |
+| `reports/` (memory-architecture research pack) | Pre-decision research evidence; decisions locked in `CONTEXT_BLOCK.md` + `MILESTONES.md` |
+
+> **Note:** `CONTEXT_BLOCK.md` was fully rewritten on 2026-07-12 and is now **current** (see Current-state table above). Only its pre-2026-06-30 content is historical.
 
 All historical docs must not be run as instructions without current operator approval.
 
@@ -128,7 +161,8 @@ All historical docs must not be run as instructions without current operator app
 - Requiring SwarmRecall/SwarmVault/SwarmClaw MCP in non-Swarm IDE configs
 - Pasting the full upstream registry into each IDE instead of `agentcore-gateway`
 - `agentcore_*` target gateway tools that do not exist yet (beyond current `agentcore-memory` / project-router surfaces)
-- DB migration apply without the full gates in `database-plan.md`
+- DB migration apply / live DDL outside the gates in `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (M1 backup/restore-test gates)
+- Treating `database-plan.md` or `AGENT_DATABASE_BOOTSTRAP.md` as current database instructions
 - Direct writes to `F:\AgentCore\database_cluster`, `F:\AgentCore\agentmemory`, or the active Obsidian vault
 - Direct edits to live IDE configs under `C:\Users\ynotf\.*` without backup + approved prompt/ops
 - `:65432` as an active runtime route
@@ -138,7 +172,8 @@ All historical docs must not be run as instructions without current operator app
 
 ## Current blockers (require explicit operator approval or follow-on work)
 
-- Full memory platform behind stable `agentcore-memory` identity (may currently report degraded)
+- Full memory platform behind stable `agentcore-memory` identity (may currently report degraded); build per `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` Milestones M1–M8
 - `depwire-cloud` and `github-mcp` remain deferred/`enabled=false` until healthy verification
-- DB migration apply: backup + dry-run + operator sign-off
+- DB migration apply: backup + dry-run + operator sign-off (M1 gates)
 - Live IDE cutover completion evidence per client (see Bifrost handoff / artifacts)
+- Registry `permitted_tools: ["*"]` wildcard grants are **transitional**: named-tool profiles and runtime leases arrive with memory-platform M6 (PostgreSQL-backed progressive tool disclosure)
