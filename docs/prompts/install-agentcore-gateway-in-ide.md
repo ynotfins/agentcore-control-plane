@@ -31,7 +31,7 @@ or `<repo>\.mcp.json`; project identity is selected through `agentcore_project_r
 
 4. **Preserve unrelated settings.** Keep model, auth, sandbox, context-window, profile, theme, and non-MCP application settings untouched.
 
-5. **Remove old direct baseline MCP entries after backup.** Remove direct entries for servers that now live behind Bifrost. Remove SwarmRecall/SwarmVault from this non-Swarm IDE. Keep only explicitly allowed side entries (e.g. Cursor may keep `MCP_DOCKER`).
+5. **Remove old direct baseline MCP entries after backup.** Remove direct entries for servers that now live behind Bifrost. Remove SwarmRecall/SwarmVault from this non-Swarm IDE. For Cursor, remove `MCP_DOCKER` unless there is a current operator-approved exception for a unique capability that cannot be served through Bifrost.
 
 6. **Add only `agentcore-gateway`.** Use the schema-correct block from `docs/bifrost/UNIFIED_GATEWAY_SETUP.md` or `renderers/gateway-clients/<ide>.json`.
 

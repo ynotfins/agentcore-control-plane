@@ -31,7 +31,10 @@ If tools are missing / status is error:
 3. **Fully quit Cursor** (all windows + tray) and relaunch so `${env:BIFROST_MCP_VIRTUAL_KEY}` expands. Cursor started before the VK was created will get empty Bearer → 401 → discovery failure.
 4. After relaunch, MCP tools should be prefixed like `arabold_docs-*`, `depwire-*`, `tentra-*`, etc.
 
-`MCP_DOCKER` is intentionally kept beside the gateway (not a Swarm product).
+`MCP_DOCKER` is not part of the normal Cursor baseline. The Docker profile
+`r3lentless_grind` overlapped Bifrost for Playwright/sequential thinking and
+contained a broken `desktop-commander` entry with missing `paths`; rollback is
+the timestamped Cursor MCP backup, not a second active gateway.
 
 The canonical active Cursor gateway entry belongs only in `C:\Users\ynotf\.cursor\mcp.json`.
 Repo-level `.cursor\mcp.json` / `.mcp.json` gateway duplicates are rollback or drift, not the
@@ -83,7 +86,35 @@ If a client **cannot** expand env headers, materialize the User-env value into t
 }
 ```
 
-(Keep `MCP_DOCKER` if you still want Docker MCP alongside.)
+Do not keep `MCP_DOCKER` unless the operator explicitly approves a documented
+exception for a unique capability that cannot be served through Bifrost.
+
+### Windows Startup Owner
+
+The native Windows owner is the scheduled task:
+
+```powershell
+Start-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+Stop-ScheduledTask  -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+Get-ScheduledTask   -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+Get-ScheduledTaskInfo -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+```
+
+Repository wrappers:
+
+```powershell
+pwsh -NoProfile -File D:\github\agentcore-control-plane\ops\bifrost\Start-AgentCoreBifrostGateway.ps1
+pwsh -NoProfile -File D:\github\agentcore-control-plane\ops\bifrost\Stop-AgentCoreBifrostGateway.ps1
+pwsh -NoProfile -File D:\github\agentcore-control-plane\ops\bifrost\Test-AgentCoreBifrostGateway.ps1
+```
+
+Runtime logs:
+
+```text
+H:\AgentRuntime\bifrost\logs\bifrost-gateway.stdout.log
+H:\AgentRuntime\bifrost\logs\bifrost-gateway.stderr.log
+H:\AgentRuntime\bifrost\logs\logs.db
+```
 
 ### Claude Desktop — `%APPDATA%\Claude\claude_desktop_config.json`
 

@@ -64,6 +64,16 @@ Do not modify Swarm product code. Do not require Swarm MCP in non-Swarm IDEs. Op
 - Swarm tool prefixes and raw database/whole-drive tool indicators were not present in the visible catalog.
 - Sanitized evidence is under `artifacts/bifrost-gateway-cutover-2026-07-12/`.
 
+## Runtime repair — 2026-07-14
+
+- Root cause of Cursor `net::ERR_CONNECTION_REFUSED`: no durable Bifrost listener was present on `127.0.0.1:8080`. The scheduled task could start Bifrost, but the start wrapper failed to recognize health and launched a direct fallback that stopped the working task-owned listener.
+- Fixed startup owner: `\AgentCore\AgentCore-Bifrost-Gateway` runs `ops\bifrost\Launch-AgentCoreBifrostGateway.ps1` as a long-running foreground owner for `bifrost-http.exe`.
+- Runtime bind: `H:\AgentRuntime\bifrost\bin\bifrost-http.exe -app-dir H:\AgentRuntime\bifrost -host 127.0.0.1 -port 8080 -log-level info -log-style json`.
+- Logs: `H:\AgentRuntime\bifrost\logs\bifrost-gateway.stdout.log`, `H:\AgentRuntime\bifrost\logs\bifrost-gateway.stderr.log`, and `H:\AgentRuntime\bifrost\logs\logs.db`.
+- Cursor global config now contains only `agentcore-gateway`; `MCP_DOCKER` was removed after profile audit showed overlap plus broken `desktop-commander.paths`.
+- Direct MCP `initialize`, `tools/list`, and safe `arabold_docs-list_libraries` call passed after managed restart. Swarm tools were absent.
+- Current upstream caveat: `obsidian_vault` and `serena` may be disconnected until their separate upstream health is repaired; the gateway itself remains healthy.
+
 ## Attach for continuation
 
 See `DOC_AUTHORITY.md` “What to attach to a new chat”.

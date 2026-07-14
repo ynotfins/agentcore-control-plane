@@ -19,7 +19,7 @@ Secrets live only in Windows User-scope environment variables. No `.env` files.
 ## 1. Authority
 
 | Role | Path |
-|------|------|
+| -- | -- |
 | Source / config authority | `D:\github\agentcore-control-plane` |
 | Bifrost runtime | `H:\AgentRuntime\bifrost` |
 | Compatibility / live-ops evidence only | `D:\MCP-Control-Plane` |
@@ -78,6 +78,20 @@ Non-Swarm IDE
 Ops scripts: `ops/bifrost/` (Install/Start/Stop/Test/Backup/Restore/IdeGatewayCutover).
 Render: `scripts/bifrost/render_bifrost_config.py` → `H:\AgentRuntime\bifrost\config.json` + sanitized `renderers/bifrost/`.
 No Docker for the Gateway runtime. Bind localhost only.
+
+Persistent Windows startup owner:
+
+```powershell
+Start-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+Stop-ScheduledTask  -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+Get-ScheduledTask   -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+Get-ScheduledTaskInfo -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+```
+
+The scheduled task runs `ops\bifrost\Launch-AgentCoreBifrostGateway.ps1`, which keeps
+`bifrost-http.exe` in the foreground so Task Scheduler can restart it on failure. Logs:
+`H:\AgentRuntime\bifrost\logs\bifrost-gateway.stdout.log` and
+`H:\AgentRuntime\bifrost\logs\bifrost-gateway.stderr.log`.
 
 ADRs:
 
@@ -152,7 +166,7 @@ Allowed roots: registered `D:\github\...` git worktrees. Reject Swarm / `F:\Agen
 See `docs/bifrost/CAPABILITY_PROFILES.md` and registry `capability_profiles`:
 
 | Profile | Primary use | VK env (name only) |
-|---------|-------------|--------------------|
+| -- | -- | -- |
 | builder | Full coding/planning | `BIFROST_MCP_VIRTUAL_KEY` |
 | reviewer | Read-focused review | `BIFROST_MCP_VK_REVIEWER` |
 | database-validator | Memory/DB health without creds | `BIFROST_MCP_VK_DATABASE_VALIDATOR` |
@@ -177,6 +191,8 @@ The normal Cursor baseline must contain exactly one AgentCore non-Swarm gateway 
 `agentcore-gateway` at `http://127.0.0.1:8080/mcp`. Project-level `.cursor\mcp.json` or
 `.mcp.json` gateway duplicates are not normal; project-specific behavior is selected through
 `agentcore-project-router`, not by adding duplicate gateway entries under individual repos.
+`MCP_DOCKER` is not part of the normal Cursor baseline; the former Docker profile overlapped
+Bifrost and contained a broken `desktop-commander` server with missing `paths`.
 
 Sanitized canonical entry (env form — never resolve secrets in Git):
 
@@ -215,7 +231,7 @@ If a client cannot expand `${env:...}` in headers, materialize from Windows User
 Sanitized renderers (source-controlled):
 
 | Client | Renderer |
-|--------|----------|
+| -- | -- |
 | cursor | `renderers/gateway-clients/cursor.json` |
 | codex | `renderers/gateway-clients/codex.json` |
 | claude-code | `renderers/gateway-clients/claude-code.json` |
@@ -308,7 +324,7 @@ Details: `docs/bifrost/TENTRA_LOCAL_MODE.md`.
 ## 14. Arabold Docs
 
 Primary docs MCP for libraries/SDKs/APIs (replaces Context7).
-Index Bifrost docs as library `bifrost` version `2.0.0-prerelease1` from https://docs.getbifrost.ai — see `.agentcore/docs/DOCS_INDEX.md`.
+Index Bifrost docs as library `bifrost` version `2.0.0-prerelease1` from <https://docs.getbifrost.ai> — see `.agentcore/docs/DOCS_INDEX.md`.
 Keep project manifests under `.agentcore/docs/` when indexing project-relevant libraries.
 
 ---

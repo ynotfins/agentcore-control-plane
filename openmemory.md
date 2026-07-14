@@ -33,6 +33,13 @@ AgentCore does not use `.env` files. All secrets and runtime credentials are sto
 - Location: `D:\github\agentcore-control-plane`
 - Purpose: MCP governance, renderer generation, docs, schemas, validation, and operational policy
 
+### AgentCore Bifrost Gateway Runtime
+
+- Location: `H:\AgentRuntime\bifrost`
+- Endpoint: `http://127.0.0.1:8080/mcp`
+- Startup owner: Windows Scheduled Task `\AgentCore\AgentCore-Bifrost-Gateway`
+- Launcher: `ops\bifrost\Launch-AgentCoreBifrostGateway.ps1` keeps `bifrost-http.exe` in the foreground so Task Scheduler can restart it.
+
 ### Vendor Swarm Sources
 
 - Location: `D:\github\vendor\swarm`

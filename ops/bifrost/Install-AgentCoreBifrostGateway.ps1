@@ -78,8 +78,13 @@ if ($SkipScheduledTask) {
   return
 }
 
-$argument = "-app-dir `"$RuntimeRoot`" -host $HostAddress -port $Port -log-level info -log-style json"
-$action = New-ScheduledTaskAction -Execute $exePath -Argument $argument -WorkingDirectory $RuntimeRoot
+$pwshPath = 'C:\Program Files\PowerShell\7\pwsh.exe'
+if (-not (Test-Path -LiteralPath $pwshPath)) {
+  $pwshPath = 'pwsh.exe'
+}
+$launchScript = Join-Path $PSScriptRoot 'Launch-AgentCoreBifrostGateway.ps1'
+$argument = "-NoProfile -ExecutionPolicy Bypass -File `"$launchScript`" -RuntimeRoot `"$RuntimeRoot`" -HostAddress $HostAddress -Port $Port"
+$action = New-ScheduledTaskAction -Execute $pwshPath -Argument $argument -WorkingDirectory $RuntimeRoot
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $settings = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
@@ -97,7 +102,7 @@ try {
   Write-AgentCoreInfo "Registered scheduled task $TaskPath$TaskName"
 } catch {
   Write-Warning "Scheduled task registration failed (may need elevation): $($_.Exception.Message)"
-  Write-AgentCoreInfo "Manual launch: `"$exePath`" $argument"
+  Write-AgentCoreInfo "Manual launch: `"$pwshPath`" $argument"
 }
 
 Write-AgentCoreInfo 'Install complete. Ensure BIFROST_MCP_VIRTUAL_KEY and upstream env vars exist as Windows User environment variables.'

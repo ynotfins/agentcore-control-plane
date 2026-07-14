@@ -27,16 +27,28 @@ if ($existing) {
 }
 
 if (-not $Direct) {
-  try {
-    Start-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -ErrorAction Stop
+  Start-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -ErrorAction Stop
+  Write-Host "[Start] Started scheduled task $TaskPath$TaskName"
+  for ($i = 0; $i -lt 90; $i++) {
     Start-Sleep -Seconds 2
-    Write-Host "[Start] Started scheduled task $TaskPath$TaskName"
-    return
-  } catch {
-    Write-Warning "Scheduled task start failed; falling back to direct launch: $($_.Exception.Message)"
+    try {
+      $health = Invoke-WebRequest -Uri "http://${HostAddress}:${Port}/health" -UseBasicParsing -TimeoutSec 3
+      if ($health.StatusCode -eq 200) {
+        Write-Host "[Start] Healthy on ${HostAddress}:${Port}"
+        return
+      }
+    } catch {
+      # keep waiting
+    }
+    $task = Get-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -ErrorAction SilentlyContinue
+    if ($task -and $task.State -notin @('Running', 'Ready')) {
+      $info = Get-ScheduledTaskInfo -TaskPath $TaskPath -TaskName $TaskName -ErrorAction SilentlyContinue
+      throw "Scheduled task entered state $($task.State); last result $($info.LastTaskResult)"
+    }
   }
+  throw "Scheduled task did not make Bifrost healthy on ${HostAddress}:${Port}"
 }
 
-$argument = "-app-dir `"$RuntimeRoot`" -host $HostAddress -port $Port -log-level info -log-style json"
-Start-Process -FilePath $exePath -ArgumentList $argument -WorkingDirectory $RuntimeRoot -WindowStyle Hidden | Out-Null
-Write-Host "[Start] Launched bifrost-http.exe directly"
+$launchScript = Join-Path $PSScriptRoot 'Launch-AgentCoreBifrostGateway.ps1'
+Start-Process -FilePath 'pwsh.exe' -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $launchScript, '-RuntimeRoot', $RuntimeRoot, '-HostAddress', $HostAddress, '-Port', [string]$Port) -WorkingDirectory $RuntimeRoot -WindowStyle Hidden | Out-Null
+Write-Host "[Start] Launched Bifrost via foreground launcher directly"
