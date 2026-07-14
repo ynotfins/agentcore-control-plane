@@ -3,7 +3,15 @@
 .serena/
 .depwire/claims.jsonl
 .depwire/decisions.jsonl
+.depwire/cache.db
+.depwire/health-history.json
 depwire-output.json
+
+# Raw live-config inventory dumps (secret-bearing; never commit)
+reports/_raw/
+
+# Vendored third-party skill payloads (not control-plane policy)
+.minimax/
 __pycache__/
 *.pyc
 *.pyo
