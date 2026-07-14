@@ -161,6 +161,10 @@ not changed because they are outside MCP cutover scope:
 - Several local/plugin skill manifests emit validation warnings.
 - The optional plugin-provided GitHub MCP lacks `GITHUB_PAT_TOKEN` in the fresh
   child process.
+- The repository's non-blocking Context Fabric commit hook could not import
+  `better-sqlite3` from `.context-fabric\runtime` under Node `24.16.0`. Git
+  still created the scoped commit; the hook runtime should be repaired in a
+  separate task if that audit integration is expected to be mandatory.
 
 ## Rollback
 
