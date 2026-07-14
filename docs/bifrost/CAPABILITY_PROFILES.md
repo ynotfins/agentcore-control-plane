@@ -8,7 +8,8 @@ Profiles select which upstream MCP servers (and, where implemented, which tools)
 ## builder
 
 - **Purpose:** Full AgentCore coding and planning surface.
-- **Servers:** arabold-docs, serena, sequential-thinking, cursor-agent-mcp, context-fabric, mcp-debugger, artiforge, depwire, tentra, obsidian-vault, playwright, filesystem, agentcore-memory, agentcore-project-router
+- **Servers:** arabold-docs, serena, sequential-thinking, cursor-agent-mcp, context-fabric, depwire, tentra, obsidian-vault, playwright, filesystem, agentcore-memory, agentcore-project-router
+- **Deferred:** mcp-debugger, artiforge
 - **Policy:** allow_permitted
 - **VK:** `BIFROST_MCP_VIRTUAL_KEY`
 
@@ -46,3 +47,4 @@ Profiles select which upstream MCP servers (and, where implemented, which tools)
 - Do not put profile secrets in Git.
 - Swarm servers are not members of any non-Swarm profile.
 - Deferred servers (`depwire-cloud`, `github-mcp`) are not active until `enabled: true` after health gates.
+- Disabled servers (`mcp-debugger`, `artiforge`) are not active until their account/runtime health gates pass.

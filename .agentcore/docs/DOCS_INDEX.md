@@ -3,7 +3,7 @@
 Machine-oriented index of documentation libraries available via **arabold-docs**
 (through `agentcore-gateway` → Bifrost → `arabold_docs-*` tools).
 
-**Last refreshed:** 2026-07-13T03:30Z (Arabold scrape/search via live Bifrost `127.0.0.1:8080/mcp`)
+**Last refreshed:** 2026-07-14 (Arabold scrape/search via live Bifrost `127.0.0.1:8080/mcp`; runtime status cross-check updated after gateway repair)
 **Evidence:** `artifacts/bifrost-gateway-cutover-2026-07-12/arabold-docs/`
 **Cross-ref report:** `artifacts/bifrost-gateway-cutover-2026-07-12/ARABOLD_DOCS_CROSSREF_2026-07-12.md`
 
@@ -117,9 +117,13 @@ Docs confirm: `serena start-mcp-server [options]` with STDIO as typical client-l
 | Artiforge | HTTP 401 inactive user | Deferred in registry |
 | Serena under Bifrost | Docs OK; live connect times out | Keep in registry; treat connection as deferred |
 
-### Live Bifrost upstream snapshot (docs refresh)
+### Live Bifrost upstream snapshot (runtime repair cross-check)
 
-Connected (11): `agentcore_memory`(2), `agentcore_project_router`(4), `arabold_docs`(10), `context_fabric`(5), `cursor_agent_mcp`(9), `depwire`(23), `filesystem`(14), `obsidian_vault`(12), `playwright`(24), `sequential_thinking`(1), `tentra`(35).
+Direct authenticated `tools/list` through `agentcore-gateway` returns **127** visible tools for the builder VK.
+
+Connected (10): `agentcore_memory`(2), `agentcore_project_router`(4), `arabold_docs`(10), `context_fabric`(5), `cursor_agent_mcp`(9), `depwire`(23), `filesystem`(14), `playwright`(24), `sequential_thinking`(1), `tentra`(35).
+
+Disconnected upstream caveats: `obsidian_vault` and `serena` currently time out during Bifrost upstream reconnect. The gateway itself is healthy and the expected Cursor-facing tool families above are available.
 
 ---
 

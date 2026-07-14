@@ -8,6 +8,12 @@
 **Schema version:** 2026-06-30  
 **Prerequisite reads:** `contracts/global-memory-database-contract.json`, `docs/database_overview.md`, `AGENTS.md`
 
+> **Bifrost override (2026-07-14):** This database design still uses the historical
+> name `global-memory-gateway` for the future memory catalog/router. The current
+> non-Swarm IDE route is `agentcore-gateway` → `agentcore-memory` via Bifrost.
+> Treat `global-memory-gateway` references here as pre-migration design language,
+> not as the live IDE MCP baseline.
+
 ---
 
 ## 1. Purpose and Scope
@@ -20,7 +26,7 @@ Agents operating on CHAOSCENTRAL store knowledge across multiple independent bac
 
 ### Goal
 
-Make `global-memory-gateway` the single canonical front door for memory reads and writes. Agents ask the gateway; the gateway routes to the correct backend and returns a bounded context pack. Agents do not need to know which backend holds which artifact.
+Design the future governed memory catalog/router (historically named `global-memory-gateway` in this pre-migration spec) as the canonical front door for memory reads and writes. Current non-Swarm IDE agents use `agentcore-gateway` → `agentcore-memory` until that migration is explicitly approved and implemented.
 
 ### Scope of This Document
 
@@ -127,7 +133,7 @@ GPU:       NVIDIA RTX 4070 SUPER, 12 GB GDDR6X
 | `postgres`     | Yes, superuser   | Full                                          | Break-glass maintenance only                     |
 
 
-**Normal IDE agents must not connect directly to PostgreSQL.** They use `global-memory-gateway` only.
+**Normal IDE agents must not connect directly to PostgreSQL.** Current non-Swarm IDE agents use `agentcore-gateway` → `agentcore-memory`; future memory catalog/router writes remain gated by this migration plan.
 
 ### 3.6 Credential Policy
 
@@ -1208,7 +1214,7 @@ These rules apply immediately to all managed IDE agents. They use tools that exi
 5. **Use** `obsidian-vault` **MCP REST** for Obsidian note reads and writes. Never write to Obsidian vault via filesystem MCP while Obsidian is running.
 6. **Never call the SwarmRecall API directly** from a normal agent. All calls must go through the gateway or SwarmRecall MCP.
 7. **Never call SwarmVault CLI or filesystem** directly from a normal agent. Use the SwarmVault MCP only.
-8. **Use** `global-memory-gateway` **as the single canonical memory write path.** Do not route memory writes to any other direct path.
+8. **Use the approved AgentCore memory gateway path as the single canonical memory write path.** Today that is `agentcore-gateway` → `agentcore-memory`; the historical `global-memory-gateway` name in this spec remains pre-migration terminology.
 9. **Store only concise, source-attributed, non-secret summaries.** Do not store raw transcripts, credentials, API keys, tokens, passwords, or personally identifiable data.
 10. **Always include** `project_id` **/** `associated_project_path` **metadata** in every memory write.
 

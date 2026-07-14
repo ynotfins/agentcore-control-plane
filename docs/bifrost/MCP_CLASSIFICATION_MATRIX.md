@@ -5,14 +5,14 @@
 **Scope:** Non-Swarm AgentCore gateway only. Swarm* excluded.
 
 | Canonical ID | Bifrost client name | Connection | Scope | Write class | Status | Profiles |
-|--------------|---------------------|------------|-------|-------------|--------|----------|
+| -- | -- | -- | -- | -- | -- | -- |
 | arabold-docs | arabold_docs | stdio | global | read_only | active | builder, reviewer, docs-knowledge, database-validator, operator |
 | serena | serena | router | project | bounded_write | active | builder, reviewer |
 | sequential-thinking | sequential_thinking | stdio | global | read_only | active | builder, reviewer, docs-knowledge |
 | cursor-agent-mcp | cursor_agent_mcp | stdio | global | write_capable | active | builder |
 | context-fabric | context_fabric | router | project | bounded_write | active | builder, reviewer |
-| mcp-debugger | mcp_debugger | stdio | project | admin | active | builder (attach denied for reviewer) |
-| artiforge | artiforge | http | global | bounded_write | active | builder, operator |
+| mcp-debugger | mcp_debugger | stdio | project | admin | **disabled** | builder (when enabled; attach denied for reviewer) |
+| artiforge | artiforge | http | global | bounded_write | **disabled** | builder, operator (when enabled) |
 | depwire | depwire | router | project | write_capable | active | builder, reviewer, operator |
 | depwire-cloud | depwire_cloud | http | global | read_only | **disabled/deferred** | builder, operator (when enabled) |
 | tentra | tentra | router | project | bounded_write | active | builder |
@@ -26,7 +26,7 @@
 ## Explicit exclusions (must not appear in non-Swarm IDE baselines)
 
 | Name / path | Reason |
-|-------------|--------|
+| -- | -- |
 | swarmrecall / SwarmRecall | Separate Swarm ecosystem |
 | swarmvault / SwarmVault | Separate Swarm ecosystem |
 | swarmclaw / SwarmClaw / AgentSwarm | Separate Swarm ecosystem |
@@ -40,4 +40,4 @@
 
 - Bifrost MCP client names use underscores; AgentCore canonical IDs keep hyphens.
 - Project-scoped servers must launch through `scripts/project_router` wrappers after `project_activate`.
-- Counts implemented in registry: **14 enabled**, **2 disabled/deferred** (`depwire-cloud`, `github-mcp`) — as validated by `scripts/bifrost/validate_contracts.py` in-repo.
+- Counts implemented in registry: **12 enabled**, **4 disabled/deferred** (`mcp-debugger`, `artiforge`, `depwire-cloud`, `github-mcp`) — as validated by `scripts/bifrost/validate_contracts.py` in-repo.

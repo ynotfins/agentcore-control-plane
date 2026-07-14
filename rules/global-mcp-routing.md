@@ -24,6 +24,15 @@
 - `connect_repo` creates `.depwire/cache.db`; keep the entire `.depwire/` directory and `depwire-output.json` in the global Git excludes file and never commit them.
 - Do not treat DepWire decision logs as the normal durable memory path. Use claims only for explicitly authorized parallel work and release them when work ends.
 
+## Serena Lifecycle Policy
+
+- Serena is project-scoped code intelligence, not a cross-project global daemon.
+- Managed IDE configs must use the installed Serena executable at `C:\Users\ynotf\AppData\Roaming\uv\tools\serena-agent\Scripts\serena.exe`.
+- Do not emit `uvx --from git+https://github.com/oraios/serena` in default renderers or live IDE configs.
+- Default Serena transport is `stdio`; Streamable HTTP is allowed only for an explicit same-project multi-client session.
+- Use `--project-from-cwd` only for CLI-style clients that Serena documents for this mode and that are launched from the target repository root.
+- Keep the 11-IDE rollout details in `D:\MCP-Control-Plane\docs\SERENA_11_IDE_ROLLOUT.md`.
+
 ## Fallback Policy
 
 Critical tools are `global-memory-gateway`, `arabold-docs`, `artiforge`, and `sequential-thinking`.

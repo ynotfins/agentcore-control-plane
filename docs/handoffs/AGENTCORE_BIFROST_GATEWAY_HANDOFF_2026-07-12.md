@@ -40,7 +40,7 @@ Contract validation available via:
 python D:\github\agentcore-control-plane\scripts\bifrost\validate_contracts.py
 ```
 
-(In-repo run during docs update: schemas valid; 14 enabled / 2 deferred servers.)
+(In-repo run during docs update: schemas valid; current registry validates as 12 enabled / 4 disabled-deferred servers.)
 
 ## Swarm exclusion
 
@@ -59,7 +59,7 @@ Do not modify Swarm product code. Do not require Swarm MCP in non-Swarm IDEs. Op
 - Canonical live file: `C:\Users\ynotf\.cursor\mcp.json`.
 - Canonical entry: `agentcore-gateway` → `http://127.0.0.1:8080/mcp` with `Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}`.
 - Project-level duplicate scan across `D:\github\agentcore-control-plane`, `D:\github\memory-context-database`, and `D:\github` found no active project `.cursor\mcp.json` / `.mcp.json` gateway duplicates.
-- Authenticated MCP `initialize` and `tools/list` succeeded through Bifrost; visible tool count was 139.
+- Authenticated MCP `initialize` and `tools/list` succeeded through Bifrost; current repaired visible tool count is 127.
 - Expected prefixes present: `arabold_docs`, `depwire`, `tentra`, `sequential_thinking`, `context_fabric`, `playwright`, `cursor_agent_mcp`, `filesystem`, `agentcore_memory`, `agentcore_project_router`.
 - Swarm tool prefixes and raw database/whole-drive tool indicators were not present in the visible catalog.
 - Sanitized evidence is under `artifacts/bifrost-gateway-cutover-2026-07-12/`.

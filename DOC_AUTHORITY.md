@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-12 (Bifrost MCP Gateway cutover)
+**Updated:** 2026-07-14 (Bifrost runtime repair + Cursor global cutover)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -12,15 +12,17 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 ## What to attach to a new chat
 
 **Minimum (always attach):**
+
 1. `PROJECT_ANCHOR.md` — immutable project constitution (includes Bifrost Gateway Override §0)
 2. `DOC_AUTHORITY.md` — this hierarchy
 3. `contracts/bifrost-upstream-mcp-registry.json` — canonical upstream MCP registry
 4. `contracts/agentcore-gateway-client.json` — single IDE gateway client contract
 5. `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` — Bifrost cutover handoff
-6. `docs/prompts/install-agentcore-gateway-in-ide.md` — reusable IDE install prompt
+6. `MASTER_CONFIG_AND_PROMPT.md` — root setup guide with embedded reusable IDE prompt
+7. `docs/prompts/install-agentcore-gateway-in-ide.md` — standalone reusable IDE install prompt
 
 **Add as needed:**
-- `MASTER_CONFIG_AND_PROMPT.md` — controlling IDE/gateway setup baseline after Bifrost rebuild
+
 - `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md` — deployment ADR
 - `docs/adr/ADR-2026-07-12-configuration-source-of-truth.md` — config authority ADR
 - `docs/bifrost/` — classification matrix, profiles, Tentra, Depwire, migration/rollback runbooks
@@ -35,7 +37,7 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 ## Authoritative — stable (safe to follow; change rarely, with approval)
 
 | File | Purpose |
-|------|---------|
+| -- | -- |
 | `PROJECT_ANCHOR.md` | Immutable constitution: Bifrost gateway override, drives (incl. H/I/J), endpoints, memory path, baseline, forbidden routes |
 | `MASTER_CONFIG_AND_PROMPT.md` | Controlling IDE MCP/rules setup after Bifrost rebuild |
 | `contracts/bifrost-upstream-mcp-registry.json` | Canonical upstream MCP servers + capability profiles |
@@ -50,8 +52,9 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 ## Current-state — mutable (accurate now; updated as cutover progresses)
 
 | File | Purpose |
-|------|---------|
+| -- | -- |
 | `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` | Primary Bifrost gateway handoff |
+| `ops/bifrost/evidence/20260714-0204-runtime-repair/RUNTIME_REPAIR_EVIDENCE.md` | Current runtime repair evidence: scheduled task owner, MCP validation, Cursor MCP_DOCKER removal |
 | `artifacts/bifrost-gateway-cutover-2026-07-12/` | Cutover backups, hashes, evidence |
 | `ops/bifrost/` | Install/start/stop/test/backup/restore/cutover scripts |
 | `renderers/gateway-clients/` | Per-IDE sanitized gateway-only renderers |
@@ -64,14 +67,14 @@ Supporting contracts/scripts: `contracts/schemas/*`, `scripts/bifrost/`, `script
 Call arabold-docs **through** `agentcore-gateway` (no direct `user-arabold-docs` after cutover). Pin versions to the live workstation:
 
 | Library | Version | Docs root |
-|---------|---------|-----------|
-| `bifrost` | `2.0.0-prerelease1` | https://docs.getbifrost.ai |
-| `depwire` | `1.8.2` | https://depwire.dev/ |
-| `tentra-mcp` | `1.3.3` | https://github.com/rdanieli/tentra-mcp |
-| `serena` | `1.5.4` | https://oraios.github.io/serena/ (numbered paths) |
-| `modelcontextprotocol` | `2025.6.18` | https://modelcontextprotocol.io/specification/2025-06-18 |
-| `playwright-mcp` | `0.0.78` | https://github.com/microsoft/playwright-mcp |
-| `context-fabric` | `1.0.7` | https://github.com/VIKAS9793/context-fabric |
+| -- | -- | -- |
+| `bifrost` | `2.0.0-prerelease1` | <https://docs.getbifrost.ai> |
+| `depwire` | `1.8.2` | <https://depwire.dev/> |
+| `tentra-mcp` | `1.3.3` | <https://github.com/rdanieli/tentra-mcp> |
+| `serena` | `1.5.4` | <https://oraios.github.io/serena/> (numbered paths) |
+| `modelcontextprotocol` | `2025.6.18` | <https://modelcontextprotocol.io/specification/2025-06-18> |
+| `playwright-mcp` | `0.0.78` | <https://github.com/microsoft/playwright-mcp> |
+| `context-fabric` | `1.0.7` | <https://github.com/VIKAS9793/context-fabric> |
 | `sequential-thinking` | `2026.7.4` | npm `@modelcontextprotocol/server-sequential-thinking` |
 | `mcp-filesystem` | `2026.7.10` | npm `@modelcontextprotocol/server-filesystem` |
 | `cursor-agent-mcp` | `1.0.5` | npm `cursor-agent-mcp@1.0.5` |
@@ -82,7 +85,7 @@ Evidence: `artifacts/bifrost-gateway-cutover-2026-07-12/ARABOLD_DOCS_CROSSREF_20
 ## Unified IDE gateway install
 
 | Doc | Use |
-|-----|-----|
+| -- | -- |
 | `docs/bifrost/UNIFIED_GATEWAY_SETUP.md` | Per-IDE config blocks, add-server path, tool deny / profile VKs, Cursor troubleshooting |
 | `docs/prompts/install-agentcore-gateway-in-ide.md` | Copy-paste agent prompt for any non-Swarm IDE |
 | `docs/bifrost/CAPABILITY_PROFILES.md` | builder / reviewer / docs / operator VK surfaces |
@@ -90,25 +93,27 @@ Evidence: `artifacts/bifrost-gateway-cutover-2026-07-12/ARABOLD_DOCS_CROSSREF_20
 ## Experiments (isolated POCs; not production authority)
 
 | Path | Notes |
-|------|-------|
+| -- | -- |
 | `experiments/bifrost-go-sdk-smoke/` | Bifrost Go SDK in-process OpenAI smoke. **Not** the Bifrost MCP Gateway. Remains an experiment only. See its README. |
 
 ## Evidence-only (read for facts; do not follow as instructions)
 
 | File | Notes |
-|------|-------|
+| -- | -- |
 | `docs/evidence/PC-Master-Hardware-Software-Specs.md` | Authoritative PC hardware/software baseline; facts not instructions |
 | `D:\MCP-Control-Plane` | Compatibility/live-ops evidence only |
 
 ## Historical / superseded (do not execute as current non-Swarm IDE baseline)
 
 | File / claim | Why historical |
-|--------------|----------------|
+| -- | -- |
 | Former `PROJECT_ANCHOR` §0 Native-First Swarm override as **mandatory IDE baseline** | Superseded for non-Swarm IDEs by Bifrost Gateway Override (2026-07-12) |
 | Swarm-first mandatory MCP baseline (swarmrecall + swarmvault in every IDE) | Superseded for non-Swarm IDEs; Swarm remains a separate ecosystem |
 | `CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md` as primary attach for **gateway** work | Historical Swarm rollout state; use Bifrost handoff for gateway cutover |
 | `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md` | Swarm rollout handoff; not Bifrost gateway authority |
 | Direct per-IDE full-server MCP blocks in older `MASTER_CONFIG_AND_PROMPT.md` | Moved to historical appendix; normal architecture is single gateway entry |
+| `contracts/master-mcp-server-config.json`, `scripts/mcp_control_plane.py`, and legacy root `renderers/*.json` | Superseded for non-Swarm IDE setup by Bifrost contracts, `scripts/bifrost/render_bifrost_config.py`, and `renderers/gateway-clients/` |
+| `docs/prompts/*-cleanup-prompt.md` direct-server/Swarm cleanup instructions | Remediation references only; normal non-Swarm IDE setup uses `install-agentcore-gateway-in-ide.md` / embedded master prompt |
 | `global-memory-gateway` as IDE default memory route | Retired from mandatory baseline; non-Swarm path is `agentcore-memory` via gateway |
 | `ECOSYSTEM_ARCHITECTURE.md`, `CLEANUP_AUDIT.md`, `COMPLETION_REPORT.md`, `VALIDATION_REPORT.md`, `CONTEXT_BLOCK.md` | Pre-2026-06-30 / `D:\MCP-Control-Plane` era |
 

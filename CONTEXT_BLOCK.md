@@ -1,1054 +1,1047 @@
-> **SUPERSEDED (historical context block, 2026-06-28).** For current grounding read, in order:
-> `PROJECT_ANCHOR.md` (constitution) → `DOC_AUTHORITY.md` (hierarchy) → `database-plan.md` →
-> `CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md` (current state) →
-> `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md`. Use this file for historical planning context only.
+```
+---
+document: CONTEXT_BLOCK.md
+project: AgentCore Global Memory, Context, Database, and Governance Platform
+authority: canonical-target-architecture
+status: planning-anchor
+verified_at: 2026-07-12
+canonical_repository: D:\github\agentcore-control-plane
+implementation_branch: ai/global-memory-platform-v1
+alternate_git_worktree: D:\AgentSwarm\runs\agentcore-memory-v1\worktree
+---
 
-# CONTEXT_BLOCK.md — AgentCore Swarm Full Automation Rollout
+# AgentCore Canonical Context Block
 
-Generated for: Tony / CHAOSCENTRAL  
-Generated on: 2026-06-28  
-Purpose: Give a brand-new Codex Plan/Goal chat enough context to complete the AgentCore Swarm rollout without inheriting stale assumptions.
+Read this file before planning, implementing, reviewing, or operating the AgentCore memory platform.
+
+This file defines the current target architecture. Older plans, reports, prompts, rules, and generated renderers are evidence only until they have been reconciled against this file and the live machine.
+
+## 0. Status language
+
+This document uses four labels:
+
+- **VERIFIED FACT** — established from the live-machine evidence, repository evidence, or an authoritative upstream source.
+- **ADOPTED DECISION** — the selected architecture for this build.
+- **GATED DECISION** — direction is selected, but execution requires a fresh live check or benchmark.
+- **OUT OF SCOPE** — do not integrate, migrate, or redesign during this project.
+
+Do not convert a gated decision into a fact.
 
 ---
 
-## 0. How Codex should use this file
+## 1. Repository and path identity
 
-You are Codex working on Tony's Windows PC `CHAOSCENTRAL`.
+### VERIFIED FACT
 
-Start in **Plan Mode**. Do not mutate files during the first response. First produce a concrete completion plan that explicitly cross-checks this `CONTEXT_BLOCK.md` against the current live repo and current machine state.
-
-After Tony approves the plan and switches you to Goal mode, execute the plan from the source authority.
-
-Primary workspace:
+The canonical source repository is:
 
 ```text
 D:\github\agentcore-control-plane
 ```
 
-Do **not** treat this as source authority:
+The path:
 
 ```text
-D:\MCP-Control-Plane
+D:\AgentSwarm\runs\agentcore-memory-v1\worktree
 ```
 
-That folder is compatibility/live-ops evidence only until separately retired. If this chat was accidentally started in `D:\MCP-Control-Plane`, switch implementation work to `D:\github\agentcore-control-plane` before making changes.
+is an additional Git worktree/check-out of the same `agentcore-control-plane` repository on branch:
+
+```text
+ai/global-memory-platform-v1
+```
+
+`D:\AgentSwarm` is a run/worktree storage root. It is not the name of this product, not a separate AgentCore repository, and not related to SwarmClaw.
+
+### ADOPTED DECISION
+
+All implementation must remain in `agentcore-control-plane`.
+
+Use the isolated worktree for the feature branch unless the operator explicitly changes the active checkout. Do not independently edit both the main checkout and the feature worktree.
+
+The prior plans below are not authoritative because they contain stale drive facts and/or incorrectly make Swarm components part of AgentCore:
+
+```text
+agentcore_global_memory_platform_d69b09fd.plan.md
+agentcore_memory_platform_4476bf06.plan.md
+```
+
+The previous content of `CONTEXT_BLOCK.md` is superseded by this file.
 
 ---
 
-## 1. Current user intent
+## 2. Product objective
 
-The goal is to finish the **local-only AgentCore Swarm rollout** so every IDE agent on this PC automatically uses the same local memory/RAG stack without needing to be reminded in each prompt.
+### ADOPTED DECISION
 
-Mandatory high-level outcome:
+Build one local-first AgentCore platform that gives normal IDE agents and LangGraph workflows:
 
-1. All managed IDEs get the same foundation MCP baseline.
-2. SwarmRecall and SwarmVault are mandatory surfaces for all managed IDEs.
-3. All memory/knowledge flows are local only.
-4. No Swarm cloud services are used.
-5. No hosted SwarmRecall fallback is allowed.
-6. No hosted SwarmVault/cloud persistence is allowed.
-7. Rules/instructions in every IDE must enforce the same memory contract.
-8. Old conflicting routes must be removed from active configs/rules.
-9. Monitoring automations are removed for now to simplify the rollout.
-10. Runtime startup, manual validators, backups, restore tests, and maintenance may remain.
+1. Persistent global, user, machine, project, workflow, and session memory.
+2. An immutable, recoverable event ledger.
+3. A rolling context compiler with a recent raw tail, hierarchical summaries, exact source expansion, and model-specific token budgets.
+4. Governed semantic and graph memory through Cognee.
+5. Durable LangGraph checkpoints and workflow metadata.
+6. Generated read-only state projections.
+7. A governed engineering knowledge and template library.
+8. One default AgentCore memory/context contract for all supported non-Swarm IDEs and agents.
+9. Hard write boundaries, provenance, auditing, backup, restore, degraded mode, and actionable diagnostics.
 
-Tony is tired and wants this set up correctly. Do not ask broad clarification questions. Make the best safe decisions from the repo, live configs, cloned Swarm docs, and this context block.
-
----
-
-## 2. Source authority and conflict order
-
-When facts conflict, use this order:
-
-1. `D:\github\agentcore-control-plane` — source authority for AgentCore policy, runtime contracts, DB/memory governance, renderers, validators, docs.
-2. Current live machine state — ports, config files, scheduled tasks, installed apps.
-3. Cloned Swarm repos under `D:\github\vendor\swarm`.
-4. Official current upstream docs for SwarmRecall, SwarmVault, SwarmClaw, SwarmRelay, SwarmFeed, SwarmDock.
-5. Current conversation/user corrections.
-6. `D:\MCP-Control-Plane` — compatibility/live-ops evidence only, not design authority.
-7. Historical backups/transcripts — evidence only; do not rewrite.
-
-Do not mutate backups, rollback trees, old transcripts, historical session logs, or archived evidence.
+The system must reduce prompt bloat by retrieving and assembling only the context needed for the current task. Fast storage accelerates persistence, search, indexing, context assembly, and compaction; it does not enlarge a model's native context window.
 
 ---
 
-## 3. Machine identity and drive model
-
-Hostname:
+## 3. Canonical architecture
 
 ```text
-CHAOSCENTRAL
+Cursor / Codex / MiniMax / Antigravity / Open Interpreter /
+Claude Code / approved MCP clients / LangGraph workflows
+                           |
+          native lifecycle adapter where available
+                or thin MCP stdio bridge
+                           |
+                           v
+                AgentCore persistent daemon
+        identity | policy | sessions | event ingestion
+        retrieval | context assembly | durable writes
+                           |
+          +----------------+----------------+
+          |                                 |
+          v                                 v
+ PostgreSQL 18 + pgvector              Cognee API
+ canonical state/evidence              semantic/graph memory
+          |                                 |
+          +----------------+----------------+
+                           |
+                           v
+                  AgentCore worker
+       compaction | promotion | projection | archival
+                           |
+             +-------------+-------------+
+             |                           |
+             v                           v
+     H:\AgentRuntime              E:\AgentCoreArchive
+     hot spool/scratch            cold immutable/archive
 ```
 
-Known hardware/software baseline:
+### ADOPTED DECISION
 
-```text
-OS: Windows 11 Pro
-CPU: Intel Core i9-14900KF, 24 cores / 32 threads
-RAM: 128 GB DDR5
-GPU: NVIDIA RTX 4070 SUPER, 12 GB VRAM
-D: internal NVMe project/source tier
-F: Samsung 990 PRO 4TB NVMe hot memory/RAG/database tier
-E: 6 TB external archive/cache/large-file tier
-G: backup target only
-C: OS/apps/user config; do not add hot AgentCore data here
-```
+Normal IDEs do not connect directly to PostgreSQL or Cognee.
 
-Drive roles:
+Normal IDEs use one AgentCore-owned contract exposed through:
 
-```text
-C:\ = OS, apps, user profile, app-owned configs only
-D:\ = project folders, source repos, worktrees, build/run evidence
-F:\ = active hot local memory/RAG/search/database tier
-E:\ = archive, large files, raw corpora, cache, exports, backups, dumps, restore-test artifacts, cold storage
-G:\ = backup target only
-```
+- a thin MCP stdio bridge;
+- a local AgentCore client/SDK;
+- a localhost API for LangGraph, Cognigent, diagnostics, and administration.
 
-Important: `F:` has two different active meanings and must not be described vaguely.
+MCP is a transport, not the source of truth.
 
-### F: SwarmVault tier
+A persistent AgentCore daemon owns business logic and the governed write path. Per-IDE stdio processes contain transport logic only.
 
-```text
-F:\AgentCore\agentmemory\swarmvault
-```
-
-Purpose:
-
-```text
-local-first RAG/wiki/graph/context packs/task ledger
-```
-
-Store type:
-
-```text
-raw\
-wiki\
-state\
-state\graph.json
-state\retrieval\
-state\context-packs\
-state\memory\tasks\
-swarmvault.config.json
-swarmvault.schema.md
-```
-
-Do not force SwarmVault primary state into Postgres.
-
-### F: SwarmRecall/Postgres/search tier
-
-SwarmRecall should use:
-
-```text
-PostgreSQL + pgvector
-Meilisearch
-SwarmRecall API / SDK / CLI / MCP
-```
-
-Expected local endpoints unless repo discovery proves a corrected local port:
-
-```text
-PostgreSQL / pgvector: 127.0.0.1:55432
-SwarmRecall API:       http://127.0.0.1:3300
-Meilisearch:           http://127.0.0.1:7700
-```
-
-### E: archive/cache tier
-
-Use `E:` for:
-
-```text
-large files
-raw corpora
-archive
-cache
-exports
-backups
-dumps
-restore-test artifacts
-cold storage
-```
-
-Do not create a primary SQL system on `E:` during this pass.
+A durable AgentCore worker owns background jobs. It does not replace the synchronous hard-threshold context path.
 
 ---
 
-## 4. SwarmRecall contract
+## 4. Selected upstream components
 
-SwarmRecall is the native local agent memory runtime.
+The following are the selected components for AgentCore.
 
-Use SwarmRecall as upstream intends:
+### 4.1 PostgreSQL
 
-```text
-agent/client -> SwarmRecall API/MCP/SDK/CLI -> local PostgreSQL + pgvector + local Meilisearch
-```
+**VERIFIED FACT — 2026-07-12**
 
-SwarmRecall gives agents:
+The current PostgreSQL 18 minor release is PostgreSQL 18.4.
 
-```text
-memory
-semantic search
-knowledge graph
-learnings
-skills
-shared pools
-sessions/current memory where supported
-dream/consolidation tools where local-only and safe
-```
-
-Normal IDE agents must not connect to Postgres and run ad hoc memory SQL. That does **not** mean memory avoids the database. It means memory reaches the database through SwarmRecall or through the governed gateway.
-
-Correct interpretation:
+Authoritative source:
 
 ```text
-Allowed normal path:
-  IDE agent -> global-memory-gateway and/or swarmrecall MCP/API -> local SwarmRecall service -> Postgres/pgvector + Meilisearch
-
-Forbidden normal path:
-  IDE agent -> raw SQL INSERT/SELECT/UPDATE into memory tables
+https://www.postgresql.org/docs/current/release.html
 ```
 
-Raw SQL is only for:
+### ADOPTED DECISION
+
+PostgreSQL 18 is the canonical AgentCore database platform.
+
+The existing PostgreSQL 16 cluster must be backed up, restore-tested, and migrated side-by-side. PostgreSQL 18 must use a new data directory. Never point PostgreSQL 18 directly at the PostgreSQL 16 data directory.
+
+PostgreSQL owns:
+
+- immutable event envelopes and provenance;
+- context sessions and summary graph metadata;
+- global/project/session state;
+- project, agent, client, and machine identity;
+- policies, capabilities, approvals, and audit records;
+- durable background jobs, attempts, outbox, and dead-letter records;
+- LangGraph checkpoint persistence;
+- engineering-library catalog and retrieval audit;
+- artifact metadata, hashes, references, and lifecycle state.
+
+### 4.2 pgvector
+
+**VERIFIED FACT — 2026-07-12**
+
+The current official pgvector repository instructions use pgvector `v0.8.5` and include Windows/PostgreSQL 18 build instructions.
+
+Authoritative source:
 
 ```text
-admin
-migration
-repair
-schema inspection
-validator diagnostics
+https://github.com/pgvector/pgvector
 ```
 
-### global-memory-gateway relationship
+### ADOPTED DECISION
 
-Do not assume `global-memory-gateway` is already SwarmRecall MCP.
+Use pgvector in PostgreSQL 18. Do not add Qdrant, Weaviate, LanceDB, Chroma, Neo4j, Redis, or another AgentCore database by default.
 
-Verify implementation.
+A separate engine requires a benchmark proving a distinct requirement that PostgreSQL full-text search, pgvector, and Cognee cannot satisfy.
 
-Target behavior:
+### 4.3 Cognee
+
+**VERIFIED FACT — 2026-07-12**
+
+Cognee is an open-source persistent AI memory platform that builds a self-hosted knowledge graph. Its official repository documents a single-PostgreSQL deployment using:
 
 ```text
-global-memory-gateway
-  = governed cross-IDE memory policy broker
-  = canonical normal memory write name used by IDE agents
-  = enforces source attribution, dedupe, non-secret policy, project path, and write rules
-  = routes durable memory to local SwarmRecall / local AgentCore persistence correctly
-  = may preserve existing AgentCore audit/projection rows if already implemented
+DB_PROVIDER=postgres
+VECTOR_DB_PROVIDER=pgvector
+GRAPH_DATABASE_PROVIDER=postgres
+CACHE_BACKEND=postgres
 ```
 
-If `global-memory-gateway` does not route into local SwarmRecall correctly, fix the gateway or document the exact remaining adapter gap and fail acceptance.
+The upstream release list marks `v1.2.2` as a stable release and newer `v1.2.2.dev*` builds as development releases.
 
-### SwarmRecall MCP
-
-SwarmRecall MCP is now mandatory for all managed IDEs. This is a correction from earlier plans that treated direct SwarmRecall MCP as out of scope.
-
-Expected server name:
+Authoritative sources:
 
 ```text
-swarmrecall
+https://github.com/topoteretes/cognee
+https://github.com/topoteretes/cognee/releases
 ```
 
-Expected launch style:
+### ADOPTED DECISION
+
+Use Cognee `v1.2.2` as the initial pinned stable candidate, subject to one final release/security compatibility check immediately before installation.
+
+Cognee is the semantic and graph-memory engine. It is not the immutable raw transcript ledger, not the policy engine, and not the public IDE interface.
+
+Cognee runs behind an AgentCore-owned adapter. No AgentCore package outside that adapter imports Cognee-specific APIs.
+
+Cognee receives curated or high-confidence promoted knowledge. Do not send every terminal line, file read, tool result, or raw transcript event directly to Cognee.
+
+Use a separate PostgreSQL database and role:
 
 ```text
-swarmrecall mcp
+database: cognee_core
+owner/role: agentcore_cognee
 ```
 
-or the equivalent source-controlled renderer command discovered in the local repo.
+AgentCore must not write Cognee-owned tables directly.
 
-Use local-only configuration:
+### 4.4 LangGraph PostgreSQL checkpointer
+
+**VERIFIED FACT — 2026-07-12**
+
+`langgraph-checkpoint-postgres` 3.1.0 is the current stable package listed on PyPI. It provides `PostgresSaver` and `AsyncPostgresSaver`.
+
+Authoritative sources:
 
 ```text
-SWARMRECALL_API_URL=http://127.0.0.1:3300
-SWARMRECALL_API_KEY=<env/config reference, never literal>
-MEILISEARCH=http://127.0.0.1:7700
-Postgres local F: storage
+https://pypi.org/project/langgraph-checkpoint-postgres/
+https://docs.langchain.com/oss/python/langgraph/persistence
 ```
 
-No hosted fallback.
+### ADOPTED DECISION
+
+Use the official PostgreSQL checkpointer. Do not implement a custom checkpoint serializer unless a tested requirement cannot be met by the official package.
+
+Required hardening:
+
+```text
+LANGGRAPH_STRICT_MSGPACK=true
+```
+
+Use UUID-based `thread_id` values and keep them under 255 characters.
+
+LangGraph checkpoints are thread-scoped workflow state. They do not replace AgentCore semantic memory, the immutable event ledger, or project state.
+
+### 4.5 Model Context Protocol SDK
+
+**VERIFIED FACT — 2026-07-12**
+
+The official MCP Python SDK identifies v1.x as the stable production line. The repository lists `v1.28.1` as the latest stable release and warns that v2 is still pre-release.
+
+Authoritative source:
+
+```text
+https://github.com/modelcontextprotocol/python-sdk
+```
+
+### ADOPTED DECISION
+
+Initially pin the stable MCP Python SDK line:
+
+```text
+mcp>=1.28.1,<2
+```
+
+Re-evaluate only after stable v2 is released and migration tests pass. Do not build production AgentCore against a pre-release MCP SDK.
+
+### 4.6 COMB
+
+**VERIFIED FACT**
+
+`mehmetdemirci/comb-ai` is an MIT-licensed documentation methodology. It separates static from dynamic knowledge, uses hierarchical task-specific loading, favors cache-aware reading order, and archives stale active context.
+
+Authoritative source:
+
+```text
+https://github.com/mehmetdemirci/comb-ai
+```
+
+### ADOPTED DECISION
+
+Use COMB concepts and selected templates as an AgentCore documentation/projection convention.
+
+COMB is not a daemon, database, queue, memory engine, or separate service.
+
+AgentCore remains the authority. COMB-derived files are generated or curated views.
+
+### 4.7 Internal AgentCore code
+
+The following are AgentCore-owned implementations, not external memory products:
+
+- immutable event ledger contracts;
+- context compiler;
+- hierarchical compaction and exact expansion;
+- artifact tier;
+- project/client/agent identity;
+- policy and capability engine;
+- memory promotion pipeline;
+- AgentCore daemon;
+- thin MCP bridge;
+- background worker;
+- state projection;
+- IDE lifecycle adapters;
+- engineering-library governance and indexing.
+
+### 4.8 Reference-only projects
+
+The following may provide concepts or test cases but are not runtime dependencies:
+
+```text
+lossless-claw
+lossless-memory4agent
+Distill
+Hindsight
+Graphiti / Zep
+Mem0
+agentmemory
+OpenMemory
+claude-changeling-agent
+```
+
+Do not copy runtime architecture from these projects without an explicit ADR, license/provenance record, tests, and a clear reduction in complexity.
 
 ---
 
-## 5. SwarmVault contract
+## 5. Explicit exclusions
 
-SwarmVault is the local-first knowledge/RAG/wiki/graph/context-pack/task-ledger system.
+### OUT OF SCOPE
 
-It is **not** a Postgres database. It should not be moved into Postgres. It should use its upstream local-first design:
-
-```text
-raw/                 immutable ingested sources
-wiki/                generated/human markdown, outputs, graph reports, context packs, task notes
-state/graph.json     machine-readable graph
-state/retrieval/     local search index
-state/context-packs/ saved context packs
-state/memory/tasks/  durable task ledger
-```
-
-Expected root:
+The vendor repositories under:
 
 ```text
-F:\AgentCore\agentmemory\swarmvault
+D:\github\vendor\swarm\
 ```
 
-Expected server name:
+and the SwarmVault Desktop data under:
 
 ```text
-swarmvault
+C:\Users\ynotf\AppData\Roaming\swarmvault-desktop
 ```
 
-Expected launch:
+are not part of this AgentCore memory-platform build.
 
-```text
-swarmvault mcp
-```
+Do not route AgentCore memory through SwarmRecall or SwarmVault.
 
-SwarmVault should be made automatic using:
+Do not remove, migrate, reconfigure, or redesign Swarm projects during this build.
 
-```text
-MCP exposure
-agent rules/hooks where supported
-managed sources
-context packs
-task ledger
-local retrieval
-graph-first guidance
-```
-
-### SwarmVault managed sources to register
-
-Register real local managed sources:
-
-```text
-D:\github\agentcore-control-plane
-D:\github\vendor\swarm\swarmrecall
-D:\github\vendor\swarm\swarmvault
-D:\github\vendor\swarm\swarmclaw
-D:\github\vendor\swarm\swarmrelay
-D:\github\vendor\swarm\swarmfeed
-D:\github\vendor\swarm\swarmdock
-```
-
-Also register any local AgentCore runtime docs required by validators.
-
-Acceptance:
-
-```text
-swarmvault doctor passes or only reports understood non-blocking warnings
-managedSources is non-zero
-retrieval status is healthy
-graph stats are available
-context pack build works
-task ledger works
-curated project knowledge can be queried locally
-```
-
-### SwarmVault tool surface policy
-
-The `swarmvault` MCP server must be present in all managed IDEs, but not every IDE needs the full tool catalog.
-
-Use a two-profile policy if the client/tooling supports it:
-
-```text
-swarmvault-admin:
-  Codex and Cursor
-  full or near-full tool surface
-
-swarmvault-lite:
-  OpenClaw, Open Interpreter, MiniMax new, MiniMax classic/Mavis, Antigravity, Claude Code unless full is explicitly needed
-  read/query/context/task-health subset only
-```
-
-Suggested `swarmvault-lite` tools:
-
-```text
-workspace_info
-search_pages
-read_page
-query_vault
-build_context_pack
-list_context_packs
-read_context_pack
-retrieval_status
-doctor_vault
-graph_stats
-list_tasks
-read_task
-resume_task
-```
-
-Do not rely only on written rules to reduce tool bloat. If a client supports allowlists, use allowlists. If not, create/reuse a small wrapper/proxy if safe.
-
-### SwarmVault agent installs
-
-Run status checks first; then install where safe and source-controlled:
-
-```powershell
-cd F:\AgentCore\agentmemory\swarmvault
-swarmvault install status --agent codex --hook
-swarmvault install status --agent claude --hook
-swarmvault install status --agent cursor
-swarmvault install status --agent claw
-swarmvault install status --agent antigravity
-```
-
-Recommended install targets:
-
-```powershell
-swarmvault install --agent codex --hook
-swarmvault install --agent claude --hook --mcp --graph-first
-swarmvault install --agent cursor
-swarmvault install --agent claw
-swarmvault install --agent antigravity
-```
-
-Preserve user-owned text in shared rule files. SwarmVault should only own its managed blocks.
+The word `AgentSwarm` in the worktree path does not refer to the vendor Swarm ecosystem.
 
 ---
 
-## 6. Mandatory managed clients
+## 6. Data planes and source-of-truth boundaries
 
-Every rollout, renderer, validator, live adoption check, docs matrix, and rule audit must include:
+### 6.1 Immutable evidence plane
 
-```text
-Codex
-Cursor
-OpenClaw
-Open Interpreter
-MiniMax new
-MiniMax classic / Mavis
-Antigravity
-Claude Code
-```
+**Canonical authority:** PostgreSQL 18 plus content-addressed artifact objects.
 
-MiniMax new and MiniMax classic/Mavis are separate managed clients. Do not treat Mavis as covered by MiniMax new.
-
-Each requires separate:
+Every meaningful session event receives an append-only envelope with at least:
 
 ```text
-renderer coverage
-live config target
-rule/skill cleanup
-restart proof
-live adoption validation
+event_id
+client_event_id / idempotency_key
+session_id
+project_id
+agent_identity_id
+client_id / IDE
+machine_id
+sequence_number
+parent_event_id
+correlation_id
+tool_call_id
+role
+event_type
+model_id
+tokenizer_id
+token_count
+inline_content or artifact reference
+content_sha256
+occurred_at
+ingested_at
+trust_zone
+metadata
 ```
 
-### Claude Code target
+Normal roles cannot update or delete raw events.
 
-Tony corrected the Claude Code live target:
+Large bodies are externalized by hash; PostgreSQL keeps the authoritative metadata and reference.
+
+### 6.2 Rolling context plane
+
+AgentCore assembles context from:
+
+1. global invariant state;
+2. current-project state;
+3. current LangGraph workflow/thread state;
+4. current task and constraints;
+5. recent raw event tail;
+6. relevant summary nodes;
+7. curated Cognee recall;
+8. targeted project/code/document retrieval.
+
+Compaction is evaluated after each appended event and before model calls.
 
 ```text
-C:\Users\ynotf\.claude\config.json
+below soft threshold:
+    continue normally
+
+above soft threshold:
+    enqueue durable compaction job
+
+above hard threshold:
+    synchronously compact enough context
+    or return a deterministic reduced context with exact source references
 ```
 
-Also discover and reconcile:
+Summary hierarchy:
 
 ```text
-C:\Users\ynotf\.claude.json
-project .mcp.json files
-project/user .claude settings, skills, hooks
-CLAUDE.md
+L0 raw immutable events
+L1 coherent event-span summaries
+L2 session summaries
+L3 project chronology and decision summaries
 ```
 
-If both `C:\Users\ynotf\.claude\config.json` and `C:\Users\ynotf\.claude.json` exist:
+Every summary must retain source edges and support exact expansion.
 
-1. Treat `C:\Users\ynotf\.claude\config.json` as primary unless runtime discovery proves otherwise.
-2. Back up both.
-3. Remove active conflicting servers/rules from whichever file Claude Code actually reads.
-4. Preserve auth/profile/session state.
-5. Document the discovered reality.
+Project summaries never become global memory automatically.
 
-Earlier evidence said `C:\Users\ynotf\.claude.json` contained context7 and Hostinger. Do not assume that is still true; verify.
+### 6.3 Semantic and graph memory plane
+
+Cognee stores:
+
+- approved user preferences;
+- stable machine/workflow facts;
+- project architecture and decisions;
+- verified fixes and failure patterns;
+- accepted lessons;
+- governed engineering-library concepts and relations.
+
+Cognee does not store the only copy of evidence.
+
+### 6.4 Workflow plane
+
+LangGraph owns:
+
+- graph execution state;
+- checkpoints;
+- resumability;
+- human-review pauses;
+- workflow metadata references.
+
+Cognigent is treated as an AgentCore product layer/name for operator experience, routing, approvals, and governance. It is not assumed to be a verified third-party runtime. The AgentCore API must support it without making the core depend on an unverified external package.
+
+### 6.5 Projection plane
+
+PostgreSQL is canonical.
+
+Generated files may include:
+
+```text
+GLOBAL_STATE.md
+<repo>\.agentcore\STATE.md
+INDEX.md
+active-context.md
+architecture/decision projections
+```
+
+Generated projections are:
+
+- read-only to ordinary agents;
+- bounded;
+- atomically written;
+- revisioned;
+- content-hashed;
+- traceable to source event/state IDs;
+- reproducible from PostgreSQL.
+
+### 6.6 Engineering knowledge plane
+
+Canonical source material and cold history live on E:.
+
+Hot metadata, full-text indexes, embeddings, graph relationships, version filters, provenance, and retrieval audit live on F:.
+
+Initial library categories:
+
+```text
+official documentation snapshots
+approved project templates
+focused reference implementations
+engineering recipes
+dependency catalog
+agent skills
+agent benchmarks
+security and architecture standards
+```
+
+Use Copier for updateable governed templates. Do not build a giant uncurated code dump.
 
 ---
 
-## 7. Mandatory MCP baseline
+## 7. Drive assignments
 
-Every managed IDE gets the foundation baseline below.
+The following role map is the target. Destructive operations still require a fresh physical-disk identity check by model, serial, UniqueId, disk number, capacity, bus type, filesystem, allocation unit, health, BitLocker state, and current dependencies.
 
-Mandatory foundation MCP servers:
+### C: — system tier
 
-```text
-serena
-sequential-thinking
-cursor-agent-mcp
-context-fabric
-mcp-debugger
-artiforge
-global-memory-gateway
-obsidian-vault
-swarmrecall
-swarmvault
-```
+**VERIFIED FACT**
 
-Preserve unless explicitly retired:
+Approximately 2 TB internal NVMe containing Windows, installed applications, user profile, IDE configuration, and the current Docker Desktop disk image.
 
-```text
-arabold-docs
-```
+### ADOPTED DECISION
 
-Allowed additions:
+- Keep Windows and installed applications.
+- Protect from AgentCore data growth.
+- Move Docker/WSL runtime data and large active caches away.
+- Never reformat as part of this project.
 
-```text
-Codex: additional tools allowed because Codex can enable/disable tools.
-Cursor: additional source-authority/admin tools allowed if required.
-OpenClaw: eye2byte allowed as a user-approved exception.
-Client internal/app-owned servers: allowed only if non-conflicting and explicitly documented.
-```
+### D: — active development tier
 
-Forbidden normal/default routes in active configs and rules:
+**VERIFIED FACT**
+
+Approximately 2 TB internal NVMe containing active repositories and development data.
+
+### ADOPTED DECISION
+
+Use for:
 
 ```text
-context7
-raw mem0
-direct composio
-Hostinger
-hosted SwarmRecall URLs
-hosted SwarmVault/cloud persistence
-direct SQL as normal memory guidance
-D:\MCP-Control-Plane as design authority
-SwarmVault described as a Postgres database
-SwarmRecall described as automatically using the SwarmVault database
+D:\github\
+D:\github_2\
+active repositories
+Git worktrees
+build/test activity
+AgentCore source code
+template and reference development
 ```
+
+Do not place canonical databases, long-term backups, model archives, or cold corpora here.
+
+### E: — cold archive and knowledge-source tier
+
+**VERIFIED FACT**
+
+E: is the internal approximately 10 TB, 7200 RPM HGST-class SATA HDD now visible as `Archive_Cold`.
+
+It is not the obsolete 932 GB external-device assumption from an earlier plan.
+
+### ADOPTED DECISION
+
+Use E: for:
+
+```text
+E:\AgentCoreArchive\
+E:\DatabaseBackups\
+E:\ProjectArchives\
+E:\KnowledgeCorpus\
+E:\TemplateLibrary\
+E:\ReferenceImplementations\
+E:\EngineeringRecipes\
+E:\DependencyCatalog\
+E:\ModelArchive\
+E:\SystemImages\
+```
+
+NTFS 64 KB is appropriate for this large sequential/archive workload and should be retained unless a fresh live scan contradicts the current format.
+
+Do not place active PostgreSQL data, pgvector indexes, LangGraph checkpoints, node_modules, virtual environments, active worktrees, or hot context scratch on E:.
+
+Pack small cold objects into larger compressed segments rather than creating millions of tiny files.
+
+### F: — canonical hot database and index tier
+
+**VERIFIED FACT**
+
+F: is the 4 TB Samsung 990 PRO Gen4 NVMe and already hosts the AgentCore PostgreSQL runtime/data.
+
+### ADOPTED DECISION
+
+F: is the canonical hot data tier for:
+
+```text
+PostgreSQL 18 cluster
+pgvector indexes
+agent_core database
+cognee_core database
+LangGraph checkpointer tables
+global/project/session state
+event and summary metadata
+durable job/outbox tables
+hot engineering-library indexes
+retrieval metadata and audit
+```
+
+Do not reformat F: during the initial build.
+
+Build PostgreSQL 18 side-by-side in a new F: path, migrate through a tested backup/upgrade procedure, and retain the PostgreSQL 16 cluster during the rollback window.
+
+Keep PostgreSQL WAL with the F: cluster initially. Archive completed WAL copies to E:. Move WAL to another device only after benchmark and recovery evidence proves a net benefit.
+
+No normal IDE or filesystem MCP may access raw F: database directories.
+
+### G: — external backup tier
+
+**VERIFIED FACT**
+
+G: is an external approximately 4 TB Seagate backup drive.
+
+### ADOPTED DECISION
+
+Use only for independent backup copies and restore testing.
+
+G: is not a live database, vector index, context store, or runtime tier.
+
+### H: — high-speed AgentCore runtime tier
+
+**VERIFIED FACT**
+
+H: is the internal 2 TB Crucial P5 Plus NVMe installed through the PCIe expansion path.
+
+### GATED DECISION
+
+After a fresh inventory, dependency scan, data migration, and explicit approval, provision H: as:
+
+```text
+label: AgentRuntime
+filesystem: NTFS
+allocation unit: 4096 bytes
+```
+
+Use H: for:
+
+```text
+H:\AgentRuntime\docker\
+H:\AgentRuntime\models\
+H:\AgentRuntime\model-cache\
+H:\AgentRuntime\artifact-hot\
+H:\AgentRuntime\context-scratch\
+H:\AgentRuntime\compaction-scratch\
+H:\AgentRuntime\service-logs\
+H:\AgentRuntime\temporary-indexes\
+```
+
+Move Docker Desktop's disk image with Docker Desktop's supported relocation mechanism. Do not manually copy a live VHDX and do not confuse Docker Engine `data-root` with Docker Desktop disk-image location.
+
+H: contains no sole canonical copy of durable memory.
+
+### I: — developer cache and staging tier
+
+**VERIFIED FACT**
+
+I: is the internal 1 TB Crucial BX500 SATA SSD.
+
+### GATED DECISION
+
+The role is fixed:
+
+```text
+package caches
+build intermediates
+ingestion staging
+temporary exports
+compiler caches
+non-canonical scratch
+```
+
+The filesystem is not yet a hard fact.
+
+Evaluate a ReFS Dev Drive using the actual Git, Node, pnpm/npm, Python/uv, Java, Serena, backup, antivirus, and build workflows.
+
+If every compatibility test passes, use ReFS Dev Drive. Otherwise use NTFS 4 KB.
+
+Do not put PostgreSQL, Cognee canonical data, WAL, LangGraph checkpoints, or the only copy of any artifact on I:.
+
+### J: — personal external device
+
+If J: is present, it is outside AgentCore scope. Provisioning scripts must block it.
 
 ---
 
-## 8. Global rule/instruction contract for every IDE
+## 8. PostgreSQL database and role boundaries
 
-Audit active rules/instructions for:
+### ADOPTED DECISION
 
-```text
-Codex AGENTS.md, AGENTS.override.md, .codex hooks/skills
-Cursor .cursor/rules/*.mdc
-OpenClaw skills/rules/config
-Open Interpreter profiles/rules
-MiniMax new skills/rules/config
-MiniMax classic / Mavis skills/rules/config
-Antigravity rules/workflows/settings
-Claude Code config, CLAUDE.md, .claude skills/hooks/settings
-generated AgentCore docs that live clients read
-```
-
-Patch active rule/config/instruction surfaces only. Do not rewrite backups or history.
-
-Required global contract:
+Use one PostgreSQL 18 cluster on F: with explicit database ownership boundaries:
 
 ```text
-For all agents on this PC:
+agent_core
+    AgentCore-owned canonical state, evidence, jobs, governance,
+    context metadata, library catalog, and LangGraph persistence
 
-1. Use SwarmRecall for durable agent memory, sessions, pools, knowledge, learnings, skills, and recall.
-2. Use global-memory-gateway as the governed memory policy broker. It must route to local SwarmRecall/local AgentCore persistence correctly.
-3. Use SwarmVault for local RAG/wiki/graph/context packs/task ledger.
-4. Use context-fabric for repo continuity and working context.
-5. Use obsidian-vault only for Obsidian-facing notes through the approved MCP/REST route.
-6. Never use context7, raw mem0, direct composio, Hostinger, hosted SwarmRecall, hosted SwarmVault, or direct SQL as normal routes.
-7. Raw SQL is admin/migration/repair/inspection only.
-8. D:\ is code/projects, F:\ is hot local memory/RAG/search, E:\ is archive/cache/large files/backups.
-9. Every durable memory/knowledge write must be source-attributed, non-secret, concise, deduplicated, and routed through governed services.
-10. At task start, retrieve relevant SwarmRecall memory, context-fabric repo context, and SwarmVault knowledge/context packs automatically.
-11. During task work, save durable decisions, corrected facts, reusable procedures, task state, and project lessons automatically when appropriate.
-12. At task end, write a concise durable memory summary automatically when the task produced reusable knowledge.
+cognee_core
+    Cognee-owned graph/vector/session/metadata data
 ```
 
-Rule conflict classes to remove:
+Do not place vendor Swarm databases inside the AgentCore logical architecture.
+
+Minimum role separation:
 
 ```text
-context7 as docs route
-mem0/raw mem0 as memory route
-composio as normal tool route
-Hostinger as default MCP
-direct SQL for memory
-D:\MCP-Control-Plane as authority
-hosted SwarmRecall or hosted SwarmVault
-SwarmVault as SQL DB
-SwarmRecall automatically using SwarmVault DB
-context-fabric optional/disabled
-SwarmRecall/SwarmVault optional instead of mandatory
+agentcore_read
+agentcore_ingest
+agentcore_worker
+agentcore_admin
+agentcore_backup
+agentcore_cognee
 ```
 
-Known conflict patterns from earlier work:
+Ordinary IDE agents never receive database credentials.
 
-```text
-Cursor legacy mem0/composio/D:\MCP-Control-Plane rules
-MiniMax and Mavis skill files teaching context7/mem0/composio
-Antigravity instructions referencing context7
-Claude Code config/rules carrying context7 and Hostinger
-```
-
-Verify current state; do not assume.
+`LISTEN/NOTIFY` may wake workers, but it is not the durable queue. Durable job rows must exist in PostgreSQL and be claimed transactionally.
 
 ---
 
-## 9. Remove monitors for now
+## 9. AgentCore services
 
-Tony explicitly wants monitor automations removed to eliminate complexity until the system is running optimally.
+### ADOPTED DECISION
 
-Remove/disable from active rollout:
-
-```text
-agentcore-context-window-optimizer
-agentcore-pgvector-database-monitor
-agentcore-rag-runtime-monitor
-agentcore-memory-projection-monitor
-agentcore-mcp-drift-monitor
-agentcore-live-client-adoption-monitor
-agentcore-plugin-extension-monitor
-spec-sync monitors
-adoption polling monitors
-drift scanning monitors
-projection scanning monitors
-background polling/re-audit loops
-```
-
-Keep:
+Keep the core topology small:
 
 ```text
-PostgreSQL startup ownership
-SwarmRecall API startup ownership
-Meilisearch startup ownership
-explicit/manual validators
-backup jobs
-restore-test jobs
-maintenance jobs
-one-shot rollout validation commands
+1. PostgreSQL 18
+2. Cognee API/service
+3. AgentCore daemon
+4. AgentCore worker
+5. thin per-IDE MCP stdio bridge processes
 ```
 
-Docs must say:
+The daemon owns:
 
-```text
-services come up at boot/logon
-validators are run manually or during explicit rollout
-no background monitor mutates or continuously re-audits the system in this pass
-```
+- project/client/agent identity;
+- sessions;
+- policy;
+- event ingestion;
+- retrieval;
+- context assembly;
+- durable write validation;
+- health and admin endpoints.
+
+The worker owns:
+
+- summary compaction;
+- Cognee promotion;
+- generated projections;
+- archival;
+- maintenance;
+- durable retries and dead letters.
+
+The MCP bridge owns only transport and authentication handoff.
+
+Do not start one full database writer or memory service per IDE.
 
 ---
 
-## 10. Context-window optimization
+## 10. Unified AgentCore contract
 
-Do not claim 128 GB RAM changes vendor model hard token limits.
-
-The correct policy is effective-context optimization:
+The final names may be optimized by Cursor, but the contract must cover:
 
 ```text
-set each client to largest officially supported model/context mode already available
-no unsupported binary/config hacks
-compact MCP server descriptions
-reduce duplicate/retired tool surfaces
-use context-fabric for repo continuity
-use SwarmRecall durable recall
-use Meilisearch local full-text recall
-use Postgres/pgvector semantic recall
-use SwarmVault context packs and graph-first guidance
-use D:\ for project/source roots
-use F:\ for hot memory/RAG/search state
-use E:\ for archive/cache/corpora
-avoid dumping whole repos into prompts
+session.open
+session.append_event
+session.close
+
+context.get
+context.search
+context.expand
+
+memory.search
+memory.propose
+memory.promote        operator/governed
+memory.forget         operator/governed soft-delete
+
+state.read
+state.propose_change
+
+project.register
+project.resolve
+project.list
+
+agent.whoami
+health.get
 ```
 
-If a model/client supports a 1M context setting, use the official supported setting. Otherwise do not fake it.
+Normal agents cannot:
 
-Codex-specific note: Codex reads project guidance through `AGENTS.md` files and has a default combined project-doc limit. If necessary, increase the official project-doc limit in config rather than stuffing everything into one prompt. Keep `AGENTS.md` short and refer to `CONTEXT_BLOCK.md` / skills / docs for detail.
+- run raw SQL;
+- call Cognee directly;
+- mutate generated STATE files;
+- promote untrusted content to global memory;
+- write another project's files;
+- delete immutable evidence;
+- write raw F: or E: storage paths.
+
+MCP registration does not guarantee event capture. Each IDE requires measured lifecycle hooks, wrappers, extensions, or direct SDK instrumentation.
+
+LangGraph/Cognigent must use direct AgentCore client instrumentation.
 
 ---
 
-## 11. Swarm ecosystem scope
+## 11. Identity and permissions
 
-Mandatory for all IDEs:
+### ADOPTED DECISION
 
-```text
-SwarmRecall
-SwarmVault
-```
-
-Automation agent developer team only:
+Every registered repository receives a stable UUID in:
 
 ```text
-SwarmClaw
-SwarmRelay
-SwarmFeed
-SwarmDock
+<repo>\.agentcore\project.yaml
 ```
 
-Set up broader Swarm repos only where beneficial for the automation agent developer team. Do not add SwarmClaw, SwarmRelay, SwarmFeed, or SwarmDock as default MCP surfaces for every IDE.
+Git remotes, local paths, Git common directories, worktrees, and archive locations are aliases. A Git remote URL alone is not canonical project identity.
 
-### SwarmClaw
+Agents may read approved global knowledge and registered project metadata.
 
-Likely first additional Swarm runtime after core is green.
+Source-code writes are limited to the assigned active repository/worktree.
 
-Requirements:
+Hard enforcement must occur at the tool/process/OS boundary where possible:
 
-```text
-self-hosted/local-only configuration
-runtime state on this PC, preferably F:\AgentCore or an explicitly approved local path
-no hidden cloud persistence
-bounded tool surfaces
-integrates with same SwarmRecall/SwarmVault/global-memory-gateway contract
-does not fan out uncontrolled agents
-```
+- narrow filesystem roots;
+- Serena launched against the active project;
+- isolated Git worktrees;
+- protected database/archive paths;
+- sandboxed Open Interpreter;
+- dedicated low-privilege autonomous worker identity;
+- audited escalation.
 
-### SwarmRelay
-
-Activate only if fully self-hosted/local-only behavior is proven. If hosted backend is required, document as blocked/staged.
-
-### SwarmFeed / SwarmDock
-
-Keep staged/documented unless local-only storage/auth/network behavior is proven. Do not make them canonical memory or default IDE services during this pass.
+A memory policy check alone cannot prevent an IDE terminal or filesystem tool from writing elsewhere.
 
 ---
 
-## 12. Security and safety gates
+## 12. `context-fabric`
 
-Do not print secrets.
+### VERIFIED FACT
 
-Before mutation:
+`context-fabric` is an existing AgentCore-side project-local context component. It is not part of the vendor Swarm ecosystem.
 
-```text
-record git status
-record current branch
-back up every managed live config and active rule file
-back up source-controlled managed files before edits
-```
+### GATED DECISION
 
-Potential live config roots to back up:
+Inspect and benchmark it before final integration.
 
-```text
-C:\Users\ynotf\.codex\
-C:\Users\ynotf\.cursor\
-C:\Users\ynotf\.openclaw\
-C:\Users\ynotf\.minimax\
-C:\Users\ynotf\.mavis\
-C:\Users\ynotf\.claude\
-C:\Users\ynotf\.claude.json if present
-C:\Users\ynotf\.gemini\
-C:\Users\ynotf\AppData\Roaming\Antigravity\
-Open Interpreter config/profile roots discovered on this PC
-D:\github\agentcore-control-plane source-controlled managed files
-```
+It may remain only if it provides a distinct project-local capability such as deterministic repository context, local indexing, or cache management.
 
-Known security blockers/gaps to keep visible:
+It must not become:
+
+- a second global memory authority;
+- a duplicate immutable ledger;
+- a duplicate semantic database;
+- an uncontrolled durable writer.
+
+Choose one disposition through an ADR:
 
 ```text
-raw tokens/API keys may exist in app configs; reports must not echo values
-Qdrant 6333/6334 may be bound to 0.0.0.0; fix separately before Qdrant expansion
-RDP/Portainer may be LAN-exposed; do not broaden agent access
-filesystem MCP roots may be broad; split read-only/write profiles if in scope
-Obsidian writes must be single-writer REST/MCP only, not raw filesystem writes
-```
-
-Do not log users out or destroy model provider/auth state. Replace raw secrets with environment references only where format support is proven.
-
----
-
-## 13. Implementation tasks after Plan Mode approval
-
-### Phase 1 — Audit/preflight
-
-1. Confirm working directory and switch to `D:\github\agentcore-control-plane` if needed.
-2. Record git status and branch.
-3. Discover all live config paths for the managed clients.
-4. Record listener proof for:
-   ```text
-   127.0.0.1:55432
-   127.0.0.1:3300
-   127.0.0.1:7700
-   ```
-5. Check SwarmVault root and `swarmvault doctor`.
-6. Check SwarmRecall API/CLI/MCP local-only.
-7. Check current context-fabric presence across all clients.
-8. Check current SwarmRecall/SwarmVault MCP presence across all clients.
-9. Check current global rules for forbidden routes.
-10. Check current monitor automations/tasks/docs and mark for removal.
-
-### Phase 2 — Source contract/renderers/validators
-
-Update:
-
-```text
-contracts/master-mcp-server-config.json
-renderers for Codex, Cursor, OpenClaw, Open Interpreter, MiniMax new, MiniMax classic/Mavis, Antigravity, Claude Code
-validators
-live apply scripts
-docs generation
-```
-
-Enforce the mandatory MCP baseline:
-
-```text
-serena
-sequential-thinking
-cursor-agent-mcp
-context-fabric
-mcp-debugger
-artiforge
-global-memory-gateway
-obsidian-vault
-swarmrecall
-swarmvault
-```
-
-Preserve `arabold-docs` unless explicitly retired.
-
-Validators must fail if:
-
-```text
-managed client missing foundation MCP baseline
-context-fabric missing
-swarmrecall missing
-swarmvault missing
-MiniMax new not separately validated
-Mavis not separately validated
-Claude Code not managed
-active configs/rules contain context7/raw mem0/composio/Hostinger/hosted SwarmRecall/hosted SwarmVault/direct SQL normal memory/D:\MCP-Control-Plane authority
-raw MCP secrets appear in active config
-SwarmVault managedSources is zero
-SwarmRecall uses hosted fallback
-E:\ is used as primary SQL
-monitor automations remain active for this pass
-```
-
-### Phase 3 — global-memory-gateway
-
-Verify whether `global-memory-gateway` routes to local SwarmRecall.
-
-Acceptance:
-
-```text
-governed memory write succeeds
-write is source-attributed, concise, non-secret, deduplicated
-write reaches local canonical persistence
-SwarmRecall can retrieve it through local API/MCP
-no raw SQL needed by normal IDE agent
-```
-
-If the gateway is only writing older AgentCore Postgres schema, add/fix adapter to SwarmRecall or explicitly fail with exact TODO and blocker.
-
-### Phase 4 — SwarmRecall
-
-Verify:
-
-```text
-local API on 127.0.0.1:3300
-local Meilisearch on 127.0.0.1:7700
-local Postgres/pgvector on F: / 127.0.0.1:55432 unless discovery proves different
-no hosted fallback
-MCP stdio tool discovery works
-memory store/search/list works
-sessions/current works if supported
-rules force automatic task-start/task-end memory behavior
-```
-
-### Phase 5 — SwarmVault
-
-Verify:
-
-```text
-root is F:\AgentCore\agentmemory\swarmvault
-raw/wiki/state/state\graph.json/state\retrieval exist or are initialized correctly
-doctor passes
-retrieval status passes
-context pack build works
-task ledger works
-managedSources is non-zero
-managed sources include authority repo and Swarm vendor repos
-```
-
-Install/align SwarmVault integrations:
-
-```text
-Codex hook
-Claude Code hook/MCP/skill as appropriate
-Cursor rules
-OpenClaw skill/rules
-Antigravity rules/workflow
-other supported installs only if discovery proves correct target
-```
-
-### Phase 6 — Client config/rules
-
-For each client:
-
-```text
-Codex
-Cursor
-OpenClaw
-Open Interpreter
-MiniMax new
-MiniMax classic / Mavis
-Antigravity
-Claude Code
-```
-
-Do:
-
-```text
-render source-owned MCP config
-apply through source-owned apply path
-preserve auth/profile/session state
-patch active rules only
-remove forbidden routes
-add global rule contract
-restart-proof after apply
-live adoption validation
-```
-
-### Phase 7 — Wider Swarm stack
-
-After core SwarmRecall + SwarmVault green:
-
-```text
-SwarmClaw local setup for automation agent developer team only
-SwarmRelay local-only validation or block
-SwarmFeed staged/documented or block
-SwarmDock staged/documented or block
-```
-
-Do not promote these to default IDE MCP surfaces.
-
-### Phase 8 — Docs/handoff
-
-Update:
-
-```text
-master MCP matrix
-active governed client matrix
-rollout runbook
-restart handoff
-context-window/effective-context policy
-SwarmRecall local runtime doc
-SwarmVault local runtime doc
-Claude Code setup
-Antigravity setup
-MiniMax new setup
-Mavis setup
-Open Interpreter setup
-rule conflict audit report
-local-only Swarm ecosystem staging doc
-CONTEXT_BLOCK.md if this file becomes stale
+keep behind AgentCore
+integrate useful code into AgentCore
+retire as superseded
 ```
 
 ---
 
-## 14. Acceptance tests
+## 13. Engineering knowledge and template platform
 
-Run and require green or document exact blocker with evidence:
+### ADOPTED DECISION
 
-```powershell
-validate-control-plane.ps1 -DryRun
-Test-AgentCoreSwarmRecall.ps1
-Test-AgentCoreSwarmVault.ps1
-Test-AgentCoreContextFabricReadiness.ps1
-Test-AgentCoreMemoryProjection.ps1
-Test-AgentCoreRuntimeSuite.ps1
-Test-AgentCoreLiveClientAdoption.ps1
-```
+Create a governed library because no existing project is trusted as a house-style authority.
 
-Additional required checks:
+Use:
 
 ```text
-PostgreSQL listens on 127.0.0.1:55432.
-SwarmRecall API listens on 127.0.0.1:3300.
-Meilisearch listens on 127.0.0.1:7700.
-SwarmRecall MCP stdio tool discovery works.
-SwarmRecall memory store/search/list works.
-global-memory-gateway write reaches local SwarmRecall/local canonical persistence.
-SwarmVault root is F:\AgentCore\agentmemory\swarmvault.
-SwarmVault doctor passes.
-SwarmVault retrieval status passes.
-SwarmVault managedSources is non-zero.
-SwarmVault context pack build works.
-SwarmVault task ledger works.
-Every managed IDE has the mandatory MCP baseline.
-context-fabric is present everywhere.
-swarmrecall is present everywhere.
-swarmvault is present everywhere.
-Claude Code is managed at C:\Users\ynotf\.claude\config.json unless runtime discovery proves a different active target.
-MiniMax new and Mavis are validated separately.
-No active rule teaches retired routes.
-No monitor automation remains active for this pass.
-E:\ is not primary SQL.
-D:\MCP-Control-Plane is not source authority.
-Runtime startup ownership survives reboot/logon or an exact elevated command is written to handoff.
+E: canonical source snapshots and approved template/reference history
+F: searchable catalog, embeddings, graph relationships, and retrieval audit
+D: active template/reference development and tests
+H: active models and runtime cache
+I: package/build cache and ingestion staging
 ```
+
+Start with a small set of high-value approved templates and focused references. Every approved item requires:
+
+- source and license provenance;
+- pinned dependencies and lockfiles;
+- current stable-version review;
+- clean generation/build;
+- tests, lint, and type checking;
+- secret, dependency, and static-analysis scans;
+- architecture, security, operations, and rollback documentation;
+- benchmark evidence;
+- lifecycle status: candidate, approved, deprecated, or retired.
+
+Use Copier for updateable templates.
+
+Do not add LanceDB or another library database initially.
 
 ---
 
-## 15. Final report required from Codex
+## 14. Implementation order
 
-When complete, report:
+### ADOPTED DECISION
 
 ```text
-1. What changed
-2. Files changed
-3. Live configs applied
-4. Backups created
-5. Validators run and results
-6. Runtime endpoint proof
-7. SwarmRecall proof
-8. SwarmVault proof
-9. Client adoption proof
-10. Rule conflict cleanup summary
-11. Monitor removal summary
-12. SwarmClaw/Relay/Feed/Dock staging or local setup status
-13. Any blockers requiring admin/elevated action
-14. Exact restart steps for each IDE
-15. Exact elevated commands, if any
-16. Confirmation that no secret values were printed
-17. Confirmation that no hosted Swarm services are used
-18. Confirmation that D:\github\agentcore-control-plane is the source authority
+Phase 0 — repository alignment
+    replace stale context
+    audit accessible rules, prompts, docs, renderers, MCP descriptions
+    classify authority and deprecate contradictions
+
+Phase 1 — live machine and storage baseline
+    rescan disks, services, tasks, Docker, WSL, ports, dependencies
+    protect active data
+    clean abandoned Docker/WSL/software through approved manifests
+
+Phase 2 — storage foundation
+    provision H after verification
+    test and provision I
+    organize E
+    relocate Docker Desktop disk image to H
+    validate reboot and recovery
+
+Phase 3 — PostgreSQL 18 foundation
+    stabilize PostgreSQL 16
+    complete backup and restore rehearsal
+    install PostgreSQL 18.4 side-by-side
+    install pgvector 0.8.5
+    test migration/cutover/rollback
+    make PostgreSQL 18 canonical
+
+Phase 4 — AgentCore contracts and storage
+    identities and project registry
+    immutable event ledger
+    artifact metadata/tiering
+    durable jobs/outbox
+    policy and audit
+
+Phase 5 — rolling context
+    context compiler
+    soft/hard thresholds
+    summary DAG
+    exact expansion
+    replay and recovery tests
+
+Phase 6 — Cognee
+    pinned stable deployment
+    dedicated database/role
+    AgentCore adapter
+    governed promotion pipeline
+    degraded-mode tests
+
+Phase 7 — LangGraph and Cognigent interface
+    official Postgres checkpointer
+    workflow metadata and AgentCore context nodes
+    operator/governance API
+
+Phase 8 — unified gateway and client capture
+    persistent daemon
+    thin MCP bridges
+    per-IDE lifecycle adapters
+    measured capture and context-injection tests
+
+Phase 9 — state projections and engineering library
+    generated state
+    COMB-derived conventions
+    approved templates/references/recipes/dependencies
+    AgentBench
+
+Phase 10 — rollout
+    shadow mode
+    per-project activation
+    backup/restore/degraded-mode testing
+    retire only proven duplicate AgentCore components
 ```
+
+Do not apply production AgentCore schemas to PostgreSQL 16 and then immediately migrate them to PostgreSQL 18.
 
 ---
 
-## 16. First prompt for Codex Plan Mode
+## 15. Acceptance criteria
 
-Paste this after saving this file at `D:\github\agentcore-control-plane\CONTEXT_BLOCK.md`:
+The platform is not complete until all of the following pass:
 
-```text
-We are in Plan Mode.
-
-Read D:\github\agentcore-control-plane\CONTEXT_BLOCK.md completely.
-
-Audit the current repo and live machine state against that context. Do not mutate files yet.
-
-Create a decision-complete plan to finish the AgentCore Swarm Full Automation Rollout with these corrections:
-- D:\github\agentcore-control-plane is source authority.
-- D:\MCP-Control-Plane is compatibility/live-ops only.
-- Remove all monitor automations for now.
-- Keep runtime startup ownership, manual validators, backups, restore tests, and maintenance.
-- Restore context-fabric everywhere.
-- Add swarmrecall and swarmvault everywhere.
-- All managed IDEs require the mandatory foundation MCP baseline.
-- Add/manage Claude Code at C:\Users\ynotf\.claude\config.json unless runtime discovery proves another target.
-- Treat MiniMax new and MiniMax classic/Mavis separately.
-- Audit and fix active global rules/instructions so they enforce the same memory/RAG contract and remove conflicts.
-- Use SwarmRecall as intended: local API/MCP/SDK/CLI over PostgreSQL+pgvector+Meilisearch, not raw SQL from normal IDE agents.
-- Use SwarmVault as intended: local-first F:\AgentCore\agentmemory\swarmvault with raw/wiki/state/retrieval/context packs/task ledger, not Postgres.
-- Keep everything local-only and no Swarm cloud.
-- Wider Swarm repos are for the automation agent developer team only and must be staged/local-only unless proven.
-- Do not print secrets.
-
-In the plan, list:
-1. Current audited state.
-2. Exact files/scripts/configs to change.
-3. Backup strategy.
-4. Runtime checks.
-5. MCP baseline/rendering strategy.
-6. SwarmRecall completion steps.
-7. SwarmVault completion steps.
-8. global-memory-gateway verification/fix.
-9. Rule conflict cleanup.
-10. Claude Code setup.
-11. MiniMax/Mavis split.
-12. Monitor removal.
-13. Context optimization strategy.
-14. Wider Swarm stack staging.
-15. Acceptance tests.
-16. Any blockers requiring elevated/admin action.
-```
+1. A long synthetic session is compacted repeatedly and an exact early event is recoverable by hash/source ID.
+2. AgentCore continues in degraded mode when Cognee is unavailable.
+3. LangGraph resumes a workflow after process and PostgreSQL restart.
+4. Duplicate client events are rejected idempotently.
+5. Cursor and another IDE can work concurrently without cross-project memory leakage.
+6. A source write outside the assigned worktree is blocked by the actual tool/process boundary.
+7. `GLOBAL_STATE.md` and project `STATE.md` can be deleted and reproduced from PostgreSQL.
+8. PostgreSQL 18 backup, point-in-time recovery, and clean restore are demonstrated.
+9. Hot artifacts tier from H: to E: without losing hashes or exact expansion.
+10. No normal IDE receives direct PostgreSQL or Cognee credentials.
+11. Every retrieval item carries source, scope, trust, timestamp, and provenance.
+12. Per-IDE capture behavior is measured rather than assumed.
+13. The engineering library improves deterministic AgentBench results.
+14. One health command and one diagnostic bundle identify failures and corrective actions.
+15. The main checkout and worktree cannot silently diverge in architectural authority.
 
 ---
 
-## 17. Goal Mode handoff instruction
+## 16. Hard stops
 
-After Tony approves the Plan Mode response, Goal Mode can use:
+Stop and request operator review if:
 
-```text
-Execute the approved plan from D:\github\agentcore-control-plane. Follow CONTEXT_BLOCK.md. Back up managed files before mutation. Do not print secrets. Keep the rollout source-controlled and validator-driven. Continue until all acceptance tests pass or every remaining blocker is documented with exact evidence and next commands.
+- the active checkout/branch is ambiguous;
+- a stale plan is being treated as authority;
+- live drive identity conflicts with this role map;
+- a destructive command identifies a drive only by letter;
+- PostgreSQL backup or restore rehearsal fails;
+- the implementation uses a development Cognee release;
+- MCP SDK v2 pre-release is selected for production;
+- a custom LangGraph checkpointer is proposed without a proven gap;
+- a second AgentCore vector/database engine is proposed without benchmark evidence;
+- project context is promoted globally without approval;
+- event capture is claimed without a client-specific integration test;
+- AgentCore is coupled to vendor Swarm memory;
+- normal agents can reach raw F: database paths or write E: archive paths;
+- recovery depends on the operator manually repairing code or data.
+
+---
+
+## 17. Open facts that must be verified, not guessed
+
+- The exact current filesystem, allocation unit, free space, BitLocker state, and health of every drive.
+- The exact active PostgreSQL 16 state and cause of prior process termination.
+- The final H: and I: data inventory before formatting.
+- Whether I: passes all ReFS Dev Drive compatibility tests.
+- The distinct value and final disposition of `context-fabric`.
+- The lifecycle hooks available in each IDE and the measured capture percentage.
+- The final localhost port allocation from the existing port registry.
+- The final Cognee image/package digest and full transitive compatibility lock.
+- Whether Cognigent already exists as local code or remains an AgentCore product-layer name.
+- The off-machine/cloud backup target beyond E: and G:.
+
+These are explicit work items. They must not be filled with assumptions.
 ```
+

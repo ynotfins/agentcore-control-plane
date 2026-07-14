@@ -256,6 +256,13 @@ foreach ($rel in @("supervisor\servers.json", "renderers\cursor-global.mcp.json"
 }
 Add-Result $results "Context7 retired from managed routing" ($retiredFindings.Count -eq 0) (($retiredFindings -join "; ") -replace "^$", "context7 is not active or emitted")
 
+$serenaLauncherFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in @("supervisor\servers.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\antigravity.mcp_config.json")) {
+  $text = Get-Content -LiteralPath (Join-Path $rootPath $rel) -Raw
+  if ($text.Contains("git+https://github.com/oraios/serena") -or ($text -match '"command"\s*:\s*"[^"]*uvx(?:\.exe)?"')) { $serenaLauncherFindings.Add($rel) | Out-Null }
+}
+Add-Result $results "Serena installed launcher enforced" ($serenaLauncherFindings.Count -eq 0) (($serenaLauncherFindings -join ", ") -replace "^$", "managed Serena launchers use installed serena.exe")
+
 $depwireLauncher = "C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd"
 $depwireFindings = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in @("renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\android-studio.mcp.json", "renderers\antigravity.mcp_config.json")) {
@@ -337,8 +344,8 @@ catch {
 $expectedRendererServers = [ordered]@{
   "renderers\cursor-global.mcp.json" = @("arabold-docs", "artiforge", "context-fabric", "cursor-agent-mcp", "depwire", "filesystem", "mcp-debugger", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
   "renderers\openclaw.openclaw.fragment.json" = @("arabold-docs", "artiforge", "depwire", "eye2byte", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
-  "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "depwire", "swarmrecall", "swarmvault")
-  "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "depwire", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault")
+  "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "depwire", "serena", "swarmrecall", "swarmvault")
+  "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "depwire", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
   "renderers\antigravity.mcp_config.json" = @("arabold-docs", "artiforge", "depwire", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
   "renderers\android-studio.mcp.json" = @("depwire")
 }

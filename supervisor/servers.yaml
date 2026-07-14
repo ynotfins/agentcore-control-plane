@@ -398,15 +398,13 @@ servers:
       - Antigravity
     transport: stdio
     launch_contract:
-      command: "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe"
+      command: "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe"
       args:
-        - "--from"
-        - "git+https://github.com/oraios/serena"
-        - serena
         - "start-mcp-server"
-        - "--project-from-cwd"
         - "--transport"
         - stdio
+        - "--context"
+        - ide
     healthcheck:
       kind: mcp_stdio
       methods:
@@ -420,6 +418,8 @@ servers:
       - agent_handoffs
     notes:
       - "Use Serena before broad cross-file edits or architecture-aware refactors."
+      - "Do not use git-based uvx in managed IDE configs; use the installed serena-agent tool."
+      - "Use separate stdio instances for agents working in different projects."
   depwire:
     canonical_id: depwire
     client_bindings:

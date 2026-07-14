@@ -11,7 +11,7 @@
 - Config files may reference environment variable names only; documentation may list variable names only, never values.
 - If a tool asks for a `.env` file, adapt it to Windows environment variables instead.
 - If an environment variable is missing, stop and report the variable name instead of creating a local `.env` fallback.
-- `global-memory-gateway` must use `agent_ingest` through Windows environment variables.
+- `agentcore-gateway` / `agentcore-memory` use Windows environment variables; any future database ingest path must use `agent_ingest` through approved ops/admin runners only.
 - Normal IDE agents must never direct-SQL into PostgreSQL.
 
 ## Allowed References

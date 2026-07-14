@@ -81,6 +81,17 @@
         "DISABLE_THOUGHT_LOGGING": "true"
       }
     },
+    "serena": {
+      "type": "stdio",
+      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
+      "args": [
+        "start-mcp-server",
+        "--transport",
+        "stdio",
+        "--context",
+        "ide"
+      ]
+    },
     "swarmrecall": {
       "type": "stdio",
       "command": "pwsh",

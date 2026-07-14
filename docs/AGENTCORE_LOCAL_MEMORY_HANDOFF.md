@@ -2,6 +2,12 @@
 
 Generated: 2026-06-26
 
+> **Bifrost override (2026-07-14):** This handoff predates the Bifrost
+> non-Swarm IDE cutover. Current IDE routing is `agentcore-gateway` →
+> `agentcore-memory`; `global-memory-gateway` references below are historical
+> memory rollout terminology unless a future migration explicitly reintroduces
+> that name.
+
 Purpose: preserve the current AgentCore database, storage, SwarmVault, SwarmRecall, and multi-agent governance context for Cursor, Codex, OpenClaw/ClawX, Open Interpreter, MiniMax, and future controller agents.
 
 This handoff is non-secret. It records paths, ports, architecture decisions, validation gates, and open blockers, but not passwords, API keys, bearer tokens, cookies, private keys, or license material.
@@ -17,7 +23,7 @@ The target operating model is:
 - About 2 TB of `F:` is reserved for SwarmVault, SwarmRecall, and local persistent agent memory.
 - `E:` 6 TB external drive is archive, cold backup, export, and rollback storage.
 - Docker must not own persistent SwarmVault or SwarmRecall storage.
-- Normal IDE agents must use the governed `global-memory-gateway`; direct SQL is reserved for approved admin/ingest runners.
+- Normal non-Swarm IDE agents must use `agentcore-gateway` → `agentcore-memory`; direct SQL is reserved for approved admin/ingest runners.
 
 ## Source And Live Roots
 
@@ -32,7 +38,7 @@ Important rule: do not edit live client configs, live scheduled-task targets, or
 
 The current approved rollout is locked to a gateway-governed three-layer model:
 
-1. `global-memory-gateway` is the only normal agent write path.
+1. `agentcore-gateway` → `agentcore-memory` is the current normal non-Swarm IDE path; the historical `global-memory-gateway` name remains pre-migration terminology.
 2. `agent_core` on `127.0.0.1:55432` is the canonical governed memory database.
 3. `SwarmRecall` is the shared local memory runtime and retrieval backend, but not a default broad MCP surface for every IDE.
 4. `SwarmVault` is the shared local wiki/RAG substrate on `F:\AgentCore\agentmemory\swarmvault`.

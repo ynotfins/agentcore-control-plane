@@ -147,7 +147,7 @@
       "rollback_route": "Disable arabold_docs in Bifrost mcp.client_configs and restore direct IDE entry only under explicit operator approval.",
       "enabled": true,
       "bifrost_client_name": "arabold_docs",
-      "status": "active",
+      "status": "disabled",
       "notes": [
         "Vendored package path under ~/.cursor/vendor/arabold-docs-mcp"
       ]
@@ -197,7 +197,7 @@
       "rollback_route": "Disable serena wrapper; clear active project; fall back to direct serena.exe only with explicit project cwd.",
       "enabled": true,
       "bifrost_client_name": "serena",
-      "status": "active",
+      "status": "disabled",
       "notes": [
         "Launched directly under Bifrost for reliability on Windows.",
         "Project activation remains via agentcore-project-router + Serena tools.",
@@ -248,7 +248,7 @@
       "rollback_route": "Disable sequential_thinking client in Bifrost; do not restore thinking-patterns.",
       "enabled": true,
       "bifrost_client_name": "sequential_thinking",
-      "status": "active",
+      "status": "disabled",
       "notes": [
         "Set DISABLE_THOUGHT_LOGGING=true in Bifrost stdio envs."
       ]
@@ -295,7 +295,7 @@
       "rollback_route": "Disable cursor_agent_mcp; keep CURSOR_API_KEY in Windows User env only.",
       "enabled": true,
       "bifrost_client_name": "cursor_agent_mcp",
-      "status": "active",
+      "status": "disabled",
       "notes": [
         "CURSOR_API_URL fixed to https://api.cursor.com in renderer env map (non-secret)."
       ]
@@ -385,7 +385,7 @@
       "rollback_route": "Disable mcp_debugger; reviewer profile must keep attach tools denied.",
       "enabled": false,
       "bifrost_client_name": "mcp_debugger",
-      "status": "active",
+      "status": "disabled",
       "notes": [
         "Pinned mcp-debugger@0.0.78. Deny attach tools in reviewer profile."
       ],
@@ -433,7 +433,7 @@
       "enabled": false,
       "bifrost_client_name": "artiforge",
       "auth_type": "none",
-      "status": "active",
+      "status": "disabled",
       "notes": [
         "Prefer headers auth if Artiforge exposes a Bearer/header mode.",
         "Current live Artiforge MCP requires query-param PAT composition.",
