@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentcore.local/contracts/schemas/bifrost-upstream-mcp-registry.schema.json",
+  "title": "AgentCore Bifrost Upstream MCP Registry",
+  "description": "Canonical upstream MCP server registry for the AgentCore Bifrost MCP Gateway. Secret values must never appear; use Windows environment variable names only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "gateway_id",
+    "authority",
+    "runtime_root",
+    "swarm_exclusion",
+    "capability_profiles",
+    "servers"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "gateway_id": {
+      "type": "string",
+      "const": "agentcore-gateway"
+    },
+    "authority": {
+      "type": "string",
+      "description": "Canonical Git authority path for this registry."
+    },
+    "runtime_root": {
+      "type": "string",
+      "description": "Bifrost runtime root on the operator host."
+    },
+    "swarm_exclusion": {
+      "type": "array",
+      "description": "Canonical IDs and path markers that must never be registered, wrapped, started, or depended on by the Bifrost gateway.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "capability_profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/capability_profile"
+      }
+    },
+    "servers": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z0-9][a-z0-9_-]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/upstream_server"
+      }
+    }
+  },
+  "$defs": {
+    "capability_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "display_name",
+        "purpose",
+        "allowed_server_ids",
+        "default_tools_policy"
+      ],
+      "properties": {
+        "display_name": { "type": "string", "minLength": 1 },
+        "purpose": { "type": "string", "minLength": 1 },
+        "allowed_server_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "default_tools_policy": {
+          "type": "string",
+          "enum": ["allow_permitted", "deny_by_default", "profile_override"]
+        },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "retry_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_attempts", "backoff_seconds"],
+      "properties": {
+        "max_attempts": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "backoff_seconds": { "type": "number", "minimum": 0 },
+        "retry_on": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "logging_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["log_invocations", "log_content", "redact_secrets"],
+      "properties": {
+        "log_invocations": { "type": "boolean" },
+        "log_content": { "type": "boolean" },
+        "redact_secrets": { "type": "boolean" }
+      }
+    },
+    "upstream_server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_id",
+        "display_name",
+        "purpose",
+        "owner",
+        "pinned_version",
+        "connection_type",
+        "executable_or_url",
+        "arguments",
+        "env_var_names",
+        "timeout_seconds",
+        "health_check_type",
+        "project_scope",
+        "write_classification",
+        "permitted_tools",
+        "denied_tools",
+        "capability_profiles",
+        "logging_policy",
+        "retry_policy",
+        "rollback_route",
+        "enabled",
+        "bifrost_client_name"
+      ],
+      "properties": {
+        "canonical_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "description": "Hyphenated AgentCore registry ID."
+        },
+        "display_name": { "type": "string", "minLength": 1 },
+        "purpose": { "type": "string", "minLength": 1 },
+        "owner": { "type": "string", "minLength": 1 },
+        "pinned_version": { "type": "string", "minLength": 1 },
+        "connection_type": {
+          "type": "string",
+          "enum": ["stdio", "http", "sse", "router"]
+        },
+        "executable_or_url": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Command path, npx package launcher, or URL/env reference. Never embed secret values."
+        },
+        "arguments": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "env_var_names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "uniqueItems": true
+        },
+        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
+        "health_check_type": {
+          "type": "string",
+          "enum": ["mcp_ping", "process", "http_get", "tcp", "none"]
+        },
+        "project_scope": {
+          "type": "string",
+          "enum": ["global", "project"]
+        },
+        "write_classification": {
+          "type": "string",
+          "enum": ["read_only", "bounded_write", "write_capable", "admin"]
+        },
+        "permitted_tools": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "denied_tools": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "capability_profiles": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "logging_policy": { "$ref": "#/$defs/logging_policy" },
+        "retry_policy": { "$ref": "#/$defs/retry_policy" },
+        "rollback_route": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Documented recovery path if this upstream must be disabled."
+        },
+        "enabled": { "type": "boolean" },
+        "bifrost_client_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Bifrost MCP client name. Underscores only; no hyphens or spaces."
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Static HTTP headers using env.VAR references only."
+        },
+        "auth_type": {
+          "type": "string",
+          "enum": ["none", "headers", "oauth", "per_user_oauth", "per_user_headers"]
+        },
+        "wrapper_script": {
+          "type": "string",
+          "description": "Relative path to project-router wrapper when connection_type is router."
+        },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "deferred": { "type": "boolean" },
+        "status": {
+          "type": "string",
+          "enum": ["active", "deferred", "disabled", "quarantine"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "connection_type": { "const": "router" } },
+            "required": ["connection_type"]
+          },
+          "then": {
+            "required": ["wrapper_script"]
+          }
+        }
+      ]
+    }
+  }
+}

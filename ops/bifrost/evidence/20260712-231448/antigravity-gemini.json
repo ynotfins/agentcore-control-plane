@@ -1,0 +1,21 @@
+{
+  "existed": true,
+  "client": "antigravity-gemini",
+  "action": "updated",
+  "backup": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json.bifrost-cutover-20260712-231448.bak",
+  "path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+  "removed": [
+    "arabold-docs",
+    "serena",
+    "sequential-thinking",
+    "cursor-agent-mcp",
+    "context-fabric",
+    "mcp-debugger",
+    "artiforge",
+    "obsidian-vault",
+    "swarmrecall",
+    "swarmvault",
+    "filesystem",
+    "playwright"
+  ]
+}

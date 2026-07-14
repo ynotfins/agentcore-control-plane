@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "type": "http",
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "timeout": 300
+    }
+  },
+  "_agentcore": {
+    "renderer": "cursor",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Sanitized renderer — never commit resolved virtual key values.",
+      "Baseline direct MCP servers are replaced by the Bifrost gateway."
+    ]
+  }
+}

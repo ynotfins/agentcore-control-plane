@@ -1,0 +1,8 @@
+{
+  "existed": true,
+  "client": "claude-desktop",
+  "action": "updated",
+  "backup": "C:\\Users\\ynotf\\AppData\\Roaming\\Claude\\claude_desktop_config.json.bifrost-cutover-20260712-231448.bak",
+  "path": "C:\\Users\\ynotf\\AppData\\Roaming\\Claude\\claude_desktop_config.json",
+  "removed": []
+}

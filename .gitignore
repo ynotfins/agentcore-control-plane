@@ -1,6 +1,9 @@
 # Context and tool state
 .context-fabric/
 .serena/
+.depwire/claims.jsonl
+.depwire/decisions.jsonl
+depwire-output.json
 __pycache__/
 *.pyc
 *.pyo

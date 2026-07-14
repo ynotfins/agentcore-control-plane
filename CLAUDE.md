@@ -3,15 +3,16 @@
 `AGENTS.md` and `PROJECT_ANCHOR.md` are the canonical contracts for this repo. Read them first; this
 file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wins.
 
-## Native-first memory (2026-07-01 override — PROJECT_ANCHOR.md §0)
+## Non-Swarm gateway baseline (2026-07-12 override — PROJECT_ANCHOR.md §0)
 
-- Native SwarmRecall (memory/graph/learnings/skills/pools) + native SwarmVault (RAG/wiki/context/
-  task ledger) are the automatic default memory/RAG plane for every IDE and agent.
-- `global-memory-gateway` is RETIRED from the mandatory baseline and from all IDE default configs,
-  renderers, and the master contract default surfaces (now in `default_exclusions.must_not_emit`).
-  Do not re-introduce it into any IDE baseline.
-- The `agent_core` governed DB (`127.0.0.1:55432`) and the memory projector remain available for
-  governed/curated flows but are not the default IDE memory route.
+- Cursor, Claude, Codex, MiniMax, Mavis, Antigravity, and Open Interpreter use the single
+  non-Swarm gateway entry `agentcore-gateway` at `http://127.0.0.1:8080/mcp`.
+- Cursor's canonical global MCP file is `C:\Users\ynotf\.cursor\mcp.json`; project-level
+  gateway duplicates are not normal.
+- The default non-Swarm memory identity is `agentcore-memory` behind Bifrost. SwarmRecall,
+  SwarmVault, and SwarmClaw remain separate Swarm ecosystem components and are not required
+  in non-Swarm IDE MCP baselines.
+- `global-memory-gateway` remains retired from IDE defaults.
 
 ## Guardrails
 

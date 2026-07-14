@@ -1,0 +1,19 @@
+{
+  "mcp_servers": {
+    "agentcore-gateway": {
+      "url": "http://127.0.0.1:8080/mcp",
+      "http_headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "enabled": true,
+      "timeout_seconds": 300
+    }
+  },
+  "_agentcore": {
+    "renderer": "codex",
+    "live_format": "toml",
+    "live_path": "C:\\Users\\ynotf\\.codex\\config.toml",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "toml_example": "[mcp_servers.agentcore-gateway]\nurl = \"http://127.0.0.1:8080/mcp\"\nhttp_headers = { \"Authorization\" = \"Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}\" }\nenabled = true"
+  }
+}

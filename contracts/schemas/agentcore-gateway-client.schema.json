@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentcore.local/contracts/schemas/agentcore-gateway-client.schema.json",
+  "title": "AgentCore Gateway Client Contract",
+  "description": "Logical Bifrost MCP gateway client consumed by IDE cutover renderers. Secret values must never appear.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "name",
+    "url",
+    "auth",
+    "transport",
+    "timeout_seconds",
+    "client_render_hints"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "const": "agentcore-gateway"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Bifrost MCP endpoint URL."
+    },
+    "auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "header_name", "env_var_name"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["bearer"]
+        },
+        "header_name": {
+          "type": "string",
+          "const": "Authorization"
+        },
+        "env_var_name": {
+          "type": "string",
+          "const": "BIFROST_MCP_VIRTUAL_KEY"
+        },
+        "header_template": {
+          "type": "string",
+          "description": "Template using ${env:NAME} for Git-safe renderers."
+        }
+      }
+    },
+    "transport": {
+      "type": "string",
+      "enum": ["http", "streamable", "http/streamable"]
+    },
+    "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600
+    },
+    "host": {
+      "type": "string"
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "client_render_hints": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/client_hint"
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "client_hint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "config_path", "syntax"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "config_path": { "type": "string", "minLength": 1 },
+        "alternate_config_paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "syntax": {
+          "type": "string",
+          "enum": [
+            "cursor_mcp_json",
+            "minimax_mcp_json",
+            "mavis_mcp_json",
+            "claude_desktop_json",
+            "claude_code_json",
+            "codex_toml",
+            "antigravity_mcp_json",
+            "open_interpreter_json",
+            "skip_openclaw"
+          ]
+        },
+        "supports_env_headers": { "type": "boolean" },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

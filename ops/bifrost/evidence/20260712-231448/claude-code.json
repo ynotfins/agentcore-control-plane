@@ -1,0 +1,20 @@
+{
+  "existed": true,
+  "client": "claude-code",
+  "action": "updated",
+  "backup": "C:\\Users\\ynotf\\.claude.json.bifrost-cutover-20260712-231448.bak",
+  "path": "C:\\Users\\ynotf\\.claude.json",
+  "removed": [
+    "arabold-docs",
+    "filesystem",
+    "obsidian-vault",
+    "playwright",
+    "sequential-thinking",
+    "serena",
+    "swarmrecall",
+    "swarmvault",
+    "cursor-agent-mcp",
+    "context-fabric",
+    "mcp-debugger"
+  ]
+}

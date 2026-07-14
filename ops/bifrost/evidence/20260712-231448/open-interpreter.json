@@ -1,0 +1,19 @@
+{
+  "existed": true,
+  "client": "open-interpreter",
+  "action": "updated",
+  "backup": "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json.bifrost-cutover-20260712-231448.bak",
+  "path": "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json",
+  "removed": [
+    "arabold-docs",
+    "artiforge",
+    "swarmrecall",
+    "swarmvault",
+    "serena",
+    "sequential-thinking",
+    "cursor-agent-mcp",
+    "context-fabric",
+    "mcp-debugger",
+    "obsidian-vault"
+  ]
+}

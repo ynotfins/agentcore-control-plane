@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "type": "http",
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "timeout": 300
+    }
+  },
+  "_agentcore": {
+    "renderer": "antigravity",
+    "paths": [
+      "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json"
+    ],
+    "source_contract": "contracts/agentcore-gateway-client.json"
+  }
+}

@@ -1,0 +1,890 @@
+{
+  "schema_version": "2026-07-12",
+  "gateway_id": "agentcore-gateway",
+  "authority": "D:\\github\\agentcore-control-plane",
+  "runtime_root": "H:\\AgentRuntime\\bifrost",
+  "swarm_exclusion": [
+    "swarmrecall",
+    "swarmvault",
+    "swarmclaw",
+    "SwarmRecall",
+    "SwarmVault",
+    "AgentSwarm",
+    "F:\\AgentCore\\agentmemory"
+  ],
+  "capability_profiles": {
+    "builder": {
+      "display_name": "Builder",
+      "purpose": "Full AgentCore coding and planning surface for IDE builders.",
+      "allowed_server_ids": [
+        "arabold-docs",
+        "serena",
+        "sequential-thinking",
+        "cursor-agent-mcp",
+        "context-fabric",
+        "mcp-debugger",
+        "artiforge",
+        "depwire",
+        "tentra",
+        "obsidian-vault",
+        "playwright",
+        "filesystem",
+        "agentcore-memory",
+        "agentcore-project-router"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Primary virtual key: env.BIFROST_MCP_VIRTUAL_KEY"
+      ]
+    },
+    "reviewer": {
+      "display_name": "Reviewer",
+      "purpose": "Read-focused review surface; deny debugger attach and admin write tools.",
+      "allowed_server_ids": [
+        "arabold-docs",
+        "serena",
+        "sequential-thinking",
+        "context-fabric",
+        "depwire",
+        "obsidian-vault",
+        "filesystem",
+        "agentcore-memory",
+        "agentcore-project-router"
+      ],
+      "default_tools_policy": "profile_override",
+      "notes": [
+        "mcp-debugger attach tools denied",
+        "Virtual key stub: env.BIFROST_MCP_VK_REVIEWER"
+      ]
+    },
+    "database-validator": {
+      "display_name": "Database Validator",
+      "purpose": "Health and status checks against AgentCore memory/database contracts without credential exposure.",
+      "allowed_server_ids": [
+        "agentcore-memory",
+        "arabold-docs",
+        "agentcore-project-router"
+      ],
+      "default_tools_policy": "deny_by_default",
+      "notes": [
+        "Virtual key stub: env.BIFROST_MCP_VK_DATABASE_VALIDATOR"
+      ]
+    },
+    "docs-knowledge": {
+      "display_name": "Docs Knowledge",
+      "purpose": "Documentation lookup and durable note retrieval.",
+      "allowed_server_ids": [
+        "arabold-docs",
+        "obsidian-vault",
+        "sequential-thinking",
+        "agentcore-project-router"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Virtual key stub: env.BIFROST_MCP_VK_DOCS_KNOWLEDGE"
+      ]
+    },
+    "operator": {
+      "display_name": "Operator",
+      "purpose": "Operational gateway administration and project routing.",
+      "allowed_server_ids": [
+        "agentcore-project-router",
+        "agentcore-memory",
+        "depwire",
+        "artiforge",
+        "obsidian-vault",
+        "arabold-docs"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Virtual key stub: env.BIFROST_MCP_VK_OPERATOR"
+      ]
+    }
+  },
+  "servers": {
+    "arabold-docs": {
+      "canonical_id": "arabold-docs",
+      "display_name": "Arabold Docs MCP",
+      "purpose": "Local/current library and framework documentation replacing Context7.",
+      "owner": "agentcore",
+      "pinned_version": "2.4.2",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
+      "arguments": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+      ],
+      "env_var_names": [
+        "OPENAI_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "docs-knowledge",
+        "database-validator",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Disable arabold_docs in Bifrost mcp.client_configs and restore direct IDE entry only under explicit operator approval.",
+      "enabled": true,
+      "bifrost_client_name": "arabold_docs",
+      "status": "active",
+      "notes": [
+        "Vendored package path under ~/.cursor/vendor/arabold-docs-mcp"
+      ]
+    },
+    "serena": {
+      "canonical_id": "serena",
+      "display_name": "Serena",
+      "purpose": "Project-scoped semantic code intelligence, symbol navigation, and refactors.",
+      "owner": "agentcore",
+      "pinned_version": "1.5.4.dev0",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
+      "arguments": [
+        "start-mcp-server",
+        "--transport",
+        "stdio",
+        "--context",
+        "ide",
+        "--project",
+        "D:\\github\\agentcore-control-plane"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable serena wrapper; clear active project; fall back to direct serena.exe only with explicit project cwd.",
+      "enabled": true,
+      "bifrost_client_name": "serena",
+      "status": "active",
+      "notes": [
+        "Launched directly under Bifrost for reliability on Windows.",
+        "Project activation remains via agentcore-project-router + Serena tools.",
+        "Wrapper scripts under scripts/project_router/wrappers remain available for pooling experiments."
+      ]
+    },
+    "sequential-thinking": {
+      "canonical_id": "sequential-thinking",
+      "display_name": "Sequential Thinking",
+      "purpose": "Approved structured planning and multi-step reasoning MCP.",
+      "owner": "agentcore",
+      "pinned_version": "2026.7.4",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking@2026.7.4"
+      ],
+      "env_var_names": [
+        "DISABLE_THOUGHT_LOGGING"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "docs-knowledge"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Disable sequential_thinking client in Bifrost; do not restore thinking-patterns.",
+      "enabled": true,
+      "bifrost_client_name": "sequential_thinking",
+      "status": "active",
+      "notes": [
+        "Set DISABLE_THOUGHT_LOGGING=true in Bifrost stdio envs."
+      ]
+    },
+    "cursor-agent-mcp": {
+      "canonical_id": "cursor-agent-mcp",
+      "display_name": "Cursor Agent MCP",
+      "purpose": "Cursor agent bridge for cloud agent orchestration.",
+      "owner": "agentcore",
+      "pinned_version": "1.0.5",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "cursor-agent-mcp@1.0.5"
+      ],
+      "env_var_names": [
+        "CURSOR_API_KEY",
+        "CURSOR_API_URL"
+      ],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable cursor_agent_mcp; keep CURSOR_API_KEY in Windows User env only.",
+      "enabled": true,
+      "bifrost_client_name": "cursor_agent_mcp",
+      "status": "active",
+      "notes": [
+        "CURSOR_API_URL fixed to https://api.cursor.com in renderer env map (non-secret)."
+      ]
+    },
+    "context-fabric": {
+      "canonical_id": "context-fabric",
+      "display_name": "Context Fabric",
+      "purpose": "Git-backed project continuity, drift checks, and post-commit context capture.",
+      "owner": "agentcore",
+      "pinned_version": "1.0.7",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
+      "arguments": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable context_fabric wrapper; do not initialize Context Fabric under F:\\AgentCore\\agentmemory.",
+      "enabled": true,
+      "bifrost_client_name": "context_fabric",
+      "status": "active",
+      "notes": [
+        "Project-scoped only via router; reject Swarm and agentmemory roots."
+      ]
+    },
+    "mcp-debugger": {
+      "canonical_id": "mcp-debugger",
+      "display_name": "MCP Debugger",
+      "purpose": "Runtime debugging session tools for builder surfaces.",
+      "owner": "agentcore",
+      "pinned_version": "0.0.78",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "mcp-debugger@0.0.78"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "admin",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [
+        "attach_to_process"
+      ],
+      "capability_profiles": [
+        "builder"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable mcp_debugger; reviewer profile must keep attach tools denied.",
+      "enabled": false,
+      "bifrost_client_name": "mcp_debugger",
+      "status": "active",
+      "notes": [
+        "Pinned mcp-debugger@0.0.78. Deny attach tools in reviewer profile."
+      ],
+      "deferred": true
+    },
+    "artiforge": {
+      "canonical_id": "artiforge",
+      "display_name": "Artiforge",
+      "purpose": "High-leverage architecture scans, project docs, and refactor strategy.",
+      "owner": "agentcore",
+      "pinned_version": "live-http",
+      "connection_type": "http",
+      "executable_or_url": "env.ARTIFORGE_MCP_URL",
+      "arguments": [],
+      "env_var_names": [
+        "ARTIFORGE_PAT",
+        "ARTIFORGE_MCP_URL"
+      ],
+      "timeout_seconds": 180,
+      "health_check_type": "http_get",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "timeout",
+          "http_5xx"
+        ]
+      },
+      "rollback_route": "Disable artiforge HTTP client; do not embed ARTIFORGE_PAT in Git.",
+      "enabled": false,
+      "bifrost_client_name": "artiforge",
+      "auth_type": "none",
+      "status": "active",
+      "notes": [
+        "Prefer headers auth if Artiforge exposes a Bearer/header mode.",
+        "Current live Artiforge MCP requires query-param PAT composition.",
+        "Set Windows User env ARTIFORGE_MCP_URL to the composed URL using ARTIFORGE_PAT locally (never commit).",
+        "Bifrost connection_string uses env.ARTIFORGE_MCP_URL only \u2014 no secret literals in config.",
+        "If upstream returns 401 User is inactive, treat as deferred until ARTIFORGE_PAT is refreshed."
+      ],
+      "deferred": true
+    },
+    "depwire": {
+      "canonical_id": "depwire",
+      "display_name": "DepWire Local",
+      "purpose": "Deterministic dependency graph, blast radius, simulate/verify change, architecture health.",
+      "owner": "agentcore",
+      "pinned_version": "1.8.2",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
+      "arguments": [
+        "mcp"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable depwire wrapper; connect_repo only against verified local roots.",
+      "enabled": true,
+      "bifrost_client_name": "depwire",
+      "status": "active",
+      "notes": [
+        "Direct depwire-cli MCP. connect_repo with verified local path before graph queries.",
+        "Telemetry remains enabled; do not set DEPWIRE_NO_TELEMETRY."
+      ]
+    },
+    "depwire-cloud": {
+      "canonical_id": "depwire-cloud",
+      "display_name": "DepWire Cloud",
+      "purpose": "Hosted DepWire graph queries for cloud-connected repositories.",
+      "owner": "agentcore",
+      "pinned_version": "cloud-mcp",
+      "connection_type": "http",
+      "executable_or_url": "https://api.depwire.dev/mcp",
+      "arguments": [],
+      "env_var_names": [
+        "DEPWIRE_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "http_get",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "http_5xx"
+        ]
+      },
+      "rollback_route": "Keep enabled=false until cloud connectivity is verified; never hardcode DEPWIRE_API_KEY.",
+      "enabled": false,
+      "bifrost_client_name": "depwire_cloud",
+      "auth_type": "headers",
+      "headers": {
+        "Authorization": "Bearer env.DEPWIRE_API_KEY"
+      },
+      "status": "disabled",
+      "deferred": true,
+      "notes": [
+        "enabled=false until verified against api.depwire.dev",
+        "Auth via Authorization Bearer from DEPWIRE_API_KEY"
+      ]
+    },
+    "tentra": {
+      "canonical_id": "tentra",
+      "display_name": "Tentra",
+      "purpose": "Project-local knowledge/index MCP with data under AgentRuntime.",
+      "owner": "agentcore",
+      "pinned_version": "1.3.3",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "tentra-mcp@1.3.3",
+        "--local"
+      ],
+      "env_var_names": [
+        "TENTRA_DATA_DIR"
+      ],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable tentra wrapper; data remains at H:\\AgentRuntime\\tentra\\data.",
+      "enabled": true,
+      "bifrost_client_name": "tentra",
+      "status": "active",
+      "notes": [
+        "Local mode only. Do not run tentra-mcp init or init --hook.",
+        "Data path expected under H:\\AgentRuntime\\tentra\\data via TENTRA_DATA_DIR."
+      ]
+    },
+    "obsidian-vault": {
+      "canonical_id": "obsidian-vault",
+      "display_name": "Obsidian Vault",
+      "purpose": "Long-form notes, decisions, runbooks, and durable handoffs.",
+      "owner": "agentcore",
+      "pinned_version": "local-wrapper",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\PowerShell\\7\\pwsh.EXE",
+      "arguments": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+      ],
+      "env_var_names": [
+        "OBSIDIAN_API_KEY",
+        "OBSIDIAN_LOCAL_REST_API",
+        "OBSIDIAN_BASE_URL",
+        "OBSIDIAN_VERIFY_SSL"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "docs-knowledge",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable obsidian_vault; leave vault files untouched.",
+      "enabled": true,
+      "bifrost_client_name": "obsidian_vault",
+      "status": "active",
+      "notes": [
+        "OBSIDIAN_* names only \u2014 never embed key values.",
+        "Non-secret defaults may set OBSIDIAN_BASE_URL=https://127.0.0.1:27124 and OBSIDIAN_VERIFY_SSL=false in renderer."
+      ]
+    },
+    "playwright": {
+      "canonical_id": "playwright",
+      "display_name": "Playwright MCP",
+      "purpose": "Bounded local browser automation and UI verification.",
+      "owner": "agentcore",
+      "pinned_version": "0.0.78",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "@playwright/mcp@0.0.78"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 300,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable playwright client; leave browser profiles untouched.",
+      "enabled": true,
+      "bifrost_client_name": "playwright",
+      "status": "active",
+      "notes": [
+        "Bounded automation only \u2014 no Swarm or agentmemory roots."
+      ]
+    },
+    "filesystem": {
+      "canonical_id": "filesystem",
+      "display_name": "Filesystem (Project Router)",
+      "purpose": "Project-scoped filesystem MCP limited to registered worktree roots.",
+      "owner": "agentcore",
+      "pinned_version": "router",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2026.7.10",
+        "D:\\github"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable filesystem wrapper; never restore home-directory-wide filesystem roots in gateway mode.",
+      "enabled": true,
+      "bifrost_client_name": "filesystem",
+      "status": "active",
+      "notes": [
+        "Bounded to D:\\github only (no whole-drive roots).",
+        "Further narrowing via project router wrappers remains optional."
+      ]
+    },
+    "github-mcp": {
+      "canonical_id": "github-mcp",
+      "display_name": "GitHub MCP",
+      "purpose": "GitHub repository, issue, PR, and remote workflow access.",
+      "owner": "agentcore",
+      "pinned_version": "deferred",
+      "connection_type": "stdio",
+      "executable_or_url": "docker",
+      "arguments": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env_var_names": [
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "GITHUB_PAT_TOKEN"
+      ],
+      "timeout_seconds": 180,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remain enabled=false until healthy verification completes.",
+      "enabled": false,
+      "bifrost_client_name": "github_mcp",
+      "status": "deferred",
+      "deferred": true,
+      "notes": [
+        "Deferred: enabled=false unless healthy.",
+        "Do not register into Bifrost client_configs until health gate passes."
+      ]
+    },
+    "agentcore-memory": {
+      "canonical_id": "agentcore-memory",
+      "display_name": "AgentCore Memory Health",
+      "purpose": "Minimal memory health/status MCP; never exposes credentials.",
+      "owner": "agentcore",
+      "pinned_version": "0.1.0",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+      "arguments": [
+        "-u",
+        "D:\\github\\agentcore-control-plane\\scripts\\agentcore_memory\\server.py"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 30,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "memory_health",
+        "memory_status"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "database-validator",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable agentcore_memory; inspect Postgres 127.0.0.1:55432 via ops scripts only.",
+      "enabled": true,
+      "bifrost_client_name": "agentcore_memory",
+      "status": "active",
+      "notes": [
+        "Stable server identity: agentcore-memory",
+        "Returns degraded if Postgres 127.0.0.1:55432 is unreachable."
+      ]
+    },
+    "agentcore-project-router": {
+      "canonical_id": "agentcore-project-router",
+      "display_name": "AgentCore Project Router",
+      "purpose": "Activate and clear registered project worktrees for project-scoped upstream MCP servers.",
+      "owner": "agentcore",
+      "pinned_version": "0.1.0",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+      "arguments": [
+        "-u",
+        "D:\\github\\agentcore-control-plane\\scripts\\project_router\\server.py"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 30,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "project_list",
+        "project_activate",
+        "project_status",
+        "project_clear"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "database-validator",
+        "docs-knowledge",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable agentcore_project_router; clear H:\\AgentRuntime\\bifrost\\state\\active-project.json manually.",
+      "enabled": true,
+      "bifrost_client_name": "agentcore_project_router",
+      "status": "active",
+      "notes": [
+        "State file: H:\\AgentRuntime\\bifrost\\state\\active-project.json",
+        "Allowed roots scanned from D:\\github git repos with Swarm path rejection."
+      ]
+    }
+  }
+}

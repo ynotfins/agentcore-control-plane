@@ -1,0 +1,165 @@
+[
+  {
+    "client": "cursor",
+    "path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
+    "existed": true,
+    "backup": "C:\\Users\\ynotf\\.cursor\\mcp.json.bifrost-cutover-20260712-231448.bak",
+    "removed": [
+      "arabold-docs",
+      "artiforge",
+      "depwire-cloud",
+      "depwire",
+      "filesystem",
+      "obsidian-vault",
+      "playwright",
+      "sequential-thinking",
+      "serena",
+      "context-fabric",
+      "cursor-agent-mcp",
+      "mcp-debugger",
+      "swarmrecall",
+      "swarmvault"
+    ],
+    "action": "updated"
+  },
+  {
+    "client": "minimax",
+    "path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+    "existed": true,
+    "backup": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json.bifrost-cutover-20260712-231448.bak",
+    "removed": [
+      "arabold-docs",
+      "artiforge",
+      "cursor-agent-mcp",
+      "filesystem",
+      "mcp-debugger",
+      "obsidian-vault",
+      "playwright",
+      "serena",
+      "sequential-thinking",
+      "swarmrecall",
+      "swarmvault",
+      "context-fabric"
+    ],
+    "action": "updated"
+  },
+  {
+    "client": "mavis",
+    "path": "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json",
+    "existed": true,
+    "backup": "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json.bifrost-cutover-20260712-231448.bak",
+    "removed": [],
+    "action": "updated"
+  },
+  {
+    "client": "claude-desktop",
+    "path": "C:\\Users\\ynotf\\AppData\\Roaming\\Claude\\claude_desktop_config.json",
+    "existed": true,
+    "backup": "C:\\Users\\ynotf\\AppData\\Roaming\\Claude\\claude_desktop_config.json.bifrost-cutover-20260712-231448.bak",
+    "removed": [],
+    "action": "updated"
+  },
+  {
+    "client": "claude-code",
+    "path": "C:\\Users\\ynotf\\.claude.json",
+    "existed": true,
+    "backup": "C:\\Users\\ynotf\\.claude.json.bifrost-cutover-20260712-231448.bak",
+    "removed": [
+      "arabold-docs",
+      "filesystem",
+      "obsidian-vault",
+      "playwright",
+      "sequential-thinking",
+      "serena",
+      "swarmrecall",
+      "swarmvault",
+      "cursor-agent-mcp",
+      "context-fabric",
+      "mcp-debugger"
+    ],
+    "action": "updated"
+  },
+  {
+    "client": "codex",
+    "path": "C:\\Users\\ynotf\\.codex\\config.toml",
+    "existed": true,
+    "backup": "C:\\Users\\ynotf\\.codex\\config.toml.bifrost-cutover-20260712-231448.bak",
+    "removed": [
+      "arabold-docs",
+      "artiforge",
+      "context-fabric",
+      "cursor-agent-mcp",
+      "filesystem",
+      "mcp-debugger",
+      "obsidian-vault",
+      "playwright",
+      "sequential-thinking",
+      "serena",
+      "depwire",
+      "swarmrecall",
+      "swarmvault"
+    ],
+    "action": "updated"
+  },
+  {
+    "client": "antigravity-gemini",
+    "path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+    "existed": true,
+    "backup": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json.bifrost-cutover-20260712-231448.bak",
+    "removed": [
+      "arabold-docs",
+      "serena",
+      "sequential-thinking",
+      "cursor-agent-mcp",
+      "context-fabric",
+      "mcp-debugger",
+      "artiforge",
+      "obsidian-vault",
+      "swarmrecall",
+      "swarmvault",
+      "filesystem",
+      "playwright"
+    ],
+    "action": "updated"
+  },
+  {
+    "client": "antigravity-appdata",
+    "path": "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json",
+    "existed": true,
+    "backup": "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json.bifrost-cutover-20260712-231448.bak",
+    "removed": [
+      "arabold-docs",
+      "serena",
+      "sequential-thinking",
+      "cursor-agent-mcp",
+      "context-fabric",
+      "mcp-debugger",
+      "artiforge",
+      "obsidian-vault",
+      "swarmrecall",
+      "swarmvault",
+      "filesystem",
+      "playwright"
+    ],
+    "action": "updated"
+  },
+  {
+    "client": "open-interpreter",
+    "path": "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json",
+    "existed": true,
+    "backup": "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json.bifrost-cutover-20260712-231448.bak",
+    "removed": [
+      "arabold-docs",
+      "artiforge",
+      "swarmrecall",
+      "swarmvault",
+      "serena",
+      "sequential-thinking",
+      "cursor-agent-mcp",
+      "context-fabric",
+      "mcp-debugger",
+      "obsidian-vault"
+    ],
+    "action": "updated"
+  }
+]

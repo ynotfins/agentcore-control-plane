@@ -1,0 +1,23 @@
+{
+  "existed": true,
+  "client": "cursor",
+  "action": "updated",
+  "backup": "C:\\Users\\ynotf\\.cursor\\mcp.json.bifrost-cutover-20260712-231448.bak",
+  "path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
+  "removed": [
+    "arabold-docs",
+    "artiforge",
+    "depwire-cloud",
+    "depwire",
+    "filesystem",
+    "obsidian-vault",
+    "playwright",
+    "sequential-thinking",
+    "serena",
+    "context-fabric",
+    "cursor-agent-mcp",
+    "mcp-debugger",
+    "swarmrecall",
+    "swarmvault"
+  ]
+}
