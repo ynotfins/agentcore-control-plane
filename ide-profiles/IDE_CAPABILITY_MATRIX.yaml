@@ -1,0 +1,92 @@
+# IDE Capability Matrix — managed clients and rule/MCP delivery capabilities
+# Source facts: ide-profiles/<ide>/IDE_PROFILE.yaml (this file is the cross-IDE summary).
+# Editability modes: direct_write | generated_prompt | manual_import | unsupported | unverified
+# Do not guess values — 'unverified' until evidence exists.
+
+matrix_revision: "2026-07-14"
+policy_source: contracts/global-agent-policy.yaml
+
+managed_ides:
+  cursor:
+    installed_version: unverified
+    rule_mechanism: 'native project rules (.cursor/rules, AGENTS.md) + app-settings User Rules'
+    mcp_schema: cursor_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: mcp-reload-or-restart
+    editability: { global_rules: manual_import, project_rules: direct_write, mcp_config: direct_write }
+    last_validated: '2026-07-13'
+  codex:
+    installed_version: unverified
+    rule_mechanism: 'global + per-repo AGENTS.md'
+    mcp_schema: codex_toml
+    mcp_transport: http/streamable
+    env_var_handling: bearer_token_env_var
+    restart_behavior: session-restart
+    editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
+    last_validated: '2026-07-14'
+  claude-code:
+    installed_version: unverified
+    rule_mechanism: 'global + per-repo CLAUDE.md'
+    mcp_schema: claude_code_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: session-restart
+    editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
+    last_validated: unverified
+  claude-desktop:
+    installed_version: unverified
+    rule_mechanism: 'app preferences / project instructions (no rules file)'
+    mcp_schema: claude_desktop_json
+    mcp_transport: http/streamable
+    env_var_handling: no-env-headers-vk-materialized-live-only
+    restart_behavior: full-app-restart
+    editability: { global_rules: manual_import, project_rules: unsupported, mcp_config: direct_write }
+    last_validated: unverified
+  minimax:
+    installed_version: unverified
+    rule_mechanism: unverified
+    mcp_schema: minimax_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: client-restart
+    editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
+    last_validated: unverified
+  antigravity:
+    installed_version: unverified
+    rule_mechanism: unverified
+    mcp_schema: antigravity_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: client-restart
+    editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
+    last_validated: unverified
+  mavis:
+    installed_version: unverified
+    rule_mechanism: unverified
+    mcp_schema: mavis_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: client-restart
+    editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
+    last_validated: unverified
+  open-interpreter:
+    installed_version: unverified
+    rule_mechanism: 'profile system message'
+    mcp_schema: open_interpreter_json
+    mcp_transport: http/streamable
+    env_var_handling: no-env-headers-vk-materialized-live-only
+    restart_behavior: session-restart
+    editability: { global_rules: manual_import, project_rules: unsupported, mcp_config: direct_write }
+    last_validated: unverified
+
+swarm_managed_clients:
+  openclaw:
+    note: 'Swarm-managed (OpenClaw/ClawX). No non-Swarm profile is created. Outside Bifrost IDE cutover scope.'
+  clawx:
+    note: 'Swarm-managed. No non-Swarm profile is created.'
+
+discovery_note: >-
+  Additional installed managed non-Swarm clients are added to this matrix only after
+  verification against the live machine (installed application, config paths, rule mechanism).
+  Candidates observed in evidence but unverified: VS Code (Copilot/MCP), Android Studio.

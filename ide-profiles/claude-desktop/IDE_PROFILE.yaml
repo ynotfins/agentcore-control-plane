@@ -1,0 +1,26 @@
+ide_id: claude-desktop
+display_name: Claude Desktop
+swarm_managed: false
+installed_version: unverified
+live_global_rule_target: 'none (no file-based global rules; app-level preferences/project instructions only)'
+live_mcp_config_target: 'C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json'
+rule_mechanism: 'app-level preferences / per-project instructions (no rules file)'
+mcp_schema: claude_desktop_json
+mcp_transport: http/streamable
+env_var_handling: 'no env expansion in headers — VK must be materialized into live config during approved cutover only'
+restart_behavior: 'full app restart required after claude_desktop_config.json changes'
+editability:
+  global_rules: manual_import       # paste rendered rules into app preferences/project instructions
+  project_rules: unsupported
+  mcp_config: direct_write          # file-writable; approval-gated; VK materialization allowed per contract note
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: unverified
+mcp_template_source: renderers/gateway-clients/claude-desktop.json
+known_limitations:
+  - 'No env-header expansion: resolved VK may exist in the live config only (never in Git).'
+  - 'No file-based rules mechanism; semantic rules delivered via pasted instructions.'
+semantic_parity_gaps:
+  - 'Rules delivery is manual; parity depends on operator pasting the rendered GLOBAL_RULES content.'
