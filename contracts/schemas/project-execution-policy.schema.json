@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agentcore://schemas/project-execution-policy",
+  "title": "AgentCore Project Execution Policy",
+  "type": "object",
+  "required": [
+    "schema_version", "policy_id", "authority", "human_policies", "status_vocabulary",
+    "checklist_rules", "required_project_files", "milestone_required_fields",
+    "macro_required_fields", "micro_required_fields", "entry_gate", "exit_gate",
+    "read_order", "bootstrap"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "policy_id": { "const": "agentcore-project-execution-policy" },
+    "authority": { "type": "string" },
+    "human_policies": { "type": "array", "items": { "type": "string" }, "minItems": 4 },
+    "status_vocabulary": {
+      "type": "array",
+      "items": { "enum": ["pending", "in_progress", "passed", "blocked", "failed", "skipped_with_reason"] },
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true
+    },
+    "checklist_rules": {
+      "type": "object",
+      "required": [
+        "canonical_state", "canonical_state_path", "markdown_is_projection",
+        "passed_requires_evidence", "skipped_requires_reason_and_approver",
+        "macro_close_requires_all_micro_closed", "milestone_close_requires_exit_gate"
+      ],
+      "properties": {
+        "canonical_state": { "const": "machine_readable" },
+        "canonical_state_path": { "type": "string" },
+        "markdown_is_projection": { "const": true },
+        "passed_requires_evidence": { "const": true },
+        "skipped_requires_reason_and_approver": { "const": true },
+        "macro_close_requires_all_micro_closed": { "const": true },
+        "milestone_close_requires_exit_gate": { "const": true }
+      }
+    },
+    "required_project_files": { "type": "array", "items": { "type": "string" }, "minItems": 8 },
+    "templates_root": { "type": "string" },
+    "milestone_required_fields": { "type": "array", "items": { "type": "string" }, "minItems": 18 },
+    "macro_required_fields": { "type": "array", "items": { "type": "string" }, "minItems": 6 },
+    "micro_required_fields": { "type": "array", "items": { "type": "string" }, "minItems": 6 },
+    "entry_gate": { "type": "array", "items": { "type": "string" }, "minItems": 11 },
+    "exit_gate": { "type": "array", "items": { "type": "string" }, "minItems": 11 },
+    "read_order": { "type": "array", "items": { "type": "string" }, "minItems": 12, "maxItems": 12 },
+    "bootstrap": {
+      "type": "object",
+      "required": ["milestone_id", "must_pass_before_broad_implementation", "preserve_operator_prompt_verbatim", "idempotent", "forbidden_targets"],
+      "properties": {
+        "milestone_id": { "const": "M0" },
+        "must_pass_before_broad_implementation": { "const": true },
+        "preserve_operator_prompt_verbatim": { "const": true },
+        "idempotent": { "const": true },
+        "forbidden_targets": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "checklist_state": {
+      "title": "Project checklist state file (.agentcore/checklists/state.json)",
+      "type": "object",
+      "required": ["project_id", "policy_revision", "items"],
+      "properties": {
+        "$schema_note": { "type": "string" },
+        "project_id": { "type": "string" },
+        "policy_revision": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "type", "action", "expected_output", "validation", "status", "evidence_ref"],
+            "properties": {
+              "id": { "type": "string" },
+              "type": { "enum": ["milestone", "macro", "micro"] },
+              "parent": { "type": ["string", "null"] },
+              "action": { "type": "string" },
+              "expected_output": { "type": "string" },
+              "validation": { "type": "string" },
+              "status": { "enum": ["pending", "in_progress", "passed", "blocked", "failed", "skipped_with_reason"] },
+              "evidence_ref": { "type": ["string", "null"] },
+              "skip_reason": { "type": ["string", "null"] },
+              "skip_approver": { "type": ["string", "null"] },
+              "rollback": { "type": ["string", "null"] },
+              "agent": { "type": ["string", "null"] },
+              "updated_at": { "type": ["string", "null"] }
+            },
+            "allOf": [
+              {
+                "if": { "properties": { "status": { "const": "passed" } } },
+                "then": { "properties": { "evidence_ref": { "type": "string", "minLength": 1 } } }
+              },
+              {
+                "if": { "properties": { "status": { "const": "skipped_with_reason" } } },
+                "then": {
+                  "required": ["skip_reason", "skip_approver"],
+                  "properties": {
+                    "skip_reason": { "type": "string", "minLength": 1 },
+                    "skip_approver": { "type": "string", "minLength": 1 }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

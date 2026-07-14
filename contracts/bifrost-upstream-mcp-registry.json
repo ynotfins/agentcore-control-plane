@@ -12,6 +12,7 @@
     "AgentSwarm",
     "F:\\AgentCore\\agentmemory"
   ],
+  "tool_lifecycle_note": "TRANSITIONAL WILDCARD EXPOSURE (2026-07-14): permitted_tools [\"*\"] grants in this registry are a documented transitional state per contracts/project-tool-lifecycle.json (wildcard_policy.transitional_exception). Named-tool profiles and PostgreSQL-backed runtime leases arrive with memory-platform Milestone M6 (docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md). Do not extend wildcard grants to new servers without review.",
   "capability_profiles": {
     "builder": {
       "display_name": "Builder",

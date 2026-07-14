@@ -1,0 +1,21 @@
+{
+  "$schema_note": "Generated projection once the memory platform lands (M3); hand-maintained until then. Policy: docs/agent-policy/",
+  "project_id": "",
+  "status": "bootstrap",
+  "current_milestone": "M0",
+  "last_updated": null,
+  "worktree": "",
+  "blockers": [],
+  "recent_decisions": [],
+  "decisions_log_path": ".agentcore/DECISIONS.md",
+  "risk_register_path": ".agentcore/RISK_REGISTER.md",
+  "acceptance_tests_path": ".agentcore/ACCEPTANCE_TESTS.md",
+  "checklist_state_path": ".agentcore/checklists/state.json",
+  "reading_log": [],
+  "checkpoints": {
+    "context_fabric": null,
+    "arabold_docs": null,
+    "memory_handoff": null,
+    "tool_audit": null
+  }
+}

@@ -1,0 +1,135 @@
+# Canonical Global Agent Policy — single semantic source for all per-IDE rule renderings
+# Authority: PROJECT_ANCHOR.md §0/§0.1 -> DOC_AUTHORITY.md -> this contract
+# Derived artifacts: ide-profiles/<ide>/GLOBAL_RULES.md (must not contradict this file)
+# Schema: contracts/schemas/global-agent-policy.schema.json
+
+policy_id: agentcore-global-agent-policy
+policy_revision: "2026-07-14"
+authority_repo: 'D:\github\agentcore-control-plane'
+
+mandatory_rules:
+  - id: authority
+    title: AgentCore authority
+    rule: >-
+      D:\github\agentcore-control-plane is the single source authority. Read order:
+      PROJECT_ANCHOR.md -> DOC_AUTHORITY.md -> CONTEXT_BLOCK.md ->
+      docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md -> Bifrost contracts/handoff ->
+      D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md (machine facts).
+      D:\MCP-Control-Plane is evidence only.
+
+  - id: single-gateway
+    title: One Bifrost gateway entry
+    rule: >-
+      Non-Swarm IDEs use exactly one MCP entry: agentcore-gateway at http://127.0.0.1:8080/mcp
+      with Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}. Never paste the upstream registry
+      or direct per-tool MCP entries into IDE configs.
+
+  - id: swarm-isolation
+    title: Swarm isolation
+    rule: >-
+      SwarmRecall, SwarmVault, and SwarmClaw are a separate ecosystem. Never require Swarm MCP
+      servers, Swarm databases, or Swarm file roots for non-Swarm work. Never modify Swarm
+      product installs. OpenClaw/ClawX are Swarm-managed and outside the non-Swarm baseline.
+
+  - id: new-project-bootstrap
+    title: New Project Bootstrap (Milestone 0)
+    rule: >-
+      Every new managed project runs Milestone 0 per docs/agent-policy/NEW_PROJECT_BOOTSTRAP.md
+      before broad implementation: register worktree, load context, preserve the operator prompt
+      verbatim, run Context Fabric capture/drift, discover architecture (Serena/Depwire/Tentra),
+      resolve exact versions via Arabold, create governance files from templates, audit tools.
+
+  - id: milestones
+    title: Milestone execution
+    rule: >-
+      Work is organized in Milestones (outcome boundaries) with entry and exit gates per
+      docs/agent-policy/MILESTONE_EXECUTION_STANDARD.md. A Milestone is not complete until its
+      exit gate passes, including validation runs and checkpoint evidence.
+
+  - id: macro-micro
+    title: Macro and Micro steps
+    rule: >-
+      Macro steps are workstreams with Micro checklists. Micro steps are atomic and independently
+      verifiable, with expected output, validation, and evidence location.
+
+  - id: evidence-checklists
+    title: Evidence-backed checklists
+    rule: >-
+      Checklist state is machine-readable (status vocabulary: pending, in_progress, passed,
+      blocked, failed, skipped_with_reason). passed requires an evidence reference. Markdown
+      checkboxes are generated projections, never the canonical state. No step is complete from
+      intention, confidence, or narrative claims.
+
+  - id: context-fabric-checkpoints
+    title: Context Fabric checkpoints
+    rule: >-
+      Run Context Fabric capture and drift checks at every Milestone entry and exit, and at
+      project bootstrap. Unresolved drift blocks Milestone closure.
+
+  - id: arabold-docs
+    title: Arabold exact-version documentation
+    rule: >-
+      Use arabold-docs (through the gateway) for exact-version dependency and API documentation
+      before dependency or external-API work. Record a documentation checkpoint per Milestone.
+
+  - id: tool-audits
+    title: Milestone tool audits
+    rule: >-
+      Audit the tool surface at every Milestone entry and exit per
+      docs/agent-policy/TOOL_LIFECYCLE_POLICY.md. Disable expired JIT, completed-Milestone, and
+      unused tools. Keep a tool core_active only with evidence of frequent continued use.
+
+  - id: progressive-disclosure
+    title: Progressive tool disclosure
+    rule: >-
+      All approved tools remain available for activation, but only tools needed for the current
+      project and Milestone are actively exposed. Projects begin with the Bootstrap profile,
+      never unrestricted administrative or destructive authority. Runtime lease enforcement
+      arrives with memory-platform M6; until then the tool manifest records desired state and
+      agents honor it behaviorally.
+
+  - id: write-boundaries
+    title: Project/worktree write boundaries
+    rule: >-
+      Write only inside the assigned repo/worktree and role-appropriate runtime roots per
+      docs/DRIVE_WRITE_BOUNDARY_RULE.md. Never expose whole-drive filesystem roots. Never format
+      or re-provision H: (live Bifrost runtime).
+
+  - id: secrets
+    title: Secrets policy
+    rule: >-
+      Windows User-scope environment variables only. No .env files. Never print, store, or commit
+      secret values; configs reference env var names only. Missing variable -> stop and report
+      the name.
+
+  - id: no-direct-db
+    title: No direct database access
+    rule: >-
+      Normal IDE agents never connect to PostgreSQL directly and never hold database credentials.
+      Memory flows through agentcore-gateway -> agentcore-memory. Trusted direct SQL exists only
+      in explicitly approved ops/admin runners.
+
+  - id: git-safety
+    title: Git safety and validation
+    rule: >-
+      Push after every completed task; narrowest relevant validation plus secret/junk scan first.
+      Never pull/fetch/merge/rebase or force-push without explicit operator instruction. Stage
+      only source-controlled files. See docs/GIT_PUSH_ONLY_POLICY.md.
+
+forbidden_routes:
+  - context7
+  - raw mem0 (Mem0 is rejected for v1 and must not be installed)
+  - direct composio
+  - global-memory-gateway (retired identity)
+  - direct per-IDE MCP server baselines
+  - whole-drive filesystem MCP roots
+  - Postgres credentials in IDE configs
+  - Swarm MCP in non-Swarm IDE baselines
+  - port 65432 as an active route
+
+references:
+  project_execution_policy: contracts/project-execution-policy.json
+  tool_lifecycle_policy: contracts/project-tool-lifecycle.json
+  bifrost_registry: contracts/bifrost-upstream-mcp-registry.json
+  gateway_client: contracts/agentcore-gateway-client.json
+  memory_platform_plan: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md

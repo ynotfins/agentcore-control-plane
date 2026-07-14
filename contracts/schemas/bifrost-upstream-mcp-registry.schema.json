@@ -41,6 +41,10 @@
       "uniqueItems": true,
       "minItems": 1
     },
+    "tool_lifecycle_note": {
+      "type": "string",
+      "description": "Transitional tool-exposure classification note (see contracts/project-tool-lifecycle.json). Informational only; not rendered into the Bifrost runtime config."
+    },
     "capability_profiles": {
       "type": "object",
       "minProperties": 1,

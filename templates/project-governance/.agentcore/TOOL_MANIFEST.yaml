@@ -1,0 +1,26 @@
+# Tool Manifest — policy and desired state
+# Policy: docs/agent-policy/TOOL_LIFECYCLE_POLICY.md (AgentCore control plane)
+# Schema: contracts/schemas/project-tool-lifecycle.schema.json (tool_manifest definition)
+# NOTE: Until memory-platform Milestone M6 lands, this manifest records policy/desired
+# state only; runtime lease enforcement is not yet active. Agents honor it behaviorally.
+
+project_id: ""
+repo_id: ""
+worktree_id: ""
+active_milestone_id: "M0"
+assigned_identities: []          # client/agent identities working this project
+base_profile: bootstrap          # bootstrap | builder-core | milestone-builder | reviewer | database-validator | docs-knowledge | operator | emergency-recovery
+
+core_active: []                  # tools used frequently throughout the project
+milestone_active: []             # tools needed throughout the current Milestone
+jit_leased: []                   # entries: {tool, step_id, justification, risk_class, permitted_operations, expiry, requesting_agent, approval_class, audit_id}
+dormant: []                      # not currently needed; may be reactivated
+operator_only: []                # require explicit operator approval per activation
+forbidden: []                    # never permitted for this project
+
+activation_reasons: {}           # tool -> reason string
+expiry_conditions: {}            # tool -> expiry rule (step completion / timeout / milestone close / session close)
+
+last_audit: null                 # ISO timestamp of last tool audit
+next_required_audit: "M0-exit"   # milestone boundary or timestamp
+policy_revision: "2026-07-14"
