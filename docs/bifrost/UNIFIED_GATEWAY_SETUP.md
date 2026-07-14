@@ -150,10 +150,16 @@ If Desktop ignores `${env:…}`, materialize Bearer in the live file only.
 ```toml
 [mcp_servers.agentcore-gateway]
 url = "http://127.0.0.1:8080/mcp"
-http_headers = { Authorization = "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}" }
+bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"
+enabled = true
+startup_timeout_sec = 300
+tool_timeout_sec = 300
 ```
 
-(Exact Codex key names may vary by Codex version — match existing `mcp_servers` style in that file.)
+Codex constructs `Authorization: Bearer` from `bearer_token_env_var`; this keeps
+the secret in the Windows environment. `http_headers` is for static values, and
+the generic contract timeout maps to Codex's `startup_timeout_sec` and
+`tool_timeout_sec`. Re-check the installed Codex schema when its version changes.
 
 ### MiniMax — `C:\Users\ynotf\.minimax\mcp\mcp.json`
 
@@ -184,6 +190,22 @@ Same HTTP + Bearer env header shape.
 Prefer env expansion if supported; otherwise materialize Bearer in live config only (`supports_env_headers: false` in contract).
 
 Sanitized renderers: `renderers/gateway-clients/<ide>.json`.
+
+### Supported IDE Matrix
+
+| Client | Active config path | Schema / syntax | Env header support | Timeout field | Restart behavior | Rollback |
+| -- | -- | -- | -- | -- | -- | -- |
+| Cursor | `C:\Users\ynotf\.cursor\mcp.json` | `mcpServers.agentcore-gateway` JSON, `type=http`, `url`, `headers` | Yes: `${env:BIFROST_MCP_VIRTUAL_KEY}` | `timeout: 300` | Fully quit all Cursor processes, relaunch, verify `user-agentcore-gateway` ready | Restore timestamped `mcp.json` backup |
+| Codex | `C:\Users\ynotf\.codex\config.toml` | `[mcp_servers.agentcore-gateway]`, `url`, `bearer_token_env_var` | Yes: named User env read by Codex | `startup_timeout_sec = 300`, `tool_timeout_sec = 300` | Restart Codex session/CLI host | Restore timestamped `config.toml` backup |
+| Claude Code | `C:\Users\ynotf\.claude.json` | JSON `mcpServers` entry | Yes where supported by installed client | Client default or renderer field | Restart Claude Code | Restore `.claude.json` backup |
+| Claude Desktop | `C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json` | JSON `mcpServers` entry | Contract marks unsupported; materialize live secret only as last resort | Client default | Fully quit/reopen Claude Desktop | Restore config backup |
+| MiniMax | `C:\Users\ynotf\.minimax\mcp\mcp.json` | JSON `mcpServers` entry | Yes | Client default or renderer field | Restart MiniMax | Restore config backup |
+| Mavis | `C:\Users\ynotf\.mavis\mcp\mcp.json` | JSON `mcpServers` entry | Yes | Client default or renderer field | Restart Mavis | Restore config backup |
+| Antigravity | `C:\Users\ynotf\.gemini\config\mcp_config.json` or `C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json` | JSON MCP config | Yes | Client default or renderer field | Restart Antigravity/Gemini host | Restore config backup |
+| Open Interpreter | `C:\Users\ynotf\AppData\Roaming\interpreter\config.json` | JSON app config | Contract marks unsupported; materialize live secret only as last resort | Client default | Restart Open Interpreter | Restore config backup |
+
+For every client, validate Bifrost first with `ops\bifrost\Test-AgentCoreBifrostGateway.ps1`,
+then validate IDE discovery and one safe read-only tool call through `agentcore-gateway`.
 
 ---
 

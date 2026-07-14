@@ -18,11 +18,13 @@ Secrets live only in Windows User-scope environment variables. No `.env` files.
 
 ## 1. Authority
 
-| Role | Path |
-| -- | -- |
-| Source / config authority | `D:\github\agentcore-control-plane` |
-| Bifrost runtime | `H:\AgentRuntime\bifrost` |
-| Compatibility / live-ops evidence only | `D:\MCP-Control-Plane` |
+
+| Role                                   | Path                                |
+| -------------------------------------- | ----------------------------------- |
+| Source / config authority              | `D:\github\agentcore-control-plane` |
+| Bifrost runtime                        | `H:\AgentRuntime\bifrost`           |
+| Compatibility / live-ops evidence only | `D:\MCP-Control-Plane`              |
+
 
 Constitution: `PROJECT_ANCHOR.md`
 Document hierarchy: `DOC_AUTHORITY.md`
@@ -113,10 +115,18 @@ python D:\github\agentcore-control-plane\scripts\bifrost\validate_contracts.py
 
 Implemented registry posture (as of docs update; re-run validator for live truth):
 
-- **14 enabled** upstream clients rendered into Bifrost
-- **2 deferred/disabled:** `depwire-cloud`, `github-mcp`
+- **12 enabled** upstream clients rendered into Bifrost
+- **4 deferred/disabled:** `mcp-debugger`, `artiforge`, `depwire-cloud`, `github-mcp`
 - Bifrost client names use underscores; AgentCore IDs keep hyphens
 - Swarm IDs listed under `swarm_exclusion` must not appear in non-Swarm IDE baselines
+
+Repaired runtime validation (2026-07-14):
+
+- Authenticated direct MCP `initialize`, `notifications/initialized`, `tools/list`, and `arabold_docs-list_libraries` passed.
+- Builder VK visible tool count: **127**.
+- Expected prefixes present: `arabold_docs`, `depwire`, `tentra`, `sequential_thinking`, `context_fabric`, `filesystem`, `playwright`, `cursor_agent_mcp`, `agentcore_memory`, `agentcore_project_router`.
+- Forbidden patterns absent: Swarm, raw Postgres/psql, whole-drive filesystem, Bifrost admin.
+- Current upstream caveats: `obsidian_vault` and `serena` are disconnected/time out at the Bifrost upstream layer; the gateway itself remains healthy.
 
 Classification matrix: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`
 
@@ -165,13 +175,15 @@ Allowed roots: registered `D:\github\...` git worktrees. Reject Swarm / `F:\Agen
 
 See `docs/bifrost/CAPABILITY_PROFILES.md` and registry `capability_profiles`:
 
-| Profile | Primary use | VK env (name only) |
-| -- | -- | -- |
-| builder | Full coding/planning | `BIFROST_MCP_VIRTUAL_KEY` |
-| reviewer | Read-focused review | `BIFROST_MCP_VK_REVIEWER` |
+
+| Profile            | Primary use                    | VK env (name only)                  |
+| ------------------ | ------------------------------ | ----------------------------------- |
+| builder            | Full coding/planning           | `BIFROST_MCP_VIRTUAL_KEY`           |
+| reviewer           | Read-focused review            | `BIFROST_MCP_VK_REVIEWER`           |
 | database-validator | Memory/DB health without creds | `BIFROST_MCP_VK_DATABASE_VALIDATOR` |
-| docs-knowledge | Docs + notes | `BIFROST_MCP_VK_DOCS_KNOWLEDGE` |
-| operator | Ops + routing | `BIFROST_MCP_VK_OPERATOR` |
+| docs-knowledge     | Docs + notes                   | `BIFROST_MCP_VK_DOCS_KNOWLEDGE`     |
+| operator           | Ops + routing                  | `BIFROST_MCP_VK_OPERATOR`           |
+
 
 Do not invent profiles outside the registry. Never commit resolved VK values.
 
@@ -218,9 +230,16 @@ Sanitized canonical entry (env form — never resolve secrets in Git):
 ```toml
 [mcp_servers.agentcore-gateway]
 url = "http://127.0.0.1:8080/mcp"
-http_headers = { "Authorization" = "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}" }
+bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"
 enabled = true
+startup_timeout_sec = 300
+tool_timeout_sec = 300
 ```
+
+For Codex, `bearer_token_env_var` is the schema-correct environment-backed
+Bearer mechanism. Do not place `${env:BIFROST_MCP_VIRTUAL_KEY}` inside
+`http_headers`, because Codex defines `http_headers` as static values. Map the
+shared 300-second timeout to `startup_timeout_sec` and `tool_timeout_sec`.
 
 If a client cannot expand `${env:...}` in headers, materialize from Windows User env into the **live** config only during cutover — never commit the live secret-bearing file.
 
@@ -230,16 +249,18 @@ If a client cannot expand `${env:...}` in headers, materialize from Windows User
 
 Sanitized renderers (source-controlled):
 
-| Client | Renderer |
-| -- | -- |
-| cursor | `renderers/gateway-clients/cursor.json` |
-| codex | `renderers/gateway-clients/codex.json` |
-| claude-code | `renderers/gateway-clients/claude-code.json` |
-| claude-desktop | `renderers/gateway-clients/claude-desktop.json` |
-| minimax | `renderers/gateway-clients/minimax.json` |
-| mavis | `renderers/gateway-clients/mavis.json` |
-| antigravity | `renderers/gateway-clients/antigravity.json` |
+
+| Client           | Renderer                                          |
+| ---------------- | ------------------------------------------------- |
+| cursor           | `renderers/gateway-clients/cursor.json`           |
+| codex            | `renderers/gateway-clients/codex.json`            |
+| claude-code      | `renderers/gateway-clients/claude-code.json`      |
+| claude-desktop   | `renderers/gateway-clients/claude-desktop.json`   |
+| minimax          | `renderers/gateway-clients/minimax.json`          |
+| mavis            | `renderers/gateway-clients/mavis.json`            |
+| antigravity      | `renderers/gateway-clients/antigravity.json`      |
 | open-interpreter | `renderers/gateway-clients/open-interpreter.json` |
+
 
 Live paths are listed in `contracts/agentcore-gateway-client.json` → `client_render_hints`.
 Cutover automation: `ops/bifrost/Invoke-AgentCoreIdeGatewayCutover.ps1`.
@@ -247,15 +268,97 @@ Cutover automation: `ops/bifrost/Invoke-AgentCoreIdeGatewayCutover.ps1`.
 
 ---
 
-## 10. Global IDE setup prompt path
+## 10. Global IDE setup prompt
 
-Use this reusable prompt for any supported IDE:
+Source prompt file: `docs/prompts/install-agentcore-gateway-in-ide.md`.
+
+Copy this prompt into any supported non-Swarm IDE-local agent when configuring MCP on this PC:
 
 ```text
-D:\github\agentcore-control-plane\docs\prompts\install-agentcore-gateway-in-ide.md
-```
+Install the AgentCore Bifrost MCP gateway for this IDE.
 
-It encodes the operator’s 15 steps: read authority → identify config/schema → backup → preserve non-MCP settings → remove old direct baseline → add only agentcore-gateway → canonical endpoint → VK without printing → schema-correct render → validate syntax → reload → gateway discovery → verify profile/project → report unsupported capabilities → preserve rollback.
+Authority:
+D:\github\agentcore-control-plane\PROJECT_ANCHOR.md
+D:\github\agentcore-control-plane\DOC_AUTHORITY.md
+D:\github\agentcore-control-plane\MASTER_CONFIG_AND_PROMPT.md
+D:\github\agentcore-control-plane\contracts\agentcore-gateway-client.json
+D:\github\agentcore-control-plane\contracts\bifrost-upstream-mcp-registry.json
+D:\github\agentcore-control-plane\docs\bifrost\UNIFIED_GATEWAY_SETUP.md
+D:\github\agentcore-control-plane\docs\prompts\install-agentcore-gateway-in-ide.md
+
+Goal:
+Use exactly one non-Swarm AgentCore MCP baseline entry named agentcore-gateway:
+http://127.0.0.1:8080/mcp
+Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
+
+Runtime requirement:
+Before editing the IDE config, prove the native Bifrost Gateway is running persistently:
+- scheduled task: \AgentCore\AgentCore-Bifrost-Gateway
+- app dir: H:\AgentRuntime\bifrost
+- bind: 127.0.0.1:8080 only
+- health: GET http://127.0.0.1:8080/health returns 200
+- direct MCP initialize, initialized notification, tools/list, and one safe read-only tool call succeed
+
+Safety rules:
+- Back up the live IDE config before any change and record SHA-256.
+- Preserve model, auth, account, sandbox, context, profile, theme, and non-MCP app settings.
+- Do not print or commit secret values.
+- Do not create .env files.
+- Do not touch SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or ClawX.
+- Do not paste the full upstream registry into the IDE.
+
+Steps:
+1. Identify the real active MCP config path and schema for this IDE from contracts\agentcore-gateway-client.json.
+2. Back up the config outside Git.
+3. Remove direct duplicate baseline MCP entries now served by Bifrost.
+4. For Cursor, remove MCP_DOCKER unless the operator explicitly approves a documented unique-capability exception.
+5. Add or merge only agentcore-gateway using the schema-correct renderer for this IDE.
+6. Use Windows User env BIFROST_MCP_VIRTUAL_KEY without printing it.
+   For Codex, use bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY" plus startup_timeout_sec = 300 and tool_timeout_sec = 300; do not put the env placeholder in static http_headers.
+7. If env-header expansion is unsupported, materialize the secret only into the app-owned live config as a last resort; never commit or report it.
+8. Validate JSON/TOML syntax.
+9. Fully restart/reload the IDE so environment references are visible.
+10. Confirm the IDE shows agentcore-gateway connected/ready.
+11. Confirm tools/list includes expected prefixes such as arabold_docs, depwire, tentra, sequential_thinking, context_fabric, filesystem, playwright, cursor_agent_mcp, agentcore_memory, and agentcore_project_router.
+12. Confirm Swarm, raw database, whole-drive filesystem, and Bifrost admin tools are absent.
+13. Activate the project through agentcore_project_router before project-scoped work.
+14. Record sanitized evidence: IDE name, config path, backup path, hashes, discovery/tool count, blockers, rollback.
+
+Canonical Cursor target:
+C:\Users\ynotf\.cursor\mcp.json
+
+Canonical Cursor JSON:
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "type": "http",
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "timeout": 300
+    }
+  }
+}
+
+Adding future MCP servers:
+- Do not add new baseline MCP servers separately to every IDE.
+- Add once to contracts\bifrost-upstream-mcp-registry.json.
+- Pin version, index exact-version official docs with Arabold, classify scope, define transport/command/env/timeout/health/write risk/rollback.
+- Define allowed tools, denied tools, and capability profiles.
+- Render Bifrost config, validate schemas, restart Bifrost, test initialize/tools/list and one safe call.
+- Update .agentcore/docs/DOCS_INDEX.md and evidence.
+- Leave IDE configs unchanged unless the single gateway connection itself changes.
+
+Tool suppression:
+- Disable an upstream with enabled=false.
+- Use named tools_to_execute allowlists.
+- Use an empty allowlist for no tools.
+- Use narrower virtual-key profiles.
+- Avoid broad wildcard grants unless documented in the registry.
+
+Do not claim completion from config files alone. Direct MCP and IDE discovery must pass.
+```
 
 ---
 
@@ -324,7 +427,7 @@ Details: `docs/bifrost/TENTRA_LOCAL_MODE.md`.
 ## 14. Arabold Docs
 
 Primary docs MCP for libraries/SDKs/APIs (replaces Context7).
-Index Bifrost docs as library `bifrost` version `2.0.0-prerelease1` from <https://docs.getbifrost.ai> — see `.agentcore/docs/DOCS_INDEX.md`.
+Index Bifrost docs as library `bifrost` version `2.0.0-prerelease1` from [https://docs.getbifrost.ai](https://docs.getbifrost.ai) — see `.agentcore/docs/DOCS_INDEX.md`.
 Keep project manifests under `.agentcore/docs/` when indexing project-relevant libraries.
 
 ---
@@ -379,7 +482,7 @@ python D:\github\agentcore-control-plane\scripts\bifrost\validate_contracts.py
 
 Also: secret/junk scan before commit; IDE JSON/TOML parse after cutover; confirm single gateway entry per migrated client.
 
-**Docs update note:** Contract schema validation was run successfully during this authority-doc update (14 enabled / 2 deferred). Full live gateway/IDE acceptance remains evidenced only where ops tests and cutover evidence files exist — do not invent pass/fail beyond that.
+**Docs update note:** Contract schema validation and `ops\bifrost\Test-AgentCoreBifrostGateway.ps1` pass for the repaired runtime (12 enabled / 4 disabled-deferred). Live IDE acceptance remains evidenced only where ops tests and cutover evidence files exist — do not invent pass/fail beyond that.
 
 ---
 

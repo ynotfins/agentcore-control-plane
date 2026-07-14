@@ -140,7 +140,8 @@ function Update-JsonMcpServers {
     $name = $prop.Name
     if ($name -eq 'agentcore-gateway') { continue }
     $lower = $name.ToLowerInvariant()
-    if ($baselineIds -contains $name -or $baselineIds -contains $lower -or $lower -match 'swarm(recall|vault|claw)') {
+    $isCursorDockerGateway = $ClientName -eq 'cursor' -and $lower -eq 'mcp_docker'
+    if ($baselineIds -contains $name -or $baselineIds -contains $lower -or $lower -match 'swarm(recall|vault|claw)' -or $isCursorDockerGateway) {
       $toRemove += $name
     }
   }
@@ -191,7 +192,7 @@ function Update-CodexToml {
       $sectionName = $Matches[1].Trim('"').Trim("'")
       $lower = $sectionName.ToLowerInvariant()
       $isGateway = ($sectionName -eq 'agentcore-gateway')
-      $isBaseline = ($baselineIds -contains $sectionName) -or ($baselineIds -contains $lower) -or ($lower -match 'swarm(recall|vault|claw)')
+      $isBaseline = ($baselineIds -contains $sectionName) -or ($baselineIds -contains $lower) -or ($lower -match 'swarm(recall|vault|claw)') -or ($lower -eq 'mcp_docker')
       if ($isBaseline -and -not $isGateway) {
         $skipping = $true
         $result.removed += $sectionName
@@ -220,15 +221,16 @@ function Update-CodexToml {
     $i++
   }
 
-  $vkRef = '${env:BIFROST_MCP_VIRTUAL_KEY}'
-  $supportsEnv = $true
-  # Codex generally supports env in config; keep env ref
+  # Codex constructs the Authorization: Bearer header from this environment
+  # variable. Do not place a ${env:...} placeholder in static http_headers.
   $block = @(
     '',
     '[mcp_servers.agentcore-gateway]',
     'url = "http://127.0.0.1:8080/mcp"',
-    'http_headers = { "Authorization" = "Bearer ' + $vkRef + '" }',
-    'enabled = true'
+    'bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"',
+    'enabled = true',
+    'startup_timeout_sec = 300',
+    'tool_timeout_sec = 300'
   )
   foreach ($b in $block) { $out.Add($b) | Out-Null }
 

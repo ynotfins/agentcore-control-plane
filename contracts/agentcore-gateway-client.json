@@ -29,7 +29,9 @@
       "syntax": "codex_toml",
       "supports_env_headers": true,
       "notes": [
-        "Replace [mcp_servers.*] baseline entries with single agentcore-gateway http server"
+        "Replace [mcp_servers.*] baseline entries with a single agentcore-gateway HTTP server while preserving Codex-managed extras such as node_repl and plugin-provided MCP servers",
+        "Use bearer_token_env_var = \"BIFROST_MCP_VIRTUAL_KEY\" so Codex constructs Authorization: Bearer without materializing the secret or treating an env placeholder as a static header",
+        "Map the 300-second contract timeout to startup_timeout_sec = 300 and tool_timeout_sec = 300; do not emit the unsupported generic timeout_seconds field"
       ]
     },
     "claude-code": {
