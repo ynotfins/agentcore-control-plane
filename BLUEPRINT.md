@@ -117,6 +117,108 @@ Bifrost upstream: agentcore-memory
 - Mem0 may be evaluated later as a benchmark alternative only.
 - Neither Cognee nor Mem0 owns the immutable evidence ledger or lossless compaction system.
 
+### Adopted reference patterns: COMB, Distill, and Lossless Claw
+
+These projects inform AgentCore behavior without becoming competing authorities.
+
+#### COMB
+
+- Adopt concepts and selected templates from `mehmetdemirci/comb-ai`.
+- Use COMB as the plain-Markdown projection and context-governance convention.
+- Separate stable/static context from frequently changing/active context.
+- Keep hot files concise and archive stale detail while preserving source references.
+- Generate tool-neutral views that every IDE can read.
+- COMB is not a daemon, database, queue, lock service, memory engine, or second source of truth.
+- PostgreSQL remains canonical; COMB-formatted files are projections.
+
+Expected projection family:
+
+```text
+GLOBAL_STATE.md
+<project>\.agentcore\STATE.md
+<project>\.agentcore\DECISIONS.md
+<project>\.agentcore\CONTEXT_INDEX.md
+<project>\.agentcore\memory-bank\INDEX.md
+<project>\.agentcore\active-context.md
+<project>\.agentcore\milestones\
+<project>\.agentcore\patterns\
+```
+
+Cursor may adapt filenames to the validated repository convention, but it must preserve the static/dynamic separation, concise hot context, archives, provenance, and cross-IDE readability.
+
+#### Distill
+
+- Distill is a reference implementation and benchmark source for the rolling session/context plane.
+- It is not the canonical database or long-term semantic memory engine.
+- Required Distill-style behaviors are:
+  - write-time deduplication;
+  - token-budgeted session windows;
+  - hierarchical compression or decay;
+  - importance-aware retention;
+  - deterministic operation where practical;
+  - explicit session boundaries;
+  - bounded retrieval and compaction overhead.
+- Cursor must identify and validate the exact upstream Distill repository, current version, license, Windows behavior, and API before using code from it.
+- Cursor may implement these behaviors natively inside AgentCore or use Distill as a hidden sidecar only when measured evidence shows that the sidecar reduces code, risk, or operational burden.
+- A Distill sidecar must remain behind `agentcore-memory`; it may not become a second IDE MCP entry or a second canonical store.
+
+#### Lossless Claw
+
+Use Lossless Claw as a reference for:
+
+- preserving every raw message and tool event;
+- maintaining a recent raw tail;
+- DAG or hierarchical summary nodes;
+- recursive summary condensation;
+- cache-aware compaction thresholds;
+- exact `grep` / `describe` / `expand`-style recall;
+- lossless pointers from summaries back to originals.
+
+Do not import OpenClaw-specific runtime assumptions into the non-Swarm AgentCore platform.
+
+### Vector and index policy
+
+Keep the initial vector stack simple:
+
+1. PostgreSQL metadata filtering, full-text search, and `pg_trgm`.
+2. `pgvector` inside PostgreSQL 18.
+3. HNSW as the initial approximate-nearest-neighbor index where an ANN index is justified.
+4. Exact vector search for small datasets and correctness baselines.
+5. IVFFlat only when a measured workload shows it is preferable.
+6. `pgvectorscale` / StreamingDiskANN or another acceleration layer only after production-sized benchmark data demonstrates a material benefit.
+
+Day-one rules:
+
+- No separate vector database.
+- No `pgvectorscale` or DiskANN dependency merely for theoretical scale.
+- Benchmark recall, build time, query latency, memory, disk use, filtered-query behavior, update cost, and operational complexity before adding an acceleration extension.
+- Keep a PostgreSQL full-text and metadata fallback when vector retrieval is unavailable.
+- Vector indexes are retrieval aids, not canonical memory.
+
+### Memory trust and poisoning defenses
+
+Persistent memory is an instruction and data attack surface.
+
+Every durable item must carry a trust zone equivalent to:
+
+```text
+operator_verified
+system_verified
+project_verified
+raw_untrusted
+quarantined
+rejected
+```
+
+Rules:
+
+- Raw tool output, downloaded documents, web content, repository text, and model-generated claims do not become curated memory automatically.
+- Retrieved memory is data, not an instruction that can override the current authority chain.
+- Promotion into global or curated memory requires provenance, validation, and an explicit policy decision.
+- Contradictory facts create a review record rather than silently replacing truth.
+- Quarantined content remains retrievable for investigation but is excluded from normal startup context and Cognee promotion.
+- All writes pass through the AgentCore broker and policy layer.
+
 ---
 
 ## 4. Machine and Storage Facts
@@ -348,14 +450,19 @@ Do not pre-plan hundreds of speculative Micro steps. Refine the current Mileston
 - L0/L1/L2/L3 context hierarchy works.
 - Original long prompts are preserved verbatim.
 - Requirements, constraints, assumptions, acceptance criteria, and unresolved questions link to exact source spans.
+- Write-time deduplication prevents repeated context from bloating active windows without deleting original evidence.
+- Session windows are token-budgeted and importance-aware.
+- Hierarchical compression/decay is deterministic where practical and preserves exact source edges.
 - Exact expansion works after compaction.
 - Exact expansion works after archival to E:.
 - Context assembly obeys model-specific token budgets.
-- `GLOBAL_STATE.md` and project `STATE.md` regenerate deterministically.
+- `GLOBAL_STATE.md` and project `STATE.md` regenerate deterministically using the adopted COMB-style projection convention.
+- Static/stable context is separated from active/dynamic context.
 - Projection writes are atomic and versioned.
 - Process interruption during compaction causes no loss or corruption.
 - Multi-session project chronology remains coherent.
 - Contradictory facts follow a proposal/review path.
+- An ADR records whether Distill behavior was implemented natively or through a hidden sidecar, with benchmark evidence and a rollback path.
 
 **Rollback point:** prior summary/projection revision and immutable source evidence.
 
@@ -404,6 +511,10 @@ docs_search
 
 - PostgreSQL full-text and trigram search work.
 - Selective pgvector search works.
+- Exact vector search provides a correctness baseline.
+- HNSW is the initial ANN strategy where indexing is justified.
+- IVFFlat, pgvectorscale, and DiskANN remain benchmark-gated optional upgrades.
+- Any acceleration extension demonstrates a material measured benefit before adoption.
 - Official source documents live on E: and searchable metadata/indexes live on F:.
 - Cognee runs natively on Windows behind `KnowledgeMemoryPort`.
 - Cognee uses a separate `cognee_core` database on the PostgreSQL 18 service.
@@ -631,12 +742,54 @@ The platform is complete only when:
 
 ---
 
-## 15. Immediate Next Action
+## 15. Final Context-Source Audit and Immediate Next Action
 
-After the authority-reconciliation task finishes:
+Before M1 executes, Cursor performs one final context-source audit. This is the last architecture-alignment pass, not another redesign cycle.
 
-1. Add this file to the repository root as `BLUEPRINT.md`.
-2. Classify it as current in `DOC_AUTHORITY.md`.
-3. Reference it from `PROJECT_ANCHOR.md`, `CONTEXT_BLOCK.md`, and the memory-platform handoff.
-4. Start a new Cursor chat in the completed reconciliation worktree.
-5. Require Cursor to verify M0, refine M1 Macro/Micro steps from live evidence, and then execute M1.
+Audit every source that can influence Cursor or another managed agent, including:
+
+- the authority chain;
+- root Markdown instructions;
+- `.cursor/rules/`;
+- `rules/`;
+- `.agents/`;
+- `.agentcore/`;
+- `ide-profiles/`;
+- generated IDE rule artifacts;
+- contracts and schemas;
+- current handoffs and context blocks;
+- Bifrost registry, runbooks, and generated configuration;
+- project Charter, Milestones, Tool Manifest, and STATE projections;
+- current Git branch/worktree state;
+- `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` and its classified machine facts;
+- any global Cursor rule or configuration source outside the repository that is actually loaded.
+
+Cursor must produce one concise mental model covering:
+
+- current machine and drive roles;
+- current gateway and tool topology;
+- canonical memory/data planes;
+- lossless context behavior;
+- Cognee’s role;
+- COMB’s role;
+- Distill/Lossless-Claw reference behavior;
+- LangGraph’s role;
+- STATE projection behavior;
+- trust and promotion flow;
+- Swarm isolation;
+- current Milestone and rollback point.
+
+If a live context source contradicts this blueprint, Cursor makes the smallest justified correction, reruns validators, records the correction, and proceeds.
+
+Cursor must not create another competing plan or authority layer.
+
+After the audit:
+
+1. Confirm this file exists at the repository root as `BLUEPRINT.md`.
+2. Confirm it is classified as current in `DOC_AUTHORITY.md`.
+3. Confirm it is referenced from `PROJECT_ANCHOR.md`, `CONTEXT_BLOCK.md`, and the memory-platform handoff.
+4. Confirm M0 remains satisfied.
+5. Refine M1 Macro/Micro steps from live evidence.
+6. Execute M1 under its approved safety boundaries.
+7. Stop only for an ambiguous physical disk identity, failed backup/restore proof, an authority-changing decision, or another explicitly locked operator gate.
+

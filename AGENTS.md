@@ -5,7 +5,7 @@ This repository, `D:\github\agentcore-control-plane`, is the canonical Git sourc
 `H:\AgentRuntime\bifrost` is the Bifrost runtime root (not design authority).
 `D:\MCP-Control-Plane` is compatibility/live-ops evidence only — not a design authority.
 
-**Start here (read in this order):** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `CONTEXT_BLOCK.md` → `contracts/bifrost-upstream-mcp-registry.json` + `contracts/agentcore-gateway-client.json` → `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` → `MASTER_CONFIG_AND_PROMPT.md`. For memory/database work, also read `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (implementation authority). Project execution policy: `docs/agent-policy/`.
+**Start here (read in this order):** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → `contracts/bifrost-upstream-mcp-registry.json` + `contracts/agentcore-gateway-client.json` → `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` → `MASTER_CONFIG_AND_PROMPT.md`. For memory/database work, also read `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (implementation authority). Project execution policy: `docs/agent-policy/`.
 
 ## Operating Rules
 
