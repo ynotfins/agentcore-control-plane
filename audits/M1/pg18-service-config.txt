@@ -1,0 +1,45 @@
+# PostgreSQL 18 Service Configuration — 2026-07-14
+# DOES NOT contain passwords or credentials
+
+## Installation
+Source: winget install PostgreSQL.PostgreSQL.18 version 18.4-2
+Origin: https://get.enterprisedb.com/postgresql/postgresql-18.4-2-windows-x64.exe
+Install directory: F:\PostgreSQL18\
+Data directory: F:\PostgreSQL18\data\
+PG_VERSION: 18
+
+## Service
+Service name: AgentCore-PostgreSQL18
+StartType: Automatic
+Status: Running
+Port: 55433 (side-by-side with PG16 on 55432)
+listen_addresses: 127.0.0.1 (localhost only — per BLUEPRINT §10)
+SSL: enabled (self-signed cert, F:\PostgreSQL18\data\server.crt / server.key, 3650-day expiry)
+
+## Security
+pg_hba.conf: localhost-only, hostssl SCRAM-SHA-256 authentication
+All NOLOGIN roles require passwords set via Windows env vars before service can authenticate
+No passwords committed to Git or logs
+
+## Databases
+agent_core — AgentCore canonical; extensions: vector 0.8.5, pgcrypto 1.4, plpgsql 1.0
+cognee_core — Cognee semantic memory (empty; reserved for M5)
+
+## Roles
+agentcore_read   — SELECT on agent_core (login enabled, no password yet — set in M2)
+agentcore_ingest — INSERT/SELECT on agent_core (login enabled, no password yet)
+agentcore_worker — INSERT/UPDATE/SELECT on agent_core (login enabled, no password yet)
+agentcore_admin  — ALL on agent_core (login enabled, no password yet)
+agentcore_backup — pg_dump backup role (login enabled, no password yet)
+agentcore_cognee — ALL on cognee_core (login enabled, no password yet)
+
+## pgvector
+Version: 0.8.5 (built from source pgvector/pgvector v0.8.5 using VS2022 BuildTools)
+Binary: vector.dll installed to F:\PostgreSQL18\lib\
+Control: F:\PostgreSQL18\share\extension\vector.control
+Confirmed via: SELECT extversion FROM pg_extension WHERE extname='vector' → '0.8.5' ✓
+
+## PG16 preservation
+PG16 cluster at F:\AgentCore\database_cluster (port 55432) is UNTOUCHED and running
+PostgresRuntime scheduled task still points to PG16
+Rollback: stop/uninstall AgentCore-PostgreSQL18 service; PG16 unaffected
