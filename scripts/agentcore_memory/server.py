@@ -127,6 +127,8 @@ def tool_defs() -> list[dict[str, Any]]:
                     "agent_key": text_schema,
                     "session_key": text_schema,
                     "project_root": text_schema,
+                    "canonical_repo_path": text_schema,
+                    "worktree_path": text_schema,
                     "repo_key": text_schema,
                     "remote_url": text_schema,
                     "branch_name": text_schema,
@@ -358,7 +360,9 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
     session_key = (
         args.get("session_key") or f"{project_key}:{client_key}:{agent_key}:{_now()}"
     )
-    repo_path = str(Path(args.get("project_root") or REPO_PATH).resolve())
+    project_root = str(Path(args.get("project_root") or REPO_PATH).resolve())
+    repo_path = str(Path(args.get("canonical_repo_path") or project_root).resolve())
+    worktree_path = str(Path(args.get("worktree_path") or project_root).resolve())
     repo_key = args.get("repo_key") or Path(repo_path).name
     remote_url = args.get("remote_url")
     if remote_url is None and repo_key == "agentcore-control-plane":
@@ -384,7 +388,8 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
             WITH repo AS (
               INSERT INTO agentcore.repositories (repo_key, canonical_path, remote_url)
               VALUES (%s, %s, %s)
-              ON CONFLICT (canonical_path) DO UPDATE SET remote_url = EXCLUDED.remote_url
+              ON CONFLICT (repo_key) DO UPDATE
+                SET remote_url = COALESCE(EXCLUDED.remote_url, agentcore.repositories.remote_url)
               RETURNING id
             ),
             wt AS (
@@ -398,11 +403,12 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
               INSERT INTO agentcore.projects (project_key, project_name, repository_id, primary_worktree_id, root_path, current_milestone)
               SELECT %s, %s, wt.repository_id, wt.id, %s, 'M4' FROM wt
               ON CONFLICT (project_key) DO UPDATE SET project_name = EXCLUDED.project_name
+                WHERE agentcore.projects.repository_id = EXCLUDED.repository_id
               RETURNING id, repository_id, primary_worktree_id
             ),
             pwt AS (
               INSERT INTO agentcore.project_worktrees (project_id, worktree_id, is_primary)
-              SELECT project.id, project.primary_worktree_id, true FROM project
+              SELECT project.id, wt.id, (wt.id = project.primary_worktree_id) FROM project, wt
               ON CONFLICT DO NOTHING
             ),
             client AS (
@@ -462,10 +468,10 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
                 machine_id, user_id, project_id, repository_id, worktree_id, client_id, agent_id,
                 session_id, run_id, workflow_thread_id, source_label, trust_class
               )
-              SELECT machine.id, usr.id, session.project_id, project.repository_id, project.primary_worktree_id,
+              SELECT machine.id, usr.id, session.project_id, project.repository_id, wt.id,
                      session.client_id, session.agent_id, session.id, run.id, thread.id,
                      %s, 'project_verified'
-              FROM machine, usr, project, session, run, thread
+              FROM machine, usr, project, wt, session, run, thread
               RETURNING id
             )
             SELECT session.id AS session_id, session.project_id, source.id AS source_identity_id, run.id AS run_id
@@ -475,12 +481,12 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
                 repo_key,
                 repo_path,
                 remote_url,
-                repo_path,
+                worktree_path,
                 branch_name,
                 head_commit,
                 project_key,
                 project_name,
-                repo_path,
+                project_root,
                 client_key,
                 client_key,
                 agent_key,
@@ -495,6 +501,8 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
             ),
         )
         row = cur.fetchone()
+        if not row:
+            raise ValueError("project_key is already bound to a different repository")
         conn.commit()
     return {"ok": True, **row, "session_key": session_key}
 

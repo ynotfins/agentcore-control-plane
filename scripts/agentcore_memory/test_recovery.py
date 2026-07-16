@@ -280,6 +280,8 @@ def test_session_open_self_enrolls_model_and_git_identity() -> None:
     properties = tools["session_open"]["inputSchema"]["properties"]
     assert {
         "project_root",
+        "canonical_repo_path",
+        "worktree_path",
         "repo_key",
         "branch_name",
         "head_commit",

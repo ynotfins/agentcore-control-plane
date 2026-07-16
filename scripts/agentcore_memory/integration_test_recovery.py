@@ -43,6 +43,8 @@ def main() -> int:
             "agent_key": f"agent-{run_id}",
             "session_key": f"session-{run_id}",
             "project_root": str(Path.cwd()),
+            "canonical_repo_path": str(Path.cwd()),
+            "worktree_path": str(Path.cwd()),
             "repo_key": "agentcore-control-plane-integration",
             "branch_name": "test/recovery-integration",
             "head_commit": "0" * 40,
@@ -52,6 +54,46 @@ def main() -> int:
         }
     )
     require(session["ok"], "session_open failed")
+    alternate = server.session_open(
+        {
+            "project_key": f"{project_key}-alternate",
+            "project_name": "Recovery Integration Alternate Worktree",
+            "client_key": f"cursor-alt-{run_id}",
+            "agent_key": f"agent-alt-{run_id}",
+            "session_key": f"session-alt-{run_id}",
+            "project_root": str(Path.cwd() / "alternate-worktree"),
+            "canonical_repo_path": str(Path.cwd()),
+            "worktree_path": str(Path.cwd() / "alternate-worktree"),
+            "repo_key": "agentcore-control-plane-integration",
+            "branch_name": "test/recovery-alternate",
+            "head_commit": "1" * 40,
+            "model_provider": "generic",
+            "model_id": "capability/standard-128k",
+            "context_profile": "standard-context",
+        }
+    )
+    require(
+        alternate["ok"], "same repository could not self-enroll an alternate worktree"
+    )
+    try:
+        server.session_open(
+            {
+                "project_key": project_key,
+                "project_name": "Invalid Repository Rebinding",
+                "client_key": f"cursor-invalid-{run_id}",
+                "agent_key": f"agent-invalid-{run_id}",
+                "session_key": f"session-invalid-{run_id}",
+                "project_root": str(Path.cwd() / "invalid-repo"),
+                "canonical_repo_path": str(Path.cwd() / "invalid-repo"),
+                "worktree_path": str(Path.cwd() / "invalid-repo"),
+                "repo_key": f"invalid-repo-{run_id}",
+                "context_profile": "standard-context",
+            }
+        )
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("project identity was rebound across repositories")
 
     expected_ids: list[str] = []
     for index in range(9):
@@ -320,6 +362,8 @@ def main() -> int:
 
     closed = server.session_close({"session_id": session["session_id"]})
     require(closed["ok"], "session_close failed")
+    alternate_closed = server.session_close({"session_id": alternate["session_id"]})
+    require(alternate_closed["ok"], "alternate session_close failed")
     print(
         "PASS recovery integration: self-enroll, append, paginate, expand, startup, handoff"
     )
