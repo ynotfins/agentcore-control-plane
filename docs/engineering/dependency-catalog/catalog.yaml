@@ -259,6 +259,49 @@ dependencies:
       vs explicit markers. Approve after confirming Python 3.13 compatibility.
     last_review: "2026-07-16"
 
+  - package: deepagents
+    ecosystem: python
+    status: approved
+    purpose: >
+      Worker harness inside M6 LangGraph builder and critic nodes.
+      Provides FilesystemMiddleware (worktree-scoped execution) and create_deep_agent().
+      NOT a canonical memory, workflow, policy, or tool authority.
+    version_policy: "==0.6.12"
+    tested_version: "0.6.12"
+    source: https://pypi.org/project/deepagents/
+    repository: https://github.com/langchain-ai/deepagents
+    documentation: https://docs.langchain.com/oss/python/deepagents/overview
+    license: MIT
+    provenance: LangChain AI; MIT license; PyPI-published; inspected commit 3d1a9a94
+    security_notes: >
+      MemoryMiddleware is DISABLED (reads AGENTS.md, would create competing authority).
+      LangSmith tracing is DISABLED (external data egress).
+      .env file loading is DISABLED (violates AgentCore secret policy).
+      FilesystemMiddleware restricts access to assigned worktree only (D:\\ paths).
+      Deep agent uses MemorySaver (ephemeral); M6 PostgresSaver is canonical.
+    alternatives_considered: >
+      Custom LangChain/OpenAI agent (more implementation work, no filesystem isolation).
+      Raw subprocess with worktree guard (no LLM loop).
+    approval_reason: >
+      MIT license; LangGraph 1.2.5 compatible (exact M6 match); provides FilesystemMiddleware
+      worktree isolation not available in M6 without custom implementation;
+      compute_drift ported as a deterministic gate; bounded integration via adapter.
+      See ADR-DEEP-AGENTS-WORKER-HARNESS.md for full decision record.
+    agentcore_role: worker_harness
+    forbidden_responsibilities: >
+      canonical memory, evidence ledger, durable facts, project/global STATE,
+      PostgreSQL schemas, Cognee promotion, Milestone/checklist authority,
+      capability leases, project identity, final scorer/judge,
+      Bifrost configuration, IDE configuration, AGENTS.md memory
+    compatibility_evidence: >
+      deepagents 0.6.12 venv: langgraph==1.2.5 (exact M6 match);
+      System Python 3.13 install: clean; 11/11 proof tests pass;
+      M6 regression: 18/18 still green.
+    rollback: >
+      pip uninstall deepagents; remove from requirements.txt;
+      remove drift gate from gates.py; delete deepagents_worker.py.
+    last_review: "2026-07-16"
+
   - package: structlog
     ecosystem: python
     status: under_review

@@ -187,6 +187,16 @@ def gate_resource(state: dict) -> tuple[str, dict]:
 # Gate runner
 # ─────────────────────────────────────────────────────────────────────────────
 
+def gate_drift(state: dict) -> tuple[str, dict]:
+    """Deterministic drift gate (ported compute_drift from deepagents-platform).
+
+    Checks execution_result.diff against the plan to detect forbidden paths,
+    size shocks, and plan deviations. Runs before any LLM critic.
+    """
+    from .deepagents_worker import gate_drift as _drift
+    return _drift(state)
+
+
 GATE_REGISTRY = {
     "requirement": gate_requirement,
     "scope": gate_scope,
@@ -195,6 +205,7 @@ GATE_REGISTRY = {
     "security": gate_security,
     "migration": gate_migration,
     "resource": gate_resource,
+    "drift": gate_drift,
 }
 
 

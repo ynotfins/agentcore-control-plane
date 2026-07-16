@@ -47,6 +47,7 @@ The platform must:
 - Use LangGraph for durable autonomous workflows and checkpoints.
 - Expose memory through the existing Bifrost gateway.
 - Keep SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, and ClawX independent and untouched.
+- Deep Agents (`deepagents==0.6.12`, MIT) may be used as an optional worker harness inside LangGraph nodes; it is not a canonical memory, workflow, policy, or tool authority. See `docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md`.
 
 The platform is for one human operator with large local storage. Durable storage and complete provenance are preferred over aggressive deletion.
 
