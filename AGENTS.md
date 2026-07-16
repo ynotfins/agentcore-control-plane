@@ -64,11 +64,10 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thin
 
 ## Learned Workspace Facts
 
-- Memory platform milestones M0-M7 accepted on branch `task/authority-reconciliation` (commit 1d8ba9b); M8 is next (operations, recovery, performance, cutover). `BLUEPRINT.md` is locked implementation authority for all milestones.
+- `BLUEPRINT.md` is the locked implementation authority for all memory-platform Milestones. Read the generated project `STATE.md` and current handoff/evidence for the active Milestone, branch, commit, and runtime status.
 - LangGraph checkpoint tables live in the `public` schema of `agent_core` DB: `public.checkpoints`, `public.checkpoint_blobs`, `public.checkpoint_writes` — created by `PostgresSaver.setup()`; there is no separate `checkpoints` schema.
 - M6 workflow tables use the `wf_` prefix (not `workflow_`) to avoid naming collision with M2 identity tables.
-- `deepagents==0.6.12` (MIT) is approved as a bounded worker harness inside M6 nodes only; MemoryMiddleware and LangSmith are both disabled in this context.
+- Deep Agents is approved only as a bounded worker harness inside AgentCore-managed LangGraph nodes. It must not own canonical memory, workflow authority, policy, capability leases, STATE projections, Bifrost configuration, or IDE configuration. Deep Agents MemoryMiddleware and independent LangSmith ownership remain disabled unless current authority explicitly changes that decision.
 - `agentcore_workflow/db.py` uses `admin=True` (postgres superuser) for all DB ops because `agentcore_worker` role must call `set_config('agentcore.current_project_id', ...)` before SECURITY DEFINER functions like `create_capability_lease` are accessible.
 - Engineering Constitution at `docs/engineering/CONSTITUTION.md`; dependency catalog at `docs/engineering/dependency-catalog/catalog.yaml`.
-- Copier 9.17.0 requires `_templates_suffix: ""` in `copier.yml` to enable Jinja2 rendering on all template files (not only `.jinja` suffixed files).
-- `test_m7_acceptance.py` has 19 checks (not 18) due to a duplicate entry for test 8; do not treat this as a bug to fix unless explicitly requested.
+- Approved Copier templates must set `_templates_suffix: ""` in `copier.yml` when full-file Jinja rendering is required.
