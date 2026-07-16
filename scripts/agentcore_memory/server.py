@@ -5,9 +5,8 @@ Bifrost Windows Gateway speaks newline-delimited JSON-RPC on STDIO
 (not Content-Length framing). Protocol version observed: 2025-06-18.
 
 Tools:
-  memory_health, memory_status, startup_context, retrieve_context, append_event,
-  propose_fact, expand_source, session_open, session_close, build_handoff,
-  docs_search
+  memory_status, startup_context, retrieve_context, append_event, propose_fact,
+  expand_source, session_open, session_close, build_handoff, docs_search
 
 Never exposes credentials. Stable identity: agentcore-memory
 """
@@ -63,11 +62,6 @@ def postgres_reachable(timeout: float = 1.5) -> tuple[bool, str]:
 def tool_defs() -> list[dict[str, Any]]:
     text_schema = {"type": "string"}
     return [
-        {
-            "name": "memory_health",
-            "description": "Check AgentCore memory substrate reachability (Postgres TCP only; no credentials).",
-            "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
-        },
         {
             "name": "memory_status",
             "description": "Return sanitized memory/gateway status summary without secrets.",
@@ -358,6 +352,7 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def memory_health() -> dict[str, Any]:
+    """Internal health helper used by memory_status; not exposed as a normal agent tool."""
     ok, detail = postgres_reachable()
     status = "healthy" if ok else "degraded"
     return {
@@ -627,8 +622,6 @@ def docs_search(args: dict[str, Any]) -> dict[str, Any]:
 
 def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     arguments = arguments or {}
-    if name == "memory_health":
-        return memory_health()
     if name == "memory_status":
         return memory_status()
     if name == "session_open":

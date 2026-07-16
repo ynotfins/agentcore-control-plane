@@ -249,7 +249,18 @@ Empty list = deny all tools for that client on that VK (Bifrost v2 semantics).
 ```json
 {
   "mcp_client_name": "agentcore_memory",
-  "tools_to_execute": ["memory_health", "memory_status"]
+  "tools_to_execute": [
+    "memory_status",
+    "startup_context",
+    "retrieve_context",
+    "append_event",
+    "propose_fact",
+    "expand_source",
+    "session_open",
+    "session_close",
+    "build_handoff",
+    "docs_search"
+  ]
 }
 ```
 

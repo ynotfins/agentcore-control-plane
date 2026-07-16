@@ -105,8 +105,7 @@ try {
   $expectedTools = @(
     "agentcore_memory-append_event","agentcore_memory-build_handoff",
     "agentcore_memory-docs_search","agentcore_memory-expand_source",
-    "agentcore_memory-memory_health","agentcore_memory-memory_status",
-    "agentcore_memory-propose_fact","agentcore_memory-retrieve_context",
+    "agentcore_memory-memory_status","agentcore_memory-propose_fact","agentcore_memory-retrieve_context",
     "agentcore_memory-session_close","agentcore_memory-session_open",
     "agentcore_memory-startup_context"
   ) | Sort-Object
@@ -386,11 +385,11 @@ WHERE id IN (
   # is verified separately by ops/bifrost/Test-AgentCoreBifrostGateway.ps1.
   # ─────────────────────────────────────────────────────────────────────────────
   # Part A: verify healthy state is correctly reported
-  $healthGood = Invoke-Tool -Name "agentcore_memory-memory_health" -Arguments @{}
-  if (-not $healthGood.postgres.reachable) {
-    throw "memory_health reports postgres unreachable when it should be reachable"
+  $statusGood = Invoke-Tool -Name "agentcore_memory-memory_status" -Arguments @{}
+  if ($statusGood.status -ne "healthy" -or -not $statusGood.components.postgres_agent_core.reachable) {
+    throw "memory_status reports postgres unhealthy when it should be reachable"
   }
-  # Part B: verify degraded detection using wrong-port probe (same logic as server uses)
+  # Part B: regression check for the health probe: an invalid port must be unavailable.
   $degradedScript = @'
 import socket, sys, json
 port = int(sys.argv[1]) if len(sys.argv) > 1 else 55433
@@ -407,7 +406,7 @@ except OSError as e:
   # Part C: verify current migrations still reachable (recovery baseline)
   $migCount = (Invoke-PsqlValue "SELECT count(*) FROM agentcore.schema_migrations").Trim()
   Add-Check "13 - PostgreSQL interruption and recovery" "PASS" `
-    "healthy_probe=true; degraded_probe=false_on_wrong_port; migrations=$migCount; note=service-stop requires admin"
+    "memory_status=healthy; invalid_port_unavailable=true; migrations=$migCount; note=service-stop requires admin"
 
   # ─────────────────────────────────────────────────────────────────────────────
   # CHECK 14: Memory-service restart and reconnect
@@ -425,8 +424,8 @@ except OSError as e:
   for ($i = 0; $i -lt 90; $i++) {
     Start-Sleep -Seconds 1
     try {
-      $hTest = Invoke-Tool -Name "agentcore_memory-memory_health" -Arguments @{}
-      if ($hTest.ok -and $hTest.postgres.reachable) { $srvReady = $true; break }
+      $hTest = Invoke-Tool -Name "agentcore_memory-memory_status" -Arguments @{}
+      if ($hTest.ok -and $hTest.status -eq "healthy" -and $hTest.components.postgres_agent_core.reachable) { $srvReady = $true; break }
     } catch { }
   }
   if (-not $srvReady) { throw "agentcore-memory did not recover within 90s after kill" }
@@ -455,7 +454,7 @@ except OSError as e:
       } | Out-Null
       $toolsAfter = (Invoke-Mcp -Method "tools/list" -Params @{}).tools
       $amAfter    = @($toolsAfter | Where-Object { $_.name -like "agentcore_memory-*" })
-      if ($amAfter.Count -eq 11) { $bifrostReady = $true; break }
+      if ($amAfter.Count -eq 10) { $bifrostReady = $true; break }
     } catch { }
   }
   if (-not $bifrostReady) { throw "Bifrost did not reconnect and expose M4 tools within 30s" }

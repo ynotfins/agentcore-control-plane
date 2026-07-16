@@ -148,7 +148,7 @@ def render_validation(profile: dict, policy: dict) -> str:
         "1. The live MCP config contains exactly one `agentcore-gateway` entry (URL `http://127.0.0.1:8080/mcp`) and no direct per-tool or Swarm entries.",
         "2. No resolved secret values appear anywhere in Git-tracked files (env references only; materialized VK allowed in the live config only where the profile documents no env-header support).",
         "3. The IDE lists gateway tools after restart (tools/list through `agentcore-gateway` succeeds).",
-        "4. `agentcore-memory` responds (`memory_health` / `memory_status`), degraded state acceptable and reported.",
+        "4. `agentcore-memory` responds through `memory_status`, with degraded component state clearly reported.",
         "5. The delivered rules match `ide-profiles/" + ide + "/GLOBAL_RULES.md` (semantic parity; record any product-specific omission in `IDE_PROFILE.yaml`).",
         "6. Repo validators pass: `python scripts/bifrost/validate_contracts.py` and `python scripts/bifrost/test_contracts.py`.",
         "",

@@ -53,7 +53,6 @@
           "envs": []
         },
         "tools_to_execute": [
-          "memory_health",
           "memory_status",
           "startup_context",
           "retrieve_context",
@@ -282,7 +281,6 @@
           {
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
-              "memory_health",
               "memory_status",
               "startup_context",
               "retrieve_context",
@@ -387,7 +385,6 @@
           {
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
-              "memory_health",
               "memory_status",
               "startup_context",
               "retrieve_context",
@@ -462,7 +459,6 @@
           {
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
-              "memory_health",
               "memory_status",
               "startup_context",
               "retrieve_context",
@@ -536,7 +532,6 @@
           {
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
-              "memory_health",
               "memory_status",
               "startup_context",
               "retrieve_context",

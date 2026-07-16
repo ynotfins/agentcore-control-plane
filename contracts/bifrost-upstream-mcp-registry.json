@@ -804,7 +804,6 @@
       "project_scope": "global",
       "write_classification": "bounded_write",
       "permitted_tools": [
-        "memory_health",
         "memory_status",
         "startup_context",
         "retrieve_context",
@@ -842,6 +841,7 @@
       "notes": [
         "Stable server identity: agentcore-memory",
         "M4 compact surface active; tools are bounded and never expose raw SQL/admin access.",
+        "PostgreSQL reachability remains implemented internally and is reported through memory_status, not exposed as a separate normal-agent tool.",
         "Uses PostgreSQL 18 agent_core on 127.0.0.1:55433 internally via Windows env var credentials; IDE agents receive no DB credentials.",
         "Reports Cognee as not_integrated_until_M5 and LangGraph as not_integrated_until_M6."
       ]

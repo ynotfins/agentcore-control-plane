@@ -139,8 +139,8 @@ Classification matrix: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`
 
 **Canonical id:** `agentcore-memory` (Bifrost name `agentcore_memory`)
 **Implementation (current):** `scripts/agentcore_memory/server.py`
-**Tools (current minimal):** `memory_health`, `memory_status`
-**Note:** May report **degraded** until the fuller memory platform lands. Keep the server id stable; expand tools behind it later.
+**Tools (M4 compact surface):** `memory_status`, `startup_context`, `retrieve_context`, `append_event`, `propose_fact`, `expand_source`, `session_open`, `session_close`, `build_handoff`, `docs_search`
+**Note:** Health reachability is reported through `memory_status`; keep the server id stable and do not expose raw database/admin tools.
 
 Non-Swarm path:
 

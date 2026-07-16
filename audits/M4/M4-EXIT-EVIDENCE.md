@@ -14,14 +14,13 @@
 
 ## Compact Tool Surface
 
-Live Bifrost `tools/list` exposed exactly the M4 compact surface for `agentcore_memory`:
+Live Bifrost `tools/list` exposes the locked M4 compact surface for `agentcore_memory`:
 
 ```text
 agentcore_memory-append_event
 agentcore_memory-build_handoff
 agentcore_memory-docs_search
 agentcore_memory-expand_source
-agentcore_memory-memory_health
 agentcore_memory-memory_status
 agentcore_memory-propose_fact
 agentcore_memory-retrieve_context
@@ -29,6 +28,8 @@ agentcore_memory-session_close
 agentcore_memory-session_open
 agentcore_memory-startup_context
 ```
+
+`memory_health` remains an internal implementation helper for `memory_status` PostgreSQL reachability reporting. It is not part of the normal agent-facing M4 compact surface.
 
 No raw SQL, DDL, database-admin, or Bifrost-admin tools are exposed.
 
@@ -52,7 +53,7 @@ No raw SQL, DDL, database-admin, or Bifrost-admin tools are exposed.
 | # | Check | Result | Detail |
 |---|---|---|---|
 | 1 | Direct MCP initialize and tools/list | PASS | server=builder v2.0.0-prerelease1 |
-| 2 | Exact compact advertised tool set | PASS | 11 tools, no admin/SQL tools |
+| 2 | Exact compact advertised tool set | PASS | 10 tools, no admin/SQL tools |
 | 3 | Session open → append → retrieve → compact → expand → close | PASS | summary; sources=2 |
 | 3b | session_close creates durable final state | PASS | 3 sessions closed; ended_at set |
 | 4 | Startup context within selected token budget | PASS | total_tokens=24 ≤ max_tokens=4096 |
@@ -64,9 +65,9 @@ No raw SQL, DDL, database-admin, or Bifrost-admin tools are exposed.
 | 10 | Fact proposal does not silently become promoted truth | PASS | status=proposed (not accepted) |
 | 11 | Handoff generation is deterministic | PASS | events=5; consistent across two calls |
 | 12 | Quarantined evidence excluded from startup context | PASS | quarantined event absent from context |
-| 13 | PostgreSQL interruption and recovery | PASS | healthy=true; degraded probe on wrong port=false; note: service stop requires admin |
+| 13 | PostgreSQL interruption and recovery | PASS | `memory_status` healthy on PostgreSQL 18 endpoint; deliberately invalid port unavailable; note: service stop requires admin |
 | 14 | Memory-service restart and reconnect | PASS | process killed; Bifrost respawned at new PID |
-| 15 | Bifrost restart and automatic upstream reconnect | PASS | stop+start via ops scripts; 11 tools confirmed |
+| 15 | Bifrost restart and automatic upstream reconnect | PASS | stop+start via ops scripts; 10 tools confirmed |
 | 16 | Optional/future components report degraded | PASS | cognee=M5; langgraph=M6 |
 | 17 | One safe Cursor call through agentcore-gateway | PASS | server=agentcore-memory version=0.4.0 |
 | 18 | No IDE configuration changes occurred | PASS | cursor mcp.json mtime unchanged |
@@ -79,7 +80,7 @@ No raw SQL, DDL, database-admin, or Bifrost-admin tools are exposed.
 ## Rollback Procedure
 
 1. Restore `scripts/agentcore_memory/server.py` from pre-M4 commit `4fdfaf6` or the prior health/status-only implementation.
-2. Revert `agentcore-memory` `permitted_tools` in `contracts/bifrost-upstream-mcp-registry.json` to `memory_health`, `memory_status`.
+2. Revert `agentcore-memory` `permitted_tools` in `contracts/bifrost-upstream-mcp-registry.json` to the prior health/status-only compatibility surface if rollback is required.
 3. Run `python scripts\bifrost\render_bifrost_config.py`.
 4. Apply rollback migration: `psql ... -f migrations/m4/001_down_assemble_context_window_quarantine_filter.sql`
 5. Restart Bifrost via approved ops scripts.
