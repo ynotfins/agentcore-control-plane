@@ -160,6 +160,103 @@ CREATE TABLE IF NOT EXISTS agentcore.project_snapshots (
 CREATE INDEX IF NOT EXISTS idx_project_snapshots_project_time
     ON agentcore.project_snapshots (project_id, created_at DESC);
 
+CREATE OR REPLACE FUNCTION agentcore.validate_recovery_operation_scope()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = agentcore, public
+AS $$
+BEGIN
+    PERFORM agentcore.assert_project_scope(NEW.project_id);
+    IF NEW.session_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM agentcore.sessions s
+        WHERE s.id = NEW.session_id AND s.project_id = NEW.project_id
+    ) THEN
+        RAISE EXCEPTION 'recovery session crosses project boundary' USING ERRCODE = '42501';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+        FROM unnest(NEW.source_event_ids) source_id
+        LEFT JOIN agentcore.evidence_events e ON e.id = source_id
+        WHERE e.id IS NULL OR e.project_id <> NEW.project_id
+    ) THEN
+        RAISE EXCEPTION 'recovery source event crosses project boundary or is missing'
+            USING ERRCODE = '42501';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION agentcore.validate_project_snapshot_scope()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = agentcore, public
+AS $$
+BEGIN
+    PERFORM agentcore.assert_project_scope(NEW.project_id);
+    IF NOT EXISTS (
+        SELECT 1 FROM agentcore.projects p
+        WHERE p.id = NEW.project_id AND p.repository_id = NEW.repository_id
+    ) THEN
+        RAISE EXCEPTION 'snapshot repository crosses project boundary' USING ERRCODE = '42501';
+    END IF;
+    IF NEW.worktree_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1
+        FROM agentcore.project_worktrees pw
+        JOIN agentcore.worktrees w ON w.id = pw.worktree_id
+        WHERE pw.project_id = NEW.project_id
+          AND pw.worktree_id = NEW.worktree_id
+          AND w.repository_id = NEW.repository_id
+    ) THEN
+        RAISE EXCEPTION 'snapshot worktree crosses project boundary' USING ERRCODE = '42501';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+        FROM unnest(ARRAY[NEW.patch_artifact_id, NEW.archive_artifact_id]) artifact_id
+        LEFT JOIN agentcore.artifact_objects a ON a.id = artifact_id
+        WHERE artifact_id IS NOT NULL
+          AND (a.id IS NULL OR a.project_id <> NEW.project_id)
+    ) THEN
+        RAISE EXCEPTION 'snapshot artifact crosses project boundary or is missing'
+            USING ERRCODE = '42501';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+        FROM unnest(NEW.test_evidence_event_ids) event_id
+        LEFT JOIN agentcore.evidence_events e ON e.id = event_id
+        WHERE e.id IS NULL OR e.project_id <> NEW.project_id
+    ) THEN
+        RAISE EXCEPTION 'snapshot test evidence crosses project boundary or is missing'
+            USING ERRCODE = '42501';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_recovery_operation_scope ON agentcore.recovery_operations;
+CREATE TRIGGER trg_recovery_operation_scope
+    BEFORE INSERT OR UPDATE ON agentcore.recovery_operations
+    FOR EACH ROW EXECUTE FUNCTION agentcore.validate_recovery_operation_scope();
+
+DROP TRIGGER IF EXISTS trg_project_snapshot_scope ON agentcore.project_snapshots;
+CREATE TRIGGER trg_project_snapshot_scope
+    BEFORE INSERT OR UPDATE ON agentcore.project_snapshots
+    FOR EACH ROW EXECUTE FUNCTION agentcore.validate_project_snapshot_scope();
+
+ALTER TABLE agentcore.recovery_operations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE agentcore.project_snapshots ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS p_recovery_operation_project_scope ON agentcore.recovery_operations;
+CREATE POLICY p_recovery_operation_project_scope ON agentcore.recovery_operations
+    USING (project_id = agentcore.current_project_id())
+    WITH CHECK (project_id = agentcore.current_project_id());
+
+DROP POLICY IF EXISTS p_project_snapshot_project_scope ON agentcore.project_snapshots;
+CREATE POLICY p_project_snapshot_project_scope ON agentcore.project_snapshots
+    USING (project_id = agentcore.current_project_id())
+    WITH CHECK (project_id = agentcore.current_project_id());
+
 ALTER TABLE agentcore.context_summaries
     ADD COLUMN IF NOT EXISTS supersedes_summary_id uuid REFERENCES agentcore.context_summaries(id) ON DELETE RESTRICT,
     ADD COLUMN IF NOT EXISTS correction_reason text,
@@ -219,6 +316,13 @@ BEGIN
       FROM unnest(p_source_event_ids) AS id;
     v_summary_hash := agentcore.sha256_text(p_summary_text);
 
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended(
+            p_project_id::text || ':' || p_level::text || ':' ||
+            v_source_digest || ':' || p_algorithm_version,
+            0
+        )
+    );
     SELECT id INTO v_summary_id
       FROM agentcore.context_summaries
      WHERE project_id = p_project_id

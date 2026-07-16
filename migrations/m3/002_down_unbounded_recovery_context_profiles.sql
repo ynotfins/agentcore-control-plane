@@ -17,6 +17,8 @@ $$;
 DROP FUNCTION IF EXISTS agentcore.supersede_context_summary(uuid, uuid, text, integer, text, text);
 DROP TABLE IF EXISTS agentcore.project_snapshots;
 DROP TABLE IF EXISTS agentcore.recovery_operations;
+DROP FUNCTION IF EXISTS agentcore.validate_project_snapshot_scope();
+DROP FUNCTION IF EXISTS agentcore.validate_recovery_operation_scope();
 
 DROP INDEX IF EXISTS agentcore.idx_context_summary_supersedes;
 DROP INDEX IF EXISTS agentcore.uq_context_summary_current_source_version;
@@ -58,6 +60,12 @@ BEGIN
     PERFORM agentcore.assert_project_scope(p_project_id);
     IF array_length(p_source_event_ids, 1) IS NULL THEN
         RAISE EXCEPTION 'context summary requires at least one source event' USING ERRCODE = '23514';
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM agentcore.evidence_events e
+        WHERE e.id = ANY(p_source_event_ids) AND e.project_id <> p_project_id
+    ) THEN
+        RAISE EXCEPTION 'summary source edge crosses project boundary' USING ERRCODE = '42501';
     END IF;
     SELECT agentcore.sha256_text(string_agg(id::text, ',' ORDER BY id))
       INTO v_source_digest FROM unnest(p_source_event_ids) AS id;

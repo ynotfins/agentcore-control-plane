@@ -14,6 +14,7 @@ import os
 import shutil
 import sys
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -48,6 +49,7 @@ def main() -> int:
             "repo_key": "agentcore-control-plane-integration",
             "branch_name": "test/recovery-integration",
             "head_commit": "0" * 40,
+            "milestone": "M4",
             "model_provider": "generic",
             "model_id": "capability/one-million",
             "context_profile": "one-million-context",
@@ -67,6 +69,7 @@ def main() -> int:
             "repo_key": "agentcore-control-plane-integration",
             "branch_name": "test/recovery-alternate",
             "head_commit": "1" * 40,
+            "milestone": "M4",
             "model_provider": "generic",
             "model_id": "capability/standard-128k",
             "context_profile": "standard-context",
@@ -94,6 +97,19 @@ def main() -> int:
         pass
     else:
         raise AssertionError("project identity was rebound across repositories")
+
+    server.append_event(
+        {
+            "session_id": alternate["session_id"],
+            "event_kind": "prompt",
+            "idempotency_key": f"{run_id}-alternate-source",
+            "payload": {
+                "verbatim": "cross-project rollback sentinel",
+                "milestone": "M4",
+            },
+            "trust_class": "project_verified",
+        }
+    )
 
     expected_ids: list[str] = []
     for index in range(9):
@@ -154,6 +170,25 @@ def main() -> int:
         }
     )
     archived_event_id = archived_result["event_id"]
+    archived_retry = server.append_event(
+        {
+            "session_id": session["session_id"],
+            "event_kind": "output",
+            "idempotency_key": f"{run_id}-archived",
+            "payload": {
+                "artifact_note": "must not replace original",
+                "milestone": "M4",
+            },
+            "large_text": "different-content-must-not-create-an-orphan",
+            "trust_class": "project_verified",
+        }
+    )
+    require(
+        archived_retry["event_id"] == archived_event_id
+        and archived_retry["artifact_id"] == archived_result["artifact_id"]
+        and archived_retry["idempotent_replay"],
+        "idempotent event retry changed its linked artifact",
+    )
 
     with server.db() as conn, conn.cursor() as cur:
         server.set_project(conn, str(session["project_id"]))
@@ -244,6 +279,32 @@ def main() -> int:
         )
         conn.commit()
 
+    def create_concurrent_summary() -> str:
+        with server.db() as concurrent_conn, concurrent_conn.cursor() as concurrent_cur:
+            server.set_project(concurrent_conn, str(session["project_id"]))
+            concurrent_cur.execute(
+                """
+                SELECT agentcore.create_context_summary(
+                    %s, %s, 'L2', 'active_dynamic', 'Concurrent summary',
+                    'same deterministic body', 4, 1.0, %s::uuid[], NULL,
+                    'integration.concurrent.v1'
+                ) AS summary_id
+                """,
+                (session["project_id"], session["session_id"], expected_ids),
+            )
+            summary_id = str(concurrent_cur.fetchone()["summary_id"])
+            concurrent_conn.commit()
+            return summary_id
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        concurrent_ids = list(
+            executor.map(lambda _: create_concurrent_summary(), range(2))
+        )
+    require(
+        len(set(concurrent_ids)) == 1,
+        "concurrent summary creation was not idempotent",
+    )
+
     retrieved_ids: list[str] = []
     cursor: str | None = None
     page_number = 0
@@ -276,9 +337,7 @@ def main() -> int:
         "quarantined event entered normal recovery",
     )
 
-    expanded = server.expand_source(
-        {"project_key": project_key, "event_id": expected_ids[0]}
-    )
+    expanded = server.expand_source({"event_id": expected_ids[0]})
     require(expanded["ok"], "expand_source failed")
     require(expanded["event"]["content_sha256"], "exact source hash missing")
     require(
@@ -333,6 +392,10 @@ def main() -> int:
         default_context["context_profile"]["profile_name"] == "standard-context",
         "production default fell back to a small/4096 acceptance budget",
     )
+    require(
+        default_context["budget_name"] == "standard-context",
+        "legacy budget_name response compatibility was not preserved",
+    )
     try:
         server.retrieve_context(
             {"project_key": project_key, "context_profile": "unknown-profile"}
@@ -353,12 +416,64 @@ def main() -> int:
     require(handoff["ok"] and handoff["identity"], "build_handoff failed")
     require(handoff["recovery"]["source_ids"], "handoff recovery page is empty")
     require(
+        archived_event_id in handoff["recovery"]["source_ids"],
+        "current-state handoff omitted the latest project evidence",
+    )
+    require(
         handoff["continuation_cursor"], "bounded handoff omitted stable continuation"
     )
     require(
         handoff["governed_snapshots"],
         "governed Git snapshot metadata missing from handoff",
     )
+
+    with server.db() as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT id FROM agentcore.projects WHERE project_key = %s",
+            (f"{project_key}-alternate",),
+        )
+        alternate_project_id = cur.fetchone()["id"]
+        cur.execute("SET ROLE agentcore_worker")
+        cur.execute(
+            "SELECT set_config('agentcore.current_project_id', %s, true)",
+            (str(session["project_id"]),),
+        )
+        cur.execute("SELECT count(*) AS count FROM agentcore.recovery_operations")
+        require(
+            cur.fetchone()["count"] > 0, "worker cannot read in-project recovery rows"
+        )
+        cur.execute("SELECT count(*) AS count FROM agentcore.project_snapshots")
+        require(
+            cur.fetchone()["count"] == 1, "worker cannot read in-project snapshot rows"
+        )
+        cur.execute(
+            "SELECT set_config('agentcore.current_project_id', %s, true)",
+            (str(alternate_project_id),),
+        )
+        cur.execute("SELECT count(*) AS count FROM agentcore.recovery_operations")
+        require(cur.fetchone()["count"] == 0, "RLS leaked cross-project recovery rows")
+        cur.execute("SELECT count(*) AS count FROM agentcore.project_snapshots")
+        require(cur.fetchone()["count"] == 0, "RLS leaked cross-project snapshot rows")
+        cur.execute(
+            "SELECT set_config('agentcore.current_project_id', %s, true)",
+            (str(session["project_id"]),),
+        )
+        cur.execute("SAVEPOINT cross_project_recovery")
+        try:
+            cur.execute(
+                """
+                INSERT INTO agentcore.recovery_operations (
+                    project_id, recovery_mode, result_sha256
+                ) VALUES (%s, 'current_state', %s)
+                """,
+                (alternate_project_id, "0" * 64),
+            )
+        except Exception:
+            cur.execute("ROLLBACK TO SAVEPOINT cross_project_recovery")
+        else:
+            raise AssertionError("cross-project recovery insert was not rejected")
+        cur.execute("RESET ROLE")
+        conn.commit()
 
     closed = server.session_close({"session_id": session["session_id"]})
     require(closed["ok"], "session_close failed")

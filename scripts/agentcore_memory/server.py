@@ -133,6 +133,7 @@ def tool_defs() -> list[dict[str, Any]]:
                     "remote_url": text_schema,
                     "branch_name": text_schema,
                     "head_commit": text_schema,
+                    "milestone": text_schema,
                     "model_provider": text_schema,
                     "model_id": text_schema,
                     "context_profile": text_schema,
@@ -216,7 +217,6 @@ def tool_defs() -> list[dict[str, Any]]:
                     "artifact_offset": {"type": "integer", "minimum": 0},
                     "max_bytes": {"type": "integer", "minimum": 1},
                 },
-                "required": ["project_key"],
                 "anyOf": [
                     {"required": ["summary_id"]},
                     {"required": ["event_id"]},
@@ -284,6 +284,17 @@ def db() -> psycopg.Connection[Any]:
         sslmode="require",
         row_factory=dict_row,
     )
+
+
+def cursor_signing_key() -> bytes:
+    secret = os.environ.get("AGENTCORE_MEMORY_CURSOR_KEY") or os.environ.get(
+        PG_PASSWORD_ENV
+    )
+    if not secret:
+        raise RuntimeError(
+            f"missing cursor signing material: AGENTCORE_MEMORY_CURSOR_KEY or {PG_PASSWORD_ENV}"
+        )
+    return hashlib.sha256(f"agentcore-memory-cursor-v1:{secret}".encode()).digest()
 
 
 def redact_payload(value: Any) -> Any:
@@ -369,6 +380,7 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
         remote_url = "https://github.com/ynotfins/agentcore-control-plane.git"
     branch_name = args.get("branch_name") or "unknown"
     head_commit = args.get("head_commit")
+    milestone = args.get("milestone")
     model_hint = (
         ":".join(
             part
@@ -385,6 +397,26 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
     with db() as conn, conn.cursor() as cur:
         cur.execute(
             """
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_schema = 'agentcore'
+                  AND table_name = 'sessions'
+                  AND column_name = 'context_profile_name'
+            ) AS exists
+            """
+        )
+        has_context_profile_column = bool(cur.fetchone()["exists"])
+        session_profile_column = (
+            ", context_profile_name" if has_context_profile_column else ""
+        )
+        session_profile_value = ", %s" if has_context_profile_column else ""
+        session_profile_update = (
+            ", context_profile_name = EXCLUDED.context_profile_name"
+            if has_context_profile_column
+            else ""
+        )
+        cur.execute(
+            f"""
             WITH repo AS (
               INSERT INTO agentcore.repositories (repo_key, canonical_path, remote_url)
               VALUES (%s, %s, %s)
@@ -401,8 +433,10 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
             ),
             project AS (
               INSERT INTO agentcore.projects (project_key, project_name, repository_id, primary_worktree_id, root_path, current_milestone)
-              SELECT %s, %s, wt.repository_id, wt.id, %s, 'M4' FROM wt
-              ON CONFLICT (project_key) DO UPDATE SET project_name = EXCLUDED.project_name
+              SELECT %s, %s, wt.repository_id, wt.id, %s, COALESCE(%s, 'M0') FROM wt
+              ON CONFLICT (project_key) DO UPDATE
+                SET project_name = EXCLUDED.project_name,
+                    current_milestone = COALESCE(%s, agentcore.projects.current_milestone)
                 WHERE agentcore.projects.repository_id = EXCLUDED.repository_id
               RETURNING id, repository_id, primary_worktree_id
             ),
@@ -426,11 +460,11 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
             ),
             session AS (
               INSERT INTO agentcore.sessions (
-                project_id, client_id, agent_id, session_key, context_profile_name
+                project_id, client_id, agent_id, session_key{session_profile_column}
               )
-              SELECT project.id, client.id, agent.id, %s, %s FROM project, client, agent
+              SELECT project.id, client.id, agent.id, %s{session_profile_value} FROM project, client, agent
               ON CONFLICT (session_key) DO UPDATE
-                SET ended_at = NULL, context_profile_name = EXCLUDED.context_profile_name
+                SET ended_at = NULL{session_profile_update}
               RETURNING id, project_id, client_id, agent_id
             ),
             run AS (
@@ -477,27 +511,31 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
             SELECT session.id AS session_id, session.project_id, source.id AS source_identity_id, run.id AS run_id
             FROM session, source, run
             """,
-            (
-                repo_key,
-                repo_path,
-                remote_url,
-                worktree_path,
-                branch_name,
-                head_commit,
-                project_key,
-                project_name,
-                project_root,
-                client_key,
-                client_key,
-                agent_key,
-                agent_key,
-                model_hint,
-                session_key,
-                context_profile,
-                f"{session_key}:run",
-                f"{project_key}:workflow",
-                f"{session_key}:thread",
-                f"{session_key}:source",
+            tuple(
+                [
+                    repo_key,
+                    repo_path,
+                    remote_url,
+                    worktree_path,
+                    branch_name,
+                    head_commit,
+                    project_key,
+                    project_name,
+                    project_root,
+                    milestone,
+                    milestone,
+                    client_key,
+                    client_key,
+                    agent_key,
+                    agent_key,
+                    model_hint,
+                    session_key,
+                    *([context_profile] if has_context_profile_column else []),
+                    f"{session_key}:run",
+                    f"{project_key}:workflow",
+                    f"{session_key}:thread",
+                    f"{session_key}:source",
+                ]
             ),
         )
         row = cur.fetchone()
@@ -580,74 +618,117 @@ def session_close(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def append_event(args: dict[str, Any]) -> dict[str, Any]:
-    with db() as conn, conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT s.id AS session_id, s.project_id, si.id AS source_identity_id
-            FROM agentcore.sessions s
-            JOIN agentcore.source_identities si ON si.session_id = s.id
-            WHERE s.id = %s
-            ORDER BY si.created_at DESC
-            LIMIT 1
-            """,
-            (args["session_id"],),
-        )
-        ctx = cur.fetchone()
-        if not ctx:
-            raise ValueError("unknown session_id")
-        set_project(conn, str(ctx["project_id"]))
-
-        artifact_id = None
-        large_text = args.get("large_text")
-        if large_text:
-            data = large_text.encode("utf-8")
-            sha = hashlib.sha256(data).hexdigest()
-            artifact_dir = HOT_ARTIFACT_ROOT / "sha256" / sha[:2]
-            artifact_dir.mkdir(parents=True, exist_ok=True)
-            artifact_path = artifact_dir / f"{sha}.txt"
-            artifact_path.write_bytes(data)
+    created_path: Path | None = None
+    try:
+        with db() as conn, conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO agentcore.artifact_objects
-                    (project_id, sha256, bytes, storage_uri, mime_type, trust_class, source_identity_id)
-                VALUES (%s, %s, %s, %s, 'text/plain', %s, %s)
-                ON CONFLICT (project_id, sha256) DO UPDATE SET storage_uri = EXCLUDED.storage_uri
-                RETURNING id
+                SELECT s.id AS session_id, s.project_id, si.id AS source_identity_id
+                FROM agentcore.sessions s
+                JOIN agentcore.source_identities si ON si.session_id = s.id
+                WHERE s.id = %s
+                ORDER BY si.created_at DESC
+                LIMIT 1
+                """,
+                (args["session_id"],),
+            )
+            ctx = cur.fetchone()
+            if not ctx:
+                raise ValueError("unknown session_id")
+            set_project(conn, str(ctx["project_id"]))
+            cur.execute(
+                "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                (f"{ctx['source_identity_id']}:{args['idempotency_key']}",),
+            )
+            cur.execute(
+                """
+                SELECT id, artifact_id
+                FROM agentcore.evidence_events
+                WHERE source_identity_id = %s AND idempotency_key = %s
+                """,
+                (ctx["source_identity_id"], args["idempotency_key"]),
+            )
+            existing = cur.fetchone()
+            if existing:
+                return {
+                    "ok": True,
+                    "event_id": str(existing["id"]),
+                    "artifact_id": (
+                        str(existing["artifact_id"])
+                        if existing["artifact_id"]
+                        else None
+                    ),
+                    "idempotent_replay": True,
+                }
+
+            artifact_id = None
+            large_text = args.get("large_text")
+            if large_text:
+                data = large_text.encode("utf-8")
+                sha = hashlib.sha256(data).hexdigest()
+                artifact_dir = HOT_ARTIFACT_ROOT / "sha256" / sha[:2]
+                artifact_dir.mkdir(parents=True, exist_ok=True)
+                artifact_path = artifact_dir / f"{sha}.txt"
+                if artifact_path.exists():
+                    if hashlib.sha256(artifact_path.read_bytes()).hexdigest() != sha:
+                        raise ValueError(
+                            "existing content-addressed artifact hash mismatch"
+                        )
+                else:
+                    artifact_path.write_bytes(data)
+                    created_path = artifact_path
+                cur.execute(
+                    """
+                    INSERT INTO agentcore.artifact_objects
+                        (project_id, sha256, bytes, storage_uri, mime_type, trust_class, source_identity_id)
+                    VALUES (%s, %s, %s, %s, 'text/plain', %s, %s)
+                    ON CONFLICT (project_id, sha256) DO UPDATE SET storage_uri = EXCLUDED.storage_uri
+                    RETURNING id
+                    """,
+                    (
+                        ctx["project_id"],
+                        sha,
+                        len(data),
+                        str(artifact_path),
+                        args.get("trust_class", "project_verified"),
+                        ctx["source_identity_id"],
+                    ),
+                )
+                artifact_id = cur.fetchone()["id"]
+
+            payload = redact_payload(args.get("payload") or {})
+            cur.execute(
+                """
+                SELECT agentcore.append_evidence_event(%s, %s, %s, %s, %s::jsonb, %s, %s, %s::jsonb) AS event_id
                 """,
                 (
                     ctx["project_id"],
-                    sha,
-                    len(data),
-                    str(artifact_path),
-                    args.get("trust_class", "project_verified"),
                     ctx["source_identity_id"],
+                    args["event_kind"],
+                    args["idempotency_key"],
+                    json.dumps(payload),
+                    artifact_id,
+                    args.get("trust_class", "project_verified"),
+                    json.dumps({"tool": "append_event", "server": SERVER_NAME}),
                 ),
             )
-            artifact_id = cur.fetchone()["id"]
-
-        payload = redact_payload(args.get("payload") or {})
-        cur.execute(
-            """
-            SELECT agentcore.append_evidence_event(%s, %s, %s, %s, %s::jsonb, %s, %s, %s::jsonb) AS event_id
-            """,
-            (
-                ctx["project_id"],
-                ctx["source_identity_id"],
-                args["event_kind"],
-                args["idempotency_key"],
-                json.dumps(payload),
-                artifact_id,
-                args.get("trust_class", "project_verified"),
-                json.dumps({"tool": "append_event", "server": SERVER_NAME}),
-            ),
-        )
-        event_id = cur.fetchone()["event_id"]
-        conn.commit()
-    return {
-        "ok": True,
-        "event_id": str(event_id),
-        "artifact_id": str(artifact_id) if artifact_id else None,
-    }
+            event_id = cur.fetchone()["event_id"]
+            cur.execute(
+                "SELECT artifact_id FROM agentcore.evidence_events WHERE id = %s",
+                (event_id,),
+            )
+            linked_artifact_id = cur.fetchone()["artifact_id"]
+            conn.commit()
+        return {
+            "ok": True,
+            "event_id": str(event_id),
+            "artifact_id": str(linked_artifact_id) if linked_artifact_id else None,
+            "idempotent_replay": False,
+        }
+    except Exception:
+        if created_path is not None:
+            created_path.unlink(missing_ok=True)
+        raise
 
 
 def hybrid_retrieval(
@@ -854,10 +935,13 @@ def retrieve_chronology_page(
 ) -> dict[str, Any]:
     where_sql, base_params, scope = _recovery_filters(args, project)
     mode = str(scope["mode"])
+    newest_first = mode == "current_state"
     scope_digest = recovery_scope_hash(scope)
     cursor_state: dict[str, Any] | None = None
     if args.get("continuation_cursor"):
-        cursor_state = decode_cursor(str(args["continuation_cursor"]))
+        cursor_state = decode_cursor(
+            str(args["continuation_cursor"]), cursor_signing_key()
+        )
         if (
             cursor_state.get("project_id") != str(project["id"])
             or cursor_state.get("mode") != mode
@@ -890,10 +974,16 @@ def retrieve_chronology_page(
         if window_end_at is not None:
             page_where += " AND (e.accepted_at, e.id) <= (%s::timestamptz, %s::uuid)"
             page_params.extend([window_end_at, window_end_id])
-        if cursor_state:
+        if cursor_state and newest_first:
+            page_where += " AND (e.accepted_at, e.id) < (%s::timestamptz, %s::uuid)"
+            page_params.extend([cursor_state["before_at"], cursor_state["before_id"]])
+        elif cursor_state:
             page_where += " AND (e.accepted_at, e.id) > (%s::timestamptz, %s::uuid)"
             page_params.extend([cursor_state["after_at"], cursor_state["after_id"]])
 
+        order_sql = (
+            "e.accepted_at DESC, e.id DESC" if newest_first else "e.accepted_at, e.id"
+        )
         cur.execute(
             f"""
             SELECT count(*) AS remaining
@@ -924,7 +1014,7 @@ def retrieve_chronology_page(
                 LIMIT 1
             ) loc ON true
             WHERE {page_where}
-            ORDER BY e.accepted_at, e.id
+            ORDER BY {order_sql}
             LIMIT %s
             """,
             [*page_params, page_size],
@@ -964,21 +1054,34 @@ def retrieve_chronology_page(
         items.append(item)
         used_tokens += item_tokens
 
+    cursor_anchor = items[-1] if items else None
+    if newest_first:
+        items.reverse()
     omitted = max(0, remaining - len(items))
     next_cursor = None
-    if omitted and items and window_end_at is not None:
-        last = items[-1]
-        next_cursor = encode_cursor(
-            {
-                "project_id": str(project["id"]),
-                "mode": mode,
-                "scope_hash": scope_digest,
-                "after_at": str(last["accepted_at"]),
-                "after_id": last["id"],
-                "window_end_at": str(window_end_at),
-                "window_end_id": str(window_end_id),
-            }
-        )
+    if omitted and cursor_anchor and window_end_at is not None:
+        cursor_payload = {
+            "project_id": str(project["id"]),
+            "mode": mode,
+            "scope_hash": scope_digest,
+            "window_end_at": str(window_end_at),
+            "window_end_id": str(window_end_id),
+        }
+        if newest_first:
+            cursor_payload.update(
+                {
+                    "before_at": str(cursor_anchor["accepted_at"]),
+                    "before_id": cursor_anchor["id"],
+                }
+            )
+        else:
+            cursor_payload.update(
+                {
+                    "after_at": str(cursor_anchor["accepted_at"]),
+                    "after_id": cursor_anchor["id"],
+                }
+            )
+        next_cursor = encode_cursor(cursor_payload, cursor_signing_key())
 
     page = {
         "mode": mode,
@@ -1059,7 +1162,7 @@ def retrieve_context(args: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": True,
         "project_key": args["project_key"],
-        "budget_name": args.get("budget_name"),
+        "budget_name": assembler_budget,
         "context_profile": profile.as_dict(),
         "items": items,
         "retrieval_results": retrieval_results,
@@ -1174,7 +1277,7 @@ def _artifact_expansion(
 
     offset = int(args.get("artifact_offset") or 0)
     if args.get("continuation_cursor"):
-        state = decode_cursor(str(args["continuation_cursor"]))
+        state = decode_cursor(str(args["continuation_cursor"]), cursor_signing_key())
         if (
             state.get("project_id") != str(project["id"])
             or state.get("artifact_id") != artifact_id
@@ -1182,6 +1285,8 @@ def _artifact_expansion(
         ):
             raise ValueError("artifact continuation cursor scope mismatch")
         offset = int(state["next_offset"])
+    if offset < 0 or offset > int(artifact["bytes"]):
+        raise ValueError("artifact offset is outside the registered byte range")
     max_bytes = max(1, min(int(args.get("max_bytes") or 65536), 1048576))
     path = Path(str(artifact["storage_uri"]))
     response: dict[str, Any] = {
@@ -1222,7 +1327,8 @@ def _artifact_expansion(
                 "artifact_id": artifact_id,
                 "sha256": artifact["sha256"],
                 "next_offset": end,
-            }
+            },
+            cursor_signing_key(),
         )
         response["omitted_byte_count"] = int(artifact["bytes"]) - end
     else:
@@ -1230,15 +1336,47 @@ def _artifact_expansion(
     return response
 
 
+def project_for_expansion(
+    conn: psycopg.Connection[Any], args: dict[str, Any]
+) -> dict[str, Any]:
+    if args.get("project_key"):
+        return get_project(conn, args["project_key"])
+    reference_columns = {
+        "summary_id": ("agentcore.context_summaries", "id"),
+        "event_id": ("agentcore.evidence_events", "id"),
+        "artifact_id": ("agentcore.artifact_objects", "id"),
+    }
+    selected = [key for key in reference_columns if args.get(key)]
+    if len(selected) != 1:
+        raise ValueError("provide exactly one summary_id, event_id, or artifact_id")
+    table, column = reference_columns[selected[0]]
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT p.*
+            FROM {table} source
+            JOIN agentcore.projects p ON p.id = source.project_id
+            WHERE source.{column} = %s
+            """,
+            (args[selected[0]],),
+        )
+        project = cur.fetchone()
+    if not project:
+        raise ValueError("source reference not found")
+    return project
+
+
 def expand_source(args: dict[str, Any]) -> dict[str, Any]:
     with db() as conn, conn.cursor() as cur:
-        project = get_project(conn, args["project_key"])
+        project = project_for_expansion(conn, args)
         set_project(conn, str(project["id"]))
         if args.get("summary_id"):
             page_size = max(1, min(int(args.get("page_size") or 100), 1000))
             after_event_id = None
             if args.get("continuation_cursor"):
-                state = decode_cursor(str(args["continuation_cursor"]))
+                state = decode_cursor(
+                    str(args["continuation_cursor"]), cursor_signing_key()
+                )
                 if (
                     state.get("project_id") != str(project["id"])
                     or state.get("summary_id") != args["summary_id"]
@@ -1284,7 +1422,8 @@ def expand_source(args: dict[str, Any]) -> dict[str, Any]:
                         "project_id": str(project["id"]),
                         "summary_id": args["summary_id"],
                         "after_event_id": sources[-1]["source_event_id"],
-                    }
+                    },
+                    cursor_signing_key(),
                 )
             return {
                 "ok": True,

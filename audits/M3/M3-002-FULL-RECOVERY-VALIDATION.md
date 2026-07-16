@@ -9,31 +9,36 @@
 PASS. The additive M3.002 migration, model-context contract, existing ten-tool memory surface,
 stable recovery pagination, exact source expansion, summary correction, governed Git snapshot
 metadata, cold-artifact recovery, and backup/restore graph integrity were validated in disposable
-PostgreSQL 18 databases.
+PostgreSQL 18 databases. Follow-up adversarial review findings were corrected and revalidated.
 
 ## Evidence
 
 - `python -m pytest scripts/agentcore_memory/test_recovery.py -q`
-  - PASS: 21 deterministic checks.
+  - PASS: 23 deterministic checks.
   - Covers all 18 required recovery invariants plus cursor tamper/scope checks, unchanged ten-tool
     surface, and IDE model/Git self-enrollment schema.
 - `powershell -ExecutionPolicy Bypass -File scripts/memory_platform/Test-M3FullRecovery.ps1`
   - PASS against disposable databases only.
-  - Retained 268 events, including a PostgreSQL history above one million conservative tokens and
+  - Retained 269 events, including a PostgreSQL history above one million conservative tokens and
     one quarantined event excluded from normal recovery.
   - Retrieved the complete accepted chronology through 91 bounded recovery operations.
-  - Preserved two summary versions and 18 exact source edges after deliberately correcting an
-    incorrect summary.
+  - Preserved corrected summary history and exact source edges; two concurrent creators resolved
+    to one deterministic summary identity without a uniqueness failure.
   - Expanded exact original content after moving its active artifact location from the configured
     hot tier to a simulated E:-class cold tier.
   - Preserved events, summaries, source edges, recovery metadata, snapshot metadata, profiles, and
     graph hashes through `pg_dump`/`pg_restore`.
+  - Verified `agentcore_worker` sees only its selected project's recovery/snapshot rows and cannot
+    insert a recovery row for another project.
+  - Verified latest-first current-state handoff, HMAC cursor rejection, idempotent artifact retry,
+    and legacy `expand_source`/`budget_name` compatibility.
   - Cleanup dropped both disposable databases and removed dump/hot/cold scratch artifacts.
 - M3.002 up/down dry run
   - PASS: migrations M2 -> M3.001 -> M3.002.
   - PASS: exact 1,000,000 hard context profile.
   - PASS: future 2,000,000 hard context profile.
   - PASS: partial current-summary uniqueness in UP and guarded compatibility uniqueness in DOWN.
+  - PASS: DOWN-restored summary creation still rejects cross-project source edges.
 - `python scripts/bifrost/validate_contracts.py`
   - PASS.
 - `python scripts/bifrost/test_contracts.py`

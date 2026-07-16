@@ -13,6 +13,7 @@ $runId = [DateTimeOffset]::UtcNow.ToString("yyyyMMddHHmmss")
 $sourceDb = "agentcore_m3_full_recovery_$runId"
 $restoreDb = "${sourceDb}_restore"
 $dumpPath = Join-Path $ScratchRoot "$sourceDb.dump"
+$rollbackProofPath = Join-Path $ScratchRoot "$sourceDb-rollback-proof.sql"
 $password = [Environment]::GetEnvironmentVariable("AGENT_CORE_POSTGRES_PASSWORD", "User")
 if (-not $password) {
   throw "AGENT_CORE_POSTGRES_PASSWORD is unavailable in Windows User scope"
@@ -96,6 +97,52 @@ try {
     throw "backup/restore changed the event/source/summary graph`nBEFORE $before`nAFTER  $after"
   }
 
+  $downMigration = (Join-Path $repo "migrations\m3\002_down_unbounded_recovery_context_profiles.sql").Replace("\", "/")
+  @"
+\set ON_ERROR_STOP on
+DELETE FROM agentcore.recovery_operations;
+DELETE FROM agentcore.project_snapshots;
+DELETE FROM agentcore.context_source_edges
+WHERE summary_id IN (
+  SELECT id FROM agentcore.context_summaries WHERE supersedes_summary_id IS NOT NULL
+);
+DELETE FROM agentcore.context_summaries WHERE supersedes_summary_id IS NOT NULL;
+UPDATE agentcore.context_summaries SET is_current = true, superseded_at = NULL;
+\i '$downMigration'
+DO `$proof`$
+DECLARE
+  target_project uuid;
+  target_session uuid;
+  foreign_event uuid;
+BEGIN
+  SELECT p.id, s.id INTO target_project, target_session
+  FROM agentcore.projects p
+  JOIN agentcore.sessions s ON s.project_id = p.id
+  WHERE p.project_name = 'Recovery Integration'
+  LIMIT 1;
+  SELECT e.id INTO foreign_event
+  FROM agentcore.evidence_events e
+  WHERE e.project_id <> target_project
+  LIMIT 1;
+  PERFORM set_config('agentcore.current_project_id', target_project::text, true);
+  BEGIN
+    PERFORM agentcore.create_context_summary(
+      target_project, target_session, 'L2', 'active_dynamic',
+      'rollback boundary proof', 'must be rejected', 4, 1.0,
+      ARRAY[foreign_event], NULL, 'rollback.boundary.v1'
+    );
+    RAISE EXCEPTION 'rollback function accepted a cross-project source edge';
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    NULL;
+  END;
+END;
+`$proof`$;
+"@ | Set-Content -LiteralPath $rollbackProofPath -Encoding utf8
+  Invoke-PgTool "psql.exe" @(
+    "-q", "-h", $HostName, "-p", "$Port", "-U", $AdminUser, "-d", $sourceDb,
+    "-f", $rollbackProofPath
+  )
+
   Write-Output "PASS: M3 full recovery, summary correction, stable pagination, and backup/restore graph integrity"
   Write-Output $after
 }
@@ -103,6 +150,7 @@ finally {
   Invoke-PgTool "dropdb.exe" @("-h", $HostName, "-p", "$Port", "-U", $AdminUser, "--if-exists", $restoreDb)
   Invoke-PgTool "dropdb.exe" @("-h", $HostName, "-p", "$Port", "-U", $AdminUser, "--if-exists", $sourceDb)
   Remove-Item -LiteralPath $dumpPath -Force -ErrorAction SilentlyContinue
+  Remove-Item -LiteralPath $rollbackProofPath -Force -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath (Join-Path $ScratchRoot "$sourceDb-artifacts") -Recurse -Force -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath (Join-Path $ScratchRoot "$sourceDb-cold-e") -Recurse -Force -ErrorAction SilentlyContinue
 }

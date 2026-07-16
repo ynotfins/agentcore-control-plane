@@ -47,6 +47,8 @@ AgentCore does not use `.env` files. All secrets and runtime credentials are sto
   the existing ten-tool surface
 - Validation: `scripts/agentcore_memory/test_recovery.py` and
   `scripts/memory_platform/Test-M3FullRecovery.ps1`
+- Isolation/reliability: project-scoped RLS and relationship triggers, latest-first current-state
+  recovery, HMAC-authenticated cursors, concurrency-idempotent summaries, and artifact-safe retries
 
 ### AgentCore Bifrost Gateway Runtime
 
@@ -84,6 +86,8 @@ AgentCore does not use `.env` files. All secrets and runtime credentials are sto
   full; supersede bad summaries and rebuild from exact source edges.
 - Before asking the operator to repeat project history, use paginated `retrieve_context`,
   `expand_source`, and `build_handoff`.
+- Treat continuation cursors as server-authenticated capabilities; never accept caller-recomputed
+  checksums or unvalidated pagination boundaries.
 - Treat PostgreSQL 18 at `127.0.0.1:55433` as canonical for AgentCore; classify `127.0.0.1:55432` as PG16 rollback/legacy evidence or Swarm-owned only.
 - Read project facts and static facts before planning or making architectural decisions.
 - If an AgentCore environment variable is missing, stop and report the variable name instead of creating a local fallback.

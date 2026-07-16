@@ -30,8 +30,12 @@ SCHEMA_PATH = REPO / "contracts" / "schemas" / "model-context-profiles.schema.js
 MIGRATION_PATH = (
     REPO / "migrations" / "m3" / "002_up_unbounded_recovery_context_profiles.sql"
 )
+DOWN_MIGRATION_PATH = (
+    REPO / "migrations" / "m3" / "002_down_unbounded_recovery_context_profiles.sql"
+)
 POLICY_PATH = REPO / "contracts" / "global-agent-policy.yaml"
 RETENTION_PATH = REPO / "docs" / "memory-platform" / "RETENTION_POLICY.md"
+TEST_CURSOR_KEY = b"agentcore-test-only-cursor-key"
 
 
 def load_profiles() -> dict[str, ModelContextProfile]:
@@ -99,8 +103,28 @@ def test_04_complete_chronology_has_stable_pagination() -> None:
     )
     assert set(first["source_ids"]).isdisjoint(second["source_ids"])
     assert (
-        decode_cursor(first["continuation_cursor"])["window_end_id"] == events[-1]["id"]
+        decode_cursor(first["continuation_cursor"], TEST_CURSOR_KEY)["window_end_id"]
+        == events[-1]["id"]
     )
+
+
+def test_current_state_starts_with_latest_evidence_and_pages_backward() -> None:
+    events = synthetic_events(10)
+    latest = paginate_chronology(
+        events,
+        project_id="project-a",
+        mode="current_state",
+        page_size=3,
+    )
+    assert latest["source_ids"] == [str(event["id"]) for event in events[-3:]]
+    older = paginate_chronology(
+        events,
+        project_id="project-a",
+        mode="current_state",
+        page_size=3,
+        cursor=latest["continuation_cursor"],
+    )
+    assert older["source_ids"] == [str(event["id"]) for event in events[-6:-3]]
 
 
 def test_05_every_retrieved_source_has_exact_expansion_reference() -> None:
@@ -118,10 +142,12 @@ def test_05_every_retrieved_source_has_exact_expansion_reference() -> None:
 
 def test_06_summary_correction_is_versioned_not_overwritten() -> None:
     sql = MIGRATION_PATH.read_text(encoding="utf-8")
+    down_sql = DOWN_MIGRATION_PATH.read_text(encoding="utf-8")
     assert "supersede_context_summary" in sql
     assert "supersedes_summary_id" in sql
     assert "is_current" in sql
     assert "correction_reason" in sql
+    assert "summary source edge crosses project boundary" in down_sql
 
 
 def test_07_recovery_survives_discarded_conversation_context() -> None:
@@ -145,16 +171,18 @@ def test_07_recovery_survives_discarded_conversation_context() -> None:
 
 def test_08_cursor_round_trip_survives_ide_restart() -> None:
     cursor = encode_cursor(
-        {"project_id": "p", "mode": "session_replay", "after_id": "e"}
+        {"project_id": "p", "mode": "session_replay", "after_id": "e"},
+        TEST_CURSOR_KEY,
     )
-    assert decode_cursor(cursor)["project_id"] == "p"
+    assert decode_cursor(cursor, TEST_CURSOR_KEY)["project_id"] == "p"
 
 
 def test_09_cursor_round_trip_survives_memory_service_restart() -> None:
     cursor = encode_cursor(
-        {"project_id": "p", "mode": "milestone_replay", "after_id": "e"}
+        {"project_id": "p", "mode": "milestone_replay", "after_id": "e"},
+        TEST_CURSOR_KEY,
     )
-    assert decode_cursor(str(cursor))["mode"] == "milestone_replay"
+    assert decode_cursor(str(cursor), TEST_CURSOR_KEY)["mode"] == "milestone_replay"
 
 
 def test_10_cold_archive_is_preferred_transparently() -> None:
@@ -241,6 +269,14 @@ def test_18_backup_restore_policy_preserves_full_graph() -> None:
     assert "recovery_operations" in sql
 
 
+def test_recovery_and_snapshot_tables_enforce_project_scope() -> None:
+    sql = MIGRATION_PATH.read_text(encoding="utf-8")
+    assert "recovery_operations ENABLE ROW LEVEL SECURITY" in sql
+    assert "project_snapshots ENABLE ROW LEVEL SECURITY" in sql
+    assert "validate_recovery_operation_scope" in sql
+    assert "validate_project_snapshot_scope" in sql
+
+
 def test_cursor_rejects_tampering_and_scope_mismatch() -> None:
     events = synthetic_events(4)
     page = paginate_chronology(
@@ -251,7 +287,11 @@ def test_cursor_rejects_tampering_and_scope_mismatch() -> None:
     )
     cursor = str(page["continuation_cursor"])
     with pytest.raises(ValueError):
-        decode_cursor(cursor[:-1] + ("A" if cursor[-1] != "A" else "B"))
+        decode_cursor(
+            cursor[:-1] + ("A" if cursor[-1] != "A" else "B"), TEST_CURSOR_KEY
+        )
+    with pytest.raises(ValueError):
+        decode_cursor(cursor, b"attacker-controlled-key")
     with pytest.raises(ValueError):
         paginate_chronology(
             events,
@@ -272,7 +312,8 @@ def test_existing_ten_tool_surface_gains_recovery_without_new_server() -> None:
         "continuation_cursor",
         "page_size",
     } <= set(retrieve_properties)
-    assert "project_key" in tools["expand_source"]["inputSchema"]["required"]
+    assert "project_key" in tools["expand_source"]["inputSchema"]["properties"]
+    assert "required" not in tools["expand_source"]["inputSchema"]
 
 
 def test_session_open_self_enrolls_model_and_git_identity() -> None:

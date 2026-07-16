@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import hmac
 import json
 import math
 from dataclasses import dataclass
@@ -165,27 +166,35 @@ def assemble_active_packet(
     }
 
 
-def _cursor_checksum(payload: Mapping[str, Any]) -> str:
-    return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
+def _cursor_signature(payload: Mapping[str, Any], signing_key: bytes) -> str:
+    if not signing_key:
+        raise ValueError("cursor signing key cannot be empty")
+    return hmac.new(
+        signing_key,
+        canonical_json(payload).encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
 
 
-def encode_cursor(payload: Mapping[str, Any]) -> str:
+def encode_cursor(payload: Mapping[str, Any], signing_key: bytes) -> str:
     body = {"v": CURSOR_VERSION, **dict(payload)}
-    envelope = {"payload": body, "checksum": _cursor_checksum(body)}
+    envelope = {"payload": body, "signature": _cursor_signature(body, signing_key)}
     raw = canonical_json(envelope).encode("utf-8")
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
 
-def decode_cursor(cursor: str) -> dict[str, Any]:
+def decode_cursor(cursor: str, signing_key: bytes) -> dict[str, Any]:
     try:
         padding = "=" * (-len(cursor) % 4)
         envelope = json.loads(base64.urlsafe_b64decode(cursor + padding))
         payload = envelope["payload"]
-        checksum = envelope["checksum"]
+        signature = envelope["signature"]
     except (KeyError, ValueError, TypeError, json.JSONDecodeError) as exc:
         raise ValueError("invalid continuation cursor") from exc
-    if payload.get("v") != CURSOR_VERSION or checksum != _cursor_checksum(payload):
-        raise ValueError("invalid continuation cursor checksum or version")
+    if payload.get("v") != CURSOR_VERSION or not hmac.compare_digest(
+        signature, _cursor_signature(payload, signing_key)
+    ):
+        raise ValueError("invalid continuation cursor signature or version")
     return dict(payload)
 
 
@@ -226,6 +235,7 @@ def paginate_chronology(
     scope: Mapping[str, Any] | None = None,
     cursor: str | None = None,
     include_quarantined: bool = False,
+    signing_key: bytes = b"agentcore-test-only-cursor-key",
 ) -> dict[str, Any]:
     """Reference keyset pagination used by deterministic tests and DB adapters."""
     if mode not in RECOVERY_MODES:
@@ -245,16 +255,21 @@ def paginate_chronology(
     rows.sort(key=lambda row: (row["accepted_at"], row["id"]))
 
     after: tuple[str, str] | None = None
+    before: tuple[str, str] | None = None
+    newest_first = mode == "current_state"
     window_end = (rows[-1]["accepted_at"], rows[-1]["id"]) if rows else None
     if cursor:
-        state = decode_cursor(cursor)
+        state = decode_cursor(cursor, signing_key)
         if (
             state.get("project_id") != project_id
             or state.get("mode") != mode
             or state.get("scope_hash") != scope_digest
         ):
             raise ValueError("continuation cursor scope mismatch")
-        after = (str(state["after_at"]), str(state["after_id"]))
+        if newest_first:
+            before = (str(state["before_at"]), str(state["before_id"]))
+        else:
+            after = (str(state["after_at"]), str(state["after_id"]))
         window_end = (str(state["window_end_at"]), str(state["window_end_id"]))
 
     bounded = rows
@@ -264,23 +279,30 @@ def paginate_chronology(
         ]
     if after:
         bounded = [row for row in bounded if (row["accepted_at"], row["id"]) > after]
+    if before:
+        bounded = [row for row in bounded if (row["accepted_at"], row["id"]) < before]
 
-    page = bounded[:page_size]
+    page = bounded[-page_size:] if newest_first else bounded[:page_size]
     omitted = max(0, len(bounded) - len(page))
     next_cursor = None
     if omitted and page and window_end:
-        last = page[-1]
-        next_cursor = encode_cursor(
-            {
-                "project_id": project_id,
-                "mode": mode,
-                "scope_hash": scope_digest,
-                "after_at": last["accepted_at"],
-                "after_id": last["id"],
-                "window_end_at": window_end[0],
-                "window_end_id": window_end[1],
-            }
-        )
+        boundary = page[0] if newest_first else page[-1]
+        cursor_payload = {
+            "project_id": project_id,
+            "mode": mode,
+            "scope_hash": scope_digest,
+            "window_end_at": window_end[0],
+            "window_end_id": window_end[1],
+        }
+        if newest_first:
+            cursor_payload.update(
+                {"before_at": boundary["accepted_at"], "before_id": boundary["id"]}
+            )
+        else:
+            cursor_payload.update(
+                {"after_at": boundary["accepted_at"], "after_id": boundary["id"]}
+            )
+        next_cursor = encode_cursor(cursor_payload, signing_key)
 
     return {
         "mode": mode,

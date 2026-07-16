@@ -24,11 +24,15 @@ context over an effectively unbounded durable local project history:
   future above-one-million capability profiles with all required reserves and provenance.
 - M3.002 adds model profiles, versioned summary correction, auditable recovery operations,
   governed project snapshot metadata, and self-enrolled session context profiles.
+- Recovery and snapshot tables enforce project isolation with RLS plus same-project relationship
+  validation; summary creation is concurrency-idempotent.
 - The existing ten-tool `agentcore-memory` surface is unchanged:
-  - `retrieve_context` adds bounded recovery modes and stable keyset cursors;
+  - `retrieve_context` adds bounded recovery modes and HMAC-authenticated keyset cursors;
   - `expand_source` adds project-scoped exact event/summary/artifact expansion and byte paging;
   - `build_handoff` reconstructs identity, projections, snapshots, active context, and chronology;
   - `session_open` records verified project/Git/client/model/profile identity.
+- Current-state handoffs start from the newest accepted evidence, large-artifact retries preserve
+  the original event/artifact edge, and pre-M3.002 tool compatibility remains additive.
 - Canonical recovery and non-destructive compaction rules are rendered to all eight managed IDE
   profiles.
 - `MASTER_CONFIG_AND_PROMPT.md`, the memory execution plan, retention policy, Engineering
@@ -40,13 +44,15 @@ See `audits/M3/M3-002-FULL-RECOVERY-VALIDATION.md`.
 
 Key results:
 
-- deterministic recovery suite: PASS (21);
+- deterministic recovery suite: PASS (23);
 - contract/renderer suite: PASS (111);
 - all IDE renderings current: PASS;
 - M3.002 UP/DOWN in disposable PostgreSQL: PASS;
 - source history above one million conservative tokens: PASS;
 - complete stable chronology, summary correction, quarantine filtering, exact cold expansion:
   PASS;
+- non-superuser RLS isolation, cross-project write rejection, concurrent summary creation, signed
+  cursor rejection, artifact retry idempotency, and guarded DOWN boundary test: PASS;
 - logical backup/restore event/source/summary/snapshot/recovery graph integrity: PASS.
 
 ## Continuation / rollout
