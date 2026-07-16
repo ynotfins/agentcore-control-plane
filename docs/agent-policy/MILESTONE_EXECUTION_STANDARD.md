@@ -43,8 +43,9 @@ Milestone purposes, exit criteria, and ordering are fixed once approved. Macro/M
 7. Audit tool usage (see `TOOL_LIFECYCLE_POLICY.md`).
 8. Disable: expired JIT tools, completed-Milestone tools, unused tools, failed optional upstreams, tools not required by the next Milestone.
 9. Keep a tool `core_active` only when evidence shows frequent continued use.
-10. Create a restore point.
-11. Commit and push per `docs/GIT_PUSH_ONLY_POLICY.md`.
-12. Generate the next Milestone's entry packet (context summary, refined checklist skeleton, tool plan).
+10. Refresh CHAOSCENTRAL machine documentation when the Milestone changes installed software, services, ports, drive formatting, runtime paths, MCP topology, or machine security state; run `D:\ChaosCentral-Current-Build\scripts\Collect-PCRuntimeSnapshot.ps1` and `D:\ChaosCentral-Current-Build\scripts\Test-PCDocumentation.ps1`, then commit that repository separately. When no machine-level state changed, record: "No CHAOSCENTRAL machine-documentation delta."
+11. Create a restore point.
+12. Commit and push per `docs/GIT_PUSH_ONLY_POLICY.md`.
+13. Generate the next Milestone's entry packet (context summary, refined checklist skeleton, tool plan).
 
 **A Milestone is not complete until this gate passes.** Missing Context Fabric or Arabold checkpoints, missing tool audit, or incomplete Micro-step evidence block closure.

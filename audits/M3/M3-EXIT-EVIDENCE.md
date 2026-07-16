@@ -7,6 +7,8 @@
 **Harness:** `scripts/memory_platform/Test-M3LosslessContext.ps1`  
 **Acceptance summary:** `audits/M3/m3-acceptance-summary.json` (run `20260715210053`)
 
+**CHAOSCENTRAL documentation sync:** `b27dab4` in `D:\ChaosCentral-Current-Build` (`docs: sync machine docs after AgentCore M1-M3 runtime changes`). This local commit updated classified machine/runtime docs and passed `scripts\Test-PCDocumentation.ps1` (30/30). Push was attempted but the repository has no configured remote.
+
 ## Exit Criteria
 
 | BLUEPRINT.md M3 exit criterion | Result | Evidence |
@@ -27,6 +29,7 @@
 | Multi-session project chronology coherent | PASS | L3 summary includes source events from two sessions |
 | Contradictory facts follow proposal/review path | PASS | `agentcore.fact_proposals` status `proposed` |
 | Distill decision recorded | PASS | `audits/M2/distill-pre-m3-identification.md` identifies `Siddhant-K-code/distill`; default decision is native implementation first unless sidecar benchmarks prove value |
+| CHAOSCENTRAL machine documentation refreshed after machine/runtime changes | PASS | `D:\ChaosCentral-Current-Build` commit `b27dab4`; new runtime snapshot `PC_RUNTIME_SNAPSHOT_20260715-211055`; validation 30/30 |
 
 ## Projection Paths and Hashes
 
