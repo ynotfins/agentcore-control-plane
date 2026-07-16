@@ -26,6 +26,8 @@ from .nodes import (
     node_critics_and_score,
     node_judge,
     node_micro_execute,
+    node_da_builder,
+    node_da_critic,
     node_evidence_record,
     node_next_step,
     node_human_pause,
@@ -54,7 +56,7 @@ def build_graph(conninfo: str | None = None) -> tuple[Any, PostgresSaver]:
     # Build the state graph
     builder = StateGraph(WorkflowState)
 
-    # Add nodes
+    # Add nodes — core M6 graph unchanged; DA nodes are additive extensions
     builder.add_node("start", node_start)
     builder.add_node("gate_check", node_gate_check)
     builder.add_node("deterministic_checks", node_deterministic_checks)
@@ -62,6 +64,9 @@ def build_graph(conninfo: str | None = None) -> tuple[Any, PostgresSaver]:
     builder.add_node("critics_and_score", node_critics_and_score)
     builder.add_node("judge_node", node_judge)
     builder.add_node("micro_execute", node_micro_execute)
+    # DA worker nodes (bounded harness; see ADR-DEEP-AGENTS-WORKER-HARNESS.md)
+    builder.add_node("da_builder", node_da_builder)
+    builder.add_node("da_critic", node_da_critic)
     builder.add_node("evidence_record", node_evidence_record)
     builder.add_node("next_step", node_next_step)
     builder.add_node("human_pause", node_human_pause)
@@ -94,16 +99,18 @@ def build_graph(conninfo: str | None = None) -> tuple[Any, PostgresSaver]:
     # Critics → judge
     builder.add_edge("critics_and_score", "judge_node")
 
-    # Judge routes
+    # Judge routes — routes to da_builder when da_enabled=True (set by risk_assess)
     builder.add_conditional_edges("judge_node", route, {
         "micro_execute": "micro_execute",
+        "da_builder": "da_builder",
         "human_pause": "human_pause",
         "workflow_fail": "workflow_fail",
     })
 
-    # Human pause → micro_execute or fail (after operator decision)
+    # Human pause → da_builder or micro_execute or fail (after operator decision)
     builder.add_conditional_edges("human_pause", route, {
         "micro_execute": "micro_execute",
+        "da_builder": "da_builder",
         "workflow_fail": "workflow_fail",
     })
 
@@ -112,6 +119,16 @@ def build_graph(conninfo: str | None = None) -> tuple[Any, PostgresSaver]:
         "evidence_record": "evidence_record",
         "workflow_fail": "workflow_fail",
     })
+
+    # DA builder → da_critic or fallback on failure
+    builder.add_conditional_edges("da_builder", route, {
+        "da_critic": "da_critic",
+        "micro_execute": "micro_execute",   # fallback when DA not available
+        "workflow_fail": "workflow_fail",
+    })
+
+    # DA critic → evidence_record (always; critic cannot block the workflow)
+    builder.add_edge("da_critic", "evidence_record")
 
     # Evidence → next step
     builder.add_edge("evidence_record", "next_step")

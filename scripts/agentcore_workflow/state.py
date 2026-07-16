@@ -69,6 +69,15 @@ class WorkflowState(TypedDict):
     active_lease_id: str     # current capability_leases.id
     active_lease_tool: str   # tool name under active JIT lease
 
+    # ── Deep Agents worker harness (optional, bounded) ────────────────────────
+    # All DA fields are worker-scoped; M6 PostgresSaver is the canonical checkpoint.
+    # worktree_path is set from the project root_path at run start; DA workers
+    # are restricted to this path via FilesystemMiddleware.
+    worktree_path: str       # absolute path to assigned Git worktree (D:\\ only)
+    da_enabled: bool         # True when DA workers are active for this step
+    da_builder_result: dict  # last DA builder output (ephemeral, recorded to wf_evidence)
+    da_critic_result: dict   # last DA critic output (ephemeral, feeds into scorer)
+
     # ── Evidence accumulation ─────────────────────────────────────────────────
     evidence: Annotated[list[dict], _merge_list]
 
@@ -117,6 +126,10 @@ def initial_state(
         operator_decision="",
         active_lease_id="",
         active_lease_tool="",
+        worktree_path="",
+        da_enabled=False,
+        da_builder_result={},
+        da_critic_result={},
         evidence=[],
         execution_result={},
         errors=[],

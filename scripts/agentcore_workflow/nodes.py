@@ -6,11 +6,16 @@ LangGraph persists the state at each checkpoint via PostgresSaver.
 Node graph:
   start → gate_check → deterministic_checks → risk_assess →
   critics_and_score → judge_node →
-    proceed: micro_execute
-    needs_operator: human_pause
-    block: workflow_fail
-  human_pause → resume_check (polls) → micro_execute | workflow_fail
-  micro_execute → evidence_record → next_step → start | milestone_complete | workflow_done
+    proceed (da_enabled=False): micro_execute
+    proceed (da_enabled=True):  da_builder → da_critic → evidence_record
+    needs_operator:             human_pause → da_builder | micro_execute
+    block:                      workflow_fail
+  micro_execute | da_builder → evidence_record → next_step → gate_check | done
+
+Deep Agents nodes (da_builder, da_critic) are bounded worker harness nodes.
+They are NOT canonical memory, checkpoint, or policy authorities.
+All durable writes go through agentcore-memory (db.record_evidence).
+See ADR-DEEP-AGENTS-WORKER-HARNESS.md.
 """
 
 from __future__ import annotations
@@ -91,6 +96,19 @@ def node_start(state: WorkflowState) -> dict:
         macros = updates.get("macro_steps", state.get("macro_steps", []))
         if macros:
             updates["current_macro_key"] = macros[0]["key"]
+
+    # Resolve worktree_path from the project's root_path (DA worker boundary)
+    if not state.get("worktree_path"):
+        try:
+            with db.conn(admin=True) as c:
+                row = c.execute(
+                    "SELECT root_path FROM agentcore.projects WHERE id = %s",
+                    (state["project_id"],),
+                ).fetchone()
+            if row and row["root_path"]:
+                updates["worktree_path"] = str(row["root_path"])
+        except Exception:
+            pass  # worktree_path stays empty; da_enabled will be False
 
     updates["next_action"] = "gate_check"
     updates["errors"] = []
@@ -217,10 +235,22 @@ def node_risk_assess(state: WorkflowState) -> dict:
         except Exception:
             pass
 
+    # DA workers are activated for medium+ risk when a valid worktree exists
+    from .deepagents_worker import DEEPAGENTS_AVAILABLE
+    from pathlib import Path
+    worktree_path = state.get("worktree_path", "")
+    da_enabled = (
+        DEEPAGENTS_AVAILABLE
+        and risk_class in ("medium", "high", "critical")
+        and bool(worktree_path)
+        and Path(worktree_path).exists()
+    )
+
     return {
         "current_risk_class": risk_class,
         "ab_enabled": ab_enabled,
         "ab_db_id": ab_db_id,
+        "da_enabled": da_enabled,
         "next_action": "critics_and_score",
     }
 
@@ -302,8 +332,13 @@ def node_judge(state: WorkflowState) -> dict:
         except Exception:
             pass
 
+    # Route to da_builder when Deep Agents workers are active, else micro_execute.
+    # DA workers are activated by risk_assess when da_enabled=True in state.
+    da_enabled = state.get("da_enabled", False)
+    proceed_target = "da_builder" if da_enabled and verdict == "proceed" else "micro_execute"
+
     next_action = {
-        "proceed": "micro_execute",
+        "proceed": proceed_target,
         "needs_operator": "human_pause",
         "block": "workflow_fail",
     }.get(verdict, "workflow_fail")
@@ -596,11 +631,13 @@ def node_human_pause(state: WorkflowState) -> dict:
         except Exception:
             pass
 
+    da_enabled = state.get("da_enabled", False)
+    proceed_target = "da_builder" if da_enabled and approved else ("micro_execute" if approved else "workflow_fail")
     return {
         "pause_db_id": pause_db_id,
         "pause_resolution": resolution,
         "operator_decision": decision_text,
-        "next_action": "micro_execute" if approved else "workflow_fail",
+        "next_action": proceed_target,
         "errors": ([] if approved else [f"Operator rejected {scope_key}: {decision_text}"]),
     }
 
@@ -614,6 +651,175 @@ def node_workflow_fail(state: WorkflowState) -> dict:
     if run_db_id:
         db.update_run_status(run_db_id, "failed")
     return {"completed": True, "next_action": "done"}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DA BUILDER — Deep Agents bounded worker (primary builder)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def node_da_builder(state: WorkflowState) -> dict:
+    """Run a Deep Agents builder worker for the current micro step.
+
+    Responsibility boundary (BLUEPRINT.md + ADR-DEEP-AGENTS-WORKER-HARNESS.md):
+    - Operates ONLY inside state["worktree_path"] via FilesystemMiddleware.
+    - MemoryMiddleware disabled; no LangSmith ownership.
+    - All durable writes go through db.record_evidence() below (agentcore-memory path).
+    - The DA internal MemorySaver is ephemeral; M6 PostgresSaver is canonical.
+    - Returns da_builder_result and routes to da_critic for post-execution review.
+    """
+    from .deepagents_worker import run_builder_worker, DEEPAGENTS_AVAILABLE
+
+    run_db_id = state.get("run_db_id", "")
+    project_id = state["project_id"]
+    thread_uuid = state.get("thread_uuid", "")
+    micro_key = state.get("current_micro_key", "unknown")
+    worktree_path = state.get("worktree_path", "")
+
+    # Build the AgentCore context packet injected into the DA system prompt.
+    # This is read-only context from the M6 state — the agent cannot modify it.
+    active_tools = []
+    try:
+        active_tools = [t["tool_name"] for t in db.get_project_tools(project_id)]
+    except Exception:
+        pass
+
+    agentcore_context = (
+        f"Project: {state.get('project_key', project_id)}\n"
+        f"Milestone: {state.get('milestone_key', 'M6')}\n"
+        f"Macro step: {state.get('current_macro_key', '')}\n"
+        f"Micro step: {micro_key}\n"
+        f"Risk class: {state.get('current_risk_class', 'medium')}\n"
+        f"Active tools (capability profile): {active_tools}\n"
+        f"Judge verdict: {state.get('judge_verdict', 'proceed')}\n"
+        f"Score: {state.get('score', 0.0):.4f}\n"
+    )
+
+    task = f"Execute micro step {micro_key}: {_micro_label(state, micro_key)}"
+
+    if not DEEPAGENTS_AVAILABLE or not worktree_path:
+        # Graceful fallback: DA not available, route to standard micro_execute.
+        return {"next_action": "micro_execute", "da_builder_result": {"status": "skipped_no_da"}}
+
+    worker_result = run_builder_worker(
+        task=task,
+        worktree_path=worktree_path,
+        agentcore_context=agentcore_context,
+        allowed_tools=active_tools,
+        project_id=project_id,
+        thread_uuid=thread_uuid,
+    )
+
+    # Record durable evidence through agentcore-memory path (not DA's MemorySaver).
+    if run_db_id:
+        try:
+            db.record_evidence(
+                run_db_id, project_id, micro_key,
+                "da_builder_result",
+                f"DA builder {micro_key}: {worker_result.get('status', 'unknown')}",
+                worker_result,
+            )
+        except Exception:
+            pass
+
+    next_action = "da_critic" if worker_result.get("status") == "completed" else "workflow_fail"
+    return {
+        "da_builder_result": worker_result,
+        "execution_result": worker_result,
+        "next_action": next_action,
+        "errors": ([f"DA builder failed: {worker_result.get('error')}"]
+                   if worker_result.get("status") != "completed" else []),
+    }
+
+
+def _micro_label(state: WorkflowState, micro_key: str) -> str:
+    """Look up the human-readable label for a micro step key."""
+    for ms in state.get("micro_steps", []):
+        if ms.get("key") == micro_key:
+            return ms.get("label", micro_key)
+    return micro_key
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DA CRITIC — Deep Agents bounded worker (read-only critic)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def node_da_critic(state: WorkflowState) -> dict:
+    """Run a Deep Agents critic worker on the builder's output.
+
+    The critic is STRICTLY read-only:
+    - FilesystemPermission operations=["read"] only.
+    - No source-write, database-write, policy-write, or profile-write authority.
+    - Returns structured findings that feed into the existing M6 scorer/judge chain.
+    - Evidence recorded through agentcore-memory path only.
+    """
+    from .deepagents_worker import run_critic_worker, DEEPAGENTS_AVAILABLE
+
+    run_db_id = state.get("run_db_id", "")
+    project_id = state["project_id"]
+    thread_uuid = state.get("thread_uuid", "")
+    micro_key = state.get("current_micro_key", "unknown")
+    worktree_path = state.get("worktree_path", "")
+    builder_result = state.get("da_builder_result", {})
+
+    agentcore_context = (
+        f"Project: {state.get('project_key', project_id)}\n"
+        f"Micro step: {micro_key}\n"
+        f"Builder output summary: {str(builder_result.get('output', ''))[:500]}\n"
+        f"Builder status: {builder_result.get('status', 'unknown')}\n"
+    )
+
+    # Compact rubric — the critic evaluates only what the builder produced.
+    rubric = (
+        "Review the builder's changes for correctness, completeness, and test coverage. "
+        "Return JSON: {\"passed\": true/false, \"score\": 0.0-1.0, \"findings\": [\"...\"]}"
+    )
+
+    task = f"Review the output of micro step {micro_key}"
+
+    if not DEEPAGENTS_AVAILABLE or not worktree_path:
+        # No DA available — return a neutral pass so the workflow continues.
+        return {
+            "da_critic_result": {"status": "skipped_no_da", "passed": True, "score": 1.0},
+            "next_action": "evidence_record",
+        }
+
+    critic_result = run_critic_worker(
+        task=task,
+        worktree_path=worktree_path,
+        agentcore_context=agentcore_context,
+        rubric=rubric,
+        project_id=project_id,
+        thread_uuid=thread_uuid,
+    )
+
+    # Record durable evidence through agentcore-memory path.
+    if run_db_id:
+        try:
+            db.record_evidence(
+                run_db_id, project_id, micro_key,
+                "da_critic_result",
+                f"DA critic {micro_key}: passed={critic_result.get('passed')} score={critic_result.get('score', 0):.2f}",
+                critic_result,
+            )
+            # Also feed the critic finding back into the critic_results list
+            # so the existing deterministic scorer picks it up.
+            db.record_critic_run(
+                run_db_id, project_id, micro_key,
+                "critic", state.get("current_risk_class"),
+                [builder_result],
+                critic_result,
+                critic_result.get("passed"),
+                critic_result.get("score"),
+                None,
+            )
+        except Exception:
+            pass
+
+    return {
+        "da_critic_result": critic_result,
+        "critic_results": [critic_result],     # feeds into scorer on next iteration
+        "next_action": "evidence_record",
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────

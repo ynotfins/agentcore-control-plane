@@ -151,25 +151,24 @@ Work only within your assigned worktree: {root}
   separate memory files or AGENTS.md files.
 """
 
-    # Filesystem middleware restricted to worktree — read+write allowed
+    # Filesystem middleware restricted to worktree — read+write allowed.
+    # FilesystemPermission takes `paths` (list) and `operations` as separate args.
+    fs_permission = FilesystemPermission(
+        paths=["**"],
+        operations=["read", "write"],
+    )
     fs_middleware = FilesystemMiddleware(
         root_dir=str(root),
-        permissions=[
-            FilesystemPermission(
-                path="**",
-                operations=["read", "write"],
-            )
-        ],
+        permissions=[fs_permission],
     )
 
-    # Create the deep agent WITH filesystem but WITHOUT memory middleware
-    # (MemoryMiddleware is deliberately omitted — it would read AGENTS.md
-    # files which would create a competing source of truth with AgentCore)
+    # Create the deep agent WITH filesystem but WITHOUT memory middleware.
+    # MemoryMiddleware is intentionally omitted: it reads AGENTS.md files,
+    # which would create a competing source of truth with AgentCore.
     agent = create_deep_agent(
         model=model,
         system_prompt=system_prompt,
         middleware=[fs_middleware],
-        # No MemoryMiddleware, no SubAgentMiddleware, no LangSmith tracing
     )
 
     try:
@@ -260,15 +259,14 @@ Assigned worktree: {root}
   {{"passed": true/false, "score": 0.0-1.0, "findings": ["..."]}}
 """
 
-    # Critic: read-only filesystem
+    # Critic: strictly read-only filesystem.
+    fs_permission = FilesystemPermission(
+        paths=["**"],
+        operations=["read"],
+    )
     fs_middleware = FilesystemMiddleware(
         root_dir=str(root),
-        permissions=[
-            FilesystemPermission(
-                path="**",
-                operations=["read"],
-            )
-        ],
+        permissions=[fs_permission],
     )
 
     agent = create_deep_agent(

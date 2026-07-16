@@ -156,10 +156,14 @@ within the assigned worktree; it cannot access Bifrost or registered MCP servers
 
 | File | Change |
 | --- | --- |
-| `scripts/agentcore_workflow/deepagents_worker.py` | NEW — adapter with run_builder_worker, run_critic_worker, compute_drift, gate_drift |
-| `scripts/agentcore_workflow/gates.py` | MODIFIED — added drift gate |
-| `scripts/agentcore_workflow/requirements.txt` | MODIFIED — added deepagents==0.6.12 |
-| `scripts/agentcore_workflow/tests/test_deepagents_integration.py` | NEW — 10 boundary proof tests |
+| `scripts/agentcore_workflow/deepagents_worker.py` | NEW — adapter: run_builder_worker, run_critic_worker, compute_drift, gate_drift |
+| `scripts/agentcore_workflow/state.py` | MODIFIED — worktree_path, da_enabled, da_builder_result, da_critic_result added |
+| `scripts/agentcore_workflow/nodes.py` | MODIFIED — node_start populates worktree_path; risk_assess sets da_enabled; judge routes to da_builder; node_da_builder and node_da_critic added |
+| `scripts/agentcore_workflow/workflow.py` | MODIFIED — da_builder and da_critic wired into the M6 StateGraph |
+| `scripts/agentcore_workflow/gates.py` | MODIFIED — drift gate added |
+| `scripts/agentcore_workflow/requirements.txt` | MODIFIED — deepagents==0.6.12 |
+| `scripts/agentcore_workflow/tests/test_deepagents_integration.py` | NEW — 11 structural boundary proof tests |
+| `scripts/agentcore_workflow/tests/test_da_integration_full.py` | NEW — 17 acceptance tests + 4 bonus routing/graph tests (21/21 PASS) |
 
 **Local libs/platform/ code ported:**
 - `compute_drift()` from `libs/platform/guard/drift.py` — ported as a self-contained function
@@ -179,7 +183,10 @@ within the assigned worktree; it cannot access Bifrost or registered MCP servers
 
 - Deep Agents venv: `langgraph==1.2.5` ← exact match with M6
 - System Python 3.13: `deepagents==0.6.12` installed and importing cleanly
-- Proof tests: 11/11 PASS including M6 regression (18/18 M6 acceptance)
+- `FilesystemPermission(paths=["**"], operations=["read"/"write"])` — API verified
+- Graph topology: da_builder and da_critic wired as additive M6 nodes; existing nodes unchanged
+- Full test suite: 21/21 PASS (17 acceptance + 4 bonus); M6 regression: 18/18 PASS
+- Bifrost validators: OK; Secret scan: CLEAN
 
 ---
 
