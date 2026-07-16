@@ -292,6 +292,70 @@ def judge(score: float, det_checks: list[dict], gate_verdicts: dict[str, str], r
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Post-execution independent judge
+# ─────────────────────────────────────────────────────────────────────────────
+
+def post_execution_judge(
+    pre_exec_score: float,
+    det_checks: list[dict],
+    gate_verdicts: dict[str, str],
+    risk_class: str,
+    builder_result: dict,
+    da_critic_result: dict,
+) -> tuple[str, str]:
+    """Post-execution independent judge evaluating the full evidence set.
+
+    This is a SEPARATE judge from the pre-execution gate (node_judge).
+    It is called by node_post_exec_judge and uses the same deterministic
+    judge() logic, but with a combined post-execution score that incorporates:
+      - pre-execution score (70%)
+      - DA critic review score (30%)
+      - builder completion status
+      - DA critic findings
+
+    A DA critic worker is NOT its own judge — this function is the independent
+    authority that evaluates all evidence and produces the final step verdict.
+
+    Returns (verdict, reasoning) where verdict is one of:
+      'proceed'       → evidence_record
+      'needs_operator' → evidence_record (advisory, recorded as warning)
+      'block'         → workflow_fail
+    """
+    da_critic_score: float = float(da_critic_result.get("score", 1.0))
+    da_critic_passed: bool = bool(da_critic_result.get("passed", True))
+    da_findings: list = da_critic_result.get("findings", [])
+
+    # Combine pre-execution score with DA critic review quality
+    combined_score = round(0.70 * pre_exec_score + 0.30 * da_critic_score, 4)
+
+    # If builder itself reported an error AND critic confirmed failure, hard-block
+    # regardless of combined score.
+    builder_status = builder_result.get("status", "completed")
+    builder_error = builder_result.get("error", "")
+    if builder_status in ("error", "failed") and not da_critic_passed:
+        return "block", (
+            f"Post-execution: builder status='{builder_status}' "
+            f"and DA critic confirmed failure (score={da_critic_score:.4f}). "
+            f"Findings: {da_findings[:3]}. Builder error: {builder_error}"
+        )
+
+    # Delegate to the base independent judge with the combined score
+    base_verdict, base_reason = judge(combined_score, det_checks, gate_verdicts, risk_class)
+
+    # Augment the reason with post-execution context
+    augmented_reason = (
+        f"[post-execution judge] combined_score={combined_score:.4f} "
+        f"(pre={pre_exec_score:.4f}, da_critic={da_critic_score:.4f}) "
+        f"da_critic_passed={da_critic_passed}. "
+        f"{base_reason}"
+    )
+    if da_findings:
+        augmented_reason += f" DA findings: {da_findings[:3]}"
+
+    return base_verdict, augmented_reason
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # A/B decision
 # ─────────────────────────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-AgentCore M8 Acceptance Tests — 20260716091744
+AgentCore M8 Acceptance Tests — 20260716091927
 Repository: D:\github\agentcore-control-plane
 ========================================================================
 PASS 01 - PostgreSQL 18 reachable, agent_core accessible — version=PostgreSQL 18.4 on x86_64-windows, compiled by msv, db=agent_core

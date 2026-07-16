@@ -5,26 +5,29 @@ LangGraph persists the state at each checkpoint via PostgresSaver.
 
 Node graph:
   start → gate_check → deterministic_checks → risk_assess →
-  critics_and_score → judge_node →
+  critics_and_score → judge_node (PRE-EXECUTION GATE) →
     proceed (da_enabled=False): micro_execute → evidence_record
-    proceed (da_enabled=True):  da_builder → da_critic → evidence_record | workflow_fail
+    proceed (da_enabled=True):  da_builder → da_critic → post_exec_judge →
+                                  proceed/needs_operator: evidence_record
+                                  block:                  workflow_fail
     needs_operator:             human_pause → da_builder | micro_execute
     block:                      workflow_fail
-  micro_execute | da_builder → evidence_record → next_step → gate_check | done
+  micro_execute | post_exec_judge → evidence_record → next_step → gate_check | done
 
 Deep Agents nodes (da_builder, da_critic) are bounded worker harness nodes.
 They are NOT canonical memory, checkpoint, or policy authorities.
 All durable writes go through agentcore-memory (db.record_evidence).
 
-Workflow ordering invariant (see ADR-DEEP-AGENTS-WORKER-HARNESS.md §Workflow Ordering):
-  - judge_node is the PRE-EXECUTION gate: it evaluates pre-execution evidence and
-    decides whether to attempt execution via da_builder.
-  - da_critic is the POST-EXECUTION reviewer: it evaluates builder output and computes
-    a combined final verdict from pre-execution score + DA critic findings.
-  - da_critic routes to evidence_record (pass) or workflow_fail (critical failure),
-    satisfying the invariant that DA critic findings can affect the final step verdict.
+M8 workflow ordering invariant:
+  - judge_node is the PRE-EXECUTION gate (evaluates pre-execution evidence).
+  - da_critic is a FINDINGS COLLECTOR ONLY: it runs the DA critic, records findings,
+    and routes ALWAYS to post_exec_judge. It never self-adjudicates.
+  - post_exec_judge is the POST-EXECUTION INDEPENDENT JUDGE: it evaluates the full
+    evidence set (builder_result + da_critic_result + pre_exec_score + det_checks +
+    gates + risk) using critics.post_execution_judge() — same deterministic logic as
+    the pre-execution judge. A DA critic worker may NOT be its own independent judge.
   - node_next_step resets per-step tracking; da_critic findings are preserved in
-    da_critic_result state and in wf_evidence, not in critic_results across steps.
+    da_critic_result and wf_evidence.
 
 See ADR-DEEP-AGENTS-WORKER-HARNESS.md.
 """
@@ -757,19 +760,17 @@ def _micro_label(state: WorkflowState, micro_key: str) -> str:
 def node_da_critic(state: WorkflowState) -> dict:
     """Run a Deep Agents critic worker on the builder's output.
 
-    The critic is STRICTLY read-only:
-    - FilesystemPermission operations=["read"] only.
-    - No source-write, database-write, policy-write, or profile-write authority.
+    The critic is STRICTLY read-only (FilesystemPermission operations=["read"] only).
+    No source-write, database-write, policy-write, or profile-write authority.
 
-    Post-execution invariant: DA critic findings MUST be able to affect the final
-    step verdict.  After running the critic, this node combines the pre-execution
-    score (from critics_and_score) with the DA critic result into a final verdict:
-      - "pass"   → evidence_record
-      - "fail"   → workflow_fail (critical findings, e.g. score combined < 0.85
-                   and da_critic says passed=False)
+    THIS NODE IS A FINDINGS COLLECTOR ONLY.
+    It runs the Deep Agents critic and records the findings, then routes to
+    node_post_exec_judge.  It does NOT make routing decisions based on findings —
+    that is the responsibility of the separate post-execution independent judge.
+    A DA critic worker may not be its own independent final judge (M8 invariant).
 
-    Routing: conditional (see workflow.py), NOT a fixed edge.
-    Evidence is always recorded through agentcore-memory path regardless of verdict.
+    Route: always → post_exec_judge (fixed edge, see workflow.py)
+    Evidence is always recorded through agentcore-memory path.
     """
     from .deepagents_worker import run_critic_worker, DEEPAGENTS_AVAILABLE
 
@@ -787,7 +788,6 @@ def node_da_critic(state: WorkflowState) -> dict:
         f"Builder status: {builder_result.get('status', 'unknown')}\n"
     )
 
-    # Compact rubric — the critic evaluates only what the builder produced.
     rubric = (
         "Review the builder's changes for correctness, completeness, and test coverage. "
         "Return JSON: {\"passed\": true/false, \"score\": 0.0-1.0, \"findings\": [\"...\"]}"
@@ -796,10 +796,10 @@ def node_da_critic(state: WorkflowState) -> dict:
     task = f"Review the output of micro step {micro_key}"
 
     if not DEEPAGENTS_AVAILABLE or not worktree_path:
-        # No DA available — neutral pass so the workflow continues.
+        # No DA available — neutral findings; post_exec_judge will decide routing.
         return {
             "da_critic_result": {"status": "skipped_no_da", "passed": True, "score": 1.0},
-            "next_action": "evidence_record",
+            "next_action": "post_exec_judge",
         }
 
     critic_result = run_critic_worker(
@@ -811,13 +811,14 @@ def node_da_critic(state: WorkflowState) -> dict:
         thread_uuid=thread_uuid,
     )
 
-    # Record durable evidence through agentcore-memory path regardless of verdict.
+    # Record findings through agentcore-memory path regardless of outcome.
     if run_db_id:
         try:
             db.record_evidence(
                 run_db_id, project_id, micro_key,
                 "da_critic_result",
-                f"DA critic {micro_key}: passed={critic_result.get('passed')} score={critic_result.get('score', 0):.2f}",
+                f"DA critic {micro_key}: passed={critic_result.get('passed')} "
+                f"score={critic_result.get('score', 0):.2f}",
                 critic_result,
             )
             db.record_critic_run(
@@ -832,39 +833,98 @@ def node_da_critic(state: WorkflowState) -> dict:
         except Exception:
             pass
 
-    # ── Post-execution final verdict ──────────────────────────────────────────
-    # Combine pre-execution score with DA critic finding to produce a final
-    # step verdict.  A DA critic failure only triggers workflow_fail when it
-    # is both explicit (passed=False) and the combined evidence is critically
-    # weak (critic score < 0.50), preventing advisory findings from blocking
-    # an otherwise healthy step.
-    pre_exec_score: float = state.get("score", 0.0)
-    da_critic_score: float = float(critic_result.get("score", 1.0))
-    da_critic_passed: bool = bool(critic_result.get("passed", True))
-    # Combined score: 70% pre-execution (gates, det_checks, critics already
-    # evaluated by critics_and_score), 30% post-execution DA critic quality.
-    combined_score = round(0.70 * pre_exec_score + 0.30 * da_critic_score, 4)
-
-    # Block only on an explicit critical failure: da says not-passed AND
-    # combined evidence falls below the operator threshold.
-    from .critics import SCORE_OPERATOR_THRESHOLD
-    is_critical_failure = (
-        not da_critic_passed
-        and combined_score < SCORE_OPERATOR_THRESHOLD
-    )
-
-    next_action = "workflow_fail" if is_critical_failure else "evidence_record"
-    failure_msg = (
-        [f"DA critic critical failure on {micro_key}: score={combined_score:.4f} "
-         f"findings={critic_result.get('findings', [])}"]
-        if is_critical_failure else []
-    )
-
+    # Always route to the independent post-execution judge — never self-adjudicate.
     return {
         "da_critic_result": critic_result,
+        "next_action": "post_exec_judge",
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# POST-EXECUTION INDEPENDENT JUDGE
+# ─────────────────────────────────────────────────────────────────────────────
+
+def node_post_exec_judge(state: WorkflowState) -> dict:
+    """Post-execution independent judge.
+
+    Evaluates the FULL evidence set after DA worker execution:
+    - builder output (da_builder_result)
+    - post-execution critic findings (da_critic_result)
+    - pre-execution score (score from critics_and_score)
+    - deterministic check results (det_checks_details)
+    - gate verdicts (gates_passed / gates_failed)
+    - risk class (current_risk_class)
+    - micro-step acceptance criteria (checklist_items)
+
+    Uses critics.post_execution_judge() — the SAME deterministic judging
+    logic as the pre-execution judge, extended with post-execution evidence.
+    This is structurally separate from both the DA critic worker and the
+    pre-execution judge_node.
+
+    M8 invariant: a DA critic worker may NOT be its own independent judge.
+    This node is the independent authority for post-execution adjudication.
+
+    Routes:
+      proceed        → evidence_record
+      needs_operator → evidence_record (advisory, recorded in DB as warning)
+      block          → workflow_fail
+    """
+    from .critics import post_execution_judge
+
+    run_db_id = state.get("run_db_id", "")
+    project_id = state["project_id"]
+    micro_key = state.get("current_micro_key", "unknown")
+    risk_class = state.get("current_risk_class", "low")
+
+    pre_exec_score: float = float(state.get("score", 0.0))
+    det_checks: list = state.get("det_checks_details", [])
+    gate_verdicts: dict = {g: "pass" for g in state.get("gates_passed", [])}
+    gate_verdicts.update({g: "fail" for g in state.get("gates_failed", [])})
+
+    builder_result: dict = state.get("da_builder_result", {})
+    da_critic_result: dict = state.get("da_critic_result", {"passed": True, "score": 1.0})
+
+    verdict, reasoning = post_execution_judge(
+        pre_exec_score=pre_exec_score,
+        det_checks=det_checks,
+        gate_verdicts=gate_verdicts,
+        risk_class=risk_class,
+        builder_result=builder_result,
+        da_critic_result=da_critic_result,
+    )
+
+    # Compute combined score for state tracking
+    da_critic_score = float(da_critic_result.get("score", 1.0))
+    combined_score = round(0.70 * pre_exec_score + 0.30 * da_critic_score, 4)
+
+    if run_db_id:
+        try:
+            db.record_critic_run(
+                run_db_id, project_id, micro_key,
+                "post_exec_judge", risk_class,
+                [builder_result, da_critic_result],
+                {"verdict": verdict, "reasoning": reasoning, "combined_score": combined_score},
+                verdict != "block",
+                combined_score,
+                verdict,
+            )
+        except Exception:
+            pass
+
+    # needs_operator is advisory for post-execution: record but do not block.
+    # Block only on an explicit "block" verdict.
+    if verdict == "block":
+        next_action = "workflow_fail"
+        errors = [f"Post-execution judge blocked {micro_key}: {reasoning}"]
+    else:
+        next_action = "evidence_record"
+        errors = []
+
+    return {
         "da_combined_score": combined_score,
+        "post_exec_verdict": verdict,
         "next_action": next_action,
-        "errors": failure_msg,
+        "errors": errors,
     }
 
 

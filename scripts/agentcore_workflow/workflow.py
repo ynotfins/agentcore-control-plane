@@ -28,6 +28,7 @@ from .nodes import (
     node_micro_execute,
     node_da_builder,
     node_da_critic,
+    node_post_exec_judge,
     node_evidence_record,
     node_next_step,
     node_human_pause,
@@ -67,6 +68,8 @@ def build_graph(conninfo: str | None = None) -> tuple[Any, PostgresSaver]:
     # DA worker nodes (bounded harness; see ADR-DEEP-AGENTS-WORKER-HARNESS.md)
     builder.add_node("da_builder", node_da_builder)
     builder.add_node("da_critic", node_da_critic)
+    # Post-execution independent judge (M8 invariant: DA critic is NOT its own judge)
+    builder.add_node("post_exec_judge", node_post_exec_judge)
     builder.add_node("evidence_record", node_evidence_record)
     builder.add_node("next_step", node_next_step)
     builder.add_node("human_pause", node_human_pause)
@@ -127,10 +130,13 @@ def build_graph(conninfo: str | None = None) -> tuple[Any, PostgresSaver]:
         "workflow_fail": "workflow_fail",
     })
 
-    # DA critic → evidence_record (pass) or workflow_fail (critical failure)
-    # Conditional edge satisfies the invariant that DA critic findings can affect
-    # the final step verdict (see ADR-DEEP-AGENTS-WORKER-HARNESS.md §Workflow Ordering).
-    builder.add_conditional_edges("da_critic", route, {
+    # DA critic → post_exec_judge (FIXED edge: critic is a findings collector only;
+    # it never self-adjudicates — M8 invariant).
+    builder.add_edge("da_critic", "post_exec_judge")
+
+    # Post-execution independent judge → evidence_record (pass) or workflow_fail (block)
+    # This is the independent authority that evaluates the full post-execution evidence.
+    builder.add_conditional_edges("post_exec_judge", route, {
         "evidence_record": "evidence_record",
         "workflow_fail": "workflow_fail",
     })

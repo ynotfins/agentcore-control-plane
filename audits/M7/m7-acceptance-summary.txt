@@ -1,10 +1,10 @@
 PASS 1 - Engineering Constitution exists and has required sections - path=D:\github\agentcore-control-plane\docs\engineering\CONSTITUTION.md size=15162
 PASS 2 - Dependency catalog validates (all entries have required fields) - exit=0
-PASS 3 - All approved catalog items have provenance and license - approved=12 missing_provenance=[] missing_license=[]
+PASS 3 - All approved catalog items have provenance and license - approved=13 missing_provenance=[] missing_license=[]
 PASS 4 - mcp-server-python generates clean project - out=D:\test\m7-accept-mcp
-PASS 5 - Generated MCP project: lint passes, tests pass - lint_rc=0 test_rc=0 tests=4 passed in 0.18s
+PASS 5 - Generated MCP project: lint passes, tests pass - lint_rc=0 test_rc=0 tests=4 passed in 0.15s
 PASS 6 - agent-langgraph-postgres-checkpointer generates clean project - out=D:\test\m7-accept-lg
-PASS 7 - Generated LangGraph project: lint passes, checkpoint/resume tests pass - lint_rc=0 test_rc=0 result=============================== 3 passed in 0.42s ==============================
+PASS 7 - Generated LangGraph project: lint passes, checkpoint/resume tests pass - lint_rc=0 test_rc=0 result=============================== 3 passed in 0.38s ==============================
 PASS 8 - Template mcp-server-python: copier.yml has version/suffix/subdir - min_version=True templates_suffix=True subdirectory=True
 PASS 8 - Template update/check workflow: copier.yml structure valid - both templates verified
 PASS 9 - Unpinned candidate (no version) rejected by admission gate - exit=1 output_snippet=
@@ -13,8 +13,8 @@ PASS 9 - Unpinned candidate (no version) rejected by admission gate - exit=1 out
   FAIL 'latest' is never automatically approv
 PASS 10 - Templates and reference implementations are separate directories - templates=templates refimpl=reference-implementations
 PASS 11 - docs_search (FTS) finds recipe through F: index - title=AgentCore Engineering Constitution source_path=D:\github\agentcore-control-plane\docs\engineering\CONSTITUTION.md
-PASS 12 - F: index has approved docs; no quarantined M7 documents - approved=27 quarantined=0
-PASS 13 - No bulk repository corpus ingested (global doc count < 100) - global_docs=27
+PASS 12 - F: index has approved docs; no quarantined M7 documents - approved=41 quarantined=0
+PASS 13 - No bulk repository corpus ingested (global doc count < 100) - global_docs=41
 PASS 14 - No Qdrant, LanceDB, or other vector DB introduced - qdrant=False lancedb=False
 PASS 15 - M6 acceptance regression remains green - exit=0 summary=FAIL: 0 / 18
 PASS 16 - Bifrost gateway reachable on 127.0.0.1:8080 - bifrost_ok=True
