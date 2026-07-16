@@ -1,0 +1,70 @@
+﻿{
+    "run_id":  "20260715210053",
+    "started_at":  "2026-07-16T01:00:53.9733048Z",
+    "database":  "127.0.0.1:55433/agent_core",
+    "migration":  "m3.001",
+    "checks":  [
+                   {
+                       "name":  "versioned reversible M3 migration",
+                       "result":  "PASS",
+                       "detail":  "up/down tested in disposable database agentcore_m3_rollback_20260715210053"
+                   },
+                   {
+                       "name":  "live M3 migration applied",
+                       "result":  "PASS",
+                       "detail":  "migrations/m3/001_up_lossless_context_state_projections.sql"
+                   },
+                   {
+                       "name":  "M3 identities seeded",
+                       "result":  "PASS",
+                       "detail":  "project=3f4173da-7876-4381-adeb-933feb3b6d9f; session1=92fdff68-19ae-41ed-b478-68d044279906; session2=773467f9-804a-486e-bb95-e4da17e52b07"
+                   },
+                   {
+                       "name":  "verbatim preservation, secret redaction, write-time dedupe",
+                       "result":  "PASS",
+                       "detail":  "redacted prompt persisted verbatim; duplicate linked without deleting either original"
+                   },
+                   {
+                       "name":  "L0 L1 L2 L3 compaction and exact source edges",
+                       "result":  "PASS",
+                       "detail":  "summaries=1943101b-3864-4b6b-b6b6-72c080ac9866,896ee26a-ccd0-421f-8fb2-be8230ae6a43,525cbe1b-4722-4d17-81a3-6b52ff2f8687 edges=12"
+                   },
+                   {
+                       "name":  "summary-to-source exact expansion",
+                       "result":  "PASS",
+                       "detail":  "L3 expands to original event payloads from both sessions"
+                   },
+                   {
+                       "name":  "exact expansion after H to E archival",
+                       "result":  "PASS",
+                       "detail":  "artifact expanded from cold path E:\\AgentCoreArchive\\agentcore-memory\\artifacts\\sha256\\8c\\8c4dd688ee128226ae299815e795eb7ff14ee3d429d71e60a60d2c965af0dd1d.txt"
+                   },
+                   {
+                       "name":  "interrupted compaction restart recovery",
+                       "result":  "PASS",
+                       "detail":  "recovered=1 run=4a317a49-0ea8-4ebd-b4b1-5aa443910e9a"
+                   },
+                   {
+                       "name":  "token-budgeted context assembly",
+                       "result":  "PASS",
+                       "detail":  "small budget cumulative_tokens=285 items=7"
+                   },
+                   {
+                       "name":  "contradiction review behavior",
+                       "result":  "PASS",
+                       "detail":  "proposal=01df0984-2398-4a06-abba-0f5505a33efc status=proposed"
+                   },
+                   {
+                       "name":  "deterministic and atomic COMB projections",
+                       "result":  "PASS",
+                       "detail":  "STATE/DECISIONS/CONTEXT_INDEX/GLOBAL_STATE generated; failure simulation preserved previous file"
+                   },
+                   {
+                       "name":  "retrieved memory remains data",
+                       "result":  "PASS",
+                       "detail":  "authority-contradicting retrieved memory stored as raw_untrusted data"
+                   }
+               ],
+    "completed_at":  "2026-07-16T01:01:10.2650998Z",
+    "result":  "PASS"
+}
