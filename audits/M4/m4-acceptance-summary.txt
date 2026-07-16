@@ -1,9 +1,20 @@
-﻿Bifrost tools-list exposes compact M4 surface: PASS - agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_health, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context
-memory_status reports degraded/future components clearly: PASS - cognee=M5; langgraph=M6
-multiple sessions opened safely: PASS - A=344b6cd8-7cff-4316-85cd-3c96074af22b; B=2ff4159e-c29b-4aaa-922b-479921b26163
-append_event works end-to-end through gateway: PASS - eventA=8d95cd44-dd62-41fe-babb-2c9fa9e1f8ff; eventB=1d3538fc-d934-47fe-8e6a-9e29d18370cf
-append retrieve compact expand works end-to-end: PASS - summary=bcdd42ff-28f3-4504-ae51-9690c2cb7ca6
-startup_context returns authority-aware bounded context: PASS - items=3
-propose_fact uses review path: PASS - proposal=072f0da7-d8d1-467c-93f8-ac0d15fb2c98
-build_handoff and docs_search return bounded packets: PASS - handoff_events=2; docs_results=1
-session_close works: PASS - both sessions closed
+1 - Direct MCP initialize and tools/list: PASS - server=builder v2.0.0-prerelease1
+2 - Exact compact advertised tool set: PASS - agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_health, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context
+16 - Optional/future components report degraded without breaking core: PASS - cognee=not_integrated_until_M5; langgraph=not_integrated_until_M6
+5 - Two simultaneous clients use isolated sessions: PASS - A=06bf64f0-d4b8-4ab9-8ff7-68f28909c6e8; B=7b968d14-875b-46df-9fc8-619bd40d8513; project=77d7d103-82e1-47e7-93c7-bb784193b98a
+7 - Repeated append with same idempotency key does not duplicate: PASS - event_id=5c36c151-790e-404b-92b3-e908a0848c14; evidence_events_count=1
+8 - Large payload externalizes and expands correctly: PASS - artifact_id=8d3cd1e5-d82e-4acd-b95f-c2882480039f; storage_uri=H:\AgentRuntime\agentcore-memory\artifacts\sha256\71\71973611772b5a2bd068e9114140fdd9b8a1e7fd6498bde20dd68009bfbe9f1d.txt
+9 - Archived payload on E: expands correctly: PASS - artifact_id=8d3cd1e5-d82e-4acd-b95f-c2882480039f; e_uri=E:\AgentCore\agentmemory\cold\sha256\71\71973611772b5a2bd068e9114140fdd9b8a1e7fd6498bde20dd68009bfbe9f1d.txt; location_id=77d7d103-82e1-47e7-93c7-bb784193b98a
+4981b1af-919c-47ab-9256-ffb53b95faa8
+12 - Quarantined transcript evidence excluded from startup context: PASS - quarantined_event=18977a04-e7b6-4784-8e55-00e1e04f8e23 not in context
+3 - Session open append retrieve compact expand close: PASS - summary=30e60533-76c2-4453-99d7-61d09358a6b6; sources=2
+4 - Startup context within selected token budget: PASS - total_tokens=24 max_tokens=4096
+6 - Two projects cannot cross-read or cross-write protected state: PASS - project_A=m4_project_A_20260715232254 project_B=m4_project_B_20260715232254 isolated
+10 - Fact proposal does not silently become promoted truth: PASS - proposal_id=6aa0bdea-7d50-41f3-aaf9-e995914998f6; status=proposed
+11 - Handoff generation is deterministic: PASS - events=5; consistent=true
+3b - session_close creates durable final state: PASS - 3 sessions closed; ended_at set
+13 - PostgreSQL interruption and recovery: PASS - healthy_probe=true; degraded_probe=false_on_wrong_port; migrations=3; note=service-stop requires admin
+14 - Memory-service restart and reconnect: PASS - killed_pid=34960; new_pid=56672
+15 - Bifrost restart and automatic upstream reconnect: PASS - agentcore_memory tools after restart=11
+17 - One safe Cursor call through unchanged agentcore-gateway: PASS - server=agentcore-memory version=0.4.0
+18 - No IDE configuration changes occurred: PASS - cursor_mcp_json mtime unchanged
