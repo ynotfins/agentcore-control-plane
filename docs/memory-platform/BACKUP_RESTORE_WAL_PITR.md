@@ -27,8 +27,11 @@ WAL was enabled with:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\ops\Enable-AgentCorePg18Wal.ps1
 ```
 
-## Current Caveat
+## Lifecycle Ownership
 
-The live PG18 process is currently recovered through `pg_ctl` because this non-elevated shell could not control the Windows service. An elevated operator/admin repair must return runtime ownership to `AgentCore-PostgreSQL18` and retarget the three legacy scheduled tasks documented in `audits/M5/M0-M5-HARDENING-EVIDENCE.md`.
+The live PG18 process is owned by Windows service `AgentCore-PostgreSQL18` (`Automatic`,
+`NT AUTHORITY\NetworkService`). The maintenance tasks `NightlyBackup`, `NightlyRestoreTest`,
+and `WeeklyMaintenance` call the source-controlled scripts in `D:\github\agentcore-control-plane\ops`
+and were manually verified through Task Scheduler during elevated closeout.
 
 Do not move active `pg_wal` off F:. Do not write WAL archive to I:. Do not touch Swarm-owned PG16 configuration.

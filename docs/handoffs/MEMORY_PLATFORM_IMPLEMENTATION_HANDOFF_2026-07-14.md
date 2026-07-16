@@ -3,6 +3,16 @@
 **For:** the agent that implements the AgentCore memory/context/database platform.
 **Produced by:** the authority-reconciliation task (branch `task/authority-reconciliation`, HEAD commit `935b273`), which satisfies Milestone **M0 — Authority and Execution Foundation**.
 
+> **Current-state update — 2026-07-16:** M0-M5 are complete. PostgreSQL 18.4 at
+> `127.0.0.1:55433` is canonical; `agent_core` and `cognee_core` are recoverable;
+> WAL/PITR is enabled and tested; PG18 service ownership is restored to
+> `AgentCore-PostgreSQL18`; `NightlyBackup`, `NightlyRestoreTest`, and
+> `WeeklyMaintenance` call repo-owned PG18 scripts. Use
+> `audits/M5/M0-M5-HARDENING-EVIDENCE.md`,
+> `audits/M5/elevated-closeout-20260716-015250.json`, and
+> `docs/memory-platform/BACKUP_RESTORE_WAL_PITR.md` for current operational evidence.
+> The original M1 startup facts below are retained as historical handoff context only.
+
 ## 1. Exact authority read order (read nothing else first)
 
 1. `PROJECT_ANCHOR.md` — constitution (incl. §0 Bifrost Gateway Override, §0.1 Project Execution Boundaries)

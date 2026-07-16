@@ -12,7 +12,7 @@
 ## Cognee
 
 | Fact | Value |
-|---|---|
+| --- | --- |
 | Package/version | `cognee 1.3.0` |
 | Installation path | `H:\AgentRuntime\agentcore-memory\cognee\.venv311\Lib\site-packages\cognee\__init__.py` |
 | Runtime root | `H:\AgentRuntime\agentcore-memory\cognee\` |
@@ -37,7 +37,7 @@ was not exported by Cognee 1.3.0.
 ## Acceptance Results
 
 | # | Check | Result |
-|---:|---|---|
+| ---: | --- | --- |
 | 1 | Versioned reversible M5 migration | PASS |
 | 2 | Live M5 migration applied | PASS |
 | 3 | Exact MCP surface preserved | PASS |
@@ -133,4 +133,10 @@ Additional results:
 - WAL archiving enabled for PG18 with active WAL on F:, archive on E:, DR copy on G:.
 - PITR marker recovery passed in an isolated restore cluster.
 - Residual PG16 references were classified; current non-Swarm AgentCore drift was corrected where this shell had permission.
-- Live scheduled-task retarget and Windows service ownership repair remain elevated-permission follow-ups; Swarm-owned PG16 configuration was not changed.
+- Elevated closeout repaired Windows service ownership and live maintenance task retargeting:
+  - `AgentCore-PostgreSQL18` owns PG18 again and starts automatically.
+  - `NightlyBackup`, `NightlyRestoreTest`, and `WeeklyMaintenance` now call source-controlled PG18 scripts under `D:\github\agentcore-control-plane\ops`.
+  - Manual Task Scheduler runs for all three returned `0`.
+  - Elevated M2/M3/M4/M5 regressions passed.
+  - Final scheduled-task backup/restore and PITR passed against backup `20260716-015835`.
+  - Swarm-owned PG16 configuration was not changed.

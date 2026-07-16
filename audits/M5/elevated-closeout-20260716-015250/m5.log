@@ -1,0 +1,27 @@
+﻿[PASS] 1 - Versioned reversible M5 migration: up/down tested in agentcore_m5_rollback_20260716015617
+[PASS] 2 - Live M5 migration applied: migrations/m5/001_up_hybrid_retrieval_cognee.sql
+[PASS] 3 - Exact MCP surface preserved: agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context
+[PASS] 4 - Bounded M5 retrieval fixtures seeded: project=m5_project_A_20260716015617 docs={"fts":"2b4d3b64-21fc-47b7-a682-eb409267704a","vector":"f05ae233-9ea3-4eb3-aa86-78e698ae0091","trigram":"80803e87-ba08-4928-9af8-f03bc1fbed21","official":"22cb841f-d81d-498a-863b-deff7a22e4e2"}
+[PASS] 5 - Full-text retrieval returns expected fixture: method=postgres_fts
+[PASS] 6 - pg_trgm retrieves misspelling or partial identifier: method=postgres_trigram
+[PASS] 7 - Exact pgvector search produces correctness baseline: top=M5 exact vector baseline
+[PASS] 8 - HNSW benchmark gate recorded: {"decision":"deferred","corpus_rows":18,"hnsw_index_present":false}
+[PASS] 9 - Retrieval respects project and trust boundaries: project_B and quarantined sentinels absent
+[PASS] 10 - Raw transcripts rejected by promotion gate: expected SQL rejection
+[PASS] 11 - Quarantined evidence rejected by promotion gate: expected SQL rejection
+[PASS] 12 - Validated fact promoted with complete provenance: promotion_id=52c651c7-a13e-4402-9702-7ad0cdf0dc0e
+[PASS] 13 - Cognee retrieval returns promoted fact and source references: promotion_id=52c651c7-a13e-4402-9702-7ad0cdf0dc0e
+[PASS] 14 - E: official document found through F: index: source_path=E:\AgentCoreArchive\agentcore-memory\official-docs\m5-official-fixture-20260716015617.md
+[PASS] 15 - Cognee outage degrades to PostgreSQL-only retrieval: cognee=degraded_disabled; projections=40
+[PASS] 16 - No Mem0 package process database or config introduced: db_count=0; pip_show_mem0ai_absent=true; process_count=0
+Stopping Bifrost ...
+[Stop] Stopped scheduled task \AgentCore\AgentCore-Bifrost-Gateway
+[Stop] Stopping bifrost-http PID 59176
+[Stop] Done
+Starting Bifrost ...
+[Start] Started scheduled task \AgentCore\AgentCore-Bifrost-Gateway
+[Start] Healthy on 127.0.0.1:8080
+[PASS] 17 - Bifrost restart and safe Cursor call succeed: server=agentcore-memory; tools=10
+
+PASS: All M5 acceptance checks completed (17 checks)
+D:\github\agentcore-control-plane\audits\M5\m5-acceptance-summary.json

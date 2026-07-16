@@ -1,0 +1,354 @@
+﻿{
+    "ok":  true,
+    "generated_at":  "2026-07-16T05:52:50.8913791Z",
+    "elevated_user":  "CHAOSCENTRAL\\ynotf",
+    "repo_root":  "D:\\github\\agentcore-control-plane",
+    "run_root":  "D:\\github\\agentcore-control-plane\\audits\\M5\\elevated-closeout-20260716-015250",
+    "pre":  {
+                "pg18":  {
+                             "service":  {
+                                             "Name":  "AgentCore-PostgreSQL18",
+                                             "State":  "Stopped",
+                                             "StartMode":  "Auto",
+                                             "StartName":  "NT AUTHORITY\\NetworkService",
+                                             "PathName":  "\"F:\\PostgreSQL18\\bin\\pg_ctl.exe\" runservice -N \"AgentCore-PostgreSQL18\" -D \"F:\\PostgreSQL18\\data\" -w",
+                                             "ProcessId":  0
+                                         },
+                             "ports":  [
+                                           "  TCP    127.0.0.1:55433        0.0.0.0:0              LISTENING       34976"
+                                       ],
+                             "processes":  [
+                                               {
+                                                   "process_id":  34976,
+                                                   "executable":  "F:\\PostgreSQL18\\bin\\postgres.exe",
+                                                   "command_line":  "\"F:/PostgreSQL18/bin/postgres.exe\"  -D \"F:/PostgreSQL18/data\"  "
+                                               }
+                                           ]
+                         },
+                "pg16_read_only":  {
+                                       "exit_code":  2,
+                                       "output":  "127.0.0.1:55432 - no response"
+                                   },
+                "tasks":  [
+                              {
+                                  "task":  "NightlyBackup",
+                                  "state":  "Ready",
+                                  "executable":  "powershell.exe",
+                                  "arguments":  "-NoProfile -ExecutionPolicy Bypass -File D:\\MCP-Control-Plane\\ops\\Backup-AgentCorePostgres.ps1",
+                                  "working_directory":  null,
+                                  "account":  "ynotf",
+                                  "run_level":  "Limited",
+                                  "logon_type":  "Interactive",
+                                  "timeout":  "PT72H",
+                                  "last_run_time":  "\/Date(1784098801000)\/",
+                                  "last_task_result":  0,
+                                  "next_run_time":  "\/Date(1784185200000)\/",
+                                  "environment_handling":  "Scripts read Windows environment variables at runtime; no .env files or task-embedded secrets."
+                              },
+                              {
+                                  "task":  "NightlyRestoreTest",
+                                  "state":  "Ready",
+                                  "executable":  "powershell.exe",
+                                  "arguments":  "-NoProfile -ExecutionPolicy Bypass -File D:\\MCP-Control-Plane\\ops\\Test-AgentCorePostgresRestore.ps1",
+                                  "working_directory":  null,
+                                  "account":  "ynotf",
+                                  "run_level":  "Limited",
+                                  "logon_type":  "Interactive",
+                                  "timeout":  "PT72H",
+                                  "last_run_time":  "\/Date(1784143584000)\/",
+                                  "last_task_result":  2147946720,
+                                  "next_run_time":  "\/Date(1784187000000)\/",
+                                  "environment_handling":  "Scripts read Windows environment variables at runtime; no .env files or task-embedded secrets."
+                              },
+                              {
+                                  "task":  "WeeklyMaintenance",
+                                  "state":  "Ready",
+                                  "executable":  "powershell.exe",
+                                  "arguments":  "-NoProfile -ExecutionPolicy Bypass -File D:\\MCP-Control-Plane\\ops\\Invoke-AgentCoreMaintenance.ps1",
+                                  "working_directory":  null,
+                                  "account":  "ynotf",
+                                  "run_level":  "Limited",
+                                  "logon_type":  "Interactive",
+                                  "timeout":  "PT72H",
+                                  "last_run_time":  "\/Date(1783845000000)\/",
+                                  "last_task_result":  1,
+                                  "next_run_time":  "\/Date(1784449800000)\/",
+                                  "environment_handling":  "Scripts read Windows environment variables at runtime; no .env files or task-embedded secrets."
+                              }
+                          ]
+            },
+    "post":  {
+                 "tasks":  [
+                               {
+                                   "task":  "NightlyBackup",
+                                   "state":  "Ready",
+                                   "executable":  "powershell.exe",
+                                   "arguments":  "-NoProfile -ExecutionPolicy Bypass -File \"D:\\github\\agentcore-control-plane\\ops\\Backup-AgentCorePostgres.ps1\"",
+                                   "working_directory":  "D:\\github\\agentcore-control-plane\\ops",
+                                   "account":  "ynotf",
+                                   "run_level":  "Limited",
+                                   "logon_type":  "Interactive",
+                                   "timeout":  "PT3H",
+                                   "last_run_time":  "\/Date(1784181193000)\/",
+                                   "last_task_result":  0,
+                                   "next_run_time":  "\/Date(1784185200000)\/",
+                                   "environment_handling":  "Scripts read Windows environment variables at runtime; no .env files or task-embedded secrets."
+                               },
+                               {
+                                   "task":  "NightlyRestoreTest",
+                                   "state":  "Ready",
+                                   "executable":  "powershell.exe",
+                                   "arguments":  "-NoProfile -ExecutionPolicy Bypass -File \"D:\\github\\agentcore-control-plane\\ops\\Test-AgentCorePostgresRestore.ps1\"",
+                                   "working_directory":  "D:\\github\\agentcore-control-plane\\ops",
+                                   "account":  "ynotf",
+                                   "run_level":  "Limited",
+                                   "logon_type":  "Interactive",
+                                   "timeout":  "PT3H",
+                                   "last_run_time":  "\/Date(1784181205000)\/",
+                                   "last_task_result":  0,
+                                   "next_run_time":  "\/Date(1784187000000)\/",
+                                   "environment_handling":  "Scripts read Windows environment variables at runtime; no .env files or task-embedded secrets."
+                               },
+                               {
+                                   "task":  "WeeklyMaintenance",
+                                   "state":  "Ready",
+                                   "executable":  "powershell.exe",
+                                   "arguments":  "-NoProfile -ExecutionPolicy Bypass -File \"D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreMaintenance.ps1\"",
+                                   "working_directory":  "D:\\github\\agentcore-control-plane\\ops",
+                                   "account":  "ynotf",
+                                   "run_level":  "Limited",
+                                   "logon_type":  "Interactive",
+                                   "timeout":  "PT3H",
+                                   "last_run_time":  "\/Date(1784181223000)\/",
+                                   "last_task_result":  0,
+                                   "next_run_time":  "\/Date(1784449800000)\/",
+                                   "environment_handling":  "Scripts read Windows environment variables at runtime; no .env files or task-embedded secrets."
+                               }
+                           ],
+                 "pg18":  {
+                              "service":  {
+                                              "Name":  "AgentCore-PostgreSQL18",
+                                              "State":  "Running",
+                                              "StartMode":  "Auto",
+                                              "StartName":  "NT AUTHORITY\\NetworkService",
+                                              "PathName":  "\"F:\\PostgreSQL18\\bin\\pg_ctl.exe\" runservice -N \"AgentCore-PostgreSQL18\" -D \"F:\\PostgreSQL18\\data\" -w",
+                                              "ProcessId":  20816
+                                          },
+                              "ports":  [
+                                            "  TCP    127.0.0.1:55433        0.0.0.0:0              LISTENING       33440"
+                                        ],
+                              "processes":  [
+                                                {
+                                                    "process_id":  33440,
+                                                    "executable":  "F:\\PostgreSQL18\\bin\\postgres.exe",
+                                                    "command_line":  "\"F:\\PostgreSQL18\\bin\\postgres.exe\" -D \"F:\\PostgreSQL18\\data\" "
+                                                }
+                                            ]
+                          },
+                 "pg16_read_only":  {
+                                        "exit_code":  2,
+                                        "output":  "127.0.0.1:55432 - no response"
+                                    },
+                 "latest_backup":  "E:\\AgentCoreArchive\\agentcore-memory\\backups\\pg18\\20260716-015313",
+                 "latest_backup_g":  "G:\\AgentCoreArchive\\agentcore-memory\\backups\\pg18\\20260716-015313",
+                 "wal_archive":  "E:\\AgentCoreArchive\\agentcore-memory\\wal\\pg18",
+                 "wal_dr_copy":  "G:\\AgentCoreArchive\\agentcore-memory\\wal\\pg18"
+             },
+    "checks":  [
+                   {
+                       "name":  "PG18 stop through current owner for clean handoff",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:52:56.0356328Z",
+                       "completed_at":  "2026-07-16T05:52:56.6996912Z",
+                       "result":  {
+                                      "exit_code":  0,
+                                      "output":  "waiting for server to shut down.... done\nserver stopped"
+                                  }
+                   },
+                   {
+                       "name":  "PG18 start through Windows service owner",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:52:56.7156928Z",
+                       "completed_at":  "2026-07-16T05:53:02.3308721Z",
+                       "result":  {
+                                      "exit_code":  0,
+                                      "output":  "127.0.0.1:55433 - accepting connections"
+                                  }
+                   },
+                   {
+                       "name":  "PG18 restart through Windows service owner",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:53:02.3398735Z",
+                       "completed_at":  "2026-07-16T05:53:12.8558138Z",
+                       "result":  {
+                                      "exit_code":  0,
+                                      "output":  "127.0.0.1:55433 - accepting connections"
+                                  }
+                   },
+                   {
+                       "name":  "Retarget NightlyBackup task",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:53:12.8900754Z",
+                       "completed_at":  "2026-07-16T05:53:12.9843486Z",
+                       "result":  {
+                                      "task":  "NightlyBackup",
+                                      "backup_root":  "E:\\AgentCoreArchive\\backups_cold\\scheduled-tasks\\20260716-015312-m0-m5-closeout",
+                                      "script":  "D:\\github\\agentcore-control-plane\\ops\\Backup-AgentCorePostgres.ps1"
+                                  }
+                   },
+                   {
+                       "name":  "Retarget NightlyRestoreTest task",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:53:12.9853467Z",
+                       "completed_at":  "2026-07-16T05:53:13.0444526Z",
+                       "result":  {
+                                      "task":  "NightlyRestoreTest",
+                                      "backup_root":  "E:\\AgentCoreArchive\\backups_cold\\scheduled-tasks\\20260716-015312-m0-m5-closeout",
+                                      "script":  "D:\\github\\agentcore-control-plane\\ops\\Test-AgentCorePostgresRestore.ps1"
+                                  }
+                   },
+                   {
+                       "name":  "Retarget WeeklyMaintenance task",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:53:13.0458528Z",
+                       "completed_at":  "2026-07-16T05:53:13.1289005Z",
+                       "result":  {
+                                      "task":  "WeeklyMaintenance",
+                                      "backup_root":  "E:\\AgentCoreArchive\\backups_cold\\scheduled-tasks\\20260716-015313-m0-m5-closeout",
+                                      "script":  "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreMaintenance.ps1"
+                                  }
+                   },
+                   {
+                       "name":  "Manual Task Scheduler run: NightlyBackup",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:53:13.1289005Z",
+                       "completed_at":  "2026-07-16T05:53:25.3445284Z",
+                       "result":  {
+                                      "task":  "NightlyBackup",
+                                      "state":  "Ready",
+                                      "executable":  "powershell.exe",
+                                      "arguments":  "-NoProfile -ExecutionPolicy Bypass -File \"D:\\github\\agentcore-control-plane\\ops\\Backup-AgentCorePostgres.ps1\"",
+                                      "working_directory":  "D:\\github\\agentcore-control-plane\\ops",
+                                      "account":  "ynotf",
+                                      "run_level":  "Limited",
+                                      "logon_type":  "Interactive",
+                                      "timeout":  "PT3H",
+                                      "last_run_time":  "\/Date(1784181193000)\/",
+                                      "last_task_result":  0,
+                                      "next_run_time":  "\/Date(1784185200000)\/",
+                                      "environment_handling":  "Scripts read Windows environment variables at runtime; no .env files or task-embedded secrets."
+                                  }
+                   },
+                   {
+                       "name":  "Manual Task Scheduler run: NightlyRestoreTest",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:53:25.3445284Z",
+                       "completed_at":  "2026-07-16T05:53:43.1375913Z",
+                       "result":  {
+                                      "task":  "NightlyRestoreTest",
+                                      "state":  "Ready",
+                                      "executable":  "powershell.exe",
+                                      "arguments":  "-NoProfile -ExecutionPolicy Bypass -File \"D:\\github\\agentcore-control-plane\\ops\\Test-AgentCorePostgresRestore.ps1\"",
+                                      "working_directory":  "D:\\github\\agentcore-control-plane\\ops",
+                                      "account":  "ynotf",
+                                      "run_level":  "Limited",
+                                      "logon_type":  "Interactive",
+                                      "timeout":  "PT3H",
+                                      "last_run_time":  "\/Date(1784181205000)\/",
+                                      "last_task_result":  0,
+                                      "next_run_time":  "\/Date(1784187000000)\/",
+                                      "environment_handling":  "Scripts read Windows environment variables at runtime; no .env files or task-embedded secrets."
+                                  }
+                   },
+                   {
+                       "name":  "Manual Task Scheduler run: WeeklyMaintenance",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:53:43.1375913Z",
+                       "completed_at":  "2026-07-16T05:53:49.5611135Z",
+                       "result":  {
+                                      "task":  "WeeklyMaintenance",
+                                      "state":  "Ready",
+                                      "executable":  "powershell.exe",
+                                      "arguments":  "-NoProfile -ExecutionPolicy Bypass -File \"D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreMaintenance.ps1\"",
+                                      "working_directory":  "D:\\github\\agentcore-control-plane\\ops",
+                                      "account":  "ynotf",
+                                      "run_level":  "Limited",
+                                      "logon_type":  "Interactive",
+                                      "timeout":  "PT3H",
+                                      "last_run_time":  "\/Date(1784181223000)\/",
+                                      "last_task_result":  0,
+                                      "next_run_time":  "\/Date(1784449800000)\/",
+                                      "environment_handling":  "Scripts read Windows environment variables at runtime; no .env files or task-embedded secrets."
+                                  }
+                   },
+                   {
+                       "name":  "Regression m2",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:53:54.2712827Z",
+                       "completed_at":  "2026-07-16T05:54:07.0179094Z",
+                       "result":  {
+                                      "log":  "D:\\github\\agentcore-control-plane\\audits\\M5\\elevated-closeout-20260716-015250\\m2.log",
+                                      "tail":  "PASS: M2 acceptance checks completed\nD:\\github\\agentcore-control-plane\\audits\\M2\\m2-acceptance-summary.json"
+                                  }
+                   },
+                   {
+                       "name":  "Regression m3",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:54:07.0189085Z",
+                       "completed_at":  "2026-07-16T05:54:22.2783989Z",
+                       "result":  {
+                                      "log":  "D:\\github\\agentcore-control-plane\\audits\\M5\\elevated-closeout-20260716-015250\\m3.log",
+                                      "tail":  "PASS: M3 acceptance checks completed\nD:\\github\\agentcore-control-plane\\audits\\M3\\m3-acceptance-summary.json"
+                                  }
+                   },
+                   {
+                       "name":  "Regression m4",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:54:22.2783989Z",
+                       "completed_at":  "2026-07-16T05:56:16.6145005Z",
+                       "result":  {
+                                      "log":  "D:\\github\\agentcore-control-plane\\audits\\M5\\elevated-closeout-20260716-015250\\m4.log",
+                                      "tail":  "[Stop] Stopped scheduled task \\AgentCore\\AgentCore-Bifrost-Gateway\n[Stop] Stopping bifrost-http PID 54944\n[Stop] Done\nStarting Bifrost ...\n[Start] Started scheduled task \\AgentCore\\AgentCore-Bifrost-Gateway\n[Start] Healthy on 127.0.0.1:8080\n[PASS] 15 - Bifrost restart and automatic upstream reconnect: agentcore_memory tools after restart=10\n[PASS] 17 - One safe Cursor call through unchanged agentcore-gateway: server=agentcore-memory version=0.5.0\n[PASS] 18 - No IDE configuration changes occurred: cursor_mcp_json mtime unchanged\n\nPASS: All M4 acceptance checks completed (19 checks)\nD:\\github\\agentcore-control-plane\\audits\\M4\\m4-acceptance-summary.json"
+                                  }
+                   },
+                   {
+                       "name":  "Regression m5",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:56:16.6145005Z",
+                       "completed_at":  "2026-07-16T05:57:25.5022217Z",
+                       "result":  {
+                                      "log":  "D:\\github\\agentcore-control-plane\\audits\\M5\\elevated-closeout-20260716-015250\\m5.log",
+                                      "tail":  "[PASS] 16 - No Mem0 package process database or config introduced: db_count=0; pip_show_mem0ai_absent=true; process_count=0\nStopping Bifrost ...\n[Stop] Stopped scheduled task \\AgentCore\\AgentCore-Bifrost-Gateway\n[Stop] Stopping bifrost-http PID 59176\n[Stop] Done\nStarting Bifrost ...\n[Start] Started scheduled task \\AgentCore\\AgentCore-Bifrost-Gateway\n[Start] Healthy on 127.0.0.1:8080\n[PASS] 17 - Bifrost restart and safe Cursor call succeed: server=agentcore-memory; tools=10\n\nPASS: All M5 acceptance checks completed (17 checks)\nD:\\github\\agentcore-control-plane\\audits\\M5\\m5-acceptance-summary.json"
+                                  }
+                   },
+                   {
+                       "name":  "Regression restore",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:57:25.5022217Z",
+                       "completed_at":  "2026-07-16T05:57:33.7371573Z",
+                       "result":  {
+                                      "log":  "D:\\github\\agentcore-control-plane\\audits\\M5\\elevated-closeout-20260716-015250\\restore.log",
+                                      "tail":  "                       \"agentcore_roles\":  \"[\\\"agentcore_admin\\\", \\\"agentcore_backup\\\", \\\"agentcore_cognee\\\", \\\"agentcore_ingest\\\", \\\"agentcore_read\\\", \\\"agentcore_worker\\\"]\",\n                       \"agent_core_row_counts\":  {\n                                                     \"agentcore.evidence_events\":  97,\n                                                     \"agentcore.context_summaries\":  19,\n                                                     \"agentcore.projection_revisions\":  32,\n                                                     \"agentcore.retrieval_documents\":  96,\n                                                     \"agentcore.knowledge_promotions\":  null\n                                                 },\n                       \"cognee_tables\":  \"29\"\n                   },\n    \"validated_at\":  \"2026-07-16T05:57:31.5958218Z\"\n}"
+                                  }
+                   },
+                   {
+                       "name":  "Regression pitr",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:57:33.7371573Z",
+                       "completed_at":  "2026-07-16T05:57:49.4977838Z",
+                       "result":  {
+                                      "log":  "D:\\github\\agentcore-control-plane\\audits\\M5\\elevated-closeout-20260716-015250\\pitr.log",
+                                      "tail":  "    \"wal_archive_root\":  \"E:\\\\AgentCoreArchive\\\\agentcore-memory\\\\wal\\\\pg18\",\n    \"restore_root\":  \"I:\\\\AgentCoreRestoreTests\\\\pg18-pitr\\\\20260716-015734\",\n    \"restore_port\":  55440,\n    \"marker\":  \"PITR_MARKER_20260716-015734\",\n    \"marker_result\":  \"eb5e3a30-0fb2-4491-a859-8065c8d0e0f8|2026-07-16 01:57:34.475937-04\\nINSERT 0 1\",\n    \"fence\":  \"PITR_MARKER_20260716-015734_FENCE\",\n    \"recovery_target_time\":  \"2026-07-16 01:57:36.649645-04\",\n    \"switched_wal\":  \"00000001000000000000002A\",\n    \"marker_count_after_recovery\":  1,\n    \"extension_check\":  \"[\\\"pg_trgm=1.6\\\", \\\"pgcrypto=1.4\\\", \\\"plpgsql=1.0\\\", \\\"vector=0.8.5\\\"]\",\n    \"validated_at\":  \"2026-07-16T05:57:48.3807554Z\"\n}"
+                                  }
+                   },
+                   {
+                       "name":  "Repository validators and secret scan",
+                       "ok":  true,
+                       "started_at":  "2026-07-16T05:57:49.4977838Z",
+                       "completed_at":  "2026-07-16T05:57:53.3972401Z",
+                       "result":  {
+                                      "log":  "D:\\github\\agentcore-control-plane\\audits\\M5\\elevated-closeout-20260716-015250\\repository-validators.log"
+                                  }
+                   }
+               ]
+}
