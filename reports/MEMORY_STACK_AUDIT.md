@@ -84,7 +84,9 @@ The two databases **must remain separate**. `database-plan.md` §2 explicitly fo
 
 ### 3.4 Auth Posture (live exception)
 
-Per `SYSTEM_HANDOVER_BLUEPRINT.md` §2, the live `pg_hba.conf` was extended on 2026-06-25 to grant scoped `hostssl` localhost access for `swarmrecall` DB / `swarmrecall_app` role. The rollback copy is preserved at `E:\AgentCoreBackups\agentcore-control-plane\20260625-225901\live-postgres-auth\20260625-231022\pg_hba.conf`.
+Per `SYSTEM_HANDOVER_BLUEPRINT.md` §2, the live `pg_hba.conf` was extended on 2026-06-25 to allow scoped `hostssl` localhost authentication for `swarmrecall` DB / `swarmrecall_app` role. The rollback copy is preserved at `E:\AgentCoreBackups\agentcore-control-plane\20260625-225901\live-postgres-auth\20260625-231022\pg_hba.conf`.
+
+Correction (2026-07-15): `pg_hba.conf` owns authentication rules only. SQL ownership, `GRANT`/`REVOKE`, row-level security policies, and `SECURITY DEFINER` functions own authorization.
 
 ### 3.5 State at Audit
 

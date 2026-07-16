@@ -137,7 +137,7 @@ C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
 - Normal IDE agents have no database credentials.
 - Raw evidence cannot be updated or deleted by normal service roles.
 
-**Acceptance tests:** duplicate event submission produces one row; UPDATE/DELETE on evidence rows fails for non-admin roles; cross-project write attempt fails; payload >N KB stored by content hash on H: spool and retrievable; identity joins resolve for every event.
+**Acceptance tests:** duplicate event submission produces one row; UPDATE/DELETE on evidence rows fails for non-admin roles; cross-project write attempt fails at the PostgreSQL schema/write boundary (RLS and/or governed `SECURITY DEFINER` functions, not merely in the future gateway); payload >N KB is stored by content hash on H: spool and retrievable; identity joins resolve for every event; queue, claim, lease, and dead-letter primitives survive a controlled PostgreSQL 18 restart with no lost, duplicated, or permanently stuck work.
 
 **Rollback point:** M1 baseline backup; identity/evidence schema applied via versioned, reversible migrations.
 

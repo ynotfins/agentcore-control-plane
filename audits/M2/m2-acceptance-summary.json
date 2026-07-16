@@ -1,0 +1,55 @@
+﻿{
+    "run_id":  "20260715202520",
+    "started_at":  "2026-07-16T00:25:20.5423265Z",
+    "database":  "127.0.0.1:55433/agent_core",
+    "migration":  "m2.001",
+    "checks":  [
+                   {
+                       "name":  "versioned reversible migration",
+                       "result":  "PASS",
+                       "detail":  "up/down tested in disposable database agentcore_m2_rollback_20260715202520"
+                   },
+                   {
+                       "name":  "live M2 migration applied",
+                       "result":  "PASS",
+                       "detail":  "m2.001 already present in schema_migrations"
+                   },
+                   {
+                       "name":  "separate identities seeded",
+                       "result":  "PASS",
+                       "detail":  "project_a=b0ef70a2-3297-4e50-9da1-62daf55eba7b; project_b=bf07ffe7-9754-4085-8252-3763fe554be9; source=cf298e16-904c-40a9-8b7e-1998acf4bdb5"
+                   },
+                   {
+                       "name":  "idempotent event submission",
+                       "result":  "PASS",
+                       "detail":  "duplicate submission returned same event id and one row"
+                   },
+                   {
+                       "name":  "UPDATE/DELETE denied to normal roles",
+                       "result":  "PASS",
+                       "detail":  "agentcore_ingest cannot update or delete evidence"
+                   },
+                   {
+                       "name":  "cross-project write rejected",
+                       "result":  "PASS",
+                       "detail":  "security-definer function enforces current project boundary"
+                   },
+                   {
+                       "name":  "content-addressed large payload externalized",
+                       "result":  "PASS",
+                       "detail":  "artifact=H:\\AgentRuntime\\agentcore-memory\\artifacts\\sha256\\57\\575c776a513ca7b2bf21f38b90eaeb77349efc1f7571fd2fb2cb5d36b46203c9.txt sha256=575c776a513ca7b2bf21f38b90eaeb77349efc1f7571fd2fb2cb5d36b46203c9 event=13c9f5a6-6333-4d09-a81d-9aa933c90001"
+                   },
+                   {
+                       "name":  "queue claim lease dead-letter restart recovery",
+                       "result":  "PASS",
+                       "detail":  "controlled PG18 restart; pending=1, dead=1, dead_letters=1, expired_leases=1; evidence=D:\\github\\agentcore-control-plane\\audits\\M2\\queue-restart-recovery-output.txt"
+                   },
+                   {
+                       "name":  "no IDE database credentials",
+                       "result":  "PASS",
+                       "detail":  "live managed IDE config files contain no PostgreSQL credential markers"
+                   }
+               ],
+    "completed_at":  "2026-07-16T00:25:33.4848002Z",
+    "result":  "PASS"
+}
