@@ -1,13 +1,13 @@
 ﻿{
-    "run_id":  "20260715210053",
-    "started_at":  "2026-07-16T01:00:53.9733048Z",
+    "run_id":  "20260716003314",
+    "started_at":  "2026-07-16T04:33:14.7057592Z",
     "database":  "127.0.0.1:55433/agent_core",
     "migration":  "m3.001",
     "checks":  [
                    {
                        "name":  "versioned reversible M3 migration",
                        "result":  "PASS",
-                       "detail":  "up/down tested in disposable database agentcore_m3_rollback_20260715210053"
+                       "detail":  "up/down tested in disposable database agentcore_m3_rollback_20260716003314"
                    },
                    {
                        "name":  "live M3 migration applied",
@@ -17,7 +17,7 @@
                    {
                        "name":  "M3 identities seeded",
                        "result":  "PASS",
-                       "detail":  "project=3f4173da-7876-4381-adeb-933feb3b6d9f; session1=92fdff68-19ae-41ed-b478-68d044279906; session2=773467f9-804a-486e-bb95-e4da17e52b07"
+                       "detail":  "project=2da7f36d-124e-47e0-94ff-76f8543ede31; session1=1d9db2d7-d080-4774-ab65-2a723f46eb6a; session2=ff5df0f8-29b5-4738-8731-26811989624e"
                    },
                    {
                        "name":  "verbatim preservation, secret redaction, write-time dedupe",
@@ -27,7 +27,7 @@
                    {
                        "name":  "L0 L1 L2 L3 compaction and exact source edges",
                        "result":  "PASS",
-                       "detail":  "summaries=1943101b-3864-4b6b-b6b6-72c080ac9866,896ee26a-ccd0-421f-8fb2-be8230ae6a43,525cbe1b-4722-4d17-81a3-6b52ff2f8687 edges=12"
+                       "detail":  "summaries=912e69ec-36c6-49da-aacc-f67016dca94a,ba95f101-6ef4-445f-9ca7-aa7a28a129f0,6b02aed0-d20e-4fe5-98a4-3b11f9e29756 edges=12"
                    },
                    {
                        "name":  "summary-to-source exact expansion",
@@ -37,12 +37,12 @@
                    {
                        "name":  "exact expansion after H to E archival",
                        "result":  "PASS",
-                       "detail":  "artifact expanded from cold path E:\\AgentCoreArchive\\agentcore-memory\\artifacts\\sha256\\8c\\8c4dd688ee128226ae299815e795eb7ff14ee3d429d71e60a60d2c965af0dd1d.txt"
+                       "detail":  "artifact expanded from cold path E:\\AgentCoreArchive\\agentcore-memory\\artifacts\\sha256\\0f\\0ff20cafcfa50f02286e724798b76a3872f8ce58f8d02db495448105eaf6fded.txt"
                    },
                    {
                        "name":  "interrupted compaction restart recovery",
                        "result":  "PASS",
-                       "detail":  "recovered=1 run=4a317a49-0ea8-4ebd-b4b1-5aa443910e9a"
+                       "detail":  "recovered=1 run=f6024490-0fc0-4e04-ba52-61be79c04fbe"
                    },
                    {
                        "name":  "token-budgeted context assembly",
@@ -52,7 +52,7 @@
                    {
                        "name":  "contradiction review behavior",
                        "result":  "PASS",
-                       "detail":  "proposal=01df0984-2398-4a06-abba-0f5505a33efc status=proposed"
+                       "detail":  "proposal=1f39b2f0-5f20-4883-a664-7f62dfbc753a status=proposed"
                    },
                    {
                        "name":  "deterministic and atomic COMB projections",
@@ -65,6 +65,6 @@
                        "detail":  "authority-contradicting retrieved memory stored as raw_untrusted data"
                    }
                ],
-    "completed_at":  "2026-07-16T01:01:10.2650998Z",
+    "completed_at":  "2026-07-16T04:33:35.9167449Z",
     "result":  "PASS"
 }

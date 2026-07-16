@@ -28,8 +28,10 @@ from uuid import UUID
 import psycopg
 from psycopg.rows import dict_row
 
+from knowledge_memory import get_knowledge_memory_port
+
 SERVER_NAME = "agentcore-memory"
-SERVER_VERSION = "0.4.0"
+SERVER_VERSION = "0.5.0"
 # Bifrost currently initializes with 2025-06-18; accept and echo it.
 SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
 DEFAULT_PROTOCOL_VERSION = "2025-06-18"
@@ -61,6 +63,8 @@ def postgres_reachable(timeout: float = 1.5) -> tuple[bool, str]:
 
 def tool_defs() -> list[dict[str, Any]]:
     text_schema = {"type": "string"}
+    text_array_schema = {"type": "array", "items": text_schema}
+    embedding_schema = {"type": "array", "items": {"type": "number"}}
     return [
         {
             "name": "memory_status",
@@ -115,7 +119,15 @@ def tool_defs() -> list[dict[str, Any]]:
             "description": "Retrieve bounded context for a project using model-specific token budgets.",
             "inputSchema": {
                 "type": "object",
-                "properties": {"project_key": text_schema, "budget_name": text_schema},
+                "properties": {
+                    "project_key": text_schema,
+                    "budget_name": text_schema,
+                    "query": text_schema,
+                    "limit": {"type": "integer"},
+                    "query_embedding": embedding_schema,
+                    "retrieval_methods": text_array_schema,
+                    "trust_classes": text_array_schema,
+                },
                 "required": ["project_key"],
                 "additionalProperties": False,
             },
@@ -170,7 +182,14 @@ def tool_defs() -> list[dict[str, Any]]:
             "description": "Search indexed AgentCore memory documentation/context metadata (Arabold remains source for external docs).",
             "inputSchema": {
                 "type": "object",
-                "properties": {"project_key": text_schema, "query": text_schema, "limit": {"type": "integer"}},
+                "properties": {
+                    "project_key": text_schema,
+                    "query": text_schema,
+                    "limit": {"type": "integer"},
+                    "query_embedding": embedding_schema,
+                    "retrieval_methods": text_array_schema,
+                    "trust_classes": text_array_schema,
+                },
                 "required": ["query"],
                 "additionalProperties": False,
             },
@@ -214,6 +233,30 @@ def to_jsonable(value: Any) -> Any:
         return [to_jsonable(v) for v in value]
     if isinstance(value, tuple):
         return [to_jsonable(v) for v in value]
+    return value
+
+
+def vector_literal(values: Any) -> str | None:
+    if values is None:
+        return None
+    if not isinstance(values, list):
+        raise ValueError("query_embedding must be an array of numbers")
+    parsed: list[float] = []
+    for value in values:
+        if not isinstance(value, (int, float)):
+            raise ValueError("query_embedding values must be numbers")
+        parsed.append(float(value))
+    if not parsed:
+        return None
+    return "[" + ",".join(f"{value:.12g}" for value in parsed) + "]"
+
+
+def requested_list(args: dict[str, Any], key: str) -> list[str] | None:
+    value = args.get(key)
+    if value is None:
+        return None
+    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+        raise ValueError(f"{key} must be an array of strings")
     return value
 
 
@@ -380,6 +423,7 @@ def memory_status() -> dict[str, Any]:
             migrations = [r["version"] for r in cur.fetchall()]
     except Exception as exc:  # noqa: BLE001
         migrations = [f"degraded:{exc.__class__.__name__}"]
+    knowledge_status = get_knowledge_memory_port().status().as_dict()
     return {
         "ok": True,
         "server": SERVER_NAME,
@@ -396,7 +440,7 @@ def memory_status() -> dict[str, Any]:
             "gateway_write_path": {
                 "note": "Normal durable memory writes are governed through compact tools only; no raw SQL/admin tools exposed.",
             },
-            "cognee": {"status": "not_integrated_until_M5"},
+            "cognee": knowledge_status,
             "langgraph": {"status": "not_integrated_until_M6"},
         },
         "secrets": "never_returned",
@@ -481,6 +525,63 @@ def append_event(args: dict[str, Any]) -> dict[str, Any]:
     return {"ok": True, "event_id": str(event_id), "artifact_id": str(artifact_id) if artifact_id else None}
 
 
+def hybrid_retrieval(args: dict[str, Any], conn: psycopg.Connection[Any]) -> list[dict[str, Any]]:
+    query = str(args.get("query") or "").strip()
+    if not query and not args.get("query_embedding"):
+        return []
+
+    project_id = None
+    if args.get("project_key"):
+        project = get_project(conn, args["project_key"])
+        project_id = project["id"]
+
+    limit = max(1, min(int(args.get("limit") or 5), 25))
+    methods = get_knowledge_memory_port().enabled_methods(requested_list(args, "retrieval_methods"))
+    trust_classes = requested_list(args, "trust_classes")
+    embedding = vector_literal(args.get("query_embedding"))
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT source, id, title, text, source_ref, trust_class, version, scope,
+                   retrieval_method, score, provenance, metadata
+            FROM agentcore.hybrid_retrieve_documents(%s, %s, %s::vector, %s, %s, %s)
+            """,
+            (project_id, query, embedding, limit, trust_classes, methods),
+        )
+        return cur.fetchall()
+
+
+def legacy_docs_search(args: dict[str, Any], conn: psycopg.Connection[Any]) -> list[dict[str, Any]]:
+    query = args["query"].lower()
+    limit = int(args.get("limit") or 5)
+    with conn.cursor() as cur:
+        if args.get("project_key"):
+            project = get_project(conn, args["project_key"])
+            cur.execute(
+                """
+                SELECT 'summary' AS source, id::text, title, summary_text AS text
+                FROM agentcore.context_summaries
+                WHERE project_id = %s AND lower(summary_text || ' ' || title) LIKE %s
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (project["id"], f"%{query}%", limit),
+            )
+        else:
+            cur.execute(
+                """
+                SELECT 'summary' AS source, id::text, title, summary_text AS text
+                FROM agentcore.context_summaries
+                WHERE lower(summary_text || ' ' || title) LIKE %s
+                ORDER BY created_at DESC
+                LIMIT %s
+                """,
+                (f"%{query}%", limit),
+            )
+        return cur.fetchall()
+
+
 def retrieve_context(args: dict[str, Any]) -> dict[str, Any]:
     budget = args.get("budget_name") or "default"
     with db() as conn, conn.cursor() as cur:
@@ -494,7 +595,14 @@ def retrieve_context(args: dict[str, Any]) -> dict[str, Any]:
             (project["id"], budget),
         )
         items = cur.fetchall()
-    return {"ok": True, "project_key": args["project_key"], "budget_name": budget, "items": items}
+        retrieval_results = hybrid_retrieval(args, conn)
+    return {
+        "ok": True,
+        "project_key": args["project_key"],
+        "budget_name": budget,
+        "items": items,
+        "retrieval_results": retrieval_results,
+    }
 
 
 def startup_context(args: dict[str, Any]) -> dict[str, Any]:
@@ -590,34 +698,18 @@ def build_handoff(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def docs_search(args: dict[str, Any]) -> dict[str, Any]:
-    query = args["query"].lower()
-    limit = int(args.get("limit") or 5)
     with db() as conn, conn.cursor() as cur:
-        if args.get("project_key"):
-            project = get_project(conn, args["project_key"])
-            cur.execute(
-                """
-                SELECT 'summary' AS source, id::text, title, summary_text AS text
-                FROM agentcore.context_summaries
-                WHERE project_id = %s AND lower(summary_text || ' ' || title) LIKE %s
-                ORDER BY created_at DESC
-                LIMIT %s
-                """,
-                (project["id"], f"%{query}%", limit),
-            )
-        else:
-            cur.execute(
-                """
-                SELECT 'summary' AS source, id::text, title, summary_text AS text
-                FROM agentcore.context_summaries
-                WHERE lower(summary_text || ' ' || title) LIKE %s
-                ORDER BY created_at DESC
-                LIMIT %s
-                """,
-                (f"%{query}%", limit),
-            )
-        rows = cur.fetchall()
-    return {"ok": True, "query": args["query"], "results": rows, "external_docs_note": "Use arabold-docs for dependency/API docs."}
+        try:
+            rows = hybrid_retrieval(args, conn)
+        except Exception as exc:  # noqa: BLE001 - preserve degraded M4 behavior if M5 SQL is absent.
+            _log(f"hybrid retrieval degraded: {exc.__class__.__name__}")
+            rows = legacy_docs_search(args, conn)
+    return {
+        "ok": True,
+        "query": args["query"],
+        "results": rows,
+        "external_docs_note": "Use arabold-docs for dependency/API docs.",
+    }
 
 
 def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:

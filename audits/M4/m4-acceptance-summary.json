@@ -1,104 +1,104 @@
-{
-  "run_id": "20260715234727",
-  "started_at": "2026-07-16T03:47:27.4571578Z",
-  "endpoint": "http://127.0.0.1:8080/mcp",
-  "checks": [
-    {
-      "name": "1 - Direct MCP initialize and tools/list",
-      "result": "PASS",
-      "detail": "server=builder v2.0.0-prerelease1"
-    },
-    {
-      "name": "2 - Exact compact advertised tool set",
-      "result": "PASS",
-      "detail": "agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context"
-    },
-    {
-      "name": "16 - Optional/future components report degraded without breaking core",
-      "result": "PASS",
-      "detail": "cognee=not_integrated_until_M5; langgraph=not_integrated_until_M6"
-    },
-    {
-      "name": "5 - Two simultaneous clients use isolated sessions",
-      "result": "PASS",
-      "detail": "A=82d3f415-4c7b-4dc1-9483-ddc2fe115e11; B=434e5cbf-3aaa-4d16-a404-94108ffdf811; project=2e7617b2-7569-444e-b159-21171f7f83f5"
-    },
-    {
-      "name": "7 - Repeated append with same idempotency key does not duplicate",
-      "result": "PASS",
-      "detail": "event_id=5f6df12d-3173-4c5c-8d66-dea850ec9ef1; evidence_events_count=1"
-    },
-    {
-      "name": "8 - Large payload externalizes and expands correctly",
-      "result": "PASS",
-      "detail": "artifact_id=d21e91ba-4f5c-47b2-a6c4-a344fcd2f893; storage_uri=H:\\AgentRuntime\\agentcore-memory\\artifacts\\sha256\\27\\2753ebadd196a89e76c14a26a09c135a2a7b27d8c491cacd2465c9d1720102b5.txt"
-    },
-    {
-      "name": "9 - Archived payload on E: expands correctly",
-      "result": "PASS",
-      "detail": "artifact_id=d21e91ba-4f5c-47b2-a6c4-a344fcd2f893; e_uri=E:\\AgentCore\\agentmemory\\cold\\sha256\\27\\2753ebadd196a89e76c14a26a09c135a2a7b27d8c491cacd2465c9d1720102b5.txt; location_id=2e7617b2-7569-444e-b159-21171f7f83f5\n72ead4cb-4a44-44bb-915c-d2bc27b64477"
-    },
-    {
-      "name": "12 - Quarantined transcript evidence excluded from startup context",
-      "result": "PASS",
-      "detail": "quarantined_event=070f8327-dd49-45c1-82bb-0e7f63e4b925 not in context"
-    },
-    {
-      "name": "3 - Session open append retrieve compact expand close",
-      "result": "PASS",
-      "detail": "summary=934f04bb-1184-4138-a318-2ee4f784ec6a; sources=2"
-    },
-    {
-      "name": "4 - Startup context within selected token budget",
-      "result": "PASS",
-      "detail": "total_tokens=24 max_tokens=4096"
-    },
-    {
-      "name": "6 - Two projects cannot cross-read or cross-write protected state",
-      "result": "PASS",
-      "detail": "project_A=m4_project_A_20260715234727 project_B=m4_project_B_20260715234727 isolated"
-    },
-    {
-      "name": "10 - Fact proposal does not silently become promoted truth",
-      "result": "PASS",
-      "detail": "proposal_id=0afaf79a-d15e-4078-b859-c96c598e71d6; status=proposed"
-    },
-    {
-      "name": "11 - Handoff generation is deterministic",
-      "result": "PASS",
-      "detail": "events=5; consistent=true"
-    },
-    {
-      "name": "3b - session_close creates durable final state",
-      "result": "PASS",
-      "detail": "3 sessions closed; ended_at set"
-    },
-    {
-      "name": "13 - PostgreSQL interruption and recovery",
-      "result": "PASS",
-      "detail": "memory_status=healthy; invalid_port_unavailable=true; migrations=3; note=service-stop requires admin"
-    },
-    {
-      "name": "14 - Memory-service restart and reconnect",
-      "result": "PASS",
-      "detail": "killed_pid=54204; new_pid=51160"
-    },
-    {
-      "name": "15 - Bifrost restart and automatic upstream reconnect",
-      "result": "PASS",
-      "detail": "agentcore_memory tools after restart=10"
-    },
-    {
-      "name": "17 - One safe Cursor call through unchanged agentcore-gateway",
-      "result": "PASS",
-      "detail": "server=agentcore-memory version=0.4.0"
-    },
-    {
-      "name": "18 - No IDE configuration changes occurred",
-      "result": "PASS",
-      "detail": "cursor_mcp_json mtime unchanged"
-    }
-  ],
-  "completed_at": "2026-07-16T03:49:03.3823750Z",
-  "result": "PASS"
+﻿{
+    "run_id":  "20260716003416",
+    "started_at":  "2026-07-16T04:34:16.6610931Z",
+    "endpoint":  "http://127.0.0.1:8080/mcp",
+    "checks":  [
+                   {
+                       "name":  "1 - Direct MCP initialize and tools/list",
+                       "result":  "PASS",
+                       "detail":  "server=builder v2.0.0-prerelease1"
+                   },
+                   {
+                       "name":  "2 - Exact compact advertised tool set",
+                       "result":  "PASS",
+                       "detail":  "agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context"
+                   },
+                   {
+                       "name":  "16 - Optional/future components report degraded without breaking core",
+                       "result":  "PASS",
+                       "detail":  "cognee=available; langgraph=not_integrated_until_M6"
+                   },
+                   {
+                       "name":  "5 - Two simultaneous clients use isolated sessions",
+                       "result":  "PASS",
+                       "detail":  "A=2451022d-4777-493b-9ba0-93320614a098; B=bea9620a-475e-48f3-8790-e220934d5a23; project=327edf6c-6a10-4d9e-9f43-095249b5e082"
+                   },
+                   {
+                       "name":  "7 - Repeated append with same idempotency key does not duplicate",
+                       "result":  "PASS",
+                       "detail":  "event_id=b9c2900d-4f3e-4615-a4d3-013943dfe31f; evidence_events_count=1"
+                   },
+                   {
+                       "name":  "8 - Large payload externalizes and expands correctly",
+                       "result":  "PASS",
+                       "detail":  "artifact_id=865d5e80-f341-41e5-9cd1-9323f1a9802b; storage_uri=H:\\AgentRuntime\\agentcore-memory\\artifacts\\sha256\\e3\\e3687c9f974050a8b6642d59424679552376633a6bd03460dd3f611d52f7c9c0.txt"
+                   },
+                   {
+                       "name":  "9 - Archived payload on E: expands correctly",
+                       "result":  "PASS",
+                       "detail":  "artifact_id=865d5e80-f341-41e5-9cd1-9323f1a9802b; e_uri=E:\\AgentCore\\agentmemory\\cold\\sha256\\e3\\e3687c9f974050a8b6642d59424679552376633a6bd03460dd3f611d52f7c9c0.txt; location_id=327edf6c-6a10-4d9e-9f43-095249b5e082\naa0014cf-fdc1-45a3-ba49-0a584e3df1f0"
+                   },
+                   {
+                       "name":  "12 - Quarantined transcript evidence excluded from startup context",
+                       "result":  "PASS",
+                       "detail":  "quarantined_event=f58446f4-5397-40db-a5a4-b74eeb853d4e not in context"
+                   },
+                   {
+                       "name":  "3 - Session open append retrieve compact expand close",
+                       "result":  "PASS",
+                       "detail":  "summary=81418bf2-57e3-46cc-b429-68f81b363eb7; sources=2"
+                   },
+                   {
+                       "name":  "4 - Startup context within selected token budget",
+                       "result":  "PASS",
+                       "detail":  "total_tokens=24 max_tokens=4096"
+                   },
+                   {
+                       "name":  "6 - Two projects cannot cross-read or cross-write protected state",
+                       "result":  "PASS",
+                       "detail":  "project_A=m4_project_A_20260716003416 project_B=m4_project_B_20260716003416 isolated"
+                   },
+                   {
+                       "name":  "10 - Fact proposal does not silently become promoted truth",
+                       "result":  "PASS",
+                       "detail":  "proposal_id=4bc2577b-2028-4da3-aaa3-9e237121ae0a; status=proposed"
+                   },
+                   {
+                       "name":  "11 - Handoff generation is deterministic",
+                       "result":  "PASS",
+                       "detail":  "events=5; consistent=true"
+                   },
+                   {
+                       "name":  "3b - session_close creates durable final state",
+                       "result":  "PASS",
+                       "detail":  "3 sessions closed; ended_at set"
+                   },
+                   {
+                       "name":  "13 - PostgreSQL interruption and recovery",
+                       "result":  "PASS",
+                       "detail":  "memory_status=healthy; invalid_port_unavailable=true; migrations=4; note=service-stop requires admin"
+                   },
+                   {
+                       "name":  "14 - Memory-service restart and reconnect",
+                       "result":  "PASS",
+                       "detail":  "killed_pid=57516; new_pid=50356"
+                   },
+                   {
+                       "name":  "15 - Bifrost restart and automatic upstream reconnect",
+                       "result":  "PASS",
+                       "detail":  "agentcore_memory tools after restart=10"
+                   },
+                   {
+                       "name":  "17 - One safe Cursor call through unchanged agentcore-gateway",
+                       "result":  "PASS",
+                       "detail":  "server=agentcore-memory version=0.5.0"
+                   },
+                   {
+                       "name":  "18 - No IDE configuration changes occurred",
+                       "result":  "PASS",
+                       "detail":  "cursor_mcp_json mtime unchanged"
+                   }
+               ],
+    "completed_at":  "2026-07-16T04:36:08.0985852Z",
+    "result":  "PASS"
 }

@@ -1,0 +1,102 @@
+﻿{
+    "run_id":  "20260716003954",
+    "started_at":  "2026-07-16T04:39:54.0960307Z",
+    "endpoint":  "http://127.0.0.1:8080/mcp",
+    "migration":  "m5.001",
+    "checks":  [
+                   {
+                       "name":  "1 - Versioned reversible M5 migration",
+                       "result":  "PASS",
+                       "detail":  "up/down tested in agentcore_m5_rollback_20260716003954"
+                   },
+                   {
+                       "name":  "2 - Live M5 migration applied",
+                       "result":  "PASS",
+                       "detail":  "migrations/m5/001_up_hybrid_retrieval_cognee.sql"
+                   },
+                   {
+                       "name":  "3 - Exact MCP surface preserved",
+                       "result":  "PASS",
+                       "detail":  "agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context"
+                   },
+                   {
+                       "name":  "4 - Bounded M5 retrieval fixtures seeded",
+                       "result":  "PASS",
+                       "detail":  "project=m5_project_A_20260716003954 docs={\"fts\":\"5623260c-f8a6-4c3b-9679-39ec1917d8d6\",\"vector\":\"07b9f9bc-4ba1-49f8-96c4-295cfb3a1796\",\"trigram\":\"421db3bf-84fb-48de-8a71-c1ef028cbf3d\",\"official\":\"526ad009-ac8d-4b09-a7f1-909c49ef0fd3\"}"
+                   },
+                   {
+                       "name":  "5 - Full-text retrieval returns expected fixture",
+                       "result":  "PASS",
+                       "detail":  "method=postgres_fts"
+                   },
+                   {
+                       "name":  "6 - pg_trgm retrieves misspelling or partial identifier",
+                       "result":  "PASS",
+                       "detail":  "method=postgres_trigram"
+                   },
+                   {
+                       "name":  "7 - Exact pgvector search produces correctness baseline",
+                       "result":  "PASS",
+                       "detail":  "top=M5 exact vector baseline"
+                   },
+                   {
+                       "name":  "8 - HNSW benchmark gate recorded",
+                       "result":  "PASS",
+                       "detail":  "{\"decision\":\"deferred\",\"corpus_rows\":16,\"hnsw_index_present\":false}"
+                   },
+                   {
+                       "name":  "9 - Retrieval respects project and trust boundaries",
+                       "result":  "PASS",
+                       "detail":  "project_B and quarantined sentinels absent"
+                   },
+                   {
+                       "name":  "10 - Raw transcripts rejected by promotion gate",
+                       "result":  "PASS",
+                       "detail":  "expected SQL rejection"
+                   },
+                   {
+                       "name":  "11 - Quarantined evidence rejected by promotion gate",
+                       "result":  "PASS",
+                       "detail":  "expected SQL rejection"
+                   },
+                   {
+                       "name":  "12 - Validated fact promoted with complete provenance",
+                       "result":  "PASS",
+                       "detail":  "promotion_id=b84ea57e-ee6e-4bfb-abe0-4deb11a1a579"
+                   },
+                   {
+                       "name":  "13 - Cognee retrieval returns promoted fact and source references",
+                       "result":  "PASS",
+                       "detail":  "promotion_id=b84ea57e-ee6e-4bfb-abe0-4deb11a1a579"
+                   },
+                   {
+                       "name":  "14 - E: official document found through F: index",
+                       "result":  "PASS",
+                       "detail":  "source_path=E:\\AgentCoreArchive\\agentcore-memory\\official-docs\\m5-official-fixture-20260716003954.md"
+                   },
+                   {
+                       "name":  "15 - Cognee outage degrades to PostgreSQL-only retrieval",
+                       "result":  "PASS",
+                       "detail":  "cognee=degraded_disabled; projections=28"
+                   },
+                   {
+                       "name":  "16 - No Mem0 package process database or config introduced",
+                       "result":  "PASS",
+                       "detail":  "db_count=0; pip_show_mem0ai_absent=true; process_count=0"
+                   },
+                   {
+                       "name":  "17 - Bifrost restart and safe Cursor call succeed",
+                       "result":  "PASS",
+                       "detail":  "server=agentcore-memory; tools=10"
+                   }
+               ],
+    "benchmarks":  {
+                       "hnsw":  {
+                                    "decision":  "deferred",
+                                    "corpus_rows":  16,
+                                    "hnsw_index_present":  false
+                                }
+                   },
+    "completed_at":  "2026-07-16T04:41:03.2134385Z",
+    "result":  "PASS"
+}

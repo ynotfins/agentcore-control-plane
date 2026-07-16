@@ -1,9 +1,9 @@
-﻿versioned reversible migration: PASS - up/down tested in disposable database agentcore_m2_rollback_20260715202520
+﻿versioned reversible migration: PASS - up/down tested in disposable database agentcore_m2_rollback_20260716003057
 live M2 migration applied: PASS - m2.001 already present in schema_migrations
-separate identities seeded: PASS - project_a=b0ef70a2-3297-4e50-9da1-62daf55eba7b; project_b=bf07ffe7-9754-4085-8252-3763fe554be9; source=cf298e16-904c-40a9-8b7e-1998acf4bdb5
+separate identities seeded: PASS - project_a=1d1982f8-a921-4c13-8e7d-27c0184572bf; project_b=7d8c05c2-4369-4f4a-ba15-bbc16353af0c; source=b3dc6492-f270-4116-a2c6-0e12ffd63d98
 idempotent event submission: PASS - duplicate submission returned same event id and one row
 UPDATE/DELETE denied to normal roles: PASS - agentcore_ingest cannot update or delete evidence
 cross-project write rejected: PASS - security-definer function enforces current project boundary
-content-addressed large payload externalized: PASS - artifact=H:\AgentRuntime\agentcore-memory\artifacts\sha256\57\575c776a513ca7b2bf21f38b90eaeb77349efc1f7571fd2fb2cb5d36b46203c9.txt sha256=575c776a513ca7b2bf21f38b90eaeb77349efc1f7571fd2fb2cb5d36b46203c9 event=13c9f5a6-6333-4d09-a81d-9aa933c90001
+content-addressed large payload externalized: PASS - artifact=H:\AgentRuntime\agentcore-memory\artifacts\sha256\0a\0a0953b48b5e1072fb0949422fc151f91677ba43488be698e2301feb8a220563.txt sha256=0a0953b48b5e1072fb0949422fc151f91677ba43488be698e2301feb8a220563 event=009f8ae6-47a3-4d28-8830-8a2e2e6947a4
 queue claim lease dead-letter restart recovery: PASS - controlled PG18 restart; pending=1, dead=1, dead_letters=1, expired_leases=1; evidence=D:\github\agentcore-control-plane\audits\M2\queue-restart-recovery-output.txt
 no IDE database credentials: PASS - live managed IDE config files contain no PostgreSQL credential markers

@@ -1,20 +1,20 @@
-1 - Direct MCP initialize and tools/list: PASS - server=builder v2.0.0-prerelease1
+﻿1 - Direct MCP initialize and tools/list: PASS - server=builder v2.0.0-prerelease1
 2 - Exact compact advertised tool set: PASS - agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context
-16 - Optional/future components report degraded without breaking core: PASS - cognee=not_integrated_until_M5; langgraph=not_integrated_until_M6
-5 - Two simultaneous clients use isolated sessions: PASS - A=82d3f415-4c7b-4dc1-9483-ddc2fe115e11; B=434e5cbf-3aaa-4d16-a404-94108ffdf811; project=2e7617b2-7569-444e-b159-21171f7f83f5
-7 - Repeated append with same idempotency key does not duplicate: PASS - event_id=5f6df12d-3173-4c5c-8d66-dea850ec9ef1; evidence_events_count=1
-8 - Large payload externalizes and expands correctly: PASS - artifact_id=d21e91ba-4f5c-47b2-a6c4-a344fcd2f893; storage_uri=H:\AgentRuntime\agentcore-memory\artifacts\sha256\27\2753ebadd196a89e76c14a26a09c135a2a7b27d8c491cacd2465c9d1720102b5.txt
-9 - Archived payload on E: expands correctly: PASS - artifact_id=d21e91ba-4f5c-47b2-a6c4-a344fcd2f893; e_uri=E:\AgentCore\agentmemory\cold\sha256\27\2753ebadd196a89e76c14a26a09c135a2a7b27d8c491cacd2465c9d1720102b5.txt; location_id=2e7617b2-7569-444e-b159-21171f7f83f5
-72ead4cb-4a44-44bb-915c-d2bc27b64477
-12 - Quarantined transcript evidence excluded from startup context: PASS - quarantined_event=070f8327-dd49-45c1-82bb-0e7f63e4b925 not in context
-3 - Session open append retrieve compact expand close: PASS - summary=934f04bb-1184-4138-a318-2ee4f784ec6a; sources=2
+16 - Optional/future components report degraded without breaking core: PASS - cognee=available; langgraph=not_integrated_until_M6
+5 - Two simultaneous clients use isolated sessions: PASS - A=2451022d-4777-493b-9ba0-93320614a098; B=bea9620a-475e-48f3-8790-e220934d5a23; project=327edf6c-6a10-4d9e-9f43-095249b5e082
+7 - Repeated append with same idempotency key does not duplicate: PASS - event_id=b9c2900d-4f3e-4615-a4d3-013943dfe31f; evidence_events_count=1
+8 - Large payload externalizes and expands correctly: PASS - artifact_id=865d5e80-f341-41e5-9cd1-9323f1a9802b; storage_uri=H:\AgentRuntime\agentcore-memory\artifacts\sha256\e3\e3687c9f974050a8b6642d59424679552376633a6bd03460dd3f611d52f7c9c0.txt
+9 - Archived payload on E: expands correctly: PASS - artifact_id=865d5e80-f341-41e5-9cd1-9323f1a9802b; e_uri=E:\AgentCore\agentmemory\cold\sha256\e3\e3687c9f974050a8b6642d59424679552376633a6bd03460dd3f611d52f7c9c0.txt; location_id=327edf6c-6a10-4d9e-9f43-095249b5e082
+aa0014cf-fdc1-45a3-ba49-0a584e3df1f0
+12 - Quarantined transcript evidence excluded from startup context: PASS - quarantined_event=f58446f4-5397-40db-a5a4-b74eeb853d4e not in context
+3 - Session open append retrieve compact expand close: PASS - summary=81418bf2-57e3-46cc-b429-68f81b363eb7; sources=2
 4 - Startup context within selected token budget: PASS - total_tokens=24 max_tokens=4096
-6 - Two projects cannot cross-read or cross-write protected state: PASS - project_A=m4_project_A_20260715234727 project_B=m4_project_B_20260715234727 isolated
-10 - Fact proposal does not silently become promoted truth: PASS - proposal_id=0afaf79a-d15e-4078-b859-c96c598e71d6; status=proposed
+6 - Two projects cannot cross-read or cross-write protected state: PASS - project_A=m4_project_A_20260716003416 project_B=m4_project_B_20260716003416 isolated
+10 - Fact proposal does not silently become promoted truth: PASS - proposal_id=4bc2577b-2028-4da3-aaa3-9e237121ae0a; status=proposed
 11 - Handoff generation is deterministic: PASS - events=5; consistent=true
 3b - session_close creates durable final state: PASS - 3 sessions closed; ended_at set
-13 - PostgreSQL interruption and recovery: PASS - memory_status=healthy; invalid_port_unavailable=true; migrations=3; note=service-stop requires admin
-14 - Memory-service restart and reconnect: PASS - killed_pid=54204; new_pid=51160
+13 - PostgreSQL interruption and recovery: PASS - memory_status=healthy; invalid_port_unavailable=true; migrations=4; note=service-stop requires admin
+14 - Memory-service restart and reconnect: PASS - killed_pid=57516; new_pid=50356
 15 - Bifrost restart and automatic upstream reconnect: PASS - agentcore_memory tools after restart=10
-17 - One safe Cursor call through unchanged agentcore-gateway: PASS - server=agentcore-memory version=0.4.0
+17 - One safe Cursor call through unchanged agentcore-gateway: PASS - server=agentcore-memory version=0.5.0
 18 - No IDE configuration changes occurred: PASS - cursor_mcp_json mtime unchanged

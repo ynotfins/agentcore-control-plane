@@ -791,7 +791,7 @@
       "display_name": "AgentCore Memory Gateway",
       "purpose": "Compact AgentCore memory/context gateway behind Bifrost; no raw DB/admin tools exposed.",
       "owner": "agentcore",
-      "pinned_version": "0.4.0",
+      "pinned_version": "0.5.0",
       "connection_type": "stdio",
       "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
       "arguments": [
@@ -840,10 +840,11 @@
       "status": "active",
       "notes": [
         "Stable server identity: agentcore-memory",
-        "M4 compact surface active; tools are bounded and never expose raw SQL/admin access.",
+        "M5 compact surface active; tools are bounded and never expose raw SQL/admin access.",
         "PostgreSQL reachability remains implemented internally and is reported through memory_status, not exposed as a separate normal-agent tool.",
         "Uses PostgreSQL 18 agent_core on 127.0.0.1:55433 internally via Windows env var credentials; IDE agents receive no DB credentials.",
-        "Reports Cognee as not_integrated_until_M5 and LangGraph as not_integrated_until_M6."
+        "Hybrid retrieval uses PostgreSQL metadata filters, full-text search, pg_trgm, exact pgvector baseline, and Cognee-curated rows only through KnowledgeMemoryPort.",
+        "Reports Cognee availability/degradation truthfully and LangGraph as not_integrated_until_M6."
       ]
     },
     "agentcore-project-router": {

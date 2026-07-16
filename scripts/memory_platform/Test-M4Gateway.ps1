@@ -24,6 +24,7 @@ $headers = @{ Authorization = "Bearer $key" }
 $pgBin = Join-Path $PgRoot "bin"
 $psql  = Join-Path $pgBin "psql.exe"
 $pgSvc = "AgentCore-PostgreSQL18"
+$m4Migration = Join-Path $repoRoot "migrations\m4\001_up_assemble_context_window_quarantine_filter.sql"
 $env:PGPASSWORD = [Environment]::GetEnvironmentVariable("AGENT_CORE_POSTGRES_PASSWORD", "User")
 $env:PGSSLMODE  = "require"
 
@@ -67,6 +68,20 @@ function Invoke-PsqlValue {
   return (($out | ForEach-Object { [string]$_ }) -join "`n").Trim()
 }
 
+function Invoke-PsqlFile {
+  param([string]$Path)
+  $old = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
+  try {
+    $out = & $psql -h 127.0.0.1 -p $PgPort -U postgres -d agent_core -v ON_ERROR_STOP=1 -f $Path 2>&1
+    $code = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $old
+  }
+  if ($code -ne 0) { throw "psql file failed ($code): $Path`n$($out -join "`n")" }
+  return (($out | ForEach-Object { [string]$_ }) -join "`n").Trim()
+}
+
 $runId  = Get-Date -Format "yyyyMMddHHmmss"
 $summary = [ordered]@{
   run_id       = $runId
@@ -86,6 +101,8 @@ $cursorMcpMtime = if (Test-Path $CursorMcpJson) {
 } else { 0 }
 
 try {
+
+  Invoke-PsqlFile -Path $m4Migration | Out-Null
 
   # ─────────────────────────────────────────────────────────────────────────────
   # CHECK 1: Direct MCP initialize and tools/list
@@ -120,12 +137,13 @@ try {
   # CHECK 16 (early): Optional/future components report degraded without breaking core
   # ─────────────────────────────────────────────────────────────────────────────
   $status = Invoke-Tool -Name "agentcore_memory-memory_status" -Arguments @{}
-  if ($status.components.cognee.status   -ne "not_integrated_until_M5" -or
+  $validCogneeStates = @("not_integrated_until_M5", "available", "degraded_disabled", "degraded_unavailable")
+  if ($status.components.cognee.status   -notin $validCogneeStates -or
       $status.components.langgraph.status -ne "not_integrated_until_M6") {
     throw "degraded component markers missing: cognee=$($status.components.cognee.status) langgraph=$($status.components.langgraph.status)"
   }
   Add-Check "16 - Optional/future components report degraded without breaking core" "PASS" `
-    "cognee=not_integrated_until_M5; langgraph=not_integrated_until_M6"
+    "cognee=$($status.components.cognee.status); langgraph=not_integrated_until_M6"
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Setup: open two sessions for project A and project B
