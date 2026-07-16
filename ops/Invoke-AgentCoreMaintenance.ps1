@@ -1,15 +1,15 @@
 param(
-  [string]$EngineRoot = "F:\AgentCore\postgres_runtime_engine\pgsql",
+  [string]$EngineRoot = "F:\PostgreSQL18",
   [string]$HostName = "127.0.0.1",
-  [int]$Port = 55432,
+  [int]$Port = 55433,
   [string]$Database = "agent_core",
-  [string]$User = "agent_admin"
+  [string]$User = "postgres"
 )
 
 $ErrorActionPreference = "Stop"
 
 if (-not $env:PGPASSWORD) {
-  $env:PGPASSWORD = [Environment]::GetEnvironmentVariable("AGENT_CORE_AGENT_ADMIN_PASSWORD", "User")
+  $env:PGPASSWORD = [Environment]::GetEnvironmentVariable("AGENT_CORE_POSTGRES_PASSWORD", "User")
 }
 if (-not $env:PGSSLMODE) {
   $env:PGSSLMODE = "require"

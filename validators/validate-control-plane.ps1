@@ -99,8 +99,8 @@ function Get-LiveCodexServers {
 
 function Get-AgentCoreListener {
   try {
-    $line = @(netstat -ano -p tcp | Select-String '127\.0\.0\.1:55432\s+.*LISTENING\s+\d+$' | Select-Object -First 1)[0]
-    if (-not $line) { return @{ ok = $false; detail = "no listener on 127.0.0.1:55432" } }
+    $line = @(netstat -ano -p tcp | Select-String '127\.0\.0\.1:55433\s+.*LISTENING\s+\d+$' | Select-Object -First 1)[0]
+    if (-not $line) { return @{ ok = $false; detail = "no listener on 127.0.0.1:55433" } }
     $parts = ($line.ToString() -replace "\s+", " ").Trim().Split(" ")
     return @{ ok = $true; detail = ("listener pid=" + $parts[-1] + " endpoint=" + $parts[1]) }
   }

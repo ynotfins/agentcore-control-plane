@@ -21,8 +21,9 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
   never commit secrets, rendered PAT URLs, DB dumps, or `F:\AgentCore` runtime state.
 - Drives: `C:` OS/config, `D:` repos/projects/worktrees, `E:` archive/cold, `F:` hot DB/RAG/search,
   `G:` backup, `H:` AgentRuntime (live Bifrost gateway — never format), `I:` disposable scratch,
-  `J:` portable media. Postgres `127.0.0.1:55432`; `agent_core` and `swarmrecall` are separate DBs;
-  `:65432` is forbidden.
+  `J:` portable media. PostgreSQL 18 `agent_core` / `cognee_core` uses `127.0.0.1:55433`;
+  PostgreSQL 16 at `127.0.0.1:55432` is preserved only for rollback/legacy evidence and Swarm-owned
+  databases. `:65432` is forbidden.
 - Renderers under `renderers/` are marked read-only by convention; clear the attribute only for an
   approved edit and restore it afterward.
 - DepWire: primary route is through `agentcore-gateway` (Bifrost `depwire` upstream). The local CLI at
@@ -40,7 +41,8 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
 
 ```text
 Bifrost gateway: http://127.0.0.1:8080/mcp   (H:\AgentRuntime\bifrost; scheduled task \AgentCore\AgentCore-Bifrost-Gateway)
-PostgreSQL 16:   127.0.0.1:55432   (F:\AgentCore\database_cluster; PG18 platform arrives per memory-platform M1)
+PostgreSQL 18:   127.0.0.1:55433   (F:\PostgreSQL18\data; canonical AgentCore agent_core + cognee_core)
+PostgreSQL 16:   127.0.0.1:55432   (F:\AgentCore\database_cluster; rollback/legacy evidence and Swarm-owned DBs only)
 
 Swarm ecosystem (separate — not part of non-Swarm IDE baselines):
 SwarmRecall API: http://127.0.0.1:3300   (health /api/v1/health)

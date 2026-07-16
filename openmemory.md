@@ -11,13 +11,14 @@
   - `D:\github\vendor\swarm`
   - `D:\github\vendor\memory`
 - Runtime roots:
-  - `F:\AgentCore` (hot database/vector/index tier)
+  - `F:\PostgreSQL18` (canonical PostgreSQL 18 data/service tier for `agent_core` and `cognee_core`)
+  - `F:\AgentCore` (preserved PG16 rollback/legacy evidence and Swarm-owned runtime state)
   - `H:\AgentRuntime` (live Bifrost gateway + Tentra data — never format H:)
 - Archive/backup root:
   - `E:\AgentCoreArchive` (canonical; live E: also carries `E:\AgentCore-Backups`)
 - Governed non-Swarm IDE memory:
   - `agentcore-gateway` at `http://127.0.0.1:8080/mcp`
-  - stable `agentcore-memory` identity behind Bifrost (health/status now; fuller memory platform later)
+  - stable `agentcore-memory` identity behind Bifrost with the completed M4/M5 compact retrieval surface
 
 ## Environment Variable Policy
 
@@ -66,6 +67,7 @@ AgentCore does not use `.env` files. All secrets and runtime credentials are sto
 - Keep vendor source, runtime state, and backups physically separated by root path.
 - Keep private first-responder data local-only by default.
 - Use `agentcore-gateway` + `agentcore-memory` for governed non-Swarm IDE memory; do not bypass it with local memory runtimes.
+- Treat PostgreSQL 18 at `127.0.0.1:55433` as canonical for AgentCore; classify `127.0.0.1:55432` as PG16 rollback/legacy evidence or Swarm-owned only.
 - Read project facts and static facts before planning or making architectural decisions.
 - If an AgentCore environment variable is missing, stop and report the variable name instead of creating a local fallback.
 - Do not place runtime DBs, dumps, `raw/`, `wiki/`, or incident data in the control-plane repo.

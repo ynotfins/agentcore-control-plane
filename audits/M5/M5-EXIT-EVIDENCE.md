@@ -117,3 +117,20 @@ Validation: `D:\ChaosCentral-Current-Build\scripts\Test-PCDocumentation.ps1` PAS
 - No runtime JIT tool leases.
 - No IDE MCP config edits.
 - No Swarm dependency added to the non-Swarm AgentCore baseline.
+
+## M0-M5 Hardening Delta — 2026-07-16
+
+Follow-up hardening evidence:
+
+- `audits/M5/M0-M5-HARDENING-EVIDENCE.md`
+- `audits/M5/FEATURE-RECONCILIATION-MATRIX.md`
+- `docs/memory-platform/BACKUP_RESTORE_WAL_PITR.md`
+
+Additional results:
+
+- PG18 logical/base/source/config backup created on E: and mirrored to G: with SHA-256 verification.
+- Isolated logical restore of `agent_core` and `cognee_core` passed.
+- WAL archiving enabled for PG18 with active WAL on F:, archive on E:, DR copy on G:.
+- PITR marker recovery passed in an isolated restore cluster.
+- Residual PG16 references were classified; current non-Swarm AgentCore drift was corrected where this shell had permission.
+- Live scheduled-task retarget and Windows service ownership repair remain elevated-permission follow-ups; Swarm-owned PG16 configuration was not changed.

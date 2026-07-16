@@ -1,17 +1,17 @@
-﻿1 - Versioned reversible M5 migration: PASS - up/down tested in agentcore_m5_rollback_20260716003954
+﻿1 - Versioned reversible M5 migration: PASS - up/down tested in agentcore_m5_rollback_20260716012321
 2 - Live M5 migration applied: PASS - migrations/m5/001_up_hybrid_retrieval_cognee.sql
 3 - Exact MCP surface preserved: PASS - agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context
-4 - Bounded M5 retrieval fixtures seeded: PASS - project=m5_project_A_20260716003954 docs={"fts":"5623260c-f8a6-4c3b-9679-39ec1917d8d6","vector":"07b9f9bc-4ba1-49f8-96c4-295cfb3a1796","trigram":"421db3bf-84fb-48de-8a71-c1ef028cbf3d","official":"526ad009-ac8d-4b09-a7f1-909c49ef0fd3"}
+4 - Bounded M5 retrieval fixtures seeded: PASS - project=m5_project_A_20260716012321 docs={"fts":"6d98cc08-5e93-4f40-ba92-a9c3d0dc926e","vector":"bbad1e64-33df-4a2b-b6f0-8351778a75e5","trigram":"aa51d014-19ba-4601-9100-056d6d997963","official":"0b530b29-4ec6-4fb7-a724-bb6c98d10541"}
 5 - Full-text retrieval returns expected fixture: PASS - method=postgres_fts
 6 - pg_trgm retrieves misspelling or partial identifier: PASS - method=postgres_trigram
 7 - Exact pgvector search produces correctness baseline: PASS - top=M5 exact vector baseline
-8 - HNSW benchmark gate recorded: PASS - {"decision":"deferred","corpus_rows":16,"hnsw_index_present":false}
+8 - HNSW benchmark gate recorded: PASS - {"decision":"deferred","corpus_rows":17,"hnsw_index_present":false}
 9 - Retrieval respects project and trust boundaries: PASS - project_B and quarantined sentinels absent
 10 - Raw transcripts rejected by promotion gate: PASS - expected SQL rejection
 11 - Quarantined evidence rejected by promotion gate: PASS - expected SQL rejection
-12 - Validated fact promoted with complete provenance: PASS - promotion_id=b84ea57e-ee6e-4bfb-abe0-4deb11a1a579
-13 - Cognee retrieval returns promoted fact and source references: PASS - promotion_id=b84ea57e-ee6e-4bfb-abe0-4deb11a1a579
-14 - E: official document found through F: index: PASS - source_path=E:\AgentCoreArchive\agentcore-memory\official-docs\m5-official-fixture-20260716003954.md
-15 - Cognee outage degrades to PostgreSQL-only retrieval: PASS - cognee=degraded_disabled; projections=28
+12 - Validated fact promoted with complete provenance: PASS - promotion_id=bb693b39-e18a-4934-b08f-3170c8765c8e
+13 - Cognee retrieval returns promoted fact and source references: PASS - promotion_id=bb693b39-e18a-4934-b08f-3170c8765c8e
+14 - E: official document found through F: index: PASS - source_path=E:\AgentCoreArchive\agentcore-memory\official-docs\m5-official-fixture-20260716012321.md
+15 - Cognee outage degrades to PostgreSQL-only retrieval: PASS - cognee=degraded_disabled; projections=32
 16 - No Mem0 package process database or config introduced: PASS - db_count=0; pip_show_mem0ai_absent=true; process_count=0
 17 - Bifrost restart and safe Cursor call succeed: PASS - server=agentcore-memory; tools=10

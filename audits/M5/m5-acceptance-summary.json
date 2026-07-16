@@ -1,13 +1,13 @@
 ﻿{
-    "run_id":  "20260716003954",
-    "started_at":  "2026-07-16T04:39:54.0960307Z",
+    "run_id":  "20260716012321",
+    "started_at":  "2026-07-16T05:23:21.7039137Z",
     "endpoint":  "http://127.0.0.1:8080/mcp",
     "migration":  "m5.001",
     "checks":  [
                    {
                        "name":  "1 - Versioned reversible M5 migration",
                        "result":  "PASS",
-                       "detail":  "up/down tested in agentcore_m5_rollback_20260716003954"
+                       "detail":  "up/down tested in agentcore_m5_rollback_20260716012321"
                    },
                    {
                        "name":  "2 - Live M5 migration applied",
@@ -22,7 +22,7 @@
                    {
                        "name":  "4 - Bounded M5 retrieval fixtures seeded",
                        "result":  "PASS",
-                       "detail":  "project=m5_project_A_20260716003954 docs={\"fts\":\"5623260c-f8a6-4c3b-9679-39ec1917d8d6\",\"vector\":\"07b9f9bc-4ba1-49f8-96c4-295cfb3a1796\",\"trigram\":\"421db3bf-84fb-48de-8a71-c1ef028cbf3d\",\"official\":\"526ad009-ac8d-4b09-a7f1-909c49ef0fd3\"}"
+                       "detail":  "project=m5_project_A_20260716012321 docs={\"fts\":\"6d98cc08-5e93-4f40-ba92-a9c3d0dc926e\",\"vector\":\"bbad1e64-33df-4a2b-b6f0-8351778a75e5\",\"trigram\":\"aa51d014-19ba-4601-9100-056d6d997963\",\"official\":\"0b530b29-4ec6-4fb7-a724-bb6c98d10541\"}"
                    },
                    {
                        "name":  "5 - Full-text retrieval returns expected fixture",
@@ -42,7 +42,7 @@
                    {
                        "name":  "8 - HNSW benchmark gate recorded",
                        "result":  "PASS",
-                       "detail":  "{\"decision\":\"deferred\",\"corpus_rows\":16,\"hnsw_index_present\":false}"
+                       "detail":  "{\"decision\":\"deferred\",\"corpus_rows\":17,\"hnsw_index_present\":false}"
                    },
                    {
                        "name":  "9 - Retrieval respects project and trust boundaries",
@@ -62,22 +62,22 @@
                    {
                        "name":  "12 - Validated fact promoted with complete provenance",
                        "result":  "PASS",
-                       "detail":  "promotion_id=b84ea57e-ee6e-4bfb-abe0-4deb11a1a579"
+                       "detail":  "promotion_id=bb693b39-e18a-4934-b08f-3170c8765c8e"
                    },
                    {
                        "name":  "13 - Cognee retrieval returns promoted fact and source references",
                        "result":  "PASS",
-                       "detail":  "promotion_id=b84ea57e-ee6e-4bfb-abe0-4deb11a1a579"
+                       "detail":  "promotion_id=bb693b39-e18a-4934-b08f-3170c8765c8e"
                    },
                    {
                        "name":  "14 - E: official document found through F: index",
                        "result":  "PASS",
-                       "detail":  "source_path=E:\\AgentCoreArchive\\agentcore-memory\\official-docs\\m5-official-fixture-20260716003954.md"
+                       "detail":  "source_path=E:\\AgentCoreArchive\\agentcore-memory\\official-docs\\m5-official-fixture-20260716012321.md"
                    },
                    {
                        "name":  "15 - Cognee outage degrades to PostgreSQL-only retrieval",
                        "result":  "PASS",
-                       "detail":  "cognee=degraded_disabled; projections=28"
+                       "detail":  "cognee=degraded_disabled; projections=32"
                    },
                    {
                        "name":  "16 - No Mem0 package process database or config introduced",
@@ -93,10 +93,10 @@
     "benchmarks":  {
                        "hnsw":  {
                                     "decision":  "deferred",
-                                    "corpus_rows":  16,
+                                    "corpus_rows":  17,
                                     "hnsw_index_present":  false
                                 }
                    },
-    "completed_at":  "2026-07-16T04:41:03.2134385Z",
+    "completed_at":  "2026-07-16T05:24:35.5297526Z",
     "result":  "PASS"
 }
