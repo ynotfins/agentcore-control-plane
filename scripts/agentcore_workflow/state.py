@@ -80,6 +80,15 @@ class WorkflowState(TypedDict):
     da_combined_score: float # post-execution combined score (0.70 * pre-exec + 0.30 * DA critic)
     post_exec_verdict: str   # verdict from post_exec_judge: proceed|needs_operator|block
 
+    # ── A/B alternate implementation (optional, bounded, high-risk only) ─────
+    # Activated by node_risk_assess when ab_enabled=True (risk >= high, uncertainty >= 0.5).
+    # The B-path runs in an isolated git worktree on I: (disposable scratch) and is
+    # archived to E:\\AgentCoreArchive\\ab-worktrees\\ after the run.
+    # Low-risk work never creates an alt worktree; these fields remain empty.
+    ab_alt_worktree_path: str  # path to isolated alternate worktree (I:\\ only); "" when unused
+    ab_alt_result: dict        # B-path DA builder result (empty dict when unused)
+    ab_selected: str           # "A"|"B"|"both_rejected"|"operator_review"|"" (unset)
+
     # ── Evidence accumulation ─────────────────────────────────────────────────
     evidence: Annotated[list[dict], _merge_list]
 
@@ -134,6 +143,9 @@ def initial_state(
         da_critic_result={},
         da_combined_score=0.0,
         post_exec_verdict="",
+        ab_alt_worktree_path="",
+        ab_alt_result={},
+        ab_selected="",
         evidence=[],
         execution_result={},
         errors=[],

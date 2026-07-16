@@ -1,4 +1,4 @@
-AgentCore M8 Acceptance Tests — 20260716091927
+AgentCore M8 Acceptance Tests — 20260716094606
 Repository: D:\github\agentcore-control-plane
 ========================================================================
 PASS 01 - PostgreSQL 18 reachable, agent_core accessible — version=PostgreSQL 18.4 on x86_64-windows, compiled by msv, db=agent_core
@@ -14,13 +14,19 @@ PASS 10 - Test-AgentCorePg18Pitr.ps1 exists — D:\github\agentcore-control-plan
 PASS 11 - No Swarm tables in agent_core (wf_ tables present) — wf_tables=12, swarm_tables=0
 PASS 12 - M6 regression passes (m6_acceptance.py) — exit=0; last=Summary: D:\github\agentcore-control-plane\audits\M6\m6-acceptance-summary.json
 PASS 13 - IDE_CAPABILITY_MATRIX.yaml exists — has m8_enrollment field
-PASS 14 - GLOBAL_STATE.md exists at C:\Users\ynotf\.agentcore\ — size=5337b
+PASS 14 - GLOBAL_STATE.md exists at C:\Users\ynotf\.agentcore\ — size=6318b
 PASS 15 - No secrets in key config files — clean
 PASS 16 - DA bounded: critic read-only, builder write, MemoryMiddleware disabled — read_only_critic=yes, builder_write=yes, memory_mw_disabled=yes
 PASS 17 - Operator CLI exists (scripts/agentcore/__main__.py) — __main__.py=ok, __init__.py=ok
 PASS 18 - Capability leases isolated (project_id FK + assert_project_scope) — capability_profiles.project_id=present, assert_project_scope=present
 PASS 19 - M7 acceptance passes (test_m7_acceptance.py) — exit=0; last=Summary: D:\github\agentcore-control-plane\audits\M7\m7-acceptance-summary.json
 PASS 20 - Swarm isolation: no SwarmRecall tools in agentcore-memory — no Swarm tools found in agentcore-memory
+PASS 21 - A/B worker module exists with required symbols — all A/B symbols present
+PASS 22 - Low-risk never enables A/B; qualifying high-risk does — low=False med=False high+low_u=False high+hi_u=True critical=True
+PASS 23 - da_critic routes to ab_alternate when ab_enabled=True — ab_alternate_route=True uses_ab_enabled=True
+PASS 24 - post_exec_judge A/B comparison: correct selection in all 4 cases — case1(A wins skip)=True case2(B wins high)=True case3(both_rejected)=True case4(A tiebreak)=True
+PASS 25 - ab_alternate node wired into workflow graph with conditional routing — ab_node=True conditional_da_critic=True ab_to_pej=True
+PASS 26 - IDE matrix: Cursor live_validated; no raw artifact_generated claims — cursor=live_validated invalid_statuses=[]
 ========================================================================
-Results: 20/20 PASS, 0 FAIL
+Results: 26/26 PASS, 0 FAIL
 OVERALL: PASS

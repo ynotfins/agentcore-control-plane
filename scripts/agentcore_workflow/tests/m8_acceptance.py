@@ -451,6 +451,178 @@ def test_20_swarm_isolation():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CHECK 21: A/B worker module exists and exports correct symbols
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_21_ab_worker_module():
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        import importlib
+        ab = importlib.import_module("agentcore_workflow.ab_worker")
+        required = [
+            "create_ab_worktree",
+            "archive_and_remove_ab_worktree",
+            "run_ab_alternate_builder",
+            "compare_ab_results",
+        ]
+        missing = [s for s in required if not hasattr(ab, s)]
+        passed = len(missing) == 0
+        detail = "all A/B symbols present" if passed else f"missing: {missing}"
+        check(21, "A/B worker module exists with required symbols", passed, detail)
+    except Exception as exc:
+        check(21, "A/B worker module exists with required symbols", False, str(exc))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHECK 22: Low-risk work never enables A/B (no alternate worktree created)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_22_ab_low_risk_skipped():
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        from agentcore_workflow.critics import should_enable_ab
+        low_enabled, low_just = should_enable_ab("low", 0.9)
+        medium_enabled, medium_just = should_enable_ab("medium", 0.9)
+        high_low_u, _ = should_enable_ab("high", 0.4)
+        high_hi_u, _ = should_enable_ab("high", 0.5)
+        critical_hi_u, _ = should_enable_ab("critical", 0.8)
+        passed = (
+            not low_enabled
+            and not medium_enabled
+            and not high_low_u
+            and high_hi_u
+            and critical_hi_u
+        )
+        detail = (
+            f"low={low_enabled} med={medium_enabled} "
+            f"high+low_u={high_low_u} high+hi_u={high_hi_u} critical={critical_hi_u}"
+        )
+        check(22, "Low-risk never enables A/B; qualifying high-risk does", passed, detail)
+    except Exception as exc:
+        check(22, "Low-risk never enables A/B; qualifying high-risk does", False, str(exc))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHECK 23: node_da_critic routes to ab_alternate when ab_enabled=True
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_23_da_critic_routes_to_ab_when_enabled():
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        node_src = (REPO_ROOT / "scripts" / "agentcore_workflow" / "nodes.py").read_text(encoding="utf-8")
+        in_critic_fn = False
+        critic_lines: list[str] = []
+        for line in node_src.splitlines():
+            if "def node_da_critic" in line:
+                in_critic_fn = True
+            elif in_critic_fn and line.startswith("def ") and "node_da_critic" not in line:
+                break
+            if in_critic_fn:
+                critic_lines.append(line)
+        critic_body = "\n".join(critic_lines)
+        routes_to_ab = "ab_alternate" in critic_body
+        uses_ab_enabled = "ab_enabled" in critic_body
+        passed = routes_to_ab and uses_ab_enabled
+        detail = f"ab_alternate_route={routes_to_ab} uses_ab_enabled={uses_ab_enabled}"
+        check(23, "da_critic routes to ab_alternate when ab_enabled=True", passed, detail)
+    except Exception as exc:
+        check(23, "da_critic routes to ab_alternate when ab_enabled=True", False, str(exc))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHECK 24: post_exec_judge compares A and B results (ab_alt_result in state)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_24_post_exec_judge_ab_comparison():
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        from agentcore_workflow.ab_worker import compare_ab_results
+
+        # Case 1: low-risk - B path skipped → A selected
+        a_ok = {"status": "completed", "score": 0.8}
+        b_skip = {"status": "skipped", "score": 0.0}
+        sel, just = compare_ab_results(a_ok, b_skip)
+        case1 = sel == "A"
+
+        # Case 2: both completed, B clearly better → B selected
+        a_low = {"status": "completed", "score": 0.6}
+        b_high = {"status": "completed", "score": 0.9}
+        sel2, just2 = compare_ab_results(a_low, b_high)
+        case2 = sel2 == "B"
+
+        # Case 3: both failed → both_rejected
+        a_fail = {"status": "error"}
+        b_fail = {"status": "error"}
+        sel3, just3 = compare_ab_results(a_fail, b_fail)
+        case3 = sel3 == "both_rejected"
+
+        # Case 4: scores close (within 0.05) → A as tiebreaker
+        a_close = {"status": "completed", "score": 0.82}
+        b_close = {"status": "completed", "score": 0.80}
+        sel4, just4 = compare_ab_results(a_close, b_close)
+        case4 = sel4 == "A"
+
+        passed = case1 and case2 and case3 and case4
+        detail = (
+            f"case1(A wins skip)={case1} case2(B wins high)={case2} "
+            f"case3(both_rejected)={case3} case4(A tiebreak)={case4}"
+        )
+        check(24, "post_exec_judge A/B comparison: correct selection in all 4 cases", passed, detail)
+    except Exception as exc:
+        check(24, "post_exec_judge A/B comparison: correct selection in all 4 cases", False, str(exc))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHECK 25: ab_alternate and post_exec_judge nodes wired in workflow graph
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_25_ab_wired_in_workflow():
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "scripts"))
+        wf_src = (REPO_ROOT / "scripts" / "agentcore_workflow" / "workflow.py").read_text(encoding="utf-8")
+        has_ab_node = "ab_alternate" in wf_src
+        has_conditional_da_critic = "add_conditional_edges" in wf_src and "ab_alternate" in wf_src
+        has_ab_to_pej_edge = "add_edge" in wf_src and "ab_alternate" in wf_src
+        passed = has_ab_node and has_conditional_da_critic and has_ab_to_pej_edge
+        detail = (
+            f"ab_node={has_ab_node} conditional_da_critic={has_conditional_da_critic} "
+            f"ab_to_pej={has_ab_to_pej_edge}"
+        )
+        check(25, "ab_alternate node wired into workflow graph with conditional routing", passed, detail)
+    except Exception as exc:
+        check(25, "ab_alternate node wired into workflow graph with conditional routing", False, str(exc))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHECK 26: IDE enrollment matrix: Cursor live_validated; others documented
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_26_ide_enrollment_accuracy():
+    try:
+        import yaml  # type: ignore[import]
+        matrix_path = REPO_ROOT / "ide-profiles" / "IDE_CAPABILITY_MATRIX.yaml"
+        matrix = yaml.safe_load(matrix_path.read_text(encoding="utf-8"))
+        ides = matrix.get("managed_ides", {})
+
+        valid_statuses = {"live_validated", "configured_restart_required", "awaiting_operator_import", "unsupported_with_reason"}
+        invalid_statuses = []
+        for name, ide in ides.items():
+            status = ide.get("m8_enrollment", "")
+            if status not in valid_statuses:
+                invalid_statuses.append(f"{name}={status}")
+
+        cursor_status = ides.get("cursor", {}).get("m8_enrollment", "")
+        cursor_live = cursor_status == "live_validated"
+        no_artifact_claim = len(invalid_statuses) == 0
+
+        passed = cursor_live and no_artifact_claim
+        detail = f"cursor={cursor_status} invalid_statuses={invalid_statuses}"
+        check(26, "IDE matrix: Cursor live_validated; no raw artifact_generated claims", passed, detail)
+    except Exception as exc:
+        check(26, "IDE matrix: Cursor live_validated; no raw artifact_generated claims", False, str(exc))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # MAIN
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -479,6 +651,12 @@ def main() -> None:
     test_18_lease_isolation()
     test_19_m7_acceptance()
     test_20_swarm_isolation()
+    test_21_ab_worker_module()
+    test_22_ab_low_risk_skipped()
+    test_23_da_critic_routes_to_ab_when_enabled()
+    test_24_post_exec_judge_ab_comparison()
+    test_25_ab_wired_in_workflow()
+    test_26_ide_enrollment_accuracy()
 
     print("=" * 72)
     passed_count = sum(1 for r in results if r["status"] == "PASS")

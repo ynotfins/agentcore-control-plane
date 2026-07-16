@@ -35,19 +35,28 @@ Completed before M8 implementation began:
 
 ### IDE Enrollment Matrix
 
-All 8 managed non-Swarm IDEs have M8 enrollment status recorded in
+All 8 managed non-Swarm IDEs have final cutover enrollment status recorded in
 `ide-profiles/IDE_CAPABILITY_MATRIX.yaml`:
 
-| IDE | M8 Enrollment Status | Notes |
-|-----|---------------------|-------|
-| cursor | `configured_restart_required` | MCP direct_write; global_rules=manual_import; validated 2026-07-13 |
-| codex | `configured_restart_required` | All direct_write; validated 2026-07-14 |
-| claude-code | `artifact_generated` | Config generated; live validation unverified |
-| claude-desktop | `artifact_generated` | MCP direct_write; global_rules=manual_import; full restart required |
-| minimax | `artifact_generated` | Config artifact generated; editability unverified |
-| antigravity | `artifact_generated` | Config artifact generated; editability unverified |
-| mavis | `artifact_generated` | Config artifact generated; editability unverified |
-| open-interpreter | `artifact_generated` | Profile system message; global_rules=manual_import |
+| IDE | Final Enrollment Status | Notes |
+|-----|------------------------|-------|
+| cursor | `live_validated` | **LIVE 2026-07-16**: 10 tools confirmed, session_open/append/startup_context/retrieve/session_close all validated; two-project isolation proven |
+| codex | `configured_restart_required` | Config verified at `~/.codex/config.toml` (url, bearer_token_env_var, enabled=true); new session required |
+| claude-code | `awaiting_operator_import` | Config artifact in ide-profiles/claude-code/; operator must run `claude mcp add agentcore-gateway` |
+| claude-desktop | `configured_restart_required` | Config verified at `%AppData%/Roaming/Claude/claude_desktop_config.json` (bearer materialized); app restart required |
+| minimax | `awaiting_operator_import` | Config artifact in ide-profiles/minimax/; follow INSTALL_OR_UPDATE.md |
+| antigravity | `awaiting_operator_import` | Config artifact in ide-profiles/antigravity/; follow INSTALL_OR_UPDATE.md |
+| mavis | `awaiting_operator_import` | Config artifact in ide-profiles/mavis/; follow INSTALL_OR_UPDATE.md |
+| open-interpreter | `awaiting_operator_import` | Config artifact in ide-profiles/open-interpreter/; follow INSTALL_OR_UPDATE.md |
+
+**Cursor Live Validation Evidence (2026-07-16T09:30Z):**
+- `memory_status`: `{"ok": true, "status": "healthy", "server": "agentcore-memory"}`
+- `session_open`: session_id=4c274044-20de-4efd-b2f5-34b8d6186063 (project: agentcore-control-plane)
+- `append_event`: event_id=6cf44741-9f43-4526-8e80-e87d19a03fc6 (event_kind=test_result)
+- `startup_context`: L0 raw tail returned (35 tokens, most recent event confirmed)
+- `retrieve_context`: returned multi-level context from project history
+- `session_close`: ok=true
+- Two-project isolation: PROJECT_A_PROTECTED_DATA absent from Project B context
 
 **File:** `ide-profiles/IDE_CAPABILITY_MATRIX.yaml`
 
@@ -72,16 +81,26 @@ All commands support `--json` flag. Exit codes: 0=ok, 1=warnings, 2=error.
 
 ### Windows Lifecycle
 
-All 6 required components documented in `ops/M8-LIFECYCLE-REGISTRY.md`:
+All 6 required components documented in `ops/M8-LIFECYCLE-REGISTRY.md`.
 
-| Component | Task Path | Status |
-|-----------|-----------|--------|
-| PostgreSQL 18 | `\AgentCore\PostgresRuntime` | Documented |
-| Bifrost Gateway | `\AgentCore\AgentCore-Bifrost-Gateway` | Documented |
-| DailyDriftCheck | `\AgentCore\DailyDriftCheck` | Documented |
-| NightlyBackup | `\AgentCore\NightlyBackup` | Documented |
-| NightlyRestoreTest | `\AgentCore\NightlyRestoreTest` | Documented |
-| WeeklyMaintenance | `\AgentCore\WeeklyMaintenance` | Documented |
+**PostgreSQL 18 lifecycle owner correction (2026-07-16):**
+Live evidence shows the Windows Service `AgentCore-PostgreSQL18` is the sole authoritative
+process owner (Status=Running, StartType=Automatic, NT AUTHORITY\NetworkService, binary
+`F:\PostgreSQL18\bin\pg_ctl.exe runservice`). Port 55433 confirmed as single-listener (PID
+verified unique). The scheduled task `\AgentCore\PostgresRuntime` is a secondary health-check
+guard that calls `ops/Start-AgentCorePostgres.ps1`; since that script checks `pg_ctl status`
+before optionally starting, it does NOT create a competing process when the service is running.
+Registry updated accordingly.
+
+| Component | Owner/Mechanism | Status |
+|-----------|----------------|--------|
+| PostgreSQL 18 | Windows Service `AgentCore-PostgreSQL18` (authoritative) | Running, Auto |
+| PG18 Guard | `\AgentCore\PostgresRuntime` scheduled task (health-check only) | Ready |
+| Bifrost Gateway | `\AgentCore\AgentCore-Bifrost-Gateway` | Running |
+| DailyDriftCheck | `\AgentCore\DailyDriftCheck` | Ready |
+| NightlyBackup | `\AgentCore\NightlyBackup` | Ready |
+| NightlyRestoreTest | `\AgentCore\NightlyRestoreTest` | Ready |
+| WeeklyMaintenance | `\AgentCore\WeeklyMaintenance` | Ready |
 
 Each entry includes: start/stop/restart/status commands, log location, restart-on-failure policy.
 
@@ -172,6 +191,55 @@ SwarmRecall, SwarmVault, and SwarmClaw remain untouched and isolated.
 
 ---
 
+### A/B Workflow Implementation (Final Cutover 2026-07-16)
+
+The M6 workflow now implements a real alternate implementation path for high-risk, high-uncertainty work.
+
+**Implementation files:**
+- `scripts/agentcore_workflow/ab_worker.py` — worktree creation, B-path runner, deterministic comparison
+- `scripts/agentcore_workflow/state.py` — added `ab_alt_worktree_path`, `ab_alt_result`, `ab_selected` fields
+- `scripts/agentcore_workflow/nodes.py` — added `node_ab_alternate`; updated `node_da_critic` routing; updated `node_post_exec_judge` A/B comparison
+- `scripts/agentcore_workflow/workflow.py` — added `ab_alternate` node; changed `da_critic→post_exec_judge` fixed edge to conditional; added `ab_alternate→post_exec_judge` edge
+
+**Proven behavior (M8 acceptance tests 21-26):**
+- Low-risk (`risk_class=low/medium` or `uncertainty < 0.5`): `ab_enabled=False`, no alternate worktree created
+- Qualifying high-risk (`risk_class in {high, critical}` AND `uncertainty >= 0.5`): `ab_enabled=True`, `node_ab_alternate` creates isolated git worktree on I: (disposable scratch)
+- B-path DA builder runs in isolated worktree with identical requirements as A-path
+- Both results archived before routing to `post_exec_judge`
+- Deterministic comparison: A wins (skip), B wins (superior), both_rejected, or operator_review
+- Worktree archived to `E:\AgentCoreArchive\ab-worktrees\` after capture
+- Project and tool isolation: B-path FilesystemMiddleware scoped to I: worktree only
+
+**Regression (M6: 18/18 PASS, M8: 26/26 PASS):**
+See `audits/M6/m6-acceptance-summary.json`, `audits/M8/m8-acceptance-summary.json`.
+
+---
+
+### Cross-IDE Rolling Context Proof (Partial — 2026-07-16)
+
+**Status: PARTIAL** — Cursor is live_validated. Two-IDE proof awaiting Codex session start and
+Claude Desktop restart (see IDE enrollment matrix for operator actions required).
+
+**Proven (single IDE, two projects, 2026-07-16T09:30-09:45Z):**
+
+| Proof Item | Result |
+|-----------|--------|
+| separate session_open identities | PASS — session A (4c274044), session B (a28893f0), both project_ids distinct |
+| verbatim event preservation | PASS — append_event idempotency_key preserved in startup_context |
+| append and retrieval | PASS — event_id 6cf44741 appended and visible in L0 raw tail |
+| L0 recent raw tail | PASS — startup_context returned most-recent event as first L0 item |
+| startup_context | PASS — token-budgeted context returned within 500-token budget |
+| session_close and handoff | PASS — session_close ok=true for all opened sessions |
+| Project A cannot retrieve Project B memory | PASS — PROJECT_A_PROTECTED_DATA absent from Project B startup_context |
+| Project B cannot retrieve Project A memory | PASS — PROJECT_B_PROTECTED_DATA absent from Project A startup_context |
+| IDE A ≠ IDE B session merge | PARTIAL — within Cursor, client_key isolation proved; cross-IDE proof pending operator action |
+
+**Pending two-IDE completion:**
+1. Codex: start new session; run `memory_status` to confirm 10 tools; open session; append event; retrieve context
+2. Claude Desktop: restart application; open Claude and verify agentcore-gateway appears in MCP list
+
+---
+
 ## M8 Acceptance Test Results
 
 Test script: `scripts/agentcore_workflow/tests/m8_acceptance.py`  
@@ -187,17 +255,22 @@ Results are captured at runtime. See `m8-acceptance-summary.json` for the latest
 |------|--------|------|
 | `scripts/agentcore/__init__.py` | Created | CLI |
 | `scripts/agentcore/__main__.py` | Created | CLI |
-| `scripts/agentcore_workflow/tests/m8_acceptance.py` | Created | Acceptance tests |
+| `scripts/agentcore_workflow/tests/m8_acceptance.py` | Updated | Acceptance tests (26 checks) |
 | `C:\Users\ynotf\.agentcore\GLOBAL_STATE.md` | Updated | GLOBAL_STATE |
-| `ide-profiles/IDE_CAPABILITY_MATRIX.yaml` | Updated | IDE matrix |
+| `ide-profiles/IDE_CAPABILITY_MATRIX.yaml` | Updated | IDE matrix (Cursor=live_validated) |
 | `scripts/bootstrap-runtime.ps1` | Created | Bootstrap |
 | `docs/memory-platform/RETENTION_POLICY.md` | Created | Retention |
 | `audits/M8/PERFORMANCE_BASELINE.md` | Created | Performance |
 | `audits/M8/SECURITY_BASELINE.md` | Created | Security |
-| `ops/M8-LIFECYCLE-REGISTRY.md` | Created | Lifecycle |
-| `audits/M8/M8-EXIT-EVIDENCE.md` | Created | This file |
-| `audits/M8/m8-acceptance-summary.json` | Generated | Test output |
+| `ops/M8-LIFECYCLE-REGISTRY.md` | Updated | Lifecycle (PG18 owner correction) |
+| `audits/M8/M8-EXIT-EVIDENCE.md` | Updated | This file |
+| `audits/M8/m8-acceptance-summary.json` | Generated | Test output (26/26 PASS) |
 | `audits/M8/m8-acceptance-summary.txt` | Generated | Test output |
+| **Final cutover additions (2026-07-16):** | | |
+| `scripts/agentcore_workflow/ab_worker.py` | Created | A/B alternate worker |
+| `scripts/agentcore_workflow/state.py` | Updated | Added A/B state fields |
+| `scripts/agentcore_workflow/nodes.py` | Updated | Added node_ab_alternate; updated routing |
+| `scripts/agentcore_workflow/workflow.py` | Updated | Added ab_alternate node and edge |
 
 ---
 

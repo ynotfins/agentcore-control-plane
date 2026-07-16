@@ -7,12 +7,20 @@ Node graph:
   start → gate_check → deterministic_checks → risk_assess →
   critics_and_score → judge_node (PRE-EXECUTION GATE) →
     proceed (da_enabled=False): micro_execute → evidence_record
-    proceed (da_enabled=True):  da_builder → da_critic → post_exec_judge →
-                                  proceed/needs_operator: evidence_record
-                                  block:                  workflow_fail
+    proceed (da_enabled=True):  da_builder → da_critic →
+                                  ab_enabled=True: node_ab_alternate → post_exec_judge
+                                  ab_enabled=False: post_exec_judge
+                                  post_exec_judge:
+                                    proceed/needs_operator: evidence_record
+                                    block:                  workflow_fail
     needs_operator:             human_pause → da_builder | micro_execute
     block:                      workflow_fail
   micro_execute | post_exec_judge → evidence_record → next_step → gate_check | done
+
+A/B alternate path (high-risk only, ab_enabled=True):
+  After da_critic: node_ab_alternate creates isolated git worktree on I:,
+  runs DA builder B-path, archives to E:, routes to post_exec_judge.
+  post_exec_judge compares A (da_builder_result) vs B (ab_alt_result) and selects.
 
 Deep Agents nodes (da_builder, da_critic) are bounded worker harness nodes.
 They are NOT canonical memory, checkpoint, or policy authorities.
@@ -36,6 +44,7 @@ from __future__ import annotations
 
 import json
 import time
+import uuid as _uuid_module
 from datetime import datetime, timezone
 from typing import Any
 
@@ -797,6 +806,7 @@ def node_da_critic(state: WorkflowState) -> dict:
 
     if not DEEPAGENTS_AVAILABLE or not worktree_path:
         # No DA available — neutral findings; post_exec_judge will decide routing.
+        # A/B alternate is also skipped when DA is unavailable.
         return {
             "da_critic_result": {"status": "skipped_no_da", "passed": True, "score": 1.0},
             "next_action": "post_exec_judge",
@@ -833,10 +843,14 @@ def node_da_critic(state: WorkflowState) -> dict:
         except Exception:
             pass
 
-    # Always route to the independent post-execution judge — never self-adjudicate.
+    # Route: when ab_enabled=True, go through node_ab_alternate before post_exec_judge.
+    # When ab_enabled=False, route directly to post_exec_judge.
+    # DA critic never self-adjudicates (M8 invariant).
+    ab_enabled = state.get("ab_enabled", False)
+    next_action = "ab_alternate" if ab_enabled else "post_exec_judge"
     return {
         "da_critic_result": critic_result,
-        "next_action": "post_exec_judge",
+        "next_action": next_action,
     }
 
 
@@ -870,6 +884,7 @@ def node_post_exec_judge(state: WorkflowState) -> dict:
       block          → workflow_fail
     """
     from .critics import post_execution_judge
+    from .ab_worker import compare_ab_results
 
     run_db_id = state.get("run_db_id", "")
     project_id = state["project_id"]
@@ -884,6 +899,36 @@ def node_post_exec_judge(state: WorkflowState) -> dict:
     builder_result: dict = state.get("da_builder_result", {})
     da_critic_result: dict = state.get("da_critic_result", {"passed": True, "score": 1.0})
 
+    # A/B comparison: when ab_alt_result is present, compare A vs B and record selection.
+    ab_alt_result: dict = state.get("ab_alt_result", {})
+    ab_selected = ""
+    ab_selection_justification = ""
+
+    if ab_alt_result and ab_alt_result.get("status") not in ("", "skipped", None):
+        ab_selected, ab_selection_justification = compare_ab_results(
+            a_result=builder_result,
+            b_result=ab_alt_result,
+        )
+        # Use the selected implementation as the authoritative builder_result for judging.
+        if ab_selected == "B":
+            builder_result = ab_alt_result
+        # Record the A/B selection as evidence.
+        if run_db_id:
+            try:
+                db.record_evidence(
+                    run_db_id, project_id, micro_key,
+                    "ab_selection",
+                    f"A/B judge selected {ab_selected}: {ab_selection_justification}",
+                    {
+                        "selected": ab_selected,
+                        "justification": ab_selection_justification,
+                        "a_status": state.get("da_builder_result", {}).get("status", ""),
+                        "b_status": ab_alt_result.get("status", ""),
+                    },
+                )
+            except Exception:
+                pass
+
     verdict, reasoning = post_execution_judge(
         pre_exec_score=pre_exec_score,
         det_checks=det_checks,
@@ -892,6 +937,11 @@ def node_post_exec_judge(state: WorkflowState) -> dict:
         builder_result=builder_result,
         da_critic_result=da_critic_result,
     )
+
+    # Adjust verdict for A/B operator_review cases: escalate to needs_operator.
+    if ab_selected == "operator_review" and verdict != "block":
+        verdict = "needs_operator"
+        reasoning = f"A/B operator review requested: {ab_selection_justification}. {reasoning}"
 
     # Compute combined score for state tracking
     da_critic_score = float(da_critic_result.get("score", 1.0))
@@ -903,7 +953,13 @@ def node_post_exec_judge(state: WorkflowState) -> dict:
                 run_db_id, project_id, micro_key,
                 "post_exec_judge", risk_class,
                 [builder_result, da_critic_result],
-                {"verdict": verdict, "reasoning": reasoning, "combined_score": combined_score},
+                {
+                    "verdict": verdict,
+                    "reasoning": reasoning,
+                    "combined_score": combined_score,
+                    "ab_selected": ab_selected,
+                    "ab_justification": ab_selection_justification,
+                },
                 verdict != "block",
                 combined_score,
                 verdict,
@@ -923,8 +979,107 @@ def node_post_exec_judge(state: WorkflowState) -> dict:
     return {
         "da_combined_score": combined_score,
         "post_exec_verdict": verdict,
+        "ab_selected": ab_selected,
         "next_action": next_action,
         "errors": errors,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# A/B ALTERNATE NODE
+# ─────────────────────────────────────────────────────────────────────────────
+
+def node_ab_alternate(state: WorkflowState) -> dict:
+    """Run the DA alternate builder in an isolated git worktree (B path).
+
+    Only reached when ab_enabled=True (risk_class in {high, critical} AND
+    uncertainty_score >= 0.5). Low-risk work never reaches this node.
+
+    Responsibilities:
+    1. Create an isolated detached git worktree on I: (disposable scratch).
+    2. Run the same DA builder task with identical requirements/acceptance
+       criteria as the A-path (da_builder), but in the isolated worktree.
+    3. Archive minimal result metadata to E:\\AgentCoreArchive\\ab-worktrees\\.
+    4. Remove the worktree from I:.
+    5. Set ab_alt_result in state and route to post_exec_judge.
+
+    post_exec_judge will compare A (da_builder_result) vs B (ab_alt_result)
+    and select the better implementation.
+
+    Isolation guarantees:
+    - B-path worktree is on I: only; never shares files with primary worktree.
+    - B-path DA builder uses FilesystemMiddleware scoped to the I: worktree.
+    - All durable writes from B go through db.record_evidence() only.
+    - The primary checkpoint (PostgresSaver) is not affected by the B path.
+    """
+    from .ab_worker import (
+        create_ab_worktree,
+        run_ab_alternate_builder,
+        archive_and_remove_ab_worktree,
+    )
+
+    run_db_id = state.get("run_db_id", "") or str(_uuid_module.uuid4())
+    micro_key = state.get("current_micro_key", "unknown")
+    project_id = state["project_id"]
+
+    task = f"Execute micro step {micro_key}: {_micro_label(state, micro_key)}"
+
+    agentcore_context = (
+        f"Project: {state['project_key']}\n"
+        f"Milestone: {state.get('milestone_key', 'M6')}\n"
+        f"Micro step: {micro_key}\n"
+        f"Risk class: {state.get('current_risk_class', 'high')}\n"
+        f"A/B path: ALTERNATE (B) — isolated worktree on I:\n"
+        f"Requirements identical to primary (A) path: {task}\n"
+    )
+
+    active_tool = state.get("active_lease_tool", "")
+    allowed_tools = [active_tool] if active_tool else []
+
+    ab_alt_worktree_path = ""
+    ab_alt_result: dict = {"status": "skipped", "reason": "not_started"}
+
+    try:
+        worktree_path, branch_label = create_ab_worktree(run_id=run_db_id)
+        ab_alt_worktree_path = worktree_path
+
+        ab_alt_result = run_ab_alternate_builder(
+            task=task,
+            worktree_path=worktree_path,
+            agentcore_context=agentcore_context,
+            allowed_tools=allowed_tools,
+            run_id=run_db_id,
+        )
+
+        # Archive metadata and remove the worktree before routing on.
+        archive_path = archive_and_remove_ab_worktree(
+            worktree_path=worktree_path, run_id=run_db_id
+        )
+        ab_alt_result["archive_path"] = archive_path
+
+    except Exception as exc:
+        ab_alt_result = {
+            "status": "error",
+            "ab_path": "alternate",
+            "message": str(exc),
+        }
+
+    # Persist B-path result to durable evidence
+    if run_db_id and project_id:
+        try:
+            db.record_evidence(
+                run_db_id, project_id, micro_key,
+                "ab_alternate_result",
+                f"A/B alternate (B path) {micro_key}: {ab_alt_result.get('status', 'unknown')}",
+                ab_alt_result,
+            )
+        except Exception:
+            pass
+
+    return {
+        "ab_alt_worktree_path": ab_alt_worktree_path,
+        "ab_alt_result": ab_alt_result,
+        "next_action": "post_exec_judge",
     }
 
 

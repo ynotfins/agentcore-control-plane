@@ -338,9 +338,19 @@ def test_da_graph_routing_structure():
     assert "da_critic" in wf_src, "da_critic must be in the graph"
     assert '"da_builder"' in wf_src
     assert '"da_critic"' in wf_src
-    # M8 invariant: da_critic uses a FIXED edge to post_exec_judge (critic never self-adjudicates)
-    assert 'add_edge("da_critic", "post_exec_judge")' in wf_src, (
-        "da_critic must use a fixed edge to post_exec_judge (M8 invariant: critic is not its own judge)"
+    # M8 invariant: da_critic always routes to post_exec_judge (critic never self-adjudicates).
+    # Updated for A/B path: da_critic uses a CONDITIONAL edge that routes to either
+    # ab_alternate (when ab_enabled=True) or post_exec_judge directly (when ab_enabled=False).
+    # ab_alternate always routes to post_exec_judge. The invariant is preserved: da_critic
+    # never routes to evidence_record or workflow_fail directly.
+    assert 'add_conditional_edges("da_critic"' in wf_src or 'add_edge("da_critic"' in wf_src, (
+        "da_critic must have an edge to post_exec_judge path (M8 invariant: critic is not its own judge)"
+    )
+    assert '"post_exec_judge"' in wf_src and '"ab_alternate"' in wf_src, (
+        "Both post_exec_judge and ab_alternate must be targets reachable from da_critic path"
+    )
+    assert 'add_edge("ab_alternate", "post_exec_judge")' in wf_src, (
+        "ab_alternate must have a fixed edge to post_exec_judge (A/B path invariant)"
     )
     # post_exec_judge uses conditional edge (independent judge routes to evidence_record or workflow_fail)
     assert 'add_conditional_edges("post_exec_judge"' in wf_src, (

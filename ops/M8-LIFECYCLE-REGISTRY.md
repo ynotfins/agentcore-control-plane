@@ -10,48 +10,68 @@
 
 ### PostgreSQL 18
 
+> **Lifecycle owner correction — 2026-07-16:**
+> Live evidence shows the **Windows Service `AgentCore-PostgreSQL18`** is the authoritative
+> process owner (Status=Running, StartType=Automatic, `NT AUTHORITY\NetworkService`).
+> The scheduled task `\AgentCore\PostgresRuntime` is a secondary health-check helper that
+> calls `ops/Start-AgentCorePostgres.ps1 -StartIfStopped` to guard against a stopped
+> service after machine reboot races; it does NOT start a competing postgres.exe process.
+> The Windows Service is preferred per BLUEPRINT.md and was verified as the sole process
+> owner at 2026-07-16 09:30 UTC (TCP 127.0.0.1:55433 held by single PID).
+
 | Property | Value |
 |----------|-------|
 | **Component** | PostgreSQL 18 database server |
-| **Mechanism** | Windows Scheduled Task (wraps service management) |
-| **Task path** | `\AgentCore\PostgresRuntime` |
+| **Primary mechanism** | Windows Service `AgentCore-PostgreSQL18` (authoritative process owner) |
+| **Service binary** | `"F:\PostgreSQL18\bin\pg_ctl.exe" runservice -N "AgentCore-PostgreSQL18" -D "F:\PostgreSQL18\data" -w` |
+| **Secondary guard** | Scheduled Task `\AgentCore\PostgresRuntime` (health-check wrapper; not a competing owner) |
+| **Startup** | Automatic (Windows Service SC config) |
+| **Service account** | `NT AUTHORITY\NetworkService` |
 | **Data path** | `F:\PostgreSQL18\data` |
 | **Binary path** | `F:\PostgreSQL18\bin\pg_ctl.exe` |
 | **Endpoint** | `127.0.0.1:55433` |
 | **Log location** | `F:\PostgreSQL18\data\log\` (PostgreSQL log_directory) |
 
-**Start:**
+**Start (Windows Service — preferred):**
 ```powershell
-Start-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'PostgresRuntime'
-# Or directly:
-& 'F:\PostgreSQL18\bin\pg_ctl.exe' start -D 'F:\PostgreSQL18\data' -l 'F:\PostgreSQL18\data\log\pg18.log'
+Start-Service -Name 'AgentCore-PostgreSQL18'
 ```
 
-**Stop:**
+**Stop (Windows Service — preferred):**
 ```powershell
-# Stop the scheduled task (stops trigger; pg_ctl stop is needed for DB shutdown)
-Stop-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'PostgresRuntime'
-# Graceful shutdown:
+Stop-Service -Name 'AgentCore-PostgreSQL18' -Force
+# Or graceful:
 & 'F:\PostgreSQL18\bin\pg_ctl.exe' stop -D 'F:\PostgreSQL18\data' -m fast
 ```
 
-**Restart:**
+**Restart (Windows Service — preferred):**
 ```powershell
-Stop-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'PostgresRuntime'
-& 'F:\PostgreSQL18\bin\pg_ctl.exe' stop -D 'F:\PostgreSQL18\data' -m fast
-Start-Sleep -Seconds 3
-Start-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'PostgresRuntime'
+Restart-Service -Name 'AgentCore-PostgreSQL18' -Force
 ```
 
 **Status:**
 ```powershell
-# Scheduled task state:
+# Windows Service state (authoritative):
+Get-Service -Name 'AgentCore-PostgreSQL18' | Select Name, Status, StartType
+# Scheduled task guard state (secondary):
 Get-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'PostgresRuntime' | Select State, LastRunTime
 # Database connectivity:
 & 'F:\PostgreSQL18\bin\psql.exe' -h 127.0.0.1 -p 55433 -U postgres -c 'SELECT version();'
+# Verify single process owner (no duplicate postgres.exe):
+Get-Process -Name 'postgres' -ErrorAction SilentlyContinue | Select Id, Path, StartTime
+netstat -ano | findstr ':55433'
 ```
 
-**Restart-on-failure policy:** Task configured with restart-on-failure (3 retries, 1-minute interval).
+**Restart-on-failure policy:**
+Windows Service is configured with `ERROR_CONTROL = NORMAL` and `START_TYPE = AUTO_START`.
+For failure recovery, use `sc.exe failure AgentCore-PostgreSQL18 reset=86400 actions=restart/60000/restart/120000/restart/300000`.
+The scheduled task `PostgresRuntime` provides additional startup-guard at machine boot (calls Start-AgentCorePostgres.ps1 which verifies connectivity and starts if stopped).
+
+**Duplicate process check:**
+The scheduled task `PostgresRuntime` uses `ops/Start-AgentCorePostgres.ps1` which checks
+`pg_ctl status` before calling `pg_ctl start -StartIfStopped`. If the service is already
+running, the script reports the server running and exits without starting a second process.
+No duplicate postgres.exe trees are possible under normal conditions.
 
 ---
 

@@ -1,0 +1,24 @@
+﻿{
+    "ok":  true,
+    "backup_path":  "E:\\AgentCoreArchive\\agentcore-memory\\backups\\pg18\\20260716-030001",
+    "manifest":  "E:\\AgentCoreArchive\\agentcore-memory\\backups\\pg18\\20260716-030001\\backup-manifest.json",
+    "restore_root":  "I:\\AgentCoreRestoreTests\\pg18\\20260716-033001",
+    "restore_port":  55439,
+    "restored_databases":  [
+                               "agent_core",
+                               "cognee_core"
+                           ],
+    "validation":  {
+                       "agent_core_extensions":  "[\"pg_trgm=1.6\", \"pgcrypto=1.4\", \"plpgsql=1.0\", \"vector=0.8.5\"]",
+                       "agentcore_roles":  "[\"agentcore_admin\", \"agentcore_backup\", \"agentcore_cognee\", \"agentcore_ingest\", \"agentcore_read\", \"agentcore_worker\"]",
+                       "agent_core_row_counts":  {
+                                                     "agentcore.evidence_events":  115,
+                                                     "agentcore.context_summaries":  23,
+                                                     "agentcore.projection_revisions":  40,
+                                                     "agentcore.retrieval_documents":  115,
+                                                     "agentcore.knowledge_promotions":  null
+                                                 },
+                       "cognee_tables":  "29"
+                   },
+    "validated_at":  "2026-07-16T07:30:09.9442128Z"
+}

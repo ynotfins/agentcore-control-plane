@@ -1,6 +1,6 @@
 {
-  "run_id": "20260716092006",
-  "timestamp": "2026-07-16T09:20:13.526335+00:00",
+  "run_id": "20260716094619",
+  "timestamp": "2026-07-16T09:46:26.043598+00:00",
   "pass_count": 18,
   "fail_count": 0,
   "total": 18,
@@ -16,7 +16,7 @@
       "check": 2,
       "name": "Workflow resume after process restart",
       "status": "PASS",
-      "detail": "run_id=5a23d3b1-06a9-4008-a72f-45a7b549be10 status=running"
+      "detail": "run_id=1d204d4c-4ffd-427a-b1fe-d99821a430a4 status=running"
     },
     {
       "check": 3,

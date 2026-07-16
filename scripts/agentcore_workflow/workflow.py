@@ -28,6 +28,7 @@ from .nodes import (
     node_micro_execute,
     node_da_builder,
     node_da_critic,
+    node_ab_alternate,
     node_post_exec_judge,
     node_evidence_record,
     node_next_step,
@@ -68,6 +69,8 @@ def build_graph(conninfo: str | None = None) -> tuple[Any, PostgresSaver]:
     # DA worker nodes (bounded harness; see ADR-DEEP-AGENTS-WORKER-HARNESS.md)
     builder.add_node("da_builder", node_da_builder)
     builder.add_node("da_critic", node_da_critic)
+    # A/B alternate node (bounded DA worker in isolated I: worktree; high-risk only)
+    builder.add_node("ab_alternate", node_ab_alternate)
     # Post-execution independent judge (M8 invariant: DA critic is NOT its own judge)
     builder.add_node("post_exec_judge", node_post_exec_judge)
     builder.add_node("evidence_record", node_evidence_record)
@@ -130,9 +133,16 @@ def build_graph(conninfo: str | None = None) -> tuple[Any, PostgresSaver]:
         "workflow_fail": "workflow_fail",
     })
 
-    # DA critic → post_exec_judge (FIXED edge: critic is a findings collector only;
-    # it never self-adjudicates — M8 invariant).
-    builder.add_edge("da_critic", "post_exec_judge")
+    # DA critic routes:
+    # - ab_enabled=True  → ab_alternate (B-path in isolated I: worktree) → post_exec_judge
+    # - ab_enabled=False → post_exec_judge directly
+    # M8 invariant: DA critic is a findings collector only; it never self-adjudicates.
+    builder.add_conditional_edges("da_critic", route, {
+        "ab_alternate": "ab_alternate",
+        "post_exec_judge": "post_exec_judge",
+    })
+    # A/B alternate always routes to post_exec_judge for final comparison and selection.
+    builder.add_edge("ab_alternate", "post_exec_judge")
 
     # Post-execution independent judge → evidence_record (pass) or workflow_fail (block)
     # This is the independent authority that evaluates the full post-execution evidence.

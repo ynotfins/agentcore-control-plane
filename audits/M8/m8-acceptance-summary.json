@@ -1,8 +1,8 @@
 {
-  "run_ts": "20260716091927",
+  "run_ts": "20260716094606",
   "repo_root": "D:\\github\\agentcore-control-plane",
-  "total": 20,
-  "passed": 20,
+  "total": 26,
+  "passed": 26,
   "failed": 0,
   "overall": "PASS",
   "checks": [
@@ -88,7 +88,7 @@
       "check": 14,
       "name": "GLOBAL_STATE.md exists at C:\\Users\\ynotf\\.agentcore\\",
       "status": "PASS",
-      "detail": "size=5337b"
+      "detail": "size=6318b"
     },
     {
       "check": 15,
@@ -125,6 +125,42 @@
       "name": "Swarm isolation: no SwarmRecall tools in agentcore-memory",
       "status": "PASS",
       "detail": "no Swarm tools found in agentcore-memory"
+    },
+    {
+      "check": 21,
+      "name": "A/B worker module exists with required symbols",
+      "status": "PASS",
+      "detail": "all A/B symbols present"
+    },
+    {
+      "check": 22,
+      "name": "Low-risk never enables A/B; qualifying high-risk does",
+      "status": "PASS",
+      "detail": "low=False med=False high+low_u=False high+hi_u=True critical=True"
+    },
+    {
+      "check": 23,
+      "name": "da_critic routes to ab_alternate when ab_enabled=True",
+      "status": "PASS",
+      "detail": "ab_alternate_route=True uses_ab_enabled=True"
+    },
+    {
+      "check": 24,
+      "name": "post_exec_judge A/B comparison: correct selection in all 4 cases",
+      "status": "PASS",
+      "detail": "case1(A wins skip)=True case2(B wins high)=True case3(both_rejected)=True case4(A tiebreak)=True"
+    },
+    {
+      "check": 25,
+      "name": "ab_alternate node wired into workflow graph with conditional routing",
+      "status": "PASS",
+      "detail": "ab_node=True conditional_da_critic=True ab_to_pej=True"
+    },
+    {
+      "check": 26,
+      "name": "IDE matrix: Cursor live_validated; no raw artifact_generated claims",
+      "status": "PASS",
+      "detail": "cursor=live_validated invalid_statuses=[]"
     }
   ]
 }
