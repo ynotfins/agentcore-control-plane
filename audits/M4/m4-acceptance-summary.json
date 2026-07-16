@@ -1,0 +1,54 @@
+﻿{
+    "run_id":  "20260715212207",
+    "started_at":  "2026-07-16T01:22:07.7241460Z",
+    "endpoint":  "http://127.0.0.1:8080/mcp",
+    "checks":  [
+                   {
+                       "name":  "Bifrost tools-list exposes compact M4 surface",
+                       "result":  "PASS",
+                       "detail":  "agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_health, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context"
+                   },
+                   {
+                       "name":  "memory_status reports degraded/future components clearly",
+                       "result":  "PASS",
+                       "detail":  "cognee=M5; langgraph=M6"
+                   },
+                   {
+                       "name":  "multiple sessions opened safely",
+                       "result":  "PASS",
+                       "detail":  "A=344b6cd8-7cff-4316-85cd-3c96074af22b; B=2ff4159e-c29b-4aaa-922b-479921b26163"
+                   },
+                   {
+                       "name":  "append_event works end-to-end through gateway",
+                       "result":  "PASS",
+                       "detail":  "eventA=8d95cd44-dd62-41fe-babb-2c9fa9e1f8ff; eventB=1d3538fc-d934-47fe-8e6a-9e29d18370cf"
+                   },
+                   {
+                       "name":  "append retrieve compact expand works end-to-end",
+                       "result":  "PASS",
+                       "detail":  "summary=bcdd42ff-28f3-4504-ae51-9690c2cb7ca6"
+                   },
+                   {
+                       "name":  "startup_context returns authority-aware bounded context",
+                       "result":  "PASS",
+                       "detail":  "items=3"
+                   },
+                   {
+                       "name":  "propose_fact uses review path",
+                       "result":  "PASS",
+                       "detail":  "proposal=072f0da7-d8d1-467c-93f8-ac0d15fb2c98"
+                   },
+                   {
+                       "name":  "build_handoff and docs_search return bounded packets",
+                       "result":  "PASS",
+                       "detail":  "handoff_events=2; docs_results=1"
+                   },
+                   {
+                       "name":  "session_close works",
+                       "result":  "PASS",
+                       "detail":  "both sessions closed"
+                   }
+               ],
+    "completed_at":  "2026-07-16T01:22:08.8934183Z",
+    "result":  "PASS"
+}

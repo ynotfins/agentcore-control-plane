@@ -788,10 +788,10 @@
     },
     "agentcore-memory": {
       "canonical_id": "agentcore-memory",
-      "display_name": "AgentCore Memory Health",
-      "purpose": "Minimal memory health/status MCP; never exposes credentials.",
+      "display_name": "AgentCore Memory Gateway",
+      "purpose": "Compact AgentCore memory/context gateway behind Bifrost; no raw DB/admin tools exposed.",
       "owner": "agentcore",
-      "pinned_version": "0.1.0",
+      "pinned_version": "0.4.0",
       "connection_type": "stdio",
       "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
       "arguments": [
@@ -802,10 +802,19 @@
       "timeout_seconds": 30,
       "health_check_type": "none",
       "project_scope": "global",
-      "write_classification": "read_only",
+      "write_classification": "bounded_write",
       "permitted_tools": [
         "memory_health",
-        "memory_status"
+        "memory_status",
+        "startup_context",
+        "retrieve_context",
+        "append_event",
+        "propose_fact",
+        "expand_source",
+        "session_open",
+        "session_close",
+        "build_handoff",
+        "docs_search"
       ],
       "denied_tools": [],
       "capability_profiles": [
@@ -826,13 +835,15 @@
           "spawn_failure"
         ]
       },
-      "rollback_route": "Disable agentcore_memory; inspect Postgres 127.0.0.1:55432 via ops scripts only.",
+      "rollback_route": "Restore scripts/agentcore_memory/server.py from pre-M4 commit and re-render Bifrost config; IDE configs unchanged.",
       "enabled": true,
       "bifrost_client_name": "agentcore_memory",
       "status": "active",
       "notes": [
         "Stable server identity: agentcore-memory",
-        "Returns degraded if Postgres 127.0.0.1:55432 is unreachable."
+        "M4 compact surface active; tools are bounded and never expose raw SQL/admin access.",
+        "Uses PostgreSQL 18 agent_core on 127.0.0.1:55433 internally via Windows env var credentials; IDE agents receive no DB credentials.",
+        "Reports Cognee as not_integrated_until_M5 and LangGraph as not_integrated_until_M6."
       ]
     },
     "agentcore-project-router": {

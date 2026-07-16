@@ -54,7 +54,16 @@
         },
         "tools_to_execute": [
           "memory_health",
-          "memory_status"
+          "memory_status",
+          "startup_context",
+          "retrieve_context",
+          "append_event",
+          "propose_fact",
+          "expand_source",
+          "session_open",
+          "session_close",
+          "build_handoff",
+          "docs_search"
         ],
         "auth_type": "none",
         "is_ping_available": false
@@ -274,7 +283,16 @@
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
               "memory_health",
-              "memory_status"
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "append_event",
+              "propose_fact",
+              "expand_source",
+              "session_open",
+              "session_close",
+              "build_handoff",
+              "docs_search"
             ]
           },
           {
@@ -370,7 +388,16 @@
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
               "memory_health",
-              "memory_status"
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "append_event",
+              "propose_fact",
+              "expand_source",
+              "session_open",
+              "session_close",
+              "build_handoff",
+              "docs_search"
             ]
           },
           {
@@ -436,7 +463,16 @@
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
               "memory_health",
-              "memory_status"
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "append_event",
+              "propose_fact",
+              "expand_source",
+              "session_open",
+              "session_close",
+              "build_handoff",
+              "docs_search"
             ]
           },
           {
@@ -501,7 +537,16 @@
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
               "memory_health",
-              "memory_status"
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "append_event",
+              "propose_fact",
+              "expand_source",
+              "session_open",
+              "session_close",
+              "build_handoff",
+              "docs_search"
             ]
           },
           {
