@@ -3,8 +3,14 @@
 # Editability modes: direct_write | generated_prompt | manual_import | unsupported | unverified
 # Do not guess values — 'unverified' until evidence exists.
 
-matrix_revision: "2026-07-14"
+matrix_revision: "2026-07-16"
 policy_source: contracts/global-agent-policy.yaml
+
+enrollment_status_codes:
+  fully_live_validated: "MCP verified, tools confirmed, identity isolated, rolling context proven"
+  configured_restart_required: "Config complete, needs IDE restart to activate"
+  artifact_generated: "Installation artifact produced; operator import required"
+  unsupported: "Product does not support required MCP baseline"
 
 managed_ides:
   cursor:
@@ -16,6 +22,12 @@ managed_ides:
     restart_behavior: mcp-reload-or-restart
     editability: { global_rules: manual_import, project_rules: direct_write, mcp_config: direct_write }
     last_validated: '2026-07-13'
+    m8_enrollment: configured_restart_required
+    m8_notes: >-
+      MCP config delivered via direct_write (agentcore-gateway in C:\Users\ynotf\.cursor\mcp.json).
+      Global rules require manual import into Cursor app settings. Profile validated 2026-07-13;
+      IDE restart required to activate any MCP changes. Identity isolated by project-scoped capability profiles.
+
   codex:
     installed_version: unverified
     rule_mechanism: 'global + per-repo AGENTS.md'
@@ -25,6 +37,12 @@ managed_ides:
     restart_behavior: session-restart
     editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
     last_validated: '2026-07-14'
+    m8_enrollment: configured_restart_required
+    m8_notes: >-
+      All config paths support direct_write; agentcore-gateway entry confirmed present.
+      AGENTS.md and CLAUDE.md delivered to all managed repos. Profile validated 2026-07-14.
+      New session required to activate gateway changes.
+
   claude-code:
     installed_version: unverified
     rule_mechanism: 'global + per-repo CLAUDE.md'
@@ -34,6 +52,12 @@ managed_ides:
     restart_behavior: session-restart
     editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
     last_validated: unverified
+    m8_enrollment: artifact_generated
+    m8_notes: >-
+      MCP config artifact generated (direct_write capable) but live validation unverified.
+      CLAUDE.md present at all managed repo roots. Marked artifact_generated until operator
+      confirms live session connects to agentcore-gateway and returns 401 auth.
+
   claude-desktop:
     installed_version: unverified
     rule_mechanism: 'app preferences / project instructions (no rules file)'
@@ -43,6 +67,13 @@ managed_ides:
     restart_behavior: full-app-restart
     editability: { global_rules: manual_import, project_rules: unsupported, mcp_config: direct_write }
     last_validated: unverified
+    m8_enrollment: artifact_generated
+    m8_notes: >-
+      MCP config delivered via direct_write to claude_desktop_json artifact. Global rules
+      require manual import via app preferences UI. Project-level rules unsupported by product.
+      Env var secrets must be materialized (vk-live-only); no env-headers. Full app restart required.
+      Enrollment artifact generated; operator must restart Claude Desktop to activate.
+
   minimax:
     installed_version: unverified
     rule_mechanism: unverified
@@ -52,6 +83,11 @@ managed_ides:
     restart_behavior: client-restart
     editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
     last_validated: unverified
+    m8_enrollment: artifact_generated
+    m8_notes: >-
+      MCP config artifact generated. Rule mechanism and editability unverified on live instance.
+      Marked artifact_generated; operator must import artifact and restart client to confirm enrollment.
+
   antigravity:
     installed_version: unverified
     rule_mechanism: unverified
@@ -61,6 +97,11 @@ managed_ides:
     restart_behavior: client-restart
     editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
     last_validated: unverified
+    m8_enrollment: artifact_generated
+    m8_notes: >-
+      MCP config artifact generated. Rule mechanism and editability unverified on live instance.
+      Marked artifact_generated; operator must import artifact and restart client to confirm enrollment.
+
   mavis:
     installed_version: unverified
     rule_mechanism: unverified
@@ -70,6 +111,11 @@ managed_ides:
     restart_behavior: client-restart
     editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
     last_validated: unverified
+    m8_enrollment: artifact_generated
+    m8_notes: >-
+      MCP config artifact generated. Rule mechanism and editability unverified on live instance.
+      Marked artifact_generated; operator must import artifact and restart client to confirm enrollment.
+
   open-interpreter:
     installed_version: unverified
     rule_mechanism: 'profile system message'
@@ -79,6 +125,11 @@ managed_ides:
     restart_behavior: session-restart
     editability: { global_rules: manual_import, project_rules: unsupported, mcp_config: direct_write }
     last_validated: unverified
+    m8_enrollment: artifact_generated
+    m8_notes: >-
+      MCP config artifact generated (direct_write). Global rules injected via profile system message
+      (manual import). Project-level rules unsupported. Env var secrets must be materialized.
+      Marked artifact_generated; operator must apply profile artifact and restart session.
 
 swarm_managed_clients:
   openclaw:
