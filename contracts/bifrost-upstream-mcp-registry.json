@@ -789,9 +789,9 @@
     "agentcore-memory": {
       "canonical_id": "agentcore-memory",
       "display_name": "AgentCore Memory Gateway",
-      "purpose": "Compact AgentCore memory/context gateway behind Bifrost; no raw DB/admin tools exposed.",
+      "purpose": "Model-aware active context over effectively-unbounded durable local project history; no raw DB/admin tools exposed.",
       "owner": "agentcore",
-      "pinned_version": "0.5.0",
+      "pinned_version": "0.6.0",
       "connection_type": "stdio",
       "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
       "arguments": [
@@ -840,7 +840,9 @@
       "status": "active",
       "notes": [
         "Stable server identity: agentcore-memory",
-        "M5 compact surface active; tools are bounded and never expose raw SQL/admin access.",
+        "Stable 10-tool surface; bounded active packets and recovery pages never cap or delete durable project history.",
+        "retrieve_context supports stable chronological pagination and recovery modes; expand_source resolves exact originals and H:/E: artifacts; build_handoff reconstructs current project state.",
+        "Model context profiles are governed by contracts/model-context-profiles.json; 4096 is legacy/acceptance-only and one million is not a durable-memory cap.",
         "PostgreSQL reachability remains implemented internally and is reported through memory_status, not exposed as a separate normal-agent tool.",
         "Uses PostgreSQL 18 agent_core on 127.0.0.1:55433 internally via Windows env var credentials; IDE agents receive no DB credentials.",
         "Hybrid retrieval uses PostgreSQL metadata filters, full-text search, pg_trgm, exact pgvector baseline, and Cognee-curated rows only through KnowledgeMemoryPort.",

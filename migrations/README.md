@@ -3,8 +3,15 @@
 > **HISTORICAL SCHEMA EVIDENCE — DO NOT APPLY TO CURRENT AGENTCORE.**
 > These root `000*.sql` migrations predate `BLUEPRINT.md` and the PostgreSQL 18 cutover.
 > Current non-Swarm AgentCore migrations are the milestone-scoped migrations under
-> `migrations/m2`, `migrations/m3`, `migrations/m4`, and `migrations/m5`, targeting
+> `migrations/m2` through `migrations/m6`, targeting
 > PostgreSQL 18 at `127.0.0.1:55433`.
+
+Within M3, apply `001_up_lossless_context_state_projections.sql` before
+`002_up_unbounded_recovery_context_profiles.sql`. M3.002 is additive: it preserves the locked M3
+architecture while making model-aware active context, stable full-history recovery,
+non-destructive summary correction, and governed project snapshots explicit. Never apply a
+milestone migration to live `agent_core` without the approved admin runner, backup/restore gate,
+and operator authorization.
 
 **Status:** historical evidence. These files do NOT authorize live DB mutation.
 **Historical design input:** `../database-plan.md` (schema_version 2026-06-30, §6 DDL, §13 strategy).

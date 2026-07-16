@@ -40,7 +40,6 @@ def db() -> psycopg.Connection[Any]:
     )
 {% endif %}
 
-
 def _now() -> str:
     return datetime.now(UTC).isoformat()
 
@@ -87,11 +86,14 @@ def dispatch(msg: dict[str, Any]) -> None:
     if method == "initialize":
         client_version = params.get("protocolVersion", PROTOCOL_VERSION)
         negotiated = client_version if client_version in SUPPORTED_VERSIONS else PROTOCOL_VERSION
-        _send_result(req_id, {
-            "protocolVersion": negotiated,
-            "capabilities": {"tools": {}},
-            "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
-        })
+        _send_result(
+            req_id,
+            {
+                "protocolVersion": negotiated,
+                "capabilities": {"tools": {}},
+                "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
+            },
+        )
     elif method in ("notifications/initialized", "initialized"):
         pass
     elif method == "tools/list":
@@ -102,9 +104,12 @@ def dispatch(msg: dict[str, Any]) -> None:
         _log("debug", "tool_call", tool=tool_name)
         try:
             result = handle_tool_call(tool_name, tool_args)
-            _send_result(req_id, {
-                "content": [{"type": "text", "text": json.dumps(result, default=str)}],
-            })
+            _send_result(
+                req_id,
+                {
+                    "content": [{"type": "text", "text": json.dumps(result, default=str)}],
+                },
+            )
         except Exception as exc:
             _log("error", "tool_call_error", tool=tool_name, error=type(exc).__name__)
             if req_id is not None:

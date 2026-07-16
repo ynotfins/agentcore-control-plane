@@ -17,6 +17,7 @@ import argparse
 import json
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +39,9 @@ APPROVED_LICENSES = {
     "MIT", "Apache-2.0", "LGPL-3.0-only", "LGPL-3.0-or-later",
     "BSD-2-Clause", "BSD-3-Clause", "ISC", "MPL-2.0",
 }
+JINJA_DELIMITERS = ("{{", "{%", "{#")
+PARSER_SENSITIVE_NAMES = {"pyproject.toml", "package.json", "tsconfig.json"}
+PARSER_SENSITIVE_SUFFIXES = {".toml", ".json", ".yaml", ".yml"}
 
 
 def _fail(reason: str) -> None:
@@ -50,6 +54,86 @@ def _pass(detail: str) -> None:
 
 def load_catalog() -> list[dict[str, Any]]:
     return yaml.safe_load(CATALOG_PATH.read_text(encoding="utf-8")).get("dependencies", [])
+
+
+def _has_jinja(text: str) -> bool:
+    return any(delimiter in text for delimiter in JINJA_DELIMITERS)
+
+
+def _is_parser_sensitive(path: Path) -> bool:
+    return path.name in PARSER_SENSITIVE_NAMES or path.suffix.lower() in PARSER_SENSITIVE_SUFFIXES
+
+
+def validate_template_source(template_root: Path) -> list[str]:
+    """Return deterministic findings for Jinja-bearing Copier source files."""
+    config_path = template_root / "copier.yml"
+    if not config_path.is_file():
+        return [f"{config_path}: missing Copier configuration"]
+    config = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    suffix = config.get("_templates_suffix")
+    if not isinstance(suffix, str):
+        return [f"{config_path}: _templates_suffix must be an explicit string"]
+    subdirectory = template_root / str(config.get("_subdirectory") or ".")
+    if not subdirectory.is_dir():
+        return [f"{subdirectory}: configured template source directory is missing"]
+
+    findings: list[str] = []
+    for source in sorted(path for path in subdirectory.rglob("*") if path.is_file()):
+        try:
+            text = source.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        if not _has_jinja(text) or suffix == "":
+            continue
+        relative = source.relative_to(template_root)
+        if not source.name.endswith(suffix):
+            reason = "declared suffix must be the final filename suffix"
+            if _is_parser_sensitive(source):
+                reason += "; parser-sensitive source would otherwise be parsed before rendering"
+            findings.append(f"{relative}: {reason} ({suffix!r})")
+    return findings
+
+
+def validate_generated_project(project_root: Path) -> list[str]:
+    """Validate generated parser-sensitive files and reject unresolved Jinja."""
+    findings: list[str] = []
+    for output in sorted(path for path in project_root.rglob("*") if path.is_file()):
+        try:
+            text = output.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        relative = output.relative_to(project_root)
+        if _has_jinja(text):
+            findings.append(f"{relative}: generated output contains unresolved Jinja")
+            continue
+        try:
+            if output.name == "pyproject.toml":
+                tomllib.loads(text)
+            elif output.name in {"package.json", "tsconfig.json"}:
+                json.loads(text)
+            elif output.suffix.lower() in {".yaml", ".yml"}:
+                yaml.safe_load(text)
+        except (json.JSONDecodeError, tomllib.TOMLDecodeError, yaml.YAMLError) as exc:
+            findings.append(f"{relative}: generated parser-sensitive file is invalid: {exc}")
+    return findings
+
+
+def validate_templates() -> bool:
+    """Validate every governed Copier template source tree."""
+    templates = [
+        REPO_ROOT / "templates" / "mcp-server-python",
+        REPO_ROOT / "templates" / "agent-langgraph-postgres-checkpointer",
+    ]
+    findings = [
+        finding
+        for template in templates
+        for finding in validate_template_source(template)
+    ]
+    for finding in findings:
+        _fail(finding)
+    if not findings:
+        _pass(f"Copier template sources valid ({len(templates)} templates)")
+    return not findings
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -117,11 +201,11 @@ def gate_candidate(package: str, version: str | None) -> bool:
         if status == "rejected":
             results.append((False, f"Already in catalog with status=rejected: {existing.get('rejection_reason', '')}"))
         elif status == "approved":
-            results.append((True, f"Already APPROVED in catalog"))
+            results.append((True, "Already APPROVED in catalog"))
         else:
             results.append((True, f"In catalog with status={status}"))
     else:
-        results.append((True, f"Not in catalog — proceeding with full gate check"))
+        results.append((True, "Not in catalog — proceeding with full gate check"))
 
         # 2. PyPI metadata check
         if version:
@@ -133,7 +217,7 @@ def gate_candidate(package: str, version: str | None) -> bool:
                 if version in (resp.stdout + resp.stderr):
                     results.append((True, f"Version {version} found on PyPI"))
                 else:
-                    results.append((True, f"PyPI metadata retrieved (version match not confirmed)"))
+                    results.append((True, "PyPI metadata retrieved (version match not confirmed)"))
             except Exception as exc:
                 results.append((False, f"PyPI metadata check failed: {exc}"))
 
@@ -163,11 +247,11 @@ def gate_unpinned(package: str) -> bool:
     """Reject a candidate with no version (unpinned)."""
     print(f"\n=== Admission Gate: {package} (no version) ===\n")
     # No version → immediate rejection
-    print(f"  FAIL 'latest' is never automatically approved — version must be pinned")
+    print("  FAIL 'latest' is never automatically approved — version must be pinned")
     print(f"  FAIL {package!r} has no version_policy — catalog entry incomplete")
     if package == "mem0ai":
         print(f"  FAIL {package!r} is explicitly rejected by BLUEPRINT.md §3")
-    print(f"\nAdmission gate: FAIL — rejected")
+    print("\nAdmission gate: FAIL — rejected")
     return False
 
 
@@ -180,11 +264,24 @@ def main() -> None:
     parser.add_argument("--candidate", help="Package name to evaluate")
     parser.add_argument("--version", help="Pinned version to evaluate")
     parser.add_argument("--validate-catalog", action="store_true", help="Validate the full catalog")
+    parser.add_argument("--validate-templates", action="store_true", help="Validate governed Copier template sources")
+    parser.add_argument("--generated-project", type=Path, help="Validate a generated project tree")
     args = parser.parse_args()
 
     if args.validate_catalog:
         ok = validate_catalog()
         sys.exit(0 if ok else 1)
+
+    if args.validate_templates:
+        sys.exit(0 if validate_templates() else 1)
+
+    if args.generated_project:
+        findings = validate_generated_project(args.generated_project)
+        for finding in findings:
+            _fail(finding)
+        if not findings:
+            _pass(f"generated project valid: {args.generated_project}")
+        sys.exit(0 if not findings else 1)
 
     if args.candidate:
         if not args.version:

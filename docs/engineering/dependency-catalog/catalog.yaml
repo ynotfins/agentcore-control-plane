@@ -182,8 +182,8 @@ dependencies:
     ecosystem: python
     status: approved
     purpose: Test framework for unit and integration tests
-    version_policy: ">=8.0,<9.0"
-    tested_version: "8.3.4"
+    version_policy: ">=9.0.3,<10.0"
+    tested_version: "9.1.1"
     source: https://pypi.org/project/pytest/
     repository: https://github.com/pytest-dev/pytest
     documentation: https://docs.pytest.org/en/stable/

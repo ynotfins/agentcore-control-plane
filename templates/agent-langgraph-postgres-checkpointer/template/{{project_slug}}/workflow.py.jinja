@@ -32,7 +32,7 @@ def _conninfo() -> str:
     return f"host={PG_HOST} port={PG_PORT} dbname={PG_DATABASE} user={PG_USER} password={pg_pass}"
 
 
-def build_graph(conninfo: str | None = None):
+def build_graph(conninfo: str | None = None) -> tuple[Any, Any]:
     """Build and compile the workflow graph with PostgreSQL checkpointer."""
     conninfo = conninfo or _conninfo()
     builder = StateGraph(WorkflowState)
@@ -43,20 +43,32 @@ def build_graph(conninfo: str | None = None):
     builder.set_entry_point("step_one")
 {% if enable_human_pause %}
     builder.add_node("human_pause", node_human_pause)
-    builder.add_conditional_edges("step_one", route, {
-        "step_two": "step_two",
-        "human_pause": "human_pause",
-        "workflow_fail": "workflow_fail",
-    })
-    builder.add_conditional_edges("human_pause", route, {
-        "step_two": "step_two",
-        "workflow_fail": "workflow_fail",
-    })
+    builder.add_conditional_edges(
+        "step_one",
+        route,
+        {
+            "step_two": "step_two",
+            "human_pause": "human_pause",
+            "workflow_fail": "workflow_fail",
+        },
+    )
+    builder.add_conditional_edges(
+        "human_pause",
+        route,
+        {
+            "step_two": "step_two",
+            "workflow_fail": "workflow_fail",
+        },
+    )
 {% else %}
-    builder.add_conditional_edges("step_one", route, {
-        "step_two": "step_two",
-        "workflow_fail": "workflow_fail",
-    })
+    builder.add_conditional_edges(
+        "step_one",
+        route,
+        {
+            "step_two": "step_two",
+            "workflow_fail": "workflow_fail",
+        },
+    )
 {% endif %}
     builder.add_conditional_edges(
         "step_two", route, {"done": END, "workflow_fail": "workflow_fail"}
@@ -75,7 +87,7 @@ def build_graph(conninfo: str | None = None):
     return graph, ctx
 
 
-def run_new(project_id: str | None = None, conninfo: str | None = None) -> dict:
+def run_new(project_id: str | None = None, conninfo: str | None = None) -> dict[str, Any]:
     """Start a new workflow run. Returns the final state and thread_id."""
     thread_id = str(uuid.uuid4())
     project_id = project_id or "default"
@@ -93,13 +105,16 @@ def run_new(project_id: str | None = None, conninfo: str | None = None) -> dict:
         ctx.__exit__(None, None, None)
 
 
-def run_resume(thread_id: str, resume_value: Any = None, conninfo: str | None = None) -> dict:
+def run_resume(
+    thread_id: str, resume_value: Any = None, conninfo: str | None = None
+) -> dict[str, Any]:
     """Resume from a PostgreSQL checkpoint."""
     graph, ctx = build_graph(conninfo)
     config = {"configurable": {"thread_id": thread_id}}
     try:
         if resume_value is not None:
             from langgraph.types import Command
+
             result = graph.invoke(Command(resume=resume_value), config=config)
         else:
             result = graph.invoke(None, config=config)

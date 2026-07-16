@@ -5,6 +5,20 @@
 
 matrix_revision: "2026-07-16"
 policy_source: contracts/global-agent-policy.yaml
+model_context_profile_source: contracts/model-context-profiles.json
+self_enrollment_contract:
+  session_open: >-
+    Each managed client opens/resumes its project session with verified client identity,
+    repository/worktree/Git identity, selected provider/model identity, and a named context
+    profile. Unknown models use standard-context only as a safe fallback; the IDE's configured
+    hard context window is never lowered.
+  startup_context: >-
+    Request the selected model profile and load the smallest high-signal active packet. A 4096
+    token budget is acceptance/legacy-only, never the production default or durable-memory cap.
+  recovery: >-
+    If local conversational context is missing or suspect, call retrieve_context with a recovery
+    mode and stable pagination, expand_source for exact originals, and build_handoff for current
+    project reconstruction before asking the operator to repeat history.
 
 enrollment_status_codes:
   live_validated: "MCP verified, tools confirmed, identity isolated, rolling context proven live"

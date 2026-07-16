@@ -39,6 +39,7 @@ def main() -> int:
     for contract_rel, schema_rel in [
         ("contracts/project-execution-policy.json", "contracts/schemas/project-execution-policy.schema.json"),
         ("contracts/project-tool-lifecycle.json", "contracts/schemas/project-tool-lifecycle.schema.json"),
+        ("contracts/model-context-profiles.json", "contracts/schemas/model-context-profiles.schema.json"),
     ]:
         try:
             instance = json.loads(read(contract_rel))
@@ -56,6 +57,24 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001
         policy = None
         check("schema:contracts/global-agent-policy.yaml", False, str(exc)[:200])
+
+    try:
+        model_profiles = json.loads(read("contracts/model-context-profiles.json"))
+        by_name = {row["profile_name"]: row for row in model_profiles["profiles"]}
+        check(
+            "context-profile:one-million preserved",
+            by_name["one-million-context"]["hard_context_limit"] == 1_000_000,
+        )
+        check(
+            "context-profile:future above million",
+            by_name["future-above-million"]["hard_context_limit"] > 1_000_000,
+        )
+        check(
+            "context-profile:small is not default",
+            model_profiles["default_profile"] not in {"acceptance-small", "legacy-4096"},
+        )
+    except Exception as exc:  # noqa: BLE001
+        check("context-profile:semantic checks", False, str(exc)[:200])
 
     # --- agent-policy docs exist ---
     for rel in [

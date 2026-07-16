@@ -319,6 +319,13 @@ def _log(level: str, msg: str, **ctx) -> None:
 
 - Normal agents: use `agentcore-memory` tools (`append_event`, `retrieve_context`, etc.).
 - Never issue raw SQL from normal IDE agents.
+- Durable project history is effectively unbounded by model-token limits. Context profiles bound
+  one active request or retrieval page only; 4096 is acceptance/legacy-only and one million is
+  not a storage ceiling.
+- Compaction is non-destructive. Original evidence and exact source edges remain canonical;
+  incorrect summaries are superseded and rebuilt, never overwritten.
+- Before asking the operator to repeat missing history, use paginated `retrieve_context`,
+  `expand_source`, and `build_handoff` to recover from PostgreSQL plus retained H:/E: artifacts.
 - Project `STATE.md` is generated. Agents contribute through `agentcore-memory`, never by editing STATE directly.
 - `startup_context` returns the current capability profile (M6). Use it to discover available tools.
 - Long-term curated knowledge → `propose_fact` → operator promotion → Cognee.
@@ -331,6 +338,7 @@ def _log(level: str, msg: str, **ctx) -> None:
 
 - Use Copier `>=9.0` for project templates.
 - Template root: `templates/<name>/copier.yml` + `{{project_slug}}/` subdirectory.
+- Approved Copier templates must use an explicit template suffix, normally `.jinja`, for files containing Jinja. An empty suffix is allowed only when the template intentionally renders every eligible file and repository validators prove that parser-sensitive template sources do not create invalid workspace artifacts.
 - Every approved template must pass the admission gate before entering the catalog.
 - Templates generate a project foundation. They do not contain business logic or reference implementations.
 - Approved templates: `mcp-server-python`, `agent-langgraph-postgres-checkpointer`.

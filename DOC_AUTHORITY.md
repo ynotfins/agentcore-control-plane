@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-14 (BLUEPRINT.md installed as locked implementation authority at hierarchy level 3)
+**Updated:** 2026-07-16 (full-recovery source contract and validation handoff added; BLUEPRINT.md remains locked)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -42,6 +42,7 @@ No other root or docs file may silently override this chain. If a document confl
 
 - `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance
 - `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` — implementation handoff
+- `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` — effectively-unbounded durable-memory and bounded recovery source handoff
 
 **Add as needed:**
 
@@ -82,6 +83,7 @@ No other root or docs file may silently override this chain. If a document confl
 | `CONTEXT_BLOCK.md` | Current mutable system state and memory-platform target architecture (rewritten 2026-07-12; PG18 + pgvector + Cognee behind AgentCore adapter) |
 | `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` | Primary Bifrost gateway handoff |
 | `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` | Handoff for the memory-platform implementation agent |
+| `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` | Current source-only handoff for model-aware active context, full-history recovery, and M3.002 validation |
 | `ops/bifrost/evidence/20260714-0204-runtime-repair/RUNTIME_REPAIR_EVIDENCE.md` | Current runtime repair evidence: scheduled task owner, MCP validation, Cursor MCP_DOCKER removal |
 | `artifacts/bifrost-gateway-cutover-2026-07-12/` | Cutover backups, hashes, evidence |
 | `ops/bifrost/` | Install/start/stop/test/backup/restore/cutover scripts |

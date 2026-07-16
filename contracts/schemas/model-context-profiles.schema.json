@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agentcore://schemas/model-context-profiles",
+  "title": "AgentCore Model-Aware Active Context Profiles",
+  "type": "object",
+  "required": ["contract_version", "default_profile", "legacy_aliases", "profiles"],
+  "properties": {
+    "contract_version": { "type": "string" },
+    "default_profile": { "type": "string" },
+    "legacy_aliases": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "profile_name",
+          "provider",
+          "model_id",
+          "client_ids",
+          "hard_context_limit",
+          "safe_active_context_ceiling",
+          "reserved_output_tokens",
+          "reserved_tool_schema_tokens",
+          "reserved_tool_result_tokens",
+          "safety_reserve_tokens",
+          "soft_compaction_threshold_tokens",
+          "hard_compaction_threshold_tokens",
+          "retrieval_page_size",
+          "tokenizer",
+          "last_validated_date",
+          "validation_source",
+          "production_profile"
+        ],
+        "properties": {
+          "profile_name": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "provider": { "type": "string", "minLength": 1 },
+          "model_id": { "type": "string", "minLength": 1 },
+          "client_ids": { "type": "array", "items": { "type": "string" } },
+          "hard_context_limit": { "type": "integer", "minimum": 1 },
+          "safe_active_context_ceiling": { "type": "integer", "minimum": 1 },
+          "reserved_output_tokens": { "type": "integer", "minimum": 0 },
+          "reserved_tool_schema_tokens": { "type": "integer", "minimum": 0 },
+          "reserved_tool_result_tokens": { "type": "integer", "minimum": 0 },
+          "safety_reserve_tokens": { "type": "integer", "minimum": 0 },
+          "soft_compaction_threshold_tokens": { "type": "integer", "minimum": 1 },
+          "hard_compaction_threshold_tokens": { "type": "integer", "minimum": 1 },
+          "retrieval_page_size": { "type": "integer", "minimum": 1 },
+          "tokenizer": { "type": "string", "minLength": 1 },
+          "last_validated_date": { "type": "string", "format": "date" },
+          "validation_source": { "type": "string", "minLength": 1 },
+          "production_profile": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

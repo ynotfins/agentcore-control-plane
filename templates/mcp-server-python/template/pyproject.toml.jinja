@@ -1,20 +1,28 @@
 [build-system]
 requires = ["setuptools>=70", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta:__legacy__"
 
 [project]
 name = "{{ project_slug }}"
 version = "{{ initial_version }}"
-description = "{{ project_name }} — LangGraph agent with PostgreSQL checkpointing"
+description = "{{ project_name }} — AgentCore MCP stdio server"
 requires-python = "{{ python_requires }}"
 authors = [{ name = "{{ author_name }}" }]
 dependencies = [
-    "langgraph==1.2.5",
-    "langgraph-checkpoint-postgres==3.1.0",
-    "psycopg[binary,pool]>=3.3.4,<4.0",
-    "orjson>=3.9,<4.0",
-    "typing-extensions>=4.12",
+{% if use_postgres %}
+    "psycopg[binary]>=3.3.4,<4.0",
+{% endif %}
 ]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.10,<2.0",
+    "pytest>=9.0.3,<10.0",
+    "ruff>=0.6,<1.0",
+]
+
+[project.scripts]
+{{ project_slug }} = "{{ project_slug }}.server:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

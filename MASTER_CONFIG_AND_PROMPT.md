@@ -142,6 +142,43 @@ Classification matrix: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`
 **Tools (M4 compact surface):** `memory_status`, `startup_context`, `retrieve_context`, `append_event`, `propose_fact`, `expand_source`, `session_open`, `session_close`, `build_handoff`, `docs_search`
 **Note:** Health reachability is reported through `memory_status`; keep the server id stable and do not expose raw database/admin tools.
 
+### Durable-memory and active-context contract
+
+AgentCore durable memory is **effectively unbounded by model-token limits**. Model context
+limits control only the amount assembled into one request. Project history, raw evidence,
+summaries, artifacts, Git references, and exact source edges remain locally retained and exactly
+recoverable. Compaction reduces active-context load; it never destroys canonical project history.
+
+Describe this system as **model-limit-aware active context over an effectively unbounded durable
+local project history**. Do not describe it as a one-million-token memory or context window. A
+one-million-token profile is one active-context capability profile, not a storage, history,
+retrieval, or retention ceiling. The profile schema in
+`contracts/model-context-profiles.json` accepts future limits above one million and defines the
+hard limit, safe active ceiling, output/tool/result reserves, safety reserve, soft/hard
+compaction thresholds, retrieval page size, tokenizer, and validation provenance.
+
+Canonical recovery behavior:
+
+1. `startup_context` assembles the smallest high-signal packet that preserves relevant
+   requirements and evidence within the selected model profile.
+2. `retrieve_context` supports current state, current Milestone, session, Milestone, time range,
+   decision history, failure/fix, and complete chronology recovery through stable bounded pages.
+3. Every page carries chronological boundaries, project/session scope, source IDs, trust classes,
+   content hashes, omitted counts, exact expansion references, and a stable continuation cursor.
+4. `expand_source` recovers exact original events and verified content-addressed artifacts from
+   either H: hot storage or E: cold archive, with byte pagination when one response is insufficient.
+5. `build_handoff` combines current generated projections, Git/worktree identity, governed
+   snapshots, active context, and a recoverable chronology page.
+6. Incorrect summaries are superseded by a new version rebuilt from original source edges. The
+   incorrect summary and correction provenance remain retained.
+7. Quarantined or rejected evidence is excluded from normal startup context unless explicitly
+   requested for investigation.
+
+Before asking the operator to repeat project history, query `agentcore-memory`. When conversational
+compaction appears incomplete or incorrect, reconstruct from canonical PostgreSQL metadata and
+retained artifacts rather than trusting the chat summary. Never directly edit `GLOBAL_STATE.md`,
+project `STATE.md`, or COMB projections.
+
 Non-Swarm path:
 
 ```text
@@ -325,7 +362,10 @@ Steps:
 11. Confirm tools/list includes expected prefixes such as arabold_docs, depwire, tentra, sequential_thinking, context_fabric, filesystem, playwright, cursor_agent_mcp, agentcore_memory, and agentcore_project_router.
 12. Confirm Swarm, raw database, whole-drive filesystem, and Bifrost admin tools are absent.
 13. Activate the project through agentcore_project_router before project-scoped work.
-14. Record sanitized evidence: IDE name, config path, backup path, hashes, discovery/tool count, blockers, rollback.
+14. Self-enroll through agentcore_memory-session_open with verified client, repository/worktree/Git, selected provider/model, and named context-profile identity. Do not lower the IDE model's configured hard context window.
+15. Call agentcore_memory-startup_context with that profile and confirm the reported hard limit matches the selected capability; 4096 is acceptance/legacy-only.
+16. Smoke-test agentcore_memory-retrieve_context recovery pagination and agentcore_memory-expand_source before asking the operator to repeat missing history.
+17. Record sanitized evidence: IDE name, config path, backup path, hashes, discovery/tool count, context profile, recovery result, blockers, rollback.
 
 Canonical Cursor target:
 C:\Users\ynotf\.cursor\mcp.json

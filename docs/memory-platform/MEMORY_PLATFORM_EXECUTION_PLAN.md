@@ -36,6 +36,12 @@ These decisions are operator-approved and may not be changed without explicit op
 8. Secrets are redacted before durable storage.
 9. Trust and provenance follow every event, fact, summary, and retrieval.
 
+Durable virtual context has no normal token-count retention ceiling. One million tokens is a
+supported active-context profile, not a storage maximum. The selected client/model hard limit
+controls only one request; complete history remains recoverable through stable bounded pages and
+exact source expansion. A bad summary is superseded and rebuilt from originals without mutating or
+deleting the bad version or its source evidence.
+
 ## 3. State model (generated projections)
 
 PostgreSQL is canonical. A projection worker writes these files atomically (temp file + rename); agents contribute **only** through `agentcore-memory` and never directly edit shared STATE files:
@@ -162,8 +168,13 @@ C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
 - Exact expansion works after archival to E:.
 - GLOBAL_STATE.md and project STATE.md regenerate deterministically.
 - Process interruption during compaction causes no loss or corruption.
+- Model-aware profiles cover small, standard, large, one-million, and future above-one-million
+  context limits without lowering an IDE model's configured hard limit.
+- Current-state, Milestone, session, time-range, decision, failure/fix, and complete chronology
+  recovery return stable pagination, hashes, trust, omitted counts, and exact expansion references.
+- Incorrect summaries are superseded by corrected versions rebuilt from retained originals.
 
-**Acceptance tests:** kill the compaction worker mid-run and verify no loss/corruption on restart; archive a payload to E: and expand it from a summary; regenerate STATE files twice and diff for determinism; verify a verbatim original behind every summary node; secrets-redaction test before durable write.
+**Acceptance tests:** kill the compaction worker mid-run and verify no loss/corruption on restart; archive a payload to E: and expand it from a summary; regenerate STATE files twice and diff for determinism; verify a verbatim original behind every summary node; secrets-redaction test before durable write; retain a synthetic history above one million tokens and prove count/hash completeness; page the complete chronology; supersede an incorrect summary from originals; recover after model/IDE/service context loss; validate one-million and above-one-million profiles; verify backup/restore/PITR preserves the event/source/summary graph.
 
 **Rollback point:** M2 schema + backups; compaction is versioned so any compaction generation can be recomputed from originals.
 

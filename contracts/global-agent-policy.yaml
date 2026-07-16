@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-07-14"
+policy_revision: "2026-07-16"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -38,6 +38,29 @@ mandatory_rules:
       before broad implementation: register worktree, load context, preserve the operator prompt
       verbatim, run Context Fabric capture/drift, discover architecture (Serena/Depwire/Tentra),
       resolve exact versions via Arabold, create governance files from templates, audit tools.
+
+  - id: durable-memory-context
+    title: Effectively-unbounded durable memory
+    rule: >-
+      AgentCore durable project memory is effectively unbounded by model-token limits. Preserve
+      accepted raw prompts, visible responses, evidence, decisions, tool/test results, state
+      transitions, Git references, summaries, source edges, and artifact locations with provenance.
+      Model context limits control only one assembled request. Compaction is non-destructive:
+      summaries are versioned and expandable, and no summary may replace or delete canonical
+      originals. Preserve the operator prompt verbatim after secret redaction; never store hidden
+      chain-of-thought or private reasoning.
+
+  - id: recovery-first
+    title: Canonical memory recovery before operator repetition
+    rule: >-
+      Never assume information is permanently lost because it is absent from the current chat.
+      Before asking the operator to repeat project history, query agentcore-memory. Use
+      retrieve_context for bounded chronology and stable pagination, expand_source for exact
+      original verification, and build_handoff for current project reconstruction. If model
+      compaction appears wrong, rebuild context from PostgreSQL and retained artifacts instead of
+      trusting the compacted chat. Never directly edit GLOBAL_STATE.md or project STATE.md; they
+      and COMB files are concise generated projections. Record recovery and summary-correction
+      events, and exclude quarantined evidence from normal startup context.
 
   - id: milestones
     title: Milestone execution
@@ -132,4 +155,5 @@ references:
   tool_lifecycle_policy: contracts/project-tool-lifecycle.json
   bifrost_registry: contracts/bifrost-upstream-mcp-registry.json
   gateway_client: contracts/agentcore-gateway-client.json
+  model_context_profiles: contracts/model-context-profiles.json
   memory_platform_plan: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md

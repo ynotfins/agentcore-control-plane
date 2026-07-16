@@ -59,7 +59,10 @@ Steps:
 11. Confirm tools/list includes expected prefixes such as arabold_docs, depwire, tentra, sequential_thinking, context_fabric, filesystem, playwright, cursor_agent_mcp, agentcore_memory, and agentcore_project_router.
 12. Confirm Swarm, raw database, whole-drive filesystem, and Bifrost admin tools are absent.
 13. Activate the project through agentcore_project_router before project-scoped work.
-14. Record sanitized evidence: IDE name, config path, backup path, hashes, discovery/tool count, blockers, rollback.
+14. Self-enroll through agentcore_memory-session_open with verified client, repository/worktree/Git, selected provider/model, and named context-profile identity. Do not lower the IDE model's configured hard context window.
+15. Call agentcore_memory-startup_context with that profile and confirm the reported hard limit matches the selected capability; 4096 is acceptance/legacy-only.
+16. Smoke-test agentcore_memory-retrieve_context recovery pagination and agentcore_memory-expand_source before asking the operator to repeat missing history.
+17. Record sanitized evidence: IDE name, config path, backup path, hashes, discovery/tool count, context profile, recovery result, blockers, rollback.
 
 Canonical Cursor target:
 C:\Users\ynotf\.cursor\mcp.json

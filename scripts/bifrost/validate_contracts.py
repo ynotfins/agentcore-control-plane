@@ -6,11 +6,9 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sys
 from pathlib import Path
 from typing import Any
 
-import jsonschema
 from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -103,6 +101,7 @@ def authority_policy_checks(registry: dict[str, Any]) -> list[str]:
     policy_pairs = [
         ("contracts/project-execution-policy.json", "contracts/schemas/project-execution-policy.schema.json"),
         ("contracts/project-tool-lifecycle.json", "contracts/schemas/project-tool-lifecycle.schema.json"),
+        ("contracts/model-context-profiles.json", "contracts/schemas/model-context-profiles.schema.json"),
     ]
     for contract_rel, schema_rel in policy_pairs:
         contract_path = REPO_ROOT / contract_rel
@@ -114,6 +113,19 @@ def authority_policy_checks(registry: dict[str, Any]) -> list[str]:
             errors.append(f"{schema_rel} missing")
             continue
         errors.extend(validate_schema(load(contract_path), load(schema_path), contract_rel))
+
+    profile_path = REPO_ROOT / "contracts" / "model-context-profiles.json"
+    if profile_path.exists():
+        profiles = load(profile_path)
+        by_name = {row["profile_name"]: row for row in profiles.get("profiles", [])}
+        one_million = by_name.get("one-million-context") or {}
+        future = by_name.get("future-above-million") or {}
+        if one_million.get("hard_context_limit") != 1_000_000:
+            errors.append("one-million-context hard_context_limit must remain exactly 1000000")
+        if int(future.get("hard_context_limit") or 0) <= 1_000_000:
+            errors.append("future-above-million must prove context limits above 1000000 are accepted")
+        if profiles.get("default_profile") in {"acceptance-small", "legacy-4096"}:
+            errors.append("small/4096 acceptance profiles cannot be the production default")
 
     # Canonical global agent policy (YAML) present and schema-valid.
     gap_path = REPO_ROOT / "contracts" / "global-agent-policy.yaml"

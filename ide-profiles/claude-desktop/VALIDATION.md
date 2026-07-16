@@ -9,6 +9,8 @@ Run after installing or updating rules/MCP config for this IDE:
 3. The IDE lists gateway tools after restart (tools/list through `agentcore-gateway` succeeds).
 4. `agentcore-memory` responds through `memory_status`, with degraded component state clearly reported.
 5. The delivered rules match `ide-profiles/claude-desktop/GLOBAL_RULES.md` (semantic parity; record any product-specific omission in `IDE_PROFILE.yaml`).
-6. Repo validators pass: `python scripts/bifrost/validate_contracts.py` and `python scripts/bifrost/test_contracts.py`.
+6. Session self-enrollment records the verified client, repository/worktree/Git identity, selected provider/model, and named model context profile; it does not lower the IDE model's configured hard context window.
+7. `startup_context` reports a model-aware profile, and `retrieve_context` recovery mode returns bounded chronology with source IDs, hashes, exact expansion references, omitted counts, and a continuation cursor when more history exists.
+8. Repo validators pass: `python scripts/bifrost/validate_contracts.py`, `python scripts/bifrost/test_contracts.py`, and `python -m pytest scripts/agentcore_memory/test_recovery.py -q`.
 
 Record results and date in `IDE_PROFILE.yaml` (`last_validation_date`). Current recorded validation: unverified.

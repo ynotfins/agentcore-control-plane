@@ -15,7 +15,7 @@ def _now() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def node_step_one(state: WorkflowState) -> dict:
+def node_step_one(state: WorkflowState) -> dict[str, object]:
     """First workflow step — implement your logic here."""
     return {
         "steps_completed": ["step_one"],
@@ -24,7 +24,7 @@ def node_step_one(state: WorkflowState) -> dict:
     }
 
 
-def node_step_two(state: WorkflowState) -> dict:
+def node_step_two(state: WorkflowState) -> dict[str, object]:
     """Second workflow step."""
     return {
         "steps_completed": ["step_two"],
@@ -35,7 +35,7 @@ def node_step_two(state: WorkflowState) -> dict:
 
 {% if enable_human_pause %}
 
-def node_human_pause(state: WorkflowState) -> dict:
+def node_human_pause(state: WorkflowState) -> dict[str, object]:
     """Pause for operator review. Resume with Command(resume=decision)."""
     question = (
         f"Review required for thread {state['thread_id']}. "
@@ -59,8 +59,7 @@ def node_human_pause(state: WorkflowState) -> dict:
 
 {% endif %}
 
-
-def node_workflow_fail(state: WorkflowState) -> dict:
+def node_workflow_fail(state: WorkflowState) -> dict[str, object]:
     """Terminal failure node."""
     return {"completed": True, "next_action": "done"}
 

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Annotated
-from typing_extensions import TypedDict
 import operator
+from typing import Annotated
+
+from typing_extensions import TypedDict
 
 
 class WorkflowState(TypedDict):
@@ -15,7 +16,7 @@ class WorkflowState(TypedDict):
 
     # Accumulator fields — reducer appends new items rather than replacing
     steps_completed: Annotated[list[str], operator.add]
-    evidence: Annotated[list[dict], operator.add]
+    evidence: Annotated[list[dict[str, object]], operator.add]
 
     # Control flow
     next_action: str
