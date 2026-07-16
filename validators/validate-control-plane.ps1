@@ -583,6 +583,101 @@ foreach ($rel in $currentRuleFiles) {
 }
 Add-Result $results "NoSwarmFirstCurrentRules" ($staleRuleFindings.Count -eq 0) (($staleRuleFindings -join "; ") -replace "^$", "no current rule file teaches Swarm-first, telemetry-off, or the retired gateway identity")
 
+# AGENTS.md must stay durable: mutable runtime/service/database/Milestone facts belong
+# in generated STATE projections, current handoff/evidence, and classified machine docs.
+$agentsText = Get-Content -LiteralPath (Join-Path $rootPath "AGENTS.md") -Raw -ErrorAction SilentlyContinue
+$agentsMutableFindings = [System.Collections.Generic.List[string]]::new()
+$requiredAuthorityPointer = "Mutable machine, service, database, Milestone, and runtime state belongs in the generated STATE projections"
+if ($agentsText -notmatch [regex]::Escape($requiredAuthorityPointer)) {
+  $agentsMutableFindings.Add("missing mutable-state authority pointer") | Out-Null
+}
+$agentsMutablePatterns = @(
+  [pscustomobject]@{ label = "localhost/runtime port"; pattern = "127\.0\.0\.1:\d+" },
+  [pscustomobject]@{ label = "Bifrost runtime path"; pattern = "H:\\AgentRuntime" },
+  [pscustomobject]@{ label = "runtime memory/database path"; pattern = "F:\\(?:AgentCore|PostgreSQL)" },
+  [pscustomobject]@{ label = "compatibility/live-ops runtime path"; pattern = "D:\\MCP-Control-Plane" },
+  [pscustomobject]@{ label = "PostgreSQL service state"; pattern = "PostgreSQL\s+\d+\s+runs|AgentCore-PostgreSQL\d+" },
+  [pscustomobject]@{ label = "database inventory"; pattern = "global_vector_memory_store|cognee_core|swarmrecall\s+DB|agent_core\s+database" },
+  [pscustomobject]@{ label = "Milestone completion state"; pattern = "M\d+\s+acceptance|Milestone\s+M?\d+\s+(?:complete|completed|passed)" },
+  [pscustomobject]@{ label = "commit-specific fact"; pattern = "commit\s+[0-9a-f]{7,40}|git_commit_hash" }
+)
+foreach ($check in $agentsMutablePatterns) {
+  if ($agentsText -match $check.pattern) {
+    $agentsMutableFindings.Add($check.label) | Out-Null
+  }
+}
+Add-Result $results "AGENTS durable authority pointers only" ($agentsMutableFindings.Count -eq 0) (($agentsMutableFindings -join "; ") -replace "^$", "AGENTS.md contains durable rules plus mutable-state authority pointer only")
+
+# Continual-learning transcript index is retrieval-only evidence metadata.
+$indexFindings = [System.Collections.Generic.List[string]]::new()
+$indexRel = ".cursor\hooks\state\continual-learning-index.json"
+$indexPath = Join-Path $rootPath $indexRel
+if (-not (Test-Path -LiteralPath $indexPath)) {
+  $indexFindings.Add("$indexRel missing") | Out-Null
+}
+else {
+  try {
+    $index = Read-Json $indexPath
+    if ([int]$index.version -lt 2) { $indexFindings.Add("version must be >= 2") | Out-Null }
+    if ($index.retrievalOnly -ne $true) { $indexFindings.Add("retrievalOnly must be true") | Out-Null }
+    if ($index.startupContextEligible -ne $false) { $indexFindings.Add("startupContextEligible must be false") | Out-Null }
+    $normalStatuses = @($index.normalRetrievalStatuses)
+    if ($normalStatuses.Count -ne 1 -or $normalStatuses[0] -ne "active") {
+      $indexFindings.Add("normalRetrievalStatuses must contain only active") | Out-Null
+    }
+    if (-not $index.transcripts) {
+      $indexFindings.Add("transcripts missing") | Out-Null
+    }
+    else {
+      $requiredEntryFields = @("sourcePath", "authorityClass", "mtimeUtc", "size", "sha256", "retrievalStatus")
+      $validStatuses = @("active", "quarantined", "excluded")
+      foreach ($prop in $index.transcripts.PSObject.Properties) {
+        $entryName = $prop.Name
+        $entry = $prop.Value
+        foreach ($field in $requiredEntryFields) {
+          if (-not ($entry.PSObject.Properties.Name -contains $field)) {
+            $indexFindings.Add("$entryName missing $field") | Out-Null
+          }
+        }
+        if (($entry.PSObject.Properties.Name -contains "authorityClass") -and $entry.authorityClass -ne "evidence_only") {
+          $indexFindings.Add("$entryName authorityClass=$($entry.authorityClass)") | Out-Null
+        }
+        if (($entry.PSObject.Properties.Name -contains "retrievalStatus") -and $entry.retrievalStatus -notin $validStatuses) {
+          $indexFindings.Add("$entryName retrievalStatus=$($entry.retrievalStatus)") | Out-Null
+        }
+        if (($entry.PSObject.Properties.Name -contains "sha256") -and $entry.sha256 -notmatch "^[a-f0-9]{64}$") {
+          $indexFindings.Add("$entryName invalid sha256") | Out-Null
+        }
+      }
+    }
+  }
+  catch {
+    $indexFindings.Add("$indexRel parse-error: $($_.Exception.Message)") | Out-Null
+  }
+}
+Add-Result $results "ContinualLearningTranscriptIndex" ($indexFindings.Count -eq 0) (($indexFindings -join "; ") -replace "^$", "transcript index entries are evidence-only, retrieval-only, and active-only for normal retrieval")
+
+$startupReferenceFindings = [System.Collections.Generic.List[string]]::new()
+$startupReferenceFiles = Get-ChildItem -LiteralPath $rootPath -Recurse -File -Force |
+  Where-Object {
+    $_.FullName -notmatch "\\\.git\\" -and
+    $_.FullName -notmatch "\\artifacts\\" -and
+    $_.FullName -notmatch "\\backups\\" -and
+    $_.FullName -notmatch "\\reports\\_raw\\" -and
+    $_.FullName -notmatch "\\\.cursor\\hooks\\state\\" -and
+    $_.FullName -notmatch "\\validators\\validate-control-plane\.ps1$" -and
+    $_.FullName -notmatch "\\\.cursor\\hooks\\update-continual-learning-index\.ps1$" -and
+    $_.Extension -notin @(".pyc", ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".zip")
+  }
+foreach ($file in $startupReferenceFiles) {
+  $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction SilentlyContinue
+  if (-not $text) { continue }
+  if ($text -match "continual-learning-index\.json" -and $text -match "(?i)automatic\s+startup|startup\s+context|startup_context") {
+    $startupReferenceFindings.Add($file.FullName.Substring($rootPath.Length + 1)) | Out-Null
+  }
+}
+Add-Result $results "ContinualLearningNotStartupContext" ($startupReferenceFindings.Count -eq 0) (($startupReferenceFindings -join ", ") -replace "^$", "continual-learning index is not referenced as automatic startup context")
+
 # NoDriveWriteBoundaryConflict: drive rule must not name D:\MCP-Control-Plane as authority.
 $driveRule = Get-Content -LiteralPath (Join-Path $rootPath "docs\DRIVE_WRITE_BOUNDARY_RULE.md") -Raw -ErrorAction SilentlyContinue
 $driveOk = $driveRule -notmatch "MCP-Control-Plane``?\s+is\s+the\s+authority"

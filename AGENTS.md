@@ -2,8 +2,7 @@
 
 This repository, `D:\github\agentcore-control-plane`, is the canonical Git source repo for MCP governance, Bifrost gateway contracts/renderers, and repo validators.
 
-`H:\AgentRuntime\bifrost` is the Bifrost runtime root (not design authority).
-`D:\MCP-Control-Plane` is compatibility/live-ops evidence only — not a design authority.
+Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_AUTHORITY.md`, and current evidence/handoff documents. Do not treat compatibility/live-ops roots as design authority.
 
 **Start here (read in this order):** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → `contracts/bifrost-upstream-mcp-registry.json` + `contracts/agentcore-gateway-client.json` → `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` → `MASTER_CONFIG_AND_PROMPT.md`. For memory/database work, also read `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (implementation authority). Project execution policy: `docs/agent-policy/`.
 
@@ -23,14 +22,14 @@ This repository, `D:\github\agentcore-control-plane`, is the canonical Git sourc
 
 ## Tool Routing (non-Swarm / control-plane work)
 
-- **IDE MCP primary:** Bifrost `agentcore-gateway` at `http://127.0.0.1:8080/mcp` with `Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}`. Do not paste the full upstream registry into each IDE.
+- **IDE MCP primary:** use the single Bifrost `agentcore-gateway` entry defined by `PROJECT_ANCHOR.md` and `contracts/agentcore-gateway-client.json`. Do not paste the full upstream registry into each IDE.
 - **Planning:** `sequential-thinking` (via gateway).
 - **Repo code work:** Serena via **project router** (`agentcore-project-router` activate → Serena wrapper). Prefer project-scoped cwd.
 - **Depwire:** Prefer Depwire **through agentcore-gateway** after cutover. Local Depwire CLI/MCP remains available for diagnostics and exact workspace graphs; Depwire Cloud stays deferred until enabled/healthy in the registry.
-- **Tentra:** Local mode only; data under `H:\AgentRuntime\tentra\data`; launch via project-router wrapper.
+- **Tentra:** Local mode only; launch via project-router wrapper and follow current classified evidence for mutable data paths.
 - **Docs:** `arabold-docs` first for current library/SDK/docs answers. Keep Bifrost docs indexed (`bifrost` / `2.0.0-prerelease1`).
 - **Memory (non-Swarm):** `agentcore-memory` stable identity via gateway (may be degraded until memory platform lands). Do not route normal non-Swarm IDE work through SwarmRecall/SwarmVault.
-- **Project continuity:** `context-fabric` only for approved Git-managed workspaces via project router; do not initialize under Swarm/`F:\AgentCore\agentmemory`.
+- **Project continuity:** `context-fabric` only for approved Git-managed workspaces via project router; do not initialize under Swarm or runtime memory roots.
 - **Architecture scans:** `artiforge` for high-leverage scans only.
 - **Connected app workflows:** keep Composio quarantined until explicitly re-enabled.
 
@@ -52,10 +51,13 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thin
 ## Database Contract
 
 - Canonical Git source repo: `D:\github\agentcore-control-plane`
-- Bifrost runtime: `H:\AgentRuntime\bifrost`
-- Current live deployed ops evidence root: `D:\MCP-Control-Plane` (not design authority)
-- **Memory/database implementation authority:** `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (PostgreSQL 18 + pgvector canonical; Cognee behind AgentCore adapter; Mem0 rejected)
-- Live legacy cluster (facts, preserved for rollback): PostgreSQL 16 `agent_core` on `127.0.0.1:55432`, vector store `global_vector_memory_store` pgvector `VECTOR(1536)` — historical contract in `AGENT_DATABASE_BOOTSTRAP.md` / `contracts/global-memory-database-contract.json`
+- Mutable machine, service, database, Milestone, and runtime state belongs in the generated STATE projections, current handoff/evidence, and `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` classified documents. Do not duplicate mutable runtime facts as permanent AGENTS.md rules.
+- **Memory/database implementation authority:** `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`
 - Normal non-Swarm IDE memory identity: `agentcore-memory` via gateway (no direct SQL; no Postgres credentials in IDE configs)
-- Trusted direct SQL path: explicit ingest/admin runners approved by the control plane (none active by default)
-- Gateway/ops credentials (never in IDE configs): `AGENT_CORE_PGUSER=agent_ingest` and `AGENT_CORE_PGPASSWORD` from Windows User env `AGENT_CORE_AGENT_INGEST_PASSWORD`
+- Trusted direct SQL is limited to explicitly approved ingest/admin runners.
+
+## Learned User Preferences
+
+- When checkpointing inherited dirty state, inventory/classify files, scan for secrets/junk/generated/oversized artifacts, and commit the checkpoint separately.
+- Keep authority-reconciliation tasks scoped to rules, validators, profiles, and handoffs; defer runtime platform work until the required memory-platform milestone exists.
+- Exclude unrelated runtime files, live configs, credentials, databases, caches, backups, and raw config dumps from repository commits.
