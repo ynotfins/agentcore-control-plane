@@ -127,8 +127,13 @@ def build_graph(conninfo: str | None = None) -> tuple[Any, PostgresSaver]:
         "workflow_fail": "workflow_fail",
     })
 
-    # DA critic → evidence_record (always; critic cannot block the workflow)
-    builder.add_edge("da_critic", "evidence_record")
+    # DA critic → evidence_record (pass) or workflow_fail (critical failure)
+    # Conditional edge satisfies the invariant that DA critic findings can affect
+    # the final step verdict (see ADR-DEEP-AGENTS-WORKER-HARNESS.md §Workflow Ordering).
+    builder.add_conditional_edges("da_critic", route, {
+        "evidence_record": "evidence_record",
+        "workflow_fail": "workflow_fail",
+    })
 
     # Evidence → next step
     builder.add_edge("evidence_record", "next_step")

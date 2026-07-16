@@ -6,8 +6,8 @@ LangGraph persists the state at each checkpoint via PostgresSaver.
 Node graph:
   start → gate_check → deterministic_checks → risk_assess →
   critics_and_score → judge_node →
-    proceed (da_enabled=False): micro_execute
-    proceed (da_enabled=True):  da_builder → da_critic → evidence_record
+    proceed (da_enabled=False): micro_execute → evidence_record
+    proceed (da_enabled=True):  da_builder → da_critic → evidence_record | workflow_fail
     needs_operator:             human_pause → da_builder | micro_execute
     block:                      workflow_fail
   micro_execute | da_builder → evidence_record → next_step → gate_check | done
@@ -15,6 +15,17 @@ Node graph:
 Deep Agents nodes (da_builder, da_critic) are bounded worker harness nodes.
 They are NOT canonical memory, checkpoint, or policy authorities.
 All durable writes go through agentcore-memory (db.record_evidence).
+
+Workflow ordering invariant (see ADR-DEEP-AGENTS-WORKER-HARNESS.md §Workflow Ordering):
+  - judge_node is the PRE-EXECUTION gate: it evaluates pre-execution evidence and
+    decides whether to attempt execution via da_builder.
+  - da_critic is the POST-EXECUTION reviewer: it evaluates builder output and computes
+    a combined final verdict from pre-execution score + DA critic findings.
+  - da_critic routes to evidence_record (pass) or workflow_fail (critical failure),
+    satisfying the invariant that DA critic findings can affect the final step verdict.
+  - node_next_step resets per-step tracking; da_critic findings are preserved in
+    da_critic_result state and in wf_evidence, not in critic_results across steps.
+
 See ADR-DEEP-AGENTS-WORKER-HARNESS.md.
 """
 
@@ -749,8 +760,16 @@ def node_da_critic(state: WorkflowState) -> dict:
     The critic is STRICTLY read-only:
     - FilesystemPermission operations=["read"] only.
     - No source-write, database-write, policy-write, or profile-write authority.
-    - Returns structured findings that feed into the existing M6 scorer/judge chain.
-    - Evidence recorded through agentcore-memory path only.
+
+    Post-execution invariant: DA critic findings MUST be able to affect the final
+    step verdict.  After running the critic, this node combines the pre-execution
+    score (from critics_and_score) with the DA critic result into a final verdict:
+      - "pass"   → evidence_record
+      - "fail"   → workflow_fail (critical findings, e.g. score combined < 0.85
+                   and da_critic says passed=False)
+
+    Routing: conditional (see workflow.py), NOT a fixed edge.
+    Evidence is always recorded through agentcore-memory path regardless of verdict.
     """
     from .deepagents_worker import run_critic_worker, DEEPAGENTS_AVAILABLE
 
@@ -777,7 +796,7 @@ def node_da_critic(state: WorkflowState) -> dict:
     task = f"Review the output of micro step {micro_key}"
 
     if not DEEPAGENTS_AVAILABLE or not worktree_path:
-        # No DA available — return a neutral pass so the workflow continues.
+        # No DA available — neutral pass so the workflow continues.
         return {
             "da_critic_result": {"status": "skipped_no_da", "passed": True, "score": 1.0},
             "next_action": "evidence_record",
@@ -792,7 +811,7 @@ def node_da_critic(state: WorkflowState) -> dict:
         thread_uuid=thread_uuid,
     )
 
-    # Record durable evidence through agentcore-memory path.
+    # Record durable evidence through agentcore-memory path regardless of verdict.
     if run_db_id:
         try:
             db.record_evidence(
@@ -801,11 +820,9 @@ def node_da_critic(state: WorkflowState) -> dict:
                 f"DA critic {micro_key}: passed={critic_result.get('passed')} score={critic_result.get('score', 0):.2f}",
                 critic_result,
             )
-            # Also feed the critic finding back into the critic_results list
-            # so the existing deterministic scorer picks it up.
             db.record_critic_run(
                 run_db_id, project_id, micro_key,
-                "critic", state.get("current_risk_class"),
+                "da_critic", state.get("current_risk_class"),
                 [builder_result],
                 critic_result,
                 critic_result.get("passed"),
@@ -815,10 +832,39 @@ def node_da_critic(state: WorkflowState) -> dict:
         except Exception:
             pass
 
+    # ── Post-execution final verdict ──────────────────────────────────────────
+    # Combine pre-execution score with DA critic finding to produce a final
+    # step verdict.  A DA critic failure only triggers workflow_fail when it
+    # is both explicit (passed=False) and the combined evidence is critically
+    # weak (critic score < 0.50), preventing advisory findings from blocking
+    # an otherwise healthy step.
+    pre_exec_score: float = state.get("score", 0.0)
+    da_critic_score: float = float(critic_result.get("score", 1.0))
+    da_critic_passed: bool = bool(critic_result.get("passed", True))
+    # Combined score: 70% pre-execution (gates, det_checks, critics already
+    # evaluated by critics_and_score), 30% post-execution DA critic quality.
+    combined_score = round(0.70 * pre_exec_score + 0.30 * da_critic_score, 4)
+
+    # Block only on an explicit critical failure: da says not-passed AND
+    # combined evidence falls below the operator threshold.
+    from .critics import SCORE_OPERATOR_THRESHOLD
+    is_critical_failure = (
+        not da_critic_passed
+        and combined_score < SCORE_OPERATOR_THRESHOLD
+    )
+
+    next_action = "workflow_fail" if is_critical_failure else "evidence_record"
+    failure_msg = (
+        [f"DA critic critical failure on {micro_key}: score={combined_score:.4f} "
+         f"findings={critic_result.get('findings', [])}"]
+        if is_critical_failure else []
+    )
+
     return {
         "da_critic_result": critic_result,
-        "critic_results": [critic_result],     # feeds into scorer on next iteration
-        "next_action": "evidence_record",
+        "da_combined_score": combined_score,
+        "next_action": next_action,
+        "errors": failure_msg,
     }
 
 

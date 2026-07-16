@@ -76,7 +76,8 @@ class WorkflowState(TypedDict):
     worktree_path: str       # absolute path to assigned Git worktree (D:\\ only)
     da_enabled: bool         # True when DA workers are active for this step
     da_builder_result: dict  # last DA builder output (ephemeral, recorded to wf_evidence)
-    da_critic_result: dict   # last DA critic output (ephemeral, feeds into scorer)
+    da_critic_result: dict   # last DA critic output (post-execution, recorded to wf_evidence)
+    da_combined_score: float # post-execution combined score (0.70 * pre-exec + 0.30 * DA critic)
 
     # ── Evidence accumulation ─────────────────────────────────────────────────
     evidence: Annotated[list[dict], _merge_list]
@@ -130,6 +131,7 @@ def initial_state(
         da_enabled=False,
         da_builder_result={},
         da_critic_result={},
+        da_combined_score=0.0,
         evidence=[],
         execution_result={},
         errors=[],

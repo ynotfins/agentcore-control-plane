@@ -179,13 +179,65 @@ within the assigned worktree; it cannot access Bifrost or registered MCP servers
 
 ---
 
+## Workflow Ordering Invariant
+
+**Required invariant (2026-07-16 closeout):**
+DA worker output and DA critic findings must enter the existing deterministic
+verification, scoring, and judging flow at the correct stage.  The final
+independent judge must not run before the implementation and critic evidence
+that it is expected to evaluate.
+
+**Actual compiled topology:**
+
+```
+critics_and_score → judge_node (PRE-EXECUTION GATE)
+    │ verdict=proceed, da_enabled=True  → da_builder → da_critic ─→ evidence_record
+    │                                                            └→ workflow_fail
+    │ verdict=proceed, da_enabled=False → micro_execute → evidence_record
+    │ verdict=needs_operator             → human_pause → da_builder | micro_execute
+    └ verdict=block                     → workflow_fail
+```
+
+**Role of `judge_node`:** PRE-EXECUTION gate.  It evaluates pre-execution evidence
+(det_checks, gate_verdicts, risk-selected critic results, score from
+`critics_and_score`) and decides whether to attempt execution.  It does NOT
+evaluate DA worker output because that output does not exist yet.
+
+**Role of `da_critic`:** POST-EXECUTION reviewer.  After `da_builder` executes, the
+critic reviews the builder's output.  The critic then computes a **post-execution
+combined verdict**:
+
+```
+combined_score = 0.70 × pre_exec_score + 0.30 × da_critic_score
+if not da_critic.passed AND combined_score < SCORE_OPERATOR_THRESHOLD:
+    → workflow_fail   (critical failure)
+else:
+    → evidence_record (pass)
+```
+
+This satisfies the invariant: a distinctive DA critic finding (e.g., builder deleted
+the test suite) can cause the step to fail via `workflow_fail`, even though the
+pre-execution judge already returned "proceed".
+
+**Why `judge_node` is still authoritative:**  It remains the sole decision-maker for
+whether execution is attempted.  Only a "proceed" verdict from the judge allows
+`da_builder` to run.  The post-execution verdict in `da_critic` is a complementary
+final check, not a replacement for the independent judge.
+
+**Correction applied (2026-07-16):**
+Original implementation used `builder.add_edge("da_critic", "evidence_record")` —
+a fixed edge that meant DA critic findings could never block a step.
+Corrected to `builder.add_conditional_edges("da_critic", route, {...})` with
+a combined-score check in `node_da_critic`.
+Regression test added: `test_da_critic_finding_reaches_scorer_and_can_affect_verdict`.
+
 ## Compatibility Evidence
 
 - Deep Agents venv: `langgraph==1.2.5` ← exact match with M6
 - System Python 3.13: `deepagents==0.6.12` installed and importing cleanly
 - `FilesystemPermission(paths=["**"], operations=["read"/"write"])` — API verified
 - Graph topology: da_builder and da_critic wired as additive M6 nodes; existing nodes unchanged
-- Full test suite: 21/21 PASS (17 acceptance + 4 bonus); M6 regression: 18/18 PASS
+- Full test suite: 21/21 PASS (17 acceptance + 4 bonus); M6 regression: 18/18 PASS (pre-fix)
 - Bifrost validators: OK; Secret scan: CLEAN
 
 ---
@@ -201,6 +253,50 @@ within the assigned worktree; it cannot access Bifrost or registered MCP servers
 
 ---
 
+## Local Deep Agents Preservation (2026-07-16)
+
+The local `D:\github\deepagents` checkout contained legitimate local development
+work that was not committed to the upstream repository.  This work was preserved
+via a **local preservation branch** created from `HEAD=3d1a9a94`.
+
+### Preservation method
+
+**Method used:** local Git branch `local/agentcore-preserve-20260716`  
+**Commit:** see branch HEAD after preservation commit  
+**Not pushed:** branch is local-only; upstream `langchain-ai/deepagents` was NOT pushed to.
+
+### Inventory of preserved files
+
+| File / Path | Category | Preserved? |
+| --- | --- | --- |
+| `.gitignore` (modified) | Intentional: adds `.local-smoke/` to ignore list | Yes |
+| `libs/platform/` | Local deepagents-platform v0.1.0 source + tests | Yes |
+| `tests/` | Platform unit tests (test_ab, test_guard, test_harness, test_observability) | Yes |
+| `local.config.env` | Non-secret model routing config (template, no secret values) | Yes |
+| `smoke.py`, `smoke_simple.py`, `smoke_supervisor.py` | Smoke test scripts | Yes |
+| `run_smoke.bat`, `run_smoke_simple.bat`, `run_tests.bat` | Runner batch files | Yes |
+| `scripts/phase3_smoke_test.py` | Phase 3 smoke test | Yes |
+| `Langgraph-Multi-Agent-AI-Platform.md` | Platform documentation | Yes |
+| `diag_supervisor.py`, `diag2_supervisor.py` | Diagnostic scripts | Yes |
+
+### Excluded from preservation
+
+| Path | Reason |
+| --- | --- |
+| `.minimax/` | IDE/tool cache — not source |
+| `.serena/` | IDE/tool cache — not source |
+| `libs/platform/__pycache__/` | Python bytecode — generated |
+| `tests/platform/__pycache__/` | Python bytecode — generated |
+
+### Secret scan result
+
+All preserved files scanned for `sk-proj*`, `sk-ant*`, `AIza*`, `ghp_*`, `github_pat_*`,
+`Bearer <token>` patterns.  **Result: CLEAN** — no secrets found.
+`local.config.env` contains only non-secret model name strings; actual API keys live
+in Windows User environment variables as required.
+
+---
+
 ## Provenance
 
 | Item | Value |
@@ -211,3 +307,4 @@ within the assigned worktree; it cannot access Bifrost or registered MCP servers
 | License | MIT |
 | Inspected: 2026-07-16 | HEAD branch `main` |
 | Local platform code (libs/platform/) | AI-generated, untracked; pure-function utilities ported with attribution |
+| Local preservation branch | `local/agentcore-preserve-20260716` in `D:\github\deepagents` — commit `44717cd2` (not pushed to upstream) |

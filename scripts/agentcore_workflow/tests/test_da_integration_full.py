@@ -236,15 +236,24 @@ def test_11_deterministic_gates_run_before_worker(proj_a_id):
 
 
 def test_12_scorer_judge_human_pause_ab_remain_authoritative():
-    """12. Scorer, judge, human pause/resume, and A/B decision rules remain authoritative."""
+    """12. Scorer, judge, human pause/resume, and A/B decision rules remain authoritative.
+
+    Post-ordering-fix: da_critic computes a combined post-execution verdict using
+    the pre-execution score (from critics_and_score) + DA critic findings.
+    The existing score_evidence and judge functions in critics.py remain authoritative
+    and are not called by node_da_critic directly.
+    """
     # Scorer and judge are in critics.py — DA workers don't own them
     from agentcore_workflow import critics
     assert hasattr(critics, "score_evidence")
     assert hasattr(critics, "judge")
-    # DA critic feeds INTO critic_results, not replacing the scorer
+    # DA critic feeds into da_critic_result; post-execution verdict uses pre-exec score
     src = inspect.getsource(node_da_critic)
-    assert "critic_results" in src, "DA critic must feed into critic_results"
+    assert "da_critic_result" in src, "DA critic must populate da_critic_result"
     assert "score_evidence" not in src, "DA critic must not call score_evidence directly"
+    assert "critics.judge" not in src, "DA critic must not call the independent judge directly"
+    # DA critic references SCORE_OPERATOR_THRESHOLD from critics module (authoritative threshold)
+    assert "SCORE_OPERATOR_THRESHOLD" in src, "DA critic must use the authoritative operator threshold"
     # Human pause nodes own the pause state
     from agentcore_workflow.nodes import node_human_pause
     assert "db.create_pause" in inspect.getsource(node_human_pause)
@@ -324,8 +333,90 @@ def test_da_graph_routing_structure():
     assert "da_critic" in wf_src, "da_critic must be in the graph"
     assert '"da_builder"' in wf_src
     assert '"da_critic"' in wf_src
-    # da_critic routes to evidence_record
+    # da_critic routes conditionally (not a fixed edge) — workflow_fail or evidence_record
     assert "da_critic" in wf_src and "evidence_record" in wf_src
+    assert "workflow_fail" in wf_src
+    # Confirm da_critic uses add_conditional_edges (not add_edge)
+    assert 'add_conditional_edges("da_critic"' in wf_src, (
+        "da_critic must use conditional edge so critic findings can affect the final verdict"
+    )
+
+
+def test_da_critic_finding_reaches_scorer_and_can_affect_verdict():
+    """Regression: a distinctive DA critic failure must route to workflow_fail.
+
+    Required invariant (BLUEPRINT.md + ADR-DEEP-AGENTS-WORKER-HARNESS.md):
+    DA critic findings must enter the deterministic verification/scoring/judging
+    flow at the correct stage.  This test injects a critical DA critic failure
+    (passed=False, score=0.0) with a low pre-execution score and asserts that
+    node_da_critic returns next_action='workflow_fail'.
+
+    It also asserts that a DA critic PASS (passed=True, score=1.0) returns
+    next_action='evidence_record', confirming both routing branches work.
+    """
+    from agentcore_workflow.nodes import node_da_critic
+    from agentcore_workflow.state import initial_state
+    from unittest.mock import patch
+
+    base_state = dict(initial_state("00000000-0000-0000-0000-000000000001", "test-proj", str(uuid.uuid4())))
+    base_state["current_micro_key"] = "M6.3.1"
+    base_state["current_risk_class"] = "medium"
+    base_state["worktree_path"] = str(TEST_WORKTREE)
+    base_state["da_builder_result"] = {"status": "completed", "output": "some output"}
+
+    # ── Case 1: critical DA critic failure (passed=False, score=0.0) ──────────
+    # Pre-execution score is also low (0.45) → combined = 0.70*0.45 + 0.30*0.0 = 0.315
+    # This is below SCORE_OPERATOR_THRESHOLD (0.60) → must route to workflow_fail.
+    base_state["score"] = 0.45
+
+    critical_failure = {"passed": False, "score": 0.0, "findings": ["critical: builder deleted test suite"]}
+
+    with patch("agentcore_workflow.deepagents_worker.DEEPAGENTS_AVAILABLE", True), \
+         patch("agentcore_workflow.deepagents_worker.run_critic_worker", return_value=critical_failure):
+        result = node_da_critic(base_state)
+
+    assert result["next_action"] == "workflow_fail", (
+        f"Critical DA critic failure must route to workflow_fail, got: {result['next_action']}\n"
+        f"da_combined_score={result.get('da_combined_score')}"
+    )
+    assert result.get("da_combined_score", 1.0) < 0.60, (
+        "Combined score must be below operator threshold when DA critic fails critically"
+    )
+    assert result.get("da_critic_result") == critical_failure, (
+        "da_critic_result must contain the critic's findings"
+    )
+
+    # ── Case 2: DA critic PASS (passed=True, score=1.0) ──────────────────────
+    # Pre-execution score = 0.90 → combined = 0.70*0.90 + 0.30*1.0 = 0.93
+    # Above proceed threshold (0.85) → must route to evidence_record.
+    base_state["score"] = 0.90
+    critic_pass = {"passed": True, "score": 1.0, "findings": []}
+
+    with patch("agentcore_workflow.deepagents_worker.DEEPAGENTS_AVAILABLE", True), \
+         patch("agentcore_workflow.deepagents_worker.run_critic_worker", return_value=critic_pass):
+        result2 = node_da_critic(base_state)
+
+    assert result2["next_action"] == "evidence_record", (
+        f"DA critic pass must route to evidence_record, got: {result2['next_action']}"
+    )
+    assert result2.get("da_combined_score", 0.0) >= 0.85, (
+        "Combined score must be above proceed threshold when DA critic passes with strong pre-exec score"
+    )
+
+    # ── Case 3: DA critic advisory failure (passed=False, score=0.4) ─────────
+    # Pre-execution score = 0.95 (excellent) → combined = 0.70*0.95 + 0.30*0.4 = 0.785
+    # Combined is above SCORE_OPERATOR_THRESHOLD (0.60) but below proceed (0.85).
+    # Routing: evidence_record (combined ≥ 0.60) — advisory, not critical.
+    base_state["score"] = 0.95
+    critic_advisory = {"passed": False, "score": 0.4, "findings": ["minor: missing docstrings"]}
+
+    with patch("agentcore_workflow.deepagents_worker.DEEPAGENTS_AVAILABLE", True), \
+         patch("agentcore_workflow.deepagents_worker.run_critic_worker", return_value=critic_advisory):
+        result3 = node_da_critic(base_state)
+
+    assert result3["next_action"] == "evidence_record", (
+        f"Advisory DA critic finding with high pre-exec score must not block (got: {result3['next_action']})"
+    )
 
 
 def test_da_enabled_routing(proj_a_id):
