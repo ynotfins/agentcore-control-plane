@@ -1,0 +1,358 @@
+# AgentCore Governed Dependency Catalog
+# Authority: docs/engineering/CONSTITUTION.md §13
+# Status entries: approved | under_review | rejected
+# Agents must use approved dependencies or submit an evidence-backed proposal.
+# "latest" is NEVER automatically approved.
+
+catalog_version: "2026-07-16"
+reviewed_by: "operator"
+
+dependencies:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # APPROVED
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - package: psycopg
+    ecosystem: python
+    status: approved
+    purpose: PostgreSQL 18 database adapter for Python
+    version_policy: ">=3.3.4,<4.0"
+    tested_version: "3.3.4"
+    extras: "[binary,pool]"
+    source: https://pypi.org/project/psycopg/
+    repository: https://github.com/psycopg/psycopg
+    documentation: https://www.psycopg.org/psycopg3/docs/
+    license: LGPL-3.0-only
+    provenance: official psycopg.org; LGPL allows use in proprietary systems
+    security_notes: >
+      No known CVEs at tested version. Binary extension avoids C compiler requirement on Windows.
+    alternatives_considered: "psycopg2 (Python 2 lineage, no native asyncio), asyncpg (async-only)"
+    approval_reason: "Official PostgreSQL adapter; native asyncio; Windows binary available; LGPL license compatible"
+    last_review: "2026-07-16"
+
+  - package: psycopg-pool
+    ecosystem: python
+    status: approved
+    purpose: Connection pool for psycopg (required by langgraph-checkpoint-postgres)
+    version_policy: "==3.3.1"
+    tested_version: "3.3.1"
+    source: https://pypi.org/project/psycopg-pool/
+    repository: https://github.com/psycopg/psycopg
+    documentation: https://www.psycopg.org/psycopg3/docs/advanced/pool.html
+    license: LGPL-3.0-only
+    provenance: official psycopg.org team; same provenance as psycopg
+    security_notes: No known CVEs at tested version.
+    alternatives_considered: Manual connection management (higher overhead), SQLAlchemy pool (heavier dep)
+    approval_reason: "Required transitive dependency of langgraph-checkpoint-postgres; same maintainer as psycopg"
+    last_review: "2026-07-16"
+
+  - package: langgraph
+    ecosystem: python
+    status: approved
+    purpose: Stateful multi-actor graph framework for durable autonomous workflows (M6)
+    version_policy: "==1.2.5"
+    tested_version: "1.2.5"
+    source: https://pypi.org/project/langgraph/
+    repository: https://github.com/langchain-ai/langgraph
+    documentation: https://langchain-ai.github.io/langgraph/
+    license: MIT
+    provenance: LangChain AI; MIT license; official LangGraph package
+    security_notes: >
+      No known CVEs at tested version. Does not store secrets; secrets pass through
+      environment variables only.
+    alternatives_considered: "Temporal (cloud-first), Prefect (separate server required), raw asyncio (no durable checkpoints)"
+    approval_reason: "Official durable workflow engine; native PostgreSQL checkpointer; MIT license"
+    last_review: "2026-07-16"
+
+  - package: langgraph-checkpoint-postgres
+    ecosystem: python
+    status: approved
+    purpose: PostgreSQL backend for LangGraph checkpoints (M6 durable state)
+    version_policy: "==3.1.0"
+    tested_version: "3.1.0"
+    source: https://pypi.org/project/langgraph-checkpoint-postgres/
+    repository: https://github.com/langchain-ai/langgraph
+    documentation: https://langchain-ai.github.io/langgraph/reference/checkpoints/#langgraph.checkpoint.postgres.PostgresSaver
+    license: MIT
+    provenance: LangChain AI; same repository as langgraph
+    security_notes: Stores checkpoint blobs in PostgreSQL. Blobs must not contain secrets.
+    alternatives_considered: SQLite checkpointer (no concurrent access), in-memory (no persistence)
+    approval_reason: "Official PostgreSQL checkpointer; uses existing PostgreSQL 18 instance; no additional service"
+    last_review: "2026-07-16"
+
+  - package: pydantic
+    ecosystem: python
+    status: approved
+    purpose: Runtime data validation and settings management
+    version_policy: ">=2.7,<3.0"
+    tested_version: "2.7.4"
+    source: https://pypi.org/project/pydantic/
+    repository: https://github.com/pydantic/pydantic
+    documentation: https://docs.pydantic.dev/latest/
+    license: MIT
+    provenance: Pydantic Services Inc.; MIT license; widely used standard library
+    security_notes: No known CVEs at tested version.
+    alternatives_considered: "attrs (less ergonomic), dataclasses (no validation), marshmallow (older pattern)"
+    approval_reason: "De facto standard for Python data validation; required by langgraph and FastAPI ecosystems"
+    last_review: "2026-07-16"
+
+  - package: mcp
+    ecosystem: python
+    status: approved
+    purpose: Official MCP Python SDK for building MCP servers (stdio and Streamable HTTP)
+    version_policy: ">=1.28.1,<2.0"
+    tested_version: "1.28.1"
+    source: https://pypi.org/project/mcp/
+    repository: https://github.com/modelcontextprotocol/python-sdk
+    documentation: https://modelcontextprotocol.io/docs/
+    license: MIT
+    provenance: Anthropic/MCP consortium; official SDK
+    security_notes: >
+      Pin to <2.0 until v2 is stable. Do not use pre-release v2 builds in production.
+    alternatives_considered: Custom NDJSON framing (used by agentcore-memory for Bifrost compatibility)
+    approval_reason: "Official SDK; stable v1 line; MIT license; Bifrost compatibility verified"
+    last_review: "2026-07-16"
+
+  - package: cognee
+    ecosystem: python
+    status: approved
+    purpose: Semantic knowledge graph engine behind KnowledgeMemoryPort (M5)
+    version_policy: "==1.3.0"
+    tested_version: "1.3.0"
+    source: https://pypi.org/project/cognee/
+    repository: https://github.com/topoteretes/cognee
+    documentation: https://cognee.ai/docs
+    license: Apache-2.0
+    provenance: topoteretes; Apache-2.0 license; installation on H:\AgentRuntime\agentcore-memory\cognee\
+    security_notes: Uses dedicated cognee_core database; no secrets in configuration files.
+    alternatives_considered: "Mem0 (rejected — see below), Graphiti/Zep (more complex), Neo4j (separate service)"
+    approval_reason: "Selected for v1 as curated semantic graph; PostgreSQL-native; no Docker dependency"
+    last_review: "2026-07-16"
+
+  - package: copier
+    ecosystem: python
+    status: approved
+    purpose: Project template engine for generating governed project foundations (M7)
+    version_policy: "==9.17.0"
+    tested_version: "9.17.0"
+    source: https://pypi.org/project/copier/
+    repository: https://github.com/copier-org/copier
+    documentation: https://copier.readthedocs.io/en/stable/
+    license: MIT
+    provenance: copier-org; MIT license; active maintenance
+    security_notes: Templates run Jinja2; do not execute arbitrary code in copier.yml unless trust is verified.
+    alternatives_considered: "cookiecutter (no update support), yeoman (Node.js dep), custom scripts (no standard format)"
+    approval_reason: "Native update support; Jinja2 templating; no separate server; MIT license"
+    last_review: "2026-07-16"
+
+  - package: ruff
+    ecosystem: python
+    status: approved
+    purpose: Fast Python linter and formatter (replaces flake8, black, isort)
+    version_policy: ">=0.6,<1.0"
+    tested_version: "0.6.9"
+    source: https://pypi.org/project/ruff/
+    repository: https://github.com/astral-sh/ruff
+    documentation: https://docs.astral.sh/ruff/
+    license: MIT
+    provenance: Astral; MIT license; Rust-based, very fast
+    security_notes: Static analysis only; no runtime security implications.
+    alternatives_considered: "flake8+black+isort (three tools), pylint (slower, different opinions)"
+    approval_reason: "Single tool for lint+format; ~100x faster than alternatives; MIT license"
+    last_review: "2026-07-16"
+
+  - package: mypy
+    ecosystem: python
+    status: approved
+    purpose: Static type checker (--strict mode required for platform code)
+    version_policy: ">=1.10,<2.0"
+    tested_version: "1.10.1"
+    source: https://pypi.org/project/mypy/
+    repository: https://github.com/python/mypy
+    documentation: https://mypy.readthedocs.io/en/stable/
+    license: MIT
+    provenance: Python open-source community; MIT license; official typing tool
+    security_notes: Static analysis only.
+    alternatives_considered: "pyright (VS Code-centric), pytype (Google, slower)"
+    approval_reason: "De facto standard; --strict enforced; MIT license"
+    last_review: "2026-07-16"
+
+  - package: pytest
+    ecosystem: python
+    status: approved
+    purpose: Test framework for unit and integration tests
+    version_policy: ">=8.0,<9.0"
+    tested_version: "8.3.4"
+    source: https://pypi.org/project/pytest/
+    repository: https://github.com/pytest-dev/pytest
+    documentation: https://docs.pytest.org/en/stable/
+    license: MIT
+    provenance: pytest-dev team; MIT license; standard Python testing framework
+    security_notes: Dev dependency only; not in production wheel.
+    alternatives_considered: "unittest (verbose), nose (deprecated)"
+    approval_reason: "Standard; extensive plugin ecosystem; MIT license"
+    last_review: "2026-07-16"
+
+  - package: orjson
+    ecosystem: python
+    status: approved
+    purpose: Fast JSON serialization (required by langgraph-checkpoint-postgres for checkpoint blobs)
+    version_policy: ">=3.9,<4.0"
+    tested_version: "3.10.18"
+    source: https://pypi.org/project/orjson/
+    repository: https://github.com/ijl/orjson
+    documentation: https://github.com/ijl/orjson#readme
+    license: Apache-2.0 / MIT (dual)
+    provenance: ijl; dual Apache-2.0/MIT license; Rust-based
+    security_notes: No known CVEs. Does not handle secrets differently from stdlib json.
+    alternatives_considered: stdlib json (slower), ujson (less maintained)
+    approval_reason: "Required by langgraph-checkpoint-postgres; 10x faster than stdlib json"
+    last_review: "2026-07-16"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # UNDER REVIEW
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - package: fastapi
+    ecosystem: python
+    status: under_review
+    purpose: Potential REST API framework for admin/diagnostic endpoints
+    version_policy: ">=0.115,<1.0"
+    source: https://pypi.org/project/fastapi/
+    repository: https://github.com/fastapi/fastapi
+    documentation: https://fastapi.tiangolo.com/
+    license: MIT
+    provenance: Sebastián Ramírez; MIT license; widely used
+    review_notes: >
+      Not yet required. Evaluate only if agentcore-memory needs an HTTP surface
+      beyond Bifrost stdio. Brings uvicorn dependency. Review against alternative
+      of plain http.server with custom routing.
+    last_review: "2026-07-16"
+
+  - package: detect-secrets
+    ecosystem: python
+    status: under_review
+    purpose: Pre-commit secret scanning
+    version_policy: ">=1.5,<2.0"
+    source: https://pypi.org/project/detect-secrets/
+    repository: https://github.com/Yelp/detect-secrets
+    documentation: https://github.com/Yelp/detect-secrets/blob/master/README.md
+    license: Apache-2.0
+    provenance: Yelp; Apache-2.0; widely used in CI
+    review_notes: >
+      Evaluate alongside trufflehog. Need to confirm Windows PowerShell 7.x
+      integration before approving. Required for pre-commit hook in M7 templates.
+    last_review: "2026-07-16"
+
+  - package: pytest-asyncio
+    ecosystem: python
+    status: under_review
+    purpose: pytest plugin for async test functions
+    version_policy: ">=0.23,<1.0"
+    source: https://pypi.org/project/pytest-asyncio/
+    repository: https://github.com/pytest-dev/pytest-asyncio
+    license: Apache-2.0
+    provenance: pytest-dev team; Apache-2.0
+    review_notes: >
+      Required for async LangGraph workflow tests. Evaluate asyncio_mode=auto
+      vs explicit markers. Approve after confirming Python 3.13 compatibility.
+    last_review: "2026-07-16"
+
+  - package: structlog
+    ecosystem: python
+    status: under_review
+    purpose: Structured logging library (alternative to manual JSON logging)
+    version_policy: ">=24.0,<25.0"
+    source: https://pypi.org/project/structlog/
+    repository: https://github.com/hynek/structlog
+    documentation: https://www.structlog.org/en/stable/
+    license: MIT / Apache-2.0 (dual)
+    provenance: Hynek Schlawack; widely used
+    review_notes: >
+      Constitution §9 documents manual JSON logging pattern. Evaluate whether
+      structlog reduces complexity or just adds a dependency. Decision pending.
+    last_review: "2026-07-16"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # REJECTED
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - package: mem0ai
+    ecosystem: python
+    status: rejected
+    purpose: Alternative semantic memory engine
+    version_policy: n/a
+    source: https://pypi.org/project/mem0ai/
+    license: Apache-2.0
+    rejection_reason: >
+      Explicitly rejected by BLUEPRINT.md §3 operator decision and
+      MEMORY_PLATFORM_EXECUTION_PLAN.md §1 locked architecture.
+      Cognee is the selected semantic subsystem for v1.
+      Mem0 must not be installed. Any future evaluation requires an operator ADR.
+    last_review: "2026-07-16"
+
+  - package: qdrant-client
+    ecosystem: python
+    status: rejected
+    purpose: Qdrant vector database client
+    version_policy: n/a
+    source: https://pypi.org/project/qdrant-client/
+    license: Apache-2.0
+    rejection_reason: >
+      BLUEPRINT.md §3 prohibits a second canonical vector database.
+      pgvector within PostgreSQL 18 is the vector strategy.
+      Qdrant requires a separate service. Not adopted without benchmark evidence
+      proving a requirement that pgvector cannot satisfy.
+    last_review: "2026-07-16"
+
+  - package: lancedb
+    ecosystem: python
+    status: rejected
+    purpose: Embedded vector database
+    version_policy: n/a
+    source: https://pypi.org/project/lancedb/
+    license: Apache-2.0
+    rejection_reason: >
+      Same constraint as qdrant-client. No second canonical vector store.
+      LanceDB storage layout conflicts with the F:/E: drive authority model.
+    last_review: "2026-07-16"
+
+  - package: redis
+    ecosystem: python
+    status: rejected
+    purpose: In-memory cache and pub/sub
+    version_policy: n/a
+    source: https://pypi.org/project/redis/
+    license: MIT
+    rejection_reason: >
+      MEMORY_PLATFORM_EXECUTION_PLAN.md §1 explicitly rejects Redis.
+      LISTEN/NOTIFY in PostgreSQL covers the pub/sub use case.
+      No separate Redis service is permitted without a proven benchmark gap.
+    last_review: "2026-07-16"
+
+  - package: docker
+    ecosystem: python
+    status: rejected
+    purpose: Docker SDK for Python
+    version_policy: n/a
+    source: https://pypi.org/project/docker/
+    license: Apache-2.0
+    rejection_reason: >
+      BLUEPRINT.md §3 explicitly prohibits Docker or WSL as a core dependency
+      for the AgentCore platform. Docker Desktop may be present on C: for
+      other workloads but must not be used by the core platform.
+    last_review: "2026-07-16"
+
+  - package: sqlalchemy
+    ecosystem: python
+    status: rejected
+    purpose: ORM and SQL toolkit
+    version_policy: n/a
+    source: https://pypi.org/project/SQLAlchemy/
+    license: MIT
+    rejection_reason: >
+      Unnecessary abstraction over psycopg for this use case. AgentCore uses
+      raw SQL + SECURITY DEFINER functions for governed writes. SQLAlchemy ORM
+      would bypass the project isolation enforcement layer. Use psycopg directly.
+    last_review: "2026-07-16"

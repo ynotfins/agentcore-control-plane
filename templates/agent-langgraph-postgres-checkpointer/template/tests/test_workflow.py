@@ -1,0 +1,43 @@
+"""Tests for {{ project_name }} workflow — checkpoint and resume."""
+
+from __future__ import annotations
+
+import os
+import pytest
+
+from {{ project_slug }}.workflow import run_new, run_resume
+from {{ project_slug }}.state import initial_state
+
+
+@pytest.mark.skipif(
+    not os.environ.get("{{ pg_password_env }}"),
+    reason="{{ pg_password_env }} not set — skipping integration tests"
+)
+def test_new_run_completes():
+    result = run_new(project_id="test-project-{{ project_slug }}")
+    assert result["thread_id"]
+    assert result["completed"] is True
+    assert not result["errors"]
+
+
+@pytest.mark.skipif(
+    not os.environ.get("{{ pg_password_env }}"),
+    reason="{{ pg_password_env }} not set — skipping integration tests"
+)
+def test_resume_from_checkpoint():
+    """Start a run, get the thread_id, resume it, verify it completes."""
+    start_result = run_new(project_id="test-project-resume-{{ project_slug }}")
+    thread_id = start_result["thread_id"]
+    assert thread_id
+
+    resume_result = run_resume(thread_id)
+    assert resume_result["thread_id"] == thread_id
+
+
+def test_initial_state_fields():
+    state = initial_state("proj-123", "thread-456")
+    assert state["project_id"] == "proj-123"
+    assert state["thread_id"] == "thread-456"
+    assert state["steps_completed"] == []
+    assert state["completed"] is False
+    assert state["errors"] == []

@@ -1,0 +1,49 @@
+"""{{ project_name }} — workflow state definition."""
+
+from __future__ import annotations
+
+from typing import Annotated
+from typing_extensions import TypedDict
+import operator
+
+
+class WorkflowState(TypedDict):
+    """State persisted across LangGraph checkpoint boundaries."""
+
+    project_id: str
+    thread_id: str
+
+    # Accumulator fields — reducer appends new items rather than replacing
+    steps_completed: Annotated[list[str], operator.add]
+    evidence: Annotated[list[dict], operator.add]
+
+    # Control flow
+    next_action: str
+    completed: bool
+
+{% if enable_human_pause %}
+    # Human pause/resume
+    pause_id: str
+    pause_resolution: str
+    operator_decision: str
+{% endif %}
+
+    # Results
+    errors: Annotated[list[str], operator.add]
+
+
+def initial_state(project_id: str, thread_id: str) -> WorkflowState:
+    return WorkflowState(
+        project_id=project_id,
+        thread_id=thread_id,
+        steps_completed=[],
+        evidence=[],
+        next_action="step_one",
+        completed=False,
+{% if enable_human_pause %}
+        pause_id="",
+        pause_resolution="",
+        operator_decision="",
+{% endif %}
+        errors=[],
+    )

@@ -1,0 +1,63 @@
+# Copier template: agent-langgraph-postgres-checkpointer
+# Generates a LangGraph agent with PostgreSQL checkpointing.
+# Authority: docs/engineering/CONSTITUTION.md §17
+# Usage: copier copy templates/agent-langgraph-postgres-checkpointer D:\test\my-agent
+
+_min_copier_version: "9.0.0"
+_subdirectory: "template"
+_templates_suffix: ""
+
+project_name:
+  type: str
+  help: "Human-readable agent name (e.g. 'My Workflow Agent')"
+  default: "My Workflow Agent"
+
+project_slug:
+  type: str
+  help: "Package and directory name (snake_case)"
+  default: "{{ project_name | lower | replace(' ', '_') | replace('-', '_') }}"
+
+author_name:
+  type: str
+  help: "Author name for pyproject.toml"
+  default: "AgentCore Developer"
+
+python_requires:
+  type: str
+  help: "Minimum Python version"
+  default: ">=3.12"
+
+initial_version:
+  type: str
+  help: "Initial version"
+  default: "0.1.0"
+
+pg_host:
+  type: str
+  help: "PostgreSQL host"
+  default: "127.0.0.1"
+
+pg_port:
+  type: int
+  help: "PostgreSQL port"
+  default: 55433
+
+pg_database:
+  type: str
+  help: "PostgreSQL database name"
+  default: "agent_core"
+
+pg_user:
+  type: str
+  help: "PostgreSQL user"
+  default: "postgres"
+
+pg_password_env:
+  type: str
+  help: "Environment variable name holding the PostgreSQL password"
+  default: "AGENT_CORE_POSTGRES_PASSWORD"
+
+enable_human_pause:
+  type: bool
+  help: "Include human-review pause/resume support?"
+  default: true

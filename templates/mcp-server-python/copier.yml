@@ -1,0 +1,49 @@
+# Copier template: mcp-server-python
+# Generates an AgentCore-compatible Python MCP stdio server.
+# Authority: docs/engineering/CONSTITUTION.md §17
+# Usage: copier copy templates/mcp-server-python D:\test\my-mcp-server
+
+_min_copier_version: "9.0.0"
+_subdirectory: "template"
+_templates_suffix: ""
+_skip_if_exists: []
+
+project_name:
+  type: str
+  help: "Human-readable project name (e.g. 'My MCP Server')"
+  default: "My MCP Server"
+
+project_slug:
+  type: str
+  help: "Package and directory name (snake_case, e.g. 'my_mcp_server')"
+  default: "{{ project_name | lower | replace(' ', '_') | replace('-', '_') }}"
+
+server_id:
+  type: str
+  help: "Stable Bifrost server identity (kebab-case, e.g. 'my-mcp-server')"
+  default: "{{ project_name | lower | replace(' ', '-') | replace('_', '-') }}"
+
+author_name:
+  type: str
+  help: "Author name for pyproject.toml"
+  default: "AgentCore Developer"
+
+python_requires:
+  type: str
+  help: "Minimum Python version"
+  default: ">=3.12"
+
+initial_version:
+  type: str
+  help: "Initial server version"
+  default: "0.1.0"
+
+bifrost_port:
+  type: int
+  help: "Port for Bifrost gateway (stdio server does not open a port; this is for documentation)"
+  default: 8080
+
+use_postgres:
+  type: bool
+  help: "Include psycopg PostgreSQL dependency?"
+  default: false

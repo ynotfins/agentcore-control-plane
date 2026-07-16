@@ -441,7 +441,13 @@ def memory_status() -> dict[str, Any]:
                 "note": "Normal durable memory writes are governed through compact tools only; no raw SQL/admin tools exposed.",
             },
             "cognee": knowledge_status,
-            "langgraph": {"status": "not_integrated_until_M6"},
+            "langgraph": {
+                "status": "m6_integrated",
+                "checkpointer": "langgraph-checkpoint-postgres==3.1.0",
+                "checkpoint_tables": "public.checkpoints/checkpoint_blobs/checkpoint_writes",
+                "workflow_tables": "agentcore.wf_runs/wf_milestones/wf_macro_steps/wf_micro_steps",
+                "capability_profiles": "agentcore.capability_profiles (PostgreSQL-backed M6 leases)",
+            },
         },
         "secrets": "never_returned",
     }
@@ -605,8 +611,62 @@ def retrieve_context(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def get_project_capability_profile(project_id: str) -> dict[str, Any]:
+    """Return the active capability profile for a project from PostgreSQL (M6 wiring).
+
+    The profile reflects which tools are active, JIT-leased, or operator-only for
+    this specific project. This is the agentcore-gateway path: startup_context
+    exposes the profile so callers know effective tool availability without needing
+    direct database access.
+    """
+    try:
+        with db() as conn, conn.cursor() as cur:
+            # Expire any timed-out JIT leases first
+            cur.execute("SELECT agentcore.expire_wf_jit_leases(%s::uuid) AS expired", (project_id,))
+            conn.commit()
+            cur.execute(
+                """
+                SELECT tool_name, tool_state::text, requires_operator_approval
+                FROM agentcore.capability_profiles
+                WHERE project_id = %s::uuid
+                ORDER BY tool_name
+                """,
+                (project_id,),
+            )
+            rows = cur.fetchall()
+    except Exception as exc:
+        return {"available": False, "error": str(exc.__class__.__name__), "tools": []}
+
+    active, jit, op_only = [], [], []
+    for r in rows:
+        state = r["tool_state"]
+        if state in ("core_active", "milestone_active"):
+            active.append(r["tool_name"])
+        elif state == "jit_leased":
+            jit.append(r["tool_name"])
+        elif state == "operator_only":
+            op_only.append(r["tool_name"])
+
+    return {
+        "available": True,
+        "project_id": project_id,
+        "active_tools": active,
+        "jit_leased_tools": jit,
+        "operator_only_tools": op_only,
+        "effective_tools": active + jit,  # what the project may use right now
+    }
+
+
 def startup_context(args: dict[str, Any]) -> dict[str, Any]:
     context = retrieve_context(args)
+    # M6: include capability profile so the gateway path reflects effective tool availability
+    capability_profile: dict[str, Any] = {"available": False, "note": "no project_id resolved"}
+    try:
+        with db() as conn:
+            project = get_project(conn, args["project_key"])
+            capability_profile = get_project_capability_profile(str(project["id"]))
+    except Exception:
+        pass
     return {
         **context,
         "authority": [
@@ -617,6 +677,7 @@ def startup_context(args: dict[str, Any]) -> dict[str, Any]:
             "docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md",
         ],
         "m4_status": "agentcore-memory compact surface active",
+        "m6_capability_profile": capability_profile,
     }
 
 

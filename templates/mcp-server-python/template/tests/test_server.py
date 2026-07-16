@@ -1,0 +1,61 @@
+"""Tests for {{ project_name }} MCP server."""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+
+
+def _send_and_receive(messages: list[dict]) -> list[dict]:
+    """Send NDJSON messages to the server via stdin and collect responses."""
+    input_data = "\n".join(json.dumps(m) for m in messages) + "\n"
+    result = subprocess.run(
+        [sys.executable, "-m", "{{ project_slug }}.server"],
+        input=input_data,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    raw_lines = [ln for ln in result.stdout.strip().split("\n") if ln]
+    return [json.loads(ln) for ln in raw_lines]
+
+
+def test_initialize():
+    responses = _send_and_receive([
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize",
+         "params": {"protocolVersion": "2025-06-18", "capabilities": {}}}
+    ])
+    assert responses[0]["id"] == 1
+    assert responses[0]["result"]["protocolVersion"] == "2025-06-18"
+    assert responses[0]["result"]["serverInfo"]["name"] == "{{ server_id }}"
+
+
+def test_tools_list():
+    responses = _send_and_receive([
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize",
+         "params": {"protocolVersion": "2025-06-18", "capabilities": {}}},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
+    ])
+    tool_names = [t["name"] for t in responses[1]["result"]["tools"]]
+    assert "{{ server_id | replace('-', '_') }}_status" in tool_names
+
+
+def test_status_tool():
+    responses = _send_and_receive([
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize",
+         "params": {"protocolVersion": "2025-06-18", "capabilities": {}}},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+         "params": {"name": "{{ server_id | replace('-', '_') }}_status", "arguments": {}}},
+    ])
+    content = json.loads(responses[1]["result"]["content"][0]["text"])
+    assert content["ok"] is True
+    assert content["server"] == "{{ server_id }}"
+
+
+def test_unknown_method():
+    responses = _send_and_receive([
+        {"jsonrpc": "2.0", "id": 1, "method": "unknown/method", "params": {}},
+    ])
+    assert "error" in responses[0]
+    assert responses[0]["error"]["code"] == -32601

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "{{ project_slug }}"
+version = "{{ initial_version }}"
+description = "{{ project_name }} — AgentCore MCP stdio server"
+requires-python = "{{ python_requires }}"
+authors = [{ name = "{{ author_name }}" }]
+dependencies = [
+{% if use_postgres %}
+    "psycopg[binary]>=3.3.4,<4.0",
+{% endif %}
+]
+
+[project.scripts]
+{{ project_slug }} = "{{ project_slug }}.server:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["{{ project_slug }}*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "UP", "B", "C4"]
+ignore = ["BLE001"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
