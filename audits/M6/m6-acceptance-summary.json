@@ -1,0 +1,118 @@
+{
+  "run_id": "20260716063458",
+  "timestamp": "2026-07-16T06:35:05.165108+00:00",
+  "pass_count": 18,
+  "fail_count": 0,
+  "total": 18,
+  "all_passed": true,
+  "checks": [
+    {
+      "check": 1,
+      "name": "PostgreSQL-backed LangGraph checkpoints",
+      "status": "PASS",
+      "detail": "checkpoint_tables=3"
+    },
+    {
+      "check": 2,
+      "name": "Workflow resume after process restart",
+      "status": "PASS",
+      "detail": "run_id=6eb3c3d2-c1ea-40ba-b9c6-1c02adf9e142 status=running"
+    },
+    {
+      "check": 3,
+      "name": "Project and thread isolation",
+      "status": "PASS",
+      "detail": "proj_a_run_in_proj_b=False (want False)"
+    },
+    {
+      "check": 4,
+      "name": "Persist and recover Milestone/Macro/Micro/checklist/evidence state",
+      "status": "PASS",
+      "detail": "milestone=M6 checklist=completed evidence=ok"
+    },
+    {
+      "check": 5,
+      "name": "Block scope drift without approval",
+      "status": "PASS",
+      "detail": "no_drift=True drift_detected=True"
+    },
+    {
+      "check": 6,
+      "name": "Deterministic checks run before critic/judge",
+      "status": "PASS",
+      "detail": "all_passed=False check_count=4"
+    },
+    {
+      "check": 7,
+      "name": "Risk-selected critics (zero for low; more for high)",
+      "status": "PASS",
+      "detail": "low=0 medium=2 high=4 high_run=4"
+    },
+    {
+      "check": 8,
+      "name": "Deterministic scorer produces consistent 0.0-1.0 score",
+      "status": "PASS",
+      "detail": "score=1.0000 deterministic=True above_0.85=True"
+    },
+    {
+      "check": 9,
+      "name": "Independent judge (proceed/needs_operator/block)",
+      "status": "PASS",
+      "detail": "proceed=proceed block=block needs_op=needs_operator"
+    },
+    {
+      "check": 10,
+      "name": "Human pause recorded and resolved; run status restored",
+      "status": "PASS",
+      "detail": "resolution=approved run_status=running"
+    },
+    {
+      "check": 11,
+      "name": "Milestone tool activated via PostgreSQL capability profile",
+      "status": "PASS",
+      "detail": "tool_state=milestone_active"
+    },
+    {
+      "check": 12,
+      "name": "JIT lease created and expired on step completion/timeout",
+      "status": "PASS",
+      "detail": "before=jit_leased after=dormant expired=1"
+    },
+    {
+      "check": 13,
+      "name": "Revoke lease; tool no longer available in project",
+      "status": "PASS",
+      "detail": "was=jit_leased still_active=False lease_status=revoked"
+    },
+    {
+      "check": 14,
+      "name": "Concurrent projects cannot change each other's tool profiles",
+      "status": "PASS",
+      "detail": "proj_a_tools=3 proj_b_tools=0 a_visible_in_b=False"
+    },
+    {
+      "check": 15,
+      "name": "High-risk tools require operator approval flag",
+      "status": "PASS",
+      "detail": "found=True requires_operator=True"
+    },
+    {
+      "check": 16,
+      "name": "A/B skipped for low-risk; enabled for high+uncertainty>=0.5",
+      "status": "PASS",
+      "detail": "low=False med=False high_low_u=False high_hi_u=True critical=True"
+    },
+    {
+      "check": 17,
+      "name": "Schema persists across restart (wf_ tables + LangGraph checkpoints)",
+      "status": "PASS",
+      "detail": "wf_tables=12 ck_tables=3 migration=ok"
+    },
+    {
+      "check": 18,
+      "name": "Memory surface intact; no IDE/Swarm changes",
+      "status": "PASS",
+      "detail": "missing_tools=[] swarm_tables=0"
+    }
+  ]
+}
