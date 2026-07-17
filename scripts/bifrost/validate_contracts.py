@@ -85,12 +85,54 @@ def semantic_registry_checks(registry: dict[str, Any]) -> list[str]:
 
 
 def stub_master_config_drift() -> list[str]:
-    """Placeholder for later MASTER_CONFIG section drift checks."""
-    # Intentionally soft: report notice only when file missing.
+    """Verify MASTER_CONFIG_AND_PROMPT.md contains the required universal IDE setup rules."""
     master = REPO_ROOT / "MASTER_CONFIG_AND_PROMPT.md"
     if not master.exists():
-        return ["MASTER_CONFIG_AND_PROMPT.md missing (drift check stub)"]
-    return []
+        return ["MASTER_CONFIG_AND_PROMPT.md missing"]
+    content = master.read_text(encoding="utf-8")
+    errors: list[str] = []
+
+    required_phrases = [
+        # Gate architecture
+        ("agentcore-gateway", "missing single agentcore-gateway entry rule"),
+        ("http://127.0.0.1:8080/mcp", "missing canonical gateway URL"),
+        # Ten-tool surface
+        ("memory_status", "missing memory_status tool"),
+        ("startup_context", "missing startup_context tool"),
+        ("retrieve_context", "missing retrieve_context tool"),
+        ("append_event", "missing append_event tool"),
+        ("propose_fact", "missing propose_fact tool"),
+        ("expand_source", "missing expand_source tool"),
+        ("session_open", "missing session_open tool"),
+        ("session_close", "missing session_close tool"),
+        ("build_handoff", "missing build_handoff tool"),
+        ("docs_search", "missing docs_search tool"),
+        # Durable memory contract
+        ("effectively unbounded", "missing unbounded-memory contract language"),
+        ("model-limit-aware", "missing model-limit-aware contract language"),
+        ("non-destructive", "missing non-destructive compaction language"),
+        # Database gating
+        ("no direct database access" if "no direct database access" in content.lower() else
+         "Never put" if "Never put" in content else "AGENT_CORE_PG",
+         "missing no-database-credentials-in-IDE rule"),
+        # Projections
+        ("never directly edit", "missing projection non-edit rule (agents never edit STATE/CONTEXT_INDEX)"),
+        # Swarm exclusion
+        ("SwarmRecall", "missing Swarm exclusion rule"),
+        # Resource location (M8 consolidation additions)
+        ("CONTEXT_INDEX", "missing CONTEXT_INDEX location-map behavior"),
+        ("register_artifact_location", "missing resource-location registration requirement"),
+        ("unregistered", "missing no-unregistered-paths rule"),
+        ("v_project_resource_map", "missing project resource map view reference"),
+        # Identity binding
+        ("session_open", "missing session/worktree identity binding (session_open)"),
+    ]
+
+    for phrase, description in required_phrases:
+        if phrase not in content:
+            errors.append(f"MASTER_CONFIG: {description} (expected: {phrase!r})")
+
+    return errors
 
 
 def authority_policy_checks(registry: dict[str, Any]) -> list[str]:

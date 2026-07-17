@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md
 
-**Updated:** 2026-07-17 — Unbounded durable memory live (M3.002 applied, agentcore-memory v0.6.0 deployed)
+**Updated:** 2026-07-17 — M8 consolidation: canonical source path, feature worktree retired, resource-location model (M8.001), database gating verified, CONTEXT_INDEX policy added
 **Authority:** `PROJECT_ANCHOR.md` §0 Bifrost Gateway Override
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`
 
@@ -147,7 +147,7 @@ Classification matrix: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`
 AgentCore durable memory is **effectively unbounded by model-token limits**. Model context
 limits control only the amount assembled into one request. Project history, raw evidence,
 summaries, artifacts, Git references, and exact source edges remain locally retained and exactly
-recoverable. Compaction reduces active-context load; it never destroys canonical project history.
+recoverable. Compaction is non-destructive: it reduces active-context load without deleting canonical project history.
 
 Describe this system as **model-limit-aware active context over an effectively unbounded durable
 local project history**. Do not describe it as a one-million-token memory or context window. A
@@ -451,6 +451,12 @@ boundary. Expose only the tools the current Milestone needs (progressive
 tool disclosure); read .agentcore/PROJECT_CHARTER.md, MILESTONES.md, and
 TOOL_MANIFEST.yaml per docs/agent-policy/DOCUMENTATION_READ_ORDER.md.
 
+Resource-location registration: every durable project asset created on D:/E:/F:/G:/H: must be
+registered via the governed memory surface. Temporary files on I: are exempt only while temporary
+and must be deleted or promoted at task close. Query locations through retrieve_context and
+build_handoff. The per-project .agentcore/CONTEXT_INDEX.md is a generated projection — never edit
+it directly.
+
 Never put Postgres credentials or whole-drive filesystem roots in IDE configs.
 Never use :65432. Never create .env files. Never print secrets.
 Push after every completed task per docs/GIT_PUSH_ONLY_POLICY.md.
@@ -458,7 +464,39 @@ Push after every completed task per docs/GIT_PUSH_ONLY_POLICY.md.
 
 ---
 
-## 12. Depwire
+## 12. Project resource-location and CONTEXT_INDEX
+
+Every durable project asset created on D:, E:, F:, G:, or H: must be registered via the governed
+`agentcore.register_artifact_location()` function (called through the memory server, never raw SQL).
+Temporary files on I: are exempt while temporary and must be deleted or promoted to a registered
+durable location at task close.
+
+Storage tier keys:
+
+| Key         | Drive | Role                               |
+|-------------|-------|------------------------------------|
+| `hot_h`     | H:    | Bifrost runtime, models, logs      |
+| `canonical_d` | D:  | Git repos, project source          |
+| `cold_e`    | E:    | Archives, PG backups, WAL          |
+| `backup_g`  | G:    | Backup copies                      |
+| `scratch_i` | I:    | Temporary scratch (delete at close)|
+
+Agents query resource locations through `retrieve_context` and `build_handoff` — never raw SQL.
+The canonical view is `agentcore.v_project_resource_map`.
+
+Per-project location map: `<project>/.agentcore/CONTEXT_INDEX.md`
+
+- PostgreSQL is canonical; `CONTEXT_INDEX.md` is a **generated projection**.
+- Agents never directly edit `CONTEXT_INDEX.md`.
+- CONTEXT_INDEX.md is regenerated whenever a durable resource location changes.
+- It answers: canonical source, active worktrees, storage tiers, drive state, and resource registration policy.
+- Drift validation: `ops/Test-AgentCoreResourceLocationDrift.ps1`
+
+No agent may create an **unregistered** durable project location on D:, E:, F:, G:, or H:.
+
+---
+
+## 13. Depwire
 
 - **Primary:** through `agentcore-gateway` → `depwire` (project-router wrapper).
 - **Cloud:** registry `depwire-cloud` deferred/`enabled=false` until healthy; auth `Bearer env.DEPWIRE_API_KEY` when enabled.
@@ -468,14 +506,14 @@ Push after every completed task per docs/GIT_PUSH_ONLY_POLICY.md.
 
 ---
 
-## 13. Tentra
+## 14. Tentra
 
 Local mode only (`tentra-mcp@1.3.3 --local`). Data: `H:\AgentRuntime\tentra\data`.
 Details: `docs/bifrost/TENTRA_LOCAL_MODE.md`.
 
 ---
 
-## 14. Arabold Docs
+## 15. Arabold Docs
 
 Primary docs MCP for libraries/SDKs/APIs (replaces Context7).
 Index Bifrost docs as library `bifrost` version `2.0.0-prerelease1` from [https://docs.getbifrost.ai](https://docs.getbifrost.ai) — see `.agentcore/docs/DOCS_INDEX.md`.
@@ -483,33 +521,33 @@ Keep project manifests under `.agentcore/docs/` when indexing project-relevant l
 
 ---
 
-## 15. Serena
+## 16. Serena
 
 Pinned launcher via project-router wrapper (`serena.exe start-mcp-server ...`).
 Always activate the target `D:\github\...` project first. Do not emit git-based `uvx` launch commands as the governed path.
 
 ---
 
-## 16. Context Fabric
+## 17. Context Fabric
 
 Project-scoped only via router wrapper. Approved Git-managed workspaces only.
 Do not initialize under `F:\AgentCore\agentmemory` or Swarm roots.
 
 ---
 
-## 17. Artiforge
+## 18. Artiforge
 
 HTTP upstream; connection string is `env.ARTIFORGE_MCP_URL` (compose PAT locally into User env — never commit). High-leverage scans/refactor strategy only.
 
 ---
 
-## 18. Obsidian
+## 19. Obsidian
 
 Long-form human notes, decisions, runbooks. Launcher uses Windows env names (`OBSIDIAN_API_KEY`, `OBSIDIAN_BASE_URL`, etc.). REST default host `https://127.0.0.1:27124`. Never embed key values in Git.
 
 ---
 
-## 19. Security
+## 20. Security
 
 - Windows User-scope env vars only; no `.env` files.
 - Never print or commit secrets, resolved VKs, PATs, DB passwords, or live secret-bearing IDE configs.
@@ -521,7 +559,7 @@ Long-form human notes, decisions, runbooks. Launcher uses Windows env names (`OB
 
 ---
 
-## 20. Validation
+## 21. Validation
 
 Minimum deterministic checks:
 
@@ -537,7 +575,7 @@ Also: secret/junk scan before commit; IDE JSON/TOML parse after cutover; confirm
 
 ---
 
-## 21. Backup and rollback
+## 22. Backup and rollback
 
 - Backup root example: `E:\AgentCore-Backups\bifrost-gateway-cutover-20260712-223149`
 - Hash manifest: `artifacts/bifrost-gateway-cutover-2026-07-12/BACKUP_MANIFEST.md`
@@ -546,7 +584,7 @@ Also: secret/junk scan before commit; IDE JSON/TOML parse after cutover; confirm
 
 ---
 
-## 22. Swarm exclusion boundary
+## 23. Swarm exclusion boundary
 
 SwarmRecall, SwarmVault, and SwarmClaw are a **separate ecosystem**.
 
@@ -580,3 +618,4 @@ SwarmRecall, SwarmVault, and SwarmClaw are a **separate ecosystem**.
 Per-IDE cleanup prompts under `docs/prompts/*-cleanup-prompt.md` may still describe older direct-server remediation; for gateway install use `docs/prompts/install-agentcore-gateway-in-ide.md` instead.
 
 Experiment note: `experiments/bifrost-go-sdk-smoke/` remains an isolated Go SDK POC — not a rollback path for the MCP gateway.
+
