@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-07-17T22:20:41.281435+00:00",
+  "results": [
+    {
+      "id": "01",
+      "status": "PASS",
+      "name": "start_via_cli",
+      "fact": "started thread=7717373a checkpoints=6 completed=True judge=none"
+    },
+    {
+      "id": "02",
+      "status": "PASS",
+      "name": "status_reports_checkpoint",
+      "fact": "run=942f9cc7 thread=7717373a checkpoints=6 blockers=1"
+    },
+    {
+      "id": "03",
+      "status": "PASS",
+      "name": "kill_resume_partial",
+      "fact": "graph resumed to terminal"
+    },
+    {
+      "id": "03",
+      "status": "PASS",
+      "name": "kill_resume",
+      "fact": "checkpoints pre=6 post=12 idempotent=True"
+    },
+    {
+      "id": "05",
+      "status": "PASS",
+      "name": "human_interrupt_pending",
+      "fact": "pause_id=697d4b1f visible_via_cli=True"
+    },
+    {
+      "id": "06",
+      "status": "PASS",
+      "name": "approve_resume",
+      "fact": "pause=697d4b1f resolution=approved decision=approve cli_rc=0"
+    },
+    {
+      "id": "07",
+      "status": "PASS",
+      "name": "cancel_preserves_evidence",
+      "fact": "run_status=aborted evidence_rows=1 cli_rc=0"
+    },
+    {
+      "id": "08",
+      "status": "PASS",
+      "name": "project_isolation",
+      "fact": "a_in_a=True a_in_b=False tools_a=1 tools_b=0"
+    },
+    {
+      "id": "09",
+      "status": "PASS",
+      "name": "worktree_path",
+      "fact": "project.root_path matches assigned worktree: D:\\agentcore-fixture\\fixture-project"
+    },
+    {
+      "id": "11",
+      "status": "PASS",
+      "name": "low_risk_skips_ab",
+      "fact": "low_ab=False medium_ab=False"
+    },
+    {
+      "id": "12",
+      "status": "PASS",
+      "name": "high_risk_ab_decision",
+      "fact": "high_ab=True critical_ab=True ab_id=4c3fd2d7"
+    },
+    {
+      "id": "13",
+      "status": "PASS",
+      "name": "independent_judge_inputs",
+      "fact": "verdict=proceed inputs=2"
+    },
+    {
+      "id": "10",
+      "status": "PASS",
+      "name": "tool_lease_lifecycle",
+      "fact": "during=jit_leased after=dormant lease_id=4fa542c3"
+    },
+    {
+      "id": "14",
+      "status": "PASS",
+      "name": "topology_parity",
+      "fact": "prod=a86e40e8ddd0a370 studio=a86e40e8ddd0a370 match=True"
+    },
+    {
+      "id": "15",
+      "status": "PASS",
+      "name": "langgraph_json_valid",
+      "fact": "validate exit=0 stderr="
+    },
+    {
+      "id": "17",
+      "status": "PASS",
+      "name": "state_matches_postgres",
+      "fact": "project_a wf_runs=22 wf_evidence=5"
+    },
+    {
+      "id": "19",
+      "status": "PASS",
+      "name": "bifrost_memory_unchanged",
+      "fact": "bifrost_ok=True memory_10_present=True missing=[]"
+    }
+  ],
+  "totals": {
+    "PASS": 17,
+    "FAIL": 0,
+    "SKIP": 0,
+    "BLOCK": 0
+  }
+}

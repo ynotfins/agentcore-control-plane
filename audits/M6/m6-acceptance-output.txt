@@ -1,0 +1,29 @@
+
+=== M6 Acceptance Tests ΓÇö Run 20260717222054 ===
+
+[setup] proj_a=58cb8af1-49ed-4bb8-8552-a7685d126c1f proj_b=0911dbbb-6dac-4ec9-bf5c-4d86bdbd3d11
+
+PASS 1 - PostgreSQL-backed LangGraph checkpoints - checkpoint_tables=3
+PASS 2 - Workflow resume after process restart - run_id=4515fda6-a903-4273-a682-f374d95137c0 status=running
+PASS 3 - Project and thread isolation - proj_a_run_in_proj_b=False (want False)
+PASS 4 - Persist and recover Milestone/Macro/Micro/checklist/evidence state - milestone=M6 checklist=completed evidence=ok
+PASS 5 - Block scope drift without approval - no_drift=True drift_detected=True
+PASS 6 - Deterministic checks run before critic/judge - all_passed=False check_count=4
+PASS 7 - Risk-selected critics (zero for low; more for high) - low=0 medium=2 high=4 high_run=4
+PASS 8 - Deterministic scorer produces consistent 0.0-1.0 score - score=1.0000 deterministic=True above_0.85=True
+PASS 9 - Independent judge (proceed/needs_operator/block) - proceed=proceed block=block needs_op=needs_operator
+PASS 10 - Human pause recorded and resolved; run status restored - resolution=approved run_status=running
+PASS 11 - Milestone tool activated via PostgreSQL capability profile - tool_state=milestone_active
+PASS 12 - JIT lease created and expired on step completion/timeout - before=jit_leased after=dormant expired=1
+PASS 13 - Revoke lease; tool no longer available in project - was=jit_leased still_active=False lease_status=revoked
+PASS 14 - Concurrent projects cannot change each other's tool profiles - proj_a_tools=3 proj_b_tools=0 a_visible_in_b=False
+PASS 15 - High-risk tools require operator approval flag - found=True requires_operator=True
+PASS 16 - A/B skipped for low-risk; enabled for high+uncertainty>=0.5 - low=False med=False high_low_u=False high_hi_u=True critical=True
+PASS 17 - Schema persists across restart (wf_ tables + LangGraph checkpoints) - wf_tables=12 ck_tables=3 migration=ok
+PASS 18 - Memory surface intact; no IDE/Swarm changes - missing_tools=[] swarm_tables=0
+
+=== M6 Acceptance Summary ===
+PASS: 18 / 18
+FAIL: 0 / 18
+
+Summary: D:\github\agentcore-control-plane\audits\M6\m6-acceptance-summary.json

@@ -1,0 +1,27 @@
+[Parser] Cache: 48 hits, 20 files re-parsed
+
+[1mDepwire Health Score[0m
+
+[1mOverall:[0m 93/100 ([32m[1mGrade: A[0m[0m) [31mΓåô -3[0m from last check
+
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé Dimension               Γöé Score  Γöé Grade  Γöé Weight Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé Coupling                Γöé 90     Γöé [32mA      [0mΓöé 25%    Γöé
+Γöé Cohesion                Γöé 100    Γöé [32mA      [0mΓöé 20%    Γöé
+Γöé Circular Dependencies   Γöé 100    Γöé [32mA      [0mΓöé 20%    Γöé
+Γöé God Files               Γöé 100    Γöé [32mA      [0mΓöé 15%    Γöé
+Γöé Orphans & Dead Code     Γöé 51     Γöé [31mF      [0mΓöé 10%    Γöé
+Γöé Dependency Depth        Γöé 100    Γöé [32mA      [0mΓöé 10%    Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+
+[1mSummary:[0m
+Project health score is 93/100 (Grade: A). Excellent architecture with minimal issues.
+
+[33m[1mΓÜá∩╕Å  Recommendations:[0m[0m
+  ΓÇó 56 orphan files detected. Verify they're needed or remove dead code.
+
+[90mParsed 67 files, 6330 symbols, 2543 edges[0m
+
+Analysis completed in 0.37s (parse: 0.36s)
+

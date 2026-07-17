@@ -1,0 +1,19 @@
+AgentCore Operator CLI
+
+Usage: python -m agentcore <command> [--json]
+
+Commands:
+  health        Check PostgreSQL 18, Bifrost, memory service, scheduled tasks
+  status        Show workflow runs, active sessions, evidence counts
+  backup        Run ops/Backup-AgentCorePostgres.ps1 and report result
+  restore-test  Run ops/Test-AgentCorePostgresRestore.ps1 and report result
+  diagnose      Collect full diagnostics bundle
+  workflow      Launch / observe / control an autonomous AgentCore workflow
+                (init | start | status | pause | approve | reject | resume |
+                 cancel | logs | evidence | topology | studio)
+
+Options:
+  --json        Output machine-readable JSON
+
+Exit codes: 0=ok, 1=warnings, 2=error
+

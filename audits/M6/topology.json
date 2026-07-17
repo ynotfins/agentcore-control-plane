@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-07-17T22:20:15.599453+00:00",
+  "topology_fingerprint_sha256": "a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32",
+  "node_count": 15,
+  "interrupt_before": [
+    "human_pause"
+  ],
+  "checkpointer_production": "agentcore_workflow.workflow.build_graph -> PostgresSaver",
+  "checkpointer_studio": "agentcore_workflow.workflow.build_studio_graph -> Agent Server dev checkpointer",
+  "note": "Production and Studio share the same topology. Topology fingerprint is stable for the current graph; do NOT edit without explicit operator approval."
+}

@@ -1,0 +1,23 @@
+usage: python -m agentcore workflow [-h]
+                                    {init,start,status,pause,approve,reject,resume,cancel,logs,evidence,topology,studio} ...
+
+AgentCore autonomous LangGraph workflow operator launcher. Reuses the
+canonical PostgresSaver; never requires writing custom Python.
+
+positional arguments:
+  {init,start,status,pause,approve,reject,resume,cancel,logs,evidence,topology,studio}
+    init                Register/update project + scaffold isolated worktree
+    start               Start a new autonomous workflow run
+    status              Show project/run/thread/checkpoint/blockers
+    pause               Show pending human pause details
+    approve             Resolve pause as approved and resume run
+    reject              Resolve pause as rejected and resume run
+    resume              Resume a paused run from PostgreSQL checkpoints
+    cancel              Cancel a run safely (evidence preserved)
+    logs                Tail recent workflow evidence for a run
+    evidence            List all evidence for a run
+    topology            Show the shared graph topology fingerprint
+    studio              Start LangGraph Studio (Agent Server) dev server
+
+options:
+  -h, --help            show this help message and exit

@@ -1,0 +1,27 @@
+
+=== AgentCore Autonomous Workflow E2E ΓÇö 2026-07-17T22:20:25.229932+00:00 ===
+
+  [PASS ]  01 - start_via_cli - started thread=7717373a checkpoints=6 completed=True judge=none
+  [PASS ]  02 - status_reports_checkpoint - run=942f9cc7 thread=7717373a checkpoints=6 blockers=1
+  [PASS ]  03 - kill_resume_partial - graph resumed to terminal
+  [PASS ]  03 - kill_resume - checkpoints pre=6 post=12 idempotent=True
+  [PASS ]  05 - human_interrupt_pending - pause_id=697d4b1f visible_via_cli=True
+  [PASS ]  06 - approve_resume - pause=697d4b1f resolution=approved decision=approve cli_rc=0
+  [PASS ]  07 - cancel_preserves_evidence - run_status=aborted evidence_rows=1 cli_rc=0
+  [PASS ]  08 - project_isolation - a_in_a=True a_in_b=False tools_a=1 tools_b=0
+  [PASS ]  09 - worktree_path - project.root_path matches assigned worktree: D:\agentcore-fixture\fixture-project
+  [PASS ]  11 - low_risk_skips_ab - low_ab=False medium_ab=False
+  [PASS ]  12 - high_risk_ab_decision - high_ab=True critical_ab=True ab_id=4c3fd2d7
+  [PASS ]  13 - independent_judge_inputs - verdict=proceed inputs=2
+  [PASS ]  10 - tool_lease_lifecycle - during=jit_leased after=dormant lease_id=4fa542c3
+  [PASS ]  14 - topology_parity - prod=a86e40e8ddd0a370 studio=a86e40e8ddd0a370 match=True
+  [PASS ]  15 - langgraph_json_valid - validate exit=0 stderr=
+  [PASS ]  17 - state_matches_postgres - project_a wf_runs=22 wf_evidence=5
+  [PASS ]  19 - bifrost_memory_unchanged - bifrost_ok=True memory_10_present=True missing=[]
+
+=== E2E Summary ===
+  PASS:  17
+  FAIL:  0
+  SKIP:  0
+  BLOCK: 0
+  Summary: D:\github\agentcore-control-plane\audits\M6\fixture-e2e-summary.json

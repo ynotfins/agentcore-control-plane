@@ -1,0 +1,17 @@
+Obtaining file:///D:/github/agentcore-control-plane/scripts
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: agentcore_workflow
+  Building editable for agentcore_workflow (pyproject.toml): started
+  Building editable for agentcore_workflow (pyproject.toml): finished with status 'done'
+  Created wheel for agentcore_workflow: filename=agentcore_workflow-0.6.0-0.editable-py3-none-any.whl size=2933 sha256=3d53304c770046d524067a734b610e51a06e0bbaac90a1cacd884774cb159bbb
+  Stored in directory: C:\Users\ynotf\AppData\Local\Temp\pip-ephem-wheel-cache-fugjeoxo\wheels\e8\57\47\db2ef8c1e581c547a62edfa657bc40499c661dbff70cf3a49d
+Successfully built agentcore_workflow
+Installing collected packages: agentcore_workflow
+Successfully installed agentcore_workflow-0.6.0

@@ -1,0 +1,33 @@
+AgentCore M8 Acceptance Tests ΓÇö 20260717222109
+Repository: D:\github\agentcore-control-plane
+========================================================================
+PASS 01 - PostgreSQL 18 reachable, agent_core accessible ΓÇö version=PostgreSQL 18.4 on x86_64-windows, compiled by msv, db=agent_core
+PASS 02 - Bifrost gateway reachable (returns 401) ΓÇö status=401
+PASS 03 - Memory service 10-tool surface intact ΓÇö all 10 tools present
+PASS 04 - node_post_exec_judge exists in nodes module ΓÇö node_post_exec_judge callable
+PASS 05 - DA critic routes always to post_exec_judge ΓÇö found 'post_exec_judge' route in node_da_critic
+PASS 06 - requirements.txt exists and is pinned ΓÇö 7 pinned packages in requirements.txt
+PASS 07 - AgentCore-Bifrost-Gateway scheduled task exists ΓÇö state='Running'
+PASS 08 - Backup-AgentCorePostgres.ps1 exists ΓÇö D:\github\agentcore-control-plane\ops\Backup-AgentCorePostgres.ps1
+PASS 09 - Test-AgentCorePostgresRestore.ps1 exists ΓÇö D:\github\agentcore-control-plane\ops\Test-AgentCorePostgresRestore.ps1
+PASS 10 - Test-AgentCorePg18Pitr.ps1 exists ΓÇö D:\github\agentcore-control-plane\ops\Test-AgentCorePg18Pitr.ps1
+PASS 11 - No Swarm tables in agent_core (wf_ tables present) ΓÇö wf_tables=12, swarm_tables=0
+PASS 12 - M6 regression passes (m6_acceptance.py) ΓÇö exit=0; last=Summary: D:\github\agentcore-control-plane\audits\M6\m6-acceptance-summary.json
+PASS 13 - IDE_CAPABILITY_MATRIX.yaml exists ΓÇö has m8_enrollment field
+PASS 14 - GLOBAL_STATE.md exists at C:\Users\ynotf\.agentcore\ ΓÇö size=6318b
+PASS 15 - No secrets in key config files ΓÇö clean
+PASS 16 - DA bounded: critic read-only, builder write, MemoryMiddleware disabled ΓÇö read_only_critic=yes, builder_write=yes, memory_mw_disabled=yes
+PASS 17 - Operator CLI exists (scripts/agentcore/__main__.py) ΓÇö __main__.py=ok, __init__.py=ok
+PASS 18 - Capability leases isolated (project_id FK + assert_project_scope) ΓÇö capability_profiles.project_id=present, assert_project_scope=present
+PASS 19 - M7 acceptance passes (test_m7_acceptance.py) ΓÇö exit=0; last=Summary: D:\github\agentcore-control-plane\audits\M7\m7-acceptance-summary.json
+PASS 20 - Swarm isolation: no SwarmRecall tools in agentcore-memory ΓÇö no Swarm tools found in agentcore-memory
+PASS 21 - A/B worker module exists with required symbols ΓÇö all A/B symbols present
+PASS 22 - Low-risk never enables A/B; qualifying high-risk does ΓÇö low=False med=False high+low_u=False high+hi_u=True critical=True
+PASS 23 - da_critic routes to ab_alternate when ab_enabled=True ΓÇö ab_alternate_route=True uses_ab_enabled=True
+PASS 24 - post_exec_judge A/B comparison: correct selection in all 4 cases ΓÇö case1(A wins skip)=True case2(B wins high)=True case3(both_rejected)=True case4(A tiebreak)=True
+PASS 25 - ab_alternate node wired into workflow graph with conditional routing ΓÇö ab_node=True conditional_da_critic=True ab_to_pej=True
+PASS 26 - IDE matrix: Cursor live_validated; no raw artifact_generated claims ΓÇö cursor=live_validated invalid_statuses=[]
+========================================================================
+Results: 26/26 PASS, 0 FAIL
+OVERALL: PASS
+Summary: D:\github\agentcore-control-plane\audits\M8\m8-acceptance-summary.json

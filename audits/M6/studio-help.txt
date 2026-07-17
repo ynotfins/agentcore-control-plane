@@ -1,0 +1,38 @@
+Usage: langgraph dev [OPTIONS]
+
+  ≡ƒÅâΓÇìΓÖÇ∩╕ÅΓÇìΓ₧í∩╕Å Run LangGraph API server in development mode with hot reloading and
+  debugging support
+
+Options:
+  --ssl-keyfile FILE           Path to an SSL key file for serving the
+                               development server over HTTPS.
+  --ssl-certfile FILE          Path to an SSL certificate file for serving the
+                               development server over HTTPS.
+  --server-log-level TEXT      Set the log level for the API server.
+  --tunnel                     Expose the local server via a public tunnel (in
+                               this case, Cloudflare) for remote frontend
+                               access. This avoids issues with browsers or
+                               networks blocking localhost connections.
+  --allow-blocking             Don't raise errors for synchronous I/O blocking
+                               operations in your code.
+  --studio-url TEXT            URL of the LangGraph Studio instance to connect
+                               to. Defaults to https://smith.langchain.com
+  --wait-for-client            Wait for a debugger client to connect to the
+                               debug port before starting the server
+  --debug-port INTEGER         Enable remote debugging by listening on
+                               specified port. Requires debugpy to be
+                               installed
+  --no-browser                 Skip automatically opening the browser when the
+                               server starts
+  --n-jobs-per-worker INTEGER  Maximum number of concurrent jobs each worker
+                               process can handle. Default: 10
+  --config PATH                Path to configuration file declaring
+                               dependencies, graphs and environment variables
+  --no-reload                  Disable automatic reloading when code changes
+                               are detected
+  --port INTEGER               Port number to bind the development server to.
+                               Example: langgraph dev --port 8000
+  --host TEXT                  Network interface to bind the development
+                               server to. Default 127.0.0.1 is recommended for
+                               security. Only use 0.0.0.0 in trusted networks
+  --help                       Show this message and exit.

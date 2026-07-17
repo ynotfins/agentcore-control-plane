@@ -1,0 +1,50 @@
+{
+  "started_at": "2026-07-17T22:16:36Z",
+  "port": 8129,
+  "base": "http://127.0.0.1:8129",
+  "health_ok": true,
+  "info_status": 200,
+  "info": {
+    "version": "0.12.0.dev24",
+    "langgraph_py_version": "1.2.5",
+    "flags": {
+      "assistants": true,
+      "crons": true,
+      "langsmith": false,
+      "langsmith_tracing_replicas": true,
+      "langsmith_tracing_session_on_runs": true
+    },
+    "host": {
+      "kind": "self-hosted",
+      "project_id": null,
+      "host_revision_id": null,
+      "revision_id": null,
+      "tenant_id": null
+    }
+  },
+  "docs_status": 200,
+  "assistants_search_status": 200,
+  "assistant_id": "de34b4cd-5a62-5659-876b-10eec9986049",
+  "graph_id": "agentcore_workflow",
+  "thread_create_status": 200,
+  "thread_id": "019f7227-2f20-72f3-9304-4e5842578ae9",
+  "thread_state_status": 200,
+  "thread_state_next": [],
+  "thread_state_checkpoint_id": null,
+  "thread_state_metadata_keys": [],
+  "thread_history_status": 200,
+  "thread_history_len": 0,
+  "stream_probe_executed": false,
+  "stream_probe_note": "skipped: canonical nodes write to production PostgreSQL; use python -m agentcore workflow run for full execution",
+  "probe_project_id": "80dd2729-1f5f-4540-bd95-948433edfbd7",
+  "probe_thread_uuid": "fa5c910a-8596-4973-ad4d-d3909745663a",
+  "probe_run_db_id": "b30e494c-a0fd-48a1-b477-2076a72eda22",
+  "probe_completed": true,
+  "studio_sees_production_thread_status": 404,
+  "studio_thread_namespace_note": "Studio uses its own dev checkpointer; production thread uuid is not visible in Studio state. Topology parity is the linkage.",
+  "topology_fingerprint": "a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32",
+  "tracing": "false",
+  "host": "127.0.0.1",
+  "ok": true,
+  "ended_at": "2026-07-17T22:16:40Z"
+}

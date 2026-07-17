@@ -1,0 +1,4 @@
+OK: registry + gateway-client schemas valid
+OK: enabled servers=12 disabled/deferred=4
+OK: authority + policy contracts valid (hierarchy, banners, wildcard transitional note, rule files)
+OK: master-config drift check stub (no hard failures)
