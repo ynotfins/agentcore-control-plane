@@ -2,7 +2,7 @@
 
 **Status:** AUTONOMOUS WORKFLOW ENGINE READY · OPERATOR LAUNCHER READY · LANGGRAPH STUDIO READY · END-TO-END VERIFIED
 
-**Git:** starting commit `61bf1d0` → final commit `5e63bd3` (3 commits, pushed to `origin main`).
+**Git:** starting commit `61bf1d0` → final commit `050810c` (4 commits, pushed to `origin main`).
 
 ## Operator workflow commands (run from `D:\github\agentcore-control-plane` with `scripts/` on PYTHONPATH)
 
