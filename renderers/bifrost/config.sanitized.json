@@ -1,0 +1,612 @@
+{
+  "$schema": "https://www.getbifrost.ai/schema",
+  "version": 2,
+  "source_of_truth": "config.json",
+  "env_label": "agentcore",
+  "client": {
+    "enable_logging": true,
+    "disable_content_logging": true,
+    "log_retention_days": 14,
+    "enforce_auth_on_inference": true,
+    "mcp_server_auth_mode": "headers",
+    "mcp_disable_auto_tool_inject": true
+  },
+  "config_store": {
+    "enabled": true,
+    "type": "sqlite",
+    "config": {
+      "path": "./data/config.db"
+    }
+  },
+  "logs_store": {
+    "enabled": true,
+    "type": "sqlite",
+    "config": {
+      "path": "./logs/logs.db"
+    }
+  },
+  "providers": {
+    "openai": {
+      "keys": [
+        {
+          "name": "openai-primary",
+          "value": "env.OPENAI_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1
+        }
+      ]
+    }
+  },
+  "mcp": {
+    "client_configs": [
+      {
+        "name": "agentcore_memory",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\agentcore_memory\\server.py"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "memory_status",
+          "startup_context",
+          "retrieve_context",
+          "append_event",
+          "propose_fact",
+          "expand_source",
+          "session_open",
+          "session_close",
+          "build_handoff",
+          "docs_search"
+        ],
+        "auth_type": "none",
+        "is_ping_available": false
+      },
+      {
+        "name": "agentcore_project_router",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\project_router\\server.py"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "project_list",
+          "project_activate",
+          "project_status",
+          "project_clear"
+        ],
+        "auth_type": "none",
+        "is_ping_available": false
+      },
+      {
+        "name": "arabold_docs",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Program Files\\nodejs\\node.EXE",
+          "args": [
+            "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
+        "name": "context_fabric",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Program Files\\nodejs\\node.EXE",
+          "args": [
+            "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
+        "name": "cursor_agent_mcp",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Program Files\\nodejs\\npx.cmd",
+          "args": [
+            "-y",
+            "cursor-agent-mcp@1.0.5"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
+        "name": "depwire",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
+          "args": [
+            "mcp"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
+        "name": "filesystem",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Program Files\\nodejs\\npx.cmd",
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-filesystem@2026.7.10",
+            "D:\\github"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
+        "name": "obsidian_vault",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Program Files\\PowerShell\\7\\pwsh.EXE",
+          "args": [
+            "-NoProfile",
+            "-NonInteractive",
+            "-File",
+            "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
+        "name": "playwright",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Program Files\\nodejs\\npx.cmd",
+          "args": [
+            "-y",
+            "@playwright/mcp@0.0.78"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
+        "name": "sequential_thinking",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Program Files\\nodejs\\npx.cmd",
+          "args": [
+            "-y",
+            "@modelcontextprotocol/server-sequential-thinking@2026.7.4"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
+        "name": "serena",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
+          "args": [
+            "start-mcp-server",
+            "--transport",
+            "stdio",
+            "--context",
+            "ide",
+            "--project",
+            "D:\\github\\agentcore-control-plane"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
+        "name": "tentra",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Program Files\\nodejs\\npx.cmd",
+          "args": [
+            "-y",
+            "tentra-mcp@1.3.3",
+            "--local"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "*"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      }
+    ],
+    "tool_manager_config": {
+      "tool_execution_timeout": "2m",
+      "max_agent_depth": 1,
+      "disable_auto_tool_inject": true
+    }
+  },
+  "governance": {
+    "virtual_keys": [
+      {
+        "id": "vk-agentcore-builder",
+        "name": "builder",
+        "value": "env.BIFROST_MCP_VIRTUAL_KEY",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_memory",
+            "tools_to_execute": [
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "append_event",
+              "propose_fact",
+              "expand_source",
+              "session_open",
+              "session_close",
+              "build_handoff",
+              "docs_search"
+            ]
+          },
+          {
+            "mcp_client_name": "agentcore_project_router",
+            "tools_to_execute": [
+              "project_list",
+              "project_activate",
+              "project_status",
+              "project_clear"
+            ]
+          },
+          {
+            "mcp_client_name": "arabold_docs",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "context_fabric",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "cursor_agent_mcp",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "depwire",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "filesystem",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "obsidian_vault",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "playwright",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "sequential_thinking",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "serena",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "tentra",
+            "tools_to_execute": [
+              "*"
+            ]
+          }
+        ],
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-agentcore-reviewer",
+        "name": "reviewer",
+        "value": "env.BIFROST_MCP_VK_REVIEWER",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_memory",
+            "tools_to_execute": [
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "append_event",
+              "propose_fact",
+              "expand_source",
+              "session_open",
+              "session_close",
+              "build_handoff",
+              "docs_search"
+            ]
+          },
+          {
+            "mcp_client_name": "agentcore_project_router",
+            "tools_to_execute": [
+              "project_list",
+              "project_activate",
+              "project_status",
+              "project_clear"
+            ]
+          },
+          {
+            "mcp_client_name": "arabold_docs",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "context_fabric",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "depwire",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "filesystem",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "obsidian_vault",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "sequential_thinking",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "serena",
+            "tools_to_execute": [
+              "*"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vk-agentcore-database-validator",
+        "name": "database-validator",
+        "value": "env.BIFROST_MCP_VK_DATABASE_VALIDATOR",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_memory",
+            "tools_to_execute": [
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "append_event",
+              "propose_fact",
+              "expand_source",
+              "session_open",
+              "session_close",
+              "build_handoff",
+              "docs_search"
+            ]
+          },
+          {
+            "mcp_client_name": "agentcore_project_router",
+            "tools_to_execute": [
+              "project_list",
+              "project_activate",
+              "project_status",
+              "project_clear"
+            ]
+          },
+          {
+            "mcp_client_name": "arabold_docs",
+            "tools_to_execute": [
+              "*"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vk-agentcore-docs-knowledge",
+        "name": "docs-knowledge",
+        "value": "env.BIFROST_MCP_VK_DOCS_KNOWLEDGE",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_project_router",
+            "tools_to_execute": [
+              "project_list",
+              "project_activate",
+              "project_status",
+              "project_clear"
+            ]
+          },
+          {
+            "mcp_client_name": "arabold_docs",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "obsidian_vault",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "sequential_thinking",
+            "tools_to_execute": [
+              "*"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vk-agentcore-operator",
+        "name": "operator",
+        "value": "env.BIFROST_MCP_VK_OPERATOR",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_memory",
+            "tools_to_execute": [
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "append_event",
+              "propose_fact",
+              "expand_source",
+              "session_open",
+              "session_close",
+              "build_handoff",
+              "docs_search"
+            ]
+          },
+          {
+            "mcp_client_name": "agentcore_project_router",
+            "tools_to_execute": [
+              "project_list",
+              "project_activate",
+              "project_status",
+              "project_clear"
+            ]
+          },
+          {
+            "mcp_client_name": "arabold_docs",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "depwire",
+            "tools_to_execute": [
+              "*"
+            ]
+          },
+          {
+            "mcp_client_name": "obsidian_vault",
+            "tools_to_execute": [
+              "*"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "agentcore_meta": {
+    "gateway_id": "agentcore-gateway",
+    "authority": "D:\\github\\agentcore-control-plane",
+    "runtime_root": "H:\\AgentRuntime\\bifrost",
+    "swarm_exclusion": [
+      "swarmrecall",
+      "swarmvault",
+      "swarmclaw",
+      "SwarmRecall",
+      "SwarmVault",
+      "AgentSwarm",
+      "F:\\AgentCore\\agentmemory"
+    ],
+    "secret_policy": "env.NAME references only; never embed secret literals",
+    "static_env_defaults": {
+      "sequential-thinking": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      },
+      "cursor-agent-mcp": {
+        "CURSOR_API_URL": "https://api.cursor.com"
+      },
+      "obsidian-vault": {
+        "OBSIDIAN_BASE_URL": "https://127.0.0.1:27124",
+        "OBSIDIAN_VERIFY_SSL": "false"
+      }
+    },
+    "vk_env_names": [
+      "BIFROST_MCP_VIRTUAL_KEY",
+      "BIFROST_MCP_VK_REVIEWER",
+      "BIFROST_MCP_VK_DATABASE_VALIDATOR",
+      "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
+      "BIFROST_MCP_VK_OPERATOR"
+    ]
+  }
+}

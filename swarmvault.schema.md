@@ -1,3 +1,6 @@
+> **SWARM ECOSYSTEM ONLY (2026-07-14).** SwarmVault belongs to the independent Swarm ecosystem.
+> This schema is not part of the non-Swarm IDE baseline or the AgentCore memory platform.
+
 # SwarmVault Schema — AgentCore Control Plane
 
 **Vault root:** `F:\AgentCore\agentmemory\swarmvault`  

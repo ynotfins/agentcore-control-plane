@@ -1,8 +1,16 @@
 # AgentCore Automation Operations
 
+> **HISTORICAL SNAPSHOT — SUPERSEDED IN PART (2026-07-14).** This is the 2026-06-27 automation
+> model. Since then: the Bifrost gateway scheduled task `\AgentCore\AgentCore-Bifrost-Gateway`
+> owns the IDE MCP entry (see `ops/AGENT_CORE_RESTART_CHECKLIST.md` and
+> `ops/bifrost/evidence/20260714-0204-runtime-repair/`); the Codex monitor automations listed
+> below were removed/deferred (2026-06-30); memory routes through `agentcore-gateway` →
+> `agentcore-memory`, not `global-memory-gateway`. SwarmRecall/Meilisearch task ownership below
+> is Swarm-ecosystem operations. Read for ops facts; verify against live scheduled tasks.
+
 Generated: 2026-06-27
 
-This document records the current automation and service-ownership model for AgentCore local memory, database, RAG, MCP drift, and context-window stabilization.
+This document records the automation and service-ownership model for AgentCore local memory, database, RAG, MCP drift, and context-window stabilization as of 2026-06-27.
 
 ## Runtime Ownership
 

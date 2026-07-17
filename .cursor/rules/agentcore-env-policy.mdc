@@ -15,11 +15,11 @@ AgentCore uses Windows Environment Variables, not `.env` files, for secrets and 
 
 ## AgentCore Gateway Rules
 
-- `global-memory-gateway` must use `agent_ingest` through Windows environment variables.
-- Expected pattern:
+- Normal IDE agents reach memory through one MCP entry: `agentcore-gateway` (`http://127.0.0.1:8080/mcp`, Bearer `${env:BIFROST_MCP_VIRTUAL_KEY}`) → `agentcore-memory`.
+- Any database ingest path must use `agent_ingest` through Windows environment variables via approved ops/admin runners only:
   - `AGENT_CORE_PGUSER=agent_ingest`
   - `AGENT_CORE_PGPASSWORD=${env:AGENT_CORE_AGENT_INGEST_PASSWORD}`
-- Normal IDE agents must never connect to PostgreSQL with direct SQL. They must use `global-memory-gateway`.
+- Normal IDE agents must never connect to PostgreSQL with direct SQL. They must use `agentcore-gateway` → `agentcore-memory` (the retired `global-memory-gateway` identity must not be reintroduced).
 - Trusted direct SQL is limited to approved ingest/admin runners with explicit control-plane authority.
 
 ## Scope

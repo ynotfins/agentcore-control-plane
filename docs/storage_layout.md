@@ -108,7 +108,7 @@ E:\
 
 ### Backup placement
 
-- Backup copies go to `E:\AgentCoreBackups`, not back into the runtime tree and not into Git.
+- Backup copies go to the E: archive tier (`E:\AgentCoreArchive`; live drive also carries `E:\AgentCore-Backups`), not back into the runtime tree and not into Git.
 - Never store active databases or private incident payloads in the control-plane repo as a convenience copy.
 
 ## Data Flow
@@ -116,11 +116,13 @@ E:\
 ```mermaid
 flowchart TD
     vendorSource[D:\\github\\vendor] --> controlPlane[D:\\github\\agentcore-control-plane]
+    controlPlane --> bifrostRuntime[H:\\AgentRuntime\\bifrost]
     controlPlane --> runtimeRoot[F:\\AgentCore]
-    runtimeRoot --> localRuntime[Local Swarm And Memory Services]
-    localRuntime --> backupRoot[E:\\AgentCoreBackups]
-    localRuntime --> gateway[global-memory-gateway]
-    gateway --> postgres[(agent_core PostgreSQL)]
+    runtimeRoot --> localRuntime[Local Memory And Search Services]
+    localRuntime --> backupRoot[E:\\AgentCoreArchive]
+    ideAgent[IDE Agent] --> gateway[agentcore-gateway]
+    gateway --> memoryId[agentcore-memory]
+    memoryId --> postgres[(agent_core PostgreSQL)]
 ```
 
 ## Operating Boundaries
@@ -146,13 +148,14 @@ flowchart TD
 
 ## Current Contract Notes
 
-- Existing memory and database contracts in this repo still reference the currently active PostgreSQL runtime paths under `F:\AgentCore\database_cluster` and `F:\AgentCore\postgres_runtime_engine`.
+- Existing memory and database contracts in this repo still reference the currently active PostgreSQL runtime paths under `F:\AgentCore\database_cluster` and `F:\AgentCore\postgres_runtime_engine` (PG16, preserved; the PG18 platform arrives per `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` M1).
 - This layout pass created the new standardized directories but did not migrate the live database or rewrite service configs.
-- Existing `E:\AgentCoreArchive` references in inherited docs describe older archive conventions. The new standard for this repo is `E:\AgentCoreBackups`.
+- **Canonical archive root (2026-07-14): `E:\AgentCoreArchive`.** The live E: drive also carries `E:\AgentCore-Backups` and other archive folders; new archival writes standardize on `E:\AgentCoreArchive`.
+- The Bifrost gateway runtime lives at `H:\AgentRuntime\bifrost` (never format H:); Tentra data at `H:\AgentRuntime\tentra\data`; `I:` is disposable scratch; `J:` is portable media. Full drive roles: `PROJECT_ANCHOR.md` §2.
 
 ## Default Agent Guidance
 
 1. Read and edit source in `D:\github`.
-2. Write active runtime state only to `F:\AgentCore`.
-3. Write cold backups only to `E:\AgentCoreBackups`.
+2. Write active runtime state only to `F:\AgentCore` (via wrappers) or `H:\AgentRuntime` (approved ops).
+3. Write cold backups only to `E:\AgentCoreArchive`.
 4. Keep private-response data local-only unless a future approved design says otherwise.

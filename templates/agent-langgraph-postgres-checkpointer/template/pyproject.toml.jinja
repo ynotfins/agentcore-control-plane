@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "{{ project_slug }}"
+version = "{{ initial_version }}"
+description = "{{ project_name }} — LangGraph agent with PostgreSQL checkpointing"
+requires-python = "{{ python_requires }}"
+authors = [{ name = "{{ author_name }}" }]
+dependencies = [
+    "langgraph==1.2.5",
+    "langgraph-checkpoint-postgres==3.1.0",
+    "psycopg[binary,pool]>=3.3.4,<4.0",
+    "orjson>=3.9,<4.0",
+    "typing-extensions>=4.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.10,<2.0",
+    "pytest>=9.0.3,<10.0",
+    "ruff>=0.6,<1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["{{ project_slug }}*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "UP", "B", "C4"]
+ignore = ["BLE001"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

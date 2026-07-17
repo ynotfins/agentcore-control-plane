@@ -1064,6 +1064,18 @@ def render_clients(model: dict[str, Any], probes: list[ProbeResult]) -> dict[str
                     "C:\\Users\\ynotf\\.codex\\mcp-wrappers\\artiforge-mcp.ps1",
                 ],
             }
+        if server_name == "serena" and client == "Antigravity":
+            return {
+                "type": "stdio",
+                "command": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
+                "args": [
+                    "start-mcp-server",
+                    "--transport",
+                    "stdio",
+                    "--context",
+                    "antigravity",
+                ],
+            }
         launch = server.get("launch_contract", {})
         transport = server.get("transport")
         if transport in {"http", "streamable-http"} and launch.get("url"):
@@ -1797,13 +1809,12 @@ def codex_gateway_block() -> str:
         "E:\\AgentCoreArchive",
     ]
     serena_args = [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
         "start-mcp-server",
-        "--project-from-cwd",
         "--transport",
         "stdio",
+        "--context",
+        "codex",
+        "--project-from-cwd",
     ]
     depwire_approved_tools = [
         "get_architecture_summary",
@@ -1848,7 +1859,8 @@ def codex_gateway_block() -> str:
         "[mcp_servers.depwire.env]\n"
         'DEPWIRE_NO_TELEMETRY = "1"\n\n'
         + depwire_tool_policy
-        + "[mcp_servers.global-memory-gateway]\n"
+        +
+        "[mcp_servers.global-memory-gateway]\n"
         "command = 'D:\\Codex_Managed\\.venv\\Scripts\\python.exe'\n"
         f'args = {json.dumps(gateway_args_for_client("Codex"))}\n'
         'env_vars = ["AGENT_CORE_AGENT_INGEST_PASSWORD", "OPENAI_API_KEY"]\n'
@@ -1893,7 +1905,7 @@ def codex_gateway_block() -> str:
         + "[mcp_servers.sequential-thinking.env]\n"
         + 'DISABLE_THOUGHT_LOGGING = "true"\n\n'
         + "[mcp_servers.serena]\n"
-        + 'command = "C:\\\\Users\\\\ynotf\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\Scripts\\\\uvx.exe"\n'
+        + 'command = "C:\\\\Users\\\\ynotf\\\\AppData\\\\Roaming\\\\uv\\\\tools\\\\serena-agent\\\\Scripts\\\\serena.exe"\n'
         + f"args = {json.dumps(serena_args)}\n"
         + "startup_timeout_sec = 30.0\n"
         + "tool_timeout_sec = 300.0\n\n"
@@ -1918,6 +1930,7 @@ def apply_codex_config(backup_root: Path) -> dict[str, Any]:
         '[plugins."mem0@mem0-plugins"]',
         '[hooks.state."mem0@mem0-plugins',
         "[mcp_servers.arabold-docs]",
+        "[mcp_servers.depwire",
         "[mcp_servers.global-memory-gateway]",
         "[mcp_servers.global-memory-gateway.env]",
         "[mcp_servers.artiforge]",
@@ -1929,7 +1942,6 @@ def apply_codex_config(backup_root: Path) -> dict[str, Any]:
         "[mcp_servers.filesystem]",
         "[mcp_servers.obsidian-vault]",
         "[mcp_servers.obsidian-vault.env]",
-        "[mcp_servers.depwire",
         "[mcp_servers.playwright]",
         "[mcp_servers.sequential-thinking]",
         "[mcp_servers.sequential-thinking.env]",

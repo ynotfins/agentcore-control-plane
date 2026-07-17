@@ -39,7 +39,7 @@ D:\MCP-Control-Plane\ops\Start-AgentCorePostgres.ps1
 D:\MCP-Control-Plane\ops\Start-AgentCorePostgres.ps1 -StartIfStopped
 ```
 
-4. Confirm the script reports:
+1. Confirm the script reports:
 
 - `engine root`: passed
 - `pg_ctl`: passed
@@ -71,12 +71,16 @@ After PostgreSQL health passes:
 6. Open Interpreter
 7. Android Studio if/when an MCP config exists
 
-Each IDE should load `global-memory-gateway` with:
+Each non-Swarm IDE should load one MCP baseline entry:
 
-- `MEMORY_GATEWAY_BACKEND=postgres`
-- `AGENT_CORE_PGHOST=127.0.0.1`
-- `AGENT_CORE_PGPORT=55432`
-- `OPENAI_EMBEDDING_MODEL=text-embedding-3-small`
-- `MEMORY_GATEWAY_EMBEDDING_PROVIDER=auto`
+- `agentcore-gateway`
+- `http://127.0.0.1:8080/mcp`
+- `Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}`
+
+Before restarting IDEs, validate Bifrost with:
+
+```powershell
+D:\github\agentcore-control-plane\ops\bifrost\Test-AgentCoreBifrostGateway.ps1
+```
 
 Use `docs\restart_after_env_changes.md` for the full restart and env-propagation checklist.

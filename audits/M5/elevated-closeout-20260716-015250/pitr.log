@@ -1,0 +1,17 @@
+﻿waiting for server to start......... done
+server started
+{
+    "ok":  true,
+    "backup_path":  "E:\\AgentCoreArchive\\agentcore-memory\\backups\\pg18\\20260716-015313",
+    "wal_archive_root":  "E:\\AgentCoreArchive\\agentcore-memory\\wal\\pg18",
+    "restore_root":  "I:\\AgentCoreRestoreTests\\pg18-pitr\\20260716-015734",
+    "restore_port":  55440,
+    "marker":  "PITR_MARKER_20260716-015734",
+    "marker_result":  "eb5e3a30-0fb2-4491-a859-8065c8d0e0f8|2026-07-16 01:57:34.475937-04\nINSERT 0 1",
+    "fence":  "PITR_MARKER_20260716-015734_FENCE",
+    "recovery_target_time":  "2026-07-16 01:57:36.649645-04",
+    "switched_wal":  "00000001000000000000002A",
+    "marker_count_after_recovery":  1,
+    "extension_check":  "[\"pg_trgm=1.6\", \"pgcrypto=1.4\", \"plpgsql=1.0\", \"vector=0.8.5\"]",
+    "validated_at":  "2026-07-16T05:57:48.3807554Z"
+}

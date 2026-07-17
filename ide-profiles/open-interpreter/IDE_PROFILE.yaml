@@ -1,0 +1,26 @@
+ide_id: open-interpreter
+display_name: Open Interpreter
+swarm_managed: false
+installed_version: unverified
+live_global_rule_target: 'Open Interpreter profile/system message (profiles under %APPDATA%\interpreter)'
+live_mcp_config_target: 'C:\Users\ynotf\AppData\Roaming\interpreter\config.json'
+rule_mechanism: 'profile system message / custom instructions'
+mcp_schema: open_interpreter_json
+mcp_transport: http/streamable
+env_var_handling: 'no env-header expansion — VK materialized into live config during approved cutover only'
+restart_behavior: 'restart interpreter session after config changes'
+editability:
+  global_rules: manual_import       # system-message/profile edit by operator (do not modify open-interpreter-01/ without explicit request)
+  project_rules: unsupported
+  mcp_config: direct_write          # file-writable; approval-gated; VK materialization allowed per contract note
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: unverified
+mcp_template_source: renderers/gateway-clients/open-interpreter.json
+known_limitations:
+  - 'No env-header expansion: resolved VK may exist in the live config only (never in Git).'
+  - 'Rules live in profile system message; parity depends on operator import.'
+semantic_parity_gaps:
+  - 'Rules delivery is manual via profile system message.'

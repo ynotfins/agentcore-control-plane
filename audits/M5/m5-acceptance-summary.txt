@@ -1,0 +1,17 @@
+﻿1 - Versioned reversible M5 migration: PASS - up/down tested in agentcore_m5_rollback_20260716015617
+2 - Live M5 migration applied: PASS - migrations/m5/001_up_hybrid_retrieval_cognee.sql
+3 - Exact MCP surface preserved: PASS - agentcore_memory-append_event, agentcore_memory-build_handoff, agentcore_memory-docs_search, agentcore_memory-expand_source, agentcore_memory-memory_status, agentcore_memory-propose_fact, agentcore_memory-retrieve_context, agentcore_memory-session_close, agentcore_memory-session_open, agentcore_memory-startup_context
+4 - Bounded M5 retrieval fixtures seeded: PASS - project=m5_project_A_20260716015617 docs={"fts":"2b4d3b64-21fc-47b7-a682-eb409267704a","vector":"f05ae233-9ea3-4eb3-aa86-78e698ae0091","trigram":"80803e87-ba08-4928-9af8-f03bc1fbed21","official":"22cb841f-d81d-498a-863b-deff7a22e4e2"}
+5 - Full-text retrieval returns expected fixture: PASS - method=postgres_fts
+6 - pg_trgm retrieves misspelling or partial identifier: PASS - method=postgres_trigram
+7 - Exact pgvector search produces correctness baseline: PASS - top=M5 exact vector baseline
+8 - HNSW benchmark gate recorded: PASS - {"decision":"deferred","corpus_rows":18,"hnsw_index_present":false}
+9 - Retrieval respects project and trust boundaries: PASS - project_B and quarantined sentinels absent
+10 - Raw transcripts rejected by promotion gate: PASS - expected SQL rejection
+11 - Quarantined evidence rejected by promotion gate: PASS - expected SQL rejection
+12 - Validated fact promoted with complete provenance: PASS - promotion_id=52c651c7-a13e-4402-9702-7ad0cdf0dc0e
+13 - Cognee retrieval returns promoted fact and source references: PASS - promotion_id=52c651c7-a13e-4402-9702-7ad0cdf0dc0e
+14 - E: official document found through F: index: PASS - source_path=E:\AgentCoreArchive\agentcore-memory\official-docs\m5-official-fixture-20260716015617.md
+15 - Cognee outage degrades to PostgreSQL-only retrieval: PASS - cognee=degraded_disabled; projections=40
+16 - No Mem0 package process database or config introduced: PASS - db_count=0; pip_show_mem0ai_absent=true; process_count=0
+17 - Bifrost restart and safe Cursor call succeed: PASS - server=agentcore-memory; tools=10

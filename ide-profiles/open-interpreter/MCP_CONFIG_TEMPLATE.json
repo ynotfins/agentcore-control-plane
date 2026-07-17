@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "type": "http",
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "timeout": 300
+    }
+  },
+  "_agentcore": {
+    "renderer": "open-interpreter",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Live cutover may materialize BIFROST_MCP_VIRTUAL_KEY when env expansion is unsupported."
+    ]
+  },
+  "_template_note": "DERIVED from renderers/gateway-clients/open-interpreter.json (source contract: contracts/agentcore-gateway-client.json). Do not hand-edit; regenerate from the contract."
+}

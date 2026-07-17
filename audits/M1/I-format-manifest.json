@@ -1,0 +1,27 @@
+{
+  "format_timestamp": "20260714-231149",
+  "guid": "{ac27f734-60e4-4783-a6ec-6e9f922ad9d1}",
+  "pre_format_free_gb": 914.5,
+  "serial": "2306E6AAD10C",
+  "format_action": "Quick-format NTFS 64KB",
+  "label": "Scratch 1 TB Sata",
+  "pre_format_size_gb": 914.8,
+  "disk_index": 0,
+  "contents_before_format": [
+    ".dropbox.device (56 bytes, Dropbox device fingerprint)",
+    "System Volume Information (system)",
+    "$RECYCLE.BIN (system)"
+  ],
+  "pre_format_block_size": 512,
+  "drive": "I:",
+  "pre_format_filesystem": "NTFS",
+  "model": "CT1000BX500SSD1",
+  "bus": "SATA",
+  "stop_conditions_checked": "empty of user data: YES; physical identity confirmed: YES; no dependent services: YES",
+  "blueprint_authorization": "BLUEPRINT.md §4 and §8 M1; I: expected to require correction",
+  "post_format_block_size": 65536,
+  "post_format_filesystem": "NTFS",
+  "post_format_label": "AgentCore_Staging",
+  "post_format_free_gb": 914.8,
+  "format_result": "SUCCESS"
+}

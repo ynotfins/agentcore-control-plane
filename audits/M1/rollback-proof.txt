@@ -1,0 +1,37 @@
+# M1 Rollback Proof — 2026-07-14
+
+## PG16 still operational on port 55432
+
+pg_isready -h 127.0.0.1 -p 55432 → 0 (accepting connections)
+Server version confirmed: PostgreSQL 16.6
+Listening on 127.0.0.1:55432 (confirmed via netstat)
+Data directory: F:\AgentCore\database_cluster (untouched)
+PostgresRuntime scheduled task: unchanged, still points to PG16 cluster
+PG16 pg_hba.conf: reverted (replication entry used for pg_basebackup was added and then removed; config reloaded)
+
+## PG18 installed independently
+
+PG18 service: AgentCore-PostgreSQL18 (can be stopped/uninstalled without affecting PG16)
+PG18 data: F:\PostgreSQL18\data (separate new data directory — never pointed at PG16 data)
+PG18 port: 55433 (separate port — no conflict with PG16 on 55432)
+Removal path: Stop-Service AgentCore-PostgreSQL18; winget uninstall PostgreSQL.PostgreSQL.18; Remove-Item F:\PostgreSQL18
+
+## Backups verified
+
+Logical dump: E:\AgentCoreArchive\backups_cold\pgvector\base\agent_core-20260714-232021.dump
+  SHA256: 41EB3818F2BEFC7CE82FF02E50C92607085841900E9C6FB66D2284FD80018419
+  Restore test: PASSED — all 7 tables restored, row counts match PG16 live (projects=1, project_facts=215, global_vector_memory_store=105, agent_cross_project_telemetry=90)
+
+Physical backup: E:\AgentCoreArchive\pg16-base-backup-20260714-232106\base.tar.gz
+  SHA256: BD17F1FA4FC81A498AA94F8D8EB28E5B3DF7E926114B479A533D6435BC1F64EC
+
+Second copies on G::
+  G:\AgentCoreArchive\backups_cold\pgvector\base\agent_core-20260714-232021.dump
+  SHA256: 41EB3818F2BEFC7CE82FF02E50C92607085841900E9C6FB66D2284FD80018419 ✓ (matches E:)
+  G:\AgentCoreArchive\pg16-base-backup-20260714-232106\base.tar.gz
+  SHA256: BD17F1FA4FC81A498AA94F8D8EB28E5B3DF7E926114B479A533D6435BC1F64EC ✓ (matches E:)
+
+## Swarm ecosystem
+
+SwarmRecall, SwarmVault, SwarmClaw data and services on F:\AgentCore\agentmemory: UNTOUCHED
+swarmrecall, swarmdock, swarmfeed, swarmrelay databases in PG16: UNTOUCHED

@@ -1,7 +1,14 @@
 # System Handover Blueprint
 
 Generated: 2026-06-25
-Updated: 2026-06-26
+Updated: 2026-07-14
+
+> **Bifrost override:** This handover predates the Bifrost MCP Gateway cutover.
+> For non-Swarm IDE setup, follow `PROJECT_ANCHOR.md`,
+> `MASTER_CONFIG_AND_PROMPT.md`, and `docs/bifrost/UNIFIED_GATEWAY_SETUP.md`.
+> The current IDE route is `agentcore-gateway` → `agentcore-memory`; older
+> `global-memory-gateway` statements below are retained as historical memory
+> architecture context.
 
 This document is the canonical architecture handoff for the current AgentCore local runtime, storage, and governed memory environment. It is intended for global-controller ingestion and should be treated as an operational dependency map, not as a speculative future-state design.
 
@@ -14,7 +21,7 @@ This document is the canonical architecture handoff for the current AgentCore lo
 
 ## Unified Memory Architecture
 
-- Governed write path: `global-memory-gateway`
+- Governed non-Swarm IDE path: `agentcore-gateway` → `agentcore-memory`
 - Canonical governed database: PostgreSQL `agent_core` on `127.0.0.1:55432`
 - Shared local memory runtime: `SwarmRecall` local API + local database + local Meilisearch
 - Shared local retrieval substrate: `SwarmVault`
@@ -92,7 +99,7 @@ Retired route:
 ### Normal IDE Access Rule
 
 - Normal IDE agents must not connect directly to PostgreSQL.
-- Normal IDE agents must use `global-memory-gateway`.
+- Normal non-Swarm IDE agents must use `agentcore-gateway` → `agentcore-memory`; `global-memory-gateway` is historical memory rollout terminology in this handover.
 - The governed gateway role contract is:
   - `AGENT_CORE_PGUSER=agent_ingest`
   - `AGENT_CORE_PGPASSWORD` resolves from `AGENT_CORE_AGENT_INGEST_PASSWORD`
@@ -103,13 +110,13 @@ Retired route:
 - It is not documented here as a Docker container.
 - It is not a Windows service in the current control-plane model.
 - Cold-boot/startup ownership is handled by Task Scheduler task `\AgentCore\PostgresRuntime`, which runs `D:\github\agentcore-control-plane\ops\Start-AgentCorePostgres.ps1 -StartIfStopped`.
-- Normal agent access is mediated through the `global-memory-gateway` MCP server.
+- Normal non-Swarm agent access is mediated through `agentcore-gateway` and the stable `agentcore-memory` MCP identity.
 
 Operational model:
 
 1. Local PostgreSQL binaries run from the NVMe runtime tree.
 2. `\AgentCore\PostgresRuntime` starts native PostgreSQL at user logon when it is not already running.
-3. `global-memory-gateway` is the MCP access layer for normal IDE agents.
+3. `agentcore-gateway` → `agentcore-memory` is the MCP access layer for normal non-Swarm IDE agents.
 4. Trusted ingest/admin jobs may use direct SQL only when approved by the control plane.
 
 ### Initialized Vector And Schema State
@@ -499,8 +506,7 @@ Gateway policy:
 - Do not use hidden Docker volumes for persistent SwarmVault or SwarmRecall storage.
 - Do not assume `lossless-claw` has already migrated its SQLite database onto `F:\AgentCore\agentmemory\lcm`.
 - Do not collapse `E:\AgentCoreArchive` into `E:\AgentCoreBackups` without an explicit migration plan.
-- Do not bypass `global-memory-gateway` for normal IDE writes.
+- Do not bypass `agentcore-gateway` / `agentcore-memory` for normal non-Swarm IDE memory health/status or future governed memory writes.
 - Do not remove the OpenClaw-only `eye2byte` MCP as drift unless Tony explicitly retires it.
 - Do not restore retired website-hosting MCP routes unless Tony explicitly re-enables them.
 - Do not assume rolling-context numeric parameters are defined by the control plane; they are not documented here.
-

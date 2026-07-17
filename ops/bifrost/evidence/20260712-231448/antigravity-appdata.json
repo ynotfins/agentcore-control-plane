@@ -1,0 +1,21 @@
+{
+  "existed": true,
+  "client": "antigravity-appdata",
+  "action": "updated",
+  "backup": "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json.bifrost-cutover-20260712-231448.bak",
+  "path": "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json",
+  "removed": [
+    "arabold-docs",
+    "serena",
+    "sequential-thinking",
+    "cursor-agent-mcp",
+    "context-fabric",
+    "mcp-debugger",
+    "artiforge",
+    "obsidian-vault",
+    "swarmrecall",
+    "swarmvault",
+    "filesystem",
+    "playwright"
+  ]
+}

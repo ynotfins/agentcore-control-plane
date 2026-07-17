@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agentcore://schemas/project-tool-lifecycle",
+  "title": "AgentCore Project Tool Lifecycle Policy",
+  "type": "object",
+  "required": [
+    "schema_version", "policy_id", "authority", "human_policy", "runtime_enforcement",
+    "tool_states", "manifest", "usage_ledger", "lease_required_fields",
+    "lease_expiry_earliest_of", "audit_rules", "profiles", "wildcard_policy"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "policy_id": { "const": "agentcore-project-tool-lifecycle" },
+    "authority": { "type": "string" },
+    "human_policy": { "type": "string" },
+    "runtime_enforcement": {
+      "type": "object",
+      "required": ["status", "implemented_by", "runtime_state_authority_when_implemented"],
+      "properties": {
+        "status": { "enum": ["policy_only", "enforced"] },
+        "implemented_by": { "type": "string" },
+        "runtime_state_authority_when_implemented": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "tool_states": {
+      "type": "array",
+      "items": { "enum": ["catalogued", "core_active", "milestone_active", "jit_leased", "dormant", "operator_only", "forbidden"] },
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true
+    },
+    "manifest": {
+      "type": "object",
+      "required": ["path", "required_fields"],
+      "properties": {
+        "path": { "type": "string" },
+        "required_fields": { "type": "array", "items": { "type": "string" }, "minItems": 17 }
+      }
+    },
+    "usage_ledger": {
+      "type": "object",
+      "required": ["path", "status", "fields", "never_log"],
+      "properties": {
+        "path": { "type": "string" },
+        "status": { "type": "string" },
+        "fields": { "type": "array", "items": { "type": "string" }, "minItems": 12 },
+        "never_log": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    },
+    "lease_required_fields": { "type": "array", "items": { "type": "string" }, "minItems": 11 },
+    "lease_expiry_earliest_of": { "type": "array", "items": { "type": "string" }, "minItems": 7 },
+    "audit_rules": {
+      "type": "object",
+      "required": ["keep_active", "make_dormant", "expire", "operator_only_if_capable_of", "forbid_if"],
+      "additionalProperties": { "type": "array", "items": { "type": "string" } }
+    },
+    "profiles": {
+      "type": "object",
+      "required": ["bootstrap", "builder-core", "milestone-builder", "reviewer", "database-validator", "docs-knowledge", "operator", "emergency-recovery"],
+      "additionalProperties": {
+        "type": "object",
+        "required": ["purpose", "servers", "constraints"],
+        "properties": {
+          "purpose": { "type": "string" },
+          "servers": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "constraints": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "wildcard_policy": {
+      "type": "object",
+      "required": ["rule", "transitional_exception"],
+      "properties": {
+        "rule": { "type": "string" },
+        "transitional_exception": {
+          "type": "object",
+          "required": ["granted", "scope", "reason", "expires"],
+          "properties": {
+            "granted": { "type": "boolean" },
+            "scope": { "type": "string" },
+            "reason": { "type": "string" },
+            "expires": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "tool_manifest": {
+      "title": "Project tool manifest (.agentcore/TOOL_MANIFEST.yaml, loaded as JSON)",
+      "type": "object",
+      "required": [
+        "project_id", "repo_id", "worktree_id", "active_milestone_id", "base_profile",
+        "core_active", "milestone_active", "jit_leased", "dormant", "operator_only",
+        "forbidden", "last_audit", "next_required_audit", "policy_revision"
+      ],
+      "properties": {
+        "project_id": { "type": "string" },
+        "repo_id": { "type": "string" },
+        "worktree_id": { "type": "string" },
+        "active_milestone_id": { "type": "string" },
+        "assigned_identities": { "type": "array", "items": { "type": "string" } },
+        "base_profile": { "enum": ["bootstrap", "builder-core", "milestone-builder", "reviewer", "database-validator", "docs-knowledge", "operator", "emergency-recovery"] },
+        "core_active": { "type": "array", "items": { "type": "string" } },
+        "milestone_active": { "type": "array", "items": { "type": "string" } },
+        "jit_leased": { "type": "array" },
+        "dormant": { "type": "array", "items": { "type": "string" } },
+        "operator_only": { "type": "array", "items": { "type": "string" } },
+        "forbidden": { "type": "array", "items": { "type": "string" } },
+        "activation_reasons": { "type": "object" },
+        "expiry_conditions": { "type": "object" },
+        "last_audit": { "type": ["string", "null"] },
+        "next_required_audit": { "type": ["string", "null"] },
+        "policy_revision": { "type": "string" }
+      }
+    }
+  }
+}

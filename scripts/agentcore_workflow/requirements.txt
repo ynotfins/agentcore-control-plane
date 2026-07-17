@@ -1,0 +1,27 @@
+# AgentCore M6 — LangGraph Autonomous Workflow dependencies
+# Authority: BLUEPRINT.md M6 / MEMORY_PLATFORM_EXECUTION_PLAN.md M6
+# Install: pip install -r scripts/agentcore_workflow/requirements.txt
+# Python: >=3.12
+
+# LangGraph workflow engine
+langgraph==1.2.5
+
+# PostgreSQL checkpointer for LangGraph
+langgraph-checkpoint-postgres==3.1.0
+
+# PostgreSQL adapter (already required by agentcore_memory)
+psycopg[binary,pool]>=3.3.4,<4.0
+
+# psycopg connection pool (installed with checkpoint-postgres)
+psycopg-pool==3.3.1
+
+# Copier template engine (M7 templates)
+copier==9.17.0
+
+# Deep Agents worker harness (M6 builder/critic nodes)
+# Used ONLY as a bounded worker; see ADR-DEEP-AGENTS-WORKER-HARNESS.md
+# MemoryMiddleware and LangSmith disabled; FilesystemMiddleware + restricted path only
+deepagents==0.6.12
+
+# Type support
+typing-extensions>=4.12

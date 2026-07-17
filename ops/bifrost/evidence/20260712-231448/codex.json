@@ -1,0 +1,22 @@
+{
+  "existed": true,
+  "client": "codex",
+  "action": "updated",
+  "backup": "C:\\Users\\ynotf\\.codex\\config.toml.bifrost-cutover-20260712-231448.bak",
+  "path": "C:\\Users\\ynotf\\.codex\\config.toml",
+  "removed": [
+    "arabold-docs",
+    "artiforge",
+    "context-fabric",
+    "cursor-agent-mcp",
+    "filesystem",
+    "mcp-debugger",
+    "obsidian-vault",
+    "playwright",
+    "sequential-thinking",
+    "serena",
+    "depwire",
+    "swarmrecall",
+    "swarmvault"
+  ]
+}

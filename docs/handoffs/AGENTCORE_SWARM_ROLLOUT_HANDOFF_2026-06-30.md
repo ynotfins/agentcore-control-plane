@@ -1,3 +1,10 @@
+> **HISTORICAL — SUPERSEDED (2026-07-14). DO NOT EXECUTE.**
+> This Swarm rollout handoff mandates SwarmRecall/SwarmVault/`global-memory-gateway` in every IDE and
+> instructs executing phases P1–P9. That baseline is **not** current non-Swarm policy and must not be run.
+> Current gateway authority: `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`.
+> Current memory authority: `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`.
+> Swarm remains a separate ecosystem; read this file for Swarm-era history only.
+
 # AgentCore Swarm Rollout — Next-Agent Handoff
 
 **Document type:** Self-contained next-agent handoff  

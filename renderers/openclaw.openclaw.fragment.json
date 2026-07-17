@@ -77,15 +77,13 @@
       },
       "serena": {
         "type": "stdio",
-        "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe",
+        "command": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
         "args": [
-          "--from",
-          "git+https://github.com/oraios/serena",
-          "serena",
           "start-mcp-server",
-          "--project-from-cwd",
           "--transport",
-          "stdio"
+          "stdio",
+          "--context",
+          "ide"
         ]
       },
       "eye2byte": {

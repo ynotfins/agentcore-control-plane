@@ -1,0 +1,12 @@
+﻿versioned reversible M3 migration: PASS - up/down tested in disposable database agentcore_m3_rollback_20260716015407
+live M3 migration applied: PASS - migrations/m3/001_up_lossless_context_state_projections.sql
+M3 identities seeded: PASS - project=23b08121-4dd8-49b3-992a-1a30c9aaf917; session1=42503931-ec77-4956-aaa1-c1db453cb43f; session2=4cc0f6f8-2eeb-4ab8-b120-d91e7c665141
+verbatim preservation, secret redaction, write-time dedupe: PASS - redacted prompt persisted verbatim; duplicate linked without deleting either original
+L0 L1 L2 L3 compaction and exact source edges: PASS - summaries=cf772773-5916-40fa-a939-218573dfcdfe,8a533762-6ec2-4554-9a4e-e858e74e18e1,873a1b21-bb35-4698-b0c6-e21c9bedb4a5 edges=12
+summary-to-source exact expansion: PASS - L3 expands to original event payloads from both sessions
+exact expansion after H to E archival: PASS - artifact expanded from cold path E:\AgentCoreArchive\agentcore-memory\artifacts\sha256\a7\a754b62d8455e7d8183500dd1c8d495e855a4cca5732d1af0a03f11f47eaf3ad.txt
+interrupted compaction restart recovery: PASS - recovered=1 run=29aacb3d-d621-4d01-a231-883704df770e
+token-budgeted context assembly: PASS - small budget cumulative_tokens=285 items=7
+contradiction review behavior: PASS - proposal=5102933d-42d1-419c-83c9-6cf31fd35f57 status=proposed
+deterministic and atomic COMB projections: PASS - STATE/DECISIONS/CONTEXT_INDEX/GLOBAL_STATE generated; failure simulation preserved previous file
+retrieved memory remains data: PASS - authority-contradicting retrieved memory stored as raw_untrusted data

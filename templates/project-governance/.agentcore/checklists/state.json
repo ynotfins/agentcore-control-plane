@@ -1,0 +1,20 @@
+{
+  "$schema_note": "Canonical machine-readable checklist state. Markdown checkboxes are generated projections. Policy: docs/agent-policy/CHECKLIST_STANDARD.md. Schema: contracts/schemas/project-execution-policy.schema.json (checklist_state definition).",
+  "project_id": "",
+  "policy_revision": "2026-07-14",
+  "items": [
+    {
+      "id": "M0.A1.m1",
+      "type": "micro",
+      "parent": "M0.A1",
+      "action": "Activate project via agentcore-project-router",
+      "expected_output": "active-project state",
+      "validation": "project_status returns the project",
+      "status": "pending",
+      "evidence_ref": null,
+      "rollback": "project_clear",
+      "agent": null,
+      "updated_at": null
+    }
+  ]
+}

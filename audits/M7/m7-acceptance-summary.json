@@ -1,0 +1,124 @@
+{
+  "run_id": "20260716094626",
+  "timestamp": "2026-07-16T09:46:26.115719+00:00",
+  "pass_count": 19,
+  "fail_count": 0,
+  "total": 19,
+  "all_passed": true,
+  "checks": [
+    {
+      "check": 1,
+      "name": "Engineering Constitution exists and has required sections",
+      "status": "PASS",
+      "detail": "path=D:\\github\\agentcore-control-plane\\docs\\engineering\\CONSTITUTION.md size=15162"
+    },
+    {
+      "check": 2,
+      "name": "Dependency catalog validates (all entries have required fields)",
+      "status": "PASS",
+      "detail": "exit=0"
+    },
+    {
+      "check": 3,
+      "name": "All approved catalog items have provenance and license",
+      "status": "PASS",
+      "detail": "approved=13 missing_provenance=[] missing_license=[]"
+    },
+    {
+      "check": 4,
+      "name": "mcp-server-python generates clean project",
+      "status": "PASS",
+      "detail": "out=D:\\test\\m7-accept-mcp"
+    },
+    {
+      "check": 5,
+      "name": "Generated MCP project: lint passes, tests pass",
+      "status": "PASS",
+      "detail": "lint_rc=0 test_rc=0 tests=4 passed in 0.16s"
+    },
+    {
+      "check": 6,
+      "name": "agent-langgraph-postgres-checkpointer generates clean project",
+      "status": "PASS",
+      "detail": "out=D:\\test\\m7-accept-lg"
+    },
+    {
+      "check": 7,
+      "name": "Generated LangGraph project: lint passes, checkpoint/resume tests pass",
+      "status": "PASS",
+      "detail": "lint_rc=0 test_rc=0 result=============================== 3 passed in 0.38s =============================="
+    },
+    {
+      "check": 8,
+      "name": "Template mcp-server-python: copier.yml has version/suffix/subdir",
+      "status": "PASS",
+      "detail": "min_version=True templates_suffix=True subdirectory=True"
+    },
+    {
+      "check": 8,
+      "name": "Template update/check workflow: copier.yml structure valid",
+      "status": "PASS",
+      "detail": "both templates verified"
+    },
+    {
+      "check": 9,
+      "name": "Unpinned candidate (no version) rejected by admission gate",
+      "status": "PASS",
+      "detail": "exit=1 output_snippet=\n=== Admission Gate: some-random-lib (no version) ===\n\n  FAIL 'latest' is never automatically approv"
+    },
+    {
+      "check": 10,
+      "name": "Templates and reference implementations are separate directories",
+      "status": "PASS",
+      "detail": "templates=templates refimpl=reference-implementations"
+    },
+    {
+      "check": 11,
+      "name": "docs_search (FTS) finds recipe through F: index",
+      "status": "PASS",
+      "detail": "title=AgentCore Engineering Constitution source_path=D:\\github\\agentcore-control-plane\\docs\\engineering\\CONSTITUTION.md"
+    },
+    {
+      "check": 12,
+      "name": "F: index has approved docs; no quarantined M7 documents",
+      "status": "PASS",
+      "detail": "approved=41 quarantined=0"
+    },
+    {
+      "check": 13,
+      "name": "No bulk repository corpus ingested (global doc count < 100)",
+      "status": "PASS",
+      "detail": "global_docs=41"
+    },
+    {
+      "check": 14,
+      "name": "No Qdrant, LanceDB, or other vector DB introduced",
+      "status": "PASS",
+      "detail": "qdrant=False lancedb=False"
+    },
+    {
+      "check": 15,
+      "name": "M6 acceptance regression remains green",
+      "status": "PASS",
+      "detail": "exit=0 summary=FAIL: 0 / 18"
+    },
+    {
+      "check": 16,
+      "name": "Bifrost gateway reachable on 127.0.0.1:8080",
+      "status": "PASS",
+      "detail": "bifrost_ok=True"
+    },
+    {
+      "check": 17,
+      "name": "F: retrieval returns approved docs with provenance",
+      "status": "PASS",
+      "detail": "returned=3 titles=['Official M5 gateway setup fixture', 'Official M5 gateway setup fixture', 'Official M5 gateway setup fixture']"
+    },
+    {
+      "check": 18,
+      "name": "No IDE/Swarm changes; memory surface intact",
+      "status": "PASS",
+      "detail": "swarm_tables=0 tools_ok=True"
+    }
+  ]
+}

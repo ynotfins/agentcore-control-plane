@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agentcore://schemas/global-agent-policy",
+  "title": "AgentCore Canonical Global Agent Policy (YAML, validated after load)",
+  "type": "object",
+  "required": ["policy_id", "policy_revision", "authority_repo", "mandatory_rules", "forbidden_routes", "references"],
+  "properties": {
+    "policy_id": { "const": "agentcore-global-agent-policy" },
+    "policy_revision": { "type": "string" },
+    "authority_repo": { "type": "string" },
+    "mandatory_rules": {
+      "type": "array",
+      "minItems": 15,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "rule"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "title": { "type": "string" },
+          "rule": { "type": "string", "minLength": 20 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "forbidden_routes": { "type": "array", "items": { "type": "string" }, "minItems": 5 },
+    "references": {
+      "type": "object",
+      "required": ["project_execution_policy", "tool_lifecycle_policy", "bifrost_registry", "gateway_client", "memory_platform_plan"],
+      "additionalProperties": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

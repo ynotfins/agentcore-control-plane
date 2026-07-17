@@ -1,0 +1,16 @@
+# Allocation Unit Verification — 2026-07-14
+# Source: WMI Win32_Volume BlockSize
+
+E: | HGST HUH721010ALE600 | NTFS Archive_Cold  | BlockSize: 65536 (64KB) ✓ | No correction needed
+F: | Samsung 990 PRO 4TB  | NTFS Agent_Vector  | BlockSize: 65536 (64KB) ✓ | No correction needed
+H: | Crucial P5 Plus 2TB  | NTFS P5 Plus NVME  | BlockSize: 65536 (64KB) ✓ | No correction needed (H: is live Bifrost runtime — never format)
+I: | Crucial BX500 SATA   | NTFS was 512 bytes | BlockSize: 512 ✗ → Corrected to 65536 (64KB) ✓
+
+I: correction details:
+  Pre-format: NTFS 512-byte allocation units, 914.8 GB, effectively empty (only system dirs + 56-byte Dropbox fingerprint)
+  Physical disk identity verified: Disk #0, CT1000BX500SSD1, Serial 2306E6AAD10C, GUID {ac27f734-60e4-4783-a6ec-6e9f922ad9d1}
+  Authorization: BLUEPRINT.md §4 and §8 M1 — "Expected to require correction"
+  Action: Quick-format NTFS /A:64K (2026-07-15 03:12–03:14 UTC)
+  Post-format verification: BlockSize 65536, Label AgentCore_Staging, 914.7 GB free ✓
+
+No durable database, WAL, checkpoint, queue, or lock workload placed on I: or E:.

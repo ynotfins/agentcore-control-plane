@@ -1,5 +1,11 @@
 # AgentCore Memory System
 
+> **HISTORICAL SNAPSHOT — SUPERSEDED (2026-07-14).** This describes the pre-Bifrost PG16 memory
+> system (`global-memory-gateway`, `memory_append`/`memory_search`). Current IDE route:
+> `agentcore-gateway` → `agentcore-memory`. Current implementation authority:
+> `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`. SwarmRecall/SwarmVault content below
+> is Swarm-ecosystem-only. Read for historical facts, not as current instructions.
+
 Generated: 2026-06-24
 
 ## Summary
@@ -7,7 +13,7 @@ Generated: 2026-06-24
 AgentCore memory is local-first.
 
 - PostgreSQL/pgvector stores governed cross-project machine memory.
-- `global-memory-gateway` is the normal write/read tool surface for IDE agents.
+- (Historical) `global-memory-gateway` was the normal write/read tool surface; the current surface is `agentcore-memory` via `agentcore-gateway`.
 - Trusted ingest scripts load system evidence, reports, and inventories.
 - Obsidian/local Markdown remain the long-form human-readable knowledge layer.
 - QMD/LCM-style local memory remains separate and must not bypass the gateway for global memory writes.

@@ -289,7 +289,7 @@ CHAOSCENTRAL — Workflow Engineering, Software Selection, and Bottleneck Refere
 217. pnpm	11.7.0	Corepack shim
 218. yarn	1.22.22	Corepack shim
 219. Python 3.13 (default)	3.13.14	`...\Python313\python.exe`
-220. Python 3.11 (uvx/Serena)	3.11.9	`...\Python311\Scripts\uvx.exe`
+220. Python 3.11 (legacy uvx path; not Serena default)	3.11.9	`...\Python311\Scripts\uvx.exe`
 221. Python 3.12	3.12	MSIX
 222. Python 3.10	3.10.11	winget
 223. pip	26.1.2	Python 3.13 Scripts
@@ -408,7 +408,7 @@ CHAOSCENTRAL — Workflow Engineering, Software Selection, and Bottleneck Refere
 336. obsidian-vault	stdio → PS1	`C:\Users\ynotf\.openclaw\start-obsidian-mcp-server.ps1`	YES (via REST)	No	CRITICAL
 337. playwright	stdio	`npx @playwright/mcp@latest`	Screenshots	No	Low–Medium
 338. sequential-thinking	stdio	`npx @modelcontextprotocol/server-sequential-thinking`	No	No	Low
-339. serena	stdio	`uvx --from git+https://github.com/oraios/serena ...`	YES (code edits)	No	HIGH
+339. serena	stdio	`C:\Users\ynotf\AppData\Roaming\uv\tools\serena-agent\Scripts\serena.exe start-mcp-server --transport stdio --context <client-context>`	YES (code edits)	No	HIGH
 340. eye2byte	stdio	OpenClaw-only	Unknown	Unknown	Medium
 341. Filesystem MCP allowed roots:
 342. ```

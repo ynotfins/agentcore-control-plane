@@ -1,0 +1,26 @@
+# IDE profile — source-controlled facts for this managed client.
+# Do not guess values: use 'unverified' until evidence exists.
+ide_id: cursor
+display_name: Cursor
+swarm_managed: false
+installed_version: unverified
+live_global_rule_target: 'Cursor User Rules (app settings UI); project rules: <repo>\.cursor\rules\*.mdc and AGENTS.md'
+live_mcp_config_target: 'C:\Users\ynotf\.cursor\mcp.json'
+rule_mechanism: 'native project rules (.cursor/rules/*.mdc, AGENTS.md) + app-settings User Rules'
+mcp_schema: cursor_mcp_json
+mcp_transport: http/streamable
+env_var_handling: 'supports ${env:VAR} expansion in MCP headers'
+restart_behavior: 'MCP reload from settings UI; full restart after Windows env-var changes'
+editability:
+  global_rules: manual_import        # app-settings User Rules cannot be file-written by Cursor
+  project_rules: direct_write        # repo .cursor/rules and AGENTS.md
+  mcp_config: direct_write           # file-writable, but live edits are approval-gated by policy
+installation_mode: generated_prompt  # live changes flow through docs/prompts/install-agentcore-gateway-in-ide.md
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: '2026-07-13'   # gateway validation, 127 tools (Bifrost handoff)
+mcp_template_source: renderers/gateway-clients/cursor.json
+known_limitations:
+  - 'Global (cross-project) User Rules live in app settings and must be pasted manually.'
+semantic_parity_gaps: []

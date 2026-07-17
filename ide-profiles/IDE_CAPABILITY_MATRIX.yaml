@@ -1,0 +1,184 @@
+# IDE Capability Matrix — managed clients and rule/MCP delivery capabilities
+# Source facts: ide-profiles/<ide>/IDE_PROFILE.yaml (this file is the cross-IDE summary).
+# Editability modes: direct_write | generated_prompt | manual_import | unsupported | unverified
+# Do not guess values — 'unverified' until evidence exists.
+
+matrix_revision: "2026-07-16"
+policy_source: contracts/global-agent-policy.yaml
+model_context_profile_source: contracts/model-context-profiles.json
+self_enrollment_contract:
+  session_open: >-
+    Each managed client opens/resumes its project session with verified client identity,
+    repository/worktree/Git identity, selected provider/model identity, and a named context
+    profile. Unknown models use standard-context only as a safe fallback; the IDE's configured
+    hard context window is never lowered.
+  startup_context: >-
+    Request the selected model profile and load the smallest high-signal active packet. A 4096
+    token budget is acceptance/legacy-only, never the production default or durable-memory cap.
+  recovery: >-
+    If local conversational context is missing or suspect, call retrieve_context with a recovery
+    mode and stable pagination, expand_source for exact originals, and build_handoff for current
+    project reconstruction before asking the operator to repeat history.
+
+enrollment_status_codes:
+  live_validated: "MCP verified, tools confirmed, identity isolated, rolling context proven live"
+  configured_restart_required: "Config written to live path; IDE/session restart required to activate"
+  awaiting_operator_import: "Artifact generated; operator must install per INSTALL_OR_UPDATE.md and restart"
+  unsupported_with_reason: "Product does not support required MCP baseline (see notes)"
+
+managed_ides:
+  cursor:
+    installed_version: unverified
+    rule_mechanism: 'native project rules (.cursor/rules, AGENTS.md) + app-settings User Rules'
+    mcp_schema: cursor_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: mcp-reload-or-restart
+    editability: { global_rules: manual_import, project_rules: direct_write, mcp_config: direct_write }
+    last_validated: '2026-07-16'
+    m8_enrollment: live_validated
+    m8_validation_evidence:
+      session_open_ok: true
+      append_event_ok: true
+      startup_context_L0_tail_ok: true
+      retrieve_context_ok: true
+      session_close_ok: true
+      tools_count: 10
+      gateway_status: healthy
+      project_isolation_proven: true
+      validation_session_id: '4c274044-20de-4efd-b2f5-34b8d6186063'
+      validation_ts: '2026-07-16T09:30:00Z'
+    m8_notes: >-
+      LIVE VALIDATED 2026-07-16. MCP config at C:\Users\ynotf\.cursor\mcp.json with agentcore-gateway
+      entry (http, bearer auth). 10-tool surface confirmed via GetMcpTools + live tool calls:
+      session_open, append_event, startup_context (L0 raw tail), retrieve_context, session_close all
+      passed. Two-project isolation proof: Project A data absent from Project B context.
+      Identity isolated by project-scoped capability profiles.
+
+  codex:
+    installed_version: unverified
+    rule_mechanism: 'global + per-repo AGENTS.md'
+    mcp_schema: codex_toml
+    mcp_transport: http/streamable
+    env_var_handling: bearer_token_env_var
+    restart_behavior: session-restart
+    editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
+    last_validated: '2026-07-16'
+    m8_enrollment: configured_restart_required
+    m8_notes: >-
+      Config verified 2026-07-16 at C:\Users\ynotf\.codex\config.toml: agentcore-gateway entry
+      present with url, bearer_token_env_var=BIFROST_MCP_VIRTUAL_KEY, enabled=true,
+      startup_timeout_sec=300, tool_timeout_sec=300. All config paths direct_write.
+      AGENTS.md and CLAUDE.md present at all managed repos. New Codex session required to
+      activate. Status advances to live_validated after operator starts new session and
+      confirms tools/list returns 10 agentcore-memory tools.
+
+  claude-code:
+    installed_version: unverified
+    rule_mechanism: 'global + per-repo CLAUDE.md'
+    mcp_schema: claude_code_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: session-restart
+    editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
+    last_validated: unverified
+    m8_enrollment: awaiting_operator_import
+    m8_notes: >-
+      CLAUDE.md present at all managed repo roots. Config artifact in ide-profiles/claude-code/.
+      Operator action: run claude mcp add agentcore-gateway http://127.0.0.1:8080/mcp with
+      bearer token header (BIFROST_MCP_VIRTUAL_KEY). Then restart session and confirm
+      10 agentcore-memory tools are returned by tools/list.
+
+  claude-desktop:
+    installed_version: unverified
+    rule_mechanism: 'app preferences / project instructions (no rules file)'
+    mcp_schema: claude_desktop_json
+    mcp_transport: http/streamable
+    env_var_handling: no-env-headers-vk-materialized-live-only
+    restart_behavior: full-app-restart
+    editability: { global_rules: manual_import, project_rules: unsupported, mcp_config: direct_write }
+    last_validated: unverified
+    m8_enrollment: configured_restart_required
+    m8_notes: >-
+      Config verified 2026-07-16 at C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json:
+      agentcore-gateway entry present in mcpServers with type=http, url=http://127.0.0.1:8080/mcp,
+      and materialized bearer token in headers (required; Claude Desktop does not support env-header
+      expansion). Full Claude Desktop application restart required to activate. Status advances to
+      live_validated after operator restarts Claude Desktop and confirms tools/list returns 10
+      agentcore-memory tools.
+
+  minimax:
+    installed_version: unverified
+    rule_mechanism: unverified
+    mcp_schema: minimax_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: client-restart
+    editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
+    last_validated: unverified
+    m8_enrollment: awaiting_operator_import
+    m8_notes: >-
+      Config artifact in ide-profiles/minimax/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md.
+      Operator action: follow INSTALL_OR_UPDATE.md; import config artifact; restart client;
+      confirm tools/list returns 10 agentcore-memory tools. Live config path unverified on
+      this machine.
+
+  antigravity:
+    installed_version: unverified
+    rule_mechanism: unverified
+    mcp_schema: antigravity_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: client-restart
+    editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
+    last_validated: unverified
+    m8_enrollment: awaiting_operator_import
+    m8_notes: >-
+      Config artifact in ide-profiles/antigravity/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md.
+      Operator action: follow INSTALL_OR_UPDATE.md; import config artifact; restart client;
+      confirm tools/list returns 10 agentcore-memory tools. Live config path unverified on
+      this machine.
+
+  mavis:
+    installed_version: unverified
+    rule_mechanism: unverified
+    mcp_schema: mavis_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: client-restart
+    editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
+    last_validated: unverified
+    m8_enrollment: awaiting_operator_import
+    m8_notes: >-
+      Config artifact in ide-profiles/mavis/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md.
+      Operator action: follow INSTALL_OR_UPDATE.md; import config artifact; restart client;
+      confirm tools/list returns 10 agentcore-memory tools. Live config path unverified on
+      this machine.
+
+  open-interpreter:
+    installed_version: unverified
+    rule_mechanism: 'profile system message'
+    mcp_schema: open_interpreter_json
+    mcp_transport: http/streamable
+    env_var_handling: no-env-headers-vk-materialized-live-only
+    restart_behavior: session-restart
+    editability: { global_rules: manual_import, project_rules: unsupported, mcp_config: direct_write }
+    last_validated: unverified
+    m8_enrollment: awaiting_operator_import
+    m8_notes: >-
+      Config artifact in ide-profiles/open-interpreter/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md.
+      Global rules injected via profile system message (manual import). Project-level rules
+      unsupported by product. Env var secrets must be materialized (no env-headers).
+      Operator action: follow INSTALL_OR_UPDATE.md; apply profile artifact; restart session;
+      confirm tools/list returns 10 agentcore-memory tools.
+
+swarm_managed_clients:
+  openclaw:
+    note: 'Swarm-managed (OpenClaw/ClawX). No non-Swarm profile is created. Outside Bifrost IDE cutover scope.'
+  clawx:
+    note: 'Swarm-managed. No non-Swarm profile is created.'
+
+discovery_note: >-
+  Additional installed managed non-Swarm clients are added to this matrix only after
+  verification against the live machine (installed application, config paths, rule mechanism).
+  Candidates observed in evidence but unverified: VS Code (Copilot/MCP), Android Studio.

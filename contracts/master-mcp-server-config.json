@@ -86,24 +86,19 @@
       "tier": "essential_for_code_editing_clients",
       "role": "repo navigation, symbol understanding, diagnostics, and refactors",
       "transport": "stdio",
-      "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\uvx.exe",
+      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
       "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
         "start-mcp-server",
-        "--project-from-cwd",
         "--transport",
-        "stdio"
-      ]
-    },
-    "context-fabric": {
-      "tier": "essential_for_repo_context_clients",
-      "role": "Git-backed project context and drift checks; not durable memory",
-      "transport": "stdio",
-      "command": "C:\\Program Files\\nodejs\\node.exe",
-      "args": [
-        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+        "stdio",
+        "--context",
+        "ide"
+      ],
+      "notes": [
+        "Serena is project-scoped code intelligence, not a cross-project singleton daemon.",
+        "Do not emit git-based uvx launch commands in managed IDE configs.",
+        "Use --project-from-cwd only for CLI-style clients documented by Serena and launched from the target repo root.",
+        "Streamable HTTP is reserved for explicit same-project multi-client sessions."
       ]
     },
     "depwire": {
@@ -137,6 +132,15 @@
         "Connect only to verified local repository paths by default; remote GitHub clone/pull behavior requires explicit operator approval.",
         "Use impact_analysis and simulate_change before risky structural edits, then verify_change before completion.",
         "connect_repo creates .depwire/cache.db; the global Git excludes file must ignore .depwire/ and depwire-output.json before use."
+      ]
+    },
+    "context-fabric": {
+      "tier": "essential_for_repo_context_clients",
+      "role": "Git-backed project context and drift checks; not durable memory",
+      "transport": "stdio",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
       ]
     },
     "filesystem": {
@@ -313,8 +317,8 @@
       "expected_default_servers": [
         "arabold-docs",
         "artiforge",
-        "depwire",
         "codex-security",
+        "depwire",
         "filesystem",
         "github",
         "node_repl",
@@ -324,12 +328,18 @@
         "serena"
       ],
       "server_budget": {
-        "default_limit": 11,
+        "default_limit": 12,
         "reason": "Codex context pressure is the tightest; optional direct app connectors should be installed only when the active task needs them."
+      },
+      "context_window": {
+        "model_context_window": 1000000,
+        "model_auto_compact_token_limit": 850000,
+        "show_context_window_usage": true
       },
       "unique_notes": [
         "GitHub appears as the Codex remote server name `github`, not `github-mcp`.",
         "node_repl and codex-security are Codex-managed and should not be copied into other IDE JSON files.",
+        "Preserve the 1,000,000 token context window, 850,000 auto-compact threshold, and context-window usage display during Codex-home cleanup.",
         "Direct Firecrawl routes are not part of the default AgentCore memory rollout surface."
       ]
     },
@@ -348,7 +358,7 @@
         "serena"
       ],
       "server_budget": {
-        "default_limit": 8,
+        "default_limit": 9,
         "reason": "Cursor keeps core repo/code and browser tooling by default; context-fabric, cursor-agent-mcp, github-mcp, and mcp-debugger are task-specific opt-ins."
       },
       "unique_notes": [
@@ -371,7 +381,7 @@
         "serena"
       ],
       "server_budget": {
-        "default_limit": 9,
+        "default_limit": 10,
         "reason": "OpenClaw keeps the same reduced default surface as Cursor plus the approved `eye2byte` exception."
       },
       "json_container": "mcp.servers",
@@ -388,11 +398,13 @@
       "expected_default_servers": [
         "arabold-docs",
         "artiforge",
-        "depwire"
+        "depwire",
+        "serena"
       ],
       "unique_notes": [
         "Keep this surface small. Interpreter stores profile and auth state in the same app data tree, so live config edits must preserve unrelated top-level config fields.",
-        "MCP server list lives under mcpServers."
+        "MCP server list lives under mcpServers.",
+        "Serena is present only for local code-navigation workflows and must use the installed stdio executable, not git-based uvx."
       ]
     },
     "minimax-code": {
@@ -403,6 +415,7 @@
         "arabold-docs",
         "artiforge",
         "depwire",
+        "serena",
         "filesystem",
         "obsidian-vault",
         "playwright",
@@ -417,6 +430,7 @@
         "arabold-docs",
         "artiforge",
         "depwire",
+        "serena",
         "filesystem",
         "obsidian-vault",
         "playwright",
@@ -442,13 +456,14 @@
         "serena"
       ],
       "server_budget": {
-        "default_limit": 8,
+        "default_limit": 9,
         "reason": "Antigravity uses the same bounded code-IDE surface as Cursor; GitKraken and other Antigravity-specific servers stay disabled or quarantined unless explicitly approved."
       },
       "json_container": "mcpServers",
       "unique_notes": [
         "Official Antigravity MCP configuration uses a top-level `mcpServers` object.",
         "Primary managed config on this PC is `C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json`; the Roaming Antigravity User mcp.json is maintained as a secondary compatibility target.",
+        "Serena uses `--context antigravity` without `--project-from-cwd`; activate the current project through Serena after startup.",
         "Existing GitKraken, context7, cloudrun, firebase, and raw GitHub-token servers are not part of the default AgentCore surface."
       ]
     }

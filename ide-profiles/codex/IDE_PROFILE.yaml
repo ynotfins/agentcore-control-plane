@@ -1,0 +1,25 @@
+ide_id: codex
+display_name: Codex (OpenAI)
+swarm_managed: false
+installed_version: unverified
+live_global_rule_target: 'C:\Users\ynotf\.codex\AGENTS.md'
+live_mcp_config_target: 'C:\Users\ynotf\.codex\config.toml'
+rule_mechanism: 'global AGENTS.md (~/.codex/AGENTS.md) + per-repo AGENTS.md'
+mcp_schema: codex_toml
+mcp_transport: http/streamable
+env_var_handling: 'bearer_token_env_var (no inline header env expansion; no generic timeout_seconds field)'
+restart_behavior: 'restart Codex session after config.toml or env-var changes'
+editability:
+  global_rules: direct_write        # file-writable Markdown; live edits approval-gated by policy
+  project_rules: direct_write
+  mcp_config: direct_write          # TOML file; live edits approval-gated by policy
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: '2026-07-14'  # Codex cutover commits 5820244/81e90eb
+mcp_template_source: renderers/gateway-clients/codex.json
+known_limitations:
+  - 'TOML config: use bearer_token_env_var, startup_timeout_sec, tool_timeout_sec (not headers/timeout_seconds).'
+  - 'Codex-managed extras (node_repl, plugin MCP servers) are preserved beside the gateway entry.'
+semantic_parity_gaps: []

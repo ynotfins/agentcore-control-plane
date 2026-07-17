@@ -1,0 +1,89 @@
+{
+  "$schema": "./schemas/project-execution-policy.schema.json",
+  "schema_version": "2026-07-14",
+  "policy_id": "agentcore-project-execution-policy",
+  "authority": "D:\\github\\agentcore-control-plane",
+  "human_policies": [
+    "docs/agent-policy/NEW_PROJECT_BOOTSTRAP.md",
+    "docs/agent-policy/MILESTONE_EXECUTION_STANDARD.md",
+    "docs/agent-policy/CHECKLIST_STANDARD.md",
+    "docs/agent-policy/DOCUMENTATION_READ_ORDER.md"
+  ],
+  "status_vocabulary": ["pending", "in_progress", "passed", "blocked", "failed", "skipped_with_reason"],
+  "checklist_rules": {
+    "canonical_state": "machine_readable",
+    "canonical_state_path": ".agentcore/checklists/state.json",
+    "markdown_is_projection": true,
+    "passed_requires_evidence": true,
+    "skipped_requires_reason_and_approver": true,
+    "macro_close_requires_all_micro_closed": true,
+    "milestone_close_requires_exit_gate": true
+  },
+  "required_project_files": [
+    ".agentcore/PROJECT_CHARTER.md",
+    ".agentcore/MILESTONES.md",
+    ".agentcore/TOOL_MANIFEST.yaml",
+    ".agentcore/PROJECT_STATE.json",
+    ".agentcore/RISK_REGISTER.md",
+    ".agentcore/ACCEPTANCE_TESTS.md",
+    ".agentcore/milestones/M0-bootstrap.md",
+    ".agentcore/checklists/state.json"
+  ],
+  "templates_root": "templates/project-governance/.agentcore",
+  "milestone_required_fields": [
+    "id", "name", "outcome", "rationale", "entry_criteria", "exit_criteria",
+    "acceptance_checks", "required_artifacts", "rollback_point", "dependencies",
+    "risk_classification", "approved_tool_profile", "macro_checklist", "micro_checklists",
+    "context_fabric_checkpoint", "arabold_checkpoint", "memory_handoff_checkpoint",
+    "tool_audit_checkpoint"
+  ],
+  "macro_required_fields": ["id", "outcome", "dependencies", "responsible", "micro_checklist", "acceptance_evidence"],
+  "micro_required_fields": ["id", "action", "expected_output", "validation", "evidence_location", "status"],
+  "entry_gate": [
+    "previous_milestone_passed_or_exception",
+    "context_loaded",
+    "context_fabric_capture_and_drift",
+    "state_vs_charter_comparison",
+    "checklist_review_and_refinement",
+    "exact_dependency_versions_resolved",
+    "arabold_documentation_checkpoint",
+    "structural_assumptions_verified",
+    "tool_selection_recorded",
+    "tool_budget_and_expiry_defined",
+    "entry_evidence_recorded"
+  ],
+  "exit_gate": [
+    "all_micro_steps_evidenced",
+    "all_macro_outcomes_verified",
+    "validators_run",
+    "charter_and_goal_comparison",
+    "early_refactor_review",
+    "state_decisions_risks_docs_updated",
+    "tool_audit_completed",
+    "expired_and_unused_tools_disabled",
+    "restore_point_created",
+    "commit_and_push_per_policy",
+    "next_milestone_entry_packet_generated"
+  ],
+  "read_order": [
+    "global PROJECT_ANCHOR.md + DOC_AUTHORITY.md",
+    "docs/agent-policy/",
+    "project AGENTS.md + CLAUDE.md",
+    ".agentcore/PROJECT_CHARTER.md",
+    ".agentcore/MILESTONES.md",
+    "current milestone file/checklist",
+    ".agentcore/TOOL_MANIFEST.yaml",
+    "project state and decisions",
+    "manifests and lockfiles",
+    "Context Fabric current state",
+    "Arabold exact-version docs index",
+    "relevant implementation files"
+  ],
+  "bootstrap": {
+    "milestone_id": "M0",
+    "must_pass_before_broad_implementation": true,
+    "preserve_operator_prompt_verbatim": true,
+    "idempotent": true,
+    "forbidden_targets": ["Swarm paths", "F:\\AgentCore\\agentmemory", "protected system paths", "outside assigned worktree"]
+  }
+}

@@ -1,0 +1,36 @@
+                                 List of roles
+    Role name     |                         Attributes                         
+------------------+------------------------------------------------------------
+ agentcore_admin  | 
+ agentcore_backup | 
+ agentcore_cognee | 
+ agentcore_ingest | 
+ agentcore_read   | 
+ agentcore_worker | 
+ postgres         | Superuser, Create role, Create DB, Replication, Bypass RLS
+
+                  List of tables
+  Schema   |       Name        | Type  |  Owner   
+-----------+-------------------+-------+----------
+ agentcore | agents            | table | postgres
+ agentcore | artifact_objects  | table | postgres
+ agentcore | capability_leases | table | postgres
+ agentcore | dead_letters      | table | postgres
+ agentcore | evidence_events   | table | postgres
+ agentcore | ide_clients       | table | postgres
+ agentcore | machines          | table | postgres
+ agentcore | project_worktrees | table | postgres
+ agentcore | projects          | table | postgres
+ agentcore | repositories      | table | postgres
+ agentcore | runs              | table | postgres
+ agentcore | schema_migrations | table | postgres
+ agentcore | sessions          | table | postgres
+ agentcore | source_identities | table | postgres
+ agentcore | users             | table | postgres
+ agentcore | work_claims       | table | postgres
+ agentcore | work_queue        | table | postgres
+ agentcore | workflow_threads  | table | postgres
+ agentcore | workflows         | table | postgres
+ agentcore | worktrees         | table | postgres
+(20 rows)
+

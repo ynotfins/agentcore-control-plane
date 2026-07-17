@@ -1,0 +1,25 @@
+ide_id: minimax
+display_name: MiniMax
+swarm_managed: false
+installed_version: unverified
+live_global_rule_target: unverified
+live_mcp_config_target: 'C:\Users\ynotf\.minimax\mcp\mcp.json'
+rule_mechanism: unverified
+mcp_schema: minimax_mcp_json
+mcp_transport: http/streamable
+env_var_handling: 'supports env headers (per gateway-client contract)'
+restart_behavior: 'restart client after MCP config changes'
+editability:
+  global_rules: unverified
+  project_rules: unverified
+  mcp_config: direct_write          # file-writable; approval-gated
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: unverified
+mcp_template_source: renderers/gateway-clients/minimax.json
+known_limitations:
+  - 'Global-rule mechanism unverified; until verified, rules are delivered through the install prompt.'
+semantic_parity_gaps:
+  - 'Rule persistence unverified.'

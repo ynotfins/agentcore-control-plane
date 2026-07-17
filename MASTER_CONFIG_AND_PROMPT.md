@@ -1,1313 +1,582 @@
 # MASTER_CONFIG_AND_PROMPT.md
 
-## Purpose
+**Updated:** 2026-07-17 — Unbounded durable memory live (M3.002 applied, agentcore-memory v0.6.0 deployed)
+**Authority:** `PROJECT_ANCHOR.md` §0 Bifrost Gateway Override
+**Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`
 
-Reusable root-level master setup guide for AgentCore MCP configuration, IDE rules, memory routing, SwarmRecall, SwarmVault, Postgres/pgvector, DepWire, Artiforge, Arabold/Grounded Docs, context-fabric, Serena, sequential-thinking, Obsidian, cursor-agent-mcp, and mcp-debugger.
-
-Use this file in every project root and every IDE setup pass.
-
-Core architecture:
+Reusable root-level master setup guide for AgentCore after the Bifrost cutover. Normal non-Swarm IDE architecture is a **single** `agentcore-gateway` entry. Upstream MCP servers live behind Bifrost — not pasted into each IDE.
 
 ```text
-Native SwarmRecall works first.
-Native SwarmVault works first.
-AgentCore governance wraps proven native behavior.
-All IDEs use the same MCP baseline, memory rules, drive policy, and database rules.
-Secrets live only in Windows User-scope environment variables.
+IDE -> agentcore-gateway (127.0.0.1:8080/mcp)
+    -> Bifrost native Gateway (H:\AgentRuntime\bifrost)
+    -> upstream MCP registry (contracts)
 ```
+
+Secrets live only in Windows User-scope environment variables. No `.env` files.
 
 ---
 
-## Native-First Update (2026-07-01) — supersedes downstream global-memory-gateway references
+## 1. Authority
 
-Operator directive: native SwarmRecall + native SwarmVault are the automatic default memory/RAG
-plane for every IDE and agent. `global-memory-gateway` is RETIRED from the mandatory baseline and
-removed from every IDE default config, the renderers, and the master contract default surfaces
-(now in `default_exclusions.must_not_emit`). Where any section below still lists or routes through
-`global-memory-gateway`, treat it as historical and route normal durable memory through native
-SwarmRecall (memory/graph/learnings/skills/pools) and native SwarmVault (RAG/wiki/context/task
-ledger). Do not add `global-memory-gateway` to any IDE baseline. See `PROJECT_ANCHOR.md` §0.
+
+| Role                                   | Path                                |
+| -------------------------------------- | ----------------------------------- |
+| Source / config authority              | `D:\github\agentcore-control-plane` |
+| Bifrost runtime                        | `H:\AgentRuntime\bifrost`           |
+| Compatibility / live-ops evidence only | `D:\MCP-Control-Plane`              |
+
+
+Constitution: `PROJECT_ANCHOR.md`
+Document hierarchy: `DOC_AUTHORITY.md`
+Current state / target architecture: `CONTEXT_BLOCK.md`
+Memory/database implementation authority: `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`
+Project execution policy: `docs/agent-policy/`
+Agent contract: `AGENTS.md`
+Handoff: `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`
+
+**Operator approval:** Bifrost cutover task (2026-07-12) authorized this rebuild. The Go SDK smoke under `experiments/bifrost-go-sdk-smoke/` is **not** the MCP gateway.
+
+Drive map:
+
+```text
+C: OS/apps/live IDE configs
+D: source repos / config authority
+E: docs archive / cold backups / exports
+F: PostgreSQL / hot indexes / hot DB+search runtime
+G: backup target
+H: Bifrost runtime / models / caches / AgentRuntime
+I: disposable scratch
+J: portable
+```
+
+Forbidden: `:65432`, whole-drive filesystem MCP roots, Postgres credentials in IDE configs, requiring Swarm MCP in non-Swarm IDEs.
 
 ---
 
-## 1. Authority and Runtime Facts
+## 2. Machine evidence pointer
 
-Source authority:
+Canonical machine facts live in ChaosCentral / AgentCore evidence docs — not in ad-hoc chat memory:
 
-```text
-D:\github\agentcore-control-plane
-```
+- `docs/evidence/PC-Master-Hardware-Software-Specs.md` — hardware/software baseline (facts)
+- `DOC_AUTHORITY.md` — what is authoritative vs historical
+- `PROJECT_ANCHOR.md` — constitution endpoints and drive roles
+- `.agentcore/docs/DOCS_INDEX.md` — arabold-docs library index (includes Bifrost)
 
-Compatibility/live-ops evidence only:
-
-```text
-D:\MCP-Control-Plane
-```
-
-Drive policy:
-
-```text
-C: = OS/apps/live IDE configs only
-D: = source repos, project folders, worktrees, evidence
-F: = hot local memory/database/RAG/search runtime
-E: = archive/cold/backups/exports/spool only
-G: = backup only
-```
-
-F: allocation policy:
-
-```text
-F: is the 3.63 TB hot runtime drive.
-Reserve roughly 2 TB logical budget for SwarmVault, SwarmRecall, Meilisearch, and local memory/RAG artifacts.
-Use remaining F: capacity for PostgreSQL/pgvector, agent_core, native vector/runtime support, and future Docker bind mounts.
-Prefer logical directory budgets over repartitioning.
-Do not put primary SQL on E:.
-Do not put hot runtime data on C:.
-```
-
-Runtime facts:
-
-```text
-PostgreSQL:       127.0.0.1:55432
-SwarmRecall API:  http://127.0.0.1:3300
-SwarmRecall health: http://127.0.0.1:3300/api/v1/health
-Meilisearch:      http://127.0.0.1:7700
-SwarmVault root:  F:\AgentCore\agentmemory\swarmvault
-Projection state: F:\AgentCore\agentmemory\projection-state
-Obsidian REST:    https://127.0.0.1:27124
-OpenClaw gateway: http://127.0.0.1:18789
-```
-
-Forbidden runtime route:
-
-```text
-:65432 is retired/stale. Do not use it except in archived/historical evidence.
-```
+Treat `D:\MCP-Control-Plane` as evidence only.
 
 ---
 
-## 2. Windows Environment Variables
-
-All API keys, tokens, and secrets must be Windows User-scope environment variables.
-
-Never:
+## 3. Bifrost gateway architecture
 
 ```text
-print secret values
-create .env files
-commit rendered live configs containing secret values
-store secrets in docs, reports, logs, or Git
+Non-Swarm IDE
+  -> HTTP MCP agentcore-gateway
+     url:  http://127.0.0.1:8080/mcp
+     auth: Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
+  -> bifrost-http.exe (v2.0.0-prerelease1) at H:\AgentRuntime\bifrost
+     config.json + sqlite config/logs stores
+     mcp_server_auth_mode: headers
+     content logging disabled; metadata logs bounded
+  -> upstream stdio/http/router MCP clients from registry
 ```
 
-Expected variables:
+Ops scripts: `ops/bifrost/` (Install/Start/Stop/Test/Backup/Restore/IdeGatewayCutover).
+Render: `scripts/bifrost/render_bifrost_config.py` → `H:\AgentRuntime\bifrost\config.json` + sanitized `renderers/bifrost/`.
+No Docker for the Gateway runtime. Bind localhost only.
 
-
-| Variable                         | Purpose                             | Status                       |
-| -------------------------------- | ----------------------------------- | ---------------------------- |
-| `AGENT_CORE_SWARMRECALL_API_KEY` | Canonical AgentCore SwarmRecall key | Required                     |
-| `SWARMRECALL_API_KEY`            | Native SwarmRecall alias            | Required for native clients  |
-| `SWARMRECALL_API_URL`            | Native SwarmRecall API URL          | Required                     |
-| `ARTIFORGE_PAT`                  | Artiforge Personal Access Token     | Required if Artiforge active |
-| `OBSIDIAN_BASE_URL`              | Obsidian REST URL                   | Required if Obsidian active  |
-| `OBSIDIAN_VAULT_PATH`            | Obsidian vault path                 | Required if Obsidian active  |
-| `GITHUB_PERSONAL_ACCESS_TOKEN`   | GitHub MCP token                    | Optional approved add-on     |
-| `DEPWIRE_NO_TELEMETRY`           | Disable DepWire CLI telemetry       | Required; set to `1`         |
-| repo-defined DB env              | AgentCore DB connection             | Governed scripts only        |
-
-DepWire credential boundary: the local `depwire-cli` MCP server does not consume a DepWire API/license environment variable. DepWire Pro uses the VS Code/Cursor extension setting `depwire.licenseKey` only. Enter it through `Depwire: Enter License Key`; never copy that value into MCP configuration or source control.
-
-
-Set Artiforge PAT:
+Persistent Windows startup owner:
 
 ```powershell
-[Environment]::SetEnvironmentVariable("ARTIFORGE_PAT", "<PASTE_ARTIFORGE_PAT_HERE>", "User")
+Start-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+Stop-ScheduledTask  -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+Get-ScheduledTask   -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
+Get-ScheduledTaskInfo -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
 ```
 
-Set native SwarmRecall alias from canonical AgentCore key:
+The scheduled task runs `ops\bifrost\Launch-AgentCoreBifrostGateway.ps1`, which keeps
+`bifrost-http.exe` in the foreground so Task Scheduler can restart it on failure. Logs:
+`H:\AgentRuntime\bifrost\logs\bifrost-gateway.stdout.log` and
+`H:\AgentRuntime\bifrost\logs\bifrost-gateway.stderr.log`.
+
+ADRs:
+
+- `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md`
+- `docs/adr/ADR-2026-07-12-configuration-source-of-truth.md`
+
+---
+
+## 4. Canonical upstream registry
+
+**File:** `contracts/bifrost-upstream-mcp-registry.json`
+**Schema:** `contracts/schemas/bifrost-upstream-mcp-registry.schema.json`
+
+Validate:
 
 ```powershell
-$CanonicalName = "AGENT_CORE_SWARMRECALL_API_KEY"
-$AliasName = "SWARMRECALL_API_KEY"
-
-$Value = [Environment]::GetEnvironmentVariable($CanonicalName, "User")
-if ([string]::IsNullOrWhiteSpace($Value)) { $Value = [Environment]::GetEnvironmentVariable($CanonicalName, "Machine") }
-if ([string]::IsNullOrWhiteSpace($Value)) { $Value = $env:AGENT_CORE_SWARMRECALL_API_KEY }
-if ([string]::IsNullOrWhiteSpace($Value)) { throw "$CanonicalName is not set in User, Machine, or current process environment." }
-
-[Environment]::SetEnvironmentVariable($AliasName, $Value, "User")
-$env:SWARMRECALL_API_KEY = $Value
-[Environment]::SetEnvironmentVariable("SWARMRECALL_API_URL", "http://127.0.0.1:3300", "User")
-$env:SWARMRECALL_API_URL = "http://127.0.0.1:3300"
-
-Write-Host "$AliasName set from $CanonicalName. Value not printed. Length: $($Value.Length)"
+python D:\github\agentcore-control-plane\scripts\bifrost\validate_contracts.py
 ```
 
-Verify without printing secrets:
+Implemented registry posture (as of docs update; re-run validator for live truth):
 
-```powershell
-$k = [Environment]::GetEnvironmentVariable("SWARMRECALL_API_KEY", "User")
-if ([string]::IsNullOrWhiteSpace($k)) { "SWARMRECALL_API_KEY missing" } else { "SWARMRECALL_API_KEY present. Length: $($k.Length)" }
-[Environment]::GetEnvironmentVariable("SWARMRECALL_API_URL", "User")
-Invoke-RestMethod -Uri "http://127.0.0.1:3300/api/v1/health" -Method Get
-```
+- **12 enabled** upstream clients rendered into Bifrost
+- **4 deferred/disabled:** `mcp-debugger`, `artiforge`, `depwire-cloud`, `github-mcp`
+- Bifrost client names use underscores; AgentCore IDs keep hyphens
+- Swarm IDs listed under `swarm_exclusion` must not appear in non-Swarm IDE baselines
+
+Repaired runtime validation (2026-07-14):
+
+- Authenticated direct MCP `initialize`, `notifications/initialized`, `tools/list`, and `arabold_docs-list_libraries` passed.
+- Builder VK visible tool count: **127**.
+- Expected prefixes present: `arabold_docs`, `depwire`, `tentra`, `sequential_thinking`, `context_fabric`, `filesystem`, `playwright`, `cursor_agent_mcp`, `agentcore_memory`, `agentcore_project_router`.
+- Forbidden patterns absent: Swarm, raw Postgres/psql, whole-drive filesystem, Bifrost admin.
+- Current upstream caveats: `obsidian_vault` and `serena` are disconnected/time out at the Bifrost upstream layer; the gateway itself remains healthy.
+
+Classification matrix: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`
 
 ---
 
-## 3. Mandatory MCP Baseline
+## 5. Stable agentcore-memory identity
 
-Every managed IDE must converge on this baseline where supported:
+**Canonical id:** `agentcore-memory` (Bifrost name `agentcore_memory`)
+**Implementation (current):** `scripts/agentcore_memory/server.py`
+**Tools (M4 compact surface):** `memory_status`, `startup_context`, `retrieve_context`, `append_event`, `propose_fact`, `expand_source`, `session_open`, `session_close`, `build_handoff`, `docs_search`
+**Note:** Health reachability is reported through `memory_status`; keep the server id stable and do not expose raw database/admin tools.
+
+### Durable-memory and active-context contract
+
+AgentCore durable memory is **effectively unbounded by model-token limits**. Model context
+limits control only the amount assembled into one request. Project history, raw evidence,
+summaries, artifacts, Git references, and exact source edges remain locally retained and exactly
+recoverable. Compaction reduces active-context load; it never destroys canonical project history.
+
+Describe this system as **model-limit-aware active context over an effectively unbounded durable
+local project history**. Do not describe it as a one-million-token memory or context window. A
+one-million-token profile is one active-context capability profile, not a storage, history,
+retrieval, or retention ceiling. The profile schema in
+`contracts/model-context-profiles.json` accepts future limits above one million and defines the
+hard limit, safe active ceiling, output/tool/result reserves, safety reserve, soft/hard
+compaction thresholds, retrieval page size, tokenizer, and validation provenance.
+
+Canonical recovery behavior:
+
+1. `startup_context` assembles the smallest high-signal packet that preserves relevant
+   requirements and evidence within the selected model profile.
+2. `retrieve_context` supports current state, current Milestone, session, Milestone, time range,
+   decision history, failure/fix, and complete chronology recovery through stable bounded pages.
+3. Every page carries chronological boundaries, project/session scope, source IDs, trust classes,
+   content hashes, omitted counts, exact expansion references, and a stable continuation cursor.
+4. `expand_source` recovers exact original events and verified content-addressed artifacts from
+   either H: hot storage or E: cold archive, with byte pagination when one response is insufficient.
+5. `build_handoff` combines current generated projections, Git/worktree identity, governed
+   snapshots, active context, and a recoverable chronology page.
+6. Incorrect summaries are superseded by a new version rebuilt from original source edges. The
+   incorrect summary and correction provenance remain retained.
+7. Quarantined or rejected evidence is excluded from normal startup context unless explicitly
+   requested for investigation.
+
+Before asking the operator to repeat project history, query `agentcore-memory`. When conversational
+compaction appears incomplete or incorrect, reconstruct from canonical PostgreSQL metadata and
+retained artifacts rather than trusting the chat summary. Never directly edit `GLOBAL_STATE.md`,
+project `STATE.md`, or COMB projections.
+
+Non-Swarm path:
 
 ```text
-arabold-docs
-serena
-sequential-thinking
-cursor-agent-mcp
-context-fabric
-mcp-debugger
-artiforge
-depwire
-obsidian-vault
-swarmrecall
-swarmvault
+IDE -> agentcore-gateway -> agentcore-memory
 ```
 
-Optional approved add-ons:
-
-```text
-github-mcp
-playwright
-filesystem only when sandboxed to the intended project roots
-```
-
-eye2byte 
-
-Forbidden active MCP routes:
-
-```text
-context7
-raw mem0
-direct composio
-Hostinger
-hosted SwarmRecall
-hosted SwarmVault
-direct SQL normal-memory route
-:65432 active runtime route
-D:\MCP-Control-Plane as design authority
-SwarmVault-as-Postgres
-SwarmRecall auto-using-SwarmVault-DB
-```
+Never put `AGENT_CORE_PG*` credentials in IDE configs. Trusted SQL remains ops/admin only (`AGENT_DATABASE_BOOTSTRAP.md`, `contracts/global-memory-database-contract.json`).
 
 ---
 
-## 4. Master MCP Config Template for JSON-Based IDEs
+## 6. Project router
 
-Use this as a template, not a blind paste. Agents must inspect the IDE schema first, remove unsupported fields such as `notes`, and merge correctly.
+**Canonical id:** `agentcore-project-router`
+**Implementation:** `scripts/project_router/server.py`
+**State file:** `H:\AgentRuntime\bifrost\state\active-project.json`
+**Tools:** `project_list`, `project_activate`, `project_status`, `project_clear`
 
-For any server already defined in `D:\github\agentcore-control-plane\contracts\master-mcp-server-config.json`, source-controlled renderers, or validated live configs, prefer the canonical local definition. Do not invent paths.
-
-```json
-{
-  "mcpServers": {
-    "arabold-docs": {
-      "type": "sse",
-      "url": "http://localhost:6280/sse",
-      "notes": "Start local Arabold/Grounded Docs first with: npx @arabold/docs-mcp-server@latest. If the IDE supports only stdio, use a verified wrapper or client-specific setup."
-    },
-    "serena": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "ide-assistant"
-      ],
-      "notes": "If workspace substitution is supported, add --project <workspace-root>. Otherwise activate/onboard the project through Serena tools at session start."
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-    },
-    "cursor-agent-mcp": {
-      "command": "npx",
-      "args": ["-y", "cursor-agent-mcp"]
-    },
-    "depwire": {
-      "type": "stdio",
-      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
-      "args": ["mcp"],
-      "env": {
-        "DEPWIRE_NO_TELEMETRY": "1"
-      }
-    },
-    "context-fabric": {
-      "command": "context-fabric-mcp",
-      "args": []
-    },
-    "mcp-debugger": {
-      "command": "npx",
-      "args": ["-y", "@debugmcp/mcp-debugger@latest"]
-    },
-    "artiforge": {
-      "type": "http",
-      "url": "https://tools.artiforge.ai/mcp?pat=${ARTIFORGE_PAT}",
-      "notes": "If this IDE cannot expand env vars in HTTP URLs, render the live app-owned config from ARTIFORGE_PAT without printing the PAT. Never commit the rendered config."
-    },
-    "global-memory-gateway": {
-      "command": "pwsh",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreGlobalMemoryGateway.ps1",
-        "-Mode",
-        "Mcp"
-      ],
-      "notes": "VERIFY THIS PATH AGAINST SOURCE AUTHORITY BEFORE WRITING. If missing, resolve from contracts/master-mcp-server-config.json or renderers."
-    },
-    "obsidian-vault": {
-      "command": "pwsh",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
-      ],
-      "env": {
-        "OBSIDIAN_BASE_URL": "${OBSIDIAN_BASE_URL}",
-        "OBSIDIAN_VAULT_PATH": "${OBSIDIAN_VAULT_PATH}"
-      },
-      "notes": "VERIFY wrapper exists. If missing, resolve canonical Obsidian MCP launcher from source-controlled renderers or validated live config."
-    },
-    "swarmrecall": {
-      "command": "pwsh",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmRecall.ps1",
-        "-Mode",
-        "Mcp"
-      ],
-      "env": {
-        "SWARMRECALL_API_URL": "${SWARMRECALL_API_URL}",
-        "SWARMRECALL_API_KEY": "${SWARMRECALL_API_KEY}"
-      }
-    },
-    "swarmvault": {
-      "command": "pwsh",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmVault.ps1",
-        "-Mode",
-        "Mcp"
-      ]
-    }
-  }
-}
-```
-
-### Required cleanup during config merge
-
-Remove any active entry pointing to:
+Project-scoped upstreams launch via wrappers:
 
 ```text
-C:\Users\ynotf\.agentcore\mcp-wrappers\swarmvault-mcp.ps1
+scripts/project_router/wrappers/
+  serena.cmd
+  depwire.cmd
+  tentra.cmd
+  context-fabric.cmd
+  filesystem.cmd
 ```
 
-That was a broken rogue wrapper path and must not remain active. As of 2026-06-30 the shim at that path has been removed; the canonical launcher is the source-authority `ops\Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp` below.
+Allowed roots: registered `D:\github\...` git worktrees. Reject Swarm / `F:\AgentCore\agentmemory` markers.
 
 ---
 
-## 4a. Verified Canonical Launchers (source authority, 2026-06-30)
+## 7. Capability profiles
 
-These are the launch commands VERIFIED to exist against source authority. They OVERRIDE any divergent entry in the template above. Do not invent paths; use these.
+See `docs/bifrost/CAPABILITY_PROFILES.md` and registry `capability_profiles`:
 
-```text
-global-memory-gateway  pwsh -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Invoke-AgentCoreGlobalMemoryGateway.ps1 -Mode Mcp -Platform <ide>
-                       (uniform wrapper; sets cwd D:\Codex_Managed and runs the python module; inherits AGENT_CORE_*/OPENAI_API_KEY from Windows env; no env block or cwd needed in the IDE config)
-swarmrecall            pwsh -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp
-swarmvault             pwsh -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp
-arabold-docs           stdio: node "C:\Users\ynotf\.cursor\vendor\arabold-docs-mcp\node_modules\@arabold\docs-mcp-server\dist\index.js"  (env OPENAI_API_KEY)   [SSE http://localhost:6280/sse only if a client requires SSE]
-context-fabric         stdio: node "C:\Users\ynotf\.cursor\vendor\context-fabric-mcp\node_modules\context-fabric\dist\index.js"
-depwire                "C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd" mcp   (depwire-cli@1.8.2; env DEPWIRE_NO_TELEMETRY=1; no MCP API/license key)
-serena                 uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant   (or --transport stdio --project-from-cwd)
-sequential-thinking    npx.cmd -y @modelcontextprotocol/server-sequential-thinking   (env DISABLE_THOUGHT_LOGGING=true)
-cursor-agent-mcp       npx.cmd -y cursor-agent-mcp@latest   (env CURSOR_API_KEY, CURSOR_API_URL=https://api.cursor.com)
-mcp-debugger           npx.cmd -y @debugmcp/mcp-debugger@latest
-artiforge              http url https://tools.artiforge.ai/mcp?pat=${env:ARTIFORGE_PAT}  (if the IDE cannot expand env in URLs, render live from ARTIFORGE_PAT without printing/committing)
-obsidian-vault         pwsh -NoProfile -NonInteractive -File C:\Users\ynotf\.openclaw\start-obsidian-mcp-server.ps1  (env OBSIDIAN_API_KEY, OBSIDIAN_LOCAL_REST_API, OBSIDIAN_BASE_URL=https://127.0.0.1:27124, OBSIDIAN_VERIFY_SSL=false)
-```
 
-Servers whose canonical launcher could NOT be verified from source authority: none as of 2026-06-30 (the previously-missing `Invoke-AgentCoreGlobalMemoryGateway.ps1` has been created in `ops\`).
+| Profile            | Primary use                    | VK env (name only)                  |
+| ------------------ | ------------------------------ | ----------------------------------- |
+| builder            | Full coding/planning           | `BIFROST_MCP_VIRTUAL_KEY`           |
+| reviewer           | Read-focused review            | `BIFROST_MCP_VK_REVIEWER`           |
+| database-validator | Memory/DB health without creds | `BIFROST_MCP_VK_DATABASE_VALIDATOR` |
+| docs-knowledge     | Docs + notes                   | `BIFROST_MCP_VK_DOCS_KNOWLEDGE`     |
+| operator           | Ops + routing                  | `BIFROST_MCP_VK_OPERATOR`           |
 
-### System state note (2026-06-30)
 
-```text
-- Native Postgres agent_core on F: 127.0.0.1:55432 is canonical (F:\AgentCore\database_cluster).
-- Docker legacy n8n stack RETIRED: containers local-agent-stack-n8n-1 + local-agent-stack-postgres-1 and their
-  volumes (local-agent-stack_n8n_data, local-agent-stack_postgres_data) removed after verified tar backup to
-  G:\DockerLegacyRetire-<stamp>\ (rollback manifest included). n8n/Qdrant/n8n-Postgres are NOT canonical AgentCore.
-- agentops-qdrant is not present. Exited devcontainer-* (Frappe/redis/mariadb) left untouched (out of scope).
-- E: (external archive USB) is currently UNMOUNTED. Backup/WAL targets that point at E:\AgentCoreArchive will fail
-  until E: is reconnected. Use G: as the available backup tier meanwhile.
-```
+Do not invent profiles outside the registry. Never commit resolved VK values.
 
 ---
 
-## 5. Codex TOML Baseline
+## 8. Canonical single IDE gateway connection
 
-Codex usually uses:
+**Contract:** `contracts/agentcore-gateway-client.json`
 
-```text
-C:\Users\ynotf\.codex\config.toml
-```
-
-Do not paste JSON into Codex. Merge TOML correctly and preserve existing Codex model/sandbox/profile settings.
-
-```toml
-[mcp_servers.swarmrecall]
-command = "pwsh"
-args = [
-  "-NoProfile",
-  "-ExecutionPolicy",
-  "Bypass",
-  "-File",
-  "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmRecall.ps1",
-  "-Mode",
-  "Mcp"
-]
-
-[mcp_servers.swarmvault]
-command = "pwsh"
-args = [
-  "-NoProfile",
-  "-ExecutionPolicy",
-  "Bypass",
-  "-File",
-  "D:\\github\\agentcore-control-plane\\ops\\Invoke-AgentCoreSwarmVault.ps1",
-  "-Mode",
-  "Mcp"
-]
-
-[mcp_servers.sequential-thinking]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-
-[mcp_servers.cursor-agent-mcp]
-command = "npx"
-args = ["-y", "cursor-agent-mcp"]
-
-[mcp_servers.context-fabric]
-command = "context-fabric-mcp"
-args = []
-
-[mcp_servers.mcp-debugger]
-command = "npx"
-args = ["-y", "@debugmcp/mcp-debugger@latest"]
-
-[mcp_servers.serena]
-command = "uvx"
-args = [
-  "--from",
-  "git+https://github.com/oraios/serena",
-  "serena",
-  "start-mcp-server",
-  "--context",
-  "ide-assistant"
-]
-
-[mcp_servers.depwire]
-command = "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd"
-args = ["mcp"]
-startup_timeout_sec = 120.0
-tool_timeout_sec = 300.0
-required = false
-default_tools_approval_mode = "prompt"
-
-[mcp_servers.depwire.env]
-DEPWIRE_NO_TELEMETRY = "1"
-```
-
-Artiforge and Arabold/Grounded Docs are HTTP/SSE servers. Add them to Codex only if the installed Codex MCP client supports HTTP/SSE server definitions. If not, mark them unsupported for Codex rather than inventing a fake stdio command.
-
----
-
-## 6. Master Prompt for IDE Agents
-
-Paste this into the local IDE agent when setting up or repairing any IDE MCP config.
-
-```text
-You are configuring this IDE for the AgentCore native-first MCP baseline on CHAOSCENTRAL.
-
-Use MASTER_CONFIG_AND_PROMPT.md as the controlling setup guide.
-
-Source authority:
-D:\github\agentcore-control-plane
-
-Do not blindly paste config. Inspect this IDE's actual MCP config schema, active config path, and existing working servers. Merge the baseline correctly.
-
-Back up the live config before editing.
-Preserve auth/session/profile state.
-Never print secrets.
-Use Windows User-scope environment variables for all API keys and tokens.
-Do not create .env files.
-Do not commit rendered live configs containing secrets.
-Validate syntax after editing.
-Restart/reload the IDE after editing.
-
-Required MCP baseline:
-- arabold-docs
-- serena
-- sequential-thinking
-- cursor-agent-mcp
-- context-fabric
-- mcp-debugger
-- artiforge
-- depwire
-- obsidian-vault
-- swarmrecall
-- swarmvault
-
-Required Swarm launchers:
-swarmrecall:
-pwsh -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Invoke-AgentCoreSwarmRecall.ps1 -Mode Mcp
-
-swarmvault:
-pwsh -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Invoke-AgentCoreSwarmVault.ps1 -Mode Mcp
-
-Remove broken rogue SwarmVault wrapper path if present:
-C:\Users\ynotf\.agentcore\mcp-wrappers\swarmvault-mcp.ps1
-
-Artiforge:
-Use official HTTP MCP endpoint:
-https://tools.artiforge.ai/mcp?pat=<ARTIFORGE_PAT>
-Use ARTIFORGE_PAT from Windows User env. If the IDE supports env expansion, use ${ARTIFORGE_PAT}. If not, render the live app-owned config from Windows env without printing the PAT and never commit that rendered config.
-
-Arabold/Grounded Docs:
-Use local Arabold/Grounded Docs for version-matched docs. Preferred server mode:
-npx @arabold/docs-mcp-server@latest
-SSE URL:
-http://localhost:6280/sse
-If this IDE only supports stdio and no verified wrapper exists, report unsupported instead of inventing a fake command.
-
-DepWire:
-- Use the global local launcher `C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd mcp` with `DEPWIRE_NO_TELEMETRY=1`.
-- Do not add an MCP API/license key. DepWire Pro licensing is extension-only (`depwire.licenseKey`) for VS Code/Cursor.
-- Connect only verified local repository paths unless the operator explicitly approves a remote clone/pull.
-- `connect_repo` creates `.depwire/cache.db`; keep `.depwire/` and `depwire-output.json` globally ignored and never commit them.
-- Use `impact_analysis` and `simulate_change` before risky structural edits, then `verify_change` before completion.
-- Keep write/side-effect tools on approval and follow `docs\prompts\depwire-global-setup-prompt.md`.
-
-Forbidden active routes:
-- context7
-- raw mem0
-- direct composio
-- Hostinger
-- hosted SwarmRecall
-- hosted SwarmVault
-- direct SQL normal-memory route
-- :65432 active runtime route
-- D:\MCP-Control-Plane as design authority
-- SwarmVault-as-Postgres
-- SwarmRecall auto-using-SwarmVault-DB
-
-Drive policy:
-- C: live app configs only
-- D: source/repos/projects/worktrees/evidence
-- F: hot local memory/database/RAG/search runtime
-- E: archive/cold/backups/exports/spool only
-- G: backup only
-
-Database policy:
-- PostgreSQL is 127.0.0.1:55432
-- agent_core and swarmrecall are separate DBs
-- pgvector belongs on the F: hot tier through the local Postgres cluster
-- normal agents must not raw-SQL into agent_core or swarmrecall
-- current gateway tools are memory_append, memory_search, memory_state
-- agentcore_* tools are future/target unless implemented and validated
-- memory_catalog is future/post-migration unless DB and repo prove it exists
-
-Memory policy:
-- At session start, load PROJECT_ANCHOR.md and DOC_AUTHORITY.md if present.
-- Identify the project root on D:.
-- Use global-memory-gateway memory_state and memory_search for governed AgentCore memory context.
-- Use native SwarmRecall for memory recall, semantic search, knowledge graph, learnings, skills, pools, and current memory.
-- Use native SwarmVault for project RAG/wiki/graph/context packs/source retrieval/task ledger.
-- Use Obsidian only through MCP/REST for durable human-readable notes, decisions, and project docs.
-- Do not dual-write memory.
-- Do not direct-write F:\AgentCore\agentmemory except through approved SwarmRecall/SwarmVault/AgentCore tools.
-- Store durable machine memory through global-memory-gateway unless the task explicitly requires native SwarmRecall/SwarmVault storage.
-
-Documentation policy:
-- Before adding/changing a third-party package/API/framework, inspect manifests and lockfiles.
-- Use arabold-docs/Grounded Docs to fetch and index exact version-matched documentation.
-- Save a project-local docs manifest at .agentcore/docs/DOCS_INDEX.md.
-- The manifest must list package/API name, version, docs source, local index status, date/time, and query used.
-- Do not rely on model memory for current APIs.
-
-Serena policy:
-- Use Serena for semantic code navigation before broad edits.
-- Perform Serena onboarding/activation at project start if needed.
-- Prefer get_symbols_overview/find_symbol/find_referencing_symbols over raw grep for code structure.
-- Use Serena memory only for project-scoped code intelligence, not primary cross-project memory.
-
-Sequential-thinking policy:
-- Use sequential-thinking before architecture changes, multi-file refactors, DB schema decisions, migrations, and complex debugging.
-- Keep it concise and tied to acceptance checks.
-
-Context-fabric policy:
-- Initialize context-fabric for each project if missing.
-- Use context-fabric at session start, before high-risk multi-file edits, after large changes, after repair/bootstrap, and whenever drift is suspected.
-- If context-fabric reports drift, stop edits, resync with physical repo state, then continue.
-
-MCP-debugger policy:
-- On runtime exceptions, test failures, or unexplained behavior, do not guess.
-- Use mcp-debugger to attach/inspect where supported, set breakpoints before failure path, inspect state, then edit.
-
-Artiforge policy:
-- Use Artiforge for complex implementation, refactors, module creation, docs generation, and multi-file coordination.
-- Start Artiforge tasks with:
-  use Artiforge tool to do this task:
-- Include integrations, technical requirements, constraints, acceptance checks, and expected outcome.
-- Review the Artiforge execution plan before allowing broad changes.
-- Use high-reasoning/thinking models where available.
-- Trust Artiforge to load codebase context; do not manually dump huge files unless it asks for a missing artifact.
-
-cursor-agent-mcp policy:
-- Use cursor-agent-mcp to coordinate Cursor agent capabilities and cross-agent orchestration where supported.
-- Do not let it bypass memory, drive, DB, secret, or Git rules.
-
-Obsidian policy:
-- Use Obsidian for durable human-readable notes, architecture decisions, handoffs, and high-level knowledge.
-- Do not use Obsidian as raw runtime memory DB.
-- Prefer storing machine-retrievable memory through global-memory-gateway/SwarmRecall/SwarmVault.
-
-Git policy:
-- Normal GitHub origins are allowed. GitHub is the current remote mirror and automation trigger target.
-- Push after every completed task. Run the narrowest relevant validation, run a secret/junk scan, stage only intended source-controlled files, commit with a concise task-specific message, then push origin main.
-- Do not pull, fetch, merge, rebase, or remote-update unless the operator explicitly asks.
-- Never force-push without explicit operator approval.
-- Never commit live secret-bearing configs, rendered PAT URLs, DB dumps, caches, node_modules, Docker inspect output with secrets, .env files, F:\AgentCore runtime state, or runtime artifacts.
-- If a task changes only live runtime state or live IDE configs (no source-controlled files), write an evidence report to artifacts/task-runs/ or artifacts/rollout-*/ and commit/push that report.
-- If there are no source-controlled changes and no runtime/live-config changes: report "no source-controlled delta; no push required" — do not create an empty commit.
-
-Validation after setup:
-- Config syntax valid.
-- MCP discovery shows all required servers or exact unsupported blockers.
-- swarmrecall, swarmvault, artiforge, arabold-docs, depwire, serena, sequential-thinking, context-fabric, mcp-debugger, cursor-agent-mcp, obsidian-vault, and global-memory-gateway discoverable where supported.
-- No broken swarmvault wrapper path remains.
-- No forbidden active route remains.
-
-Final report:
-- active config path
-- backup path
-- servers added/updated/removed
-- env vars required/missing, names only
-- syntax validation result
-- MCP discovery result
-- restart/reload requirement
-- unresolved blockers
-```
-
----
-
-## 7. IDE Config Paths
-
-Cursor:
+Cursor's canonical global MCP file is:
 
 ```text
 C:\Users\ynotf\.cursor\mcp.json
 ```
 
-Codex:
-
-```text
-C:\Users\ynotf\.codex\config.toml
-```
-
-Claude Code:
-
-```text
-C:\Users\ynotf\.claude.json
-C:\Users\ynotf\.claude\config.json
-```
-
-OpenClaw:
-
-```text
-C:\Users\ynotf\.openclaw\openclaw.json
-```
-
-MiniMax:
-
-```text
-C:\Users\ynotf\.minimax\mcp\mcp.json
-```
-
-Mavis:
-
-```text
-C:\Users\ynotf\.mavis\mcp\mcp.json
-```
-
-Antigravity:
-
-```text
-C:\Users\ynotf\.gemini\config\mcp_config.json
-C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json
-```
-
-Open Interpreter:
-
-```text
-C:\Users\ynotf\AppData\Roaming\interpreter\config.json
-```
-
-Claude Desktop / Obsidian remediation:
-
-```text
-C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json
-```
-
----
-
-## 8. Project Startup Ritual
-
-At the start of every project session:
-
-```text
-1. Identify the project root, usually D:\github\<repo>.
-2. Read PROJECT_ANCHOR.md and DOC_AUTHORITY.md if present.
-3. Read AGENTS.md, CLAUDE.md, .cursorrules, and .cursor/rules if present. If AGENTS.md or CLAUDE.md is MISSING at the project root, CREATE it (seed from the Root Agent Rules Template in section 19) before proceeding, and re-verify/update both regularly as project rules or wiring change.
-4. Inspect manifests and lockfiles.
-5. Query global-memory-gateway memory_state and memory_search for project/task context.
-6. Query SwarmRecall native memory/search/learnings/skills/current memory.
-7. Query SwarmVault context pack/wiki/graph/source retrieval/task ledger.
-8. Check Obsidian for project handoff/architecture notes if relevant.
-9. Use Serena onboarding/activation for project code intelligence.
-10. Use context-fabric before multi-file changes or whenever drift is suspected.
-11. Use arabold-docs/Grounded Docs for exact version docs before API/framework work.
-12. Build a short plan with acceptance checks.
-13. Execute, validate, and store durable memory through approved routes.
-```
-
-Manifests/lockfiles to inspect when present:
-
-```text
-package.json
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
-pyproject.toml
-uv.lock
-poetry.lock
-requirements.txt
-Cargo.toml
-go.mod
-pom.xml
-build.gradle
-Dockerfile
-compose files
-```
-
----
-
-## 9. Local Documentation Lifecycle
-
-Fetch/index docs when:
-
-```text
-adding a dependency
-upgrading a package
-using a framework feature that may have changed
-integrating a third-party API
-debugging an API behavior mismatch
-writing generated code against unfamiliar libraries
-```
-
-Preferred tool:
-
-```text
-arabold-docs / Grounded Docs
-```
-
-Fallback:
-
-```text
-official vendor docs only
-```
-
-Forbidden:
-
-```text
-guessing from model memory for APIs that could have changed
-```
-
-Required per-project docs manifest:
-
-```text
-.agentcore/docs/DOCS_INDEX.md
-```
-
-Template:
-
-```markdown
-# Project Docs Index
-
-| Name | Type | Version | Source | Local index status | Last refreshed | Notes |
-|---|---|---:|---|---|---|---|
-| example-lib | npm | 1.2.3 | official docs URL | indexed in arabold-docs | 2026-06-30 | used for feature X |
-```
-
----
-
-## 10. Memory and Context Routing
-
-
-| System                | Purpose                                                  | Write route                      |
-| --------------------- | -------------------------------------------------------- | -------------------------------- |
-| global-memory-gateway | Governed AgentCore memory broker                         | `memory_append`                  |
-| agent_core DB         | AgentCore governance/catalog/policy state                | governed scripts/migrations only |
-| swarmrecall DB        | Native SwarmRecall state                                 | native SwarmRecall service/tools |
-| SwarmRecall MCP/API   | semantic recall, memory, graph, learnings, skills, pools | native tools                     |
-| SwarmVault            | local-first project RAG/wiki/graph/context/task ledger   | native tools                     |
-| Obsidian              | human-readable durable notes/handoffs                    | Obsidian MCP/REST only           |
-| Postgres/pgvector     | local vector persistence for approved systems            | service-owned only               |
-
-
-Normal agents may read through:
-
-```text
-global-memory-gateway.memory_search
-global-memory-gateway.memory_state
-SwarmRecall search/current memory/learnings/skills/pools
-SwarmVault context packs/wiki/graph/source retrieval
-Obsidian notes when relevant
-```
-
-Normal agents must not:
-
-```text
-raw-SQL into agent_core
-raw-SQL into swarmrecall
-dual-write the same memory to multiple stores
-write directly to F:\AgentCore\agentmemory
-write directly to active Obsidian vault files
-treat SwarmVault as Postgres
-treat SwarmRecall as auto-using SwarmVault DB
-```
-
-Saving guidance:
-
-```text
-Project-specific code fact -> SwarmVault task/context or project docs
-User/system preference -> global-memory-gateway memory_append
-Architecture decision -> Obsidian note plus gateway summary if it affects agent behavior
-Dependency/API docs -> arabold-docs local index plus .agentcore/docs/DOCS_INDEX.md
-Debugging lesson/failure pattern -> gateway memory_append and SwarmRecall learning if appropriate
-```
-
----
-
-## 11. Postgres / pgvector Rules
-
-Database topology:
-
-```text
-PostgreSQL cluster: 127.0.0.1:55432
-agent_core DB: governed AgentCore metadata/policy/catalog
-swarmrecall DB: native SwarmRecall state
-pgvector: local vector support on F: hot tier
-```
-
-Normal IDE agents must not:
-
-```text
-connect directly to Postgres for memory work
-create ad hoc memory tables
-apply migrations without migration protocol
-point anything at :65432
-move primary SQL to E:
-```
-
-Migration protocol:
-
-```text
-1. Backup.
-2. Restore verification.
-3. Dry-run with ROLLBACK.
-4. Down migration verification.
-5. Apply.
-6. Post-checks.
-7. Rollback plan.
-8. Report.
-```
-
-`memory_catalog` and `agentcore_*` tools are target/post-migration unless live DB and source prove they exist.
-
----
-
-## 12. SwarmRecall Rules
-
-SwarmRecall is native-first.
-
-Proof of health:
-
-```text
-http://127.0.0.1:3300/api/v1/health
-MCP tool discovery
-memory/search/list
-knowledge graph
-learnings
-skills
-pools
-current/session memory where supported
-```
-
-Policy:
-
-```text
-AGENT_CORE_SWARMRECALL_API_KEY remains canonical.
-SWARMRECALL_API_KEY is native compatibility alias.
-SWARMRECALL_API_URL=http://127.0.0.1:3300.
-Keep swarmrecall DB separate from agent_core.
-No hosted fallback.
-Do not collapse SwarmRecall into SwarmVault.
-```
-
----
-
-## 13. SwarmVault Rules
-
-SwarmVault is native-first and file-based.
-
-Proof of health:
-
-```text
-doctor
-status
-retrieval status
-graph stats
-context build
-query with timeout
-task ledger
-MCP discovery
-```
-
-Always exclude from source registration:
-
-```text
-node_modules
-.next
-dist
-build
-coverage
-.git
-generated artifacts
-caches
-venv
-.venv
-__pycache__
-large binary dumps
-DB backups
-```
-
-Policy:
-
-```text
-SwarmVault root stays at F:\AgentCore\agentmemory\swarmvault.
-Do not force SwarmVault into Postgres.
-Do not delete valid sources without approval or proof of corruption.
-Full query must be timeout-bounded.
-If full query is slow, report BLOCKED with evidence, not a hang.
-```
-
----
-
-## 14. Artiforge Rules
-
-Artiforge official HTTP MCP pattern:
+The normal Cursor baseline must contain exactly one AgentCore non-Swarm gateway entry named
+`agentcore-gateway` at `http://127.0.0.1:8080/mcp`. Project-level `.cursor\mcp.json` or
+`.mcp.json` gateway duplicates are not normal; project-specific behavior is selected through
+`agentcore-project-router`, not by adding duplicate gateway entries under individual repos.
+`MCP_DOCKER` is not part of the normal Cursor baseline; the former Docker profile overlapped
+Bifrost and contained a broken `desktop-commander` server with missing `paths`.
+
+Sanitized canonical entry (env form — never resolve secrets in Git):
+
+### JSON-style clients (Cursor / MiniMax / Mavis / Claude / Antigravity / Open Interpreter)
 
 ```json
 {
   "mcpServers": {
-    "artiforge": {
+    "agentcore-gateway": {
       "type": "http",
-      "url": "https://tools.artiforge.ai/mcp?pat=${ARTIFORGE_PAT}"
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "timeout": 300
     }
   }
 }
 ```
 
-If the IDE cannot expand `${ARTIFORGE_PAT}`:
+### Codex TOML
 
-```text
-Read ARTIFORGE_PAT from Windows User env.
-Render the live app-owned config without printing the value.
-Do not commit that rendered config.
+```toml
+[mcp_servers.agentcore-gateway]
+url = "http://127.0.0.1:8080/mcp"
+bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"
+enabled = true
+startup_timeout_sec = 300
+tool_timeout_sec = 300
 ```
 
-Use Artiforge for:
+For Codex, `bearer_token_env_var` is the schema-correct environment-backed
+Bearer mechanism. Do not place `${env:BIFROST_MCP_VIRTUAL_KEY}` inside
+`http_headers`, because Codex defines `http_headers` as static values. Map the
+shared 300-second timeout to `startup_timeout_sec` and `tool_timeout_sec`.
 
-```text
-complex implementation
-multi-file refactors
-module creation
-architecture changes
-documentation generation
-large test harness creation
-cross-service integrations
-```
-
-Required task prefix:
-
-```text
-use Artiforge tool to do this task:
-```
-
-Required prompt structure:
-
-```text
-use Artiforge tool to do this task:
-
-Goal:
-<final end state>
-
-Project context:
-<project root, stack, relevant services>
-
-Integrations:
-<existing services/modules this must use>
-
-Technical requirements:
-<frameworks, protocols, DBs, APIs>
-
-Constraints:
-<memory/drive/security/git rules>
-
-Acceptance checks:
-<tests, validations, runtime checks>
-
-Output:
-<what to change/report>
-```
-
-Operating rules:
-
-```text
-Use Agent mode.
-Use high-reasoning/thinking models where available.
-Review the execution plan before broad edits.
-Be specific about integrations and technical requirements.
-Trust Artiforge to load codebase context; do not manually paste huge context unless it asks for a missing artifact.
-```
+If a client cannot expand `${env:...}` in headers, materialize from Windows User env into the **live** config only during cutover — never commit the live secret-bearing file.
 
 ---
 
-## 15. Arabold / Grounded Docs Rules
+## 9. Client-specific renderers
 
-Arabold/Grounded Docs replaces Context7 for local, version-matched documentation.
+Sanitized renderers (source-controlled):
 
-Preferred setup:
 
-```powershell
-npx @arabold/docs-mcp-server@latest
-```
+| Client           | Renderer                                          |
+| ---------------- | ------------------------------------------------- |
+| cursor           | `renderers/gateway-clients/cursor.json`           |
+| codex            | `renderers/gateway-clients/codex.json`            |
+| claude-code      | `renderers/gateway-clients/claude-code.json`      |
+| claude-desktop   | `renderers/gateway-clients/claude-desktop.json`   |
+| minimax          | `renderers/gateway-clients/minimax.json`          |
+| mavis            | `renderers/gateway-clients/mavis.json`            |
+| antigravity      | `renderers/gateway-clients/antigravity.json`      |
+| open-interpreter | `renderers/gateway-clients/open-interpreter.json` |
 
-Local UI:
 
-```text
-http://localhost:6280
-```
-
-SSE client config:
-
-```json
-{
-  "mcpServers": {
-    "arabold-docs": {
-      "type": "sse",
-      "url": "http://localhost:6280/sse"
-    }
-  }
-}
-```
-
-Documentation rule:
-
-```text
-1. Inspect manifest and lockfile.
-2. Resolve exact version.
-3. Fetch/index official docs with arabold-docs/Grounded Docs.
-4. Save/update .agentcore/docs/DOCS_INDEX.md.
-5. Use indexed docs before writing code.
-```
+Live paths are listed in `contracts/agentcore-gateway-client.json` → `client_render_hints`.
+Cutover automation: `ops/bifrost/Invoke-AgentCoreIdeGatewayCutover.ps1`.
+**Out of scope:** OpenClaw / ClawX.
 
 ---
 
-## 16. Tool Use Rules
+## 10. Global IDE setup prompt
 
-### Serena
+Source prompt file: `docs/prompts/install-agentcore-gateway-in-ide.md`.
 
-Preferred command:
-
-```text
-uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
-```
-
-Use Serena for onboarding/activation, symbol overview, symbol references, code architecture, and safe symbol-level edits.
-
-### DepWire
-
-Canonical local MCP launcher:
+Copy this prompt into any supported non-Swarm IDE-local agent when configuring MCP on this PC:
 
 ```text
-C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd mcp
-```
+Install the AgentCore Bifrost MCP gateway for this IDE.
 
-Use `depwire-cli@1.8.2` with `DEPWIRE_NO_TELEMETRY=1`. The CLI/MCP server exposes 23 local tools and does not consume a DepWire API/license key. DepWire Pro activation belongs only to the VS Code/Cursor extension setting `depwire.licenseKey`; enter it through the extension command palette and never copy it into MCP config.
-
-DepWire complements Serena. Use Serena for semantic navigation and precise edits; use DepWire for deterministic dependency edges, blast radius, architecture health, graph-aware security, structural simulation, and pre-completion verification. Connect verified local repo paths only. `connect_repo` creates `.depwire/cache.db`, so keep `.depwire/` and `depwire-output.json` in the global Git excludes file and never commit them. Run `impact_analysis` plus `simulate_change` before risky delete/move/rename/split/merge work, and `verify_change` before completion. Keep remote `connect_repo`, docs generation, visualization, file claims, and decision writes behind explicit approval. See `docs\prompts\depwire-global-setup-prompt.md` for the universal cross-client setup and validation contract.
-
-### Sequential-thinking
-
-Use before architecture decisions, multi-file changes, DB/migration decisions, tooling changes, debugging strategy, and risk analysis.
-
-### Context-fabric
-
-Setup:
-
-```powershell
-pip install context-fabric
-context-fabric init
-```
-
-MCP command:
-
-```text
-context-fabric-mcp
-```
-
-Use at session start, before high-risk multi-file changes, after repair/bootstrap, after large changes, when drift is suspected, and before handoff if context is high.
-
-### MCP-debugger
-
-Setup:
-
-```text
-npx -y @debugmcp/mcp-debugger@latest
-```
-
-On runtime/test failures, do not guess. Attach/inspect where supported, set breakpoints, inspect state, patch root cause, rerun narrow test.
-
-### cursor-agent-mcp
-
-Setup:
-
-```text
-npx -y cursor-agent-mcp
-```
-
-Use for Cursor agent orchestration, repo analysis, planning, code search, and delegated Cursor tasks. It cannot bypass this file's memory/drive/DB/secret/Git rules.
-
-### Obsidian
-
-Use Obsidian for human-readable architecture decisions, handoffs, runbooks, and durable project knowledge. Do not use it as raw runtime memory storage.
-
----
-
-## 17. MCP Verification Prompt
-
-Run this after setup in each IDE:
-
-```text
-Run MCP discovery and baseline validation.
-
-Check these servers:
-- arabold-docs
-- serena
-- sequential-thinking
-- cursor-agent-mcp
-- context-fabric
-- mcp-debugger
-- artiforge
-- depwire
-- obsidian-vault
-- swarmrecall
-- swarmvault
-
-For each, report:
-- connected yes/no
-- transport type
-- tool count if available
-- first useful tool name if available
-- exact error if failed
-
-Then verify:
-- no context7 active
-- no raw mem0 active
-- no direct composio active
-- no Hostinger active
-- no hosted SwarmRecall/SwarmVault
-- no :65432 active route
-- no broken SwarmVault wrapper path
-
-Do not print secrets.
-Do not create .env files.
-Report exact config path and restart requirement.
-```
-
----
-
-## 18. Cursor Prompt to Configure Claude Code Locally
-
-Use this in Cursor when Claude chat cannot edit local Windows files:
-
-```text
-Configure Claude Code MCP baseline locally.
-
-Candidate files:
-C:\Users\ynotf\.claude.json
-C:\Users\ynotf\.claude\config.json
-
-Use MASTER_CONFIG_AND_PROMPT.md as controlling setup guide.
-
-Tasks:
-1. Discover which Claude Code config is active.
-2. Back up both files if present.
-3. Preserve auth/session/profile state.
-4. Merge mandatory MCP baseline.
-5. Use exact Swarm launchers from MASTER_CONFIG_AND_PROMPT.md.
-6. Remove active context7 and Hostinger unless explicitly quarantined/disabled.
-7. If CONTEXT7_API_KEY or any plaintext secret is present, do not print it. Replace with env reference where supported or report only field path.
-8. Validate JSON.
-9. Report backup path, changed file, MCP servers changed, and restart requirement.
-```
-
----
-
-## 19. Root Agent Rules Template
-
-Copy into `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, or IDE-specific rule files when needed:
-
-```markdown
-# AgentCore Native-First Operating Rules
-
-D:\github\agentcore-control-plane is source authority.
-D:\MCP-Control-Plane is compatibility/live-ops evidence only.
-
-On every new project/repo, create AGENTS.md and CLAUDE.md at the project root if missing (seed from this template), read/verify both at session start, and keep them updated as rules or wiring change.
-
-SwarmRecall and SwarmVault must work natively first.
-AgentCore governance wrappers, renderers, projectors, validators, memory_catalog, and cross-IDE enforcement wrap proven native behavior.
-
-Use global-memory-gateway for governed memory: memory_append, memory_search, memory_state.
-Use SwarmRecall for native memory/search/graph/learnings/skills/pools.
-Use SwarmVault for native RAG/wiki/graph/context-pack/task-ledger/source retrieval.
-Use Obsidian for human-readable notes/handoffs only.
-Do not raw-SQL memory DBs.
-Do not dual-write.
-Do not direct-write F:\AgentCore\agentmemory.
-
-Use arabold-docs/Grounded Docs for exact version docs.
-Save docs manifest to .agentcore/docs/DOCS_INDEX.md.
-Do not use model memory for current APIs.
-
-Use Serena before broad code edits.
-Use sequential-thinking before architecture/migration/refactor decisions.
-Use context-fabric at session start, before high-risk multi-file changes, after repairs, and when drift is suspected.
-Use mcp-debugger for runtime/test failures instead of guessing.
-Use Artiforge for complex multi-file work with: use Artiforge tool to do this task:
-
-C: app/live config only.
-D: repos/projects/evidence.
-F: hot memory/database/RAG/search.
-E: archive/cold/spool only.
-G: backup only.
-
-Postgres: 127.0.0.1:55432.
-agent_core and swarmrecall remain separate DBs.
-pgvector stays on local F: hot tier.
-Migrations require backup, restore verification, rollback dry-run, down verification, apply, post-checks, and rollback plan.
-memory_catalog and agentcore_* are target/post-migration unless proven.
-
-Push after every completed task. Run validation, run secret/junk scan, stage only source-controlled files, commit with a concise message, push origin main.
-Do not pull, fetch, merge, rebase, or remote-update unless the operator explicitly asks.
-Never force-push without explicit operator approval.
-Never commit secrets, rendered PAT URLs, DB dumps, caches, node_modules, Docker inspect output with secrets, .env files, F:\AgentCore runtime state, or runtime artifacts.
-If a task changes only live runtime/IDE configs, write an evidence report to artifacts/task-runs/ or artifacts/rollout-*/ and commit/push that instead.
-If there are no source-controlled changes and no runtime/live-config changes: report "no source-controlled delta; no push required" and skip the commit.
-```
-
----
-
-## 20. Docker to F: Policy
-
-Docker hot data should move to F: bind mounts only after safe inventory and backup.
-
-Required sequence:
-
-```text
-1. Confirm Docker daemon running.
-2. Inventory containers, volumes, compose files.
-3. Identify hot data: n8n, Qdrant, Postgres-like volumes, caches.
-4. Export/backup current volumes.
-5. Stop only affected containers.
-6. Create F: bind-mount directories.
-7. Update compose files.
-8. Start and verify.
-9. Document rollback.
-```
-
-Do not move Docker blindly. Do not lose n8n or Qdrant data.
-
----
-
-## 21. Final Setup Checklist
-
-```text
-[ ] Config backed up.
-[ ] Config syntax valid.
-[ ] Required MCP baseline present or exact unsupported blockers documented.
-[ ] swarmrecall points to canonical AgentCore launcher.
-[ ] swarmvault points to canonical AgentCore launcher.
-[ ] broken rogue swarmvault wrapper path absent.
-[ ] Artiforge configured with env-backed PAT or documented unsupported.
-[ ] DepWire uses the absolute global launcher, telemetry is disabled, no MCP key is configured, and 23 tools handshake.
-[ ] Arabold/Grounded Docs configured as local SSE or documented unsupported.
-[ ] Serena configured and project onboarding rule installed.
-[ ] Sequential-thinking configured.
-[ ] Context-fabric configured and drift rules installed.
-[ ] MCP-debugger configured.
-[ ] cursor-agent-mcp configured.
-[ ] Obsidian configured through MCP/REST only.
-[ ] global-memory-gateway configured from source authority.
-[ ] no forbidden active routes remain.
-[ ] no secrets printed or committed.
-[ ] IDE restarted/reloaded.
-[ ] MCP discovery verified.
-```
-
----
-
-## 22. Local Source Files Agents Must Verify
-
-```text
+Authority:
 D:\github\agentcore-control-plane\PROJECT_ANCHOR.md
 D:\github\agentcore-control-plane\DOC_AUTHORITY.md
-D:\github\agentcore-control-plane\database-plan.md
-D:\github\agentcore-control-plane\CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md
-D:\github\agentcore-control-plane\contracts\master-mcp-server-config.json
-D:\github\agentcore-control-plane\docs\prompts\depwire-global-setup-prompt.md
-D:\github\agentcore-control-plane\renderers\
-D:\github\agentcore-control-plane\ops\
+D:\github\agentcore-control-plane\MASTER_CONFIG_AND_PROMPT.md
+D:\github\agentcore-control-plane\contracts\agentcore-gateway-client.json
+D:\github\agentcore-control-plane\contracts\bifrost-upstream-mcp-registry.json
+D:\github\agentcore-control-plane\docs\bifrost\UNIFIED_GATEWAY_SETUP.md
+D:\github\agentcore-control-plane\docs\prompts\install-agentcore-gateway-in-ide.md
+
+Goal:
+Use exactly one non-Swarm AgentCore MCP baseline entry named agentcore-gateway:
+http://127.0.0.1:8080/mcp
+Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
+
+Runtime requirement:
+Before editing the IDE config, prove the native Bifrost Gateway is running persistently:
+- scheduled task: \AgentCore\AgentCore-Bifrost-Gateway
+- app dir: H:\AgentRuntime\bifrost
+- bind: 127.0.0.1:8080 only
+- health: GET http://127.0.0.1:8080/health returns 200
+- direct MCP initialize, initialized notification, tools/list, and one safe read-only tool call succeed
+
+Safety rules:
+- Back up the live IDE config before any change and record SHA-256.
+- Preserve model, auth, account, sandbox, context, profile, theme, and non-MCP app settings.
+- Do not print or commit secret values.
+- Do not create .env files.
+- Do not touch SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or ClawX.
+- Do not paste the full upstream registry into the IDE.
+
+Steps:
+1. Identify the real active MCP config path and schema for this IDE from contracts\agentcore-gateway-client.json.
+2. Back up the config outside Git.
+3. Remove direct duplicate baseline MCP entries now served by Bifrost.
+4. For Cursor, remove MCP_DOCKER unless the operator explicitly approves a documented unique-capability exception.
+5. Add or merge only agentcore-gateway using the schema-correct renderer for this IDE.
+6. Use Windows User env BIFROST_MCP_VIRTUAL_KEY without printing it.
+   For Codex, use bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY" plus startup_timeout_sec = 300 and tool_timeout_sec = 300; do not put the env placeholder in static http_headers.
+7. If env-header expansion is unsupported, materialize the secret only into the app-owned live config as a last resort; never commit or report it.
+8. Validate JSON/TOML syntax.
+9. Fully restart/reload the IDE so environment references are visible.
+10. Confirm the IDE shows agentcore-gateway connected/ready.
+11. Confirm tools/list includes expected prefixes such as arabold_docs, depwire, tentra, sequential_thinking, context_fabric, filesystem, playwright, cursor_agent_mcp, agentcore_memory, and agentcore_project_router.
+12. Confirm Swarm, raw database, whole-drive filesystem, and Bifrost admin tools are absent.
+13. Activate the project through agentcore_project_router before project-scoped work.
+14. Self-enroll through agentcore_memory-session_open with verified client, repository/worktree/Git, selected provider/model, and named context-profile identity. Do not lower the IDE model's configured hard context window.
+15. Call agentcore_memory-startup_context with that profile and confirm the reported hard limit matches the selected capability; 4096 is acceptance/legacy-only.
+16. Smoke-test agentcore_memory-retrieve_context recovery pagination and agentcore_memory-expand_source before asking the operator to repeat missing history.
+17. Record sanitized evidence: IDE name, config path, backup path, hashes, discovery/tool count, context profile, recovery result, blockers, rollback.
+
+Canonical Cursor target:
+C:\Users\ynotf\.cursor\mcp.json
+
+Canonical Cursor JSON:
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "type": "http",
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "timeout": 300
+    }
+  }
+}
+
+Adding future MCP servers:
+- Do not add new baseline MCP servers separately to every IDE.
+- Add once to contracts\bifrost-upstream-mcp-registry.json.
+- Pin version, index exact-version official docs with Arabold, classify scope, define transport/command/env/timeout/health/write risk/rollback.
+- Define allowed tools, denied tools, and capability profiles.
+- Render Bifrost config, validate schemas, restart Bifrost, test initialize/tools/list and one safe call.
+- Update .agentcore/docs/DOCS_INDEX.md and evidence.
+- Leave IDE configs unchanged unless the single gateway connection itself changes.
+
+Tool suppression:
+- Disable an upstream with enabled=false.
+- Use named tools_to_execute allowlists.
+- Use an empty allowlist for no tools.
+- Use narrower virtual-key profiles.
+- Avoid broad wildcard grants unless documented in the registry.
+
+Do not claim completion from config files alone. Direct MCP and IDE discovery must pass.
 ```
 
+---
+
+## 11. Server-specific operating rules
+
+General:
+
+1. Prefer tools via `agentcore-gateway` after cutover.
+2. Activate a project before Serena / Depwire / Tentra / Context Fabric / filesystem.
+3. Stop policy: do not silently downgrade Bifrost, arabold-docs, artiforge, sequential-thinking, or required Depwire verification.
+4. No Context7, raw Mem0, direct Composio, or Hostinger as baseline routes.
+
+Root Agent Rules Template (seed `AGENTS.md` / `CLAUDE.md` on new repos):
+
+```markdown
+# AgentCore Gateway Operating Rules
+
+D:\github\agentcore-control-plane is source authority.
+H:\AgentRuntime\bifrost is Bifrost runtime (not design authority).
+D:\MCP-Control-Plane is compatibility/live-ops evidence only.
+
+On every new project/repo, create AGENTS.md and CLAUDE.md at the project root if missing
+(seed from MASTER_CONFIG_AND_PROMPT.md), read/verify both at session start, and keep them updated.
+
+Non-Swarm IDE MCP baseline is a single agentcore-gateway entry
+(http://127.0.0.1:8080/mcp + Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}).
+Do not paste the full upstream registry into each IDE.
+Do not require SwarmRecall/SwarmVault/SwarmClaw for non-Swarm IDE work.
+
+Use agentcore-memory (stable id; may be degraded) via the gateway for memory health/status.
+Use agentcore-project-router before project-scoped tools.
+Use arabold-docs for exact version docs; keep .agentcore/docs/DOCS_INDEX.md current.
+Use Serena (via project router) before broad code edits.
+Use sequential-thinking before architecture/migration/refactor decisions.
+Use Depwire via gateway for structural impact; local Depwire CLI is diagnostic fallback.
+Use Tentra local mode only (H:\AgentRuntime\tentra\data).
+Use context-fabric only on approved Git workspaces via project router.
+Use mcp-debugger for runtime/test failures instead of guessing.
+Use Artiforge for complex multi-file strategy only.
+Use Obsidian for human-readable notes/handoffs.
+
+Project execution: follow docs/agent-policy/ in the control-plane repo —
+run New Project Bootstrap (Milestone 0) before broad implementation; use
+Milestones with entry/exit gates, Macro/Micro checklists with evidence,
+Context Fabric and Arabold checkpoints, and tool audits at every Milestone
+boundary. Expose only the tools the current Milestone needs (progressive
+tool disclosure); read .agentcore/PROJECT_CHARTER.md, MILESTONES.md, and
+TOOL_MANIFEST.yaml per docs/agent-policy/DOCUMENTATION_READ_ORDER.md.
+
+Never put Postgres credentials or whole-drive filesystem roots in IDE configs.
+Never use :65432. Never create .env files. Never print secrets.
+Push after every completed task per docs/GIT_PUSH_ONLY_POLICY.md.
+```
+
+---
+
+## 12. Depwire
+
+- **Primary:** through `agentcore-gateway` → `depwire` (project-router wrapper).
+- **Cloud:** registry `depwire-cloud` deferred/`enabled=false` until healthy; auth `Bearer env.DEPWIRE_API_KEY` when enabled.
+- **Local diagnostic:** `depwire-cli` / `depwire mcp` still OK offline — see `DEPWIRE.md` and `docs/bifrost/DEPWIRE_RECONCILIATION.md`.
+- Do not set `DEPWIRE_NO_TELEMETRY` unless operator requests.
+- Ignore `.depwire/` and `depwire-output.json`.
+
+---
+
+## 13. Tentra
+
+Local mode only (`tentra-mcp@1.3.3 --local`). Data: `H:\AgentRuntime\tentra\data`.
+Details: `docs/bifrost/TENTRA_LOCAL_MODE.md`.
+
+---
+
+## 14. Arabold Docs
+
+Primary docs MCP for libraries/SDKs/APIs (replaces Context7).
+Index Bifrost docs as library `bifrost` version `2.0.0-prerelease1` from [https://docs.getbifrost.ai](https://docs.getbifrost.ai) — see `.agentcore/docs/DOCS_INDEX.md`.
+Keep project manifests under `.agentcore/docs/` when indexing project-relevant libraries.
+
+---
+
+## 15. Serena
+
+Pinned launcher via project-router wrapper (`serena.exe start-mcp-server ...`).
+Always activate the target `D:\github\...` project first. Do not emit git-based `uvx` launch commands as the governed path.
+
+---
+
+## 16. Context Fabric
+
+Project-scoped only via router wrapper. Approved Git-managed workspaces only.
+Do not initialize under `F:\AgentCore\agentmemory` or Swarm roots.
+
+---
+
+## 17. Artiforge
+
+HTTP upstream; connection string is `env.ARTIFORGE_MCP_URL` (compose PAT locally into User env — never commit). High-leverage scans/refactor strategy only.
+
+---
+
+## 18. Obsidian
+
+Long-form human notes, decisions, runbooks. Launcher uses Windows env names (`OBSIDIAN_API_KEY`, `OBSIDIAN_BASE_URL`, etc.). REST default host `https://127.0.0.1:27124`. Never embed key values in Git.
+
+---
+
+## 19. Security
+
+- Windows User-scope env vars only; no `.env` files.
+- Never print or commit secrets, resolved VKs, PATs, DB passwords, or live secret-bearing IDE configs.
+- Bifrost: headers VK auth; content logging disabled.
+- Localhost bind only for gateway.
+- No whole-drive filesystem roots; filesystem MCP is project-worktree scoped.
+- No direct Postgres credentials in IDE MCP configs.
+- See `SECURITY.md`.
+
+---
+
+## 20. Validation
+
+Minimum deterministic checks:
+
+```powershell
+python D:\github\agentcore-control-plane\scripts\bifrost\validate_contracts.py
+# Optional ops smoke (record actual results; do not fabricate):
+# ops\bifrost\Test-AgentCoreBifrostGateway.ps1
+```
+
+Also: secret/junk scan before commit; IDE JSON/TOML parse after cutover; confirm single gateway entry per migrated client.
+
+**Docs update note:** Contract schema validation and `ops\bifrost\Test-AgentCoreBifrostGateway.ps1` pass for the repaired runtime (12 enabled / 4 disabled-deferred). Live IDE acceptance remains evidenced only where ops tests and cutover evidence files exist — do not invent pass/fail beyond that.
+
+---
+
+## 21. Backup and rollback
+
+- Backup root example: `E:\AgentCore-Backups\bifrost-gateway-cutover-20260712-223149`
+- Hash manifest: `artifacts/bifrost-gateway-cutover-2026-07-12/BACKUP_MANIFEST.md`
+- Runbooks: `docs/bifrost/MIGRATION_RUNBOOK.md`, `docs/bifrost/ROLLBACK_RUNBOOK.md`
+- Ops: `Backup-AgentCoreBifrostConfig.ps1`, `Restore-AgentCoreBifrostConfig.ps1`
+
+---
+
+## 22. Swarm exclusion boundary
+
+SwarmRecall, SwarmVault, and SwarmClaw are a **separate ecosystem**.
+
+- Non-Swarm IDEs must not depend on Swarm MCP.
+- Bifrost cutover must not modify Swarm product installs (exclude-only from IDE baselines).
+- OpenClaw/ClawX are outside this IDE gateway cutover.
+- Historical Swarm-first baseline docs are superseded for non-Swarm IDE work (`DOC_AUTHORITY.md`).
+
+---
+
+## APPENDIX: Historical direct per-IDE full-server blocks
+
+> **ROLLBACK / HISTORICAL ONLY — NOT NORMAL ARCHITECTURE.**
+> Before Bifrost, each IDE carried a full direct MCP server list (arabold-docs, serena, sequential-thinking, swarmrecall, swarmvault, filesystem with broad roots, etc.). That model drifted and is superseded by the single `agentcore-gateway` entry.
+> Keep backups under `E:\AgentCore-Backups\...` for emergency restore. Do not present the blocks below as the current baseline. Prefer restore-from-backup over re-authoring a hybrid.
+
+### Historical pattern (illustrative — do not deploy as normal)
+
+```json
+{
+  "mcpServers": {
+    "arabold-docs": { "command": "...", "args": ["..."] },
+    "serena": { "command": "...", "args": ["..."] },
+    "sequential-thinking": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-sequential-thinking@..."] },
+    "swarmrecall": { "url": "..." },
+    "swarmvault": { "command": "...", "args": ["..."] }
+  }
+}
+```
+
+Per-IDE cleanup prompts under `docs/prompts/*-cleanup-prompt.md` may still describe older direct-server remediation; for gateway install use `docs/prompts/install-agentcore-gateway-in-ide.md` instead.
+
+Experiment note: `experiments/bifrost-go-sdk-smoke/` remains an isolated Go SDK POC — not a rollback path for the MCP gateway.

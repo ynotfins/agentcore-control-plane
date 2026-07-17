@@ -1,7 +1,10 @@
 param(
   [string]$Root = "D:\github\agentcore-control-plane",
   [switch]$WriteReport,
-  [switch]$DryRun
+  [switch]$DryRun,
+  # Skip live-state checks (Codex CLI, Postgres listener, scheduled tasks, live IDE configs).
+  # Use for repo-only/source validation passes.
+  [switch]$SourceOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,6 +31,7 @@ function Read-Json {
 function Get-ServerContainer {
   param($Json)
   if ($Json.mcpServers) { return $Json.mcpServers }
+  if ($Json.mcp_servers) { return $Json.mcp_servers }
   if ($Json.mcp -and $Json.mcp.servers) { return $Json.mcp.servers }
   return $null
 }
@@ -95,8 +99,8 @@ function Get-LiveCodexServers {
 
 function Get-AgentCoreListener {
   try {
-    $line = @(netstat -ano -p tcp | Select-String '127\.0\.0\.1:55432\s+.*LISTENING\s+\d+$' | Select-Object -First 1)[0]
-    if (-not $line) { return @{ ok = $false; detail = "no listener on 127.0.0.1:55432" } }
+    $line = @(netstat -ano -p tcp | Select-String '127\.0\.0\.1:55433\s+.*LISTENING\s+\d+$' | Select-Object -First 1)[0]
+    if (-not $line) { return @{ ok = $false; detail = "no listener on 127.0.0.1:55433" } }
     $parts = ($line.ToString() -replace "\s+", " ").Trim().Split(" ")
     return @{ ok = $true; detail = ("listener pid=" + $parts[-1] + " endpoint=" + $parts[1]) }
   }
@@ -190,10 +194,22 @@ $scanFiles = Get-ChildItem -LiteralPath $rootPath -Recurse -File |
     $_.FullName -notmatch "\\artifacts\\backups\\" -and
     $_.FullName -notmatch "\\backups\\" -and
     $_.FullName -notmatch "\\__pycache__\\" -and
+    $_.FullName -notmatch "\\reports\\_raw\\" -and
+    $_.FullName -notmatch "\\\.minimax\\" -and
+    $_.FullName -notmatch "\\\.git\\" -and
     $_.Extension -notin @(".pyc", ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".zip")
   }
+# Allowlisted non-secret tokens that pattern-match (env var names, documented placeholders).
+$secretFalsePositives = @(
+  "Bearer BIFROST_MCP_VIRTUAL_KEY",
+  "Bearer vk_your_production_key",
+  "Bearer vk_your_development_key",
+  "Bearer YOUR_API_KEY"
+)
 foreach ($file in $scanFiles) {
   $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction SilentlyContinue
+  if (-not $text) { continue }
+  foreach ($fp in $secretFalsePositives) { $text = $text.Replace($fp, "") }
   foreach ($pattern in $secretPatterns) {
     if ($text -match $pattern) {
       $secretFindings.Add($file.FullName.Substring($rootPath.Length + 1)) | Out-Null
@@ -256,6 +272,13 @@ foreach ($rel in @("supervisor\servers.json", "renderers\cursor-global.mcp.json"
 }
 Add-Result $results "Context7 retired from managed routing" ($retiredFindings.Count -eq 0) (($retiredFindings -join "; ") -replace "^$", "context7 is not active or emitted")
 
+$serenaLauncherFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in @("supervisor\servers.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\antigravity.mcp_config.json")) {
+  $text = Get-Content -LiteralPath (Join-Path $rootPath $rel) -Raw
+  if ($text.Contains("git+https://github.com/oraios/serena") -or ($text -match '"command"\s*:\s*"[^"]*uvx(?:\.exe)?"')) { $serenaLauncherFindings.Add($rel) | Out-Null }
+}
+Add-Result $results "Serena installed launcher enforced" ($serenaLauncherFindings.Count -eq 0) (($serenaLauncherFindings -join ", ") -replace "^$", "managed Serena launchers use installed serena.exe")
+
 $depwireLauncher = "C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd"
 $depwireFindings = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in @("renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\android-studio.mcp.json", "renderers\antigravity.mcp_config.json")) {
@@ -275,7 +298,7 @@ try { $depwireContract = (Read-Json (Join-Path $rootPath "contracts\master-mcp-s
 if ($null -eq $depwireContract -or $depwireContract.mcp_requires_api_key -ne $false -or $depwireContract.pro_license_scope -ne "vscode_cursor_extension_only") {
   $depwireFindings.Add("contracts\master-mcp-server-config.json") | Out-Null
 }
-Add-Result $results "DepWire governed launcher and credential scope" ($depwireFindings.Count -eq 0) (($depwireFindings -join ", ") -replace "^$", "global depwire-cli launcher, telemetry-off env, and extension-only Pro license scope enforced")
+Add-Result $results "DepWire governed launcher and credential scope" ($depwireFindings.Count -eq 0) (($depwireFindings -join ", ") -replace "^$", "legacy rollback renderers keep their frozen depwire launcher shape; extension-only Pro license scope enforced (current policy: depwire via agentcore-gateway, telemetry ON)")
 
 $namingFindings = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in @("supervisor\servers.json", "registry\tool-registry.json", "renderers\cursor-global.mcp.json", "renderers\open-interpreter.config.fragment.json", "renderers\openclaw.openclaw.fragment.json", "renderers\minimax.mcp.json", "renderers\antigravity.mcp_config.json")) {
@@ -302,43 +325,45 @@ Add-Result $results "native-first memory plane" $nativeOk "SwarmRecall+SwarmVaul
 $criticalMissing = @($critical | Where-Object { -not $supervisor.servers.$_ })
 Add-Result $results "critical tool set" ($criticalMissing.Count -eq 0) ("missing=" + (($criticalMissing -join ", ") -replace "^$", "none"))
 
-$liveCodex = Get-LiveCodexServers
-$codexExpected = @($critical + "serena" + "depwire" | Sort-Object -Unique)
-if (-not $liveCodex.ok) {
-  Add-Result $results "live Codex routing set" $false ("codex mcp list unavailable: " + $liveCodex.error)
-  Add-Result $results "live Codex retired servers absent" $false ("codex mcp list unavailable: " + $liveCodex.error)
-  Add-Result $results "live Codex server budget" $false ("codex mcp list unavailable: " + $liveCodex.error)
-}
-else {
-  $codexMissing = @($codexExpected | Where-Object { $liveCodex.names -notcontains $_ })
-  Add-Result $results "live Codex routing set" ($codexMissing.Count -eq 0) ("missing=" + (($codexMissing -join ", ") -replace "^$", "none") + "; active=" + ($liveCodex.names -join ", "))
+if (-not $SourceOnly) {
+  # Post-Bifrost-cutover: live Codex uses one agentcore-gateway entry; direct servers and Swarm are retired.
+  $liveCodex = Get-LiveCodexServers
+  if (-not $liveCodex.ok) {
+    Add-Result $results "live Codex routing set" $false ("codex mcp list unavailable: " + $liveCodex.error)
+    Add-Result $results "live Codex retired servers absent" $false ("codex mcp list unavailable: " + $liveCodex.error)
+    Add-Result $results "live Codex server budget" $false ("codex mcp list unavailable: " + $liveCodex.error)
+  }
+  else {
+    $codexGatewayOk = $liveCodex.names -contains "agentcore-gateway"
+    Add-Result $results "live Codex routing set" $codexGatewayOk ("gateway-era expectation: single agentcore-gateway entry (+ Codex-managed extras); active=" + ($liveCodex.names -join ", "))
 
-  $retiredLiveCodex = @($liveCodex.names | Where-Object { $_ -in @("context7", "mem0_mcp_server", "artiforge__codebase_scanner", "thinking-patterns") })
-  Add-Result $results "live Codex retired servers absent" ($retiredLiveCodex.Count -eq 0) (($retiredLiveCodex -join ", ") -replace "^$", "no retired Codex servers are active")
+    $retiredLiveCodex = @($liveCodex.names | Where-Object { $_ -in @("context7", "mem0_mcp_server", "artiforge__codebase_scanner", "thinking-patterns", "swarmrecall", "swarmvault", "global-memory-gateway") })
+    Add-Result $results "live Codex retired servers absent" ($retiredLiveCodex.Count -eq 0) (($retiredLiveCodex -join ", ") -replace "^$", "no retired/Swarm servers active in live Codex")
 
-  $codexServerBudget = $liveCodex.names.Count -le 18
-  Add-Result $results "live Codex server budget" $codexServerBudget ("count=" + $liveCodex.names.Count + " limit=18 (includes DepWire plus Codex-managed plugin MCP surfaces while preserving the 1M context window)")
-}
+    $codexServerBudget = $liveCodex.names.Count -le 18
+    Add-Result $results "live Codex server budget" $codexServerBudget ("count=" + $liveCodex.names.Count + " limit=18")
+  }
 
-$agentCoreListener = Get-AgentCoreListener
-Add-Result $results "AgentCore PostgreSQL listener" $agentCoreListener.ok $agentCoreListener.detail
+  $agentCoreListener = Get-AgentCoreListener
+  Add-Result $results "AgentCore PostgreSQL listener" $agentCoreListener.ok $agentCoreListener.detail
 
-try {
-  $postgresTask = Get-ScheduledTask -TaskPath "\AgentCore\" -TaskName "PostgresRuntime" -ErrorAction Stop
-  $postgresTaskInfo = Get-ScheduledTaskInfo -TaskPath "\AgentCore\" -TaskName "PostgresRuntime" -ErrorAction Stop
-  $postgresActionText = (($postgresTask.Actions | ForEach-Object { $_.Execute + " " + $_.Arguments }) -join " ")
-  $postgresTaskOk = $postgresActionText -match "Start-AgentCorePostgres\.ps1" -and $postgresActionText -match "-StartIfStopped"
-  Add-Result $results "Postgres startup ownership" $postgresTaskOk ("state=" + [string]$postgresTask.State + "; last_result=" + [string]$postgresTaskInfo.LastTaskResult + "; action=" + $postgresActionText)
-}
-catch {
-  Add-Result $results "Postgres startup ownership" $false $_.Exception.Message
+  try {
+    $postgresTask = Get-ScheduledTask -TaskPath "\AgentCore\" -TaskName "PostgresRuntime" -ErrorAction Stop
+    $postgresTaskInfo = Get-ScheduledTaskInfo -TaskPath "\AgentCore\" -TaskName "PostgresRuntime" -ErrorAction Stop
+    $postgresActionText = (($postgresTask.Actions | ForEach-Object { $_.Execute + " " + $_.Arguments }) -join " ")
+    $postgresTaskOk = $postgresActionText -match "Start-AgentCorePostgres\.ps1" -and $postgresActionText -match "-StartIfStopped"
+    Add-Result $results "Postgres startup ownership" $postgresTaskOk ("state=" + [string]$postgresTask.State + "; last_result=" + [string]$postgresTaskInfo.LastTaskResult + "; action=" + $postgresActionText)
+  }
+  catch {
+    Add-Result $results "Postgres startup ownership" $false $_.Exception.Message
+  }
 }
 
 $expectedRendererServers = [ordered]@{
   "renderers\cursor-global.mcp.json" = @("arabold-docs", "artiforge", "context-fabric", "cursor-agent-mcp", "depwire", "filesystem", "mcp-debugger", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
   "renderers\openclaw.openclaw.fragment.json" = @("arabold-docs", "artiforge", "depwire", "eye2byte", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
-  "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "depwire", "swarmrecall", "swarmvault")
-  "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "depwire", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "swarmrecall", "swarmvault")
+  "renderers\open-interpreter.config.fragment.json" = @("arabold-docs", "artiforge", "depwire", "serena", "swarmrecall", "swarmvault")
+  "renderers\minimax.mcp.json" = @("arabold-docs", "artiforge", "depwire", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
   "renderers\antigravity.mcp_config.json" = @("arabold-docs", "artiforge", "depwire", "filesystem", "obsidian-vault", "playwright", "sequential-thinking", "serena", "swarmrecall", "swarmvault")
   "renderers\android-studio.mcp.json" = @("depwire")
 }
@@ -399,7 +424,8 @@ foreach ($rel in @(
 }
 Add-Result $results "global-memory-gateway retired from renderers" ($gatewayArgFindings.Count -eq 0) (($gatewayArgFindings -join "; ") -replace "^$", "no renderer emits the retired global-memory-gateway")
 
-# Mandatory baseline: swarmrecall + swarmvault must be present (local-only) in every first-class managed renderer.
+# Legacy direct-mode renderers are ROLLBACK-ONLY artifacts (superseded by gateway architecture).
+# They are checked for internal preservation, not enforced as current IDE policy.
 $swarmBaselineRenderers = @(
   "renderers\cursor-global.mcp.json",
   "renderers\open-interpreter.config.fragment.json",
@@ -413,7 +439,30 @@ foreach ($rel in $swarmBaselineRenderers) {
   $missing = @(@("swarmrecall", "swarmvault") | Where-Object { $_ -notin $names })
   if ($missing.Count -gt 0) { $swarmBaselineFindings.Add("$rel missing=[$($missing -join ", ")]") | Out-Null }
 }
-Add-Result $results "swarmrecall + swarmvault baseline present" ($swarmBaselineFindings.Count -eq 0) (($swarmBaselineFindings -join "; ") -replace "^$", "swarmrecall and swarmvault are present in every first-class managed renderer")
+Add-Result $results "legacy rollback renderers preserved" ($swarmBaselineFindings.Count -eq 0) (($swarmBaselineFindings -join "; ") -replace "^$", "legacy direct-mode renderer contents preserved unchanged for rollback (NOT current IDE policy; current = single agentcore-gateway entry)")
+
+# Gateway-era renderers: every gateway-client renderer must contain exactly one agentcore-gateway
+# entry and must not contain Swarm or direct per-tool servers.
+$gatewayClientFindings = [System.Collections.Generic.List[string]]::new()
+$gatewayClientDir = Join-Path $rootPath "renderers\gateway-clients"
+if (Test-Path -LiteralPath $gatewayClientDir) {
+  foreach ($file in Get-ChildItem -LiteralPath $gatewayClientDir -Filter "*.json") {
+    $rel = "renderers\gateway-clients\" + $file.Name
+    try {
+      $names = @(Get-ServerNames $file.FullName | Where-Object { $_ -ne "_agentcore" })
+      if ($names.Count -ne 1 -or $names[0] -ne "agentcore-gateway") {
+        $gatewayClientFindings.Add("$rel servers=[$($names -join ", ")]") | Out-Null
+      }
+      $text = Get-Content -LiteralPath $file.FullName -Raw
+      foreach ($banned in @("swarmrecall", "swarmvault", "swarmclaw", "global-memory-gateway")) {
+        if ($text -match [regex]::Escape($banned)) { $gatewayClientFindings.Add("$rel contains $banned") | Out-Null }
+      }
+    }
+    catch { $gatewayClientFindings.Add("$rel parse-error: $($_.Exception.Message)") | Out-Null }
+  }
+}
+else { $gatewayClientFindings.Add("renderers\gateway-clients missing") | Out-Null }
+Add-Result $results "gateway renderers single-entry no-Swarm" ($gatewayClientFindings.Count -eq 0) (($gatewayClientFindings -join "; ") -replace "^$", "every gateway-client renderer has exactly one agentcore-gateway server and no Swarm/retired entries")
 
 # Hosted Swarm routes are forbidden everywhere (local-only posture).
 $hostedSwarmFindings = [System.Collections.Generic.List[string]]::new()
@@ -478,6 +527,237 @@ if (-not (Test-Path -LiteralPath $docsPath)) { $installMissing += "arabold-docs 
 if (-not (Test-Path -LiteralPath $fabricPath)) { $installMissing += "context-fabric entrypoint missing" }
 if (-not (Test-Path -LiteralPath $depwirePath)) { $installMissing += "depwire-cli global shim missing" }
 Add-Result $results "vendored/global MCP installs" ($installMissing.Count -eq 0) (($installMissing -join "; ") -replace "^$", "arabold-docs, context-fabric, and depwire-cli entrypoints exist")
+
+# ---------------------------------------------------------------------------
+# Authority reconciliation checks (2026-07-14)
+# ---------------------------------------------------------------------------
+
+# AuthorityHierarchyComplete: all six hierarchy levels exist and DOC_AUTHORITY names them.
+$hierarchyFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in @("PROJECT_ANCHOR.md", "DOC_AUTHORITY.md", "CONTEXT_BLOCK.md", "docs\memory-platform\MEMORY_PLATFORM_EXECUTION_PLAN.md", "contracts\bifrost-upstream-mcp-registry.json", "contracts\agentcore-gateway-client.json", "docs\handoffs\AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md")) {
+  if (-not (Test-Path -LiteralPath (Join-Path $rootPath $rel))) { $hierarchyFindings.Add("missing $rel") | Out-Null }
+}
+$docAuthorityText = Get-Content -LiteralPath (Join-Path $rootPath "DOC_AUTHORITY.md") -Raw -ErrorAction SilentlyContinue
+if ($docAuthorityText -notmatch "MEMORY_PLATFORM_EXECUTION_PLAN\.md") { $hierarchyFindings.Add("DOC_AUTHORITY missing execution-plan reference") | Out-Null }
+if ($docAuthorityText -notmatch "ChaosCentral-Current-Build") { $hierarchyFindings.Add("DOC_AUTHORITY missing machine-fact authority reference") | Out-Null }
+if (-not (Test-Path -LiteralPath "D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md")) { $hierarchyFindings.Add("machine-fact authority file missing on D:") | Out-Null }
+Add-Result $results "AuthorityHierarchyComplete" ($hierarchyFindings.Count -eq 0) (($hierarchyFindings -join "; ") -replace "^$", "all six authority levels present and referenced")
+
+# NoDatabasePlanAsCurrent: DOC_AUTHORITY must not classify database-plan.md as authoritative-stable.
+$stableSection = ""
+if ($docAuthorityText -match "(?s)## Authoritative[^\r\n]{0,20}stable(.*?)## Current-state") { $stableSection = $Matches[1] }
+$dbPlanOk = $stableSection -notmatch "database-plan\.md"
+Add-Result $results "NoDatabasePlanAsCurrent" $dbPlanOk ("database-plan.md " + $(if ($dbPlanOk) { "is not classified authoritative-stable" } else { "is still classified authoritative-stable in DOC_AUTHORITY.md" }))
+
+# Banner checks on stale executable documents.
+$bannerChecks = [ordered]@{
+  "AGENT_DATABASE_BOOTSTRAP.md" = "HISTORICAL"
+  "database-plan.md" = "HISTORICAL SCHEMA EVIDENCE"
+  "CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md" = "HISTORICAL"
+  "Global-memory-and-context-system-revised-2.md" = "DO NOT EXECUTE"
+  "docs\handoffs\AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md" = "DO NOT EXECUTE"
+}
+$bannerFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in $bannerChecks.Keys) {
+  $path = Join-Path $rootPath $rel
+  if (-not (Test-Path -LiteralPath $path)) { continue }
+  $head = (Get-Content -LiteralPath $path -TotalCount 15) -join "`n"
+  if ($head -notmatch [regex]::Escape($bannerChecks[$rel])) { $bannerFindings.Add($rel) | Out-Null }
+}
+Add-Result $results "StaleDocumentsBannered" ($bannerFindings.Count -eq 0) (($bannerFindings -join ", ") -replace "^$", "all stale executable documents carry historical banners")
+
+# NoSwarmFirstCurrentRules / NoDepwireTelemetryOff / no retired gateway mandate in current rule files.
+$currentRuleFiles = @(
+  "AGENTS.md", "CLAUDE.md",
+  "rules\canonical\GLOBAL_AGENT_RULES.md", "rules\global-mcp-routing.md", "rules\environment-and-secrets.md",
+  ".cursor\rules\agentcore-env-policy.mdc", "docs\GLOBAL_AGENT_RULES.md"
+)
+$staleRuleFindings = [System.Collections.Generic.List[string]]::new()
+foreach ($rel in $currentRuleFiles) {
+  $path = Join-Path $rootPath $rel
+  if (-not (Test-Path -LiteralPath $path)) { continue }
+  $text = Get-Content -LiteralPath $path -Raw
+  if ($text -match "DEPWIRE_NO_TELEMETRY\s*=\s*1") { $staleRuleFindings.Add("$rel sets DEPWIRE_NO_TELEMETRY=1") | Out-Null }
+  if ($text -match "(?i)use\s+``?global-memory-gateway``?\s+only" -or $text -match "(?i)must\s+use\s+``?global-memory-gateway``?[\.\s]") { $staleRuleFindings.Add("$rel mandates retired global-memory-gateway") | Out-Null }
+  if ($text -match "(?i)swarmrecall.*(mandatory|required in every|must be present)" ) { $staleRuleFindings.Add("$rel makes Swarm mandatory") | Out-Null }
+}
+Add-Result $results "NoSwarmFirstCurrentRules" ($staleRuleFindings.Count -eq 0) (($staleRuleFindings -join "; ") -replace "^$", "no current rule file teaches Swarm-first, telemetry-off, or the retired gateway identity")
+
+# AGENTS.md must stay durable: mutable runtime/service/database/Milestone facts belong
+# in generated STATE projections, current handoff/evidence, and classified machine docs.
+$agentsText = Get-Content -LiteralPath (Join-Path $rootPath "AGENTS.md") -Raw -ErrorAction SilentlyContinue
+$agentsMutableFindings = [System.Collections.Generic.List[string]]::new()
+$requiredAuthorityPointer = "Mutable machine, service, database, Milestone, and runtime state belongs in the generated STATE projections"
+if ($agentsText -notmatch [regex]::Escape($requiredAuthorityPointer)) {
+  $agentsMutableFindings.Add("missing mutable-state authority pointer") | Out-Null
+}
+$agentsMutablePatterns = @(
+  [pscustomobject]@{ label = "localhost/runtime port"; pattern = "127\.0\.0\.1:\d+" },
+  [pscustomobject]@{ label = "Bifrost runtime path"; pattern = "H:\\AgentRuntime" },
+  [pscustomobject]@{ label = "runtime memory/database path"; pattern = "F:\\(?:AgentCore|PostgreSQL)" },
+  [pscustomobject]@{ label = "compatibility/live-ops runtime path"; pattern = "D:\\MCP-Control-Plane" },
+  [pscustomobject]@{ label = "PostgreSQL service state"; pattern = "PostgreSQL\s+\d+\s+runs|AgentCore-PostgreSQL\d+" },
+  [pscustomobject]@{ label = "database inventory"; pattern = "global_vector_memory_store|cognee_core|swarmrecall\s+DB|agent_core\s+database" },
+  [pscustomobject]@{ label = "Milestone completion state"; pattern = "M\d+\s+acceptance|Milestone\s+M?\d+\s+(?:complete|completed|passed)" },
+  [pscustomobject]@{ label = "commit-specific fact"; pattern = "commit\s+[0-9a-f]{7,40}|git_commit_hash" }
+)
+foreach ($check in $agentsMutablePatterns) {
+  if ($agentsText -match $check.pattern) {
+    $agentsMutableFindings.Add($check.label) | Out-Null
+  }
+}
+Add-Result $results "AGENTS durable authority pointers only" ($agentsMutableFindings.Count -eq 0) (($agentsMutableFindings -join "; ") -replace "^$", "AGENTS.md contains durable rules plus mutable-state authority pointer only")
+
+# Continual-learning transcript index is retrieval-only evidence metadata.
+$indexFindings = [System.Collections.Generic.List[string]]::new()
+$indexRel = ".cursor\hooks\state\continual-learning-index.json"
+$indexPath = Join-Path $rootPath $indexRel
+if (-not (Test-Path -LiteralPath $indexPath)) {
+  $indexFindings.Add("$indexRel missing") | Out-Null
+}
+else {
+  try {
+    $index = Read-Json $indexPath
+    if ([int]$index.version -lt 2) { $indexFindings.Add("version must be >= 2") | Out-Null }
+    if ($index.retrievalOnly -ne $true) { $indexFindings.Add("retrievalOnly must be true") | Out-Null }
+    if ($index.startupContextEligible -ne $false) { $indexFindings.Add("startupContextEligible must be false") | Out-Null }
+    $normalStatuses = @($index.normalRetrievalStatuses)
+    if ($normalStatuses.Count -ne 1 -or $normalStatuses[0] -ne "active") {
+      $indexFindings.Add("normalRetrievalStatuses must contain only active") | Out-Null
+    }
+    if (-not $index.transcripts) {
+      $indexFindings.Add("transcripts missing") | Out-Null
+    }
+    else {
+      $requiredEntryFields = @("sourcePath", "authorityClass", "mtimeUtc", "size", "sha256", "retrievalStatus")
+      $validStatuses = @("active", "quarantined", "excluded")
+      foreach ($prop in $index.transcripts.PSObject.Properties) {
+        $entryName = $prop.Name
+        $entry = $prop.Value
+        foreach ($field in $requiredEntryFields) {
+          if (-not ($entry.PSObject.Properties.Name -contains $field)) {
+            $indexFindings.Add("$entryName missing $field") | Out-Null
+          }
+        }
+        if (($entry.PSObject.Properties.Name -contains "authorityClass") -and $entry.authorityClass -ne "evidence_only") {
+          $indexFindings.Add("$entryName authorityClass=$($entry.authorityClass)") | Out-Null
+        }
+        if (($entry.PSObject.Properties.Name -contains "retrievalStatus") -and $entry.retrievalStatus -notin $validStatuses) {
+          $indexFindings.Add("$entryName retrievalStatus=$($entry.retrievalStatus)") | Out-Null
+        }
+        if (($entry.PSObject.Properties.Name -contains "sha256") -and $entry.sha256 -notmatch "^[a-f0-9]{64}$") {
+          $indexFindings.Add("$entryName invalid sha256") | Out-Null
+        }
+      }
+    }
+  }
+  catch {
+    $indexFindings.Add("$indexRel parse-error: $($_.Exception.Message)") | Out-Null
+  }
+}
+Add-Result $results "ContinualLearningTranscriptIndex" ($indexFindings.Count -eq 0) (($indexFindings -join "; ") -replace "^$", "transcript index entries are evidence-only, retrieval-only, and active-only for normal retrieval")
+
+$startupReferenceFindings = [System.Collections.Generic.List[string]]::new()
+$startupReferenceFiles = Get-ChildItem -LiteralPath $rootPath -Recurse -File -Force |
+  Where-Object {
+    $_.FullName -notmatch "\\\.git\\" -and
+    $_.FullName -notmatch "\\artifacts\\" -and
+    $_.FullName -notmatch "\\backups\\" -and
+    $_.FullName -notmatch "\\reports\\_raw\\" -and
+    $_.FullName -notmatch "\\\.cursor\\hooks\\state\\" -and
+    $_.FullName -notmatch "\\validators\\validate-control-plane\.ps1$" -and
+    $_.FullName -notmatch "\\\.cursor\\hooks\\update-continual-learning-index\.ps1$" -and
+    $_.Extension -notin @(".pyc", ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".zip")
+  }
+foreach ($file in $startupReferenceFiles) {
+  $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction SilentlyContinue
+  if (-not $text) { continue }
+  if ($text -match "continual-learning-index\.json" -and $text -match "(?i)automatic\s+startup|startup\s+context|startup_context") {
+    $startupReferenceFindings.Add($file.FullName.Substring($rootPath.Length + 1)) | Out-Null
+  }
+}
+Add-Result $results "ContinualLearningNotStartupContext" ($startupReferenceFindings.Count -eq 0) (($startupReferenceFindings -join ", ") -replace "^$", "continual-learning index is not referenced as automatic startup context")
+
+# NoDriveWriteBoundaryConflict: drive rule must not name D:\MCP-Control-Plane as authority.
+$driveRule = Get-Content -LiteralPath (Join-Path $rootPath "docs\DRIVE_WRITE_BOUNDARY_RULE.md") -Raw -ErrorAction SilentlyContinue
+$driveOk = $driveRule -notmatch "MCP-Control-Plane``?\s+is\s+the\s+authority"
+Add-Result $results "NoDriveWriteBoundaryConflict" $driveOk ($(if ($driveOk) { "drive-boundary rule points at PROJECT_ANCHOR drive roles" } else { "docs\DRIVE_WRITE_BOUNDARY_RULE.md still names D:\MCP-Control-Plane as authority" }))
+
+# PolicyDocsExist + PolicyTemplatesExist.
+$policyDocs = @(
+  "docs\agent-policy\NEW_PROJECT_BOOTSTRAP.md",
+  "docs\agent-policy\MILESTONE_EXECUTION_STANDARD.md",
+  "docs\agent-policy\CHECKLIST_STANDARD.md",
+  "docs\agent-policy\TOOL_LIFECYCLE_POLICY.md",
+  "docs\agent-policy\DOCUMENTATION_READ_ORDER.md"
+)
+$missingPolicy = @($policyDocs | Where-Object { -not (Test-Path -LiteralPath (Join-Path $rootPath $_)) })
+Add-Result $results "PolicyDocsExist" ($missingPolicy.Count -eq 0) ("missing=" + (($missingPolicy -join ", ") -replace "^$", "none"))
+
+$templateFiles = @(
+  "templates\project-governance\.agentcore\PROJECT_CHARTER.md",
+  "templates\project-governance\.agentcore\MILESTONES.md",
+  "templates\project-governance\.agentcore\TOOL_MANIFEST.yaml",
+  "templates\project-governance\.agentcore\PROJECT_STATE.json",
+  "templates\project-governance\.agentcore\RISK_REGISTER.md",
+  "templates\project-governance\.agentcore\ACCEPTANCE_TESTS.md",
+  "templates\project-governance\.agentcore\milestones\M0-bootstrap.md",
+  "templates\project-governance\.agentcore\checklists\state.json"
+)
+$missingTemplates = @($templateFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $rootPath $_)) })
+Add-Result $results "PolicyTemplatesExist" ($missingTemplates.Count -eq 0) ("missing=" + (($missingTemplates -join ", ") -replace "^$", "none"))
+
+# IDEProfileFoldersExist + IDEEditabilityDeclared.
+$gatewayClientContract = Read-Json (Join-Path $rootPath "contracts\agentcore-gateway-client.json")
+$ideFindings = [System.Collections.Generic.List[string]]::new()
+$editabilityUnverified = [System.Collections.Generic.List[string]]::new()
+$validModes = @("direct_write", "generated_prompt", "manual_import", "unsupported", "unverified")
+foreach ($ideId in $gatewayClientContract.client_render_hints.PSObject.Properties.Name) {
+  $profileDir = Join-Path $rootPath ("ide-profiles\" + $ideId)
+  if (-not (Test-Path -LiteralPath $profileDir)) { $ideFindings.Add("missing ide-profiles\$ideId") | Out-Null; continue }
+  foreach ($required in @("IDE_PROFILE.yaml", "GLOBAL_RULES.md", "INSTALL_OR_UPDATE.md", "VALIDATION.md")) {
+    if (-not (Test-Path -LiteralPath (Join-Path $profileDir $required))) { $ideFindings.Add("ide-profiles\$ideId missing $required") | Out-Null }
+  }
+  if (-not (Get-ChildItem -LiteralPath $profileDir -Filter "MCP_CONFIG_TEMPLATE.*" -ErrorAction SilentlyContinue)) { $ideFindings.Add("ide-profiles\$ideId missing MCP_CONFIG_TEMPLATE") | Out-Null }
+  $profileText = Get-Content -LiteralPath (Join-Path $profileDir "IDE_PROFILE.yaml") -Raw -ErrorAction SilentlyContinue
+  $declaredModes = @([regex]::Matches($profileText, "(?m)^\s+(global_rules|project_rules|mcp_config):\s*([a-z_]+)") | ForEach-Object { $_.Groups[2].Value })
+  if ($declaredModes.Count -lt 3) { $ideFindings.Add("ide-profiles\$ideId editability incomplete") | Out-Null }
+  foreach ($mode in $declaredModes) {
+    if ($mode -notin $validModes) { $ideFindings.Add("ide-profiles\$ideId invalid editability mode $mode") | Out-Null }
+    if ($mode -eq "unverified") { $editabilityUnverified.Add($ideId) | Out-Null }
+  }
+}
+Add-Result $results "IDEProfileFoldersExist" ($ideFindings.Count -eq 0) (($ideFindings -join "; ") -replace "^$", "profile folder with all artifacts exists for every gateway-client IDE")
+$unverifiedList = @($editabilityUnverified | Sort-Object -Unique)
+Add-Result $results "IDEEditabilityDeclared" $true ($(if ($unverifiedList.Count -gt 0) { "WARN unverified editability (allowed until live verification): " + ($unverifiedList -join ", ") } else { "all editability modes verified" }))
+
+# WildcardGrantsDocumented: permitted_tools ["*"] requires the registry transitional note.
+$bifrostRegistry = Read-Json (Join-Path $rootPath "contracts\bifrost-upstream-mcp-registry.json")
+$wildcardServers = @($bifrostRegistry.servers.PSObject.Properties | Where-Object { (@($_.Value.permitted_tools) -join ",") -eq "*" } | ForEach-Object { $_.Name })
+$wildcardOk = ($wildcardServers.Count -eq 0) -or ($null -ne $bifrostRegistry.tool_lifecycle_note)
+Add-Result $results "WildcardGrantsDocumented" $wildcardOk ("wildcard servers=" + $wildcardServers.Count + $(if ($wildcardOk) { " covered by tool_lifecycle_note transitional exception (expires at memory-platform M6)" } else { " WITHOUT documented transitional exception" }))
+
+# NoSecretsInIDEArtifacts: generated IDE artifacts must not contain resolved secret values.
+$ideArtifactFindings = [System.Collections.Generic.List[string]]::new()
+$ideArtifacts = @(Get-ChildItem -LiteralPath (Join-Path $rootPath "ide-profiles") -Recurse -File -ErrorAction SilentlyContinue) + @(Get-ChildItem -LiteralPath (Join-Path $rootPath "renderers\gateway-clients") -File -ErrorAction SilentlyContinue)
+foreach ($file in $ideArtifacts) {
+  $text = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction SilentlyContinue
+  if (-not $text) { continue }
+  foreach ($fp in $secretFalsePositives) { $text = $text.Replace($fp, "") }
+  foreach ($pattern in $secretPatterns) {
+    if ($text -match $pattern) { $ideArtifactFindings.Add($file.FullName.Substring($rootPath.Length + 1)) | Out-Null; break }
+  }
+}
+Add-Result $results "NoSecretsInIDEArtifacts" ($ideArtifactFindings.Count -eq 0) (($ideArtifactFindings -join ", ") -replace "^$", "no secret-like literals in ide-profiles or gateway-client renderers")
+
+# CanonicalPolicyRenderingsCurrent: derived IDE rule files match the canonical policy.
+try {
+  $renderCheck = & python (Join-Path $rootPath "scripts\render_ide_rules.py") --check 2>&1
+  Add-Result $results "CanonicalPolicyRenderingsCurrent" ($LASTEXITCODE -eq 0) (($renderCheck | Select-Object -Last 1) -join "")
+}
+catch {
+  Add-Result $results "CanonicalPolicyRenderingsCurrent" $false $_.Exception.Message
+}
 
 $readOnlyMissing = [System.Collections.Generic.List[string]]::new()
 foreach ($rel in $managedRelative) {

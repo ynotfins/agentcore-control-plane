@@ -1,0 +1,54 @@
+﻿OK: registry + gateway-client schemas valid
+OK: enabled servers=12 disabled/deferred=4
+OK: authority + policy contracts valid (hierarchy, banners, wildcard transitional note, rule files)
+OK: master-config drift check stub (no hard failures)
+PASS 107 checks
+OK: all contract/renderer tests passed
+# Repo Validation Report
+
+Generated: 2026-07-16T05:57:53.3491828Z
+Root: `D:\github\agentcore-control-plane`
+Overall: PASS
+
+- PASS - core governance files: missing=none
+- PASS - json parse: all json parsed
+- PASS - no hard-coded secrets: no secret-like literals found
+- PASS - correct env references only: all placeholder env vars are allowlisted
+- PASS - Context7 retired from managed routing: context7 is not active or emitted
+- PASS - Serena installed launcher enforced: managed Serena launchers use installed serena.exe
+- PASS - DepWire governed launcher and credential scope: legacy rollback renderers keep their frozen depwire launcher shape; extension-only Pro license scope enforced (current policy: depwire via agentcore-gateway, telemetry ON)
+- PASS - correct Artiforge naming: artiforge is the only current managed name
+- PASS - Composio quarantined: supervisor and registry lifecycle are quarantined; renderers do not emit composio
+- PASS - native-first memory plane: SwarmRecall+SwarmVault active, global-memory-gateway retired, raw Mem0 quarantined
+- PASS - critical tool set: missing=none
+- PASS - live Codex routing set: gateway-era expectation: single agentcore-gateway entry (+ Codex-managed extras); active=agentcore-gateway, github, node_repl, sites-design-picker
+- PASS - live Codex retired servers absent: no retired/Swarm servers active in live Codex
+- PASS - live Codex server budget: count=4 limit=18
+- PASS - AgentCore PostgreSQL listener: listener pid=44212 endpoint=127.0.0.1:55433
+- PASS - Postgres startup ownership: state=Ready; last_result=1; action=powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\github\agentcore-control-plane\ops\Start-AgentCorePostgres.ps1" -StartIfStopped
+- PASS - approved renderer server sets: renderers\cursor-global.mcp.json count=13; renderers\openclaw.openclaw.fragment.json count=11; renderers\open-interpreter.config.fragment.json count=6; renderers\minimax.mcp.json count=10; renderers\antigravity.mcp_config.json count=10; renderers\android-studio.mcp.json count=1
+- PASS - managed live client configs readable: Cursor count=1; OpenClaw count=13; Open Interpreter count=1; MiniMax Code count=5; MiniMax Code Legacy count=5; Antigravity count=3; Antigravity Roaming count=1
+- PASS - global-memory-gateway retired from renderers: no renderer emits the retired global-memory-gateway
+- PASS - legacy rollback renderers preserved: legacy direct-mode renderer contents preserved unchanged for rollback (NOT current IDE policy; current = single agentcore-gateway entry)
+- PASS - gateway renderers single-entry no-Swarm: every gateway-client renderer has exactly one agentcore-gateway server and no Swarm/retired entries
+- PASS - no hosted Swarm routes: no hosted SwarmRecall/SwarmVault URLs in renderers or supervisor
+- PASS - no active :65432 route: no :65432 route present in managed configs/contracts
+- PASS - live managed MCP configs sanitized: no raw MCP secrets or retired hosted routes found
+- PASS - vendored/global MCP installs: arabold-docs, context-fabric, and depwire-cli entrypoints exist
+- PASS - AuthorityHierarchyComplete: all six authority levels present and referenced
+- PASS - NoDatabasePlanAsCurrent: database-plan.md is not classified authoritative-stable
+- PASS - StaleDocumentsBannered: all stale executable documents carry historical banners
+- PASS - NoSwarmFirstCurrentRules: no current rule file teaches Swarm-first, telemetry-off, or the retired gateway identity
+- PASS - AGENTS durable authority pointers only: AGENTS.md contains durable rules plus mutable-state authority pointer only
+- PASS - ContinualLearningTranscriptIndex: transcript index entries are evidence-only, retrieval-only, and active-only for normal retrieval
+- PASS - ContinualLearningNotStartupContext: continual-learning index is not referenced as automatic startup context
+- PASS - NoDriveWriteBoundaryConflict: drive-boundary rule points at PROJECT_ANCHOR drive roles
+- PASS - PolicyDocsExist: missing=none
+- PASS - PolicyTemplatesExist: missing=none
+- PASS - IDEProfileFoldersExist: profile folder with all artifacts exists for every gateway-client IDE
+- PASS - IDEEditabilityDeclared: WARN unverified editability (allowed until live verification): antigravity, mavis, minimax
+- PASS - WildcardGrantsDocumented: wildcard servers=14 covered by tool_lifecycle_note transitional exception (expires at memory-platform M6)
+- PASS - NoSecretsInIDEArtifacts: no secret-like literals in ide-profiles or gateway-client renderers
+- PASS - CanonicalPolicyRenderingsCurrent: OK: all IDE GLOBAL_RULES.md renderings current
+- PASS - managed files re-locked: all managed files are read-only
+PASS: Repo validation succeeded. Dry-run only; no report files written.

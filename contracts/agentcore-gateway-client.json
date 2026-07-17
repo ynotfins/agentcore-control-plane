@@ -1,0 +1,93 @@
+{
+  "schema_version": "2026-07-12",
+  "name": "agentcore-gateway",
+  "display_name": "AgentCore Bifrost MCP Gateway",
+  "url": "http://127.0.0.1:8080/mcp",
+  "host": "127.0.0.1",
+  "port": 8080,
+  "auth": {
+    "type": "bearer",
+    "header_name": "Authorization",
+    "env_var_name": "BIFROST_MCP_VIRTUAL_KEY",
+    "header_template": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+  },
+  "transport": "http/streamable",
+  "timeout_seconds": 300,
+  "client_render_hints": {
+    "cursor": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
+      "syntax": "cursor_mcp_json",
+      "supports_env_headers": true,
+      "notes": [
+        "Use type http/url + headers Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      ]
+    },
+    "codex": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.codex\\config.toml",
+      "syntax": "codex_toml",
+      "supports_env_headers": true,
+      "notes": [
+        "Replace [mcp_servers.*] baseline entries with a single agentcore-gateway HTTP server while preserving Codex-managed extras such as node_repl and plugin-provided MCP servers",
+        "Use bearer_token_env_var = \"BIFROST_MCP_VIRTUAL_KEY\" so Codex constructs Authorization: Bearer without materializing the secret or treating an env placeholder as a static header",
+        "Map the 300-second contract timeout to startup_timeout_sec = 300 and tool_timeout_sec = 300; do not emit the unsupported generic timeout_seconds field"
+      ]
+    },
+    "claude-code": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.claude.json",
+      "syntax": "claude_code_json",
+      "supports_env_headers": true,
+      "notes": [
+        "Merge into mcpServers if present; do not invent unrelated top-level keys"
+      ]
+    },
+    "claude-desktop": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Claude\\claude_desktop_config.json",
+      "syntax": "claude_desktop_json",
+      "supports_env_headers": false,
+      "notes": [
+        "If env expansion unsupported, cutover may materialize VK from User env into live config only"
+      ]
+    },
+    "minimax": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "syntax": "minimax_mcp_json",
+      "supports_env_headers": true
+    },
+    "antigravity": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+      "alternate_config_paths": [
+        "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json"
+      ],
+      "syntax": "antigravity_mcp_json",
+      "supports_env_headers": true
+    },
+    "mavis": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json",
+      "syntax": "mavis_mcp_json",
+      "supports_env_headers": true
+    },
+    "open-interpreter": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json",
+      "syntax": "open_interpreter_json",
+      "supports_env_headers": false,
+      "notes": [
+        "Materialize VK into live config only when env headers unsupported"
+      ]
+    }
+  },
+  "notes": [
+    "Cursor's canonical active MCP file is C:\\Users\\ynotf\\.cursor\\mcp.json; project-level gateway entries are rollback-only or drift unless explicitly authorized.",
+    "Project-specific behavior is selected through agentcore-project-router, not duplicate per-repo gateway entries.",
+    "Do not edit OpenClaw/ClawX as part of Bifrost IDE cutover.",
+    "Swarm product installs remain untouched; Swarm MCP entries are removed from non-Swarm IDE baselines during cutover.",
+    "Never commit resolved virtual key values."
+  ]
+}

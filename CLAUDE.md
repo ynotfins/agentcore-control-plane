@@ -3,37 +3,48 @@
 `AGENTS.md` and `PROJECT_ANCHOR.md` are the canonical contracts for this repo. Read them first; this
 file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wins.
 
-## Native-first memory (2026-07-01 override — PROJECT_ANCHOR.md §0)
+## Non-Swarm gateway baseline (2026-07-12 override — PROJECT_ANCHOR.md §0)
 
-- Native SwarmRecall (memory/graph/learnings/skills/pools) + native SwarmVault (RAG/wiki/context/
-  task ledger) are the automatic default memory/RAG plane for every IDE and agent.
-- `global-memory-gateway` is RETIRED from the mandatory baseline and from all IDE default configs,
-  renderers, and the master contract default surfaces (now in `default_exclusions.must_not_emit`).
-  Do not re-introduce it into any IDE baseline.
-- The `agent_core` governed DB (`127.0.0.1:55432`) and the memory projector remain available for
-  governed/curated flows but are not the default IDE memory route.
+- Cursor, Claude, Codex, MiniMax, Mavis, Antigravity, and Open Interpreter use the single
+  non-Swarm gateway entry `agentcore-gateway` at `http://127.0.0.1:8080/mcp`.
+- Cursor's canonical global MCP file is `C:\Users\ynotf\.cursor\mcp.json`; project-level
+  gateway duplicates are not normal.
+- The default non-Swarm memory identity is `agentcore-memory` behind Bifrost. SwarmRecall,
+  SwarmVault, and SwarmClaw remain separate Swarm ecosystem components and are not required
+  in non-Swarm IDE MCP baselines.
+- `global-memory-gateway` remains retired from IDE defaults.
 
 ## Guardrails
 
 - Source authority = `D:\github\agentcore-control-plane`; `D:\MCP-Control-Plane` is evidence only.
 - Secrets: Windows User-scope environment variables only. Never print values; never create `.env`;
   never commit secrets, rendered PAT URLs, DB dumps, or `F:\AgentCore` runtime state.
-- Drives: `C:` OS/config, `D:` repos/projects/worktrees, `F:` hot DB/RAG/search, `E:` archive/cold,
-  `G:` backup. Postgres `127.0.0.1:55432`; `agent_core` and `swarmrecall` are separate DBs; `:65432`
-  is forbidden.
+- Drives: `C:` OS/config, `D:` repos/projects/worktrees, `E:` archive/cold, `F:` hot DB/RAG/search,
+  `G:` backup, `H:` AgentRuntime (live Bifrost gateway — never format), `I:` disposable scratch,
+  `J:` portable media. PostgreSQL 18 `agent_core` / `cognee_core` uses `127.0.0.1:55433`;
+  PostgreSQL 16 at `127.0.0.1:55432` is preserved only for rollback/legacy evidence and Swarm-owned
+  databases. `:65432` is forbidden.
 - Renderers under `renderers/` are marked read-only by convention; clear the attribute only for an
   approved edit and restore it afterward.
-- DepWire uses global `depwire-cli@1.8.2` at
-  `C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd mcp` with `DEPWIRE_NO_TELEMETRY=1`. Its local
-  MCP server has no API/license key; Pro activation is the Cursor/VS Code extension setting
-  `depwire.licenseKey` only. Use verified local repo paths and require approval for remote clone/pull.
-  Keep the local `.depwire/` cache/runtime directory and `depwire-output.json` globally ignored.
+- DepWire: primary route is through `agentcore-gateway` (Bifrost `depwire` upstream). The local CLI at
+  `C:\Users\ynotf\AppData\Roaming\npm\depwire.cmd mcp` (`depwire-cli@1.8.2`) is a diagnostics-only
+  fallback. Telemetry stays enabled — do **not** set `DEPWIRE_NO_TELEMETRY` unless the operator
+  explicitly asks. The local MCP server has no API/license key; Pro activation is the Cursor/VS Code
+  extension setting `depwire.licenseKey` only. Use verified local repo paths and require approval for
+  remote clone/pull. Keep `.depwire/` cache/runtime state and `depwire-output.json` globally ignored.
+- Project execution: follow `docs/agent-policy/` (New Project Bootstrap, Milestones, Macro/Micro
+  checklists, tool audits, progressive tool disclosure). Memory/database work follows
+  `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`.
 - Git: push after every completed task; do not pull/fetch/merge/rebase unless the operator asks.
 
 ## Runtime facts
 
 ```text
-PostgreSQL:      127.0.0.1:55432   (F:\AgentCore\database_cluster)
+Bifrost gateway: http://127.0.0.1:8080/mcp   (H:\AgentRuntime\bifrost; scheduled task \AgentCore\AgentCore-Bifrost-Gateway)
+PostgreSQL 18:   127.0.0.1:55433   (F:\PostgreSQL18\data; canonical AgentCore agent_core + cognee_core)
+PostgreSQL 16:   127.0.0.1:55432   (F:\AgentCore\database_cluster; rollback/legacy evidence and Swarm-owned DBs only)
+
+Swarm ecosystem (separate — not part of non-Swarm IDE baselines):
 SwarmRecall API: http://127.0.0.1:3300   (health /api/v1/health)
 Meilisearch:     http://127.0.0.1:7700
 SwarmVault root: F:\AgentCore\agentmemory\swarmvault   (file-based)

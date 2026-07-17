@@ -2,6 +2,11 @@
 
 Generated: 2026-06-24
 
+> **Bifrost override (2026-07-14):** Normal non-Swarm IDE agents do not connect
+> directly to PostgreSQL and no longer use `global-memory-gateway` as an IDE
+> baseline. The current live path is `agentcore-gateway` → `agentcore-memory`;
+> this document remains database/runtime background for `agent_core`.
+
 ## Runtime
 
 - Engine: PostgreSQL 16.6
@@ -36,7 +41,7 @@ Generated: 2026-06-24
 | `agent_read` | read-only inspection and validation | yes, read-only | `SELECT` only |
 | `postgres` | break-glass local maintenance | yes | superuser |
 
-Normal IDE agents must not connect directly to PostgreSQL. They must use `global-memory-gateway`.
+Normal IDE agents must not connect directly to PostgreSQL. They must use `agentcore-gateway` → `agentcore-memory`; any future memory catalog/router work is gated by `database-plan.md`.
 
 Generated role passwords are stored as Windows User-scope environment variables:
 

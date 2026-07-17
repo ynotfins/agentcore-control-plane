@@ -1,10 +1,10 @@
 param(
-  [string]$EngineRoot = "F:\AgentCore\postgres_runtime_engine\pgsql",
-  [string]$DataDir = "F:\AgentCore\database_cluster",
+  [string]$EngineRoot = "F:\PostgreSQL18",
+  [string]$DataDir = "F:\PostgreSQL18\data",
   [string]$HostName = "127.0.0.1",
-  [int]$Port = 55432,
+  [int]$Port = 55433,
   [string]$Database = "agent_core",
-  [string]$User = "agent_read",
+  [string]$User = "postgres",
   [switch]$StartIfStopped,
   [int]$ReadyTimeoutSeconds = 150
 )
@@ -126,9 +126,11 @@ function Move-AgentCoreStalePostmasterPid {
 if (-not $env:PGPASSWORD) {
   if ($User -eq "agent_read") {
     $env:PGPASSWORD = [Environment]::GetEnvironmentVariable("AGENT_CORE_AGENT_READ_PASSWORD", "User")
-  } elseif ($User -eq "agent_ingest") {
+  } elseif ($User -eq "agentcore_read") {
+    $env:PGPASSWORD = [Environment]::GetEnvironmentVariable("AGENT_CORE_AGENT_READ_PASSWORD", "User")
+  } elseif ($User -eq "agent_ingest" -or $User -eq "agentcore_ingest") {
     $env:PGPASSWORD = [Environment]::GetEnvironmentVariable("AGENT_CORE_AGENT_INGEST_PASSWORD", "User")
-  } elseif ($User -eq "agent_admin") {
+  } elseif ($User -eq "agent_admin" -or $User -eq "agentcore_admin") {
     $env:PGPASSWORD = [Environment]::GetEnvironmentVariable("AGENT_CORE_AGENT_ADMIN_PASSWORD", "User")
   } elseif ($User -eq "postgres") {
     $env:PGPASSWORD = [Environment]::GetEnvironmentVariable("AGENT_CORE_POSTGRES_PASSWORD", "User")
@@ -185,8 +187,8 @@ if ($running -and (Test-Path -LiteralPath $psql)) {
   $psqlOutput = Invoke-AgentCoreNative -Command $psql -Arguments @("-h", $HostName, "-p", [string]$Port, "-U", $User, "-d", $Database, "-t", "-A", "-c", $query)
   Add-Check $checks "pgvector extension" ($psqlOutput.ExitCode -eq 0 -and $psqlOutput.Output.Length -gt 0) $psqlOutput.Output
 
-  $countOutput = Invoke-AgentCoreNative -Command $psql -Arguments @("-h", $HostName, "-p", [string]$Port, "-U", $User, "-d", $Database, "-t", "-A", "-c", "SELECT COUNT(*) FROM global_vector_memory_store;")
-  Add-Check $checks "vector table query" ($countOutput.ExitCode -eq 0) $countOutput.Output
+  $countOutput = Invoke-AgentCoreNative -Command $psql -Arguments @("-h", $HostName, "-p", [string]$Port, "-U", $User, "-d", $Database, "-t", "-A", "-c", "SELECT COUNT(*) FROM agentcore.evidence_events;")
+  Add-Check $checks "AgentCore evidence ledger query" ($countOutput.ExitCode -eq 0) $countOutput.Output
 }
 
 $failed = @($checks | Where-Object { -not $_.passed })

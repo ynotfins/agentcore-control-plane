@@ -1,8 +1,21 @@
-# AgentCore Unified Memory Catalog — Migrations
+# AgentCore Unified Memory Catalog — Historical Root Migrations
 
-**Status:** PRE-MIGRATION. These files do NOT authorize live DB mutation.
-**Design authority:** `../database-plan.md` (schema_version 2026-06-30, §6 DDL, §13 strategy).
-**Target DB:** PostgreSQL `agent_core` on `127.0.0.1:55432` (NOT `swarmrecall`, NOT `:65432`).
+> **HISTORICAL SCHEMA EVIDENCE — DO NOT APPLY TO CURRENT AGENTCORE.**
+> These root `000*.sql` migrations predate `BLUEPRINT.md` and the PostgreSQL 18 cutover.
+> Current non-Swarm AgentCore migrations are the milestone-scoped migrations under
+> `migrations/m2` through `migrations/m6`, targeting
+> PostgreSQL 18 at `127.0.0.1:55433`.
+
+Within M3, apply `001_up_lossless_context_state_projections.sql` before
+`002_up_unbounded_recovery_context_profiles.sql`. M3.002 is additive: it preserves the locked M3
+architecture while making model-aware active context, stable full-history recovery,
+non-destructive summary correction, and governed project snapshots explicit. Never apply a
+milestone migration to live `agent_core` without the approved admin runner, backup/restore gate,
+and operator authorization.
+
+**Status:** historical evidence. These files do NOT authorize live DB mutation.
+**Historical design input:** `../database-plan.md` (schema_version 2026-06-30, §6 DDL, §13 strategy).
+**Historical target DB:** PostgreSQL `agent_core` on `127.0.0.1:55432` (NOT `swarmrecall`, NOT `:65432`).
 
 ## Hard rules
 - Additive only. Existing tables (`global_vector_memory_store`, `agent_cross_project_telemetry`, `system_info`, `projects`, `project_facts`, `messages`, `embeddings`) are NEVER altered by these migrations.
@@ -18,7 +31,7 @@
 
 Apply order: `0001 -> 0002 -> 0003 -> 0004 -> 0005`. Each `down` reverses its `up`.
 
-## Pre-migration gates (database-plan.md §13.1 — ALL must pass before any apply)
+## Historical pre-migration gates (database-plan.md §13.1 — not current)
 1. `ops/Backup-AgentCorePostgres.ps1` — successful base backup (within 24h, §18.13).
 2. `ops/Test-AgentCorePostgresRestore.ps1` — restore verify into `agent_core_restore_test`.
 3. `ops/Test-AgentCoreSwarmRecall.ps1` — service health.

@@ -1,0 +1,166 @@
+{
+  "run_ts": "20260716094606",
+  "repo_root": "D:\\github\\agentcore-control-plane",
+  "total": 26,
+  "passed": 26,
+  "failed": 0,
+  "overall": "PASS",
+  "checks": [
+    {
+      "check": 1,
+      "name": "PostgreSQL 18 reachable, agent_core accessible",
+      "status": "PASS",
+      "detail": "version=PostgreSQL 18.4 on x86_64-windows, compiled by msv, db=agent_core"
+    },
+    {
+      "check": 2,
+      "name": "Bifrost gateway reachable (returns 401)",
+      "status": "PASS",
+      "detail": "status=401"
+    },
+    {
+      "check": 3,
+      "name": "Memory service 10-tool surface intact",
+      "status": "PASS",
+      "detail": "all 10 tools present"
+    },
+    {
+      "check": 4,
+      "name": "node_post_exec_judge exists in nodes module",
+      "status": "PASS",
+      "detail": "node_post_exec_judge callable"
+    },
+    {
+      "check": 5,
+      "name": "DA critic routes always to post_exec_judge",
+      "status": "PASS",
+      "detail": "found 'post_exec_judge' route in node_da_critic"
+    },
+    {
+      "check": 6,
+      "name": "requirements.txt exists and is pinned",
+      "status": "PASS",
+      "detail": "7 pinned packages in requirements.txt"
+    },
+    {
+      "check": 7,
+      "name": "AgentCore-Bifrost-Gateway scheduled task exists",
+      "status": "PASS",
+      "detail": "state='Running'"
+    },
+    {
+      "check": 8,
+      "name": "Backup-AgentCorePostgres.ps1 exists",
+      "status": "PASS",
+      "detail": "D:\\github\\agentcore-control-plane\\ops\\Backup-AgentCorePostgres.ps1"
+    },
+    {
+      "check": 9,
+      "name": "Test-AgentCorePostgresRestore.ps1 exists",
+      "status": "PASS",
+      "detail": "D:\\github\\agentcore-control-plane\\ops\\Test-AgentCorePostgresRestore.ps1"
+    },
+    {
+      "check": 10,
+      "name": "Test-AgentCorePg18Pitr.ps1 exists",
+      "status": "PASS",
+      "detail": "D:\\github\\agentcore-control-plane\\ops\\Test-AgentCorePg18Pitr.ps1"
+    },
+    {
+      "check": 11,
+      "name": "No Swarm tables in agent_core (wf_ tables present)",
+      "status": "PASS",
+      "detail": "wf_tables=12, swarm_tables=0"
+    },
+    {
+      "check": 12,
+      "name": "M6 regression passes (m6_acceptance.py)",
+      "status": "PASS",
+      "detail": "exit=0; last=Summary: D:\\github\\agentcore-control-plane\\audits\\M6\\m6-acceptance-summary.json"
+    },
+    {
+      "check": 13,
+      "name": "IDE_CAPABILITY_MATRIX.yaml exists",
+      "status": "PASS",
+      "detail": "has m8_enrollment field"
+    },
+    {
+      "check": 14,
+      "name": "GLOBAL_STATE.md exists at C:\\Users\\ynotf\\.agentcore\\",
+      "status": "PASS",
+      "detail": "size=6318b"
+    },
+    {
+      "check": 15,
+      "name": "No secrets in key config files",
+      "status": "PASS",
+      "detail": "clean"
+    },
+    {
+      "check": 16,
+      "name": "DA bounded: critic read-only, builder write, MemoryMiddleware disabled",
+      "status": "PASS",
+      "detail": "read_only_critic=yes, builder_write=yes, memory_mw_disabled=yes"
+    },
+    {
+      "check": 17,
+      "name": "Operator CLI exists (scripts/agentcore/__main__.py)",
+      "status": "PASS",
+      "detail": "__main__.py=ok, __init__.py=ok"
+    },
+    {
+      "check": 18,
+      "name": "Capability leases isolated (project_id FK + assert_project_scope)",
+      "status": "PASS",
+      "detail": "capability_profiles.project_id=present, assert_project_scope=present"
+    },
+    {
+      "check": 19,
+      "name": "M7 acceptance passes (test_m7_acceptance.py)",
+      "status": "PASS",
+      "detail": "exit=0; last=Summary: D:\\github\\agentcore-control-plane\\audits\\M7\\m7-acceptance-summary.json"
+    },
+    {
+      "check": 20,
+      "name": "Swarm isolation: no SwarmRecall tools in agentcore-memory",
+      "status": "PASS",
+      "detail": "no Swarm tools found in agentcore-memory"
+    },
+    {
+      "check": 21,
+      "name": "A/B worker module exists with required symbols",
+      "status": "PASS",
+      "detail": "all A/B symbols present"
+    },
+    {
+      "check": 22,
+      "name": "Low-risk never enables A/B; qualifying high-risk does",
+      "status": "PASS",
+      "detail": "low=False med=False high+low_u=False high+hi_u=True critical=True"
+    },
+    {
+      "check": 23,
+      "name": "da_critic routes to ab_alternate when ab_enabled=True",
+      "status": "PASS",
+      "detail": "ab_alternate_route=True uses_ab_enabled=True"
+    },
+    {
+      "check": 24,
+      "name": "post_exec_judge A/B comparison: correct selection in all 4 cases",
+      "status": "PASS",
+      "detail": "case1(A wins skip)=True case2(B wins high)=True case3(both_rejected)=True case4(A tiebreak)=True"
+    },
+    {
+      "check": 25,
+      "name": "ab_alternate node wired into workflow graph with conditional routing",
+      "status": "PASS",
+      "detail": "ab_node=True conditional_da_critic=True ab_to_pej=True"
+    },
+    {
+      "check": 26,
+      "name": "IDE matrix: Cursor live_validated; no raw artifact_generated claims",
+      "status": "PASS",
+      "detail": "cursor=live_validated invalid_statuses=[]"
+    }
+  ]
+}

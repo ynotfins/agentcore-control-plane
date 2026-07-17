@@ -1,5 +1,10 @@
 # Global Agent Rules
 
+> **Canonical policy pointer (2026-07-14):** The full canonical global agent policy now lives in
+> `rules/canonical/GLOBAL_AGENT_RULES.md` and `contracts/global-agent-policy.yaml`, with project
+> execution standards in `docs/agent-policy/`. This file remains for the environment-variable and
+> write-class rules below, updated to the current gateway identities.
+
 ## Environment Variable Policy
 
 AgentCore does not use `.env` files for secrets or local runtime configuration.
@@ -27,7 +32,7 @@ Known current AgentCore variables include:
 ### Normal IDE Agents
 
 - No direct SQL into PostgreSQL.
-- Use `global-memory-gateway` only.
+- Use `agentcore-gateway` → `agentcore-memory` only (the retired `global-memory-gateway` identity must not be reintroduced).
 - Read project facts and static facts before planning.
 
 ### Trusted Ingest Agents
@@ -45,8 +50,10 @@ Known current AgentCore variables include:
 ## Source And Runtime Separation
 
 - Source repos: `D:\github`
-- Runtime data: `F:\AgentCore`
-- Backups: `E:\AgentCoreBackups`
+- Hot runtime data: `F:\AgentCore` (database/vector/index tier)
+- Gateway/agent runtime: `H:\AgentRuntime` (live Bifrost gateway — never format H:)
+- Archive/cold + backups: `E:\AgentCoreArchive` (second backup copy: `G:`)
+- Disposable scratch: `I:` — portable media: `J:`
 
 Do not place runtime databases, logs, backups, incident data, or private response data inside source repositories.
 
@@ -58,9 +65,9 @@ Do not place runtime databases, logs, backups, incident data, or private respons
 
 ## Gateway Contract
 
-- `global-memory-gateway` must use `agent_ingest` through Windows environment variables.
-- Expected pattern:
+- Normal IDE agents reach memory through one MCP entry: `agentcore-gateway` (`http://127.0.0.1:8080/mcp`) → `agentcore-memory`.
+- Any database ingest path must use `agent_ingest` through Windows environment variables via approved ops/admin runners only:
   - `AGENT_CORE_PGUSER=agent_ingest`
   - `AGENT_CORE_PGPASSWORD=${env:AGENT_CORE_AGENT_INGEST_PASSWORD}`
 
-Normal IDE agents must not bypass the gateway with direct PostgreSQL writes.
+Normal IDE agents must not bypass the gateway with direct PostgreSQL writes. The memory platform build follows `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`.

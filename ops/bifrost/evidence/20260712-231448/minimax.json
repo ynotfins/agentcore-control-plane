@@ -1,0 +1,21 @@
+{
+  "existed": true,
+  "client": "minimax",
+  "action": "updated",
+  "backup": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json.bifrost-cutover-20260712-231448.bak",
+  "path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+  "removed": [
+    "arabold-docs",
+    "artiforge",
+    "cursor-agent-mcp",
+    "filesystem",
+    "mcp-debugger",
+    "obsidian-vault",
+    "playwright",
+    "serena",
+    "sequential-thinking",
+    "swarmrecall",
+    "swarmvault",
+    "context-fabric"
+  ]
+}

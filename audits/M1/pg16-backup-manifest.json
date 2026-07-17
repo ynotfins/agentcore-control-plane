@@ -1,0 +1,14 @@
+{
+  "sha256": "41EB3818F2BEFC7CE82FF02E50C92607085841900E9C6FB66D2284FD80018419",
+  "restore_list_entries": 66,
+  "backup_path": "E:\\AgentCoreArchive\\backups_cold\\pgvector\\base\\agent_core-20260714-232021.dump",
+  "database": "agent_core",
+  "size_bytes": 731279,
+  "pg_version": "16.6",
+  "timestamp": "2026-07-14T23:20:21Z",
+  "type": "logical_pg_dump",
+  "physical_backup_path": "E:\\AgentCoreArchive\\pg16-base-backup-20260714-232106",
+  "physical_backup_base_sha256": "BD17F1FA4FC81A498AA94F8D8EB28E5B3DF7E926114B479A533D6435BC1F64EC",
+  "physical_backup_wal_sha256": "E5EC3784115F30BD886F7AADBFB665207C88D8985A5302CC657B9C14DC10B5EA",
+  "physical_backup_size_mb": 12.8
+}
