@@ -61,8 +61,15 @@ Steps:
 13. Activate the project through agentcore_project_router before project-scoped work.
 14. Self-enroll through agentcore_memory-session_open with verified client, repository/worktree/Git, selected provider/model, and named context-profile identity. Do not lower the IDE model's configured hard context window.
 15. Call agentcore_memory-startup_context with that profile and confirm the reported hard limit matches the selected capability; 4096 is acceptance/legacy-only.
-16. Smoke-test agentcore_memory-retrieve_context recovery pagination and agentcore_memory-expand_source before asking the operator to repeat missing history.
-17. Record sanitized evidence: IDE name, config path, backup path, hashes, discovery/tool count, context profile, recovery result, blockers, rollback.
+16. Before any tool execution, append the original visible operator prompt verbatim (after secret redaction) using a deterministic idempotency key via agentcore_memory-append_event.
+17. Smoke-test agentcore_memory-retrieve_context recovery pagination and agentcore_memory-expand_source before asking the operator to repeat missing history.
+18. Call agentcore_memory-build_handoff and verify projection revisions are present.
+19. Call agentcore_memory-session_close to confirm clean close behavior (ended_at set).
+20. Verify resume: re-open with the same session_key and confirm the original session_id is returned and prior events are accessible.
+21. Verify project isolation: a different project_key must not return events from the first project.
+22. Verify the tool surface is exactly ten agentcore-memory tools: memory_status, startup_context, retrieve_context, append_event, propose_fact, expand_source, session_open, session_close, build_handoff, docs_search. Any deviation is a validation failure.
+23. Record sanitized evidence: IDE name, config path, backup path, hashes, discovery/tool count, context profile, recovery result, resume result, isolation result, blockers, rollback.
+24. Mark the IDE live_validated only after all lifecycle steps 14–22 pass with evidence. Do not claim live_validated from config inspection alone.
 
 Canonical Cursor target:
 C:\Users\ynotf\.cursor\mcp.json

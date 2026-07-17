@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md
 
-**Updated:** 2026-07-17 — M8 consolidation: canonical source path, feature worktree retired, resource-location model (M8.001), database gating verified, CONTEXT_INDEX policy added
+**Updated:** 2026-07-17 — M8 hardening: continuous context durability, resume semantics, v_client_memory_continuity view, central durability audit, layered-frequency tasks, project-centric memory model, IDE lifecycle validation
 **Authority:** `PROJECT_ANCHOR.md` §0 Bifrost Gateway Override
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`
 
@@ -316,6 +316,114 @@ Sanitized renderers (source-controlled):
 Live paths are listed in `contracts/agentcore-gateway-client.json` → `client_render_hints`.
 Cutover automation: `ops/bifrost/Invoke-AgentCoreIdeGatewayCutover.ps1`.
 **Out of scope:** OpenClaw / ClawX.
+
+---
+
+## 9.5. Continuous durable capture and project-centric memory
+
+Authority: `contracts/global-agent-policy.yaml` rule `memory-lifecycle-continuous-capture`.
+
+### Canonical project bootstrap entry points
+
+```text
+<project>\.agentcore\STATE.md          — generated projection of current state
+<project>\.agentcore\DECISIONS.md      — generated projection of accepted decisions
+<project>\.agentcore\CONTEXT_INDEX.md  — generated projection of resource locations
+```
+
+These files are **generated, never edited by agents**. PostgreSQL is canonical. Agents
+contribute events through `agentcore-memory`; the projection worker writes files atomically.
+
+### Canonical service entry point at every new chat
+
+```text
+1. Resolve and activate the registered project/worktree via agentcore-project-router.
+2. Read generated <project>\.agentcore\STATE.md.
+3. Call session_open with a stable session_key:
+     - reuse the same session_key when continuing the same task;
+     - create a new session_key for a new task under the same project.
+4. Call startup_context with the selected model context profile.
+5. Use retrieve_context for missing chronology.
+6. Use expand_source for exact original verification.
+7. Verify project, repository, worktree, client, agent, session, and thread identity.
+```
+
+### Client-specific filesystem layout (ephemeral only)
+
+Client-specific directories may contain **only** ephemeral artifacts. Canonical project
+history must never be placed here.
+
+```text
+H:\AgentRuntime\clients\<client_key>\
+  cache\        — reconstructable retrieval or parse caches
+  logs\         — ephemeral session logs (not evidence; not committed)
+  scratch\      — temporary working files (deleted at task close)
+  bundles\      — temporary context bundles (regenerated from PostgreSQL)
+```
+
+Durable project artifacts, evidence events, summaries, and projections belong in
+PostgreSQL and the registered artifact store, not in `H:\AgentRuntime\clients\`.
+
+### Continuous capture timing
+
+| Timing | What to append |
+|---|---|
+| Before tool execution | Original visible operator prompt verbatim (after secret redaction), with deterministic idempotency key bound to project/client/agent/session |
+| After each Micro step | Accepted requirements, constraints, decisions, blockers, tool results, test results, commits, and state transitions |
+| At clean close | Final verified state, compaction queue, handoff, `session_close` |
+| After unclean restart | Recovery event; resume latest open session; retrieve events after last projection |
+
+### Power-loss recovery guarantee
+
+The durability guarantee begins at `append_event` (not at model generation). Content still
+being generated and never emitted cannot be recovered — document this honestly.
+
+### Client continuity view
+
+```sql
+-- Non-secret per-client status query:
+SELECT client_key, agent_key, project_key, session_key,
+       last_session_open, last_append, last_handoff, last_projection,
+       projection_revision, last_close, continuity_status
+FROM agentcore.v_client_memory_continuity;
+-- continuity_status values: healthy | stale | open_no_events | projection_stale |
+--                           closed | closed_no_handoff
+```
+
+Source migration: `migrations/m8/002_up_client_memory_continuity_view.sql`
+
+### Central durability audit
+
+Script: `ops/Test-AgentCoreDurabilityAndPlacement.ps1`
+
+| Mode | Frequency | Scheduled task |
+|---|---|---|
+| Health | Every 6 hours | `\AgentCore\DurabilityHealthCheck` |
+| Resource | Daily 02:00 | `\AgentCore\DurabilityResourceAudit` |
+| Deep | Weekly Sunday 05:30 | `\AgentCore\DurabilityDeepAudit` |
+
+Report paths:
+- Hot (machine-readable JSON): `H:\AgentRuntime\service-logs\durability-audit-<timestamp>.json`
+- Cold (audit evidence): `E:\AgentCoreArchive\agentcore-memory\audits\<date>\durability-audit-<timestamp>.json`
+- PostgreSQL: audit events in `agentcore.evidence_events` (event_kind = `state_transition`)
+
+### IDE live-validation requirement
+
+An IDE is **not** `live_validated` if it can see tools but does not complete the full
+memory lifecycle. Required validation steps:
+
+```text
+1.  session_open   — stable session_key and project/client/agent identity
+2.  startup_context — profile reported; hard limit not lowered
+3.  append_event   — idempotency key; prompt committed before tool execution
+4.  retrieve_context — recovery pagination; continuation cursor stable
+5.  expand_source  — exact original retrievable from event_id
+6.  build_handoff  — handoff packet; projection revisions present
+7.  session_close  — ended_at set; handoff appended
+8.  Resume         — same session_key reopens; original events accessible
+9.  Project isolation — project_key boundary enforced
+10. Tool surface   — exactly ten agentcore-memory tools; none added or removed
+```
 
 ---
 

@@ -11,6 +11,16 @@ Run after installing or updating rules/MCP config for this IDE:
 5. The delivered rules match `ide-profiles/open-interpreter/GLOBAL_RULES.md` (semantic parity; record any product-specific omission in `IDE_PROFILE.yaml`).
 6. Session self-enrollment records the verified client, repository/worktree/Git identity, selected provider/model, and named model context profile; it does not lower the IDE model's configured hard context window.
 7. `startup_context` reports a model-aware profile, and `retrieve_context` recovery mode returns bounded chronology with source IDs, hashes, exact expansion references, omitted counts, and a continuation cursor when more history exists.
-8. Repo validators pass: `python scripts/bifrost/validate_contracts.py`, `python scripts/bifrost/test_contracts.py`, and `python -m pytest scripts/agentcore_memory/test_recovery.py -q`.
+8. Repo validators pass: `python scripts/bifrost/validate_contracts.py`, `python scripts/bifrost/test_contracts.py`, and `python -m pytest scripts/agentcore_memory/ -q`.
+9. `append_event` commits the operator prompt before any tool execution: idempotency key binds to project/client/agent/session; a duplicate call returns the same event_id with `idempotent_replay: true`.
+10. `retrieve_context` with `recovery_mode: session_replay` returns only events from the correct session; querying a different project_key returns no cross-project events (isolation enforced).
+11. `expand_source` with an `event_id` from step 9 returns the exact original payload — content hash verifiable.
+12. `build_handoff` returns identity, projection revisions, and a recoverable chronology page; projections must not be empty after at least one append.
+13. `session_close` sets ended_at. A subsequent `session_open` with the same session_key reopens (ended_at cleared, same session_id returned) and prior events remain accessible.
+14. Resume proof: appended events are retrievable after simulated restart (re-open same session_key, call `retrieve_context session_replay`, confirm prior event_ids are present).
+15. Project isolation: events from project_key A are absent from `retrieve_context` responses for project_key B (verified in two directions).
+16. `v_client_memory_continuity` view is queryable and returns a row for the enrolled session with `continuity_status` in (healthy, stale, closed, closed_no_handoff, open_no_events) — not a SQL error.
+17. `ops\Test-AgentCoreDurabilityAndPlacement.ps1 -Mode Health` exits 0 (or warns only; no FAIL lines).
+18. The agentcore-memory tool surface is exactly ten tools: memory_status, startup_context, retrieve_context, append_event, propose_fact, expand_source, session_open, session_close, build_handoff, docs_search. Any deviation is a validation failure. Do not mark live_validated until all steps 1–18 pass with recorded evidence.
 
 Record results and date in `IDE_PROFILE.yaml` (`last_validation_date`). Current recorded validation: unverified.

@@ -74,6 +74,12 @@ function Register-AgentCoreTask {
 # RETAINED (startup ownership + backup/restore/maintenance + governed projection pipeline):
 #   PostgresRuntime, SwarmRecallMeilisearch, SwarmRecallApi, NightlyBackup, NightlyRestoreTest,
 #   WeeklyMaintenance, MemoryProjection.
+# ADDED (central durability and placement audit — layered frequency per §6 hardening spec):
+#   DurabilityHealthCheck   — Health mode,   every 6 hours (lightweight, idempotent).
+#   DurabilityResourceAudit — Resource mode, daily at 02:00 (complete resource/location audit).
+#   DurabilityDeepAudit     — Deep mode,     weekly Sunday at 05:30 (deep recovery/retention/WAL).
+#   These replace DailyDriftCheck for continuity/placement concerns.
+#   No overlap with NightlyBackup (03:00), NightlyRestoreTest (03:30), WeeklyMaintenance (04:30).
 # NOTE: Invoke-AgentCoreMemoryProjector.ps1 (MemoryProjection) is a GOVERNED MEMORY PIPELINE, not a
 #   monitor. It is preserved. Removing the monitors from LIVE Task Scheduler requires an elevated run
 #   of this script (or Unregister-ScheduledTask) and is an operator/admin action (hard gate).
@@ -89,6 +95,14 @@ $swarmRecallApiStartup = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $swarmRecallApiStartup.Delay = "PT75S"
 $projectionPipeline = New-DailyRepeatingTrigger -At ([datetime]"00:15") -Interval (New-TimeSpan -Hours 2)
 
+# Durability audit triggers — layered frequency, no overlap with backup/restore/maintenance.
+# 6h health: runs at 01:00 and repeats every 6h (lightweight health/continuity probe).
+$durabilityHealth = New-DailyRepeatingTrigger -At ([datetime]"01:00") -Interval (New-TimeSpan -Hours 6)
+# Daily resource: 02:00 (after midnight projection pipeline, before nightly backup).
+$durabilityResource = New-ScheduledTaskTrigger -Daily -At 2:00am
+# Weekly deep: Sunday 05:30 (after WeeklyMaintenance 04:30, before daily resource 02:00 next day).
+$durabilityDeep = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 5:30am
+
 Register-AgentCoreTask -TaskName "PostgresRuntime" -ScriptName "Start-AgentCorePostgres.ps1" -Triggers @($postgresStartup) -ScriptArguments @("-StartIfStopped")
 Register-AgentCoreTask -TaskName "SwarmRecallMeilisearch" -ScriptName "Start-AgentCoreSwarmRecallComponent.ps1" -Triggers @($swarmRecallMeilisearchStartup) -ScriptArguments @("-Component Meilisearch", "-ConfigPath `"$ConfigPath`"")
 Register-AgentCoreTask -TaskName "SwarmRecallApi" -ScriptName "Start-AgentCoreSwarmRecallComponent.ps1" -Triggers @($swarmRecallApiStartup) -ScriptArguments @("-Component Api", "-ConfigPath `"$ConfigPath`"")
@@ -96,6 +110,22 @@ Register-AgentCoreTask -TaskName "NightlyBackup" -ScriptName "Backup-AgentCorePo
 Register-AgentCoreTask -TaskName "NightlyRestoreTest" -ScriptName "Test-AgentCorePostgresRestore.ps1" -Triggers @($nightlyRestore)
 Register-AgentCoreTask -TaskName "WeeklyMaintenance" -ScriptName "Invoke-AgentCoreMaintenance.ps1" -Triggers @($weeklyMaintenance)
 Register-AgentCoreTask -TaskName "MemoryProjection" -ScriptName "Invoke-AgentCoreMemoryProjector.ps1" -Triggers @($projectionPipeline)
+
+# Central durability and placement audit tasks (§6 layered frequency).
+Register-AgentCoreTask -TaskName "DurabilityHealthCheck" `
+  -ScriptName "Test-AgentCoreDurabilityAndPlacement.ps1" `
+  -Triggers @($durabilityHealth) `
+  -ScriptArguments @("-Mode Health")
+
+Register-AgentCoreTask -TaskName "DurabilityResourceAudit" `
+  -ScriptName "Test-AgentCoreDurabilityAndPlacement.ps1" `
+  -Triggers @($durabilityResource) `
+  -ScriptArguments @("-Mode Resource")
+
+Register-AgentCoreTask -TaskName "DurabilityDeepAudit" `
+  -ScriptName "Test-AgentCoreDurabilityAndPlacement.ps1" `
+  -Triggers @($durabilityDeep) `
+  -ScriptArguments @("-Mode Deep")
 
 if ($StartPostgresTask) {
   Start-ScheduledTask -TaskPath $TaskPath -TaskName "PostgresRuntime"
@@ -108,7 +138,16 @@ if ($StartProjectionTask) {
 [pscustomobject]@{
   ok = $true
   backup_root = $backupRoot
-  tasks = @("PostgresRuntime", "SwarmRecallMeilisearch", "SwarmRecallApi", "NightlyBackup", "NightlyRestoreTest", "WeeklyMaintenance", "MemoryProjection")
+  tasks = @(
+    "PostgresRuntime", "SwarmRecallMeilisearch", "SwarmRecallApi",
+    "NightlyBackup", "NightlyRestoreTest", "WeeklyMaintenance", "MemoryProjection",
+    "DurabilityHealthCheck", "DurabilityResourceAudit", "DurabilityDeepAudit"
+  )
+  durability_audit_tasks = @(
+    @{ name="DurabilityHealthCheck";   mode="Health";   schedule="every 6h from 01:00"; script="Test-AgentCoreDurabilityAndPlacement.ps1" },
+    @{ name="DurabilityResourceAudit"; mode="Resource"; schedule="daily at 02:00";       script="Test-AgentCoreDurabilityAndPlacement.ps1" },
+    @{ name="DurabilityDeepAudit";     mode="Deep";     schedule="weekly Sunday 05:30";  script="Test-AgentCoreDurabilityAndPlacement.ps1" }
+  )
   removed_monitors = @("DailyDriftCheck", "ContextFabricReadiness")
   removed_monitors_note = "Removed from scheduled registration in rollout P8; run as manual validators on demand. Unregister live tasks via elevated Unregister-ScheduledTask (operator action)."
   runtime_tasks = @("PostgresRuntime", "SwarmRecallMeilisearch", "SwarmRecallApi")

@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-07-16"
+policy_revision: "2026-07-17"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -61,6 +61,37 @@ mandatory_rules:
       trusting the compacted chat. Never directly edit GLOBAL_STATE.md or project STATE.md; they
       and COMB files are concise generated projections. Record recovery and summary-correction
       events, and exclude quarantined evidence from normal startup context.
+
+  - id: memory-lifecycle-continuous-capture
+    title: Continuous durable capture and project-centric resume
+    rule: >-
+      Project memory is project-centric, not IDE-folder-centric. Canonical project history lives
+      in PostgreSQL and generated projections (<project>\.agentcore\STATE.md,
+      DECISIONS.md, CONTEXT_INDEX.md). Client-specific directories under
+      H:\AgentRuntime\clients\<client_key>\ may hold only cache, logs, scratch, and temporary
+      bundles — never canonical project history.
+      At every new IDE chat or process restart: (1) resolve and activate the registered
+      project/worktree; (2) read generated STATE.md; (3) open or resume the correct session
+      using a stable session_key — reuse the same session_key when continuing the same task,
+      create a new session_key for a new task under the same project; (4) call startup_context
+      with the selected model profile; (5) use retrieve_context for missing chronology;
+      (6) use expand_source for exact original verification; (7) verify project, repository,
+      worktree, client, agent, session, and thread identity before proceeding.
+      Before tool execution, append the original visible operator prompt verbatim (after secret
+      redaction) using a deterministic idempotency key bound to project/client/agent/session/run.
+      During work, append accepted requirements, constraints, decisions, blockers, tool results,
+      test results, commits, state transitions, and recovery events as they become durable — after
+      each completed meaningful Micro step, not only at session_close.
+      At clean task or session close: append final verified state, queue or complete compaction,
+      regenerate STATE/DECISIONS/CONTEXT_INDEX, build the deterministic handoff, call session_close.
+      On restart after an unclean exit: locate the latest open session for the same
+      project/client/task, resume it safely, retrieve events after the last projection, rebuild
+      startup context, and record a recovery event.
+      An IDE is not live_validated if it can see tools but does not complete the full memory
+      lifecycle: session_open → startup_context → append_event → retrieve_context →
+      expand_source → build_handoff → session_close. Do not lower the IDE model's configured
+      hard context limit. Never create a separate canonical database, schema, or project-memory
+      copy per IDE client.
 
   - id: milestones
     title: Milestone execution
