@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-17 (M3.002 live, agentcore-memory v0.6.0 deployed, Cursor live-validated; live rollout handoff added)
+**Updated:** 2026-07-17 (final hardening pass: PostgreSQL 18 canonical endpoint updated, dead scripts removed, 83 tests + all validators PASS; prior: M3.002 live, agentcore-memory v0.6.0, Cursor live-validated)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -44,6 +44,7 @@ No other root or docs file may silently override this chain. If a document confl
 - `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` — implementation handoff
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` — effectively-unbounded durable-memory and bounded recovery source handoff
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` — live rollout evidence: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated
+- `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` — final release acceptance report with validator matrix and HEAD reference
 
 **Add as needed:**
 
@@ -84,7 +85,9 @@ No other root or docs file may silently override this chain. If a document confl
 | `CONTEXT_BLOCK.md` | Current mutable system state and memory-platform target architecture (rewritten 2026-07-12; PG18 + pgvector + Cognee behind AgentCore adapter) |
 | `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` | Primary Bifrost gateway handoff |
 | `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` | Handoff for the memory-platform implementation agent |
-| `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` | Current source-only handoff for model-aware active context, full-history recovery, and M3.002 validation |
+| `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` | Source-only handoff for model-aware active context, full-history recovery, and M3.002 validation |
+| `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` | Live rollout handoff: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated |
+| `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` | **Final release acceptance** — M8 consolidation, resource-location model, all validators PASS, exact ten tools verified, HEAD `a843cf1` |
 | `ops/bifrost/evidence/20260714-0204-runtime-repair/RUNTIME_REPAIR_EVIDENCE.md` | Current runtime repair evidence: scheduled task owner, MCP validation, Cursor MCP_DOCKER removal |
 | `artifacts/bifrost-gateway-cutover-2026-07-12/` | Cutover backups, hashes, evidence |
 | `ops/bifrost/` | Install/start/stop/test/backup/restore/cutover scripts |

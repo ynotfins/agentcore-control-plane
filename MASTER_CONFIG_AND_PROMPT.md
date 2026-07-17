@@ -185,7 +185,7 @@ Non-Swarm path:
 IDE -> agentcore-gateway -> agentcore-memory
 ```
 
-Never put `AGENT_CORE_PG*` credentials in IDE configs. Trusted SQL remains ops/admin only (`AGENT_DATABASE_BOOTSTRAP.md`, `contracts/global-memory-database-contract.json`).
+Never put `AGENT_CORE_PG*` credentials in IDE configs. Trusted SQL remains ops/admin only (see `scripts/agentcore/test_database_gating.py` for current gate verification; `AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` are historical PG16-era evidence — read for live PG16 cluster facts only, never as current implementation authority).
 
 ---
 

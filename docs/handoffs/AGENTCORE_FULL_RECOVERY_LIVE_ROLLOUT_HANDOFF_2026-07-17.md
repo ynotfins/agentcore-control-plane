@@ -28,8 +28,12 @@ New tables created:
 
 ### Server Deployed
 `agentcore-memory` 0.5.0 → **0.6.0**
-Server path: `D:\github\agentcore-control-plane-unbounded-memory\scripts\agentcore_memory\server.py`
-Registry updated: `contracts/bifrost-upstream-mcp-registry.json` (path points to unbounded-memory worktree)
+Server path at deployment: `D:\github\agentcore-control-plane-unbounded-memory\scripts\agentcore_memory\server.py`
+Registry updated: `contracts/bifrost-upstream-mcp-registry.json` (path pointed to unbounded-memory worktree)
+
+> **Note (2026-07-17 M8 consolidation):** Server path was corrected to canonical repo as part of the M8 worktree retirement.
+> Current canonical server path: `D:\github\agentcore-control-plane\scripts\agentcore_memory\server.py`
+> See `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` §2 for source path correction evidence.
 
 ### Bifrost Restarted
 Scheduled task `\AgentCore\AgentCore-Bifrost-Gateway` restarted at 2026-07-17 01:50:22 -04:00

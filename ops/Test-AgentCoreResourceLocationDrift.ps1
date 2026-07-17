@@ -180,7 +180,7 @@ Write-Host "`n4. Backup storage tier validation..."
 if ($data.backup_on_hot -eq 0) {
   Ok "No backup artifacts on hot_h tier (correct)"
 } else {
-  Fail "$($data.backup_on_hot) backup artifact(s) found on hot_h tier — should be backup_g"
+  Fail "$($data.backup_on_hot) backup artifact(s) found on hot_h tier - should be backup_g"
 }
 
 # ── Check 5: Supersession records ───────────────────────────────────────────
@@ -188,7 +188,7 @@ Write-Host "`n5. Inactive location supersession records..."
 if ($data.inactive_no_supersession -eq 0) {
   Ok "All inactive artifact locations have supersession records"
 } else {
-  Warn "$($data.inactive_no_supersession) inactive location(s) lack supersession records (acceptable for legacy data)"
+  Warn "$($data.inactive_no_supersession) inactive location(s) lack supersession records"
 }
 
 # ── Check 6: No stale scratch_i artifacts ────────────────────────────────────
@@ -196,7 +196,7 @@ Write-Host "`n6. Stale scratch_i artifact check..."
 if ($data.stale_scratch -eq 0) {
   Ok "No stale scratch_i artifacts (> 24 hours old)"
 } else {
-  Warn "$($data.stale_scratch) stale scratch_i artifact(s) > 24h old — should be promoted or deleted"
+  Warn "$($data.stale_scratch) stale scratch_i artifact(s) > 24h old - should be promoted or deleted"
 }
 
 # ── Check 7: CONTEXT_INDEX.md head commit consistency ───────────────────────
@@ -217,9 +217,11 @@ if (Test-Path -LiteralPath $contextIndex) {
 }
 
 # ── Summary ──────────────────────────────────────────────────────────────────
-Write-Host "`n─────────────────────────────────────────────────" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "-------------------------------------------------" -ForegroundColor Cyan
 Write-Host "Resource-Location Drift Check Complete" -ForegroundColor Cyan
-Write-Host "  PASS: $pass  WARN: $warn  FAIL: $fail" -ForegroundColor $(if ($fail -gt 0) { 'Red' } elseif ($warn -gt 0) { 'Yellow' } else { 'Green' })
+$summaryColor = if ($fail -gt 0) { 'Red' } elseif ($warn -gt 0) { 'Yellow' } else { 'Green' }
+Write-Host "  PASS: $pass  WARN: $warn  FAIL: $fail" -ForegroundColor $summaryColor
 
 if ($failures.Count -gt 0) {
   Write-Host "`nFailures:" -ForegroundColor Red

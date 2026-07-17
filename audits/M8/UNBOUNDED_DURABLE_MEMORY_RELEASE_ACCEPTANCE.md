@@ -13,12 +13,12 @@
 |------|-------|
 | Canonical repository | `D:\github\agentcore-control-plane` |
 | Branch | `main` |
-| HEAD commit | `bd749aa` |
-| HEAD message | `chore(evidence): add M5 PITR restore test audit for post-M3.002 recovery validation` |
-| Previously reported main merge | `8a87739` (unbounded durable memory M3.002 live) |
-| Reconciled commits promoted to main | `0953673`, `bd749aa` (both now in main via fast-forward) |
+| HEAD commit | `a843cf1` |
+| HEAD message | `fix(drift): accept HEAD or HEAD~1 in CONTEXT_INDEX check; use pwsh for Unicode support` |
+| M8 consolidation commit | `5c999c1` (M8 consolidation: resource-location model, MASTER_CONFIG, gating tests, release report) |
+| Previously reported final commit | `bd749aa` (chore: M5 PITR restore test audit evidence) |
 | Remote | `https://github.com/ynotfins/agentcore-control-plane.git` |
-| Push verified | Yes — pushed `8a87739..bd749aa` on 2026-07-17 |
+| Push verified | Yes — final hardening pass pushed `bd749aa..a843cf1` on 2026-07-17 |
 
 ### Commit Classification
 
@@ -27,8 +27,11 @@
 | `e07708d` | Already in main | feat: deploy unbounded durable memory live — M3.002 + v0.6.0 |
 | `44d53bc` | Already in main | fix: canonical source path, WAL archive G:, PITR proof, >1M token proof |
 | `8a87739` | Already in main | feat: unbounded durable memory M3.002 live + canonical source path |
-| `0953673` | **Promoted to main** | fix: ON CONFLICT target for repositories table (UniqueViolation fix) |
-| `bd749aa` | **Promoted to main** | chore: M5 PITR restore test audit evidence |
+| `0953673` | Already in main | fix: ON CONFLICT target for repositories table (UniqueViolation fix) |
+| `bd749aa` | Already in main | chore: M5 PITR restore test audit evidence |
+| `5c999c1` | Already in main | M8 consolidation: resource-location model, MASTER_CONFIG, gating tests, release report |
+| `b01e3be` | Already in main | chore: update CONTEXT_INDEX.md HEAD to consolidation commit |
+| `a843cf1` | Already in main | fix(drift): accept HEAD or HEAD~1 in CONTEXT_INDEX check; use pwsh for Unicode support |
 
 ---
 
@@ -253,6 +256,42 @@ Run: `ops/bifrost/Invoke-AgentCoreIdeGatewayCutover.ps1` for each IDE, or follow
 - No secret-bearing content in this report
 - Evidence JSON files referenced by path only — not copied into this document
 - All secrets remain in Windows User-scope environment variables
+
+---
+
+## 16. Final Hardening Pass (2026-07-17)
+
+**HEAD at hardening:** `a843cf1` — fix(drift): accept HEAD or HEAD~1 in CONTEXT_INDEX check
+
+### Changes Applied
+
+| Item | Action | Status |
+|------|--------|--------|
+| Dead scripts removed | `scripts/debug_mcp_proxy.py`, `scripts/_direct_project_launchers.py`, `scripts/_fix_registry_paths.py` | DONE — git rm |
+| Temp scripts deleted | 14 `_tmp_*` and `_refresh_cl_index.py` untracked scripts | DONE — deleted |
+| PROJECT_ANCHOR.md §3 | Added PG18 canonical note, updated endpoint table, added port guidance | DONE — operator-approved |
+| PROJECT_ANCHOR.md §4/§5 | Updated memory path description, documented exact 10 tools as live | DONE |
+| CONTEXT_INDEX.md | HEAD updated from `5c999c1` to `a843cf1` | DONE |
+| MASTER_CONFIG_AND_PROMPT.md | Historical reference clarified (AGENT_DATABASE_BOOTSTRAP.md = historical evidence only) | DONE |
+| Live Rollout Handoff (2026-07-17) | Added note that server path was corrected in M8 | DONE |
+| ops/Test-AgentCoreResourceLocationDrift.ps1 | Fixed PowerShell 5 compatibility (em-dash/ternary construct) | DONE |
+
+### Validator Results (Final Hardening Pass)
+
+| Validator | Result |
+|-----------|--------|
+| `scripts/bifrost/validate_contracts.py` | PASS — 111 checks |
+| `scripts/bifrost/test_contracts.py` | PASS — 111 checks |
+| `scripts/agentcore/test_database_gating.py` | PASS — 18/18 |
+| `ops/Test-AgentCoreResourceLocationDrift.ps1` | PASS — 11/11 (powershell.exe + pwsh) |
+| `pytest scripts/agentcore_memory/test_recovery.py` | PASS — 23 tests |
+| `pytest scripts/engineering/test_m7_acceptance.py` | PASS — 18 tests |
+| `pytest scripts/engineering/test_copier_template_sources.py` | PASS — 9 tests |
+| `pytest scripts/agentcore_workflow/tests/` | PASS — 33 tests |
+| Context Fabric drift | 0 pending captures; DB integrity ok |
+| Secret scan | Clean — no secrets in committed files |
+
+**Total: 83 pytest tests + standalone validators all PASS**
 
 ---
 

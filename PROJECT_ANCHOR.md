@@ -71,13 +71,20 @@ Non-negotiable invariants for every managed project:
 
 ## 3. Runtime Endpoints
 
+> **Operator approval (2026-07-17):** PostgreSQL 18 at `127.0.0.1:55433` is the canonical AgentCore data platform as of the memory-platform build.
+> PostgreSQL 16 at `127.0.0.1:55432` is **rollback/legacy evidence and Swarm-owned databases only**; it is no longer the canonical AgentCore endpoint.
+> `agent_core` and `cognee_core` live on PostgreSQL 18 (`F:\PostgreSQL18\data`).
+> This update was authorized by the final hardening and cleanup pass (2026-07-17). See `CLAUDE.md` runtime facts.
+
 | Component | Endpoint / Path |
 | --------- | --------------- |
 | **AgentCore Bifrost MCP Gateway** | `http://127.0.0.1:8080/mcp` (`agentcore-gateway`) |
 | Bifrost runtime | `H:\AgentRuntime\bifrost` (`bin\bifrost-http.exe`, `config.json`, sqlite under `data/` / `logs/`) |
-| PostgreSQL cluster | `127.0.0.1:55432` |
-| `agent_core` DB | governed canonical AgentCore DB (same cluster) |
-| `swarmrecall` DB | native SwarmRecall app DB — **separate from `agent_core`; never merged** (same cluster; Swarm ecosystem only) |
+| **PostgreSQL 18 cluster (canonical AgentCore)** | `127.0.0.1:55433` (`F:\PostgreSQL18\data`) |
+| `agent_core` DB | governed canonical AgentCore DB on PostgreSQL 18 (`127.0.0.1:55433`) |
+| `cognee_core` DB | Cognee-owned database on PostgreSQL 18 (`127.0.0.1:55433`) |
+| PostgreSQL 16 cluster (legacy/rollback only) | `127.0.0.1:55432` (`F:\AgentCore\database_cluster`) — Swarm-owned DBs and rollback evidence only |
+| `swarmrecall` DB | native SwarmRecall app DB — **separate from `agent_core`; never merged** (PostgreSQL 16; Swarm ecosystem only) |
 | SwarmRecall API | `http://127.0.0.1:3300` (Swarm ecosystem; not required for non-Swarm IDEs) |
 | Meilisearch | `http://127.0.0.1:7700` |
 | SwarmVault root | `F:\AgentCore\agentmemory\swarmvault` (Swarm ecosystem; file-based) |
@@ -86,7 +93,8 @@ Non-negotiable invariants for every managed project:
 
 **Forbidden:**
 
-- Port `:65432` — no active runtime route; archived/historical evidence only. Use `:55432`.
+- Port `:65432` — no active runtime route; archived/historical evidence only. Use `:55433` for AgentCore canonical PostgreSQL 18.
+- Port `:55432` — legacy/rollback and Swarm-only; must not be used for AgentCore `agent_core` or `cognee_core`.
 - Whole-drive filesystem MCP roots (`C:\`, `D:\`, `F:\`, `H:\`, home-directory-wide) in IDE or gateway configs.
 - Direct PostgreSQL credentials, connection strings, or ingest passwords in any IDE MCP config.
 - Embedding resolved virtual-key / API-key values in Git.
@@ -96,10 +104,10 @@ Non-negotiable invariants for every managed project:
 ```text
 IDE agent
   -> agentcore-gateway (http://127.0.0.1:8080/mcp + Bearer BIFROST_MCP_VIRTUAL_KEY)
-  -> agentcore-memory  (stable identity; health/status tools; may be degraded)
+  -> agentcore-memory  (stable identity; ten-tool surface; live as of 2026-07-17)
 ```
 
-When the fuller memory platform lands, keep the **`agentcore-memory`** server id stable; expand tools behind that id rather than renaming the IDE-facing identity.
+The `agentcore-memory` server id is stable. The full ten-tool memory platform landed with M3.002 and is live-validated (Cursor enrolled 2026-07-17).
 
 Normal agents must not: raw-SQL into `agent_core` or `swarmrecall`; place Postgres secrets in IDE configs; dual-write into Swarm DBs from non-Swarm IDEs; direct-write into `F:\AgentCore\agentmemory`; direct-write into the active Obsidian vault; print secrets; create `.env` files.
 
@@ -107,13 +115,13 @@ Normal agents must not: raw-SQL into `agent_core` or `swarmrecall`; place Postgr
 
 **IDE-visible surface:** tools exposed by Bifrost according to the active virtual-key / capability profile (see `contracts/bifrost-upstream-mcp-registry.json`).
 
-**Stable memory identity tools (current minimal surface):**
-`memory_health`, `memory_status` on `agentcore-memory`
+**Exact ten `agentcore-memory` tools (live as of M3.002, 2026-07-17):**
+`memory_status`, `startup_context`, `retrieve_context`, `append_event`, `propose_fact`, `expand_source`, `session_open`, `session_close`, `build_handoff`, `docs_search`
 
 **Project router tools:**
 `project_list`, `project_activate`, `project_status`, `project_clear` on `agentcore-project-router`
 
-Target richer `agentcore_*` memory catalog tools remain future work; do not assume they exist until migrations and platform work land.
+No SQL, DDL, database-admin, backup-admin, or Bifrost-admin tools are exposed to normal agents. See `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` §7 for live validation evidence.
 
 ## 6. Memory System Roles
 
