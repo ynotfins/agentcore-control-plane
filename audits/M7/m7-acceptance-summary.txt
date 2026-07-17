@@ -1,10 +1,10 @@
-PASS 1 - Engineering Constitution exists and has required sections - path=D:\github\agentcore-control-plane\docs\engineering\CONSTITUTION.md size=15162
+PASS 1 - Engineering Constitution exists and has required sections - path=D:\github\agentcore-control-plane\docs\engineering\CONSTITUTION.md size=16054
 PASS 2 - Dependency catalog validates (all entries have required fields) - exit=0
 PASS 3 - All approved catalog items have provenance and license - approved=13 missing_provenance=[] missing_license=[]
 PASS 4 - mcp-server-python generates clean project - out=D:\test\m7-accept-mcp
-PASS 5 - Generated MCP project: lint passes, tests pass - lint_rc=0 test_rc=0 tests=4 passed in 0.16s
+PASS 5 - Generated MCP project: lint passes, tests pass - lint_rc=0 test_rc=0 tests=4 passed in 0.17s
 PASS 6 - agent-langgraph-postgres-checkpointer generates clean project - out=D:\test\m7-accept-lg
-PASS 7 - Generated LangGraph project: lint passes, checkpoint/resume tests pass - lint_rc=0 test_rc=0 result=============================== 3 passed in 0.38s ==============================
+PASS 7 - Generated LangGraph project: lint passes, checkpoint/resume tests pass - lint_rc=0 test_rc=0 result=============================== 3 passed in 0.40s ==============================
 PASS 8 - Template mcp-server-python: copier.yml has version/suffix/subdir - min_version=True templates_suffix=True subdirectory=True
 PASS 8 - Template update/check workflow: copier.yml structure valid - both templates verified
 PASS 9 - Unpinned candidate (no version) rejected by admission gate - exit=1 output_snippet=
