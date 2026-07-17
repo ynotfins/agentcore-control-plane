@@ -1,0 +1,18 @@
+{
+  "$schema": "https://langgra.ph/langgraph.json",
+  "python_version": "3.13",
+  "dependencies": [
+    "../",
+    "langgraph==1.2.5",
+    "langgraph-checkpoint-postgres==3.1.0",
+    "psycopg[binary,pool]>=3.3.4,<4.0",
+    "langgraph-cli==0.4.29"
+  ],
+  "graphs": {
+    "agentcore_workflow": "./graph.py:graph"
+  },
+  "env": {
+    "LANGSMITH_TRACING": "false",
+    "LANGGRAPH_ANALYTICS": "false"
+  }
+}

@@ -211,6 +211,17 @@ Allowed roots: registered `D:\github\...` git worktrees. Reject Swarm / `F:\Agen
 
 ---
 
+## 6.5. Autonomous workflow + LangGraph Studio pointer
+
+**Canonical runbook:** `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`
+**Launcher:** `python -m agentcore workflow {init|start|status|pause|approve|reject|resume|cancel|logs|evidence|topology|studio}`
+**Studio adapter:** `scripts/agentcore_workflow/studio/` (langgraph.json + graph.py)
+**Acceptance:** 17/17 E2E recovery scenarios PASS — see `audits/M6/fixture-e2e-summary.json`.
+
+The agentcore-memory ten-tool surface, Bifrost gateway contracts, and Swarm ecosystem are unchanged by this work.
+
+---
+
 ## 7. Capability profiles
 
 See `docs/bifrost/CAPABILITY_PROFILES.md` and registry `capability_profiles`:

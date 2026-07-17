@@ -1,0 +1,7 @@
+# AgentCore Studio (LangGraph CLI) dev dependencies
+# Pinned dev-only. Production uses scripts/agentcore_workflow/requirements.txt.
+#
+# Install:
+#   pip install -r scripts/agentcore_workflow/requirements-studio.txt
+
+langgraph-cli==0.4.29

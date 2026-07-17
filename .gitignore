@@ -67,6 +67,9 @@ raw/
 wiki/
 scratch/
 artifacts/
+*.egg-info/
+*.egg
+.langgraph_api/
 
 # Swarm and memory runtime spillover
 swarmclaw-data/

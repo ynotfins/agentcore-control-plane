@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentcore_workflow"
+version = "0.6.0"
+description = "AgentCore M6 LangGraph autonomous workflow package (Studio adapter-friendly)."
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agentcore_workflow*"]

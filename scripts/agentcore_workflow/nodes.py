@@ -593,7 +593,7 @@ def node_next_step(state: WorkflowState) -> dict:
     run_db_id = state.get("run_db_id", "")
     if run_db_id:
         db.update_run_status(run_db_id, "completed")
-    return {"completed": True, "next_action": "done"}
+    return {"completed": True, "next_action": "__end__"}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -673,7 +673,7 @@ def node_workflow_fail(state: WorkflowState) -> dict:
     run_db_id = state.get("run_db_id", "")
     if run_db_id:
         db.update_run_status(run_db_id, "failed")
-    return {"completed": True, "next_action": "done"}
+    return {"completed": True, "next_action": "__end__"}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

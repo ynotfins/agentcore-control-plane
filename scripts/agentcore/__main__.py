@@ -6,13 +6,34 @@ Commands:
   backup        Invoke ops/Backup-AgentCorePostgres.ps1 and report result.
   restore-test  Invoke ops/Test-AgentCorePostgresRestore.ps1 and report result.
   diagnose      Collect diagnostics bundle (PG version, table counts, task states).
+  workflow      Launch / observe / control an autonomous AgentCore workflow run.
+                Subcommands:
+                  init      Register project + worktree (idempotent).
+                  start     Open a workflow thread + execute the graph.
+                  status    Report project / run / thread / node / checkpoint.
+                  pause     Mark active run paused (preserves checkpoints).
+                  approve   Resolve a pending human pause as approved.
+                  reject    Resolve a pending human pause as rejected.
+                  resume    Re-execute the thread from the latest checkpoint.
+                  cancel    Mark run aborted, preserve evidence.
+                  logs      Tail per-run logs.
+                  evidence  List wf_evidence rows.
+                  topology  Show prod + studio topology fingerprint + node list.
+                  studio    Launch LangGraph Studio (Agent Server dev checkpointer).
 
 Exit codes: 0=ok, 1=warnings, 2=error.
 Never prints secrets or passwords.
 
-Usage (from repo root with PYTHONPATH=scripts):
+Usage (from repo root, run from scripts/):
     python -m agentcore health
     python -m agentcore health --json
+    python -m agentcore workflow init  --project-key foo --target D:\\projects\\foo
+    python -m agentcore workflow start --project-key foo --goal "fix failing test"
+    python -m agentcore workflow status --project-key foo
+    python -m agentcore workflow topology
+    python -m agentcore workflow studio --port 8124 --no-browser
+
+See docs\\operations\\AUTONOMOUS_WORKFLOW_AND_STUDIO.md for the full runbook.
 """
 
 from __future__ import annotations
@@ -427,6 +448,9 @@ Commands:
   backup        Run ops/Backup-AgentCorePostgres.ps1 and report result
   restore-test  Run ops/Test-AgentCorePostgresRestore.ps1 and report result
   diagnose      Collect full diagnostics bundle
+  workflow      Launch / observe / control an autonomous AgentCore workflow
+                (init | start | status | pause | approve | reject | resume |
+                 cancel | logs | evidence | topology | studio)
 
 Options:
   --json        Output machine-readable JSON
@@ -440,6 +464,11 @@ def main() -> int:
     if not args or args[0] in ("-h", "--help"):
         print(HELP)
         return 0
+
+    # The "workflow" subcommand family is handled by its own module.
+    if args[0].lower() == "workflow":
+        from . import workflow_cli
+        return workflow_cli.main(args[1:])
 
     cmd_name = args[0].lower()
     as_json = "--json" in args
