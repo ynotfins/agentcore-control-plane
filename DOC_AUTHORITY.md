@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-16 (full-recovery source contract and validation handoff added; BLUEPRINT.md remains locked)
+**Updated:** 2026-07-17 (M3.002 live, agentcore-memory v0.6.0 deployed, Cursor live-validated; live rollout handoff added)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -43,6 +43,7 @@ No other root or docs file may silently override this chain. If a document confl
 - `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance
 - `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` — implementation handoff
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` — effectively-unbounded durable-memory and bounded recovery source handoff
+- `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` — live rollout evidence: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated
 
 **Add as needed:**
 

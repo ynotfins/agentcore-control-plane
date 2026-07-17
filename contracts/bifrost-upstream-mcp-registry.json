@@ -796,7 +796,7 @@
       "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
       "arguments": [
         "-u",
-        "D:\\github\\agentcore-control-plane\\scripts\\agentcore_memory\\server.py"
+        "D:\\github\\agentcore-control-plane-unbounded-memory\\scripts\\agentcore_memory\\server.py"
       ],
       "env_var_names": [],
       "timeout_seconds": 30,

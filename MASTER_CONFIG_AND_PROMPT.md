@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md
 
-**Updated:** 2026-07-12 — Bifrost MCP Gateway rebuild
+**Updated:** 2026-07-17 — Unbounded durable memory live (M3.002 applied, agentcore-memory v0.6.0 deployed)
 **Authority:** `PROJECT_ANCHOR.md` §0 Bifrost Gateway Override
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`
 
