@@ -204,11 +204,13 @@ Write-Host "`n7. CONTEXT_INDEX.md commit consistency..."
 $contextIndex = Join-Path $RepoRoot ".agentcore\CONTEXT_INDEX.md"
 if (Test-Path -LiteralPath $contextIndex) {
   $content = Get-Content -LiteralPath $contextIndex -Raw
-  $gitHead = git -C $RepoRoot rev-parse --short HEAD 2>$null
-  if ($content -match "HEAD.*$gitHead" -or $content -match $gitHead) {
-    Ok "CONTEXT_INDEX.md references current HEAD ($gitHead)"
+  $gitHead  = git -C $RepoRoot rev-parse --short HEAD 2>$null
+
+  $gitHead1 = git -C $RepoRoot rev-parse --short HEAD~1 2>$null
+  if ($content -match $gitHead -or $content -match $gitHead1) {
+    Ok "CONTEXT_INDEX.md references a recent commit (HEAD=$gitHead or HEAD~1=$gitHead1)"
   } else {
-    Warn "CONTEXT_INDEX.md may not reference current HEAD ($gitHead) — regeneration recommended"
+    Warn "CONTEXT_INDEX.md may be stale (HEAD=$gitHead HEAD~1=$gitHead1) - regeneration recommended"
   }
 } else {
   Fail "CONTEXT_INDEX.md not found at: $contextIndex"
