@@ -48,7 +48,7 @@
           "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
           "args": [
             "-u",
-            "D:\\github\\agentcore-control-plane-unbounded-memory\\scripts\\agentcore_memory\\server.py"
+            "D:\\github\\agentcore-control-plane\\scripts\\agentcore_memory\\server.py"
           ],
           "envs": []
         },

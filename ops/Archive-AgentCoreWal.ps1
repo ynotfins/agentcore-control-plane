@@ -30,8 +30,17 @@ function Write-ArchiveLog {
 }
 
 function Copy-WalUnique {
-  param([string]$DestinationRoot)
+  param([string]$DestinationRoot, [switch]$Optional)
   if ([string]::IsNullOrWhiteSpace($DestinationRoot)) { return }
+  # Gracefully skip if the drive is not available (e.g. G: backup drive not mounted)
+  $drive = [System.IO.Path]::GetPathRoot($DestinationRoot)
+  if (-not (Test-Path -LiteralPath $drive -ErrorAction SilentlyContinue)) {
+    if ($Optional) {
+      Write-ArchiveLog -Level "warn" -Message "secondary archive drive not available, skipping: $DestinationRoot"
+      return
+    }
+    throw "Archive destination drive not available: $drive"
+  }
   New-Item -ItemType Directory -Path $DestinationRoot -Force | Out-Null
   $target = Join-Path $DestinationRoot $WalFileName
   if (Test-Path -LiteralPath $target) {
@@ -59,7 +68,7 @@ try {
     throw "WAL source path missing: $SourcePath"
   }
   Copy-WalUnique -DestinationRoot $ArchiveRoot
-  Copy-WalUnique -DestinationRoot $SecondaryArchiveRoot
+  Copy-WalUnique -DestinationRoot $SecondaryArchiveRoot -Optional
   Invoke-Retention -DestinationRoot $ArchiveRoot
   Invoke-Retention -DestinationRoot $SecondaryArchiveRoot
   Write-ArchiveLog -Level "info" -Message "archived to primary and secondary roots"

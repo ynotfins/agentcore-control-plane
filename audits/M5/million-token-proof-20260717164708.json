@@ -1,0 +1,31 @@
+{
+  "test_type": "unbounded_durable_memory_million_token_proof",
+  "deterministic": true,
+  "tokenizer_profile": "cl100k_base-conservative (1 token per 4 chars)",
+  "seed_parameters": {
+    "bulk_count": 257,
+    "chunk_base": "durable-project-history-",
+    "chunk_filler_len": 16384,
+    "total_chunk_chars": 16408
+  },
+  "retained_original_payload_bytes": 4232166,
+  "token_estimate_conservative": 1058041,
+  "exceeds_one_million_tokens": true,
+  "event_count": 257,
+  "event_hash": "640aaf3f42222ee72cca13094fa8dc8748c9ceb0f249c2811528925291d2b0ca",
+  "source_edge_count": 0,
+  "summary_count": 0,
+  "page_count": 52,
+  "page_size": 5,
+  "pagination_complete": true,
+  "no_page_duplicates": true,
+  "hash_mismatches": 0,
+  "first_chronological_boundary": "2026-07-17 12:47:09.213129-04",
+  "final_chronological_boundary": "2026-07-17 12:47:21.693285-04",
+  "one_million_profile_hard_limit": 1000000,
+  "future_above_million_hard_limit": 2000000,
+  "one_million_is_not_storage_ceiling": true,
+  "compaction_deletes_no_originals": true,
+  "full_history_pageable": true,
+  "validated_at": "2026-07-17T16:47:25.976330+00:00"
+}
