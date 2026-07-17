@@ -420,7 +420,7 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
             WITH repo AS (
               INSERT INTO agentcore.repositories (repo_key, canonical_path, remote_url)
               VALUES (%s, %s, %s)
-              ON CONFLICT (repo_key) DO UPDATE
+              ON CONFLICT (canonical_path) DO UPDATE
                 SET remote_url = COALESCE(EXCLUDED.remote_url, agentcore.repositories.remote_url)
               RETURNING id
             ),
