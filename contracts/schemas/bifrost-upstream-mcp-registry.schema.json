@@ -195,8 +195,9 @@
         "capability_profiles": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },
-          "minItems": 1,
-          "uniqueItems": true
+          "minItems": 0,
+          "uniqueItems": true,
+          "description": "Profiles eligible for JIT lease grants. Empty array means dormant (no permanent tool exposure). Not added to capability_profiles[*].allowed_server_ids unless JIT lease is active."
         },
         "logging_policy": { "$ref": "#/$defs/logging_policy" },
         "retry_policy": { "$ref": "#/$defs/retry_policy" },
@@ -231,7 +232,49 @@
         "deferred": { "type": "boolean" },
         "status": {
           "type": "string",
-          "enum": ["active", "deferred", "disabled", "quarantine"]
+          "enum": ["active", "deferred", "disabled", "quarantine", "dormant"]
+        },
+        "oauth_config": {
+          "type": "object",
+          "description": "OAuth 2.0/2.1 config for upstream HTTP/SSE clients. Never include tokens, client_secret, access codes, or any secret values.",
+          "additionalProperties": false,
+          "properties": {
+            "server_url":        { "type": "string", "description": "OAuth discovery root (used with .well-known endpoints and DCR)." },
+            "client_id":        { "type": "string" },
+            "authorize_url":    { "type": "string" },
+            "token_url":        { "type": "string" },
+            "registration_url": { "type": "string" },
+            "scopes":           { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "tool_groups": {
+          "type": "object",
+          "description": "Named tool groups consumed by the M6 capability lease system. Keys are group IDs referenced in capability_lease.tool_group_id.",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["tools", "access_policy"],
+            "additionalProperties": false,
+            "properties": {
+              "tools": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "access_policy": {
+                "type": "string",
+                "enum": ["jit_short", "operator_scope", "billable_approval"]
+              },
+              "description": { "type": "string" },
+              "lease_defaults": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "max_duration_seconds": { "type": "integer", "minimum": 1 },
+                  "max_invocations":      { "type": "integer", "minimum": 1 },
+                  "requires_approval":    { "type": "boolean" }
+                }
+              }
+            }
+          }
         }
       },
       "allOf": [

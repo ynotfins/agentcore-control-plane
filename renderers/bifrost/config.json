@@ -190,6 +190,34 @@
         "is_ping_available": true
       },
       {
+        "name": "openrouter",
+        "connection_type": "http",
+        "connection_string": "https://mcp.openrouter.ai/mcp",
+        "tools_to_execute": [
+          "list-models",
+          "get-model",
+          "list-model-endpoints",
+          "list-providers",
+          "list-daily-model-rankings",
+          "list-app-rankings",
+          "list-benchmarks",
+          "list-task-classifications",
+          "search-docs",
+          "view-skills",
+          "ping",
+          "get-credits",
+          "get-generation",
+          "send-feedback"
+        ],
+        "auth_type": "oauth",
+        "oauth_config": {
+          "server_url": "https://openrouter.ai",
+          "scopes": [
+            "mcp"
+          ]
+        }
+      },
+      {
         "name": "playwright",
         "connection_type": "stdio",
         "stdio_config": {

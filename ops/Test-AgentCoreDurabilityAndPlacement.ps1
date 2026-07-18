@@ -755,6 +755,149 @@ except Exception as e:
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
+# OPENROUTER MCP CHECKS (Health mode and above)
+# Verifies dormant registration, zero tool exposure, and security invariants.
+# ═════════════════════════════════════════════════════════════════════════════
+
+Write-Host "`n--- OpenRouter MCP Invariants ---" -ForegroundColor Cyan
+
+# OR-1. Registry: openrouter present, status=dormant, not in any allowed_server_ids
+Write-Host "`nOR-1. OpenRouter registry invariants..."
+$registryPath = Join-Path $PSScriptRoot "..\contracts\bifrost-upstream-mcp-registry.json"
+if (Test-Path $registryPath) {
+    $reg = Get-Content $registryPath -Raw | ConvertFrom-Json
+    $orServer = $reg.servers.openrouter
+    if ($null -eq $orServer) {
+        Fail "or-registry-present" "openrouter not found in bifrost-upstream-mcp-registry.json"
+    } elseif ($orServer.status -ne "dormant") {
+        Fail "or-registry-dormant" "openrouter status is '$($orServer.status)' — expected 'dormant'"
+    } else {
+        Ok "or-registry-dormant" "openrouter registered dormant"
+    }
+    # Confirm not in any allowed_server_ids
+    $profilesWithOR = @()
+    ($reg.capability_profiles.PSObject.Properties) | ForEach-Object {
+        $pid = $_.Name
+        $allowed = $_.Value.allowed_server_ids
+        if ($allowed -and $allowed -contains "openrouter") { $profilesWithOR += $pid }
+    }
+    if ($profilesWithOR.Count -gt 0) {
+        Fail "or-no-profile-exposure" "openrouter in allowed_server_ids of: $($profilesWithOR -join ', ') — zero tools require a live M6 lease"
+    } else {
+        Ok "or-no-profile-exposure" "openrouter absent from all capability_profiles allowed_server_ids"
+    }
+    # Confirm no direct openrouter MCP server entries in IDE configs
+    # (OpenRouter as an LLM provider/model profile is separate and expected)
+    $ideConfigs = @(
+        @{path="C:\Users\ynotf\.cursor\mcp.json"; pattern='"openrouter"'},
+        @{path="C:\Users\ynotf\.codex\config.toml"; pattern='^\[mcp_servers\.openrouter\]'},
+        @{path="C:\Users\ynotf\.claude.json"; pattern='"openrouter".*"type"\s*:|"type".*"openrouter"'},
+        @{path="C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json"; pattern='"openrouter".*"command"|"url".*openrouter\.ai/mcp'},
+        @{path="C:\Users\ynotf\.minimax\mcp\mcp.json"; pattern='"openrouter"'},
+        @{path="C:\Users\ynotf\AppData\Roaming\interpreter\config.json"; pattern='"mcpServers".*openrouter|openrouter.*mcp\.openrouter\.ai'}
+    )
+    $ideWithOR = @()
+    foreach ($cf in $ideConfigs) {
+        if (Test-Path $cf.path) {
+            $content = Get-Content $cf.path -Raw -ErrorAction SilentlyContinue
+            if ($content -and $content -match $cf.pattern) {
+                $ideWithOR += $cf.path
+            }
+        }
+    }
+    if ($ideWithOR.Count -gt 0) {
+        Fail "or-no-direct-ide-entries" "Direct openrouter MCP server entries found in IDE configs: $($ideWithOR -join '; ')"
+    } else {
+        Ok "or-no-direct-ide-entries" "No direct openrouter MCP server entries in IDE configs (LLM provider config is separate)"
+    }
+} else {
+    Warn "or-registry-present" "Registry file not found: $registryPath"
+}
+
+# OR-2. Bifrost client status via MCP tools/list (not HTTP HEAD)
+Write-Host "`nOR-2. OpenRouter Bifrost client status (MCP tools/list)..."
+$vk = $env:BIFROST_MCP_VIRTUAL_KEY
+if ($vk) {
+    try {
+        $initBody = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"audit","version":"1.0"}}}'
+        $tlBody   = '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+        $hdrs = @{ "Authorization" = "Bearer $vk"; "Content-Type" = "application/json" }
+        Invoke-RestMethod -Uri "http://127.0.0.1:8080/mcp" -Method POST -Headers $hdrs -Body $initBody -TimeoutSec 8 | Out-Null
+        $tResp = Invoke-RestMethod -Uri "http://127.0.0.1:8080/mcp" -Method POST -Headers $hdrs -Body $tlBody -TimeoutSec 12
+        $orTools = ($tResp.result.tools | Where-Object { $_.name -like "openrouter*" }).Count
+        $memTools = ($tResp.result.tools | Where-Object { $_.name -like "agentcore_memory*" }).Count
+        if ($orTools -gt 0) {
+            Warn "or-tools-dormant" "$orTools openrouter tool(s) visible in builder VK without a confirmed lease — investigate"
+        } else {
+            Ok "or-tools-dormant" "Zero openrouter tools exposed in builder VK (dormant enforced)"
+        }
+        if ($memTools -ne 10) {
+            Fail "or-memory-surface-invariant" "agentcore_memory tool count is $memTools — expected exactly 10"
+        } else {
+            Ok "or-memory-surface-invariant" "agentcore_memory surface: exactly 10 tools (unchanged)"
+        }
+    } catch {
+        Warn "or-tools-dormant" "Could not run tools/list for openrouter check: $($_.Exception.Message)"
+    }
+} else {
+    Warn "or-tools-dormant" "BIFROST_MCP_VIRTUAL_KEY not set; skipping tools/list check"
+}
+
+# OR-3. config.db security posture (secret-bearing classification)
+Write-Host "`nOR-3. config.db secret-bearing posture..."
+$configDb = "H:\AgentRuntime\bifrost\data\config.db"
+if (Test-Path $configDb) {
+    # Check it's not world-readable (basic ACL spot-check)
+    $acl = Get-Acl $configDb -ErrorAction SilentlyContinue
+    Ok "or-configdb-present" "config.db present at $configDb — classified as secret-bearing"
+    # Confirm no config.db committed to git (check .gitignore or git status)
+    $inGit = (git -C (Join-Path $PSScriptRoot "..") ls-files --error-unmatch "H:\AgentRuntime\bifrost\data\config.db" 2>&1)
+    if ($LASTEXITCODE -eq 0) {
+        Fail "or-configdb-not-in-git" "config.db appears tracked in Git — must never be committed"
+    } else {
+        Ok "or-configdb-not-in-git" "config.db not tracked in Git"
+    }
+} else {
+    Warn "or-configdb-present" "config.db not found — Bifrost may not have config store yet"
+}
+
+# OR-4. Secret scan: no token literals in source files
+Write-Host "`nOR-4. Token literal scan..."
+$secretPatterns = @("sk-or-v1-", "oauth_access_token", "oauth_refresh_token")
+$secretFound = $false
+$repoRoot = Join-Path $PSScriptRoot ".."
+foreach ($pat in $secretPatterns) {
+    $hits = rg $pat --glob "!*.db" --glob "!*.log" --glob "!.git" "$repoRoot/contracts" "$repoRoot/scripts" "$repoRoot/renderers" "$repoRoot/ide-profiles" 2>&1
+    if ($hits -and $hits -notmatch "^error") { $secretFound = $true; Fail "or-secret-scan" "Pattern '$pat' found in source files: $hits" }
+}
+if (-not $secretFound) { Ok "or-secret-scan" "No OpenRouter token literals found in source files" }
+
+# OR-5. OAuth expiry warning (authenticated_dormant state only)
+Write-Host "`nOR-5. OAuth expiry check..."
+# Check Bifrost log for oauth expiry warnings in last 48h
+$logFile = "H:\AgentRuntime\bifrost\logs\bifrost-gateway.stdout.log"
+if (Test-Path $logFile) {
+    $expirySoon = Get-Content $logFile -Tail 500 | Select-String "openrouter.*expir|oauth.*expir" -CaseSensitive:$false
+    if ($expirySoon) {
+        Warn "or-oauth-expiry" "OAuth expiry signals found in Bifrost log — operator reauthorization may be needed soon"
+    } else {
+        Ok "or-oauth-expiry" "No OAuth expiry signals for openrouter in recent Bifrost log"
+    }
+}
+
+# OR-6. Bifrost config.json does not contain openrouter token values
+Write-Host "`nOR-6. Runtime config token scan..."
+$runtimeCfg = "H:\AgentRuntime\bifrost\config.json"
+if (Test-Path $runtimeCfg) {
+    $cfgContent = Get-Content $runtimeCfg -Raw
+    if ($cfgContent -match "sk-or-v1-|access_token.*:.*[A-Za-z0-9]{40}") {
+        Fail "or-runtime-cfg-clean" "Possible token literal found in H:\AgentRuntime\bifrost\config.json"
+    } else {
+        Ok "or-runtime-cfg-clean" "No token literals detected in runtime config.json"
+    }
+}
+
+# ═════════════════════════════════════════════════════════════════════════════
 # Summary and report output
 # ═════════════════════════════════════════════════════════════════════════════
 

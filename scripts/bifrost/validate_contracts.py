@@ -74,12 +74,52 @@ def semantic_registry_checks(registry: dict[str, Any]) -> list[str]:
             if "DEPWIRE_NO_TELEMETRY" in envs:
                 errors.append("depwire must not set DEPWIRE_NO_TELEMETRY by default")
 
+        # Wildcard permitted_tools cannot coexist with named denied_tools on enabled servers.
+        # An explicit allowlist must be materialized from discovered inventory instead.
+        # Deferred/disabled servers are exempt (transitional wildcard state is documented in
+        # tool_lifecycle_note; enforcement is for servers that actually render into Bifrost config).
+        permitted = server.get("permitted_tools") or []
+        denied = server.get("denied_tools") or []
+        if permitted == ["*"] and denied and server.get("enabled"):
+            errors.append(
+                f"servers.{key}: wildcard permitted_tools ['*'] combined with named "
+                f"denied_tools {denied!r} is forbidden on an enabled server — materialize "
+                f"an explicit allowlist from the discovered tool inventory"
+            )
+
+        # Tool group consistency: every tool in a group must appear in permitted_tools or denied_tools.
+        tool_groups = server.get("tool_groups") or {}
+        all_declared = set(permitted) | set(denied)
+        if all_declared and tool_groups:
+            for gname, gdef in tool_groups.items():
+                for t in gdef.get("tools") or []:
+                    if t not in all_declared:
+                        errors.append(
+                            f"servers.{key}.tool_groups.{gname}: "
+                            f"tool {t!r} not in permitted_tools or denied_tools"
+                        )
+
     # Profile references
     profiles = registry.get("capability_profiles") or {}
     for pid, profile in profiles.items():
         for sid in profile.get("allowed_server_ids") or []:
             if sid not in registry.get("servers", {}):
                 errors.append(f"capability_profiles.{pid}: unknown server {sid}")
+
+    # OpenRouter invariant: must be registered dormant; must not appear in any allowed_server_ids.
+    if "openrouter" in (registry.get("servers") or {}):
+        or_server = registry["servers"]["openrouter"]
+        if or_server.get("status") not in ("dormant", "disabled", "deferred"):
+            errors.append(
+                "openrouter server must have status 'dormant' (registered dormant by default; "
+                "tools require a live M6 capability lease)"
+            )
+        for pid, profile in profiles.items():
+            if "openrouter" in (profile.get("allowed_server_ids") or []):
+                errors.append(
+                    f"capability_profiles.{pid}: openrouter must not appear in allowed_server_ids — "
+                    f"zero tools are exposed without an active M6 capability lease"
+                )
 
     return errors
 

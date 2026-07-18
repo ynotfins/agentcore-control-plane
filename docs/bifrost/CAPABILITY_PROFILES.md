@@ -48,3 +48,4 @@ Profiles select which upstream MCP servers (and, where implemented, which tools)
 - Swarm servers are not members of any non-Swarm profile.
 - Deferred servers (`depwire-cloud`, `github-mcp`) are not active until `enabled: true` after health gates.
 - Disabled servers (`mcp-debugger`, `artiforge`) are not active until their account/runtime health gates pass.
+- `openrouter` is registered **dormant** and must NOT be added to any profile's `allowed_server_ids`. Tools require a live M6 capability lease. See `docs/operations/OPENROUTER_MCP.md` for the JIT activation procedure. The server's `capability_profiles: ["operator"]` field is a JIT-eligibility reference only — not a permanent exposure grant.

@@ -133,6 +133,8 @@ Repaired runtime validation (2026-07-14):
 
 Classification matrix: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`
 
+**OpenRouter MCP:** registered once behind Bifrost as `openrouter` (status: dormant). Zero tools exposed without an active M6 capability lease. OAuth enrollment is operator-initiated (`ready_auth_on_first_use` posture). Discovery tools use short JIT leases; account and billable tools require operator scope/approval. No IDE config changes needed — tool discovery through existing `agentcore-gateway` connection. See `docs/operations/OPENROUTER_MCP.md` for full runbook. This does **not** change any IDE default model or provider.
+
 ---
 
 ## 5. Stable agentcore-memory identity

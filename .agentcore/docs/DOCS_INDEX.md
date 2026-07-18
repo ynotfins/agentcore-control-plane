@@ -24,6 +24,7 @@ Machine-oriented index of documentation libraries available via **arabold-docs**
 | Library | Pinned / indexed version | Official docs root used | Index status | Live AgentCore pin |
 |---------|--------------------------|-------------------------|--------------|--------------------|
 | `bifrost` | `2.0.0-prerelease1` | https://docs.getbifrost.ai/ | **completed** deep scrape (`4fea1d70-…`) | Native `bifrost-http.exe` v2.0.0-prerelease1 |
+| `openrouter-mcp` | `live` | https://openrouter.ai/mcp | **completed** (2026-07-17 live research) | `openrouter` dormant upstream behind Bifrost |
 | `depwire` | `1.8.2` | https://depwire.dev/ | **completed** (`c9fbbbca-…`) | `depwire-cli@1.8.2` → **23 tools** connected |
 | `tentra-mcp` | `1.3.3` | GitHub `rdanieli/tentra-mcp` + npm | **completed** (GitHub/npm); trytentra.com/docs ETIMEDOUT | `tentra-mcp@1.3.3 --local` → **35 tools** |
 | `serena` | `1.5.4` | https://oraios.github.io/serena/ + GitHub | Partial: hostname scrapes abort; **key pages fetched** (`020_running`, `030_clients`, tools, README) | Live `1.5.4.dev0`; Bifrost STDIO handshake still deferred |

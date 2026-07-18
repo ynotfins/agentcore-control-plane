@@ -89,6 +89,13 @@ def build_stdio_client(server: dict[str, Any], authority: str) -> dict[str, Any]
     health = str(server.get("health_check_type") or "mcp_list_tools")
     is_ping_available = health in {"mcp_ping", "ping"}
 
+    # Apply denied_tools as an explicit filter (defense-in-depth for explicit allowlists).
+    denied_set = set(denied)
+    if denied_set and tools != ["*"]:
+        effective_tools = [t for t in tools if t not in denied_set]
+    else:
+        effective_tools = tools  # wildcard: blocked upstream by validator if denied_tools non-empty
+
     client: dict[str, Any] = {
         "name": name,
         "connection_type": "stdio",
@@ -97,7 +104,7 @@ def build_stdio_client(server: dict[str, Any], authority: str) -> dict[str, Any]
             "args": args,
             "envs": envs,
         },
-        "tools_to_execute": tools if not denied else tools,
+        "tools_to_execute": effective_tools,
         "auth_type": "none",
         "is_ping_available": is_ping_available,
     }
@@ -119,19 +126,32 @@ def build_stdio_client(server: dict[str, Any], authority: str) -> dict[str, Any]
 def build_http_client(server: dict[str, Any]) -> dict[str, Any]:
     name = server["bifrost_client_name"]
     tools = list(server.get("permitted_tools") or ["*"])
+    denied = list(server.get("denied_tools") or [])
     connection_string = server["executable_or_url"]
     auth_type = server.get("auth_type") or "none"
+
+    # Apply denied_tools filter for explicit allowlists (defense-in-depth).
+    denied_set = set(denied)
+    if denied_set and tools != ["*"]:
+        effective_tools = [t for t in tools if t not in denied_set]
+    else:
+        effective_tools = tools  # wildcard: blocked upstream by validator if denied_tools non-empty
+
     client: dict[str, Any] = {
         "name": name,
         "connection_type": server["connection_type"],
         "connection_string": connection_string,
-        "tools_to_execute": tools,
+        "tools_to_execute": effective_tools,
         "auth_type": auth_type,
     }
     headers = server.get("headers")
     if headers:
         client["headers"] = headers
         client["auth_type"] = server.get("auth_type") or "headers"
+    # Pass through oauth_config for OAuth upstream clients (public params only; no secrets).
+    oauth_cfg = server.get("oauth_config")
+    if oauth_cfg:
+        client["oauth_config"] = oauth_cfg
     return client
 
 

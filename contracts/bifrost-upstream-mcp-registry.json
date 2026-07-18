@@ -849,6 +849,77 @@
         "Reports Cognee availability/degradation truthfully and LangGraph as not_integrated_until_M6."
       ]
     },
+    "openrouter": {
+      "canonical_id": "openrouter",
+      "display_name": "OpenRouter MCP",
+      "purpose": "Live model discovery, context-window verification, provider availability, pricing, benchmark comparisons, routing research, OpenRouter documentation, and operator-scoped account functions. Not an LLM provider route for normal IDE inference — does not change any IDE default model or provider.",
+      "owner": "agentcore",
+      "pinned_version": "live-remote",
+      "connection_type": "http",
+      "executable_or_url": "https://mcp.openrouter.ai/mcp",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "list-models", "get-model", "list-model-endpoints", "list-providers",
+        "list-daily-model-rankings", "list-app-rankings", "list-benchmarks",
+        "list-task-classifications", "search-docs", "view-skills", "ping",
+        "get-credits", "get-generation", "send-feedback"
+      ],
+      "denied_tools": ["send-message", "generate-image"],
+      "tool_groups": {
+        "openrouter-discovery-read": {
+          "tools": [
+            "list-models", "get-model", "list-model-endpoints", "list-providers",
+            "list-daily-model-rankings", "list-app-rankings", "list-benchmarks",
+            "list-task-classifications", "search-docs", "view-skills", "ping"
+          ],
+          "access_policy": "jit_short",
+          "description": "Read-only model catalog, benchmarks, docs, and metadata. Short task-scoped JIT lease.",
+          "lease_defaults": { "max_duration_seconds": 3600, "max_invocations": 100, "requires_approval": false }
+        },
+        "openrouter-account": {
+          "tools": ["get-credits", "get-generation", "send-feedback"],
+          "access_policy": "operator_scope",
+          "description": "Account-sensitive reads and feedback write. Requires operator scope and approval.",
+          "lease_defaults": { "max_duration_seconds": 1800, "max_invocations": 20, "requires_approval": true }
+        },
+        "openrouter-billable": {
+          "tools": ["send-message", "generate-image"],
+          "access_policy": "billable_approval",
+          "description": "Billable inference calls. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation. Never include repository source, secrets, or private content.",
+          "lease_defaults": { "max_duration_seconds": 900, "max_invocations": 5, "requires_approval": true }
+        }
+      },
+      "auth_type": "oauth",
+      "oauth_config": {
+        "server_url": "https://openrouter.ai",
+        "scopes": ["mcp"]
+      },
+      "capability_profiles": ["operator"],
+      "logging_policy": { "log_invocations": true, "log_content": false, "redact_secrets": true },
+      "retry_policy": { "max_attempts": 2, "backoff_seconds": 3, "retry_on": ["http_5xx", "timeout"] },
+      "rollback_route": "Set enabled=false; confirm no direct per-IDE entries; re-render Bifrost config; restart via \\AgentCore\\AgentCore-Bifrost-Gateway. OAuth token revocable at openrouter.ai/keys.",
+      "enabled": true,
+      "bifrost_client_name": "openrouter",
+      "status": "dormant",
+      "notes": [
+        "LIFECYCLE: installed_dormant -> ready_auth_on_first_use (Bifrost pending_oauth) -> authenticated_dormant.",
+        "Prefer ready_auth_on_first_use: OAuth deferred until first operator request. No 7-day reauth clock on idle capability.",
+        "ZERO TOOLS exposed without a live M6 capability lease. capability_profiles: [operator] is JIT-eligible reference only.",
+        "openrouter must NOT appear in capability_profiles[*].allowed_server_ids — enforced by validator.",
+        "JIT governance: M6 PostgreSQL capability_leases table. tool_group_id references tool_groups above.",
+        "Billable tools (send-message, generate-image) in denied_tools. billable_approval lease + operator confirmation required.",
+        "config.db MUST be treated as secret-bearing regardless of encryption claims. Backups to E:/G: secure paths only.",
+        "Official endpoint: https://mcp.openrouter.ai/mcp. Transport: Streamable HTTP (MCP 2025-03-26 spec).",
+        "Tool inventory: 16 tools discovered 2026-07-17. Drift triggers re-classification before next lease grant.",
+        "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
+        "No OPENROUTER_MCP_KEY in Windows env — OAuth token managed by Bifrost config.db only."
+      ]
+    },
     "agentcore-project-router": {
       "canonical_id": "agentcore-project-router",
       "display_name": "AgentCore Project Router",
