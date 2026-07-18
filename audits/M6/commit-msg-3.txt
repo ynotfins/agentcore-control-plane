@@ -1,0 +1,5 @@
+chore(audits): refresh M6/M7/M8 acceptance summaries after re-run
+
+Re-running the existing M6, M7 and M8 acceptance suites for the final
+verification pass updates timestamps and result counts; PASS/FAIL
+classifications are unchanged (18/18, 19/19, 26/26).

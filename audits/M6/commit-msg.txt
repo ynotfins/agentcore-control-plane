@@ -1,0 +1,49 @@
+feat(workflow+studio): productize AgentCore autonomous workflow + LangGraph Studio
+
+Adds the supported production launcher and Studio adapter for the M6
+autonomous LangGraph workflow. The same canonical graph topology drives
+both the production PostgresSaver and the Studio Agent Server; a single
+deterministic topology fingerprint proves parity.
+
+What changed:
+- python -m agentcore workflow {init|start|status|pause|approve|reject|
+  resume|cancel|logs|evidence|topology|studio}
+  (scripts/agentcore/workflow_cli.py)
+- LangGraph Studio adapter: langgraph.json + graph.py +
+  requirements-studio.txt + README.md under scripts/agentcore_workflow/studio/
+- Studio runner (scripts/agentcore/studio.py) with topology parity check,
+  LANGSMITH_TRACING=false / LANGGRAPH_ANALYTICS=false / LANGGRAPH_HOST=
+  127.0.0.1 forced defaults
+- Studio acceptance script (scripts/agentcore/studio_accept.py) boots
+  Agent Server, exercises /ok /info /docs /assistants/search /threads /
+  state /history, captures audits/M6/studio-acceptance.json
+- E2E recovery suite (scripts/agentcore_workflow/tests/fixture_e2e.py)
+  17/17 PASS covering start/status/kill-resume/pause-approve/cancel/
+  project isolation/A-B/independent judge/tool lease/topology parity/
+  langgraph.json validity/Bifrost+memory unchanged
+- Workflow topology refactor: build_topology() + topology_fingerprint() +
+  build_graph() + build_studio_graph() shared from agentcore_workflow.
+  workflow; nodes return END sentinel
+- scripts/pyproject.toml makes agentcore_workflow pip-installable so the
+  Studio subprocess can import it
+- Canonical runbook: docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md
+- Handoff: docs/handoffs/AGENTCORE_AUTONOMOUS_WORKFLOW_STUDIO_HANDOFF_
+  2026-07-17.md
+- MASTER_CONFIG_AND_PROMPT.md section 6.5 pointer to the runbook
+- .gitignore: *.egg-info/ and .langgraph_api/ ignored
+
+Preserved (untouched): agentcore-memory 10-tool surface, Bifrost gateway
+contracts, workflow definition (nodes/edges/route), critic/scorer/judge
+implementations, Deep Agents boundaries, Swarm ecosystem, Open Interpreter.
+
+Authority: BLUEPRINT.md M6 / MEMORY_PLATFORM_EXECUTION_PLAN.md M6 /
+AGENTS.md section Database Contract.
+
+Validation:
+- 17/17 E2E PASS (audits/M6/fixture-e2e-summary.json)
+- 18/18 M6 acceptance PASS
+- 26/26 M8 acceptance PASS
+- Studio acceptance PASS (graph loaded, thread created, parity proven)
+- Bifrost contracts valid (12 enabled, 4 deferred)
+- Depwire 93/100 (Grade A)
+- No secrets in source-controlled files

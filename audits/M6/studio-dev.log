@@ -1,0 +1,151 @@
+2026-07-17T22:08:53.894662Z [info     ] Starting dev persistence flush loop [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-17T22:08:53.907991Z [info     ] Using langgraph_runtime_inmem  [langgraph_runtime] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-17T22:08:53.976016Z [info     ] Using auth of type=noop        [langgraph_api.auth.middleware] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-17T22:08:53.995584Z [info     ] Starting In-Memory runtime with langgraph-api=0.12.0.dev24 and in-memory runtime=0.32.0rc2 [langgraph_runtime_inmem.lifespan] api_variant=local_dev langgraph_api_version=0.12.0.dev24 langgraph_runtime_inmem_version=0.32.0rc2 thread_name=asyncio_0 version=0.12.0.dev24
+2026-07-17T22:08:54.227232Z [info     ] OTel metrics reporter initialized [langgraph_api.metrics_otlp] api_variant=local_dev backends=['prometheus'] langgraph_api_version=0.12.0.dev24 max_emitting_tier=2 metric_prefix=lg_api_ thread_name=MainThread
+2026-07-17T22:08:54.239562Z [info     ] No license key or control plane API key set, skipping metadata loop [langgraph_api.metadata] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-17T22:08:54.241899Z [info     ] Starting OTLP metrics collector loop [langgraph_api.metrics_collector] api_variant=local_dev interval_secs=60 langgraph_api_version=0.12.0.dev24 thread_name=asyncio_1
+2026-07-17T22:08:54.247415Z [info     ] Worker stats                   [langgraph_api.metrics_collector] active=0 api_variant=local_dev available=1 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_1
+2026-07-17T22:08:54.329234Z [info     ] Importing graph profiling      [langgraph_api.timing.timer] api_variant=local_dev elapsed_seconds=0.08952399999543559 graph_id=agentcore_workflow langgraph_api_version=0.12.0.dev24 module=None name=_graph_from_spec path=./graph.py thread_name=asyncio_0
+2026-07-17T22:08:54.338668Z [info     ] Application started up in 0.732s [langgraph_api.timing.timer] api_variant=local_dev elapsed=0.7319736999925226 langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-17T22:08:54.372085Z [info     ] Starting cron scheduler        [langgraph_api.cron_scheduler] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-17T22:08:54.372210Z [info     ] Starting queue with shared loop [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=asyncio_1
+2026-07-17T22:08:54.375928Z [info     ] Starting 1 background workers  [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=asyncio_0
+2026-07-17T22:08:54.377617Z [info     ] Worker stats                   [langgraph_runtime_inmem.queue] active=0 api_variant=local_dev available=1 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_1
+2026-07-17T22:08:54.889693Z [info     ] Queue stats                    [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.12.0.dev24 n_pending=0 n_running=0 pending_runs_wait_time_max_secs=None pending_runs_wait_time_med_secs=None pending_unblocked_runs_wait_time_max_secs=None thread_name=asyncio_0
+2026-07-17T22:09:19.622759Z [warning  ] GET /health 404 0ms            [langgraph_api.server] api_variant=local_dev error_detail=None langgraph_api_version=0.12.0.dev24 latency_ms=0 method=GET path=/health path_params={} proto=1.1 query_string= req_header={} res_header={} response_size_bytes=22 route=None run_id=None status=404 thread_name=MainThread ttfb_ms=0.21
+2026-07-17T22:09:25.731304Z [warning  ] GET /threads 405 0ms           [langgraph_api.server] api_variant=local_dev error_detail=None langgraph_api_version=0.12.0.dev24 latency_ms=0 method=GET path=/threads path_params={} proto=1.1 query_string= req_header={} request_id=f6767f17-093c-42d6-881b-4b40661e64bf res_header={} response_size_bytes=31 route=/threads run_id=None status=405 thread_name=MainThread ttfb_ms=0.27
+2026-07-17T22:09:30.646368Z [info     ] Getting auth instance: None    [langgraph_api.auth.custom] api_variant=local_dev langgraph_api_version=0.12.0.dev24 langgraph_auth=None method=POST path=/threads request_id=5116c24a-e148-4998-8ea9-13a9a84dcad6 thread_name=MainThread
+2026-07-17T22:09:37.017657Z [warning  ] GET /graphs 404 0ms            [langgraph_api.server] api_variant=local_dev error_detail=None langgraph_api_version=0.12.0.dev24 latency_ms=0 method=GET path=/graphs path_params={} proto=1.1 query_string= req_header={} res_header={} response_size_bytes=22 route=None run_id=None status=404 thread_name=MainThread ttfb_ms=0.14
+2026-07-17T22:09:52.832405Z [info     ] Created run                    [langgraph_api.models.run] after_seconds=0 api_variant=local_dev assistant_id=de34b4cd-5a62-5659-876b-10eec9986049 checkpoint_id=None if_not_exists=reject langgraph_api_version=0.12.0.dev24 method=POST multitask_strategy=reject path=/threads/{thread_id}/runs/stream request_id=06e6aae9-f0a9-4444-974e-8310e1f9d9f9 run_create_ms=1 run_id=019f7220-fec0-7d91-bf1e-8414240d4dc9 run_put_ms=0 stream_mode=['values'] stream_resumable=False temporary=False thread_id=019f7220-a816-7ee3-a04a-a14c46d2c7fd thread_name=MainThread
+2026-07-17T22:09:53.647105Z [info     ] Starting background run        [langgraph_api.worker] api_variant=local_dev assistant_id=de34b4cd-5a62-5659-876b-10eec9986049 graph_id=agentcore_workflow langgraph_api_version=0.12.0.dev24 request_id=06e6aae9-f0a9-4444-974e-8310e1f9d9f9 resumable=False run_attempt=1 run_creation_ms=1 run_id=019f7220-fec0-7d91-bf1e-8414240d4dc9 run_queue_ms=814 run_started_at=2026-07-17T22:09:53.646707+00:00 run_stream_start_ms=0 temporary=False thread_id=019f7220-a816-7ee3-a04a-a14c46d2c7fd thread_name=asyncio_0
+2026-07-17T22:09:54.257488Z [info     ] Worker stats                   [langgraph_api.metrics_collector] active=1 api_variant=local_dev available=0 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_1
+2026-07-17T22:09:54.431248Z [warning  ] C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\structlog\stdlib.py:1166: UserWarning: Remove `format_exc_info` from your processor chain if you want pretty exceptions.
+  ed = p(logger, meth_name, ed)  # type: ignore[arg-type]
+ [py.warnings] api_variant=local_dev assistant_id=de34b4cd-5a62-5659-876b-10eec9986049 graph_id=agentcore_workflow langgraph_api_version=0.12.0.dev24 request_id=06e6aae9-f0a9-4444-974e-8310e1f9d9f9 run_attempt=1 run_id=019f7220-fec0-7d91-bf1e-8414240d4dc9 thread_id=019f7220-a816-7ee3-a04a-a14c46d2c7fd thread_name=MainThread
+2026-07-17T22:09:54.391102Z [error    ] Run encountered an error in graph: <class 'KeyError'>('thread_uuid') [langgraph_api.worker] api_variant=local_dev assistant_id=de34b4cd-5a62-5659-876b-10eec9986049 graph_id=agentcore_workflow langgraph_api_version=0.12.0.dev24 request_id=06e6aae9-f0a9-4444-974e-8310e1f9d9f9 run_attempt=1 run_id=019f7220-fec0-7d91-bf1e-8414240d4dc9 thread_id=019f7220-a816-7ee3-a04a-a14c46d2c7fd thread_name=MainThread
+Traceback (most recent call last):
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\worker.py", line 210, in wrap_user_errors
+    await consume(
+        stream, run_id, resumable, stream_modes, thread_id=run["thread_id"]
+    )
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\stream.py", line 659, in consume
+    await _consume_inline(
+    ...<6 lines>...
+    )
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\stream.py", line 725, in _consume_inline
+    raise e
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\stream.py", line 685, in _consume_inline
+    async for mode, payload in stream:
+    ...<18 lines>...
+        )
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\stream.py", line 521, in astream_state
+    event = await wait_if_not_done(anext(stream, sentinel), done)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\asyncio.py", line 110, in wait_if_not_done
+    raise e.exceptions[0] from None
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\pregel\main.py", line 3455, in astream
+    async for _ in runner.atick(
+    ...<16 lines>...
+            yield o
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\pregel\_runner.py", line 396, in atick
+    await arun_with_retry(
+    ...<15 lines>...
+    )
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\pregel\_retry.py", line 744, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\_internal\_runnable.py", line 733, in ainvoke
+    input = await asyncio.create_task(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        step.ainvoke(input, config, **kwargs), context=context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\_internal\_runnable.py", line 501, in ainvoke
+    ret = await self.afunc(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langchain_core\runnables\config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langchain_core\runnables\config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "D:\github\agentcore-control-plane\scripts\agentcore_workflow\nodes.py", line 71, in node_start
+    run_db_id = db.register_run(state["project_id"], state["thread_uuid"])
+                                                     ~~~~~^^^^^^^^^^^^^^^
+KeyError: 'thread_uuid'
+During task with name 'start' and id 'e0887521-4405-df2c-4d21-894672ae9ea3'
+2026-07-17T22:09:54.438767Z [error    ] Background run failed. Exception: <class 'KeyError'>('thread_uuid') [langgraph_api.worker] api_variant=local_dev assistant_id=de34b4cd-5a62-5659-876b-10eec9986049 graph_id=agentcore_workflow langgraph_api_version=0.12.0.dev24 request_id=06e6aae9-f0a9-4444-974e-8310e1f9d9f9 run_attempt=1 run_completed_in_ms=1607 run_created_at=2026-07-17T22:09:52.832359+00:00 run_ended_at=2026-07-17T22:09:54.438558+00:00 run_exec_ms=791 run_id=019f7220-fec0-7d91-bf1e-8414240d4dc9 run_started_at=2026-07-17T22:09:53.646707+00:00 run_wait_time_ms=814 thread_id=019f7220-a816-7ee3-a04a-a14c46d2c7fd thread_name=asyncio_1
+Traceback (most recent call last):
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\worker.py", line 272, in worker
+    await asyncio.wait_for(
+    ...<2 lines>...
+    )
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\worker.py", line 210, in wrap_user_errors
+    await consume(
+        stream, run_id, resumable, stream_modes, thread_id=run["thread_id"]
+    )
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\stream.py", line 659, in consume
+    await _consume_inline(
+    ...<6 lines>...
+    )
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\stream.py", line 725, in _consume_inline
+    raise e
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\stream.py", line 685, in _consume_inline
+    async for mode, payload in stream:
+    ...<18 lines>...
+        )
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\stream.py", line 521, in astream_state
+    event = await wait_if_not_done(anext(stream, sentinel), done)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph_api\asyncio.py", line 110, in wait_if_not_done
+    raise e.exceptions[0] from None
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\pregel\main.py", line 3455, in astream
+    async for _ in runner.atick(
+    ...<16 lines>...
+            yield o
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\pregel\_runner.py", line 396, in atick
+    await arun_with_retry(
+    ...<15 lines>...
+    )
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\pregel\_retry.py", line 744, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\_internal\_runnable.py", line 733, in ainvoke
+    input = await asyncio.create_task(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        step.ainvoke(input, config, **kwargs), context=context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langgraph\_internal\_runnable.py", line 501, in ainvoke
+    ret = await self.afunc(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langchain_core\runnables\config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\Lib\site-packages\langchain_core\runnables\config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "D:\github\agentcore-control-plane\scripts\agentcore_workflow\nodes.py", line 71, in node_start
+    run_db_id = db.register_run(state["project_id"], state["thread_uuid"])
+                                                     ~~~~~^^^^^^^^^^^^^^^
+KeyError: 'thread_uuid'
+During task with name 'start' and id 'e0887521-4405-df2c-4d21-894672ae9ea3'
+2026-07-17T22:09:54.463583Z [info     ] Worker stats                   [langgraph_runtime_inmem.queue] active=0 api_variant=local_dev available=1 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_0
+2026-07-17T22:09:54.466483Z [info     ] Queue stats                    [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.12.0.dev24 n_pending=0 n_running=0 pending_runs_wait_time_max_secs=None pending_runs_wait_time_med_secs=None pending_unblocked_runs_wait_time_max_secs=None thread_name=asyncio_1
+2026-07-17T22:10:54.273335Z [info     ] Worker stats                   [langgraph_api.metrics_collector] active=0 api_variant=local_dev available=1 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_0
+2026-07-17T22:10:54.771958Z [info     ] Worker stats                   [langgraph_runtime_inmem.queue] active=0 api_variant=local_dev available=1 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_1
+2026-07-17T22:10:55.287733Z [info     ] Queue stats                    [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.12.0.dev24 n_pending=0 n_running=0 pending_runs_wait_time_max_secs=None pending_runs_wait_time_med_secs=None pending_unblocked_runs_wait_time_max_secs=None thread_name=asyncio_0

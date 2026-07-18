@@ -1,0 +1,15 @@
+chore(audits): capture M6 acceptance evidence for workflow + Studio
+
+Adds the validation artefacts produced by the M6 acceptance run:
+- AUTONOMOUS_WORKFLOW_VALIDATION_2026-07-17.md — 35-row validation matrix
+- fixture-e2e-output.txt + fixture-e2e-summary.json — 17/17 PASS
+- m6-acceptance-output.txt / m8-acceptance-output.txt — 18/18 + 26/26
+- studio-acceptance.json / studio-acceptance-stdout.txt — graph loaded,
+  thread created, parity proven, dev/prod persistence separated
+- bifrost-validate.txt — contracts valid, 12 enabled, 4 deferred
+- depwire-health.txt — 93/100 (Grade A)
+- cli-help.txt, workflow-help.txt, topology.json — operator CLI proofs
+- install-editable.txt, install-inmem.txt — Studio runtime dep install logs
+- da-integration-output.txt — Deep Agents integration result
+- cf-drift.txt — Context Fabric drift baseline (pre-existing)
+- studio-help.txt — langgraph dev --help capture

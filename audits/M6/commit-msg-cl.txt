@@ -1,0 +1,16 @@
+chore(memory): refresh continual-learning index for 15 new/modified transcripts
+
+Index processedAtUtc updated to 2026-07-17T22:32:50Z. Added 14 new
+top-level transcripts and 8 new subagent transcripts. Refreshed 1
+modified entry (5e534be7, sha256/mtime/size recomputed). Quarantined
+1 new entry (8fd806d8) for secret-scan. counts: active 48->69,
+quarantined 7->8, excluded 0. Stripped accidental UTF-8 BOM from file
+header to keep the JSON strict-parser friendly.
+
+AGENTS.md: appended 1 high-signal bullet under "Learned Workspace Facts"
+documenting the productized M6 autonomous workflow command family,
+canonical runbook path, PG18 production persistence, and the dev-only
+Studio boundary (localhost, dev checkpointer, LANGSMITH_TRACING=false,
+no thread-id sharing with production, not a persistent Windows service).
+No contradiction with PROJECT_ANCHOR.md, DOC_AUTHORITY.md, BLUEPRINT.md,
+MASTER_CONFIG_AND_PROMPT.md, or the runbook.
