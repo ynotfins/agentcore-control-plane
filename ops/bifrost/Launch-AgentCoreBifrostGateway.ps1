@@ -54,6 +54,7 @@ Write-AgentCoreLog "exe=$exe"
 Write-AgentCoreLog "app_dir=$RuntimeRoot"
 Write-AgentCoreLog "bind=${HostAddress}:${Port}"
 Write-AgentCoreLog ("BIFROST_MCP_VIRTUAL_KEY present={0} length={1}" -f (-not [string]::IsNullOrWhiteSpace($env:BIFROST_MCP_VIRTUAL_KEY)), ($env:BIFROST_MCP_VIRTUAL_KEY ?? '').Length)
+Write-AgentCoreLog ("BIFROST_ENCRYPTION_KEY present={0}" -f (-not [string]::IsNullOrWhiteSpace($env:BIFROST_ENCRYPTION_KEY)))
 Write-AgentCoreLog "stdout_log=$stdoutLog"
 Write-AgentCoreLog "stderr_log=$stderrLog"
 

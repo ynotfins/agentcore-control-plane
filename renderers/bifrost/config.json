@@ -635,6 +635,7 @@
       "BIFROST_MCP_VK_DATABASE_VALIDATOR",
       "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
       "BIFROST_MCP_VK_OPERATOR"
-    ]
+    ],
+    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json) \u2014 present=False. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration."
   }
 }

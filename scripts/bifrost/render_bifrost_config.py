@@ -23,6 +23,11 @@ DEFAULT_RUNTIME_ROOT = Path(r"H:\AgentRuntime\bifrost")
 SANITIZED_RENDERER = REPO_ROOT / "renderers" / "bifrost" / "config.sanitized.json"
 SANITIZED_CONFIG_COPY = REPO_ROOT / "renderers" / "bifrost" / "config.json"
 
+# Runtime-only OAuth state file (never committed to Git).
+# Written by operator after successful management-API OAuth enrollment.
+# Format: {"<bifrost_client_name>": {"oauth_config_id": "...", "mcp_client_id": "..."}}
+OAUTH_STATE_PATH = DEFAULT_RUNTIME_ROOT / "state" / "oauth-clients.json"
+
 # Non-secret env defaults injected into stdio envs lists / values
 STATIC_ENV_VALUES: dict[str, dict[str, str]] = {
     "sequential-thinking": {"DISABLE_THOUGHT_LOGGING": "true"},
@@ -54,6 +59,19 @@ SECRET_ENV_NAMES = {
 def load_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def load_oauth_state(oauth_state_path: Path) -> dict[str, Any]:
+    """Load runtime-only OAuth client state (never committed).
+
+    Returns {} when the file is absent (pre-enrollment) or unparseable.
+    The file is written by the operator after a successful management-API OAuth enrollment
+    and contains oauth_config_id / mcp_client_id — never token values.
+    """
+    try:
+        return json.loads(oauth_state_path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
 
 def wrapper_command(authority: str, wrapper_script: str) -> tuple[str, list[str]]:
@@ -123,7 +141,7 @@ def build_stdio_client(server: dict[str, Any], authority: str) -> dict[str, Any]
     return client
 
 
-def build_http_client(server: dict[str, Any]) -> dict[str, Any]:
+def build_http_client(server: dict[str, Any], oauth_state: dict[str, Any] | None = None) -> dict[str, Any]:
     name = server["bifrost_client_name"]
     tools = list(server.get("permitted_tools") or ["*"])
     denied = list(server.get("denied_tools") or [])
@@ -148,14 +166,37 @@ def build_http_client(server: dict[str, Any]) -> dict[str, Any]:
     if headers:
         client["headers"] = headers
         client["auth_type"] = server.get("auth_type") or "headers"
-    # Pass through oauth_config for OAuth upstream clients (public params only; no secrets).
+
+    # OAuth handling: prefer oauth_config_id from runtime state (post-enrollment) over inline
+    # oauth_config (pre-enrollment public params).  This prevents re-renders from clobbering an
+    # existing OAuth-bound client in Bifrost's config store.
+    #
+    # Pre-enrollment:   oauth_state absent / no entry for this client
+    #   → emit oauth_config (public params: server_url + scopes only, no secrets)
+    #   → Bifrost registers client as oauth-pending; operator runs management-API enrollment
+    #
+    # Post-enrollment:  oauth_state contains {oauth_config_id: "...", mcp_client_id: "..."}
+    #   → emit oauth_config_id only (no oauth_config inline)
+    #   → Bifrost references the enrolled client; re-render is idempotent
+    #
+    # WARNING: re-rendering without the runtime state file after enrollment may create a new
+    # pending OAuth client and orphan the enrolled one.  Operator must keep
+    # H:\AgentRuntime\bifrost\state\oauth-clients.json present after enrollment.
     oauth_cfg = server.get("oauth_config")
-    if oauth_cfg:
-        client["oauth_config"] = oauth_cfg
+    if auth_type == "oauth" and oauth_cfg:
+        state_entry = (oauth_state or {}).get(name, {})
+        oauth_config_id = state_entry.get("oauth_config_id")
+        if oauth_config_id:
+            # Post-enrollment: reference existing Bifrost OAuth record by id
+            client["oauth_config_id"] = oauth_config_id
+        else:
+            # Pre-enrollment: public params only (server_url, scopes — no secrets)
+            client["oauth_config"] = oauth_cfg
+
     return client
 
 
-def build_mcp_client_configs(registry: dict[str, Any]) -> list[dict[str, Any]]:
+def build_mcp_client_configs(registry: dict[str, Any], oauth_state: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     authority = registry["authority"]
     clients: list[dict[str, Any]] = []
     for _key, server in sorted(registry["servers"].items(), key=lambda kv: kv[0]):
@@ -167,7 +208,7 @@ def build_mcp_client_configs(registry: dict[str, Any]) -> list[dict[str, Any]]:
         if ctype in ("stdio", "router"):
             clients.append(build_stdio_client(server, authority))
         elif ctype in ("http", "sse"):
-            clients.append(build_http_client(server))
+            clients.append(build_http_client(server, oauth_state))
         else:
             raise ValueError(f"Unsupported connection_type: {ctype}")
     # Strip AgentCore-only annotation keys from Bifrost runtime payload
@@ -258,7 +299,11 @@ def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def build_bifrost_config(registry: dict[str, Any], gateway_client: dict[str, Any]) -> dict[str, Any]:
+def build_bifrost_config(
+    registry: dict[str, Any],
+    gateway_client: dict[str, Any],
+    oauth_state: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     _ = gateway_client  # reserved for future timeout / URL cross-checks
     return {
         "$schema": "https://www.getbifrost.ai/schema",
@@ -300,7 +345,7 @@ def build_bifrost_config(registry: dict[str, Any], gateway_client: dict[str, Any
             }
         },
         "mcp": {
-            "client_configs": build_mcp_client_configs(registry),
+            "client_configs": build_mcp_client_configs(registry, oauth_state),
             "tool_manager_config": {
                 "tool_execution_timeout": "2m",
                 "max_agent_depth": 1,
@@ -313,7 +358,7 @@ def build_bifrost_config(registry: dict[str, Any], gateway_client: dict[str, Any
     }
 
 
-def build_sanitized_sidecar(registry: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+def build_sanitized_sidecar(registry: dict[str, Any], config: dict[str, Any], oauth_state_present: bool = False) -> dict[str, Any]:
     """Source-controlled sanitized copy with AgentCore metadata (still no secrets)."""
     payload = json.loads(json.dumps(config))
     payload["agentcore_meta"] = {
@@ -330,6 +375,12 @@ def build_sanitized_sidecar(registry: dict[str, Any], config: dict[str, Any]) ->
             "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
             "BIFROST_MCP_VK_OPERATOR",
         ],
+        "oauth_state_note": (
+            "Post-enrollment: oauth_config_id loaded from runtime state file "
+            f"(H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json) — present={oauth_state_present}. "
+            "That file is runtime-only and never committed. "
+            "Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration."
+        ),
     }
     return payload
 
@@ -342,6 +393,9 @@ def assert_no_secret_literals(payload: dict[str, Any]) -> None:
         "sk-ant-",
         "ghp_",
         "github_pat_",
+        "sk-or-v1-",        # OpenRouter API key literal
+        "oauth_access_token",
+        "oauth_refresh_token",
     ]
     for token in forbidden_substrings:
         if token in dumped:
@@ -391,7 +445,18 @@ def main() -> int:
     args = parse_args()
     registry = load_json(REGISTRY_PATH)
     gateway_client = load_json(GATEWAY_CLIENT_PATH)
-    config = build_bifrost_config(registry, gateway_client)
+
+    # Load runtime-only OAuth state (never committed).
+    # Pre-enrollment: empty dict → oauth_config (public params) embedded in config.
+    # Post-enrollment: state file present → oauth_config_id substituted; re-render is idempotent.
+    oauth_state = load_oauth_state(OAUTH_STATE_PATH)
+    if oauth_state:
+        enrolled = [name for name in oauth_state if oauth_state[name].get("oauth_config_id")]
+        print(f"OAuth state loaded: {len(enrolled)} enrolled client(s): {', '.join(enrolled)}")
+    else:
+        print("OAuth state: pre-enrollment (no state file or empty) — oauth_config (public params) will be used")
+
+    config = build_bifrost_config(registry, gateway_client, oauth_state)
     assert_no_secret_literals(config)
 
     if args.stdout:
@@ -413,7 +478,8 @@ def main() -> int:
         print(f"Wrote {alt}")
 
     if not args.skip_renderer:
-        sanitized = build_sanitized_sidecar(registry, config)
+        oauth_state_present = bool(oauth_state)
+        sanitized = build_sanitized_sidecar(registry, config, oauth_state_present)
         assert_no_secret_literals(sanitized)
         write_json(SANITIZED_RENDERER, sanitized)
         write_json(SANITIZED_CONFIG_COPY, sanitized)
