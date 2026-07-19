@@ -387,6 +387,108 @@ dependencies:
       other workloads but must not be used by the core platform.
     last_review: "2026-07-16"
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # CHERRY STUDIO SKILLS (procedural guidance only; not code dependencies)
+  # Installed: 2026-07-19 in %APPDATA%\CherryStudio\Data\Agents\w-default\.claude\skills\
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - package: obra/superpowers
+    ecosystem: skills-sh
+    status: approved
+    purpose: >
+      Cherry Studio agent skills: brainstorming, systematic-debugging, writing-plans,
+      executing-plans, requesting-code-review, test-driven-development,
+      verification-before-completion, using-superpowers (meta-skill)
+    version_policy: latest
+    tested_version: "latest at 2026-07-19"
+    source: https://skills.sh/obra/superpowers/
+    repository: https://github.com/obra/superpowers
+    license: MIT
+    security_notes: >
+      Pure procedural guidance SKILL.md files. No network access, no scripts,
+      no hooks, no file writes. Inspected before install via npx skills use.
+    approval_reason: "Reference Superpowers skill collection; widely used; MIT; no AgentCore authority override"
+    last_review: "2026-07-19"
+
+  - package: mattpocock/skills@diagnosing-bugs
+    ecosystem: skills-sh
+    status: approved
+    purpose: >
+      Cherry Studio agent skill for diagnosing bugs systematically.
+      Installed as the closest available match to the requested 'diagnose' skill.
+    version_policy: latest
+    tested_version: "latest at 2026-07-19"
+    source: https://skills.sh/mattpocock/skills/
+    repository: https://github.com/mattpocock/skills
+    license: MIT
+    security_notes: "Pure procedural guidance; no scripts or hooks."
+    approval_reason: "High-install skill; MIT; procedural debugging guidance"
+    last_review: "2026-07-19"
+
+  - package: testdino-hq/playwright-skill@playwright-skill
+    ecosystem: skills-sh
+    status: approved
+    purpose: >
+      Cherry Studio agent skill for Playwright E2E/API/component testing patterns.
+      MIT, author testdino.com, v2.4.0.
+    version_policy: "2.4.0"
+    tested_version: "2.4.0"
+    source: https://skills.sh/testdino-hq/playwright-skill/playwright-skill
+    repository: https://github.com/testdino-hq/playwright-skill
+    license: MIT
+    security_notes: >
+      Pure documentation. Has a security trust boundary note prohibiting use
+      against unauthorized systems. No scripts or hooks.
+    approval_reason: "Battle-tested Playwright patterns; MIT; testdino.com author"
+    last_review: "2026-07-19"
+
+  - package: vercel-labs/agent-skills@vercel-react-best-practices
+    ecosystem: skills-sh
+    status: approved
+    purpose: >
+      Cherry Studio agent skill for React and Next.js performance optimization.
+      Official Vercel Engineering guidelines, MIT, v1.0.0.
+    version_policy: "1.0.0"
+    tested_version: "1.0.0"
+    source: https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices
+    repository: https://github.com/vercel-labs/agent-skills
+    license: MIT
+    security_notes: "Pure documentation. No scripts or hooks."
+    approval_reason: "Official Vercel source; MIT; authoritative React guidelines"
+    last_review: "2026-07-19"
+
+  - package: vercel-labs/agent-skills@vercel-composition-patterns
+    ecosystem: skills-sh
+    status: approved
+    purpose: >
+      Cherry Studio agent skill for React composition patterns.
+      Official Vercel Engineering guidelines, MIT, v1.0.0.
+    version_policy: "1.0.0"
+    tested_version: "1.0.0"
+    source: https://skills.sh/vercel-labs/agent-skills/vercel-composition-patterns
+    repository: https://github.com/vercel-labs/agent-skills
+    license: MIT
+    security_notes: "Pure documentation. No scripts or hooks."
+    approval_reason: "Official Vercel source; MIT; authoritative composition patterns"
+    last_review: "2026-07-19"
+
+  - package: anthropics/skills@skill-creator
+    ecosystem: skills-sh
+    status: approved
+    purpose: >
+      Cherry Studio agent skill for creating and iterating on new skills.
+      Pre-installed in Cherry Studio. Used as 'Anthropic Skill Creator'.
+    version_policy: latest
+    tested_version: "pre-installed at Cherry Studio 1.9.12 install time"
+    source: https://skills.sh/anthropics/skills/skill-creator
+    repository: https://github.com/anthropics/skills
+    license: Apache-2.0
+    security_notes: >
+      Has eval scripts (generate_review.py etc.) that run only when operator
+      explicitly requests skill evaluation. Not auto-invoked. Inspected before use.
+    approval_reason: "Official Anthropic source; Apache-2.0; foundational skill creator"
+    last_review: "2026-07-19"
+
   - package: sqlalchemy
     ecosystem: python
     status: rejected
