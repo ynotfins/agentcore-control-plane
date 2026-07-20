@@ -399,15 +399,26 @@ dependencies:
       Cherry Studio agent skills: brainstorming, systematic-debugging, writing-plans,
       executing-plans, requesting-code-review, test-driven-development,
       verification-before-completion, using-superpowers (meta-skill)
-    version_policy: latest
-    tested_version: "latest at 2026-07-19"
+    version_policy: "pinned-by-content-hash"
+    tested_version: "SKILL.md SHA-256 set audited 2026-07-19 (see audits/CHERRY_STUDIO_SKILLS_AUDIT_2026-07-19.md)"
+    content_hashes:
+      brainstorming: E14914605F640E0841758E45D0AB2A53243B59B921F929E47921C99668F2E61D
+      systematic-debugging: 3B20719ECA4F0461CB51A195221320D775DCF03B6859271066A03A5132A6CE7A
+      writing-plans: 272E1AF349F5062C28DC282B3E21B220D58D683A7314A10C455B7432EC91D845
+      executing-plans: BBD8D28BB655A52817CC129CE49F9E46FA7C6303F72ED5DE95BFE914EF8E0CE8
+      requesting-code-review: 1017CCDD5BC61FAB67C654CF118CBDB520464B313073A0A6B9A6B9AA647A3AD6
+      test-driven-development: B5B4717B8B761CCE15A6CFE9022E33FD959E0894C0C39D72C9CB49C23486C10E
+      verification-before-completion: EA52D15AABAF72BC6B558EFE2C126F161B53961090DDCD712000273BFE8C7B6C
+      using-superpowers: 55379FE7C1C473A02C61961C822996BFF30E1320D6921D9062509BC508482C05
     source: https://skills.sh/obra/superpowers/
     repository: https://github.com/obra/superpowers
     license: MIT
+    provenance: obra/superpowers GitHub; MIT; content-hash pinned on 2026-07-19 Cherry install
     security_notes: >
-      Pure procedural guidance SKILL.md files. No network access, no scripts,
-      no hooks, no file writes. Inspected before install via npx skills use.
-    approval_reason: "Reference Superpowers skill collection; widely used; MIT; no AgentCore authority override"
+      Procedural SKILL.md guidance. brainstorming includes helper.js + start/stop-server.sh;
+      systematic-debugging includes find-polluter.sh. Scripts are not auto-invoked by AgentCore.
+      Re-audit before enable if hashes drift. No AgentCore authority override.
+    approval_reason: "Reference Superpowers skill collection; widely used; MIT; content-hash pinned 2026-07-19"
     last_review: "2026-07-19"
 
   - package: mattpocock/skills@diagnosing-bugs
@@ -416,13 +427,16 @@ dependencies:
     purpose: >
       Cherry Studio agent skill for diagnosing bugs systematically.
       Installed as the closest available match to the requested 'diagnose' skill.
-    version_policy: latest
-    tested_version: "latest at 2026-07-19"
+    version_policy: "pinned-by-content-hash"
+    tested_version: "SKILL.md SHA-256 3DFE5EC16B89A01DBC1BF606A1A1CFC32349E225F3BB75A3FB86117974A83CB8"
+    content_hash: 3DFE5EC16B89A01DBC1BF606A1A1CFC32349E225F3BB75A3FB86117974A83CB8
     source: https://skills.sh/mattpocock/skills/
     repository: https://github.com/mattpocock/skills
     license: MIT
-    security_notes: "Pure procedural guidance; no scripts or hooks."
-    approval_reason: "High-install skill; MIT; procedural debugging guidance"
+    provenance: mattpocock/skills GitHub; MIT; content-hash pinned 2026-07-19
+    security_notes: >
+      Procedural guidance plus hitl-loop.template.sh (template only). Re-audit on hash drift.
+    approval_reason: "High-install skill; MIT; procedural debugging guidance; content-hash pinned"
     last_review: "2026-07-19"
 
   - package: testdino-hq/playwright-skill@playwright-skill
@@ -433,12 +447,14 @@ dependencies:
       MIT, author testdino.com, v2.4.0.
     version_policy: "2.4.0"
     tested_version: "2.4.0"
+    content_hash: 855CD6515F617895AC3A32752D8928BB9D2311D3BC1E4BA876A3EB1AA96F4C35
     source: https://skills.sh/testdino-hq/playwright-skill/playwright-skill
     repository: https://github.com/testdino-hq/playwright-skill
     license: MIT
+    provenance: testdino-hq/playwright-skill GitHub; MIT; v2.4.0 + SKILL.md content-hash
     security_notes: >
       Pure documentation. Has a security trust boundary note prohibiting use
-      against unauthorized systems. No scripts or hooks.
+      against unauthorized systems. No scripts or hooks. SKILL.md content-hash pinned.
     approval_reason: "Battle-tested Playwright patterns; MIT; testdino.com author"
     last_review: "2026-07-19"
 
@@ -450,10 +466,12 @@ dependencies:
       Official Vercel Engineering guidelines, MIT, v1.0.0.
     version_policy: "1.0.0"
     tested_version: "1.0.0"
+    content_hash: 71ED7794962FA6E803EE83030517B5B93A9F70FBFEB431EC4535C5480A8D8355
     source: https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices
     repository: https://github.com/vercel-labs/agent-skills
     license: MIT
-    security_notes: "Pure documentation. No scripts or hooks."
+    provenance: vercel-labs/agent-skills official Vercel Engineering; MIT; content-hash pinned
+    security_notes: "Pure documentation. No scripts or hooks. SKILL.md content-hash pinned."
     approval_reason: "Official Vercel source; MIT; authoritative React guidelines"
     last_review: "2026-07-19"
 
@@ -465,10 +483,12 @@ dependencies:
       Official Vercel Engineering guidelines, MIT, v1.0.0.
     version_policy: "1.0.0"
     tested_version: "1.0.0"
+    content_hash: E38E0EAA609316B10423A9A138ED95E35099ACCD3F735585295C8A8F165C28A3
     source: https://skills.sh/vercel-labs/agent-skills/vercel-composition-patterns
     repository: https://github.com/vercel-labs/agent-skills
     license: MIT
-    security_notes: "Pure documentation. No scripts or hooks."
+    provenance: vercel-labs/agent-skills official Vercel Engineering; MIT; content-hash pinned
+    security_notes: "Pure documentation. No scripts or hooks. SKILL.md content-hash pinned."
     approval_reason: "Official Vercel source; MIT; authoritative composition patterns"
     last_review: "2026-07-19"
 
@@ -478,16 +498,21 @@ dependencies:
     purpose: >
       Cherry Studio agent skill for creating and iterating on new skills.
       Pre-installed in Cherry Studio. Used as 'Anthropic Skill Creator'.
-    version_policy: latest
-    tested_version: "pre-installed at Cherry Studio 1.9.12 install time"
+    version_policy: "pinned-by-content-hash"
+    tested_version: "SKILL.md SHA-256 C6A49624F0DBA126AF43ACD13C32DC32E4AC68ACE671659EBB7D3EFBBA8E8AB9"
+    content_hash: C6A49624F0DBA126AF43ACD13C32DC32E4AC68ACE671659EBB7D3EFBBA8E8AB9
     source: https://skills.sh/anthropics/skills/skill-creator
     repository: https://github.com/anthropics/skills
     license: Apache-2.0
+    provenance: anthropics/skills official Anthropic; Apache-2.0; content-hash pinned 2026-07-19
     security_notes: >
       Has eval scripts (generate_review.py etc.) that run only when operator
       explicitly requests skill evaluation. Not auto-invoked. Inspected before use.
     approval_reason: "Official Anthropic source; Apache-2.0; foundational skill creator"
     last_review: "2026-07-19"
+
+  # find-skills (installed on Cherry disk) is intentionally NOT catalog-admitted:
+  # license not verified in SKILL.md; see audits/CHERRY_STUDIO_SKILLS_AUDIT_2026-07-19.md
 
   - package: sqlalchemy
     ecosystem: python

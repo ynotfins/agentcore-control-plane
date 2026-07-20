@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md
 
-**Updated:** 2026-07-17 — M8 hardening: continuous context durability, resume semantics, v_client_memory_continuity view, central durability audit, layered-frequency tasks, project-centric memory model, IDE lifecycle validation
+**Updated:** 2026-07-19 — Gated AgentCore integration recovery/rollout: dormant MCP catalog, OpenRouter MCP remains OAuth-unvalidated, Cherry Studio enrolled with OpenRouter API provider, AO isolated smoke, Swarm isolation inventory, Cursor extension matrix
 **Authority:** `PROJECT_ANCHOR.md` §0 Bifrost Gateway Override
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`
 
@@ -133,7 +133,9 @@ Repaired runtime validation (2026-07-14):
 
 Classification matrix: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`
 
-**OpenRouter MCP:** registered once behind Bifrost as `openrouter` (status: dormant). Zero tools exposed without an active M6 capability lease. OAuth enrollment is operator-initiated (`ready_auth_on_first_use` posture). Discovery tools use short JIT leases; account and billable tools require operator scope/approval. No IDE config changes needed — tool discovery through existing `agentcore-gateway` connection. See `docs/operations/OPENROUTER_MCP.md` for full runbook. This does **not** change any IDE default model or provider.
+**OpenRouter MCP:** registered once behind Bifrost as `openrouter`. Current completion string: **`OPENROUTER MCP REGISTERED DORMANT — OAUTH NOT VALIDATED`**. Zero tools on builder/operator VK `tools/list` until encrypted OAuth + lease gates pass. Do **not** claim `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY` or `OPENROUTER MODELS AVAILABLE AS IDE MODELS` from MCP registration alone. OpenRouter **API inference** (Cherry Studio / Open Interpreter providers) is a separate system from OpenRouter MCP. See `docs/operations/OPENROUTER_MCP.md`.
+
+**Dormant capability catalog:** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md` — future upstreams documented with zero default exposure; Context7/Hostinger remain `blocked_authority` per `PROJECT_ANCHOR.md`.
 
 ---
 
@@ -318,6 +320,16 @@ Sanitized renderers (source-controlled):
 Live paths are listed in `contracts/agentcore-gateway-client.json` → `client_render_hints`.
 Cutover automation: `ops/bifrost/Invoke-AgentCoreIdeGatewayCutover.ps1`.
 **Out of scope:** OpenClaw / ClawX.
+
+### Cherry Studio / AO / Swarm (2026-07-19 gated rollout)
+
+| Surface | Posture | Evidence / docs |
+| -- | -- | -- |
+| Cherry Studio | Enrolled: single `agentcore-gateway`, Global Memory off, OpenRouter **API** provider live | Status: **`CHERRY STUDIO ENROLLED IN AGENTCORE — OPENROUTER PROVIDER LIVE`** |
+| AO Agents | Thin Windows orchestration (`runtime: process`, worktree); inherits IDE gateway; no AgentCore DB | Gate D smoke under `artifacts/gated-agentcore-rollout-2026-07-19/` |
+| Desplega / Agent Swarm | Isolated; read-only inventory only; not in Bifrost registry | `audits/SWARM_ISOLATION_INVENTORY_2026-07-19.md` |
+| Cursor extensions | Replacement matrix; no uninstalls | `audits/CURSOR_EXTENSION_TO_MCP_REPLACEMENT_MATRIX.md` |
+| Cherry skills | Hash-pinned in dependency catalog | `audits/CHERRY_STUDIO_SKILLS_AUDIT_2026-07-19.md` |
 
 ---
 
@@ -713,6 +725,7 @@ SwarmRecall, SwarmVault, and SwarmClaw are a **separate ecosystem**.
 - Bifrost cutover must not modify Swarm product installs (exclude-only from IDE baselines).
 - OpenClaw/ClawX are outside this IDE gateway cutover.
 - Historical Swarm-first baseline docs are superseded for non-Swarm IDE work (`DOC_AUTHORITY.md`).
+- `D:\github\agent-swarm` (Desplega) dirty state is preserved; `D:\AgentSwarm` is AgentCore runtime root — do not conflate paths (`audits/SWARM_ISOLATION_INVENTORY_2026-07-19.md`).
 
 ---
 

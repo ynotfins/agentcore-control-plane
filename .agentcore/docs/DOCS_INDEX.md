@@ -3,9 +3,11 @@
 Machine-oriented index of documentation libraries available via **arabold-docs**
 (through `agentcore-gateway` → Bifrost → `arabold_docs-*` tools).
 
-**Last refreshed:** 2026-07-14 (Arabold scrape/search via live Bifrost `127.0.0.1:8080/mcp`; runtime status cross-check updated after gateway repair)
+**Last refreshed:** 2026-07-19 (gated AgentCore rollout closeout; Arabold inventory rows below remain 2026-07-14 unless noted)
 **Evidence:** `artifacts/bifrost-gateway-cutover-2026-07-12/arabold-docs/`
 **Cross-ref report:** `artifacts/bifrost-gateway-cutover-2026-07-12/ARABOLD_DOCS_CROSSREF_2026-07-12.md`
+**Ops catalogs (source):** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, `docs/operations/OPENROUTER_MCP.md`
+**Audits (2026-07-19):** `audits/CURSOR_EXTENSION_TO_MCP_REPLACEMENT_MATRIX.md`, `audits/CHERRY_STUDIO_SKILLS_AUDIT_2026-07-19.md`, `audits/SWARM_ISOLATION_INVENTORY_2026-07-19.md`
 
 ---
 
