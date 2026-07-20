@@ -58,6 +58,18 @@ python -m agentcore workflow start `
     --milestone M6 `
     --goal "Diagnose the failing tests in calc.py and apply a minimal fix."
 
+# Start a workflow run with OpenRouter explicit selection
+# --provider openrouter requires an explicit --model from the OpenRouter model catalog.
+python -m agentcore workflow start `
+    --project-key fixture-project-a `
+    --milestone M6 `
+    --provider openrouter `
+    --model minimax/minimax-m3 `
+    --goal "Diagnose the failing tests in calc.py and apply a minimal fix."
+
+# Display the sanitized available models catalog for OpenRouter
+python -m agentcore workflow models --provider openrouter
+
 # Observe state
 python -m agentcore workflow status --project-key fixture-project-a
 

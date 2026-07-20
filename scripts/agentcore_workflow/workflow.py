@@ -252,6 +252,8 @@ def run_workflow(
     thread_uuid: str | None = None,
     resume_from: dict | None = None,
     conninfo: str | None = None,
+    provider: str | None = None,
+    model: str | None = None,
 ) -> dict:
     """Start or resume a workflow run against the production PostgresSaver.
 
@@ -283,7 +285,10 @@ def run_workflow(
             result = graph.invoke(Command(resume=resume_from), config=config)
         else:
             # Fresh start or automatic resume from checkpoint
-            state = initial_state(project_id, project_key, thread_uuid, milestone_key)
+            state = initial_state(
+                project_id, project_key, thread_uuid, milestone_key,
+                provider=provider or "", model=model or ""
+            )
             result = graph.invoke(state, config=config)
 
         return {

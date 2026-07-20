@@ -723,6 +723,13 @@ def node_da_builder(state: WorkflowState) -> dict:
         # Graceful fallback: DA not available, route to standard micro_execute.
         return {"next_action": "micro_execute", "da_builder_result": {"status": "skipped_no_da"}}
 
+    # Resolve model spec for the worker (default to openai:gpt-4o-mini if not specified)
+    model_spec = "openai:gpt-4o-mini"
+    if state.get("provider") == "openrouter" and state.get("model"):
+        model_spec = f"openrouter:{state['model']}"
+    elif state.get("model"):
+        model_spec = state["model"]
+
     worker_result = run_builder_worker(
         task=task,
         worktree_path=worktree_path,
@@ -730,6 +737,7 @@ def node_da_builder(state: WorkflowState) -> dict:
         allowed_tools=active_tools,
         project_id=project_id,
         thread_uuid=thread_uuid,
+        model=model_spec,
     )
 
     # Record durable evidence through agentcore-memory path (not DA's MemorySaver).
@@ -812,6 +820,13 @@ def node_da_critic(state: WorkflowState) -> dict:
             "next_action": "post_exec_judge",
         }
 
+    # Resolve model spec for the worker (default to openai:gpt-4o-mini if not specified)
+    model_spec = "openai:gpt-4o-mini"
+    if state.get("provider") == "openrouter" and state.get("model"):
+        model_spec = f"openrouter:{state['model']}"
+    elif state.get("model"):
+        model_spec = state["model"]
+
     critic_result = run_critic_worker(
         task=task,
         worktree_path=worktree_path,
@@ -819,6 +834,7 @@ def node_da_critic(state: WorkflowState) -> dict:
         rubric=rubric,
         project_id=project_id,
         thread_uuid=thread_uuid,
+        model=model_spec,
     )
 
     # Record findings through agentcore-memory path regardless of outcome.
@@ -1043,12 +1059,20 @@ def node_ab_alternate(state: WorkflowState) -> dict:
         worktree_path, branch_label = create_ab_worktree(run_id=run_db_id)
         ab_alt_worktree_path = worktree_path
 
+        # Resolve model spec for the worker (default to openai:gpt-4o-mini if not specified)
+        model_spec = "openai:gpt-4o-mini"
+        if state.get("provider") == "openrouter" and state.get("model"):
+            model_spec = f"openrouter:{state['model']}"
+        elif state.get("model"):
+            model_spec = state["model"]
+
         ab_alt_result = run_ab_alternate_builder(
             task=task,
             worktree_path=worktree_path,
             agentcore_context=agentcore_context,
             allowed_tools=allowed_tools,
             run_id=run_db_id,
+            model=model_spec,
         )
 
         # Archive metadata and remove the worktree before routing on.

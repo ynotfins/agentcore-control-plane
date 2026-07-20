@@ -117,6 +117,7 @@ def run_ab_alternate_builder(
     agentcore_context: str,
     allowed_tools: list[str],
     run_id: str,
+    model: str = "openai:gpt-4o-mini",
 ) -> dict[str, Any]:
     """Run the DA builder in the isolated alternate worktree (B path).
 
@@ -154,6 +155,7 @@ def run_ab_alternate_builder(
             worktree_path=worktree_path,
             agentcore_context=agentcore_context,
             allowed_tools=allowed_tools,
+            model=model,
         )
         result["ab_path"] = "alternate"
         result["worktree_path"] = worktree_path

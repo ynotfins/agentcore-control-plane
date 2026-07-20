@@ -61,7 +61,7 @@ It does **not** authorize live IDE configuration changes. IDEs keep the single e
 | `artiforge` | `disabled` | registry pin | none | — | Explicit operator enable | `enabled=false` |
 | `depwire-cloud` | `disabled`/`deferred` | `https://api.depwire.dev/mcp` | Bearer | `DEPWIRE_API_KEY` | Cloud connection health gate | `enabled=false` |
 
-**OpenRouter current evidence (2026-07-19):** registered once; live Bifrost client present; OAuth state file absent; `BIFROST_ENCRYPTION_KEY` absent → report `OPENROUTER MCP REGISTERED DORMANT — OAUTH NOT VALIDATED`. Do not claim IDE model availability from MCP registration.
+**OpenRouter current evidence (2026-07-19):** registered once; live Bifrost client present; BIFROST_ENCRYPTION_KEY present (length 44) and active; config.db ACL hardened; OAuth flow successfully initiated (oauth_config_id recorded in state file; status is `pending_oauth` pending manual operator consent). Do not claim IDE model availability from MCP registration.
 
 **GitHub MCP note:** still carries transitional `permitted_tools: ["*"]`. Wildcard must be replaced with a named inventory before any enablement (wildcard_policy transitional exception must not be extended).
 

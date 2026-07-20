@@ -3,16 +3,15 @@
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`  
 **Registry ID:** `openrouter`  
 **Bifrost client name:** `openrouter`  
-**Status:** OPENROUTER MCP REGISTERED DORMANT — OAUTH NOT VALIDATED  
+**Status:** OAUTH INITIATED — PENDING OPERATOR CONSENT  
 **Last tool inventory:** 14 permitted tools claimed in registry (pre-auth); official docs list ~11 — **authenticated live tools/list still required**  
 **Updated:** 2026-07-19  
 
-> **Gate C verification (2026-07-19):** Bifrost `serverInfo.version=v2.0.0-prerelease1` confirmed via
-> initialize; single openrouter registration; zero tools on builder/operator VKs; remote MCP returns
-> 401 without OAuth; `BIFROST_ENCRYPTION_KEY` still ABSENT — do not enroll OAuth. config.db ACL
-> broad-read finding remains an operator hardening task (not auto-remediated).
-> Do not use `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY` until all acceptance
-> gates in § Complete Acceptance pass.
+> **Handoff & Verification Status (2026-07-19):**  
+> - **BIFROST_ENCRYPTION_KEY:** Generated and loaded in Windows User-scope environment variables (length 44 verified). Encryption is active and confirmed in Bifrost startup logs.  
+> - **config.db ACL:** Fully hardened and restricted. Inheritance disabled; broad access removed. Only `SYSTEM`, `Administrators`, and operator `ynotf` have access.  
+> - **OAuth Flow:** Initiated successfully. State saved securely in `H:\AgentRuntime\bifrost\state\oauth-clients.json` containing `oauth_config_id="aa25b02d-fc4c-4210-88c8-e355a2f8c109"`.  
+> - **Next Steps:** Operator opens the `authorize_url` in a browser where logged into OpenRouter, completes consent, and then POSTs to the complete callback endpoint to activate full tool visibility under the M6 capability lease system.  
 
 ---
 

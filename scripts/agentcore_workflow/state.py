@@ -28,6 +28,8 @@ class WorkflowState(TypedDict):
     project_key: str         # human-readable project key
     thread_uuid: str         # LangGraph thread_id (= workflow_threads.thread_id)
     run_db_id: str           # wf_runs.id UUID (PK in agentcore)
+    provider: str            # LLM provider (e.g., "openrouter")
+    model: str               # Selected model ID
 
     # ── Milestone tracking ────────────────────────────────────────────────────
     milestone_key: str       # e.g. "M6"
@@ -106,6 +108,8 @@ def initial_state(
     project_key: str,
     thread_uuid: str,
     milestone_key: str = "M6",
+    provider: str = "",
+    model: str = "",
 ) -> WorkflowState:
     """Return a fresh workflow state for a new run."""
     return WorkflowState(
@@ -113,6 +117,8 @@ def initial_state(
         project_key=project_key,
         thread_uuid=thread_uuid,
         run_db_id="",
+        provider=provider,
+        model=model,
         milestone_key=milestone_key,
         milestone_db_id="",
         current_macro_key="",

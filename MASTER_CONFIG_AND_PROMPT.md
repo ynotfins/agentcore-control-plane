@@ -133,7 +133,7 @@ Repaired runtime validation (2026-07-14):
 
 Classification matrix: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`
 
-**OpenRouter MCP:** registered once behind Bifrost as `openrouter`. Current completion string: **`OPENROUTER MCP REGISTERED DORMANT — OAUTH NOT VALIDATED`**. Zero tools on builder/operator VK `tools/list` until encrypted OAuth + lease gates pass. Do **not** claim `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY` or `OPENROUTER MODELS AVAILABLE AS IDE MODELS` from MCP registration alone. OpenRouter **API inference** (Cherry Studio / Open Interpreter providers) is a separate system from OpenRouter MCP. See `docs/operations/OPENROUTER_MCP.md`.
+**OpenRouter MCP:** registered once behind Bifrost as `openrouter`. Current completion string: **`OPENROUTER MCP OAUTH INITIATED — PENDING OPERATOR CONSENT`**. Zero tools on builder/operator VK `tools/list` until encrypted OAuth + lease gates pass. BIFROST_ENCRYPTION_KEY (length 44) is active and config.db ACL is hardened. Do **not** claim `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY` or `OPENROUTER MODELS AVAILABLE AS IDE MODELS` from MCP registration alone. OpenRouter **API inference** (Cherry Studio / Open Interpreter providers) is a separate system from OpenRouter MCP. See `docs/operations/OPENROUTER_MCP.md`.
 
 **Dormant capability catalog:** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md` — future upstreams documented with zero default exposure; Context7/Hostinger remain `blocked_authority` per `PROJECT_ANCHOR.md`.
 

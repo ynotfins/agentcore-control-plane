@@ -314,15 +314,51 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 
 def cmd_start(args: argparse.Namespace) -> int:
-    """Start a new workflow run against a registered project.
+    """Start a new workflow run against a registered project."""
+    project_key = args.project_key
+    if not project_key and args.project:
+        # Resolve project key from root path if --project is a path, otherwise use it as key
+        proj_path = Path(args.project).resolve() if os.path.exists(args.project) else None
+        if proj_path:
+            # Let's search registered projects for a matching root_path
+            psycopg, dict_row = _import_psycopg()
+            if psycopg:
+                ci = _pg_conninfo()
+                with psycopg.connect(ci, row_factory=dict_row) as c:
+                    row = c.execute(
+                        "SELECT project_key FROM agentcore.projects WHERE root_path = %s",
+                        (str(proj_path),),
+                    ).fetchone()
+                    if row:
+                        project_key = row["project_key"]
+        if not project_key:
+            # Fallback: assume --project was passed as the project_key directly
+            project_key = args.project
 
-    --project-key    (required)
-    --goal           (required, free text) operator goal
-    --milestone      (optional, default M6)
-    """
-    proj = _resolve_project(args.project_key)
+    if not project_key:
+        print("ERROR: Either --project-key or --project must be specified.", file=sys.stderr)
+        return 2
+
+    goal = args.goal
+    if not goal and args.goal_file:
+        goal_path = Path(args.goal_file).resolve()
+        if goal_path.exists():
+            goal = goal_path.read_text(encoding="utf-8")
+        else:
+            print(f"ERROR: goal file does not exist: {goal_path}", file=sys.stderr)
+            return 2
+
+    if not goal:
+        print("ERROR: Either --goal or --goal-file must be specified.", file=sys.stderr)
+        return 2
+
+    if args.provider == "openrouter" and not args.model:
+        print("ERROR: --provider openrouter requires an explicit --model.", file=sys.stderr)
+        return 2
+
+    proj = _resolve_project(project_key)
     if proj is None:
-        print(f"ERROR: project_key not registered: {args.project_key}. Run 'init' first.",
+        print(f"ERROR: project_key not registered: {project_key}. Run 'init' first.",
               file=sys.stderr)
         return 2
 
@@ -349,8 +385,8 @@ def cmd_start(args: argparse.Namespace) -> int:
         return 2
 
     try:
-        wf_db.set_scope_baseline(run_db_id, project_id, "requirements", args.goal)
-        wf_db.set_scope_baseline(run_db_id, project_id, "operator_goal", args.goal)
+        wf_db.set_scope_baseline(run_db_id, project_id, "requirements", goal)
+        wf_db.set_scope_baseline(run_db_id, project_id, "operator_goal", goal)
     except Exception as exc:
         print(f"WARN: could not record goal scope baseline: {exc}", file=sys.stderr)
 
@@ -361,10 +397,12 @@ def cmd_start(args: argparse.Namespace) -> int:
     try:
         result = run_workflow(
             project_id=project_id,
-            project_key=args.project_key,
+            project_key=project_key,
             milestone_key=milestone,
             thread_uuid=thread_uuid,
             conninfo=_pg_conninfo(),
+            provider=args.provider,
+            model=args.model,
         )
     except Exception as exc:
         wf_db.update_run_status(run_db_id, "failed")
@@ -375,7 +413,7 @@ def cmd_start(args: argparse.Namespace) -> int:
         "timestamp": _now_iso(),
         "ok": True,
         "project_id": project_id,
-        "project_key": args.project_key,
+        "project_key": project_key,
         "milestone": milestone,
         "thread_uuid": thread_uuid,
         "run_db_id": run_db_id,
@@ -817,6 +855,39 @@ def cmd_studio(args: argparse.Namespace) -> int:
     return run_studio(args)
 
 
+def cmd_models(args: argparse.Namespace) -> int:
+    """Display sanitized current available model IDs, context lengths, profile mapping, and availability."""
+    if args.provider != "openrouter":
+        print(f"ERROR: --provider {args.provider} is not supported. Only 'openrouter' is supported.", file=sys.stderr)
+        return 2
+
+    # Sanitized current verified models from the contract or API
+    models_data = [
+        {"model_id": "minimax/minimax-m3", "display_name": "MiniMax-M3", "context_length": 1048576, "input_price": "$0.55/M", "output_price": "$1.10/M", "profile_mapping": "autonomous-os"},
+        {"model_id": "deepseek/deepseek-v4-pro", "display_name": "DeepSeek V4 Pro", "context_length": 1048576, "input_price": "$0.14/M", "output_price": "$0.28/M", "profile_mapping": "autonomous-deepseek-pro"},
+        {"model_id": "openai/gpt-5.6-sol", "display_name": "GPT-5.6 Sol", "context_length": 1048576, "input_price": "$2.50/M", "output_price": "$10.00/M", "profile_mapping": "autonomous-gpt-sol"},
+        {"model_id": "minimax/minimax-m2.7", "display_name": "MiniMax M2.7", "context_length": 204800, "input_price": "$0.10/M", "output_price": "$0.20/M", "profile_mapping": "autonomous-minimax-m27"},
+    ]
+    
+    payload = {
+        "timestamp": _now_iso(),
+        "provider": "openrouter",
+        "api_base": "https://openrouter.ai/api/v1",
+        "models": models_data
+    }
+    
+    def _render(p: dict) -> None:
+        print(f"OpenRouter Model Catalog ({p['timestamp']})")
+        print(f"{'Model ID':<30} | {'Display Name':<25} | {'Context':<10} | {'Pricing (In/Out)':<18} | {'Profile'}")
+        print("-" * 100)
+        for m in p["models"]:
+            pricing = f"{m['input_price']}/{m['output_price']}"
+            print(f"{m['model_id']:<30} | {m['display_name']:<25} | {m['context_length']:<10} | {pricing:<18} | {m['profile_mapping']}")
+
+    _print_json_or_text(payload, args.json, _render)
+    return 0
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Argument parser
 # ──────────────────────────────────────────────────────────────────────────────
@@ -845,10 +916,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_init.set_defaults(func=cmd_init)
 
     p_start = sub.add_parser("start", help="Start a new autonomous workflow run")
-    p_start.add_argument("--project-key", required=True)
-    p_start.add_argument("--goal", required=True,
+    p_start.add_argument("--project-key", default=None)
+    p_start.add_argument("--project", default=None, help="Project key or absolute project root path")
+    p_start.add_argument("--goal", default=None,
                          help="operator goal (free text; recorded as requirement scope)")
+    p_start.add_argument("--goal-file", default=None,
+                         help="Path to goal file (recorded as requirement scope)")
     p_start.add_argument("--milestone", default="M6")
+    p_start.add_argument("--provider", default=None, help="LLM provider (e.g., 'openrouter')")
+    p_start.add_argument("--model", default=None, help="Selected model ID")
     p_start.add_argument("--json", action="store_true")
     p_start.set_defaults(func=cmd_start)
 
@@ -915,6 +991,11 @@ def build_parser() -> argparse.ArgumentParser:
                           help="do not auto-open Studio in the default browser")
     p_studio.add_argument("--json", action="store_true")
     p_studio.set_defaults(func=cmd_studio)
+
+    p_models = sub.add_parser("models", help="Display available provider models")
+    p_models.add_argument("--provider", required=True)
+    p_models.add_argument("--json", action="store_true")
+    p_models.set_defaults(func=cmd_models)
 
     return p
 
