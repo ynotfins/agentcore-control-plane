@@ -61,6 +61,10 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thin
 - When checkpointing inherited dirty state, inventory/classify files, scan for secrets/junk/generated/oversized artifacts, and commit the checkpoint separately.
 - Keep authority-reconciliation tasks scoped to rules, validators, profiles, and handoffs; defer runtime platform work until the required memory-platform milestone exists.
 - Exclude unrelated runtime files, live configs, credentials, databases, caches, backups, and raw config dumps from repository commits.
+- Manage secrets and API keys via Windows User-scope environment variables only; never write secrets in local config files or materialize virtual keys in client apps.
+- Ensure every managed IDE continuously commits recoverable project context, enabling new chats to resume from database-backed canonical memory without manual handoff.
+- Before installing Cherry Studio skills, strictly inspect their complete contents, identify behavior, record metadata, and reject any that violate BLUEPRINT.md or Swarm separation.
+- Limit Cherry Studio skills to a strictly approved scope (e.g., Superpowers, diagnose, Playwright Skill, vercel-react-best-practices, vercel-composition-patterns, Anthropic Skill Creator) to prevent duplicates or overrides.
 
 ## Learned Workspace Facts
 
@@ -73,3 +77,6 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thin
 - M6 autonomous workflow is productized: `python -m agentcore workflow {init,start,status,pause,approve,reject,resume,cancel,logs,evidence,topology,studio}` runs from `D:\github\agentcore-control-plane` with the canonical runbook at `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`. Production uses PostgresSaver at PG18 127.0.0.1:55433; LangGraph Studio is dev-only, bound to localhost, uses Agent Server dev checkpointer (sqlite/in-memory) with `LANGSMITH_TRACING=false`, never shares thread IDs with production, and is not a persistent Windows service.
 - Engineering Constitution at `docs/engineering/CONSTITUTION.md`; dependency catalog at `docs/engineering/dependency-catalog/catalog.yaml`.
 - Approved Copier templates must use an explicit template suffix, normally `.jinja`, for files containing Jinja. An empty suffix is allowed only when the template intentionally renders every eligible file and repository validators prove that parser-sensitive template sources do not create invalid workspace artifacts.
+- The OpenRouter MCP server (`https://mcp.openrouter.ai/mcp`) is registered behind Bifrost (status: `OPENROUTER_MCP_REGISTERED_DORMANT_BEHIND_BIFROST — OAUTH AND JIT ACTIVATION NOT VALIDATED`) with the IDE-facing endpoint kept at `http://127.0.0.1:8080/mcp`.
+- Cherry Studio reaches out with OPTIONS or HEAD reachability probes to `/mcp`; Bifrost gateway handles these probes by returning a non-secret 200 or 204 response.
+- LLM client configurations (Cursor, Cherry Studio, agent-orchestrator, Pinokio) must avoid direct upstream/OpenRouter MCP entries and route all tools/models through `agentcore-gateway`.
