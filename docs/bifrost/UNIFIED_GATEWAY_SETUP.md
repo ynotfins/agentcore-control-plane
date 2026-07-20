@@ -203,9 +203,13 @@ Sanitized renderers: `renderers/gateway-clients/<ide>.json`.
 | Mavis | `C:\Users\ynotf\.mavis\mcp\mcp.json` | JSON `mcpServers` entry | Yes | Client default or renderer field | Restart Mavis | Restore config backup |
 | Antigravity | `C:\Users\ynotf\.gemini\config\mcp_config.json` or `C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json` | JSON MCP config | Yes | Client default or renderer field | Restart Antigravity/Gemini host | Restore config backup |
 | Open Interpreter | `C:\Users\ynotf\AppData\Roaming\interpreter\config.json` | JSON app config | Contract marks unsupported; materialize live secret only as last resort | Client default | Restart Open Interpreter | Restore config backup |
+| Cherry Studio | `%APPDATA%\CherryStudio` Local Storage (`persist:cherry-studio`) | Streamable HTTP MCP server record | No `${env:}` — materialize Bearer from User env into live store only | 300s | Fully quit Cherry, run `scripts/cherry/enroll_agentcore_gateway.py`, relaunch | Restore `E:\AgentCore-Backups\cherry-*` |
+| LangGraph prod / Studio | shared Python adapter (not an IDE `mcp.json`) | `scripts/agentcore_workflow/mcp_client.py` → localhost gateway | Bearer from `BIFROST_MCP_VK_WORKFLOW` or `BIFROST_MCP_VIRTUAL_KEY` | 300s | Restart worker / Studio process | Disable workflow; gateway unchanged |
 
 For every client, validate Bifrost first with `ops\bifrost\Test-AgentCoreBifrostGateway.ps1`,
 then validate IDE discovery and one safe read-only tool call through `agentcore-gateway`.
+
+**OpenRouter MCP:** never add `https://mcp.openrouter.ai/mcp` as a direct IDE MCP entry. Gateway + M6 lease only — `docs/operations/OPENROUTER_MCP.md`.
 
 ---
 
@@ -312,3 +316,15 @@ Invoke-WebRequest http://127.0.0.1:8080/health -UseBasicParsing
 ```
 
 Then fully quit/relaunch the IDE and confirm `agentcore-gateway` tools appear.
+
+---
+
+## See also
+
+- Architecture authority: `BLUEPRINT.md`
+- Mutable live posture: `CONTEXT_BLOCK.md` §0a
+- Classification / profiles: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`, `docs/bifrost/CAPABILITY_PROFILES.md`
+- OpenRouter MCP runbook: `docs/operations/OPENROUTER_MCP.md`
+- LangGraph + Studio runbook: `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`
+- Dormant catalog: `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`
+- Enrollment evidence: `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`

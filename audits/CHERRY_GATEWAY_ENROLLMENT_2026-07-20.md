@@ -1,5 +1,7 @@
 # Cherry Studio AgentCore Gateway Enrollment Evidence (2026-07-20)
 
+**See also:** `BLUEPRINT.md` (single-gateway topology) · `docs/bifrost/UNIFIED_GATEWAY_SETUP.md` · `docs/operations/OPENROUTER_MCP.md` (no direct OpenRouter MCP) · `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`
+
 **Version:** 1.9.12 (win|prod|packaged)  
 **AppData:** `%APPDATA%\CherryStudio`  
 **Backup:** `E:\AgentCore-Backups\cherry-pre-enrollment-20260720-023141` (+ shared-read `agents.db` SHA256 `26FEF803…1329D8`)

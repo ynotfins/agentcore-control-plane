@@ -55,13 +55,13 @@ It does **not** authorize live IDE configuration changes. IDEs keep the single e
 
 | Canonical ID | Status | Pin / endpoint | Auth | Env names | Activation | Deactivation / rollback |
 | -- | -- | -- | -- | -- | -- | -- |
-| `openrouter` | `dormant` (`enabled=true`, not in any `allowed_server_ids`) | `https://mcp.openrouter.ai/mcp` | OAuth (`mcp` scope) | none (OAuth in Bifrost store); requires `BIFROST_ENCRYPTION_KEY` before enrollment | Separate encrypted OAuth + JIT lease gate — see `docs/operations/OPENROUTER_MCP.md` | `enabled=false` or revoke OAuth; re-render; restart `\AgentCore\AgentCore-Bifrost-Gateway` |
+| `openrouter` | `dormant` registry + `authenticated_dormant` lifecycle (`enabled=true`, not in default `allowed_server_ids`) | `https://mcp.openrouter.ai/mcp` | OAuth (`mcp` scope) bound in Bifrost store | none (OAuth in Bifrost store); `BIFROST_ENCRYPTION_KEY` required | M6 lease + `jit_vk_bridge` for exact groups — see `docs/operations/OPENROUTER_MCP.md` | revoke lease / revoke OAuth; re-render; restart `\AgentCore\AgentCore-Bifrost-Gateway` |
 | `github-mcp` | `deferred` (`enabled=false`) | `ghcr.io/github/github-mcp-server` via Docker | PAT | `GITHUB_PERSONAL_ACCESS_TOKEN`, `GITHUB_PAT_TOKEN` | Health gate + named tool inventory + remove wildcard before enable | Remain `enabled=false`; no Docker start from this catalog alone |
 | `mcp-debugger` | `disabled` | registry pin | none | — | Explicit operator enable | `enabled=false` |
 | `artiforge` | `disabled` | registry pin | none | — | Explicit operator enable | `enabled=false` |
 | `depwire-cloud` | `disabled`/`deferred` | `https://api.depwire.dev/mcp` | Bearer | `DEPWIRE_API_KEY` | Cloud connection health gate | `enabled=false` |
 
-**OpenRouter current evidence (2026-07-19):** registered once; live Bifrost client present; BIFROST_ENCRYPTION_KEY present (length 44) and active; config.db ACL hardened; OAuth flow successfully initiated (oauth_config_id recorded in state file; status is `pending_oauth` pending manual operator consent). Do not claim IDE model availability from MCP registration.
+**OpenRouter current evidence (2026-07-20):** registered once; OAuth authorized + client `connected` (`audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md`); registry `status` remains `dormant`; lifecycle `authenticated_dormant`; zero OpenRouter tools on VKs without an M6 lease; JIT bridge proven for discovery (13 tools) + revoke-to-zero. Classification: `contracts/openrouter-tool-manifest.json`. Do not claim IDE model availability from MCP registration; do not add direct OpenRouter MCP IDE entries.
 
 **GitHub MCP note:** still carries transitional `permitted_tools: ["*"]`. Wildcard must be replaced with a named inventory before any enablement (wildcard_policy transitional exception must not be extended).
 

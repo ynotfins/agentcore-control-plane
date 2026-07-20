@@ -58,57 +58,40 @@ ready_auth_on_first_use (current default posture)
   → No 7-day expiry clock running on idle capability
   → Operator initiates OAuth flow when the capability is first needed
 
-authenticated_dormant
+authenticated_dormant  ← **current live posture (2026-07-20)**
   → OAuth completed; token stored in config.db
-  → Connection active but zero tools exposed to any VK
-  → Tools require an M6 capability lease to become visible
+  → Registry `status` remains `dormant` (zero default exposure)
+  → Connection may be active but zero OpenRouter tools on VKs without a lease
+  → Tools require an M6 capability lease + JIT VK bridge to become visible
 
 jit_leased
-  → Active M6 capability lease grants tools to a specific VK
+  → Active M6 capability lease grants exact named tools to a specific VK
   → Tools visible for lease duration only
   → Lease expiry/revocation returns to authenticated_dormant
 ```
 
-**Preferred posture for rarely-used capability:** `ready_auth_on_first_use`. This avoids mandatory 7-day reauthorization cycles for a dormant capability. OAuth is initiated only when the operator decides to activate it.
+**Status vocabulary:** registry `status: "dormant"` means zero default exposure. Lifecycle
+`authenticated_dormant` means OAuth is bound. Do not confuse the two strings.
+
+**Preferred posture when OAuth is not yet bound:** `ready_auth_on_first_use` (avoids idle
+7-day reauth clocks). After bind, remain `authenticated_dormant` until a lease grants tools.
 
 ---
 
-## Encryption Blocker — STOP BEFORE OAUTH
+## Encryption prerequisite (historical blocker — resolved 2026-07-20)
 
-**BIFROST_ENCRYPTION_KEY is ABSENT from the scheduled-task runtime.**
+**Live status:** `BIFROST_ENCRYPTION_KEY` is present in Windows User-scope; the Bifrost launcher
+copies it into the process. OAuth bind evidence:
+`audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md`.
 
-Evidence (2026-07-18):
-- `[System.Environment]::GetEnvironmentVariable("BIFROST_ENCRYPTION_KEY", "User")` → null
-- `[System.Environment]::GetEnvironmentVariable("BIFROST_ENCRYPTION_KEY", "Machine")` → null
-- The Bifrost launcher (`ops/bifrost/Launch-AgentCoreBifrostGateway.ps1`) copies Windows User-scope
-  env vars into the Bifrost process; if the key is absent at launch time, Bifrost has no encryption key.
+**Still required before any new OAuth enrollment or re-bind:**
 
-**Consequence:** Without `BIFROST_ENCRYPTION_KEY`, Bifrost stores OAuth material (access token,
-refresh token) in `config.db` in plaintext. `config.db` must be treated as secret-bearing under
-all circumstances, but plaintext storage violates the credential-storage policy.
+1. Confirm `BIFROST_ENCRYPTION_KEY` is set in Windows User-scope (name only — never print value).
+2. Restart `\AgentCore\AgentCore-Bifrost-Gateway` so the process loads the key.
+3. Verify `config.db` ACLs are restricted (operator/SYSTEM only).
+4. Treat `config.db` and backups as secret-bearing regardless of encryption state.
 
-**Required before OAuth can be initiated:**
-
-1. Generate a strong random encryption key (operator — never share, never print).
-2. Set `BIFROST_ENCRYPTION_KEY` in Windows User-scope environment variables only:
-   ```powershell
-   # Generate (example — operator sets; agent never generates or stores):
-   # [System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-   # Store via Windows credential manager or securely; then:
-   [System.Environment]::SetEnvironmentVariable("BIFROST_ENCRYPTION_KEY", "<value>", "User")
-   ```
-3. Restart the Bifrost scheduled task so the new variable is loaded.
-4. Verify the variable is present in the process (name only — no value):
-   ```powershell
-   # In the running bifrost process context:
-   [System.Environment]::GetEnvironmentVariable("BIFROST_ENCRYPTION_KEY", "User") -ne $null
-   ```
-5. Verify Bifrost recognizes encryption as enabled (check Bifrost startup log for encryption-enabled
-   message; absence of "encryption disabled" or equivalent).
-6. Verify `config.db` ACLs are restricted (operator/SYSTEM only, no Everyone/Users read).
-7. Test isolated backup and restore of `config.db` before OAuth token is written.
-
-**Do not initiate OAuth browser consent until this check passes.**
+Without the key, Bifrost may store OAuth tokens in plaintext — do not initiate consent in that state.
 
 ---
 
@@ -239,16 +222,14 @@ Includes original catalog tools plus **get-preset** and **list-presets** (read-o
 
 get-credits, get-generation, send-feedback.
 
-### Group: openrouter-media-generation (1 tool) — illable_approval
+### Group: openrouter-media-generation (1 tool) — billable_approval
 
-generate-speech — cost-sensitive; operator-approved JIT only; content 
-aw_untrusted.
+`generate-speech` — cost-sensitive; operator-approved JIT only; content `raw_untrusted`.
 
-### Group: openrouter-transcription (1 tool) — illable_approval
+### Group: openrouter-transcription (1 tool) — billable_approval
 
-	ranscribe-audio — sensitive upload + billable processing; operator-approved JIT only;
-results 
-aw_untrusted unless promoted; never upload repository files, secrets, private records,
+`transcribe-audio` — sensitive upload + billable processing; operator-approved JIT only;
+results `raw_untrusted` unless promoted; never upload repository files, secrets, private records,
 or unrelated context.
 
 ### Group: openrouter-billable (2 tools) — **DENIED BY DEFAULT**

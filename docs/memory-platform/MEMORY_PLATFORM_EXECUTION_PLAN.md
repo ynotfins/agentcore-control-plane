@@ -255,7 +255,9 @@ C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
 
 **Required evidence:** resume transcript, lease lifecycle audit rows, concurrency isolation test, approval-gate test.
 
-**Dependencies:** M2 (identity), M4 (gateway). **This Milestone implements the runtime Progressive Tool Disclosure / Milestone-Gated Capability Leases defined in `docs/agent-policy/TOOL_LIFECYCLE_POLICY.md`.** Until M6 passes, `TOOL_MANIFEST.yaml` files record policy and desired state only, and registry wildcard grants remain classified transitional.
+**Dependencies:** M2 (identity), M4 (gateway). **This Milestone implements the runtime Progressive Tool Disclosure / Milestone-Gated Capability Leases defined in `docs/agent-policy/TOOL_LIFECYCLE_POLICY.md`.**
+
+**Implementation status (2026-07-20):** M6 leases + Bifrost JIT VK bridge are live for OpenRouter named groups (`docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`). `TOOL_MANIFEST.yaml` still records per-project desired state. Some non-OpenRouter registry `permitted_tools: ["*"]` wildcards remain transitional until named inventories replace them.
 
 ---
 

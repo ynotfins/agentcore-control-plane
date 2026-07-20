@@ -1,5 +1,7 @@
 # AgentCore Bifrost Gateway Handoff — 2026-07-12
 
+> **Historical cutover evidence.** Architecture decisions below remain valid under `BLUEPRINT.md` / `PROJECT_ANCHOR.md`. For live status after 2026-07-12 (memory live, M6, OpenRouter OAuth/JIT, Cherry/LangGraph enrollment), prefer `CONTEXT_BLOCK.md` §0a, `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, and dated audits under `audits/`.
+
 **Source authority:** `D:\github\agentcore-control-plane`
 **Runtime:** `H:\AgentRuntime\bifrost`
 **Pin:** Bifrost native Windows `bifrost-http.exe` **v2.0.0-prerelease1**
@@ -11,7 +13,7 @@
 1. Bifrost native Gateway is the workstation MCP gateway (not Go SDK).
 2. Non-Swarm IDEs connect to one endpoint with Bearer `BIFROST_MCP_VIRTUAL_KEY`.
 3. SwarmRecall/SwarmVault/SwarmClaw are a separate ecosystem — not required for non-Swarm IDEs.
-4. Stable memory identity: `agentcore-memory` (may be degraded until memory platform lands).
+4. Stable memory identity: `agentcore-memory` (ten-tool surface; now live via gateway — do not invent alternate memory MCP entries).
 5. Drive map includes H (runtime), I (scratch), J (portable) — see `PROJECT_ANCHOR.md`.
 6. Config authority = this Git repo; runtime = H:\AgentRuntime\bifrost.
 7. Go SDK experiment remains `experiments/bifrost-go-sdk-smoke` only.

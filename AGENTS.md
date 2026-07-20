@@ -28,7 +28,7 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 - **Depwire:** Prefer Depwire **through agentcore-gateway** after cutover. Local Depwire CLI/MCP remains available for diagnostics and exact workspace graphs; Depwire Cloud stays deferred until enabled/healthy in the registry.
 - **Tentra:** Local mode only; launch via project-router wrapper and follow current classified evidence for mutable data paths.
 - **Docs:** `arabold-docs` first for current library/SDK/docs answers. Keep Bifrost docs indexed (`bifrost` / `2.0.0-prerelease1`).
-- **Memory (non-Swarm):** `agentcore-memory` stable identity via gateway (may be degraded until memory platform lands). Do not route normal non-Swarm IDE work through SwarmRecall/SwarmVault.
+- **Memory (non-Swarm):** `agentcore-memory` stable identity via gateway (ten-tool surface live; do not invent alternate memory MCP entries). Do not route normal non-Swarm IDE work through SwarmRecall/SwarmVault.
 - **Project continuity:** `context-fabric` only for approved Git-managed workspaces via project router; do not initialize under Swarm or runtime memory roots.
 - **Architecture scans:** `artiforge` for high-leverage scans only.
 - **Connected app workflows:** keep Composio quarantined until explicitly re-enabled.
@@ -46,7 +46,7 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thin
 - Follow `docs/agent-policy/DOCUMENTATION_READ_ORDER.md` for the per-project read sequence.
 - New projects run Milestone 0 (Bootstrap) per `docs/agent-policy/NEW_PROJECT_BOOTSTRAP.md` before broad implementation.
 - Milestones use entry/exit gates per `docs/agent-policy/MILESTONE_EXECUTION_STANDARD.md`; Micro steps require evidence per `docs/agent-policy/CHECKLIST_STANDARD.md`.
-- Progressive tool disclosure per `docs/agent-policy/TOOL_LIFECYCLE_POLICY.md`: only currently needed tools exposed; tool audits at every Milestone entry and exit. Runtime lease enforcement arrives with memory-platform M6; until then `TOOL_MANIFEST.yaml` records policy/desired state only.
+- Progressive tool disclosure per `docs/agent-policy/TOOL_LIFECYCLE_POLICY.md`: only currently needed tools exposed; tool audits at every Milestone entry and exit. M6 PostgreSQL leases + Bifrost JIT VK bridge are live for OpenRouter tool groups; `TOOL_MANIFEST.yaml` still records project desired state. Do not expose OpenRouter MCP directly in IDEs — gateway + lease only (`docs/operations/OPENROUTER_MCP.md`).
 
 ## Database Contract
 
@@ -77,6 +77,7 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thin
 - M6 autonomous workflow is productized: `python -m agentcore workflow {init,start,status,pause,approve,reject,resume,cancel,logs,evidence,topology,studio}` runs from `D:\github\agentcore-control-plane` with the canonical runbook at `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`. Production uses PostgresSaver at PG18 127.0.0.1:55433; LangGraph Studio is dev-only, bound to localhost, uses Agent Server dev checkpointer (sqlite/in-memory) with `LANGSMITH_TRACING=false`, never shares thread IDs with production, and is not a persistent Windows service.
 - Engineering Constitution at `docs/engineering/CONSTITUTION.md`; dependency catalog at `docs/engineering/dependency-catalog/catalog.yaml`.
 - Approved Copier templates must use an explicit template suffix, normally `.jinja`, for files containing Jinja. An empty suffix is allowed only when the template intentionally renders every eligible file and repository validators prove that parser-sensitive template sources do not create invalid workspace artifacts.
-- The OpenRouter MCP server (`https://mcp.openrouter.ai/mcp`) is available behind Bifrost (completion: `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY`; registry `status` remains `dormant` until a live M6 lease grants tools) with the IDE-facing endpoint kept at `http://127.0.0.1:8080/mcp`.
-- Cherry Studio reaches out with OPTIONS or HEAD reachability probes to `/mcp`; Bifrost gateway handles these probes by returning a non-secret 200 or 204 response.
+- The OpenRouter MCP server (`https://mcp.openrouter.ai/mcp`) is registered behind Bifrost (completion: `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY`). Registry `status` remains `dormant` (zero default exposure); lifecycle after OAuth bind is `authenticated_dormant`. Tools appear only while an M6 lease + JIT VK bridge grants exact `openrouter-*` names. IDE-facing endpoint stays `http://127.0.0.1:8080/mcp`. See `docs/operations/OPENROUTER_MCP.md`.
+- Cherry Studio must use only `agentcore-gateway` (no direct OpenRouter MCP). Re-enroll when store `mcp.servers` is empty — `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`. Bifrost answers Cherry OPTIONS/HEAD `/mcp` probes with non-secret 200/204.
+- LangGraph production and Studio share `scripts/agentcore_workflow/mcp_client.py` → localhost gateway only (`docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`).
 - LLM client configurations (Cursor, Cherry Studio, agent-orchestrator, Pinokio) must avoid direct upstream/OpenRouter MCP entries and route all tools/models through `agentcore-gateway`.

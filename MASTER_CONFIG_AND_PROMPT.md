@@ -565,7 +565,7 @@ Non-Swarm IDE MCP baseline is a single agentcore-gateway entry
 Do not paste the full upstream registry into each IDE.
 Do not require SwarmRecall/SwarmVault/SwarmClaw for non-Swarm IDE work.
 
-Use agentcore-memory (stable id; may be degraded) via the gateway for memory health/status.
+Use agentcore-memory (stable id; ten-tool surface live) via the gateway for memory health/status.
 Use agentcore-project-router before project-scoped tools.
 Use arabold-docs for exact version docs; keep .agentcore/docs/DOCS_INDEX.md current.
 Use Serena (via project router) before broad code edits.

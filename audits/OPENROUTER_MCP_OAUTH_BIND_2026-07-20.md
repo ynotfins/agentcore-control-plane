@@ -1,5 +1,7 @@
 # OpenRouter MCP OAuth Bind Evidence (2026-07-20)
 
+> **Supersession (same day, post-classification):** Tool-group counts and “unclassified live-only” rows below are historical bind-time evidence. Canonical classification is now `contracts/openrouter-tool-manifest.json` + `docs/operations/OPENROUTER_MCP.md`: registry `permitted_tools` = **18**, discovery JIT = **13** (includes presets), `generate-speech` / `transcribe-audio` are operator JIT groups, `send-message` / `generate-image` remain denied. JIT bridge: `scripts/bifrost/jit_vk_bridge.py`. OAuth bind facts in this file remain valid.
+
 **Claim:** `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY`  
 **No new OAuth consent issued. No duplicate OpenRouter MCP client created. No secrets printed in this artifact.**
 

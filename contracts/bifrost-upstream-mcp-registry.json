@@ -12,7 +12,7 @@
     "AgentSwarm",
     "F:\\AgentCore\\agentmemory"
   ],
-  "tool_lifecycle_note": "TRANSITIONAL WILDCARD EXPOSURE (2026-07-14): permitted_tools [\"*\"] grants in this registry are a documented transitional state per contracts/project-tool-lifecycle.json (wildcard_policy.transitional_exception). Named-tool profiles and PostgreSQL-backed runtime leases arrive with memory-platform Milestone M6 (docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md). Do not extend wildcard grants to new servers without review.",
+  "tool_lifecycle_note": "TRANSITIONAL WILDCARD EXPOSURE: permitted_tools [\"*\"] grants on some non-OpenRouter servers remain a documented transitional state per contracts/project-tool-lifecycle.json (wildcard_policy.transitional_exception). M6 PostgreSQL capability leases + scripts/bifrost/jit_vk_bridge.py are live for exact OpenRouter named groups (docs/operations/OPENROUTER_MCP.md). Do not extend wildcard grants to new servers without review.",
   "capability_profiles": {
     "builder": {
       "display_name": "Builder",
@@ -846,7 +846,7 @@
         "PostgreSQL reachability remains implemented internally and is reported through memory_status, not exposed as a separate normal-agent tool.",
         "Uses PostgreSQL 18 agent_core on 127.0.0.1:55433 internally via Windows env var credentials; IDE agents receive no DB credentials.",
         "Hybrid retrieval uses PostgreSQL metadata filters, full-text search, pg_trgm, exact pgvector baseline, and Cognee-curated rows only through KnowledgeMemoryPort.",
-        "Reports Cognee availability/degradation truthfully and LangGraph as not_integrated_until_M6."
+        "Reports Cognee availability/degradation truthfully. LangGraph M6 workflow is integrated via AgentCore-managed nodes and shared gateway MCP client (see docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md); memory surface remains the locked ten-tool identity."
       ]
     },
     "openrouter": {

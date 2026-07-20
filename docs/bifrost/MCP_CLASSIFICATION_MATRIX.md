@@ -1,9 +1,10 @@
 # MCP Classification Matrix — Bifrost Upstream
 
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`
-**Updated:** 2026-07-19
+**Updated:** 2026-07-20
 **Scope:** Non-Swarm AgentCore gateway only. Swarm* excluded.
 **Dormant catalog:** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`
+**Architecture authority:** `BLUEPRINT.md` (this matrix must not invent alternate memory identities or Swarm wiring)
 
 | Canonical ID | Bifrost client name | Connection | Scope | Write class | Status | Profiles |
 | -- | -- | -- | -- | -- | -- | -- |
@@ -21,14 +22,14 @@
 | playwright | playwright | stdio | global | bounded_write | active | builder |
 | filesystem | filesystem | router | project | bounded_write | active | builder, reviewer |
 | github-mcp | github_mcp | stdio | global | write_capable | **deferred/disabled** | builder, operator (when enabled) |
-| agentcore-memory | agentcore_memory | stdio | global | read_only | active (may be degraded) | builder, reviewer, database-validator, operator |
+| agentcore-memory | agentcore_memory | stdio | global | read_only | active (10-tool surface live) | builder, reviewer, database-validator, operator |
 | agentcore-project-router | agentcore_project_router | stdio | global | bounded_write | active | all profiles |
 
 ## OpenRouter MCP — registered dormant
 
 | Canonical ID | Bifrost client name | Connection | Auth | Scope | Write class | Status | Profiles (JIT-eligible) |
 | -- | -- | -- | -- | -- | -- | -- | -- |
-| openrouter | openrouter | http | oauth | global | bounded_write | **dormant** | operator (JIT reference only; zero tools without M6 lease) |
+| openrouter | openrouter | http | oauth | global | bounded_write | **dormant** (lifecycle: authenticated_dormant) | operator (JIT only; zero tools without M6 lease + bridge) |
 
 ### OpenRouter tool groups
 
@@ -59,5 +60,5 @@
 - Bifrost MCP client names use underscores; AgentCore canonical IDs keep hyphens.
 - Project-scoped servers must launch through `scripts/project_router` wrappers after `project_activate`.
 - Counts implemented in registry: **13 enabled** (including openrouter dormant), **4 disabled/deferred** (`mcp-debugger`, `artiforge`, `depwire-cloud`, `github-mcp`) — as validated by `scripts/bifrost/validate_contracts.py` in-repo.
-- OpenRouter is registered dormant: zero tools exposed without an active M6 capability lease. See `docs/operations/OPENROUTER_MCP.md` for lifecycle and JIT activation.
+- OpenRouter is registered dormant: zero tools exposed without an active M6 capability lease + `scripts/bifrost/jit_vk_bridge.py`. See `docs/operations/OPENROUTER_MCP.md`. LangGraph clients use the same localhost gateway path (`docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`).
 - Future GitLab/GitKraken/Firecrawl/Sheets/Cloudflare/AgentMail/Vercel/docs MCP entries remain catalogued pending official pin + named inventory; they are not live Bifrost clients until an enablement gate passes.

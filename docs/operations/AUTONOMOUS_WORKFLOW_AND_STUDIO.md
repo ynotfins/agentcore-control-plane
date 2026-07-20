@@ -4,6 +4,8 @@
 
 **Authority:** `BLUEPRINT.md` M6 + `MEMORY_PLATFORM_EXECUTION_PLAN.md` M6 + `AGENTS.md` §Database Contract.
 
+**See also:** `docs/operations/OPENROUTER_MCP.md` (JIT lease → VK bridge) · `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md` · `docs/bifrost/UNIFIED_GATEWAY_SETUP.md` · `CONTEXT_BLOCK.md` §0a
+
 ---
 
 ## 1. Folders

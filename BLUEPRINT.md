@@ -5,12 +5,17 @@
 > **Machine:** `CHAOSCENTRAL`  
 > **Operator:** Tony Valentine (`ynotf`)  
 > **Scope:** Non-Swarm AgentCore platform only  
-> **Last updated:** 2026-07-14  
+> **Last updated:** 2026-07-20 (pointers only; architecture unchanged)  
 >
 > This file is the stable blueprint for the memory/context/database build.  
 > It defines the goal, architecture, storage roles, immutable guarantees, and Milestone exit criteria.
 >
 > Cursor may optimize Macro and Micro steps from repository and machine evidence. Cursor may not change the architecture, Milestone outcomes, Milestone ordering, storage authority, lossless guarantees, Cognee decision, Bifrost identities, or Swarm boundary without explicit operator approval.
+>
+> **Operational runbooks (do not override this architecture):**  
+> `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`,  
+> `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, `docs/bifrost/CAPABILITY_PROFILES.md`,  
+> `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`. Mutable live status lives in `CONTEXT_BLOCK.md`.
 
 ---
 
@@ -23,7 +28,10 @@ Read in this order:
 3. `BLUEPRINT.md` — locked goal, architecture, and Milestones.
 4. `CONTEXT_BLOCK.md` — current mutable implementation state.
 5. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed execution guidance.
-6. Current Bifrost contracts, runbooks, and handoff.
+6. Current Bifrost contracts and ops runbooks — at minimum:
+   `contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`,
+   `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`,
+   `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, and the current Bifrost/memory handoffs under `docs/handoffs/`.
 7. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine-fact authority.
 
 Historical, Swarm-only, superseded, and compatibility documents do not override this chain.

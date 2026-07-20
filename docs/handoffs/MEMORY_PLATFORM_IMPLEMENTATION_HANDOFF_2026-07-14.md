@@ -12,6 +12,11 @@
 > `audits/M5/elevated-closeout-20260716-015250.json`, and
 > `docs/memory-platform/BACKUP_RESTORE_WAL_PITR.md` for current operational evidence.
 > The original M1 startup facts below are retained as historical handoff context only.
+>
+> **Current-state update — 2026-07-20:** M6 workflow + capability leases + OpenRouter JIT
+> bridge are live. Mutable posture: `CONTEXT_BLOCK.md` §0a. Ops runbooks:
+> `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `docs/operations/OPENROUTER_MCP.md`.
+> Do not treat older “leases not built / memory degraded” phrasing in historical sections as current.
 
 ## 1. Exact authority read order (read nothing else first)
 
@@ -20,7 +25,7 @@
 3. `BLUEPRINT.md` — **locked implementation blueprint**: final goal, architecture, drive roles, allocation-unit targets, lossless guarantees, STATE model, Milestone exit criteria (M0–M8), change-control list. Cursor may optimize Macro/Micro steps but may not change locked items without explicit operator approval.
 4. `CONTEXT_BLOCK.md` — current mutable state (where it conflicts with BLUEPRINT.md, BLUEPRINT wins)
 5. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance (derives from BLUEPRINT.md)
-6. Bifrost contracts and handoff: `contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`, `docs/bifrost/`
+6. Bifrost contracts, ops runbooks, and handoffs: `contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `docs/bifrost/`, plus current dated handoffs under `docs/handoffs/` (2026-07-12 Bifrost handoff is historical cutover evidence)
 7. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine facts (hardware, drives, installed software, runtime snapshots)
 
 Plus for execution mechanics: `docs/agent-policy/` (Milestone entry/exit gates, checklist evidence rules, tool audits) and `MILESTONES.md` + `BLUEPRINT.md` §8 (operator's verbatim locked Milestones — evidence for the execution plan).

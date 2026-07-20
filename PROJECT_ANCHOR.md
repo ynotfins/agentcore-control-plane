@@ -28,7 +28,7 @@
 > ```text
 > IDE agent
 >   -> agentcore-gateway (127.0.0.1:8080/mcp)
->   -> agentcore-memory   (stable server identity; may report degraded until the memory platform lands)
+>   -> agentcore-memory   (stable ten-tool server identity; live via gateway — do not invent alternate memory MCP entries)
 > ```
 >
 > **Swarm exclusion:** SwarmRecall, SwarmVault, and SwarmClaw are a **separate ecosystem**. Do not require Swarm MCP servers in non-Swarm IDE baselines. Do not depend on Swarm for AgentCore control-plane / non-Swarm IDE work. Swarm product installs remain untouched by this gateway cutover.

@@ -82,7 +82,7 @@
     "transitional_exception": {
       "granted": true,
       "scope": "contracts/bifrost-upstream-mcp-registry.json permitted_tools:[\"*\"] entries",
-      "reason": "Named-tool enumeration and runtime enforcement arrive with memory-platform M6; current wildcard grants are a documented transitional state and must not be extended to new servers without review.",
+      "reason": "M6 PostgreSQL leases + Bifrost JIT VK bridge are live for exact OpenRouter named groups; some non-OpenRouter permitted_tools [\"*\"] wildcards remain a documented transitional state and must not be extended to new servers without review.",
       "expires": "memory-platform Milestone M6 acceptance",
       "must_not_extend_to": [
         "openrouter",

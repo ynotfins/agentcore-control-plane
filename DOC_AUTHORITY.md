@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-17 (final hardening pass: PostgreSQL 18 canonical endpoint updated, dead scripts removed, 83 tests + all validators PASS; prior: M3.002 live, agentcore-memory v0.6.0, Cursor live-validated)
+**Updated:** 2026-07-20 (cross-ref reconciliation vs BLUEPRINT.md: memory live, M6 leases + OpenRouter JIT bridge, Cherry re-enroll pending; architecture unchanged)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -16,7 +16,7 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 3. `BLUEPRINT.md` — locked goal, architecture, storage roles, lossless guarantees, and Milestone exit criteria (operator-approved; change requires explicit approval)
 4. `CONTEXT_BLOCK.md` — current mutable system state and implementation progress
 5. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance (derives from BLUEPRINT.md; BLUEPRINT wins on conflicts)
-6. Current Bifrost contracts, runbooks, and handoff (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`)
+6. Current Bifrost contracts, ops runbooks, and handoffs (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, plus current handoffs under `docs/handoffs/` — use the newest dated handoff for live status; the 2026-07-12 Bifrost handoff remains historical cutover evidence)
 7. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine-fact authority (hardware, drives, installed software, runtime snapshots)
 
 No other root or docs file may silently override this chain. If a document conflicts with a higher level, the higher level wins and the document must be reconciled or reclassified.
@@ -35,19 +35,23 @@ No other root or docs file may silently override this chain. If a document confl
 4. `CONTEXT_BLOCK.md` — current system state + implementation progress
 5. `contracts/bifrost-upstream-mcp-registry.json` — canonical upstream MCP registry
 6. `contracts/agentcore-gateway-client.json` — single IDE gateway client contract
-7. `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` — Bifrost cutover handoff
+7. `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` — Bifrost cutover handoff (historical; see newer handoffs for live status)
 8. `MASTER_CONFIG_AND_PROMPT.md` — root setup guide with embedded reusable IDE prompt
 
 **For memory/context/database work, additionally attach:**
 
 - `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance
-- `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` — implementation handoff
+- `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` — historical implementation handoff (superseded for live facts)
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` — effectively-unbounded durable-memory and bounded recovery source handoff
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` — live rollout evidence: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated
+- `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` — M6 LangGraph production + Studio runbook
 - `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` — final release acceptance report with validator matrix and HEAD reference
 
 **Add as needed:**
 
+- `docs/operations/OPENROUTER_MCP.md` — OpenRouter MCP (≠ API provider); OAuth + JIT bridge
+- `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md` — zero-default-exposure dormant catalog
+- `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md` / `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md` — client enrollment evidence
 - `docs/agent-policy/` — global New Project / Milestone / checklist / tool-lifecycle policy
 - `docs/prompts/install-agentcore-gateway-in-ide.md` — standalone reusable IDE install prompt
 - `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md` — deployment ADR
@@ -181,8 +185,8 @@ All historical docs must not be run as instructions without current operator app
 
 ## Current blockers (require explicit operator approval or follow-on work)
 
-- Full memory platform behind stable `agentcore-memory` identity (may currently report degraded); build per `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` Milestones M1–M8
+- `agentcore-memory` ten-tool surface is **live** (M3.002 / M4+; Cursor validated). Remaining memory-platform work is Milestone completion/ops hardening per `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` and BLUEPRINT M5–M8 exit criteria — not “platform not landed”
+- M6 PostgreSQL capability leases + Bifrost JIT VK bridge (`scripts/bifrost/jit_vk_bridge.py`) are **implemented** for exact OpenRouter tool groups; transitional `permitted_tools: ["*"]` wildcards remain on some non-OpenRouter servers until named inventories replace them
+- Cherry Studio re-enrollment: live `mcp.servers=[]` as of 2026-07-20; quit Cherry and run `scripts/cherry/enroll_agentcore_gateway.py` (see `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`)
 - `depwire-cloud` and `github-mcp` remain deferred/`enabled=false` until healthy verification
-- DB migration apply: backup + dry-run + operator sign-off (M1 gates)
-- Live IDE cutover completion evidence per client (see Bifrost handoff / artifacts)
-- Registry `permitted_tools: ["*"]` wildcard grants are **transitional**: named-tool profiles and runtime leases arrive with memory-platform M6 (PostgreSQL-backed progressive tool disclosure)
+- Live IDE cutover completion evidence still incomplete for some clients (see Bifrost handoff / artifacts / IDE profiles)

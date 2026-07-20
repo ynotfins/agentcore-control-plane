@@ -3,10 +3,14 @@ document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
 authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
-verified_at: 2026-07-14
+verified_at: 2026-07-20
 canonical_repository: D:\github\agentcore-control-plane
 locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
+ops_runbooks:
+  - docs/operations/OPENROUTER_MCP.md
+  - docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md
+  - docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md
 ---
 
 # AgentCore Canonical Context Block
@@ -14,6 +18,23 @@ implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
 Read `BLUEPRINT.md` before this file. BLUEPRINT.md is the locked implementation authority (architecture, storage roles, lossless guarantees, Milestone exit criteria). This file records current mutable state and implementation progress. Where this file's decisions conflict with BLUEPRINT.md, BLUEPRINT.md wins.
 
 Older plans, reports, prompts, rules, and generated renderers are evidence only until they have been reconciled against BLUEPRINT.md and the live machine.
+
+## 0a. Current platform posture (2026-07-20) — VERIFIED FACT
+
+Mutable live facts that supersede older “future migration / degraded memory / leases not built” framing elsewhere in this file when they conflict:
+
+| Area | Live posture |
+| --- | --- |
+| PostgreSQL | PG18 `127.0.0.1:55433` is canonical for `agent_core` / `cognee_core`. PG16 `:55432` is rollback/legacy/Swarm-owned evidence only. |
+| `agentcore-memory` | Ten-tool surface live via Bifrost; not “degraded until platform lands”. |
+| M6 workflow | Productized CLI + PostgresSaver; Studio is localhost/dev-only. Runbook: `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`. |
+| Capability leases | PostgreSQL leases + `scripts/bifrost/jit_vk_bridge.py` grant/revoke exact OpenRouter tool groups. |
+| OpenRouter MCP | Registry `dormant` + lifecycle `authenticated_dormant`; gateway-only; no direct IDE MCP. Runbook: `docs/operations/OPENROUTER_MCP.md`. |
+| IDE clients | Single `agentcore-gateway` at `http://127.0.0.1:8080/mcp`. Cherry Studio re-enroll pending when `mcp.servers=[]` — `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`. |
+| LangGraph MCP | Shared `scripts/agentcore_workflow/mcp_client.py` → localhost gateway — `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`. |
+| Swarm | Separate ecosystem; not part of non-Swarm IDE baselines (BLUEPRINT § Swarm boundary). |
+
+Historical Phase/Milestone checklists below remain planning evidence; do not treat incomplete Phase wording as a claim that PG18 or memory is still pre-landing.
 
 ## 0. Status language
 

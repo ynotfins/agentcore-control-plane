@@ -14,11 +14,12 @@ Distinguish **full tool availability** from **active exposure to the model**:
 
 ## Implementation status (important)
 
-**This policy currently governs desired state and audits only.** Runtime lease activation/expiry, per-project capability isolation, usage ledgers, and concurrency enforcement are implemented by the memory platform (PostgreSQL-backed) at Milestone **M6** of `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — after the identity and policy schema exists. Until M6 passes:
+**M6 runtime leases are live** (PostgreSQL `wf_` / capability-lease tables + `scripts/bifrost/jit_vk_bridge.py`). Policy still governs audits and project manifests; runtime enforcement is no longer “future only”:
 
-- `TOOL_MANIFEST.yaml` records policy and desired state; agents honor it behaviorally.
-- The Bifrost registry's `permitted_tools: ["*"]` wildcard grants are a **documented transitional state**.
-- No temporary YAML/JSON lease database or runtime Tool Lifecycle Manager is created — that would be a competing authority requiring later migration.
+- OpenRouter MCP tools are grantable only via exact named groups + JIT VK `mcp_configs` mutation; revoke/expiry removes them. See `docs/operations/OPENROUTER_MCP.md`.
+- `TOOL_MANIFEST.yaml` still records per-project desired state; agents honor Milestone attach lists.
+- Some Bifrost registry `permitted_tools: ["*"]` wildcards remain a **documented transitional state** for non-OpenRouter servers until named inventories replace them.
+- Do not create a competing YAML/JSON lease database or parallel Tool Lifecycle Manager.
 
 ## Tool states
 
@@ -27,7 +28,7 @@ Distinguish **full tool availability** from **active exposure to the model**:
 | `catalogued` | Approved and available for immediate activation, but not currently exposed |
 | `core_active` | Used frequently throughout the project |
 | `milestone_active` | Needed throughout the current Milestone |
-| `jit_leased` | Temporarily exposed for a Macro or Micro step (runtime enforcement from memory-platform M6) |
+| `jit_leased` | Temporarily exposed for a Macro or Micro step (M6 PostgreSQL lease + Bifrost JIT VK bridge) |
 | `dormant` | Not currently needed but may be reactivated |
 | `operator_only` | Requires explicit operator approval per activation |
 | `forbidden` | Never permitted for this project |
