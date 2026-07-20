@@ -1,32 +1,36 @@
-"""Enroll exactly one agentcore-gateway MCP server into Cherry Studio 1.9.x.
+"""Enroll exactly one agentcore-gateway MCP server into Cherry Studio.
 
-Cherry persists MCP under Local Storage redux key persist:cherry-studio → mcp.servers.
-Cherry must be fully quit before this script runs (lockfile / process check).
+Derives endpoint/auth/timeout from contracts/agentcore-gateway-client.json.
+Materializes BIFROST_MCP_VIRTUAL_KEY into Cherry Local Storage (Cherry cannot
+expand ${env:}). Never prints the resolved virtual key.
 
-Security:
-- Reads BIFROST_MCP_VIRTUAL_KEY from Windows User env at runtime
-- Materializes Authorization into the live Local Storage record (Cherry does not expand ${env:})
-- Never prints the key value
-- Does not create .env files
+Cherry must be fully quit before --apply.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
-import re
 import shutil
+import subprocess
 import sys
 import time
 from hashlib import sha256
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+CONTRACT = REPO_ROOT / "contracts" / "agentcore-gateway-client.json"
+RENDERER = REPO_ROOT / "renderers" / "gateway-clients" / "cherry-studio.json"
+PATCH_JS = Path(__file__).resolve().parent / "patch_mcp_leveldb.js"
+CHERRY_PKG = Path(__file__).resolve().parent
+
 CHERRY_ROOT = Path(os.environ.get("APPDATA", "")) / "CherryStudio"
 LEVELDB = CHERRY_ROOT / "Local Storage" / "leveldb"
 LOCKFILE = CHERRY_ROOT / "lockfile"
+BACKUP_ROOT = Path(r"E:\AgentCore-Backups")
+
 GATEWAY_NAME = "agentcore-gateway"
-GATEWAY_URL = "http://127.0.0.1:8080/mcp"
-TIMEOUT_SEC = 300
 
 
 def _user_env(name: str) -> str:
@@ -45,12 +49,20 @@ def _user_env(name: str) -> str:
     return ""
 
 
+def load_contract() -> dict:
+    data = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    if data.get("name") != GATEWAY_NAME:
+        raise RuntimeError("gateway contract name mismatch")
+    hints = (data.get("client_render_hints") or {}).get("cherry-studio") or {}
+    if not hints.get("enabled", False):
+        raise RuntimeError("cherry-studio client hint missing/disabled in gateway contract")
+    return data
+
+
 def cherry_running() -> bool:
     if LOCKFILE.exists():
         return True
     if os.name == "nt":
-        import subprocess
-
         out = subprocess.check_output(
             ["tasklist", "/FI", "IMAGENAME eq Cherry Studio.exe"],
             text=True,
@@ -77,69 +89,125 @@ def backup_cherry(dest_root: Path) -> Path:
         target = dest / f.name
         shutil.copy2(f, target)
         digest = sha256(target.read_bytes()).hexdigest()
-        manifest.append({"path": str(f), "backup": str(target), "sha256": digest, "bytes": target.stat().st_size})
-    # Copy entire leveldb directory
-    ldb_dest = dest / "leveldb"
-    shutil.copytree(LEVELDB, ldb_dest, dirs_exist_ok=True)
+        manifest.append(
+            {
+                "path": str(f),
+                "backup": str(target),
+                "sha256": digest,
+                "bytes": target.stat().st_size,
+            }
+        )
+    if LEVELDB.is_dir():
+        shutil.copytree(LEVELDB, dest / "leveldb", dirs_exist_ok=True)
     (dest / "SHA256MANIFEST.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     return dest
 
 
-def build_gateway_server() -> dict:
-    vk = _user_env("BIFROST_MCP_VIRTUAL_KEY")
-    if not vk:
-        raise RuntimeError("BIFROST_MCP_VIRTUAL_KEY not set in User/process env")
-    return {
+def ensure_node_deps() -> None:
+    nm = CHERRY_PKG / "node_modules" / "classic-level"
+    alt = CHERRY_PKG / "_node_workspace" / "node_modules" / "classic-level"
+    if nm.is_dir() or alt.is_dir():
+        return
+    print("installing classic-level under scripts/cherry (local only)")
+    subprocess.check_call(["npm", "install", "--omit=dev"], cwd=str(CHERRY_PKG))
+
+
+def write_import_artifact(contract: dict, vk: str) -> Path:
+    url = contract["url"]
+    timeout = int(contract.get("timeout_seconds") or 300)
+    server = {
         "id": GATEWAY_NAME,
         "name": GATEWAY_NAME,
         "type": "streamableHttp",
-        "baseUrl": GATEWAY_URL,
+        "baseUrl": url,
         "headers": {"Authorization": f"Bearer {vk}"},
-        "timeout": TIMEOUT_SEC,
+        "timeout": timeout,
         "provider": "AgentCore",
         "isActive": True,
         "disabledTools": [],
     }
-
-
-def main() -> int:
-    if not CHERRY_ROOT.is_dir():
-        print("ERROR: CherryStudio AppData root not found")
-        return 2
-    if cherry_running():
-        print("ERROR: Cherry Studio is running. Fully quit it, then re-run this script.")
-        print(f"lockfile={LOCKFILE.exists()}")
-        return 3
-
-    backup = backup_cherry(Path(r"E:\AgentCore-Backups"))
-    print(f"backup={backup}")
-
-    # Parse current mcp slice from newest log/ldb (read-only inspection helper)
-    # Actual durable write uses a sidecar JSON that the operator can import via
-    # Settings → MCP → Import, AND patches persist via a dedicated writer when safe.
-    server = build_gateway_server()
-    # Redacted preview
-    preview = json.loads(json.dumps(server))
-    preview["headers"] = {"Authorization": "Bearer ***"}
-    print("gateway_preview", json.dumps(preview))
-
     out = CHERRY_ROOT / "Data" / "agentcore-gateway-mcp-import.json"
-    # Cherry import formats vary; provide mcpServers map and servers list.
+    out.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "mcpServers": {
             GATEWAY_NAME: {
                 "type": "streamableHttp",
-                "url": GATEWAY_URL,
+                "url": url,
                 "headers": server["headers"],
-                "timeout": TIMEOUT_SEC,
+                "timeout": timeout,
             }
         },
         "servers": [server],
+        "_agentcore_note": "Live enrollment prefers LevelDB patch; this JSON is import fallback only.",
     }
     out.write_text(json.dumps(payload), encoding="utf-8")
-    print(f"wrote_import_artifact={out}")
-    print("NOTE: Import via Cherry Settings → MCP Servers if automatic Local Storage patch is unavailable.")
-    print("Ensure exactly one agentcore-gateway; no direct OpenRouter MCP; Global Memory remains false.")
+    return out
+
+
+def run_patch(mode: str) -> int:
+    ensure_node_deps()
+    args = ["node", str(PATCH_JS)]
+    if mode == "inspect":
+        args.append("--inspect")
+    elif mode == "apply":
+        args.append("--confirm")
+    else:
+        args.append("--dry-run")
+    proc = subprocess.run(args, cwd=str(CHERRY_PKG), text=True, capture_output=True)
+    sys.stdout.write(proc.stdout)
+    if proc.stderr:
+        sys.stderr.write(proc.stderr)
+    return proc.returncode
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--apply", action="store_true", help="Write LevelDB (requires Cherry quit)")
+    parser.add_argument("--inspect", action="store_true", help="Inspect current MCP slice only")
+    parser.add_argument("--dry-run", action="store_true", help="Show proposed patch without writing")
+    args = parser.parse_args()
+
+    if not CHERRY_ROOT.is_dir():
+        print("ERROR: CherryStudio AppData root not found")
+        return 2
+
+    contract = load_contract()
+    if not RENDERER.is_file():
+        print("WARN: renderer missing:", RENDERER)
+
+    if args.inspect:
+        return run_patch("inspect")
+
+    if cherry_running() and (args.apply or args.dry_run or not args.inspect):
+        if args.apply:
+            print("ERROR: Cherry Studio is running. Fully quit it, then re-run with --apply.")
+            print(f"lockfile={LOCKFILE.exists()}")
+            return 3
+
+    vk = _user_env("BIFROST_MCP_VIRTUAL_KEY")
+    if not vk:
+        print("ERROR: BIFROST_MCP_VIRTUAL_KEY not set in User/process env")
+        return 4
+    digest = sha256(vk.encode("utf-8")).hexdigest()[:12]
+    print(f"vk_present=True vk_len={len(vk)} vk_sha256_12={digest} env=BIFROST_MCP_VIRTUAL_KEY")
+    print(f"contract_url={contract['url']} timeout={contract.get('timeout_seconds')}")
+
+    backup = backup_cherry(BACKUP_ROOT)
+    print(f"backup={backup}")
+
+    import_path = write_import_artifact(contract, vk)
+    print(f"wrote_import_artifact={import_path}")
+    print("gateway_preview", json.dumps({"id": GATEWAY_NAME, "url": contract["url"], "headers": {"Authorization": "Bearer ***"}, "timeout": contract.get("timeout_seconds"), "isActive": True}))
+
+    mode = "apply" if args.apply else "dry-run"
+    rc = run_patch(mode)
+    if rc != 0:
+        return rc
+    if args.apply:
+        print("ENROLL_APPLY=OK")
+        print("Ensure exactly one agentcore-gateway; Global Memory remains false; restart Cherry.")
+    else:
+        print("ENROLL_DRY_RUN=OK (re-run with --apply to write)")
     return 0
 
 

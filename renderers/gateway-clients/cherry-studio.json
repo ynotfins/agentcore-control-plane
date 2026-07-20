@@ -1,0 +1,76 @@
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "type": "streamableHttp",
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "timeout": 300
+    }
+  },
+  "_agentcore": {
+    "renderer": "cherry-studio",
+    "client_key": "cherry-studio",
+    "agent_key": "cherry-studio-assistant",
+    "agent_display_name": "AgentCore Workspace Agent",
+    "capability_profile": "builder",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "live_storage": {
+      "appdata": "%APPDATA%\\CherryStudio",
+      "persist_key": "persist:cherry-studio",
+      "mcp_path": "Local Storage/leveldb (redux mcp.servers)",
+      "agents_db": "Data/agents.db",
+      "config_json": "config.json"
+    },
+    "transport": {
+      "cherry_type": "streamableHttp",
+      "contract_transport": "http/streamable",
+      "supports_env_header_interpolation": false,
+      "timeout_field": "timeout (seconds)",
+      "timeout_seconds": 300
+    },
+    "enrollment": {
+      "script": "scripts/cherry/enroll_agentcore_gateway.py",
+      "leveldb_patcher": "scripts/cherry/patch_mcp_leveldb.js",
+      "requires_full_quit": true,
+      "materializes_bearer_into_live_store": true,
+      "secret_env": "BIFROST_MCP_VIRTUAL_KEY",
+      "backup_root": "E:\\AgentCore-Backups"
+    },
+    "memory_policy": {
+      "global_memory_enabled": false,
+      "builtin_memory_mcp": "disabled",
+      "canonical_path": "Cherry -> agentcore-gateway -> agentcore-memory -> PostgreSQL 18",
+      "knowledge_bases": "do not create as AgentCore memory"
+    },
+    "validation": {
+      "script": "scripts/cherry/validate_cherry_studio.py",
+      "lifecycle_script": "scripts/cherry/validate_cherry_memory_lifecycle.py"
+    },
+    "rollback": {
+      "script": "scripts/cherry/rollback_cherry_alignment.py",
+      "restores": [
+        "AppData CherryStudio backup tree",
+        "MCP Local Storage",
+        "agents.db",
+        "Global Memory flag",
+        "Developer Mode preference"
+      ],
+      "does_not_touch": [
+        "Bifrost",
+        "PostgreSQL",
+        "other IDEs",
+        "Swarm"
+      ]
+    },
+    "notes": [
+      "Sanitized renderer — never commit resolved virtual key values.",
+      "Cherry Studio does not expand ${env:}; enrollment materializes the VK from Windows User env into the live Local Storage record.",
+      "Exactly one non-Swarm MCP entry: agentcore-gateway. Built-in inactive inMemory servers (for example @cherry/filesystem) may remain present but must stay isActive=false.",
+      "OpenRouter API/model providers remain separate from OpenRouter MCP (dormant behind Bifrost leases).",
+      "Restart Cherry after enrollment before expecting tools/list in the UI.",
+      "Call Trace / Developer Mode can expose tool I/O; use only for temporary validation and restore prior preference."
+    ]
+  }
+}

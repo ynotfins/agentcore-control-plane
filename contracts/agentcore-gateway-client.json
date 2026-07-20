@@ -81,6 +81,25 @@
       "notes": [
         "Materialize VK into live config only when env headers unsupported"
       ]
+    },
+    "cherry-studio": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\CherryStudio\\Local Storage\\leveldb",
+      "alternate_config_paths": [
+        "C:\\Users\\ynotf\\AppData\\Roaming\\CherryStudio\\Data\\agents.db",
+        "C:\\Users\\ynotf\\AppData\\Roaming\\CherryStudio\\config.json"
+      ],
+      "syntax": "cherry_studio_leveldb",
+      "supports_env_headers": false,
+      "notes": [
+        "Cherry persists MCP under redux key persist:cherry-studio → mcp.servers in Local Storage LevelDB",
+        "Cherry does not expand ${env:} headers; scripts/cherry/enroll_agentcore_gateway.py materializes BIFROST_MCP_VIRTUAL_KEY into the live store only",
+        "Map contract timeout_seconds=300 to Cherry server.timeout=300",
+        "Use type streamableHttp and baseUrl http://127.0.0.1:8080/mcp",
+        "Governed Agent id agentcore-workspace-agent mounts only agentcore-gateway; client_key=cherry-studio agent_key=cherry-studio-assistant",
+        "Sanitized renderer: renderers/gateway-clients/cherry-studio.json — never commit resolved VK",
+        "Fully quit Cherry before LevelDB enrollment; restart after enroll for tools/list"
+      ]
     }
   },
   "notes": [

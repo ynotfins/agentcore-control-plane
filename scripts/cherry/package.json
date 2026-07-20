@@ -1,0 +1,11 @@
+{
+  "name": "cherry-studio-mcp-tools",
+  "private": true,
+  "description": "Minimal Node deps for Cherry Local Storage LevelDB enroll/validate (classic-level).",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "classic-level": "^1.4.1"
+  }
+}

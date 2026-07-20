@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md
 
-**Updated:** 2026-07-20 — OpenRouter four-tool classification + automatic JIT VK bridge; LangGraph shared MCP adapter (`langchain-mcp-adapters==0.3.0`); Cherry gateway validated evening 2026-07-20 (`agentcore-gateway` active in Local Storage)
+**Updated:** 2026-07-20 — OpenRouter four-tool classification + automatic JIT VK bridge; LangGraph shared MCP adapter (`langchain-mcp-adapters==0.3.0`); Cherry Studio fully aligned with AgentCore gateway (enroll + Agent + memory lifecycle)
 **Authority:** `PROJECT_ANCHOR.md` §0 Bifrost Gateway Override
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`
 
@@ -326,7 +326,7 @@ Cutover automation: `ops/bifrost/Invoke-AgentCoreIdeGatewayCutover.ps1`.
 
 | Surface | Posture | Evidence / docs |
 | -- | -- | -- |
-| Cherry Studio | Evening 2026-07-20: `agentcore-gateway` active in Local Storage (`streamableHttp` → `http://127.0.0.1:8080/mcp`); Global Memory off; OpenRouter **API** provider separate; no direct OpenRouter MCP. Confirm tools/list on next launch. Evidence: `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md` | Morning empty-store claim superseded by evening dump_mcp validation |
+| Cherry Studio | Aligned 2026-07-20: `agentcore-gateway` active (`streamableHttp` → `http://127.0.0.1:8080/mcp`); AgentCore Workspace Agent mounted; Global Memory off; OpenRouter **API** provider separate; no direct OpenRouter MCP; memory lifecycle + isolation PASS. Evidence: `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md` | Morning empty-store claim and “confirm tools/list on next launch” superseded by full alignment closeout |
 | AO Agents | Thin Windows orchestration (`runtime: process`, worktree); inherits IDE gateway; no AgentCore DB | Gate D smoke under `artifacts/gated-agentcore-rollout-2026-07-19/` |
 | Desplega / Agent Swarm | Isolated; read-only inventory only; not in Bifrost registry | `audits/SWARM_ISOLATION_INVENTORY_2026-07-19.md` |
 | Cursor extensions | Replacement matrix; no uninstalls | `audits/CURSOR_EXTENSION_TO_MCP_REPLACEMENT_MATRIX.md` |

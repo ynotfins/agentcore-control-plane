@@ -44,7 +44,7 @@ The non-Swarm AgentCore platform is **live and operational** behind one Bifrost 
 | PG16 `:55432` | Rollback/legacy/Swarm; often not listening | historical / rollback role |
 | M0–M8 | Exit evidence PASSED in `audits/M{1–8}/` + M8 release acceptance | implemented and validated (acceptance HEAD `a843cf1`; main has advanced) |
 | OpenRouter MCP | Registry `status: dormant`; lifecycle `authenticated_dormant`; JIT leases | implemented and validated |
-| Cherry Studio | Gateway record active in Local Storage (2026-07-20 evening validation) | verified live (store); UI tools/list confirm on next launch |
+| Cherry Studio | Gateway enrolled; AgentCore Workspace Agent mounted; memory lifecycle + isolation validated 2026-07-20 | verified live (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`) |
 | Cursor | Gateway enrolled; ten-tool surface live-validated | verified live |
 
 **Bottom line:** Architecture and Milestones M0–M8 are done for the memory/workflow platform. Remaining work is **ops/docs/client enrollment reconciliation**, not redesign.

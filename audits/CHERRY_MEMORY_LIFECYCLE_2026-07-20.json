@@ -1,0 +1,106 @@
+{
+  "test_label": "cherry-alignment-lifecycle-2026-07-20",
+  "steps": {
+    "tools_surface": "PASS",
+    "project_activate_a": {
+      "ok": true,
+      "summary": "{'ok': True, 'active': {'id': 'agentcore-control-plane', 'name': 'agentcore-control-plane', 'path': 'D:\\\\github\\\\agentcore-control-plane', 'activated_at': '2026-07-20T23:35:12.383501+00:00', 'activated_by': 'agentcore-project-router'}}"
+    },
+    "session_open": "PASS",
+    "startup_context": {
+      "ok": true,
+      "keys": [
+        "ok",
+        "project_key",
+        "budget_name",
+        "context_profile",
+        "items",
+        "retrieval_results",
+        "durable_memory_limit",
+        "durable_memory_contract",
+        "authority",
+        "m4_status",
+        "m6_capability_profile"
+      ]
+    },
+    "append_event": "PASS",
+    "idempotency": {
+      "PASS": true,
+      "duplicate_signal": true
+    },
+    "retrieve_context": {
+      "ok": true,
+      "has_cursor_field": false
+    },
+    "expand_source": "PASS",
+    "build_handoff": {
+      "ok": true,
+      "keys": [
+        "ok",
+        "project_key",
+        "identity",
+        "context_profile",
+        "active_context",
+        "recovery",
+        "current_projections",
+        "governed_snapshots",
+        "continuation_cursor"
+      ]
+    },
+    "session_close": {
+      "ok": true,
+      "summary": "{'ok': True, 'session_id': '0a221c65-7690-45ca-9345-09752a63aba8'}"
+    },
+    "session_resume": "PASS",
+    "post_resume_expand": "PASS",
+    "project_activate_b": {
+      "ok": true,
+      "summary": "{'ok': True, 'active': {'id': 'nfa-alerts-enterprise', 'name': 'nfa-alerts-enterprise', 'path': 'D:\\\\github\\\\nfa-alerts-enterprise', 'activated_at': '2026-07-20T23:35:16.651964+00:00', 'activated_by':"
+    },
+    "session_open_b": {
+      "ok": true,
+      "session_id": "23422f0d-882a-4e88-b671-e692045c99b8"
+    },
+    "isolation_b_retrieve": {
+      "ok": true,
+      "project_key": "nfa-alerts-enterprise"
+    },
+    "isolation_back_a": "PASS"
+  },
+  "tool_total": 155,
+  "memory_tools": [
+    "agentcore_memory-append_event",
+    "agentcore_memory-build_handoff",
+    "agentcore_memory-docs_search",
+    "agentcore_memory-expand_source",
+    "agentcore_memory-memory_status",
+    "agentcore_memory-propose_fact",
+    "agentcore_memory-retrieve_context",
+    "agentcore_memory-session_close",
+    "agentcore_memory-session_open",
+    "agentcore_memory-startup_context"
+  ],
+  "prefixes": [
+    "agentcore_memory",
+    "agentcore_project_router",
+    "arabold_docs",
+    "context_fabric",
+    "cursor_agent_mcp",
+    "depwire",
+    "filesystem",
+    "obsidian_vault",
+    "playwright",
+    "repomix",
+    "sequential_thinking",
+    "tentra"
+  ],
+  "swarm_tools": [],
+  "sql_admin_tools": [],
+  "session_id": "0a221c65-7690-45ca-9345-09752a63aba8",
+  "session_key": "cherry-alignment-lifecycle-2026-07-20-505b2e5d",
+  "event_id": "3623a279-76cd-426b-846f-39327f0abd24",
+  "continuation_cursor_present": true,
+  "resumed_session_id": "0a221c65-7690-45ca-9345-09752a63aba8",
+  "capability_profile": "builder",
+  "status": "PASS"
+}

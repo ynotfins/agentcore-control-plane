@@ -52,7 +52,9 @@ No other root or docs file may silently override this chain. If a document confl
 - `docs/handoffs/OPENROUTER_MCP_OAUTH_BIND_HANDOFF_2026-07-20.md` — OpenRouter OAuth bind topic handoff
 - `docs/handoffs/AGENTCORE_AUTONOMOUS_WORKFLOW_STUDIO_HANDOFF_2026-07-17.md` — workflow/Studio productization handoff (prefer runbook for commands)
 - `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md` — zero-default-exposure dormant catalog
-- `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md` / `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md` — client enrollment evidence
+- `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md` / `audits/CHERRY_MEMORY_LIFECYCLE_2026-07-20.json` / `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md` — client enrollment + lifecycle evidence
+- `docs/operations/CHERRY_STUDIO_AGENTCORE.md` — Cherry enroll/Agent/rollback runbook
+- `docs/prompts/cherry-agentcore-workspace-agent.md` — governed Cherry Agent prompt
 - Historical cutover/implementation handoffs under `docs/operations/archive/handoffs/` (Bifrost 2026-07-12, Memory-platform 2026-07-14, Swarm 2026-06-30) — evidence only
 - `docs/agent-policy/` — global New Project / Milestone / checklist / tool-lifecycle policy
 - `docs/prompts/install-agentcore-gateway-in-ide.md` — standalone reusable IDE install prompt
@@ -196,6 +198,6 @@ All historical docs must not be run as instructions without current operator app
 
 - `agentcore-memory` ten-tool surface is **live** (M3.002 / M4+; Cursor validated). Remaining memory-platform work is Milestone completion/ops hardening per `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` and BLUEPRINT M5–M8 exit criteria — not “platform not landed”
 - M6 PostgreSQL capability leases + Bifrost JIT VK bridge (`scripts/bifrost/jit_vk_bridge.py`) are **implemented** for exact OpenRouter tool groups; transitional `permitted_tools: ["*"]` wildcards remain on some non-OpenRouter servers until named inventories replace them
-- Cherry Studio: gateway record restored/validated 2026-07-20 evening (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`); confirm tools/list after next Cherry launch. Import artifact remains at `%APPDATA%\CherryStudio\Data\agentcore-gateway-mcp-import.json` if UI re-import is needed.
+- Cherry Studio: fully aligned 2026-07-20 (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`) — enrolled gateway, AgentCore Workspace Agent, Global Memory off, memory lifecycle + isolation validated. Re-run `scripts/cherry/enroll_agentcore_gateway.py --apply` only if Local Storage loses the gateway record.
 - `depwire-cloud` and `github-mcp` remain deferred/`enabled=false` until healthy verification
 - Live IDE cutover completion evidence still incomplete for some clients (see Bifrost handoff / artifacts / IDE profiles)

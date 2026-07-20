@@ -30,7 +30,7 @@ Mutable live facts that supersede older “future migration / degraded memory / 
 | M6 workflow | Productized CLI + PostgresSaver; Studio is localhost/dev-only. Runbook: `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`. |
 | Capability leases | PostgreSQL leases + `scripts/bifrost/jit_vk_bridge.py` grant/revoke exact OpenRouter tool groups. |
 | OpenRouter MCP | Registry `dormant` + lifecycle `authenticated_dormant`; gateway-only; no direct IDE MCP. Runbook: `docs/operations/OPENROUTER_MCP.md`. |
-| IDE clients | Single `agentcore-gateway` at `http://127.0.0.1:8080/mcp`. Cherry Studio gateway record validated 2026-07-20 evening (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`); confirm tools/list on next launch. |
+| IDE clients | Single `agentcore-gateway` at `http://127.0.0.1:8080/mcp`. Cherry Studio fully aligned 2026-07-20 (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`): enrolled, Agent mounted, memory lifecycle + isolation validated. |
 | LangGraph MCP | Shared `scripts/agentcore_workflow/mcp_client.py` → localhost gateway — `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`. |
 | Swarm | Separate ecosystem; not part of non-Swarm IDE baselines (BLUEPRINT § Swarm boundary). |
 

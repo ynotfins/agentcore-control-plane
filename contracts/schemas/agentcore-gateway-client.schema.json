@@ -106,6 +106,7 @@
             "codex_toml",
             "antigravity_mcp_json",
             "open_interpreter_json",
+            "cherry_studio_leveldb",
             "skip_openclaw"
           ]
         },
