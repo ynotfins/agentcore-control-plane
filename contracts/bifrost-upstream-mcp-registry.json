@@ -907,21 +907,21 @@
       "bifrost_client_name": "openrouter",
       "status": "dormant",
       "notes": [
-        "LIFECYCLE: installed_dormant -> ready_auth_on_first_use (Bifrost pending_oauth) -> authenticated_dormant.",
-        "ENCRYPTION REQUIRED: BIFROST_ENCRYPTION_KEY must be set in Windows User scope before OAuth can be initiated. Without it, OAuth material is stored in plaintext. Verify presence and Bifrost recognition before enrollment.",
-        "OAUTH ENROLLMENT: Use the Bifrost management API (POST /api/mcp/client with auth_type=oauth and oauth_config) — not config.json reconciliation — to create the OAuth client and receive pending_oauth + authorize_url + oauth_config_id. Operator completes browser consent. Save oauth_config_id to H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json (runtime-only, never committed).",
-        "RENDERER BEHAVIOR: Pre-enrollment: renderer embeds oauth_config (public params: server_url + scopes only) for Bifrost pending-client registration. Post-enrollment: renderer reads oauth-clients.json and substitutes oauth_config_id, preserving the enrolled binding. Re-rendering without the state file after enrollment may orphan the enrolled client.",
-        "Prefer ready_auth_on_first_use: OAuth deferred until first operator request. No 7-day reauth clock on idle capability.",
-        "ZERO TOOLS exposed without a live M6 capability lease. capability_profiles: [operator] is JIT-eligible reference only.",
+        "LIFECYCLE: installed_dormant -> ready_auth_on_first_use -> authenticated_dormant (OAuth connected) -> jit_leased. Registry status remains 'dormant' by validator contract because tools require a live M6 lease.",
+        "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY — OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
+        "ENCRYPTION: BIFROST_ENCRYPTION_KEY required in Windows User scope; OAuth token stored encrypted in data/config.db.",
+        "OAUTH BINDING: Runtime state H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json holds oauth_config_id + mcp_client_id only. After enrollment, runtime config.json must use oauth_config_id (not oauth_config) or restart unbinds the client.",
+        "RENDERER BEHAVIOR: Pre-enrollment git/sanitized renderers embed oauth_config public params. Post-enrollment runtime render substitutes oauth_config_id from state file. Do not commit runtime oauth_config_id into Git renderers (OR-10).",
+        "ZERO TOOLS exposed without a live M6 capability lease + manual VK mcp_configs grant (JIT bridge still DEFERRED). capability_profiles: [operator] is JIT-eligible reference only.",
         "openrouter must NOT appear in capability_profiles[*].allowed_server_ids — enforced by validator.",
-        "JIT governance: M6 PostgreSQL capability_leases table. tool_group_id references tool_groups above. JIT bridge is currently DEFERRED (manual activation only). See docs/operations/OPENROUTER_MCP.md.",
-        "Billable tools (send-message, generate-image) in denied_tools. billable_approval lease + operator confirmation required.",
-        "config.db MUST be treated as secret-bearing regardless of encryption state. Backups to E:/G: secure paths only. ACL-restrict to SYSTEM and operator only.",
+        "JIT governance: M6 PostgreSQL capability_leases. Manual VK update must include existing mcp_configs[].id fields or Bifrost returns 409.",
+        "Billable tools (send-message, generate-image) in denied_tools. Never auto-grant on discovery leases.",
+        "config.db MUST be treated as secret-bearing. Backups to E:/G: secure paths only.",
         "Official endpoint: https://mcp.openrouter.ai/mcp. Transport: Streamable HTTP (MCP 2025-03-26 spec).",
-        "Tool inventory: 16 tools CLAIMED 2026-07-17 (pre-auth, not yet verified by authenticated live tools/list). Official docs list 11 tools. Requires authenticated tools/list reconciliation after OAuth enrollment.",
+        "AUTHENTICATED LIVE INVENTORY 2026-07-20: 20 tools; hash 83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e. Live-only extras vs permitted_tools: generate-speech, get-preset, list-presets, transcribe-audio (not yet classified into permitted_tools). denied_tools send-message/generate-image present in live discovery but must stay ungated.",
         "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
         "No OPENROUTER_MCP_KEY in Windows env — OAuth token managed by Bifrost config.db only.",
-        "oauth_config_id is runtime-only metadata managed in H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json. Never committed to Git, source renderers, IDE configs, or logs."
+        "oauth_config_id is runtime-only metadata in H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json. Never committed to Git, source renderers, IDE configs, or logs."
       ]
     },
     "agentcore-project-router": {

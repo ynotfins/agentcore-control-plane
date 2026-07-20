@@ -87,9 +87,14 @@ Fixture repo: `D:\github\openrouter-wf-fixture-20260720` (disposable).
 | -- | -- |
 | `BIFROST_ENCRYPTION_KEY` | present, User scope only |
 | `config.db` ACL | PASS — only `ynotf`, Administrators, SYSTEM |
-| Backup | `E:\AgentCore-Backups\bifrost-pre-oauth-20260720-000116` (+ SHA256 manifest) |
-| OAuth | **blocked** — logs: `oauth2 config not found`; `BIFROST_ADMIN_KEY` absent so authorize_url cannot be re-issued from here |
-| Claim `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY` | **NO** |
+| Backup | `E:\AgentCore-Backups\bifrost-pre-oauth-20260720-000116` (+ SHA256 manifest; 4/4 hashes OK on bind day) |
+| OAuth bind (2026-07-20) | Authorized config bound to live client after `\AgentCore\AgentCore-Bifrost-Gateway` restart; client `connected`; encrypted token retained |
+| `complete-oauth` | not required (restart with `oauth_config_id` completed bind) |
+| Live tools inventory | 20 tools; hash `83d1a8d3…ada52e` |
+| Lease proofs | discovery activate/revoke/expiry PASS; builder/reviewer stay at 0 OpenRouter tools; memory surface = 10 |
+| Safe call | `openrouter-list-models` limit=1 OK; paid calls = 0 |
+| Claim `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY` | **YES** (orphan-key dashboard review still operator-owned) |
+| Evidence | `audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md` |
 
 ## Paid call / cost
 

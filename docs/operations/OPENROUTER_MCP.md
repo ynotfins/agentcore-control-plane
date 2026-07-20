@@ -3,16 +3,18 @@
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`  
 **Registry ID:** `openrouter`  
 **Bifrost client name:** `openrouter`  
-**Status:** OPENROUTER MCP REGISTERED DORMANT — OAUTH NOT VALIDATED  
-**Last tool inventory:** 14 permitted tools claimed in registry (pre-auth); official docs list ~11 — **authenticated live tools/list still required**  
+**Status:** OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY  
+**Last tool inventory:** authenticated live discovery = **20 tools** (SHA-256 `83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e`); registry `permitted_tools` remains the 14 approved non-billable tools; `denied_tools` keep `send-message` / `generate-image`  
 **Updated:** 2026-07-20  
 
-> **Handoff & Verification Status (2026-07-20):**  
-> - **BIFROST_ENCRYPTION_KEY:** Present in Windows User-scope (durability OR-0 PASS).  
-> - **config.db ACL:** Hardened (OR-configdb-acl PASS) — `ynotf`, Administrators, SYSTEM only.  
-> - **OAuth Flow:** **NOT complete.** Live Bifrost logs show `failed to connect MCP client openrouter: oauth2 config not found`. Runtime state file has `oauth_config_id` / `mcp_client_id` but reconnect fails.  
-> - **Blocker:** `BIFROST_ADMIN_KEY` is absent from User env — cannot query management API or re-issue `authorize_url` from this session.  
-> - **Next Steps:** Operator sets User-scope `BIFROST_ADMIN_KEY`, re-initiates OpenRouter OAuth per this runbook (scopes=`mcp`, low spending cap, 7-day key), completes browser consent, then authenticated `tools/list` + lease proofs. Until then do **not** claim `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY`.  
+> **Handoff & Verification Status (2026-07-20 bind):**  
+> - **BIFROST_ENCRYPTION_KEY:** Present in Windows User-scope; launcher copies into Bifrost process.  
+> - **config.db ACL:** Restricted to `ynotf`, Administrators, SYSTEM.  
+> - **OAuth:** Authorized config `aa25b02d-…` + encrypted token `310917b6-…` bound to live client `56631c8f-…` after scheduled-task restart. Client state `connected`. `complete-oauth` **not** required.  
+> - **Runtime state:** `H:\AgentRuntime\bifrost\state\oauth-clients.json` holds only `oauth_config_id` + `mcp_client_id`. Runtime `config.json` uses `oauth_config_id` (git renderers stay pre-enrollment `oauth_config`).  
+> - **Lease proofs:** builder/reviewer/operator see **zero** OpenRouter tools without a lease; discovery lease exposes exactly the 11 `openrouter-discovery-read` tools on operator; revocation and expiry remove them; memory surface stays exactly 10 tools.  
+> - **Safe call:** `openrouter-list-models` (limit=1) succeeded; **paid calls = 0**.  
+> - **Remaining operator step:** inspect OpenRouter Keys dashboard for orphan Bifrost/MCP keys from failed pending attempts; revoke orphans only; do not revoke the working authorized grant.  
 
 ---
 
