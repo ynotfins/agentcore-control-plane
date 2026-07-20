@@ -1,5 +1,11 @@
 # Storage Layout
 
+> **HISTORICAL SNAPSHOT — SUPERSEDED (2026-07-20). DO NOT TREAT AS CURRENT DRIVE/DB AUTHORITY.**
+> Generated 2026-06-24 (pre-Bifrost / pre-PG18 canonical cutover). Drive roles, PostgreSQL endpoints,
+> and memory paths below may conflict with `PROJECT_ANCHOR.md` and `BLUEPRINT.md`.
+> **Current authority:** `PROJECT_ANCHOR.md` §2–3, `BLUEPRINT.md` §4, `CONTEXT_BLOCK.md` §0a,
+> `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md`.
+
 Generated: 2026-06-24
 
 ## Objective

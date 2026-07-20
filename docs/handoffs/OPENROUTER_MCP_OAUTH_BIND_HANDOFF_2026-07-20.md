@@ -21,4 +21,4 @@
 
 - `audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md`
 - `docs/operations/OPENROUTER_MCP.md`
-- `contracts/bifrost-upstream-mcp-registry.json` (`status: authenticated_dormant`)
+- `contracts/bifrost-upstream-mcp-registry.json` — registry `status: "dormant"` (zero default exposure); lifecycle posture `authenticated_dormant` after OAuth bind (see `docs/operations/OPENROUTER_MCP.md` vocabulary)

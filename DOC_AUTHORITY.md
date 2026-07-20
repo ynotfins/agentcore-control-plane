@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-20 (cross-ref reconciliation vs BLUEPRINT.md: memory live, M6 leases + OpenRouter JIT bridge, Cherry re-enroll pending; architecture unchanged)
+**Updated:** 2026-07-20 (handoff table reconciliation + current-state synthesis at `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md`; architecture unchanged)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -35,13 +35,12 @@ No other root or docs file may silently override this chain. If a document confl
 4. `CONTEXT_BLOCK.md` — current system state + implementation progress
 5. `contracts/bifrost-upstream-mcp-registry.json` — canonical upstream MCP registry
 6. `contracts/agentcore-gateway-client.json` — single IDE gateway client contract
-7. `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` — Bifrost cutover handoff (historical; see newer handoffs for live status)
-8. `MASTER_CONFIG_AND_PROMPT.md` — root setup guide with embedded reusable IDE prompt
+7. `MASTER_CONFIG_AND_PROMPT.md` — root setup guide with embedded reusable IDE prompt
+8. `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md` — current-state evidence synthesis (not architecture authority)
 
 **For memory/context/database work, additionally attach:**
 
 - `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance
-- `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` — historical implementation handoff (superseded for live facts)
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` — effectively-unbounded durable-memory and bounded recovery source handoff
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` — live rollout evidence: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated
 - `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` — M6 LangGraph production + Studio runbook
@@ -50,8 +49,11 @@ No other root or docs file may silently override this chain. If a document confl
 **Add as needed:**
 
 - `docs/operations/OPENROUTER_MCP.md` — OpenRouter MCP (≠ API provider); OAuth + JIT bridge
+- `docs/handoffs/OPENROUTER_MCP_OAUTH_BIND_HANDOFF_2026-07-20.md` — OpenRouter OAuth bind topic handoff
+- `docs/handoffs/AGENTCORE_AUTONOMOUS_WORKFLOW_STUDIO_HANDOFF_2026-07-17.md` — workflow/Studio productization handoff (prefer runbook for commands)
 - `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md` — zero-default-exposure dormant catalog
 - `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md` / `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md` — client enrollment evidence
+- Historical cutover/implementation handoffs under `docs/operations/archive/handoffs/` (Bifrost 2026-07-12, Memory-platform 2026-07-14, Swarm 2026-06-30) — evidence only
 - `docs/agent-policy/` — global New Project / Milestone / checklist / tool-lifecycle policy
 - `docs/prompts/install-agentcore-gateway-in-ide.md` — standalone reusable IDE install prompt
 - `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md` — deployment ADR
@@ -86,12 +88,15 @@ No other root or docs file may silently override this chain. If a document confl
 
 | File | Purpose |
 | -- | -- |
-| `CONTEXT_BLOCK.md` | Current mutable system state and memory-platform target architecture (rewritten 2026-07-12; PG18 + pgvector + Cognee behind AgentCore adapter) |
-| `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` | Primary Bifrost gateway handoff |
-| `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` | Handoff for the memory-platform implementation agent |
+| `CONTEXT_BLOCK.md` | Current mutable system state and memory-platform target architecture (rewritten 2026-07-12; PG18 + pgvector + Cognee behind AgentCore adapter). **§0a is the live posture override.** |
+| `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md` | Long-form current-state evidence synthesis (not architecture authority; does not replace CONTEXT_BLOCK) |
 | `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` | Source-only handoff for model-aware active context, full-history recovery, and M3.002 validation |
 | `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` | Live rollout handoff: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated |
-| `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` | **Final release acceptance** — M8 consolidation, resource-location model, all validators PASS, exact ten tools verified, HEAD `a843cf1` |
+| `docs/handoffs/AGENTCORE_AUTONOMOUS_WORKFLOW_STUDIO_HANDOFF_2026-07-17.md` | Workflow + Studio productization handoff (prefer `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` for commands) |
+| `docs/handoffs/OPENROUTER_MCP_OAUTH_BIND_HANDOFF_2026-07-20.md` | OpenRouter MCP OAuth bind + JIT availability claim |
+| `docs/operations/OPENROUTER_MCP.md` | OpenRouter MCP runbook (registry `dormant` vs lifecycle `authenticated_dormant`) |
+| `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` | M6 LangGraph production + Studio runbook |
+| `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` | **Final release acceptance** — M8 consolidation, resource-location model, all validators PASS, exact ten tools verified, HEAD `a843cf1` (point-in-time; main has advanced) |
 | `ops/bifrost/evidence/20260714-0204-runtime-repair/RUNTIME_REPAIR_EVIDENCE.md` | Current runtime repair evidence: scheduled task owner, MCP validation, Cursor MCP_DOCKER removal |
 | `artifacts/bifrost-gateway-cutover-2026-07-12/` | Cutover backups, hashes, evidence |
 | `ops/bifrost/` | Install/start/stop/test/backup/restore/cutover scripts |
@@ -152,8 +157,12 @@ Evidence: `artifacts/bifrost-gateway-cutover-2026-07-12/ARABOLD_DOCS_CROSSREF_20
 | `AGENT_DATABASE_BOOTSTRAP.md` | Historical PG16.6/Swarm-era database bootstrap (memory_append tools, `F:\AgentCore\agents_workspace` roots). Memory work reads the memory-platform execution plan instead. |
 | `Global-memory-and-context-system-revised-2.md` | Research input that fed `CONTEXT_BLOCK.md`; wrong hardware/drive facts; its embedded "Memory Broker" prompt must never be executed. |
 | `CONTEXT_BLOCK_AGENTCORE_SWARM_2026-06-30.md` | Frozen Swarm rollout status; Swarm-first baseline is not current non-Swarm policy |
-| `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md` | Swarm rollout handoff; its P1–P9 phases must not be executed |
+| `docs/operations/archive/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md` (pointer: `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md`) | Swarm rollout handoff; its P1–P9 phases must not be executed |
+| `docs/operations/archive/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` (pointer: `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md`) | Bifrost cutover handoff — historical; live status is CONTEXT_BLOCK §0a + current runbooks/audits |
+| `docs/operations/archive/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md` (pointer: `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md`) | Memory-platform implementation handoff — superseded for live facts |
+| `docs/operations/archive/development-chat/` | Full ChatGPT development conversation — evidence only; see `MANIFEST.md` |
 | `docs/RESTART_HANDOFF_20260626_AGENTCORE_FINAL_LEG.md` | Pre-Bifrost memory routing snapshot |
+| `docs/storage_layout.md` | Pre-Bifrost / pre-PG18 storage snapshot — historical layout notes only |
 | Direct per-IDE full-server MCP blocks in older `MASTER_CONFIG_AND_PROMPT.md` | Moved to historical appendix; normal architecture is single gateway entry |
 | `contracts/master-mcp-server-config.json`, `scripts/mcp_control_plane.py`, and legacy root `renderers/*.json` | Superseded for non-Swarm IDE setup by Bifrost contracts, `scripts/bifrost/render_bifrost_config.py`, and `renderers/gateway-clients/` |
 | `docs/prompts/*-cleanup-prompt.md` direct-server/Swarm cleanup instructions | Remediation references only; normal non-Swarm IDE setup uses `install-agentcore-gateway-in-ide.md` / embedded master prompt |
@@ -187,6 +196,6 @@ All historical docs must not be run as instructions without current operator app
 
 - `agentcore-memory` ten-tool surface is **live** (M3.002 / M4+; Cursor validated). Remaining memory-platform work is Milestone completion/ops hardening per `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` and BLUEPRINT M5–M8 exit criteria — not “platform not landed”
 - M6 PostgreSQL capability leases + Bifrost JIT VK bridge (`scripts/bifrost/jit_vk_bridge.py`) are **implemented** for exact OpenRouter tool groups; transitional `permitted_tools: ["*"]` wildcards remain on some non-OpenRouter servers until named inventories replace them
-- Cherry Studio re-enrollment: live `mcp.servers=[]` as of 2026-07-20; quit Cherry and run `scripts/cherry/enroll_agentcore_gateway.py` (see `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`)
+- Cherry Studio: gateway record restored/validated 2026-07-20 evening (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`); confirm tools/list after next Cherry launch. Import artifact remains at `%APPDATA%\CherryStudio\Data\agentcore-gateway-mcp-import.json` if UI re-import is needed.
 - `depwire-cloud` and `github-mcp` remain deferred/`enabled=false` until healthy verification
 - Live IDE cutover completion evidence still incomplete for some clients (see Bifrost handoff / artifacts / IDE profiles)
