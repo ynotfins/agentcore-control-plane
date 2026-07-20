@@ -1,8 +1,8 @@
 # OpenRouter Provider Integrations
 
 **Authority:** `contracts/openrouter-provider-contract.json`  
-**Status:** FULLY INTEGRATED AND SELECTABLE  
-**Updated:** 2026-07-19
+**Status:** PHASE 1 API SELECTABILITY PROVEN (partial) — see `audits/OPENROUTER_API_PHASE1_EVIDENCE_2026-07-20.md`  
+**Updated:** 2026-07-20
 
 ---
 
@@ -69,7 +69,7 @@ The central contract is stored at `contracts/openrouter-provider-contract.json` 
 - **Alternate Profiles:**
   - `autonomous-gpt-sol`: Explicitly selects `openai/gpt-5.6-sol`.
   - `autonomous-minimax-m27`: Explicitly selects `minimax/minimax-m2.7`.
-  - `autonomous-free`: Explicitly selects zero-cost fallback model `google/gemma-4-31b-it:free`.
+  - `autonomous-free`: Explicitly selects free model `tencent/hy3:free` (account-compatible; `openrouter/auto` forbidden).
 - **API Key Storage:** Loaded from Windows User-scope `%OPENROUTER_API_KEY%`. No keys appear in config files or logs.
 - **Memory Integration:** Connects to `agentcore-gateway` (http://127.0.0.1:8080/mcp), exposing exactly ten memory tools. Appends prompt context before execution and resumes the session correctly using `session_key`.
 

@@ -356,6 +356,22 @@ def cmd_start(args: argparse.Namespace) -> int:
         print("ERROR: --provider openrouter requires an explicit --model.", file=sys.stderr)
         return 2
 
+    if args.model in FORBIDDEN_OPENROUTER_MODELS or (
+        isinstance(args.model, str) and args.model.startswith("openrouter/") and args.model.endswith(("auto", "free"))
+    ):
+        print(
+            "ERROR: OpenRouter auto-routing / free-router IDs are not permitted — "
+            "select an explicit model ID from `workflow models --provider openrouter`.",
+            file=sys.stderr,
+        )
+        return 2
+    if args.provider == "openrouter" and args.model and args.model not in APPROVED_OPENROUTER_MODELS:
+        print(
+            f"ERROR: model {args.model!r} is not in the approved OpenRouter workflow set.",
+            file=sys.stderr,
+        )
+        return 2
+
     proj = _resolve_project(project_key)
     if proj is None:
         print(f"ERROR: project_key not registered: {project_key}. Run 'init' first.",
@@ -389,6 +405,12 @@ def cmd_start(args: argparse.Namespace) -> int:
         wf_db.set_scope_baseline(run_db_id, project_id, "operator_goal", goal)
     except Exception as exc:
         print(f"WARN: could not record goal scope baseline: {exc}", file=sys.stderr)
+
+    if args.provider or args.model:
+        try:
+            wf_db.set_run_model_selection(run_db_id, args.provider or "", args.model or "")
+        except Exception as exc:
+            print(f"WARN: could not persist model selection: {exc}", file=sys.stderr)
 
     # Mark run as running with current milestone
     wf_db.update_run_status(run_db_id, "running", current_milestone=milestone)
@@ -855,34 +877,95 @@ def cmd_studio(args: argparse.Namespace) -> int:
     return run_studio(args)
 
 
+# Operator-approved OpenRouter workflow model set. openrouter/auto is
+# deliberately excluded: explicit model IDs only.
+APPROVED_OPENROUTER_MODELS = [
+    "minimax/minimax-m3",
+    "deepseek/deepseek-v4-pro",
+    "deepseek/deepseek-v4-flash",
+    "openai/gpt-5.6-sol",
+    "minimax/minimax-m2.7",
+    "tencent/hy3:free",
+]
+
+FORBIDDEN_OPENROUTER_MODELS = {
+    "openrouter/auto",
+    "openrouter/auto-beta",
+    "openrouter/free",
+}
+
+
 def cmd_models(args: argparse.Namespace) -> int:
-    """Display sanitized current available model IDs, context lengths, profile mapping, and availability."""
+    """Display the sanitized live OpenRouter model catalog for approved workflow models.
+
+    Queries the live OpenRouter /models endpoint (key from Windows User env; the
+    key value is never printed). Falls back to the approved-ID list with
+    availability=unverified when the API is unreachable.
+    """
     if args.provider != "openrouter":
         print(f"ERROR: --provider {args.provider} is not supported. Only 'openrouter' is supported.", file=sys.stderr)
         return 2
 
-    # Sanitized current verified models from the contract or API
-    models_data = [
-        {"model_id": "minimax/minimax-m3", "display_name": "MiniMax-M3", "context_length": 1048576, "input_price": "$0.55/M", "output_price": "$1.10/M", "profile_mapping": "autonomous-os"},
-        {"model_id": "deepseek/deepseek-v4-pro", "display_name": "DeepSeek V4 Pro", "context_length": 1048576, "input_price": "$0.14/M", "output_price": "$0.28/M", "profile_mapping": "autonomous-deepseek-pro"},
-        {"model_id": "openai/gpt-5.6-sol", "display_name": "GPT-5.6 Sol", "context_length": 1048576, "input_price": "$2.50/M", "output_price": "$10.00/M", "profile_mapping": "autonomous-gpt-sol"},
-        {"model_id": "minimax/minimax-m2.7", "display_name": "MiniMax M2.7", "context_length": 204800, "input_price": "$0.10/M", "output_price": "$0.20/M", "profile_mapping": "autonomous-minimax-m27"},
-    ]
-    
+    live_index: dict[str, dict] = {}
+    catalog_source = "approved-list-only (live catalog unreachable)"
+    try:
+        import urllib.request
+
+        api_key = os.environ.get("OPENROUTER_API_KEY", "")
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/models",
+            headers={"Authorization": f"Bearer {api_key}"} if api_key else {},
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        live_index = {m["id"]: m for m in data.get("data", [])}
+        catalog_source = "live openrouter.ai/api/v1/models"
+    except Exception as exc:  # sanitized: never include auth material
+        print(f"WARN: live catalog fetch failed ({type(exc).__name__}); showing approved IDs only.", file=sys.stderr)
+
+    models_data = []
+    for model_id in APPROVED_OPENROUTER_MODELS:
+        live = live_index.get(model_id)
+        if live:
+            pricing = live.get("pricing", {})
+            models_data.append({
+                "model_id": model_id,
+                "display_name": live.get("name", model_id),
+                "context_length": live.get("context_length"),
+                "prompt_price_per_token": pricing.get("prompt"),
+                "completion_price_per_token": pricing.get("completion"),
+                "availability": "live",
+            })
+        else:
+            models_data.append({
+                "model_id": model_id,
+                "display_name": model_id,
+                "context_length": None,
+                "prompt_price_per_token": None,
+                "completion_price_per_token": None,
+                "availability": "unverified" if not live_index else "not_listed",
+            })
+
     payload = {
         "timestamp": _now_iso(),
         "provider": "openrouter",
         "api_base": "https://openrouter.ai/api/v1",
-        "models": models_data
+        "catalog_source": catalog_source,
+        "auto_routing": "openrouter/auto excluded by policy — explicit model IDs only",
+        "models": models_data,
     }
-    
+
     def _render(p: dict) -> None:
-        print(f"OpenRouter Model Catalog ({p['timestamp']})")
-        print(f"{'Model ID':<30} | {'Display Name':<25} | {'Context':<10} | {'Pricing (In/Out)':<18} | {'Profile'}")
-        print("-" * 100)
+        print(f"OpenRouter Model Catalog ({p['timestamp']}) — {p['catalog_source']}")
+        print(f"{'Model ID':<30} | {'Context':<10} | {'Prompt $/tok':<14} | {'Compl $/tok':<14} | {'Availability'}")
+        print("-" * 95)
         for m in p["models"]:
-            pricing = f"{m['input_price']}/{m['output_price']}"
-            print(f"{m['model_id']:<30} | {m['display_name']:<25} | {m['context_length']:<10} | {pricing:<18} | {m['profile_mapping']}")
+            print(
+                f"{m['model_id']:<30} | {str(m['context_length'] or '?'):<10} | "
+                f"{str(m['prompt_price_per_token'] or '?'):<14} | "
+                f"{str(m['completion_price_per_token'] or '?'):<14} | {m['availability']}"
+            )
+        print(p["auto_routing"])
 
     _print_json_or_text(payload, args.json, _render)
     return 0

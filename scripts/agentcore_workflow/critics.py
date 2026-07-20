@@ -26,7 +26,9 @@ def det_check_migration_applied(state: dict) -> dict:
     """Verify the M6 migration row exists in schema_migrations."""
     try:
         from . import db
-        with db.conn() as c:
+        # admin=True per AGENTS.md: agentcore_worker cannot authenticate for
+        # direct table reads; all wf DB ops use the admin connection.
+        with db.conn(admin=True) as c:
             row = c.execute(
                 "SELECT version FROM agentcore.schema_migrations WHERE version = 'm6.001'",
             ).fetchone()
@@ -37,19 +39,25 @@ def det_check_migration_applied(state: dict) -> dict:
 
 
 def det_check_thread_isolation(state: dict) -> dict:
-    """Verify that thread_db_id belongs to this project (not any other)."""
+    """Verify the LangGraph thread belongs to this project (not any other).
+
+    M6 project-scoped thread identity lives in agentcore.wf_runs
+    (langgraph_thread + project_id); the M2 workflow_threads table has no
+    project_id column and is not the M6 isolation source of truth.
+    """
     try:
         from . import db
-        if not state.get("thread_db_id"):
-            return {"check": "thread_isolation", "passed": False, "reason": "thread_db_id empty"}
-        with db.conn() as c:
+        thread_uuid = state.get("thread_uuid")
+        if not thread_uuid:
+            return {"check": "thread_isolation", "passed": False, "reason": "thread_uuid empty"}
+        with db.conn(admin=True) as c:
             row = c.execute(
-                "SELECT project_id FROM agentcore.workflow_threads WHERE id = %s",
-                (state["thread_db_id"],),
+                "SELECT project_id FROM agentcore.wf_runs WHERE langgraph_thread = %s",
+                (thread_uuid,),
             ).fetchone()
         if not row:
-            return {"check": "thread_isolation", "passed": False, "reason": "thread not found"}
-        matches = str(row["project_id"]) == state["project_id"]
+            return {"check": "thread_isolation", "passed": False, "reason": "run not found for thread"}
+        matches = str(row["project_id"]) == str(state["project_id"])
         return {"check": "thread_isolation", "passed": matches, "project_match": matches}
     except Exception as exc:
         return {"check": "thread_isolation", "passed": False, "error": str(exc)}

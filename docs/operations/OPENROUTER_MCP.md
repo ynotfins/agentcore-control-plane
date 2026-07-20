@@ -3,15 +3,16 @@
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`  
 **Registry ID:** `openrouter`  
 **Bifrost client name:** `openrouter`  
-**Status:** OAUTH INITIATED — PENDING OPERATOR CONSENT  
+**Status:** OPENROUTER MCP REGISTERED DORMANT — OAUTH NOT VALIDATED  
 **Last tool inventory:** 14 permitted tools claimed in registry (pre-auth); official docs list ~11 — **authenticated live tools/list still required**  
-**Updated:** 2026-07-19  
+**Updated:** 2026-07-20  
 
-> **Handoff & Verification Status (2026-07-19):**  
-> - **BIFROST_ENCRYPTION_KEY:** Generated and loaded in Windows User-scope environment variables (length 44 verified). Encryption is active and confirmed in Bifrost startup logs.  
-> - **config.db ACL:** Fully hardened and restricted. Inheritance disabled; broad access removed. Only `SYSTEM`, `Administrators`, and operator `ynotf` have access.  
-> - **OAuth Flow:** Initiated successfully. State saved securely in `H:\AgentRuntime\bifrost\state\oauth-clients.json` containing `oauth_config_id="aa25b02d-fc4c-4210-88c8-e355a2f8c109"`.  
-> - **Next Steps:** Operator opens the `authorize_url` in a browser where logged into OpenRouter, completes consent, and then POSTs to the complete callback endpoint to activate full tool visibility under the M6 capability lease system.  
+> **Handoff & Verification Status (2026-07-20):**  
+> - **BIFROST_ENCRYPTION_KEY:** Present in Windows User-scope (durability OR-0 PASS).  
+> - **config.db ACL:** Hardened (OR-configdb-acl PASS) — `ynotf`, Administrators, SYSTEM only.  
+> - **OAuth Flow:** **NOT complete.** Live Bifrost logs show `failed to connect MCP client openrouter: oauth2 config not found`. Runtime state file has `oauth_config_id` / `mcp_client_id` but reconnect fails.  
+> - **Blocker:** `BIFROST_ADMIN_KEY` is absent from User env — cannot query management API or re-issue `authorize_url` from this session.  
+> - **Next Steps:** Operator sets User-scope `BIFROST_ADMIN_KEY`, re-initiates OpenRouter OAuth per this runbook (scopes=`mcp`, low spending cap, 7-day key), completes browser consent, then authenticated `tools/list` + lease proofs. Until then do **not** claim `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY`.  
 
 ---
 

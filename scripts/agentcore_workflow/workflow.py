@@ -284,12 +284,18 @@ def run_workflow(
             from langgraph.types import Command
             result = graph.invoke(Command(resume=resume_from), config=config)
         else:
-            # Fresh start or automatic resume from checkpoint
-            state = initial_state(
-                project_id, project_key, thread_uuid, milestone_key,
-                provider=provider or "", model=model or ""
-            )
-            result = graph.invoke(state, config=config)
+            # If the thread already has a checkpoint, resume with None input so
+            # the checkpointed state (including provider/model selection) is
+            # preserved instead of being overwritten by a fresh initial_state.
+            existing = graph.get_state(config)
+            if existing is not None and existing.values:
+                result = graph.invoke(None, config=config)
+            else:
+                state = initial_state(
+                    project_id, project_key, thread_uuid, milestone_key,
+                    provider=provider or "", model=model or ""
+                )
+                result = graph.invoke(state, config=config)
 
         return {
             "thread_uuid": thread_uuid,

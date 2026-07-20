@@ -45,6 +45,36 @@ def register_run(project_id: str, langgraph_thread: str, session_id: Optional[st
         return str(row["id"])
 
 
+def set_run_model_selection(run_db_id: str, provider: str, model: str) -> None:
+    """Persist the operator's explicit provider/model selection on the run row.
+
+    Stored in wf_runs.metadata so the selection survives process termination
+    independently of LangGraph checkpoint state.
+    """
+    import json as _json
+
+    selection = {"provider": provider, "model": model}
+    with conn(admin=True) as c:
+        c.execute(
+            """
+            UPDATE agentcore.wf_runs
+            SET metadata = metadata || jsonb_build_object('model_selection', %s::jsonb),
+                updated_at = now()
+            WHERE id = %s
+            """,
+            (_json.dumps(selection), run_db_id),
+        )
+
+
+def get_run_model_selection(run_db_id: str) -> Optional[dict]:
+    with conn(admin=True) as c:
+        row = c.execute(
+            "SELECT metadata -> 'model_selection' AS sel FROM agentcore.wf_runs WHERE id = %s",
+            (run_db_id,),
+        ).fetchone()
+        return row["sel"] if row and row["sel"] else None
+
+
 def update_run_status(run_db_id: str, status: str, **kwargs: Any) -> None:
     set_clauses = ["status = %s", "updated_at = now()"]
     params: list = [status]

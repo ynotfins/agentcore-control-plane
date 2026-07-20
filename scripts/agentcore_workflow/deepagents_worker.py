@@ -58,6 +58,27 @@ def _require_deepagents() -> None:
         )
 
 
+OPENROUTER_API_V1 = "https://openrouter.ai/api/v1"
+
+
+def _resolve_model(model: str):
+    """Resolve a 'provider:model' spec into a chat model instance or pass-through spec.
+
+    For 'openrouter:<model-id>' specs, construct ChatOpenRouter with an explicit
+    /api/v1 base URL: the machine-level OPENROUTER_API_BASE env var points at the
+    site root (HTML), which langchain_openrouter would otherwise inherit.
+    openrouter/auto is rejected — explicit model IDs only.
+    """
+    if isinstance(model, str) and model.startswith("openrouter:"):
+        model_id = model.split(":", 1)[1]
+        if not model_id or model_id == "openrouter/auto":
+            raise ValueError("openrouter requires an explicit model ID (openrouter/auto is not permitted)")
+        from langchain_openrouter import ChatOpenRouter
+
+        return ChatOpenRouter(model=model_id, base_url=OPENROUTER_API_V1)
+    return model
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Worktree boundary enforcement
 # ─────────────────────────────────────────────────────────────────────────────
@@ -151,24 +172,25 @@ Work only within your assigned worktree: {root}
   separate memory files or AGENTS.md files.
 """
 
-    # Filesystem middleware restricted to worktree — read+write allowed.
-    # FilesystemPermission takes `paths` (list) and `operations` as separate args.
+    # Filesystem access restricted to worktree — read+write allowed.
+    # deepagents 0.6.x: create_deep_agent installs FilesystemMiddleware itself;
+    # pass backend (root confinement, virtual_mode=True blocks '..'/absolute
+    # escapes) and permissions (backend-relative, must start with '/').
+    from deepagents.backends import FilesystemBackend
+
     fs_permission = FilesystemPermission(
-        paths=["**"],
+        paths=["/**"],
         operations=["read", "write"],
-    )
-    fs_middleware = FilesystemMiddleware(
-        root_dir=str(root),
-        permissions=[fs_permission],
     )
 
     # Create the deep agent WITH filesystem but WITHOUT memory middleware.
     # MemoryMiddleware is intentionally omitted: it reads AGENTS.md files,
     # which would create a competing source of truth with AgentCore.
     agent = create_deep_agent(
-        model=model,
+        model=_resolve_model(model),
         system_prompt=system_prompt,
-        middleware=[fs_middleware],
+        backend=FilesystemBackend(root_dir=str(root), virtual_mode=True),
+        permissions=[fs_permission],
     )
 
     try:
@@ -260,19 +282,18 @@ Assigned worktree: {root}
 """
 
     # Critic: strictly read-only filesystem.
+    from deepagents.backends import FilesystemBackend
+
     fs_permission = FilesystemPermission(
-        paths=["**"],
+        paths=["/**"],
         operations=["read"],
-    )
-    fs_middleware = FilesystemMiddleware(
-        root_dir=str(root),
-        permissions=[fs_permission],
     )
 
     agent = create_deep_agent(
-        model=model,
+        model=_resolve_model(model),
         system_prompt=system_prompt,
-        middleware=[fs_middleware],
+        backend=FilesystemBackend(root_dir=str(root), virtual_mode=True),
+        permissions=[fs_permission],
     )
 
     try:

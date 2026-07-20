@@ -68,6 +68,28 @@ http://127.0.0.1:2024
 You should see the complete graph topology with all expected nodes and
 conditional edges. Select the **`agentcore_workflow`** graph.
 
+## OpenRouter provider/model selection (per thread/run)
+
+Studio uses the **same** `WorkflowState` fields as production (`provider`, `model`).
+Do **not** fork the graph. Preserve the production default by leaving both empty.
+
+To select OpenRouter for one Studio thread/run, set the thread input (or update
+state before the first invoke) to an explicit model ID:
+
+```json
+{
+  "provider": "openrouter",
+  "model": "tencent/hy3:free"
+}
+```
+
+Rules:
+- OpenRouter requires an explicit `model` (never `openrouter/auto` / routers).
+- `OPENROUTER_API_KEY` is inherited from the Windows User environment by the Studio
+  process; do not create `.env` files.
+- `LANGSMITH_TRACING=false` remains forced unless separately approved.
+- Topology fingerprint must match production (`python -m agentcore workflow topology`).
+
 ## What to verify in Studio
 
 - All expected nodes visible: `start`, `gate_check`, `deterministic_checks`,
