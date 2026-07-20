@@ -302,6 +302,27 @@ dependencies:
       remove drift gate from gates.py; delete deepagents_worker.py.
     last_review: "2026-07-16"
 
+  - package: langchain-mcp-adapters
+    ecosystem: python
+    status: approved
+    purpose: >
+      Shared AgentCore gateway MCP client for LangGraph production and Studio
+      (MultiServerMCPClient over streamable HTTP). Not a second MCP authority.
+    version_policy: "==0.3.0"
+    tested_version: "0.3.0"
+    source: https://pypi.org/project/langchain-mcp-adapters/
+    repository: https://github.com/langchain-ai/langchain-mcp-adapters
+    documentation: https://docs.langchain.com/oss/python/langchain/mcp
+    license: MIT
+    provenance: LangChain AI; MIT; PyPI
+    security_notes: >
+      Authorization header read from Windows env at runtime only; never persist
+      resolved headers; localhost gateway URL only (http://127.0.0.1:8080/mcp).
+    alternatives_considered: Raw MCP SDK JSON-RPC only (kept as sync fallback in memory_gateway.py)
+    approval_reason: Official LangChain MCP adapter; pinned 0.3.0; HTTP headers supported
+    last_review: "2026-07-20"
+    agentcore_role: mcp_client_adapter
+
   - package: structlog
     ecosystem: python
     status: under_review

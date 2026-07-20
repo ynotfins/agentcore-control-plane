@@ -34,9 +34,11 @@
 
 | Group | Access policy | Tools |
 | -- | -- | -- |
-| openrouter-discovery-read | jit_short | list-models, get-model, list-model-endpoints, list-providers, list-daily-model-rankings, list-app-rankings, list-benchmarks, list-task-classifications, search-docs, view-skills, ping |
+| openrouter-discovery-read | jit_short | list-models, get-model, list-model-endpoints, list-providers, list-daily-model-rankings, list-app-rankings, list-benchmarks, list-task-classifications, search-docs, view-skills, ping, **get-preset**, **list-presets** |
 | openrouter-account | operator_scope | get-credits, get-generation, send-feedback |
-| openrouter-billable | billable_approval | send-message, generate-image (**denied by default**) |
+| openrouter-media-generation | billable_approval | **generate-speech** (operator-approved JIT; raw_untrusted) |
+| openrouter-transcription | billable_approval | **transcribe-audio** (operator-approved JIT; upload forbid repo/secrets; raw_untrusted) |
+| openrouter-billable | billable_approval | send-message, generate-image (**denied by default** — never from discovery leases) |
 
 ## Explicit exclusions (must not appear in non-Swarm IDE baselines)
 

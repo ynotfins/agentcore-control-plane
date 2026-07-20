@@ -4,17 +4,18 @@
 **Registry ID:** `openrouter`  
 **Bifrost client name:** `openrouter`  
 **Status:** OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY  
-**Last tool inventory:** authenticated live discovery = **20 tools** (SHA-256 `83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e`); registry `permitted_tools` remains the 14 approved non-billable tools; `denied_tools` keep `send-message` / `generate-image`  
+**Last tool inventory:** authenticated live discovery = **20 tools** (SHA-256 `83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e`); registry `permitted_tools` = **18** classified tools; `denied_tools` keep `send-message` / `generate-image`  
 **Updated:** 2026-07-20  
 
-> **Handoff & Verification Status (2026-07-20 bind):**  
+> **Handoff & Verification Status (2026-07-20 bind + classification):**  
 > - **BIFROST_ENCRYPTION_KEY:** Present in Windows User-scope; launcher copies into Bifrost process.  
 > - **config.db ACL:** Restricted to `ynotf`, Administrators, SYSTEM.  
-> - **OAuth:** Authorized config `aa25b02d-…` + encrypted token `310917b6-…` bound to live client `56631c8f-…` after scheduled-task restart. Client state `connected`. `complete-oauth` **not** required.  
-> - **Runtime state:** `H:\AgentRuntime\bifrost\state\oauth-clients.json` holds only `oauth_config_id` + `mcp_client_id`. Runtime `config.json` uses `oauth_config_id` (git renderers stay pre-enrollment `oauth_config`).  
-> - **Lease proofs:** builder/reviewer/operator see **zero** OpenRouter tools without a lease; discovery lease exposes exactly the 11 `openrouter-discovery-read` tools on operator; revocation and expiry remove them; memory surface stays exactly 10 tools.  
-> - **Safe call:** `openrouter-list-models` (limit=1) succeeded; **paid calls = 0**.  
-> - **Remaining operator step:** inspect OpenRouter Keys dashboard for orphan Bifrost/MCP keys from failed pending attempts; revoke orphans only; do not revoke the working authorized grant.  
+> - **OAuth:** Authorized config `aa25b02d-…` + encrypted token bound to live client `56631c8f-…`. Client state `connected`.  
+> - **Four-tool classification:** `get-preset`/`list-presets` → discovery JIT; `generate-speech` → media-generation operator JIT; `transcribe-audio` → transcription operator JIT (`raw_untrusted`). Manifest: `contracts/openrouter-tool-manifest.json`.  
+> - **JIT bridge:** `scripts/bifrost/jit_vk_bridge.py` — PostgreSQL lease → exact VK `mcp_configs` grant (preserves ids + `mcp_client_name`) → revoke removes; fail-closed.  
+> - **Lease proofs:** discovery lease exposes exactly 13 `openrouter-*` discovery tools including presets; revocation returns to zero; memory surface stays exactly 10 tools.  
+> - **MCP OAuth key:** Treat dashboard key labeled `MCP: OpenRouter MCP: Bifrost MCP Gateway` as the working grant — do not revoke.  
+> - **API inference keys** (`agent-orchestrator`, `cherry`, `langgraph`, `OPENROUTER_API_KEY`) are not MCP OAuth orphans.  
 
 ---
 
@@ -226,112 +227,83 @@ The durability audit (`ops/Test-AgentCoreDurabilityAndPlacement.ps1`) issues a `
 
 ---
 
-## Tool Inventory (claimed 2026-07-17 — pre-auth, pending live verification)
+## Tool Inventory (authenticated 2026-07-20)
 
-> **Status:** These tools were claimed from OpenRouter documentation and pre-auth discovery.
-> They have NOT been verified by an authenticated `tools/list` call.
-> Accept only after authenticated live `tools/list` proves each tool exists.
-> Authenticated verification requires OAuth enrollment (blocked by § Encryption Blocker above).
->
-> Official published OpenRouter documentation lists 11 tools and states only `send-message` is
-> billable. The following tools are claimed but need reconciliation against live inventory:
-> `list-task-classifications`, `view-skills`, `ping`, `send-feedback`, `generate-image`.
-> Do not infer `generate-image` from the separate OpenRouter API server-tools feature.
+Live tools = **20**. Manifest: contracts/openrouter-tool-manifest.json.
 
-### Group: openrouter-discovery-read (11 claimed tools) — `jit_short`
-Short task-scoped JIT lease. No approval required.
+### Group: openrouter-discovery-read (13 tools) — jit_short
 
-| Tool | Purpose | Verified |
-|---|---|---|
-| `list-models` | Search and filter the full live model catalog | pre-auth only |
-| `get-model` | Full details for one model by author/slug | pre-auth only |
-| `list-model-endpoints` | Which providers serve a model, with price/latency | pre-auth only |
-| `list-providers` | Available providers for routing preferences | pre-auth only |
-| `list-daily-model-rankings` | Most-used and trending models by token volume | pre-auth only |
-| `list-app-rankings` | Apps driving most OpenRouter traffic | pre-auth only |
-| `list-benchmarks` | Third-party quality scores (Artificial Analysis, Design Arena) | pre-auth only |
-| `list-task-classifications` | OpenRouter traffic breakdown by task type | **UNVERIFIED** |
-| `search-docs` | Search full OpenRouter documentation | pre-auth only |
-| `view-skills` | Read bundled skill files from OpenRouter knowledge base | **UNVERIFIED** |
-| `ping` | Health check | **UNVERIFIED** |
+Includes original catalog tools plus **get-preset** and **list-presets** (read-only). Short project/task-scoped JIT. Zero default exposure.
 
-### Group: openrouter-account (3 claimed tools) — `operator_scope`
-Operator scope required. Approval required.
+### Group: openrouter-account (3 tools) — operator_scope
 
-| Tool | Purpose | Verified |
-|---|---|---|
-| `get-credits` | Remaining account credit balance | pre-auth only |
-| `get-generation` | Cost, token counts, provider for a specific generation | pre-auth only |
-| `send-feedback` | Report a problem with one of your own generations | **UNVERIFIED** |
+get-credits, get-generation, send-feedback.
 
-### Group: openrouter-billable (2 claimed tools) — `billable_approval` — **DENIED BY DEFAULT**
-These tools are in `denied_tools` and require: operator approval + declared cost ceiling + invocation bound + expiry + per-action confirmation.
+### Group: openrouter-media-generation (1 tool) — illable_approval
 
-| Tool | Purpose | Risk | Verified |
-|---|---|---|---|
-| `send-message` | Send a message to any model | **Billable inference** | pre-auth only |
-| `generate-image` | Generate an image from a text prompt | **Billable inference — source: OpenRouter server-tools, not MCP inventory** | **UNVERIFIED** |
+generate-speech — cost-sensitive; operator-approved JIT only; content 
+aw_untrusted.
 
-**Total claimed:** 16. **Official documented:** 11 read-only tools. Discrepancy requires authenticated tools/list reconciliation.
+### Group: openrouter-transcription (1 tool) — illable_approval
 
-**Accepted tool inventory manifest:** not yet committed. To be committed after authenticated tools/list with SHA-256 schema hashes, protocol version, and discovery timestamp.
+	ranscribe-audio — sensitive upload + billable processing; operator-approved JIT only;
+results 
+aw_untrusted unless promoted; never upload repository files, secrets, private records,
+or unrelated context.
 
-**Never include** repository source, secrets, credentials, private records, or unrelated project context in billable payloads.
+### Group: openrouter-billable (2 tools) — **DENIED BY DEFAULT**
+
+send-message, generate-image remain in denied_tools. Never grant from discovery leases.
+
+**Never include** repository source, secrets, credentials, private records, or unrelated project context in billable/media/transcription payloads.
 
 ---
 
-## JIT Lease Activation — Bridge DEFERRED
+## JIT Lease Activation — Automatic Bridge
 
-**Current status: Bifrost activation is manual. The M6-to-Bifrost dynamic bridge is not yet implemented.**
+**Status: IMPLEMENTED** via `scripts/bifrost/jit_vk_bridge.py` (hooked from `agentcore_workflow.db.create_jit_lease` / `revoke_lease` / `expire_jit_leases`).
 
-Blocker: Bifrost does not currently expose a management API that allows dynamic, lease-scoped
-tool injection without a full config.json re-render and process restart. Native Bifrost
-virtual-key and tool-group controls may support dynamic grants, but this has not been verified
-against the running Bifrost binary. Until a validated, restart-free bridge exists, OpenRouter
-remains operator-dormant.
+Flow:
 
-**Required behavior (deferred until M6 bridge is implemented):**
-- A valid PostgreSQL M6 lease grants only the named OpenRouter tool group to the requesting
-  project/client virtual key.
-- No permanent `allowed_server_ids` grant is created.
-- No wildcard is used.
-- Lease duration and invocation count are enforced.
-- Billable tools require operator approval and exact cost ceiling.
-- Lease expiration automatically removes the tools.
-- Explicit revocation automatically removes the tools.
-- Process interruption cannot leave an expired grant active.
-- No normal workflow requires manual source edits or a full Bifrost restart.
-- Concurrent projects cannot inherit one another's grant.
-
-**Current workaround (manual, operator-only):**
-1. Request a lease via the M6 capability lease system.
-2. Manually update the relevant VK config via Bifrost management API to add openrouter tools.
-3. Monitor expiry; manually revoke when the lease expires.
-4. This approach does NOT meet the zero-touch JIT requirement above.
-
-### Discovery group activation (manual workaround only)
-
-```python
-# Via agentcore workflow or direct lease API
-# tool_group_id: "openrouter-discovery-read"
-# max_duration_seconds: 3600 (1h max per lease_defaults)
-# max_invocations: 100 (per lease_defaults)
-# requires_approval: false (per lease_defaults)
+```
+PostgreSQL capability lease created (tool/group name)
+  → ensure openrouter MCP client tools_to_execute ⊆ registry permitted_tools
+  → PUT /api/governance/virtual-keys/{vk} with preserved mcp_configs[].id
+     + mcp_client_name=openrouter + exact tools_to_execute
+  → tools become visible on that VK
+  → lease expiry/revocation removes the openrouter mcp_config entry
+  → failure leaves tools hidden (deny-by-default)
 ```
 
-After lease is recorded in PostgreSQL `capability_leases`:
-- Operator manually adds `openrouter` tools to the operator VK via Bifrost management API
-- Discovery tools become visible in tools/list for the lease duration
-- On lease expiry: operator manually removes from VK
+Invariants:
+- Idempotent; project/VK scoped (default `vk-agentcore-operator`)
+- No wildcard grants; `send-message` / `generate-image` never granted
+- Existing mcp_configs IDs preserved (avoids Bifrost 409)
+- Restart-safe; rollback-safe; no Bifrost admin tools exposed to graph nodes
 
-### Billable group (openrouter-billable) — additional requirements
+### Discovery group activation
 
-Beyond standard JIT (when bridge is implemented):
-- Operator declares exact cost ceiling (e.g., $0.50)
-- Operator declares max invocation count
-- Exact prompt/model/cost approved before execution
-- No repository source code, secrets, or private project context in payload
-- After use: lease immediately revoked, no carryover
+```python
+from jit_vk_bridge import sync_lease_group
+sync_lease_group("openrouter-discovery-read", active=True)   # 13 tools incl. presets
+sync_lease_group("openrouter-discovery-read", active=False)  # zero OpenRouter tools
+```
+
+Or via M6:
+
+```python
+db.create_jit_lease(project_id, "openrouter-discovery-read", step_id, 3600, "discovery")
+db.revoke_lease(project_id, lease_id, "openrouter-discovery-read")
+```
+
+### Media / transcription (operator-approved)
+
+- `openrouter-media-generation` → `generate-speech` only
+- `openrouter-transcription` → `transcribe-audio` only; results `raw_untrusted`; never upload repo/secrets/private records
+
+### Billable group (openrouter-billable) — remains denied
+
+`send-message` and `generate-image` stay in `denied_tools`. Never grant from discovery leases.
 
 ---
 

@@ -23,5 +23,4 @@ copier==9.17.0
 # MemoryMiddleware and LangSmith disabled; FilesystemMiddleware + restricted path only
 deepagents==0.6.12
 
-# Type support
-typing-extensions>=4.12
+langchain-mcp-adapters==0.3.0

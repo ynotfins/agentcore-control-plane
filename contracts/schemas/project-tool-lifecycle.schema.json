@@ -104,6 +104,11 @@
         "catalog_only": { "type": "array", "items": { "type": "string" } },
         "candidate_unverified": { "type": "array", "items": { "type": "string" } }
       }
+    },
+    "openrouter_tool_classification": {
+      "type": "object",
+      "description": "Canonical classification pointer for OpenRouter MCP tools (zero default exposure).",
+      "additionalProperties": true
     }
   },
   "additionalProperties": false,

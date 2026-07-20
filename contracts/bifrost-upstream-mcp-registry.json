@@ -867,7 +867,9 @@
         "list-models", "get-model", "list-model-endpoints", "list-providers",
         "list-daily-model-rankings", "list-app-rankings", "list-benchmarks",
         "list-task-classifications", "search-docs", "view-skills", "ping",
-        "get-credits", "get-generation", "send-feedback"
+        "get-preset", "list-presets",
+        "get-credits", "get-generation", "send-feedback",
+        "generate-speech", "transcribe-audio"
       ],
       "denied_tools": ["send-message", "generate-image"],
       "tool_groups": {
@@ -875,10 +877,11 @@
           "tools": [
             "list-models", "get-model", "list-model-endpoints", "list-providers",
             "list-daily-model-rankings", "list-app-rankings", "list-benchmarks",
-            "list-task-classifications", "search-docs", "view-skills", "ping"
+            "list-task-classifications", "search-docs", "view-skills", "ping",
+            "get-preset", "list-presets"
           ],
           "access_policy": "jit_short",
-          "description": "Read-only model catalog, benchmarks, docs, and metadata. Short task-scoped JIT lease.",
+          "description": "Read-only model catalog, presets, benchmarks, docs, and metadata. Short project/task-scoped JIT lease. Zero default exposure.",
           "lease_defaults": { "max_duration_seconds": 3600, "max_invocations": 100, "requires_approval": false }
         },
         "openrouter-account": {
@@ -887,10 +890,28 @@
           "description": "Account-sensitive reads and feedback write. Requires operator scope and approval.",
           "lease_defaults": { "max_duration_seconds": 1800, "max_invocations": 20, "requires_approval": true }
         },
+        "openrouter-media-generation": {
+          "tools": ["generate-speech"],
+          "access_policy": "billable_approval",
+          "description": "Cost-sensitive media generation. Operator-approved JIT only with invocation and cost bounds. Never auto-activate. Never include repository source, secrets, or private content.",
+          "lease_defaults": { "max_duration_seconds": 900, "max_invocations": 5, "requires_approval": true },
+          "content_trust_class": "raw_untrusted"
+        },
+        "openrouter-transcription": {
+          "tools": ["transcribe-audio"],
+          "access_policy": "billable_approval",
+          "description": "Sensitive external file upload plus potentially billable processing. Operator-approved JIT only. Uploaded/transcribed content is raw_untrusted unless explicitly promoted. Never upload repository files, secrets, private records, or unrelated context.",
+          "lease_defaults": { "max_duration_seconds": 900, "max_invocations": 3, "requires_approval": true },
+          "content_trust_class": "raw_untrusted",
+          "upload_policy": {
+            "forbid": ["repository_files", "secrets", "private_records", "unrelated_context"],
+            "trust_class_on_result": "raw_untrusted"
+          }
+        },
         "openrouter-billable": {
           "tools": ["send-message", "generate-image"],
           "access_policy": "billable_approval",
-          "description": "Billable inference calls. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation. Never include repository source, secrets, or private content.",
+          "description": "Billable inference/image calls. Remain in denied_tools — never grant from discovery leases. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation.",
           "lease_defaults": { "max_duration_seconds": 900, "max_invocations": 5, "requires_approval": true }
         }
       },
@@ -912,13 +933,14 @@
         "ENCRYPTION: BIFROST_ENCRYPTION_KEY required in Windows User scope; OAuth token stored encrypted in data/config.db.",
         "OAUTH BINDING: Runtime state H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json holds oauth_config_id + mcp_client_id only. After enrollment, runtime config.json must use oauth_config_id (not oauth_config) or restart unbinds the client.",
         "RENDERER BEHAVIOR: Pre-enrollment git/sanitized renderers embed oauth_config public params. Post-enrollment runtime render substitutes oauth_config_id from state file. Do not commit runtime oauth_config_id into Git renderers (OR-10).",
-        "ZERO TOOLS exposed without a live M6 capability lease + manual VK mcp_configs grant (JIT bridge still DEFERRED). capability_profiles: [operator] is JIT-eligible reference only.",
+        "ZERO TOOLS exposed without a live M6 capability lease + Bifrost VK mcp_configs grant via scripts/bifrost/jit_vk_bridge.py. capability_profiles: [operator] is JIT-eligible reference only.",
         "openrouter must NOT appear in capability_profiles[*].allowed_server_ids — enforced by validator.",
-        "JIT governance: M6 PostgreSQL capability_leases. Manual VK update must include existing mcp_configs[].id fields or Bifrost returns 409.",
-        "Billable tools (send-message, generate-image) in denied_tools. Never auto-grant on discovery leases.",
+        "JIT governance: M6 PostgreSQL capability_leases. VK updates MUST preserve existing mcp_configs[].id fields or Bifrost returns 409. Failure leaves tools hidden.",
+        "denied_tools send-message/generate-image stay ungated; never grant from discovery leases.",
+        "generate-speech classified openrouter-media-generation (operator-approved JIT). transcribe-audio classified openrouter-transcription (operator-approved JIT; results raw_untrusted). get-preset/list-presets join openrouter-discovery-read.",
         "config.db MUST be treated as secret-bearing. Backups to E:/G: secure paths only.",
         "Official endpoint: https://mcp.openrouter.ai/mcp. Transport: Streamable HTTP (MCP 2025-03-26 spec).",
-        "AUTHENTICATED LIVE INVENTORY 2026-07-20: 20 tools; hash 83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e. Live-only extras vs permitted_tools: generate-speech, get-preset, list-presets, transcribe-audio (not yet classified into permitted_tools). denied_tools send-message/generate-image present in live discovery but must stay ungated.",
+        "AUTHENTICATED LIVE INVENTORY 2026-07-20: 20 tools; hash 83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e. All 20 live tools now classified (18 permitted + 2 denied).",
         "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
         "No OPENROUTER_MCP_KEY in Windows env — OAuth token managed by Bifrost config.db only.",
         "oauth_config_id is runtime-only metadata in H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json. Never committed to Git, source renderers, IDE configs, or logs."

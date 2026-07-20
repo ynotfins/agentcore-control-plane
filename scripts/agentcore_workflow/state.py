@@ -71,6 +71,9 @@ class WorkflowState(TypedDict):
     active_lease_id: str     # current capability_leases.id
     active_lease_tool: str   # tool name under active JIT lease
 
+    # ── AgentCore memory session (via agentcore-gateway MCP) ─────────────────
+    memory_session_id: str   # agentcore-memory session_id opened through gateway
+
     # ── Deep Agents worker harness (optional, bounded) ────────────────────────
     # All DA fields are worker-scoped; M6 PostgresSaver is the canonical checkpoint.
     # worktree_path is set from the project root_path at run start; DA workers
@@ -143,6 +146,7 @@ def initial_state(
         operator_decision="",
         active_lease_id="",
         active_lease_tool="",
+        memory_session_id="",
         worktree_path="",
         da_enabled=False,
         da_builder_result={},

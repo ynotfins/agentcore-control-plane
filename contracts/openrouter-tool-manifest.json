@@ -1,0 +1,52 @@
+{
+  "manifest_id": "openrouter-mcp-tool-inventory",
+  "schema_version": "2026-07-20",
+  "authority": "contracts/bifrost-upstream-mcp-registry.json",
+  "server_id": "openrouter",
+  "endpoint": "https://mcp.openrouter.ai/mcp",
+  "discovery": {
+    "authenticated_at": "2026-07-20",
+    "tool_count": 20,
+    "sha256": "83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e",
+    "protocol_hint": "2025-03-26"
+  },
+  "default_exposure": "zero_without_lease",
+  "no_wildcard_grants": true,
+  "no_automatic_activation": true,
+  "denied_from_discovery_leases": ["send-message", "generate-image"],
+  "tools": {
+    "list-models": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "get-model": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "list-model-endpoints": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "list-providers": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "list-daily-model-rankings": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "list-app-rankings": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "list-benchmarks": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "list-task-classifications": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "search-docs": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "view-skills": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "ping": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "get-preset": { "group": "openrouter-discovery-read", "access": "jit_short", "notes": "Read-only preset discovery; short JIT." },
+    "list-presets": { "group": "openrouter-discovery-read", "access": "jit_short", "notes": "Read-only preset listing; short JIT." },
+    "get-credits": { "group": "openrouter-account", "access": "operator_scope" },
+    "get-generation": { "group": "openrouter-account", "access": "operator_scope" },
+    "send-feedback": { "group": "openrouter-account", "access": "operator_scope" },
+    "generate-speech": {
+      "group": "openrouter-media-generation",
+      "access": "billable_approval",
+      "requires_operator_approval": true,
+      "content_trust_class": "raw_untrusted",
+      "notes": "Cost-sensitive media generation; operator-approved JIT only."
+    },
+    "transcribe-audio": {
+      "group": "openrouter-transcription",
+      "access": "billable_approval",
+      "requires_operator_approval": true,
+      "content_trust_class": "raw_untrusted",
+      "upload_forbid": ["repository_files", "secrets", "private_records", "unrelated_context"],
+      "notes": "Sensitive upload + billable processing; results raw_untrusted unless promoted."
+    },
+    "send-message": { "group": "openrouter-billable", "access": "denied_by_default", "in_denied_tools": true },
+    "generate-image": { "group": "openrouter-billable", "access": "denied_by_default", "in_denied_tools": true }
+  }
+}

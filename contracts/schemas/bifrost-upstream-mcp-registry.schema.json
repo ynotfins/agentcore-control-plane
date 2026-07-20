@@ -264,6 +264,24 @@
                 "enum": ["jit_short", "operator_scope", "billable_approval"]
               },
               "description": { "type": "string" },
+              "content_trust_class": {
+                "type": "string",
+                "enum": ["raw_untrusted", "promoted", "trusted"]
+              },
+              "upload_policy": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "forbid": {
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 }
+                  },
+                  "trust_class_on_result": {
+                    "type": "string",
+                    "enum": ["raw_untrusted", "promoted", "trusted"]
+                  }
+                }
+              },
               "lease_defaults": {
                 "type": "object",
                 "additionalProperties": false,

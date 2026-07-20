@@ -99,5 +99,46 @@
     "blocked_authority": ["context7", "Hostinger"],
     "catalog_only": ["CrewAI", "AutoGen", "MCP Registry reference servers"],
     "candidate_unverified": ["YouTube MCP", "Dropbox MCP"]
+  },
+  "openrouter_tool_classification": {
+    "authority": "contracts/bifrost-upstream-mcp-registry.json servers.openrouter",
+    "manifest": "contracts/openrouter-tool-manifest.json",
+    "default_exposure": "zero_without_lease",
+    "no_wildcard_grants": true,
+    "no_automatic_activation": true,
+    "groups": {
+      "openrouter-discovery-read": {
+        "access": "jit_short",
+        "tools": [
+          "list-models", "get-model", "list-model-endpoints", "list-providers",
+          "list-daily-model-rankings", "list-app-rankings", "list-benchmarks",
+          "list-task-classifications", "search-docs", "view-skills", "ping",
+          "get-preset", "list-presets"
+        ],
+        "notes": "get-preset and list-presets are read-only discovery; short project/task-scoped JIT only."
+      },
+      "openrouter-account": {
+        "access": "operator_scope",
+        "tools": ["get-credits", "get-generation", "send-feedback"]
+      },
+      "openrouter-media-generation": {
+        "access": "billable_approval",
+        "tools": ["generate-speech"],
+        "requires_operator_approval": true,
+        "content_trust_class": "raw_untrusted"
+      },
+      "openrouter-transcription": {
+        "access": "billable_approval",
+        "tools": ["transcribe-audio"],
+        "requires_operator_approval": true,
+        "content_trust_class": "raw_untrusted",
+        "upload_forbid": ["repository_files", "secrets", "private_records", "unrelated_context"]
+      },
+      "openrouter-billable": {
+        "access": "denied_by_default",
+        "tools": ["send-message", "generate-image"],
+        "notes": "Remain in denied_tools; never granted from discovery leases."
+      }
+    }
   }
 }

@@ -324,6 +324,80 @@ def get_source_identity_for_project(project_id: str) -> Optional[str]:
         return None
 
 
+def _is_openrouter_lease_tool(tool_name: str) -> bool:
+    if not tool_name:
+        return False
+    if tool_name.startswith("openrouter"):
+        return True
+    # Exact tool names from the OpenRouter registry groups.
+    known = {
+        "list-models", "get-model", "list-model-endpoints", "list-providers",
+        "list-daily-model-rankings", "list-app-rankings", "list-benchmarks",
+        "list-task-classifications", "search-docs", "view-skills", "ping",
+        "get-preset", "list-presets", "get-credits", "get-generation", "send-feedback",
+        "generate-speech", "transcribe-audio",
+        "openrouter-discovery-read", "openrouter-account",
+        "openrouter-media-generation", "openrouter-transcription",
+    }
+    return tool_name in known
+
+
+def _bridge_grant_for_tool(tool_name: str) -> None:
+    """Best-effort Bifrost VK grant. Failure leaves tools hidden."""
+    if not _is_openrouter_lease_tool(tool_name):
+        return
+    try:
+        import sys
+        from pathlib import Path
+
+        bifrost_dir = str(Path(__file__).resolve().parents[1] / "bifrost")
+        if bifrost_dir not in sys.path:
+            sys.path.insert(0, bifrost_dir)
+        import jit_vk_bridge as bridge  # type: ignore
+
+        if tool_name in {
+            "openrouter-discovery-read",
+            "openrouter-account",
+            "openrouter-media-generation",
+            "openrouter-transcription",
+        }:
+            result = bridge.sync_lease_group(tool_name, active=True)
+        else:
+            result = bridge.grant_tools([tool_name])
+        try:
+            from .mcp_client import bump_lease_epoch
+
+            bump_lease_epoch()
+        except Exception:
+            pass
+        if not result.ok:
+            # Do not raise — PG lease remains; tools stay hidden on failure.
+            return
+    except Exception:
+        return
+
+
+def _bridge_revoke_openrouter() -> None:
+    try:
+        import sys
+        from pathlib import Path
+
+        bifrost_dir = str(Path(__file__).resolve().parents[1] / "bifrost")
+        if bifrost_dir not in sys.path:
+            sys.path.insert(0, bifrost_dir)
+        import jit_vk_bridge as bridge  # type: ignore
+
+        bridge.revoke_openrouter_tools()
+        try:
+            from .mcp_client import bump_lease_epoch
+
+            bump_lease_epoch()
+        except Exception:
+            pass
+    except Exception:
+        return
+
+
 def create_jit_lease(project_id: str, tool_name: str, step_id: str, lease_seconds: int, justification: str) -> str:
     """Create a JIT capability lease and sync capability profile to jit_leased."""
     ident_id = get_source_identity_for_project(project_id)
@@ -380,7 +454,9 @@ def create_jit_lease(project_id: str, tool_name: str, step_id: str, lease_second
             "SELECT agentcore.set_capability_state(%s, %s, 'jit_leased', NULL, %s, false)",
             (project_id, tool_name, f"JIT lease {lease_id} for step {step_id}"),
         )
-        return lease_id
+    # After PG commit: push exact tools to Bifrost VK (idempotent; fail-closed).
+    _bridge_grant_for_tool(tool_name)
+    return lease_id
 
 
 def expire_jit_leases(project_id: str) -> int:
@@ -389,7 +465,10 @@ def expire_jit_leases(project_id: str) -> int:
             "SELECT agentcore.expire_wf_jit_leases(%s) AS expired",
             (project_id,),
         ).fetchone()
-        return int(row["expired"])
+        expired = int(row["expired"])
+    if expired:
+        _bridge_revoke_openrouter()
+    return expired
 
 
 def revoke_lease(project_id: str, lease_id: str, tool_name: str) -> None:
@@ -403,6 +482,8 @@ def revoke_lease(project_id: str, lease_id: str, tool_name: str) -> None:
             "SELECT agentcore.set_capability_state(%s, %s, 'dormant', NULL, 'lease revoked', false)",
             (project_id, tool_name),
         )
+    if _is_openrouter_lease_tool(tool_name):
+        _bridge_revoke_openrouter()
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -28,6 +28,9 @@
 | Variable | Required for | Default |
 |---|---|---|
 | `AGENT_CORE_POSTGRES_PASSWORD` | All production + E2E commands (PG18 superuser; not an agentcore_worker password) | _(User env var only)_ |
+| `BIFROST_MCP_VIRTUAL_KEY` | Production + Studio MCP client (builder VK fallback) | _(User env var only)_ |
+| `BIFROST_MCP_VK_WORKFLOW` | Optional dedicated workflow VK override | _(optional)_ |
+| `BIFROST_ADMIN_KEY` | Automatic JIT lease → Bifrost VK bridge | _(User env var only)_ |
 | `LANGSMITH_TRACING` | Studio only | `false` (forced by `studio.py`) |
 | `LANGGRAPH_ANALYTICS` | Studio only | `false` (forced by `studio.py`) |
 | `LANGGRAPH_HOST` | Studio only | `127.0.0.1` (forced by `studio.py`) |

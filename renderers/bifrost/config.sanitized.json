@@ -205,17 +205,16 @@
           "search-docs",
           "view-skills",
           "ping",
+          "get-preset",
+          "list-presets",
           "get-credits",
           "get-generation",
-          "send-feedback"
+          "send-feedback",
+          "generate-speech",
+          "transcribe-audio"
         ],
         "auth_type": "oauth",
-        "oauth_config": {
-          "server_url": "https://openrouter.ai",
-          "scopes": [
-            "mcp"
-          ]
-        }
+        "oauth_config_id": "aa25b02d-fc4c-4210-88c8-e355a2f8c109"
       },
       {
         "name": "playwright",
@@ -636,6 +635,6 @@
       "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
       "BIFROST_MCP_VK_OPERATOR"
     ],
-    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json) \u2014 present=False. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration."
+    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json) \u2014 present=True. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration."
   }
 }

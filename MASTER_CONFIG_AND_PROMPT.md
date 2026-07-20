@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md
 
-**Updated:** 2026-07-19 — Gated AgentCore integration recovery/rollout: dormant MCP catalog, OpenRouter MCP remains OAuth-unvalidated, Cherry Studio enrolled with OpenRouter API provider, AO isolated smoke, Swarm isolation inventory, Cursor extension matrix
+**Updated:** 2026-07-20 — OpenRouter four-tool classification + automatic JIT VK bridge; LangGraph shared MCP adapter (`langchain-mcp-adapters==0.3.0`); Cherry gateway re-enrollment pending quit (live `mcp.servers=[]`)
 **Authority:** `PROJECT_ANCHOR.md` §0 Bifrost Gateway Override
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`
 
@@ -133,7 +133,7 @@ Repaired runtime validation (2026-07-14):
 
 Classification matrix: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`
 
-**OpenRouter MCP:** registered once behind Bifrost as `openrouter`. Current completion string: **`OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY`** (OAuth authorized + connected; JIT discovery lease required for tool visibility). Zero OpenRouter tools on builder/reviewer/operator without an active discovery lease. BIFROST_ENCRYPTION_KEY is active and config.db ACL is hardened. Do **not** claim `OPENROUTER MODELS AVAILABLE AS IDE MODELS` from MCP availability alone. OpenRouter **API inference** (Cherry Studio / Open Interpreter providers) is a separate system from OpenRouter MCP. See `docs/operations/OPENROUTER_MCP.md`.
+**OpenRouter MCP:** registered once behind Bifrost as `openrouter`. Completion string: **`OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY`**. Zero OpenRouter tools without an active M6 lease + Bifrost VK grant via `scripts/bifrost/jit_vk_bridge.py`. Classified groups: discovery-read (13 tools incl. `get-preset`/`list-presets`), account, media-generation (`generate-speech`), transcription (`transcribe-audio`), billable (`send-message`/`generate-image` denied). Manifest: `contracts/openrouter-tool-manifest.json`. Do **not** claim `OPENROUTER MODELS AVAILABLE AS IDE MODELS` from MCP availability alone. OpenRouter **API inference** is a separate system. See `docs/operations/OPENROUTER_MCP.md`.
 
 **Dormant capability catalog:** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md` — future upstreams documented with zero default exposure; Context7/Hostinger remain `blocked_authority` per `PROJECT_ANCHOR.md`.
 
@@ -220,7 +220,8 @@ Allowed roots: registered `D:\github\...` git worktrees. Reject Swarm / `F:\Agen
 **Canonical runbook:** `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`
 **Launcher:** `python -m agentcore workflow {init|start|status|pause|approve|reject|resume|cancel|logs|evidence|topology|studio}`
 **Studio adapter:** `scripts/agentcore_workflow/studio/` (langgraph.json + graph.py)
-**Acceptance:** 17/17 E2E recovery scenarios PASS — see `audits/M6/fixture-e2e-summary.json`.
+**Shared MCP client:** `scripts/agentcore_workflow/mcp_client.py` + `memory_gateway.py` (`langchain-mcp-adapters==0.3.0`); node policy in `node_tool_policy.py`. Prefer `BIFROST_MCP_VK_WORKFLOW` when set; else builder VK with node-scoped filtering.
+**Acceptance:** 17/17 E2E recovery scenarios PASS — see `audits/M6/fixture-e2e-summary.json`. Gateway enrollment evidence: `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`.
 
 The agentcore-memory ten-tool surface, Bifrost gateway contracts, and Swarm ecosystem are unchanged by this work.
 
@@ -325,7 +326,7 @@ Cutover automation: `ops/bifrost/Invoke-AgentCoreIdeGatewayCutover.ps1`.
 
 | Surface | Posture | Evidence / docs |
 | -- | -- | -- |
-| Cherry Studio | Enrolled: single `agentcore-gateway`, Global Memory off, OpenRouter **API** provider live | Status: **`CHERRY STUDIO ENROLLED IN AGENTCORE — OPENROUTER PROVIDER LIVE`** |
+| Cherry Studio | Live `mcp.servers=[]` as of 2026-07-20 (gateway missing from Local Storage); Global Memory off; OpenRouter **API** provider separate. Re-enroll via `scripts/cherry/enroll_agentcore_gateway.py` after quitting Cherry. Evidence: `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md` | Prior Gate C claim superseded by live store check |
 | AO Agents | Thin Windows orchestration (`runtime: process`, worktree); inherits IDE gateway; no AgentCore DB | Gate D smoke under `artifacts/gated-agentcore-rollout-2026-07-19/` |
 | Desplega / Agent Swarm | Isolated; read-only inventory only; not in Bifrost registry | `audits/SWARM_ISOLATION_INVENTORY_2026-07-19.md` |
 | Cursor extensions | Replacement matrix; no uninstalls | `audits/CURSOR_EXTENSION_TO_MCP_REPLACEMENT_MATRIX.md` |

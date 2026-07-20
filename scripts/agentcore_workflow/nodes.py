@@ -133,8 +133,68 @@ def node_start(state: WorkflowState) -> dict:
         except Exception:
             pass  # worktree_path stays empty; da_enabled will be False
 
+    # Open governed AgentCore memory session via agentcore-gateway (shared MCP path).
+    # Refresh tool visibility at workflow start (lease epoch bump consumers).
+    if not state.get("memory_session_id"):
+        try:
+            from . import memory_gateway
+            from .mcp_client import bump_lease_epoch
+
+            bump_lease_epoch()
+            memory_gateway.assert_ten_memory_tools()
+            opened = memory_gateway.open_memory_session(
+                state["project_key"],
+                session_key=f"wf-{state.get('thread_uuid', '')}",
+                milestone=state.get("milestone_key"),
+                model_provider=state.get("provider") or None,
+                model_id=state.get("model") or None,
+            )
+            # Result shapes vary; accept session_id at top-level or nested.
+            sid = ""
+            if isinstance(opened, dict):
+                sid = str(opened.get("session_id") or "")
+                if not sid and isinstance(opened.get("structuredContent"), dict):
+                    sid = str(opened["structuredContent"].get("session_id") or "")
+                # MCP tool results often wrap JSON in content[].text
+                if not sid:
+                    for block in opened.get("content") or []:
+                        if isinstance(block, dict) and block.get("type") == "text":
+                            try:
+                                inner = json.loads(block.get("text") or "{}")
+                                sid = str(inner.get("session_id") or "")
+                            except Exception:
+                                pass
+            if sid:
+                updates["memory_session_id"] = sid
+                memory_gateway.startup_context(state["project_key"], session_id=sid)
+                # Append original goal/prompt before any worker execution.
+                goal = state.get("execution_result", {}).get("goal") if isinstance(state.get("execution_result"), dict) else None
+                # Prefer goal from checklist/evidence if present in state extensions
+                prompt_payload = {
+                    "kind": "workflow_start",
+                    "project_key": state["project_key"],
+                    "thread_uuid": state.get("thread_uuid"),
+                    "run_db_id": run_db_id,
+                    "milestone_key": state.get("milestone_key"),
+                    "goal": goal or state.get("operator_decision") or "",
+                }
+                memory_gateway.append_event(
+                    sid,
+                    "prompt",
+                    prompt_payload,
+                    trust_class="project_verified",
+                )
+        except Exception as exc:
+            # Memory gateway is required for enrollment proofs but must not crash
+            # deterministic fixture paths that lack VK env in disposable CI.
+            updates.setdefault("errors", [])
+            if isinstance(updates["errors"], list):
+                updates["errors"] = list(state.get("errors") or []) + [
+                    f"memory_gateway_bootstrap_degraded: {type(exc).__name__}"
+                ]
+
     updates["next_action"] = "gate_check"
-    updates["errors"] = []
+    updates["errors"] = updates.get("errors") or []
     return updates
 
 
@@ -258,12 +318,14 @@ def node_risk_assess(state: WorkflowState) -> dict:
         except Exception:
             pass
 
-    # DA workers are activated for medium+ risk when a valid worktree exists
-    from .deepagents_worker import DEEPAGENTS_AVAILABLE
+    # DA workers are activated for medium+ risk when a valid worktree exists.
+    # Fixture modes (deterministic/hang) enable the DA path without requiring LLM deps.
+    from .deepagents_worker import DEEPAGENTS_AVAILABLE, _worker_mode
     from pathlib import Path
     worktree_path = state.get("worktree_path", "")
+    worker_ready = DEEPAGENTS_AVAILABLE or _worker_mode() in ("deterministic", "hang")
     da_enabled = (
-        DEEPAGENTS_AVAILABLE
+        worker_ready
         and risk_class in ("medium", "high", "critical")
         and bool(worktree_path)
         and Path(worktree_path).exists()
@@ -593,7 +655,26 @@ def node_next_step(state: WorkflowState) -> dict:
     run_db_id = state.get("run_db_id", "")
     if run_db_id:
         db.update_run_status(run_db_id, "completed")
-    return {"completed": True, "next_action": "__end__"}
+    # Final handoff + session close through gateway when available.
+    sid = state.get("memory_session_id") or ""
+    if sid:
+        try:
+            from . import memory_gateway
+
+            memory_gateway.append_event(
+                sid,
+                "handoff",
+                {
+                    "project_key": state.get("project_key"),
+                    "thread_uuid": state.get("thread_uuid"),
+                    "run_db_id": run_db_id,
+                    "milestone_key": state.get("milestone_key"),
+                },
+            )
+            memory_gateway.close_memory_session(sid)
+        except Exception:
+            pass
+    return {"completed": True, "next_action": "__end__", "memory_session_id": ""}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -669,11 +750,24 @@ def node_human_pause(state: WorkflowState) -> dict:
 # WORKFLOW FAIL
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _close_memory_session(state: WorkflowState) -> None:
+    sid = state.get("memory_session_id") or ""
+    if not sid:
+        return
+    try:
+        from . import memory_gateway
+
+        memory_gateway.close_memory_session(sid)
+    except Exception:
+        pass
+
+
 def node_workflow_fail(state: WorkflowState) -> dict:
     run_db_id = state.get("run_db_id", "")
     if run_db_id:
         db.update_run_status(run_db_id, "failed")
-    return {"completed": True, "next_action": "__end__"}
+    _close_memory_session(state)
+    return {"completed": True, "next_action": "__end__", "memory_session_id": ""}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -690,7 +784,7 @@ def node_da_builder(state: WorkflowState) -> dict:
     - The DA internal MemorySaver is ephemeral; M6 PostgresSaver is canonical.
     - Returns da_builder_result and routes to da_critic for post-execution review.
     """
-    from .deepagents_worker import run_builder_worker, DEEPAGENTS_AVAILABLE
+    from .deepagents_worker import run_builder_worker, DEEPAGENTS_AVAILABLE, _worker_mode
 
     run_db_id = state.get("run_db_id", "")
     project_id = state["project_id"]
@@ -719,7 +813,8 @@ def node_da_builder(state: WorkflowState) -> dict:
 
     task = f"Execute micro step {micro_key}: {_micro_label(state, micro_key)}"
 
-    if not DEEPAGENTS_AVAILABLE or not worktree_path:
+    worker_ready = DEEPAGENTS_AVAILABLE or _worker_mode() in ("deterministic", "hang")
+    if not worker_ready or not worktree_path:
         # Graceful fallback: DA not available, route to standard micro_execute.
         return {"next_action": "micro_execute", "da_builder_result": {"status": "skipped_no_da"}}
 
@@ -789,7 +884,7 @@ def node_da_critic(state: WorkflowState) -> dict:
     Route: always → post_exec_judge (fixed edge, see workflow.py)
     Evidence is always recorded through agentcore-memory path.
     """
-    from .deepagents_worker import run_critic_worker, DEEPAGENTS_AVAILABLE
+    from .deepagents_worker import run_critic_worker, DEEPAGENTS_AVAILABLE, _worker_mode
 
     run_db_id = state.get("run_db_id", "")
     project_id = state["project_id"]
@@ -812,7 +907,8 @@ def node_da_critic(state: WorkflowState) -> dict:
 
     task = f"Review the output of micro step {micro_key}"
 
-    if not DEEPAGENTS_AVAILABLE or not worktree_path:
+    worker_ready = DEEPAGENTS_AVAILABLE or _worker_mode() in ("deterministic", "hang")
+    if not worker_ready or not worktree_path:
         # No DA available — neutral findings; post_exec_judge will decide routing.
         # A/B alternate is also skipped when DA is unavailable.
         return {
