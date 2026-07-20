@@ -7,6 +7,7 @@
 Distinguish **full tool availability** from **active exposure to the model**:
 
 - Every approved tool remains available for immediate activation (catalogued in `contracts/bifrost-upstream-mcp-registry.json`).
+- Dormant / deferred / future capabilities are indexed in `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md` with **zero default exposure**.
 - Only tools needed for the current project and current Milestone are actively exposed to the model.
 - The full builder catalog (~127 tools) must not remain permanently loaded into every model turn.
 - A project begins with the safe **Bootstrap** profile (`NEW_PROJECT_BOOTSTRAP.md`), never unrestricted administrative or destructive authority.

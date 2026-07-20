@@ -77,13 +77,32 @@
         "transitional_exception": {
           "type": "object",
           "required": ["granted", "scope", "reason", "expires"],
+          "additionalProperties": false,
           "properties": {
             "granted": { "type": "boolean" },
             "scope": { "type": "string" },
             "reason": { "type": "string" },
-            "expires": { "type": "string" }
+            "expires": { "type": "string" },
+            "must_not_extend_to": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
           }
         }
+      }
+    },
+    "dormant_catalog": {
+      "type": "object",
+      "required": ["path", "default_exposure", "do_not_duplicate", "blocked_authority"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string" },
+        "default_exposure": { "type": "string" },
+        "do_not_duplicate": { "type": "array", "items": { "type": "string" } },
+        "registered_dormant_or_deferred": { "type": "array", "items": { "type": "string" } },
+        "blocked_authority": { "type": "array", "items": { "type": "string" } },
+        "catalog_only": { "type": "array", "items": { "type": "string" } },
+        "candidate_unverified": { "type": "array", "items": { "type": "string" } }
       }
     }
   },

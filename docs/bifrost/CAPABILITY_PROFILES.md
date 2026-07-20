@@ -1,7 +1,8 @@
 # Capability Profiles — AgentCore Bifrost Gateway
 
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json` → `capability_profiles`
-**Updated:** 2026-07-12
+**Updated:** 2026-07-19
+**Dormant catalog:** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`
 
 Profiles select which upstream MCP servers (and, where implemented, which tools) a virtual key may use. Primary builder key env: `BIFROST_MCP_VIRTUAL_KEY`. Profile-specific stub envs are named in the registry notes (`BIFROST_MCP_VK_*`).
 
@@ -49,3 +50,4 @@ Profiles select which upstream MCP servers (and, where implemented, which tools)
 - Deferred servers (`depwire-cloud`, `github-mcp`) are not active until `enabled: true` after health gates.
 - Disabled servers (`mcp-debugger`, `artiforge`) are not active until their account/runtime health gates pass.
 - `openrouter` is registered **dormant** and must NOT be added to any profile's `allowed_server_ids`. Tools require a live M6 capability lease. See `docs/operations/OPENROUTER_MCP.md` for the JIT activation procedure. The server's `capability_profiles: ["operator"]` field is a JIT-eligibility reference only — not a permanent exposure grant.
+- Future catalogued MCP capabilities (GitLab, Firecrawl, Sheets, Cloudflare, AgentMail, Vercel, docs MCPs, etc.) must not be added to permanent profile grants until official pin, named inventory, and an enablement gate pass. Context7 and Hostinger remain `blocked_authority`.

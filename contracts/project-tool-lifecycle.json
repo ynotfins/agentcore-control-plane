@@ -83,7 +83,21 @@
       "granted": true,
       "scope": "contracts/bifrost-upstream-mcp-registry.json permitted_tools:[\"*\"] entries",
       "reason": "Named-tool enumeration and runtime enforcement arrive with memory-platform M6; current wildcard grants are a documented transitional state and must not be extended to new servers without review.",
-      "expires": "memory-platform Milestone M6 acceptance"
+      "expires": "memory-platform Milestone M6 acceptance",
+      "must_not_extend_to": [
+        "openrouter",
+        "new dormant catalog registrations",
+        "github-mcp before named inventory reconciliation"
+      ]
     }
+  },
+  "dormant_catalog": {
+    "path": "docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md",
+    "default_exposure": "zero_without_lease",
+    "do_not_duplicate": ["openrouter", "obsidian-vault", "filesystem"],
+    "registered_dormant_or_deferred": ["openrouter", "github-mcp", "mcp-debugger", "artiforge", "depwire-cloud"],
+    "blocked_authority": ["context7", "Hostinger"],
+    "catalog_only": ["CrewAI", "AutoGen", "MCP Registry reference servers"],
+    "candidate_unverified": ["YouTube MCP", "Dropbox MCP"]
   }
 }

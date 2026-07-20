@@ -1,8 +1,9 @@
 # MCP Classification Matrix — Bifrost Upstream
 
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`
-**Updated:** 2026-07-12
+**Updated:** 2026-07-19
 **Scope:** Non-Swarm AgentCore gateway only. Swarm* excluded.
+**Dormant catalog:** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`
 
 | Canonical ID | Bifrost client name | Connection | Scope | Write class | Status | Profiles |
 | -- | -- | -- | -- | -- | -- | -- |
@@ -45,7 +46,8 @@
 | swarmvault / SwarmVault | Separate Swarm ecosystem |
 | swarmclaw / SwarmClaw / AgentSwarm | Separate Swarm ecosystem |
 | `F:\AgentCore\agentmemory` | Swarm memory root; rejected by project router |
-| context7 | Forbidden route |
+| context7 | Forbidden route (`blocked_authority` — do not register dormant to weaken this) |
+| Hostinger | Forbidden route (`blocked_authority`) |
 | raw mem0 / direct composio | Forbidden route |
 | whole-drive filesystem roots | Forbidden |
 | direct Postgres credentials in IDE configs | Forbidden |
@@ -56,3 +58,4 @@
 - Project-scoped servers must launch through `scripts/project_router` wrappers after `project_activate`.
 - Counts implemented in registry: **13 enabled** (including openrouter dormant), **4 disabled/deferred** (`mcp-debugger`, `artiforge`, `depwire-cloud`, `github-mcp`) — as validated by `scripts/bifrost/validate_contracts.py` in-repo.
 - OpenRouter is registered dormant: zero tools exposed without an active M6 capability lease. See `docs/operations/OPENROUTER_MCP.md` for lifecycle and JIT activation.
+- Future GitLab/GitKraken/Firecrawl/Sheets/Cloudflare/AgentMail/Vercel/docs MCP entries remain catalogued pending official pin + named inventory; they are not live Bifrost clients until an enablement gate passes.

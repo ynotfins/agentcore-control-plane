@@ -121,6 +121,25 @@ def semantic_registry_checks(registry: dict[str, Any]) -> list[str]:
                     f"zero tools are exposed without an active M6 capability lease"
                 )
 
+    # General dormant zero-default-exposure: status dormant must not receive permanent profile grants.
+    for sid, server in (registry.get("servers") or {}).items():
+        if server.get("status") == "dormant":
+            for pid, profile in profiles.items():
+                if sid in (profile.get("allowed_server_ids") or []):
+                    errors.append(
+                        f"capability_profiles.{pid}: dormant server {sid!r} must not appear in "
+                        f"allowed_server_ids (zero tools without lease)"
+                    )
+
+    # Authority-blocked servers must never be registered.
+    for blocked in ("context7", "hostinger"):
+        for sid in (registry.get("servers") or {}):
+            if blocked in sid.lower():
+                errors.append(
+                    f"servers.{sid}: blocked_authority ({blocked}) — remove or keep catalog-only; "
+                    f"see docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md"
+                )
+
     return errors
 
 

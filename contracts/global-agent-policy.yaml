@@ -157,6 +157,16 @@ mandatory_rules:
       config.db is treated as secret-bearing; no token appears in Git, source renderers,
       logs, or IDE configs.
 
+  - id: dormant-mcp-catalog
+    title: Dormant MCP capability catalog
+    rule: >-
+      Dormant and deferred MCP capabilities are indexed in
+      docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md. Do not paste dormant upstreams into
+      per-IDE mcp.json. Do not duplicate openrouter, obsidian-vault, or filesystem. Do not
+      extend wildcard permitted_tools grants to new servers. Context7 and Hostinger remain
+      forbidden until PROJECT_ANCHOR.md is explicitly updated. Catalog-only and
+      candidate_unverified entries must not be installed solely to fill inventory gaps.
+
   - id: progressive-disclosure
     title: Progressive tool disclosure
     rule: >-
@@ -196,6 +206,7 @@ mandatory_rules:
 
 forbidden_routes:
   - context7
+  - Hostinger
   - raw mem0 (Mem0 is rejected for v1 and must not be installed)
   - direct composio
   - global-memory-gateway (retired identity)
@@ -212,3 +223,5 @@ references:
   gateway_client: contracts/agentcore-gateway-client.json
   model_context_profiles: contracts/model-context-profiles.json
   memory_platform_plan: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
+  dormant_mcp_catalog: docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md
+  openrouter_mcp_runbook: docs/operations/OPENROUTER_MCP.md
