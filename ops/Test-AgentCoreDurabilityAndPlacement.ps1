@@ -838,13 +838,114 @@ if (Test-Path $registryPath) {
     Warn "or-registry-present" "Registry file not found: $registryPath"
 }
 
+# OR-1b. Single registration — exactly one openrouter in registry and live Bifrost client_configs
+Write-Host "`nOR-1b. Single OpenRouter registration..."
+$liveCfgPath = "H:\AgentRuntime\bifrost\config.json"
+if (Test-Path $liveCfgPath) {
+    try {
+        $liveCfg = Get-Content $liveCfgPath -Raw | ConvertFrom-Json
+        $liveOR = @($liveCfg.mcp.client_configs | Where-Object { $_.name -eq "openrouter" })
+        if ($liveOR.Count -eq 1) {
+            Ok "or-single-live-client" "Exactly one openrouter client in live Bifrost config"
+        } elseif ($liveOR.Count -eq 0) {
+            Fail "or-single-live-client" "openrouter missing from live Bifrost client_configs"
+        } else {
+            Fail "or-single-live-client" "Duplicate openrouter clients in live Bifrost config: count=$($liveOR.Count)"
+        }
+    } catch {
+        Warn "or-single-live-client" "Could not parse live Bifrost config: $($_.Exception.Message)"
+    }
+} else {
+    Warn "or-single-live-client" "Live Bifrost config.json not found"
+}
+if (Test-Path $registryPath) {
+    $regKeys = @((Get-Content $registryPath -Raw | ConvertFrom-Json).servers.PSObject.Properties.Name | Where-Object { $_ -eq "openrouter" })
+    if ($regKeys.Count -eq 1) {
+        Ok "or-single-registry" "Exactly one openrouter entry in upstream registry"
+    } else {
+        Fail "or-single-registry" "Expected exactly one openrouter registry key; found $($regKeys.Count)"
+    }
+}
+
+# OR-1c. Unauthenticated remote probe — expect 401 until OAuth (reversible; no paid calls)
+Write-Host "`nOR-1c. Unauthenticated OpenRouter MCP endpoint probe..."
+try {
+    $probeBody = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"agentcore-durability-probe","version":"1.0"}}}'
+    Invoke-WebRequest -Uri "https://mcp.openrouter.ai/mcp" -Method POST -ContentType "application/json" `
+        -Headers @{ "Accept" = "application/json, text/event-stream" } -Body $probeBody -TimeoutSec 20 | Out-Null
+    Warn "or-remote-unauth" "Unauthenticated initialize unexpectedly succeeded — investigate OAuth requirement"
+} catch {
+    $code = $null
+    try { $code = [int]$_.Exception.Response.StatusCode } catch { }
+    if ($code -eq 401 -or $_.Exception.Message -match "401") {
+        Ok "or-remote-unauth" "Remote OpenRouter MCP returns 401 without OAuth (expected while dormant)"
+    } else {
+        Warn "or-remote-unauth" "Unauthenticated probe did not return 401: $($_.Exception.Message)"
+    }
+}
+
+# OR-1d. Bifrost pin evidence — binary present; sha256 recorded; docs pin v2.0.0-prerelease1
+Write-Host "`nOR-1d. Bifrost pin verification..."
+$bifrostExe = "H:\AgentRuntime\bifrost\bin\bifrost-http.exe"
+$pinDoc = "v2.0.0-prerelease1"
+if (Test-Path $bifrostExe) {
+    $exeHash = (Get-FileHash $bifrostExe -Algorithm SHA256).Hash
+    Ok "or-bifrost-binary" "bifrost-http.exe present; sha256=$exeHash; docs pin=$pinDoc (version flag not exposed by this build)"
+} else {
+    Fail "or-bifrost-binary" "Pinned Bifrost binary missing at $bifrostExe"
+}
+$anchor = Join-Path $repoRoot "PROJECT_ANCHOR.md"
+if ((Test-Path $anchor) -and ((Get-Content $anchor -Raw) -match [regex]::Escape($pinDoc))) {
+    Ok "or-bifrost-pin-doc" "PROJECT_ANCHOR.md records Bifrost pin $pinDoc"
+} else {
+    Warn "or-bifrost-pin-doc" "PROJECT_ANCHOR.md missing Bifrost pin $pinDoc"
+}
+
+# OR-1e. Claimed tool inventory drift note (pre-auth; authenticated tools/list still required)
+Write-Host "`nOR-1e. OpenRouter claimed inventory drift..."
+if (Test-Path $registryPath) {
+    $orPermitted = @((Get-Content $registryPath -Raw | ConvertFrom-Json).servers.openrouter.permitted_tools)
+    $officialDocCount = 11  # OpenRouter public docs inventory as of runbook; not authoritative post-auth
+    if ($orPermitted.Count -gt 0) {
+        Ok "or-inventory-claimed" "Registry claims $($orPermitted.Count) permitted tools (pre-auth); official docs list ~$officialDocCount — authenticated tools/list required after OAuth"
+        if ($orPermitted.Count -ne $officialDocCount) {
+            Warn "or-inventory-drift" "Claimed permitted_tools ($($orPermitted.Count)) differs from official-docs count ($officialDocCount) — reconcile after authenticated tools/list"
+        }
+    } else {
+        Fail "or-inventory-claimed" "openrouter permitted_tools empty"
+    }
+}
+
+# Shared MCP request bodies for pin + tools/list checks
+$initBody = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"audit","version":"1.0"}}}'
+$tlBody   = '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+$notifBody = '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}'
+
+# Also capture Bifrost serverInfo.version from initialize when available
+Write-Host "`nOR-1f. Bifrost initialize serverInfo pin..."
+$builderVkForPin = $env:BIFROST_MCP_VIRTUAL_KEY
+if ($builderVkForPin) {
+    try {
+        $hdrsPin = @{ "Authorization" = "Bearer $builderVkForPin"; "Content-Type" = "application/json" }
+        $initPin = Invoke-RestMethod -Uri "http://127.0.0.1:8080/mcp" -Method POST -Headers $hdrsPin -Body $initBody -TimeoutSec 8
+        $srvVer = $initPin.result.serverInfo.version
+        $srvName = $initPin.result.serverInfo.name
+        if ($srvVer -eq "v2.0.0-prerelease1") {
+            Ok "or-bifrost-serverinfo" "Bifrost initialize serverInfo: name=$srvName version=$srvVer (matches pin)"
+        } else {
+            Warn "or-bifrost-serverinfo" "Bifrost serverInfo.version=$srvVer (expected v2.0.0-prerelease1)"
+        }
+    } catch {
+        Warn "or-bifrost-serverinfo" "Could not read Bifrost serverInfo: $($_.Exception.Message)"
+    }
+} else {
+    Warn "or-bifrost-serverinfo" "BIFROST_MCP_VIRTUAL_KEY not set — skipping serverInfo pin check"
+}
+
 # OR-2. Bifrost client status via MCP tools/list — use operator VK (OpenRouter is operator-scoped)
 Write-Host "`nOR-2. OpenRouter tool exposure check (operator VK + builder VK)..."
 $builderVk  = $env:BIFROST_MCP_VIRTUAL_KEY
 $operatorVk = $env:BIFROST_MCP_VK_OPERATOR
-$initBody = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"audit","version":"1.0"}}}'
-$tlBody   = '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
-$notifBody = '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}'
 
 foreach ($vkCheck in @(
     @{name="builder"; vk=$builderVk},
@@ -862,10 +963,25 @@ foreach ($vkCheck in @(
         Invoke-RestMethod -Uri "http://127.0.0.1:8080/mcp" -Method POST -Headers $hdrs -Body $notifBody -TimeoutSec 5 -ErrorAction SilentlyContinue | Out-Null
         $tResp = Invoke-RestMethod -Uri "http://127.0.0.1:8080/mcp" -Method POST -Headers $hdrs -Body $tlBody -TimeoutSec 12
         $negotiatedProto = $tResp.result.protocolVersion
-        $orTools  = ($tResp.result.tools | Where-Object { $_.name -like "openrouter*" -or $_.name -like "list-models*" }).Count
-        $memTools = ($tResp.result.tools | Where-Object { $_.name -in @("memory_status","startup_context","retrieve_context","append_event","propose_fact","expand_source","session_open","session_close","build_handoff","docs_search") }).Count
+        if (-not $negotiatedProto) {
+            # Some Bifrost responses omit protocolVersion on tools/list; use initialize serverInfo when present.
+            $negotiatedProto = $tResp.result.serverInfo.version
+        }
+        $toolNames = @($tResp.result.tools | ForEach-Object { [string]$_.name })
+        $orTools  = @($toolNames | Where-Object {
+            $_ -match '(^|[-_])openrouter([-_]|$)' -or
+            $_ -eq 'list-models' -or
+            $_ -like 'openrouter*'
+        }).Count
+        $memExact = @(
+            'agentcore_memory-memory_status','agentcore_memory-startup_context','agentcore_memory-retrieve_context',
+            'agentcore_memory-append_event','agentcore_memory-propose_fact','agentcore_memory-expand_source',
+            'agentcore_memory-session_open','agentcore_memory-session_close','agentcore_memory-build_handoff',
+            'agentcore_memory-docs_search'
+        )
+        $memTools = @($toolNames | Where-Object { $memExact -contains $_ }).Count
         # Record negotiated protocol version (not hard-coded as acceptance evidence)
-        Ok "or-proto-$vkName" "MCP protocol negotiated via $vkName VK: $negotiatedProto"
+        Ok "or-proto-$vkName" "MCP protocol negotiated via $vkName VK: tools=$($toolNames.Count) proto_or_server=$negotiatedProto"
         if ($orTools -gt 0) {
             Warn "or-tools-dormant-$vkName" "$orTools openrouter tool(s) visible in $vkName VK without a confirmed lease — investigate"
         } else {
@@ -873,7 +989,7 @@ foreach ($vkCheck in @(
         }
         if ($vkName -eq "builder") {
             if ($memTools -ne 10) {
-                Fail "or-memory-surface-invariant" "agentcore_memory tool count via builder VK is $memTools — expected exactly 10"
+                Fail "or-memory-surface-invariant" "agentcore_memory tool count via builder VK is $memTools — expected exactly 10 (gateway-prefixed names)"
             } else {
                 Ok "or-memory-surface-invariant" "agentcore_memory surface: exactly 10 tools via builder VK (unchanged)"
             }
@@ -927,14 +1043,28 @@ if (Test-Path $oauthStateFile) {
 
 # OR-4. Secret scan: no token literals in source files, renderers, or command history proxies
 Write-Host "`nOR-4. Token literal scan..."
-$secretPatterns = @("sk-or-v1-", "oauth_access_token", "oauth_refresh_token", "access_token.*Bearer")
+# Match value-like literals, not documentation of forbidden prefixes in validators/runbooks.
+$secretValuePatterns = @(
+    'sk-or-v1-[A-Za-z0-9]{8,}',
+    '"oauth_access_token"\s*:\s*"[^"]{8,}"',
+    '"oauth_refresh_token"\s*:\s*"[^"]{8,}"',
+    'access_token"\s*:\s*"Bearer\s+[A-Za-z0-9\-_\.]{12,}'
+)
 $secretFound = $false
-foreach ($pat in $secretPatterns) {
-    $hits = rg $pat --glob "!*.db" --glob "!*.log" --glob "!.git" `
-        "$repoRoot\contracts" "$repoRoot\scripts" "$repoRoot\renderers" "$repoRoot\ide-profiles" "$repoRoot\ops" 2>&1
-    if ($hits -and ($hits | Where-Object { $_ -notmatch "^error" })) {
-        $secretFound = $true
-        Fail "or-secret-scan" "Pattern '$pat' found in source files"
+$scanRoots = @(
+    "$repoRoot\contracts",
+    "$repoRoot\scripts",
+    "$repoRoot\renderers",
+    "$repoRoot\ide-profiles"
+)
+foreach ($pat in $secretValuePatterns) {
+    foreach ($root in $scanRoots) {
+        if (-not (Test-Path $root)) { continue }
+        $hits = rg -n --pcre2 $pat --glob "!*.db" --glob "!*.log" --glob "!.git" $root 2>$null
+        if ($hits) {
+            $secretFound = $true
+            Fail "or-secret-scan" "Pattern '$pat' matched value-like secret material under $root"
+        }
     }
 }
 if (-not $secretFound) { Ok "or-secret-scan" "No OpenRouter token literals found in source files" }

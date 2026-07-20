@@ -3,15 +3,14 @@
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`  
 **Registry ID:** `openrouter`  
 **Bifrost client name:** `openrouter`  
-**Status:** OPENROUTER MCP REGISTERED DORMANT BEHIND BIFROST — OAUTH AND JIT ACTIVATION NOT VALIDATED  
-**Last tool inventory:** 16 tools claimed 2026-07-17 — **pre-auth, not yet verified by authenticated live tools/list**  
-**Updated:** 2026-07-18  
+**Status:** OPENROUTER MCP REGISTERED DORMANT — OAUTH NOT VALIDATED  
+**Last tool inventory:** 14 permitted tools claimed in registry (pre-auth); official docs list ~11 — **authenticated live tools/list still required**  
+**Updated:** 2026-07-19  
 
-> **Accepted state of commit 96c2528:** dormant scaffold only.  
-> Not accepted as a completed OpenRouter MCP deployment.  
-> Required before status may advance: encryption verification (§ Encryption Blocker), isolated
-> OAuth create/restart test, operator browser consent, authenticated tools/list, JIT lease
-> proof, restart/rerender proof, Cursor + Codex + third-client read-only calls.  
+> **Gate C verification (2026-07-19):** Bifrost `serverInfo.version=v2.0.0-prerelease1` confirmed via
+> initialize; single openrouter registration; zero tools on builder/operator VKs; remote MCP returns
+> 401 without OAuth; `BIFROST_ENCRYPTION_KEY` still ABSENT — do not enroll OAuth. config.db ACL
+> broad-read finding remains an operator hardening task (not auto-remediated).
 > Do not use `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY` until all acceptance
 > gates in § Complete Acceptance pass.
 
