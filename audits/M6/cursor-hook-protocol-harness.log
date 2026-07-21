@@ -1,0 +1,21 @@
+AgentCore Cursor hook protocol harness
+  repo=D:\github\agentcore-control-plane
+  hook_cmd=D:\github\agentcore-control-plane\.cursor\hooks\agentcore-hook.cmd
+  dispatcher=D:\github\agentcore-control-plane\scripts\agentcore_cursor\hook_dispatcher.py
+  fixture sessionStart x100 ...
+    PASS (100 iterations)
+  fixture beforeSubmitPrompt x100 ...
+    PASS (100 iterations)
+  fixture preToolUse x100 ...
+    PASS (100 iterations)
+  fixture sessionEnd x100 ...
+    PASS (100 iterations)
+  special: malformed input
+    PASS
+  special: missing gateway degraded
+    PASS
+  special: idempotency
+    PASS
+  special: orphan process check
+    PASS
+ALL PASS

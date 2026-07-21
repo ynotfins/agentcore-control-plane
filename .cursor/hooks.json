@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/agentcore-hook.cmd sessionStart",
+        "timeout": 90
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": ".cursor/hooks/agentcore-hook.cmd beforeSubmitPrompt",
+        "timeout": 90
+      }
+    ]
+  }
+}
