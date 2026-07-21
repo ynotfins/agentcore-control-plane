@@ -19,6 +19,7 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[2]
 HOOK_CMD = REPO / ".cursor" / "hooks" / "agentcore-hook.cmd"
+HOOK_PS1 = REPO / ".cursor" / "hooks" / "agentcore-hook.ps1"
 DISPATCHER = REPO / "scripts" / "agentcore_cursor" / "hook_dispatcher.py"
 SECRET_PATTERNS = [
     re.compile(r"(?i)(api[_-]?key|token|password|secret|bearer)\s*[:=]\s*\S+"),
@@ -53,7 +54,20 @@ FIXTURES: dict[str, dict[str, Any]] = {
 
 def _run_hook(event: str, payload: dict[str, Any], *, env: dict[str, str] | None = None) -> tuple[int, str, str]:
     body = json.dumps(payload)
-    if HOOK_CMD.is_file():
+    # Prefer the Stage A PowerShell wrapper (reliable stdin on Windows Cursor hosts).
+    if HOOK_PS1.is_file():
+        cmd = [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(HOOK_PS1),
+            "-Event",
+            event,
+        ]
+        cwd = str(REPO)
+    elif HOOK_CMD.is_file():
         cmd = [str(HOOK_CMD), event]
         cwd = str(REPO)
     else:

@@ -73,10 +73,18 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
-    prompt = str(payload.get("prompt") or "")
+    # Cursor field names vary slightly across builds; accept known aliases.
+    prompt = str(
+        payload.get("prompt")
+        or payload.get("text")
+        or payload.get("user_prompt")
+        or payload.get("message")
+        or ""
+    )
     conversation_id = (
         payload.get("conversation_id")
         or payload.get("session_id")
+        or payload.get("composer_id")
         or os_environ_get("AGENTCORE_CURSOR_CONVERSATION_ID")
     )
     roots = payload.get("workspace_roots") or []

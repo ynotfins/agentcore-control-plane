@@ -538,9 +538,10 @@ def run_bootstrap(
             if isinstance(scope, dict):
                 result.milestone = scope.get("milestone")
 
-        write_artifacts(root, result, packet, startup if isinstance(startup, dict) else {})
         result.status_flags["startup_context_automatically_injected"] = True
         result.ok = True
+        # Persist after ok/flags are final so cursor-bootstrap.json is not stale-false.
+        write_artifacts(root, result, packet, startup if isinstance(startup, dict) else {})
         return result
     except Exception as exc:  # noqa: BLE001
         result.error = f"{type(exc).__name__}: {exc}"

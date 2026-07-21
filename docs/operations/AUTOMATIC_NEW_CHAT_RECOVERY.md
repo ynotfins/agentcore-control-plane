@@ -11,13 +11,18 @@ A fresh Cursor Agent chat in the same project and same open task must automatica
 
 ```text
 Cursor hook (project .cursor/hooks.json)
-  -> .cursor/hooks/agentcore-hook.cmd
+  -> powershell ... agentcore-hook.ps1 -Event <event>
+       (agentcore-hook.cmd retained as fallback / offline helper)
   -> scripts/agentcore_cursor/hook_dispatcher.py
   -> scripts/agentcore_cursor/hooks.py
   -> agentcore-gateway -> agentcore-memory
   -> generated projections (.agentcore/STATE.md, DECISIONS.md, CONTEXT_INDEX.md)
   -> ephemeral bootstrap artifacts (.agentcore/runtime/, .cursor/rules/agentcore-active-bootstrap.mdc)
 ```
+
+**Windows note (2026-07-21):** Cursor's hook host can deliver non-JSON/empty stdin through
+`.cmd` wrappers. Stage A registers the PowerShell wrapper so stdin is read via
+`[Console]::In.ReadToEnd()` and forwarded to Python.
 
 ## Hook events (Stage A)
 

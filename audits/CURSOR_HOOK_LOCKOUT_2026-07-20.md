@@ -48,7 +48,25 @@ Preserved blocked config records `sessionStart`, `beforeSubmitPrompt`, and `preT
 | Stage A hooks | `.cursor/hooks.json` (after atomic install) |
 | Runbook | `docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md` |
 
+## Follow-up: live beforeSubmitPrompt stdin failure (2026-07-21)
+
+Operator acceptance attempt typed `continue` in Cursor. Hook logs showed:
+
+```text
+[beforeSubmitPrompt] malformed stdin JSON
+```
+
+twice at `2026-07-21T05:45:15Z` / `05:45:17Z`. The operator prompt was **not**
+durably appended for that live turn (harness fixtures still worked because they
+pipe JSON correctly).
+
+**Fix:** Stage A `hooks.json` now invokes `.cursor/hooks/agentcore-hook.ps1`
+(PowerShell stdin forwarder). `.cmd` remains as a fallback. Dispatcher stdin
+parsing hardened (`utf-8-sig`, brace extraction, redacted preview logging).
+Bootstrap artifact now writes `ok=true` after success flags are set.
+
 ## Status
 
 - Hook lockout: **resolved** (hooks disabled → safe Stage A reinstall)
+- Live stdin capture: **patched; requires operator retest**
 - Automatic new-chat recovery: **pending operator acceptance**

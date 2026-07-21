@@ -52,15 +52,56 @@ def _log(event: str, message: str, *, exc: BaseException | None = None) -> None:
     sys.stderr.write(line + "\n")
 
 
-def _read_stdin() -> dict[str, Any]:
-    raw = sys.stdin.read()
-    if not raw.strip():
+def _stdin_preview(raw: str) -> str:
+    """Bounded, redacted preview for diagnostics (never log full prompts/secrets)."""
+    sample = raw[:120].replace("\r", "\\r").replace("\n", "\\n")
+    for token in ("Bearer ", "password", "api_key", "secret"):
+        if token.lower() in sample.lower():
+            return f"<redacted len={len(raw)}>"
+    return f"len={len(raw)} preview={sample!r}"
+
+
+def _parse_hook_json(raw: str) -> dict[str, Any] | None:
+    text = raw.strip()
+    if not text:
         return {}
+    # Cursor may emit a single object, or occasionally trailing whitespace/newlines.
     try:
-        data = json.loads(raw)
-        return data if isinstance(data, dict) else {}
+        data = json.loads(text)
+        if isinstance(data, dict):
+            return data
+        return {}
     except json.JSONDecodeError:
-        return {"_malformed_stdin": True, "_raw_len": len(raw)}
+        pass
+    # Tolerate leading BOM / junk before first '{'
+    start = text.find("{")
+    end = text.rfind("}")
+    if start >= 0 and end > start:
+        try:
+            data = json.loads(text[start : end + 1])
+            if isinstance(data, dict):
+                return data
+        except json.JSONDecodeError:
+            pass
+    return None
+
+
+def _read_stdin() -> dict[str, Any]:
+    try:
+        raw_bytes = sys.stdin.buffer.read()
+    except Exception:  # noqa: BLE001
+        raw_bytes = b""
+    if not raw_bytes:
+        return {}
+    raw = raw_bytes.decode("utf-8-sig", errors="replace")
+    parsed = _parse_hook_json(raw)
+    if parsed is None:
+        return {
+            "_malformed_stdin": True,
+            "_raw_len": len(raw),
+            "_raw_preview": _stdin_preview(raw),
+        }
+    return parsed
 
 
 def _emit(payload: dict[str, Any]) -> None:
@@ -100,7 +141,8 @@ def _controlled_error(event: str, exc: BaseException) -> dict[str, Any]:
 
 def _dispatch(event: str, payload: dict[str, Any]) -> dict[str, Any]:
     if payload.get("_malformed_stdin"):
-        _log(event, "malformed stdin JSON")
+        preview = str(payload.get("_raw_preview") or f"len={payload.get('_raw_len')}")
+        _log(event, f"malformed stdin JSON ({preview})")
         if event == "sessionStart":
             return {"env": {"AGENTCORE_BOOTSTRAP_OK": "0"}}
         if event == "beforeSubmitPrompt":
@@ -108,6 +150,10 @@ def _dispatch(event: str, payload: dict[str, Any]) -> dict[str, Any]:
         if event == "preToolUse":
             return {"permission": "allow"}
         return {}
+
+    # Some Cursor builds include hook_event_name inside the JSON; prefer argv event.
+    if not event and isinstance(payload.get("hook_event_name"), str):
+        event = str(payload["hook_event_name"])
 
     handler = HANDLERS.get(event)
     if handler is None:

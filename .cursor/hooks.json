@@ -3,13 +3,13 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": ".cursor/hooks/agentcore-hook.cmd sessionStart",
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/agentcore-hook.ps1 -Event sessionStart",
         "timeout": 90
       }
     ],
     "beforeSubmitPrompt": [
       {
-        "command": ".cursor/hooks/agentcore-hook.cmd beforeSubmitPrompt",
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/agentcore-hook.ps1 -Event beforeSubmitPrompt",
         "timeout": 90
       }
     ]
