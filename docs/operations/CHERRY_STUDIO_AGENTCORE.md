@@ -1,11 +1,13 @@
 # Cherry Studio ↔ AgentCore Gateway Operations
 
-**Status:** Live-aligned 2026-07-20  
-**Cherry version:** 1.9.12 (win|prod|packaged)  
+**Status:** Live-aligned 2026-07-20 (runtime repaired same night — see `audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md`)  
+**Cherry version:** 1.9.12 (official **x64** setup; per-user install)  
+**Install path:** `%LOCALAPPDATA%\Programs\Cherry Studio\Cherry Studio.exe`  
 **Live data:** `%APPDATA%\CherryStudio`  
 **Gateway:** `agentcore-gateway` → `http://127.0.0.1:8080/mcp`  
 **Capability profile:** `builder` (`BIFROST_MCP_VIRTUAL_KEY`)  
-**Client identity:** `client_key=cherry-studio`, `agent_key=cherry-studio-assistant`
+**Client identity:** `client_key=cherry-studio`, `agent_key=cherry-studio-assistant`  
+**Agent model:** `deepseek:deepseek-v4-pro` (must be a live chat model with key — not empty CherryIN)
 
 ## Install / enrollment
 
@@ -89,6 +91,9 @@ Validators fail on: wrong URL, duplicate gateway, direct upstream MCP, Swarm MCP
 | POST `/register` 405 / OAuth loop | Do not add 8081 shim; fix enrollment URL/auth |
 | Tools missing in UI | Confirm gateway `isActive=true`; restart; open AgentCore Workspace Agent |
 | Session tools fail | Use `context_profile=standard-context`; activate project first |
+| `registry.node is not a valid Win32 application` | Wrong arch package. Reinstall official **x64** setup; verify PE `0x8664` on exe and `registry.node`. Never patch asar. See `audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md` |
+| Home `toLowerCase` / blank error banner | Assistant topics missing `model`. Quit Cherry; run `node scripts/cherry/repair_cherry_assistant_models.js --repair --confirm` |
+| Agent cannot chat / CherryIN empty | Point Agent at an enabled provider+model with key (e.g. `deepseek:deepseek-v4-pro`) |
 
 ## Backup
 
@@ -96,6 +101,7 @@ Protected backups live outside Git under `E:\AgentCore-Backups\`:
 
 - Full pre-task: `cherry-pre-alignment-*`
 - Enroll snapshots: `cherry-enroll-*`
+- Runtime repair: `cherry-runtime-repair-*`, `cherry-installers-*`, `cherry-assistant-model-repair-*`
 
 Each includes SHA-256 manifests where generated. Treat LevelDB/agents.db backups as **secret-bearing**.
 

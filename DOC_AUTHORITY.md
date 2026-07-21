@@ -54,7 +54,11 @@ No other root or docs file may silently override this chain. If a document confl
 - `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md` — zero-default-exposure dormant catalog
 - `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md` / `audits/CHERRY_MEMORY_LIFECYCLE_2026-07-20.json` / `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md` — client enrollment + lifecycle evidence
 - `docs/operations/CHERRY_STUDIO_AGENTCORE.md` — Cherry enroll/Agent/rollback runbook
+- `docs/operations/AGENTCORE_CONTINUAL_LEARNING.md` — continual-learning vs AgentCore memory boundary
 - `docs/prompts/cherry-agentcore-workspace-agent.md` — governed Cherry Agent prompt
+- `audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md` — Cherry PE/runtime repair evidence
+- `audits/CONTINUAL_LEARNING_AUTOMATION_2026-07-20.md` — mystery-prompt / stop-hook trace
+- `audits/CURSOR_HOOK_SKILL_RULE_INVENTORY_2026-07-20.md` — hooks/skills/rules inventory
 - Historical cutover/implementation handoffs under `docs/operations/archive/handoffs/` (Bifrost 2026-07-12, Memory-platform 2026-07-14, Swarm 2026-06-30) — evidence only
 - `docs/agent-policy/` — global New Project / Milestone / checklist / tool-lifecycle policy
 - `docs/prompts/install-agentcore-gateway-in-ide.md` — standalone reusable IDE install prompt
@@ -198,6 +202,7 @@ All historical docs must not be run as instructions without current operator app
 
 - `agentcore-memory` ten-tool surface is **live** (M3.002 / M4+; Cursor validated). Remaining memory-platform work is Milestone completion/ops hardening per `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` and BLUEPRINT M5–M8 exit criteria — not “platform not landed”
 - M6 PostgreSQL capability leases + Bifrost JIT VK bridge (`scripts/bifrost/jit_vk_bridge.py`) are **implemented** for exact OpenRouter tool groups; transitional `permitted_tools: ["*"]` wildcards remain on some non-OpenRouter servers until named inventories replace them
-- Cherry Studio: fully aligned 2026-07-20 (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`) — enrolled gateway, AgentCore Workspace Agent, Global Memory off, memory lifecycle + isolation validated. Re-run `scripts/cherry/enroll_agentcore_gateway.py --apply` only if Local Storage loses the gateway record.
+- Cherry Studio: aligned 2026-07-20 with runtime repair (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`) — official x64 install, enrolled gateway, AgentCore Workspace Agent (`deepseek:deepseek-v4-pro`), Global Memory off, Home UI + chat proven, memory lifecycle + isolation validated. Re-run enroll only if Local Storage loses the gateway record.
+- Continual-learning Cursor plugin auto-trigger disabled; do not re-enable user-role followups — `docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`.
 - `depwire-cloud` and `github-mcp` remain deferred/`enabled=false` until healthy verification
 - Live IDE cutover completion evidence still incomplete for some clients (see Bifrost handoff / artifacts / IDE profiles)
