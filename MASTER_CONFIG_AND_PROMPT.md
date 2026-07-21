@@ -363,6 +363,12 @@ contribute events through `agentcore-memory`; the projection worker writes files
 7. Verify project, repository, worktree, client, agent, session, and thread identity.
 ```
 
+**Cursor automatic recovery (Stage A, 2026-07-20):** project hooks call
+`scripts/agentcore_cursor/hook_dispatcher.py` for `sessionStart` and `beforeSubmitPrompt`.
+Operator CLI: `python -m agentcore cursor recover|status|resume|new-task`.
+Runbook: `docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md`. `preToolUse` is not registered until
+operator new-chat acceptance passes.
+
 ### Client-specific filesystem layout (ephemeral only)
 
 Client-specific directories may contain **only** ephemeral artifacts. Canonical project

@@ -451,6 +451,7 @@ Commands:
   workflow      Launch / observe / control an autonomous AgentCore workflow
                 (init | start | status | pause | approve | reject | resume |
                  cancel | logs | evidence | topology | studio)
+  cursor        Cursor new-chat recovery (recover | status | new-task | resume)
 
 Options:
   --json        Output machine-readable JSON
@@ -469,6 +470,10 @@ def main() -> int:
     if args[0].lower() == "workflow":
         from . import workflow_cli
         return workflow_cli.main(args[1:])
+
+    if args[0].lower() == "cursor":
+        from . import cursor_cli
+        return cursor_cli.main(args[1:])
 
     cmd_name = args[0].lower()
     as_json = "--json" in args

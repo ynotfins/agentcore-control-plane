@@ -59,6 +59,8 @@ No other root or docs file may silently override this chain. If a document confl
 - `audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md` — Cherry PE/runtime repair evidence
 - `audits/CONTINUAL_LEARNING_AUTOMATION_2026-07-20.md` — mystery-prompt / stop-hook trace
 - `audits/CURSOR_HOOK_SKILL_RULE_INVENTORY_2026-07-20.md` — hooks/skills/rules inventory
+- `docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md` — Cursor Stage A hook recovery runbook
+- `audits/CURSOR_HOOK_LOCKOUT_2026-07-20.md` / `audits/CURSOR_NEW_CHAT_RECOVERY_2026-07-20.md` — hook lockout recovery evidence
 - Historical cutover/implementation handoffs under `docs/operations/archive/handoffs/` (Bifrost 2026-07-12, Memory-platform 2026-07-14, Swarm 2026-06-30) — evidence only
 - `docs/agent-policy/` — global New Project / Milestone / checklist / tool-lifecycle policy
 - `docs/prompts/install-agentcore-gateway-in-ide.md` — standalone reusable IDE install prompt
