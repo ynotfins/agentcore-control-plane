@@ -56,7 +56,22 @@
       "enabled": true,
       "config_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
       "syntax": "minimax_mcp_json",
-      "supports_env_headers": true
+      "supports_env_headers": true,
+      "notes": [
+        "C:\\Users\\ynotf\\.mavis is a junction to C:\\Users\\ynotf\\.minimax (MiniMax Code data root)"
+      ]
+    },
+    "minimax-classic": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.minimax-agent\\AGENT.md",
+      "syntax": "matrix_cloud_custom_mcp",
+      "supports_env_headers": false,
+      "notes": [
+        "MiniMax Agent Classic App ID com.minimax.agent-classic",
+        "Executable D:\\Apps\\MiniMaxAgent-Classic\\MiniMax Agent.exe with --user-data-dir=C:\\Users\\ynotf\\AppData\\Roaming\\MiniMaxAgent-Classic",
+        "No local mcp.json; enroll agentcore-gateway via Matrix cloud custom MCP UI per ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md",
+        "Materialize BIFROST_MCP_VIRTUAL_KEY bearer in protected live UI only"
+      ]
     },
     "antigravity": {
       "enabled": true,
@@ -71,7 +86,10 @@
       "enabled": true,
       "config_path": "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json",
       "syntax": "mavis_mcp_json",
-      "supports_env_headers": true
+      "supports_env_headers": true,
+      "notes": [
+        "On this workstation C:\\Users\\ynotf\\.mavis is a junction to C:\\Users\\ynotf\\.minimax (MiniMax Code); not a separate Mavis application install"
+      ]
     },
     "open-interpreter": {
       "enabled": true,

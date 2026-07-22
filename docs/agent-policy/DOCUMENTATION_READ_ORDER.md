@@ -22,3 +22,4 @@ Rules:
 - Agents must **not** load every historical document automatically. Historical/superseded documents (per `DOC_AUTHORITY.md` classification and in-file banners) are read only when a specific fact requires them.
 - For control-plane memory/database work, the additional authority chain applies: `CONTEXT_BLOCK.md` → `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` → `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md`.
 - Machine facts (hardware, drives, installed software) come from `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md`, never from ad-hoc memory.
+- When authoring **Cursor prompts** that list authority or evidence files, write each path as `@` + full absolute Windows path (for example `@D:\github\agentcore-control-plane\PROJECT_ANCHOR.md`, `@C:\Users\ynotf\.cursor\plans\<plan>.plan.md`). Do not use shortened relative paths. If further Cursor work remains, end with a ready-to-paste `CURSOR CONTINUATION PROMPT` section.

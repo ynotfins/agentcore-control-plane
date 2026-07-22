@@ -567,6 +567,23 @@ General:
 3. Stop policy: do not silently downgrade Bifrost, arabold-docs, artiforge, sequential-thinking, or required Depwire verification.
 4. No Context7, raw Mem0, direct Composio, or Hostinger as baseline routes.
 
+### Cursor prompt path format (operator-verified, 2026-07-22)
+
+Canonical policy: `contracts/global-agent-policy.yaml` rule `cursor-prompt-path-format`
+(policy_revision `2026-07-22`).
+
+When authoring prompts that Cursor must execute:
+
+1. Every file or folder Cursor must read uses `@` + full absolute Windows path.
+   Examples: `@D:\github\agentcore-control-plane\BLUEPRINT.md`,
+   `@C:\Users\ynotf\.cursor\plans\minimax_code_repair_validation_ae94cbc5.plan.md`.
+2. C-drive user-profile paths always include `@C:\Users\ynotf\...` (never `C:\Users\...\`).
+3. Do not use shortened references such as `BLUEPRINT.md` or `docs\operations\...`.
+4. Every completed task that requires further Cursor work ends with a ready-to-paste
+   `CURSOR CONTINUATION PROMPT` section.
+5. Validate repository prompt files with:
+   `python scripts/validate_cursor_prompt_format.py <path> [...]`
+
 Root Agent Rules Template (seed `AGENTS.md` / `CLAUDE.md` on new repos):
 
 ```markdown

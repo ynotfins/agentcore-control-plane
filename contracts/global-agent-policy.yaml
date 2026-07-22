@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-07-21"
+policy_revision: "2026-07-22"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -216,6 +216,19 @@ mandatory_rules:
       Push after every completed task; narrowest relevant validation plus secret/junk scan first.
       Never pull/fetch/merge/rebase or force-push without explicit operator instruction. Stage
       only source-controlled files. See docs/GIT_PUSH_ONLY_POLICY.md.
+
+  - id: cursor-prompt-path-format
+    title: Cursor prompt path and continuation format
+    rule: >-
+      When authoring prompts that Cursor must execute, every file or folder Cursor must read
+      must be written with an @ prefix and the full absolute Windows path (for example
+      @D:\github\agentcore-control-plane\BLUEPRINT.md or
+      @C:\Users\ynotf\.cursor\plans\minimax_code_repair_validation_ae94cbc5.plan.md).
+      C-drive user-profile paths must include the full user path @C:\Users\ynotf\... .
+      Do not generate shortened references such as BLUEPRINT.md, docs\operations\..., or
+      C:\Users\...\ . Every completed task response that requires further Cursor work must
+      include a ready-to-paste CURSOR CONTINUATION PROMPT section. Validate with
+      python scripts/validate_cursor_prompt_format.py when the prompt is a repository file.
 
 forbidden_routes:
   - context7

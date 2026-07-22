@@ -1,0 +1,35 @@
+ide_id: minimax-classic
+display_name: MiniMax Agent Classic
+swarm_managed: false
+installed_version: 1.0.0.5
+live_global_rule_target: 'C:\Users\ynotf\.minimax-agent\AGENT.md'
+live_mcp_config_target: 'cloud:matrix/api/v1/mcp/add_or_edit_server (no local mcp.json)'
+rule_mechanism: 'workspace AGENT.md at C:\Users\ynotf\.minimax-agent\AGENT.md (parent of workingDirectory projects/)'
+mcp_schema: matrix_cloud_custom_mcp
+mcp_transport: http-via-matrix-cloud-catalog
+env_var_handling: 'unknown — Classic stores custom MCP via Matrix cloud API (server_name, base_url, mcp_server_type=UserCustomized); materialize bearer in UI if env expansion unsupported'
+restart_behavior: 'restart Classic after MCP catalog or rules change'
+editability:
+  global_rules: direct_write
+  project_rules: unsupported
+  mcp_config: manual_import
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: '2026-07-22'
+mcp_template_source: ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md
+m8_enrollment: awaiting_operator_cloud_mcp_enrollment
+known_limitations:
+  - 'No local mcp.json; custom MCP is enrolled through MiniMax Matrix cloud API (list_added_server / add_or_edit_server).'
+  - 'Electron App ID com.minimax.agent-classic; user-data C:\Users\ynotf\AppData\Roaming\MiniMaxAgent-Classic.'
+  - 'Default workingDirectory is C:\Users\ynotf\.minimax-agent\projects; global rules live at C:\Users\ynotf\.minimax-agent\AGENT.md.'
+  - 'Same binary as MiniMax Agent 1.0.0.5 (App ID com.minimax.agent) but isolated user-data dir via --user-data-dir.'
+  - 'Native MCP acceptance requires operator UI enrollment and a fresh Classic chat; cannot be proven by PowerShell HTTP alone.'
+semantic_parity_gaps:
+  - 'Cloud MCP schema does not use the minimax_mcp_json local file format used by MiniMax Code.'
+enrollment_evidence:
+  audit: audits/MINIMAX_CLASSIC_REPAIR_2026-07-22.md
+  backup_root: E:\AgentCore-Backups\minimax-classic-repair-20260722T210236Z
+  executable: 'D:\Apps\MiniMaxAgent-Classic\MiniMax Agent.exe'
+  app_id: com.minimax.agent-classic

@@ -107,6 +107,7 @@
             "antigravity_mcp_json",
             "open_interpreter_json",
             "cherry_studio_leveldb",
+            "matrix_cloud_custom_mcp",
             "skip_openclaw"
           ]
         },

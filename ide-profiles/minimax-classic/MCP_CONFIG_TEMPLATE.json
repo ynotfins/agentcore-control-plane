@@ -1,0 +1,13 @@
+{
+  "_template_note": "MiniMax Agent Classic has no local mcp.json. This document records the intended AgentCore enrollment payload for the Matrix cloud custom-MCP UI/API only.",
+  "server_name": "agentcore-gateway",
+  "base_url": "http://127.0.0.1:8080/mcp",
+  "mcp_server_type": "UserCustomized",
+  "authorization_header_template": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}",
+  "timeout_seconds": 300,
+  "_agentcore": {
+    "renderer": "minimax-classic",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "enrollment_path": "ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md"
+  }
+}

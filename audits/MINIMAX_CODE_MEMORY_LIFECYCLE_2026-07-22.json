@@ -1,0 +1,42 @@
+{
+  "audit": "MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-22",
+  "client": "minimax-code",
+  "version": "3.0.53.91",
+  "active_data_dir": "C:\\Users\\ynotf\\.minimax",
+  "mcp_config_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+  "backup_root": "E:\\AgentCore-Backups\\minimax-repair-20260722T205648Z",
+  "root_cause": "Bifrost gateway process terminated (graceful shutdown); MiniMax mcp.json was already correct",
+  "mcp_bifrost_entry": "agentcore-gateway",
+  "companions_retained": ["matrix", "cu", "trash"],
+  "gateway_diagnostic": {
+    "health": "PASS",
+    "initialize": "PASS",
+    "notifications_initialized": "PASS",
+    "tools_list_count": 135,
+    "agentcore_memory_tool_count": 10,
+    "agentcore_project_router_tool_count": 4,
+    "playwright_tool_count": 24,
+    "forbidden_tools_absent": true,
+    "memory_status": "PASS",
+    "project_list": "PASS"
+  },
+  "lifecycle": {
+    "1_project_list": {"diagnostic": "PASS", "native": "READY_FOR_OPERATOR"},
+    "2_project_activate": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "3_session_open": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "4_startup_context": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "5_append_event": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "6_append_repeat_idempotency": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "7_retrieve_context": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "8_expand_source": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "9_build_handoff": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "10_session_close": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "11_resume_same_session": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "12_switch_projects_isolation": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "13_switch_back_continuity": {"diagnostic": "NOT_RUN", "native": "READY_FOR_OPERATOR"},
+    "14_exactly_10_agentcore_memory_tools": {"diagnostic": "PASS", "native": "READY_FOR_OPERATOR"}
+  },
+  "native_validation_status": "READY_FOR_MINIMAX_NATIVE_ACCEPTANCE",
+  "fresh_chat_status": "READY_FOR_OPERATOR",
+  "enrollment_status": "configured_restart_required"
+}

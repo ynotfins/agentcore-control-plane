@@ -17,22 +17,24 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-07-21'
+last_validation_date: '2026-07-22'
 mcp_template_source: renderers/gateway-clients/minimax.json
 m8_enrollment: configured_restart_required
 known_limitations:
   - 'Global-rule mechanism unverified by product docs; mechanism is data-dir-root AGENT.md + per-rule rules/*.md (verified empirically 2026-07-21).'
-  - 'MCP tools are not exposed as direct function calls in the running agent session (product limitation); full native memory lifecycle must be re-run in a fresh MiniMax Code chat after restart.'
-  - 'agentcore_memory upstream at the Bifrost layer is currently in a degraded disconnect/reconnect loop (transport-layer); outside the scope of this client-local enrollment task.'
+  - 'MCP tools are not exposed as direct function calls outside a MiniMax chat session (product limitation); full native memory lifecycle requires operator chat acceptance.'
+  - 'C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax (same MiniMax Code data root); do not treat it as a separate Mavis application install.'
 semantic_parity_gaps:
   - 'Rule persistence unverified by product docs; the live file at C:\Users\ynotf\.minimax\AGENT.md is the documented target and matches the canonical ide-profiles/minimax/GLOBAL_RULES.md rendering.'
 enrollment_evidence:
-  audit: audits/MINIMAX_CODE_GATEWAY_ENROLLMENT_2026-07-21.md
-  lifecycle: audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-21.json
-  backup_root: E:\AgentCore-Backups\minimax-enroll-20260722T031719Z
+  audit: audits/MINIMAX_CODE_REPAIR_2026-07-22.md
+  prior_enrollment: audits/MINIMAX_CODE_GATEWAY_ENROLLMENT_2026-07-21.md
+  lifecycle: audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-22.json
+  backup_root: E:\AgentCore-Backups\minimax-repair-20260722T205648Z
   bifrost_health: ok
-  tools_list_count: 147
+  tools_list_count: 135
   agentcore_memory_tools: 10
   agentcore_project_router_tools: 4
   forbidden_tools_absent: true
   filesystem_root_bounded: 'D:\github'
+  root_cause_prior_missing_tools: 'Bifrost gateway process terminated (graceful shutdown); not MiniMax mcp.json defect'
