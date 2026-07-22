@@ -1,5 +1,5 @@
 {
-  "run_ts": "20260717222109",
+  "run_ts": "20260722045540",
   "repo_root": "D:\\github\\agentcore-control-plane",
   "total": 26,
   "passed": 26,
@@ -88,7 +88,7 @@
       "check": 14,
       "name": "GLOBAL_STATE.md exists at C:\\Users\\ynotf\\.agentcore\\",
       "status": "PASS",
-      "detail": "size=6318b"
+      "detail": "size=876b"
     },
     {
       "check": 15,

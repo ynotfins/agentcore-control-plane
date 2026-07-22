@@ -1,4 +1,4 @@
-AgentCore M8 Acceptance Tests — 20260717222109
+AgentCore M8 Acceptance Tests — 20260722045540
 Repository: D:\github\agentcore-control-plane
 ========================================================================
 PASS 01 - PostgreSQL 18 reachable, agent_core accessible — version=PostgreSQL 18.4 on x86_64-windows, compiled by msv, db=agent_core
@@ -14,7 +14,7 @@ PASS 10 - Test-AgentCorePg18Pitr.ps1 exists — D:\github\agentcore-control-plan
 PASS 11 - No Swarm tables in agent_core (wf_ tables present) — wf_tables=12, swarm_tables=0
 PASS 12 - M6 regression passes (m6_acceptance.py) — exit=0; last=Summary: D:\github\agentcore-control-plane\audits\M6\m6-acceptance-summary.json
 PASS 13 - IDE_CAPABILITY_MATRIX.yaml exists — has m8_enrollment field
-PASS 14 - GLOBAL_STATE.md exists at C:\Users\ynotf\.agentcore\ — size=6318b
+PASS 14 - GLOBAL_STATE.md exists at C:\Users\ynotf\.agentcore\ — size=876b
 PASS 15 - No secrets in key config files — clean
 PASS 16 - DA bounded: critic read-only, builder write, MemoryMiddleware disabled — read_only_critic=yes, builder_write=yes, memory_mw_disabled=yes
 PASS 17 - Operator CLI exists (scripts/agentcore/__main__.py) — __main__.py=ok, __init__.py=ok

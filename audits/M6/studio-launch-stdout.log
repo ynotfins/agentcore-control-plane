@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-07-22T04:52:34.164257+00:00",
+  "ok": true,
+  "studio_app_dir": "D:\\github\\agentcore-control-plane\\scripts\\agentcore_workflow\\studio",
+  "langgraph_json": "D:\\github\\agentcore-control-plane\\scripts\\agentcore_workflow\\studio\\langgraph.json",
+  "topology_fingerprint": "a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32",
+  "bind_host": "127.0.0.1",
+  "port": 2024,
+  "local_api_url": "http://127.0.0.1:2024",
+  "studio_url": "https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024",
+  "docs_url": "http://127.0.0.1:2024/docs",
+  "langsmith_api_key_present": false,
+  "anonymous_studio_attempt": true,
+  "gate_code_if_browser_auth_required": "LANGSMITH_STUDIO_BROWSER_CREDENTIAL_REQUIRED",
+  "env": {
+    "LANGSMITH_TRACING": "false",
+    "LANGGRAPH_CLI_NO_ANALYTICS": "1",
+    "LANGGRAPH_ANALYTICS": "false",
+    "LANGGRAPH_HOST": "127.0.0.1"
+  },
+  "command": [
+    "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\langgraph.EXE",
+    "dev",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "2024",
+    "--no-browser",
+    "--config",
+    "./langgraph.json"
+  ],
+  "pna_hint": "Chrome 142+ Private Network Access: if http://127.0.0.1:2024/docs works but Studio fails to fetch -> allow Local network access on smith.langchain.com site info; do not bind LAN/tunnel as first fix.",
+  "note": "Studio persistence is the Agent Server dev checkpointer (sqlite/memory), separate from production PostgresSaver. Complete non-browser work first (--no-browser). Missing LANGSMITH_API_KEY is not a stop; anonymous/local connection is attempted first."
+}
+2026-07-22T04:52:35.636407Z [info     ] Starting dev persistence flush loop [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-22T04:52:35.664780Z [info     ] Using langgraph_runtime_inmem  [langgraph_runtime] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-22T04:52:35.767255Z [info     ] Using auth of type=noop        [langgraph_api.auth.middleware] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-22T04:52:36.817705Z [info     ] Starting dev persistence flush loop [langgraph_runtime_inmem._persistence] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-22T04:52:36.841095Z [info     ] Using langgraph_runtime_inmem  [langgraph_runtime] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-22T04:52:36.903176Z [info     ] Using auth of type=noop        [langgraph_api.auth.middleware] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-22T04:52:36.908566Z [info     ] Starting In-Memory runtime with langgraph-api=0.12.0.dev24 and in-memory runtime=0.32.0rc2 [langgraph_runtime_inmem.lifespan] api_variant=local_dev langgraph_api_version=0.12.0.dev24 langgraph_runtime_inmem_version=0.32.0rc2 thread_name=asyncio_0 version=0.12.0.dev24
+2026-07-22T04:52:37.137101Z [info     ] OTel metrics reporter initialized [langgraph_api.metrics_otlp] api_variant=local_dev backends=['prometheus'] langgraph_api_version=0.12.0.dev24 max_emitting_tier=2 metric_prefix=lg_api_ thread_name=MainThread
+2026-07-22T04:52:37.151446Z [info     ] No license key or control plane API key set, skipping metadata loop [langgraph_api.metadata] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-22T04:52:37.156791Z [info     ] Starting OTLP metrics collector loop [langgraph_api.metrics_collector] api_variant=local_dev interval_secs=60 langgraph_api_version=0.12.0.dev24 thread_name=asyncio_1
+2026-07-22T04:52:37.163782Z [info     ] Worker stats                   [langgraph_api.metrics_collector] active=0 api_variant=local_dev available=1 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_1
+2026-07-22T04:52:37.315312Z [info     ] Importing graph profiling      [langgraph_api.timing.timer] api_variant=local_dev elapsed_seconds=0.1636758999666199 graph_id=agentcore_workflow langgraph_api_version=0.12.0.dev24 module=None name=_graph_from_spec path=./graph.py thread_name=asyncio_0
+2026-07-22T04:52:37.332937Z [info     ] Application started up in 0.727s [langgraph_api.timing.timer] api_variant=local_dev elapsed=0.7272882999968715 langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-22T04:52:37.402059Z [info     ] Starting cron scheduler        [langgraph_api.cron_scheduler] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=MainThread
+2026-07-22T04:52:37.402249Z [info     ] Starting queue with shared loop [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=asyncio_2
+2026-07-22T04:52:37.408186Z [info     ] Starting 1 background workers  [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.12.0.dev24 thread_name=asyncio_1
+2026-07-22T04:52:37.411525Z [info     ] Worker stats                   [langgraph_runtime_inmem.queue] active=0 api_variant=local_dev available=1 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_0
+2026-07-22T04:52:37.929581Z [info     ] Queue stats                    [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.12.0.dev24 n_pending=0 n_running=0 pending_runs_wait_time_max_secs=None pending_runs_wait_time_med_secs=None pending_unblocked_runs_wait_time_max_secs=None thread_name=asyncio_2
+2026-07-22T04:53:37.175156Z [info     ] Worker stats                   [langgraph_api.metrics_collector] active=0 api_variant=local_dev available=1 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_0
+2026-07-22T04:53:37.610019Z [info     ] Worker stats                   [langgraph_runtime_inmem.queue] active=0 api_variant=local_dev available=1 langgraph_api_version=0.12.0.dev24 max=1 thread_name=asyncio_2
+2026-07-22T04:53:38.136320Z [info     ] Queue stats                    [langgraph_runtime_inmem.queue] api_variant=local_dev langgraph_api_version=0.12.0.dev24 n_pending=0 n_running=0 pending_runs_wait_time_max_secs=None pending_runs_wait_time_med_secs=None pending_unblocked_runs_wait_time_max_secs=None thread_name=asyncio_1

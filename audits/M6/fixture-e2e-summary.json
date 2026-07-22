@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-07-17T22:20:41.281435+00:00",
+  "timestamp": "2026-07-22T04:51:05.087084+00:00",
   "results": [
     {
       "id": "01",
       "status": "PASS",
       "name": "start_via_cli",
-      "fact": "started thread=7717373a checkpoints=6 completed=True judge=none"
+      "fact": "started thread=b5d1df56 checkpoints=10 completed=True judge=proceed"
     },
     {
       "id": "02",
       "status": "PASS",
       "name": "status_reports_checkpoint",
-      "fact": "run=942f9cc7 thread=7717373a checkpoints=6 blockers=1"
+      "fact": "run=4264054a thread=b5d1df56 checkpoints=10 blockers=1"
     },
     {
       "id": "03",
@@ -23,19 +23,19 @@
       "id": "03",
       "status": "PASS",
       "name": "kill_resume",
-      "fact": "checkpoints pre=6 post=12 idempotent=True"
+      "fact": "checkpoints pre=10 post=10 idempotent=True"
     },
     {
       "id": "05",
       "status": "PASS",
       "name": "human_interrupt_pending",
-      "fact": "pause_id=697d4b1f visible_via_cli=True"
+      "fact": "pause_id=c003b7e1 visible_via_cli=True"
     },
     {
       "id": "06",
       "status": "PASS",
       "name": "approve_resume",
-      "fact": "pause=697d4b1f resolution=approved decision=approve cli_rc=0"
+      "fact": "pause=c003b7e1 resolution=approved decision=approve cli_rc=0"
     },
     {
       "id": "07",
@@ -65,7 +65,7 @@
       "id": "12",
       "status": "PASS",
       "name": "high_risk_ab_decision",
-      "fact": "high_ab=True critical_ab=True ab_id=4c3fd2d7"
+      "fact": "high_ab=True critical_ab=True ab_id=2bb9ff3a"
     },
     {
       "id": "13",
@@ -77,7 +77,7 @@
       "id": "10",
       "status": "PASS",
       "name": "tool_lease_lifecycle",
-      "fact": "during=jit_leased after=dormant lease_id=4fa542c3"
+      "fact": "during=jit_leased after=dormant lease_id=3ed9b37d"
     },
     {
       "id": "14",
@@ -95,7 +95,7 @@
       "id": "17",
       "status": "PASS",
       "name": "state_matches_postgres",
-      "fact": "project_a wf_runs=22 wf_evidence=5"
+      "fact": "project_a wf_runs=26 wf_evidence=6"
     },
     {
       "id": "19",

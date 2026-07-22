@@ -1,0 +1,55 @@
+{
+  "audit": "LANGGRAPH_END_TO_END_RECOVERY_2026-07-21",
+  "status": "PASS",
+  "source_summary": "audits/M6/fixture-e2e-summary.json",
+  "source_timestamp": "2026-07-22T04:51:05.087084+00:00",
+  "control_plane": "D:\\github\\agentcore-control-plane",
+  "not_from": "D:\\github\\deepagents",
+  "totals": {
+    "PASS": 17,
+    "FAIL": 0,
+    "SKIP": 0,
+    "BLOCK": 0
+  },
+  "topology_fingerprint": "a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32",
+  "topology_parity": {
+    "scenario": "14-topology_parity",
+    "prod": "a86e40e8ddd0a370",
+    "studio": "a86e40e8ddd0a370",
+    "match": true
+  },
+  "kill_resume": {
+    "03-kill_resume_partial": "PASS — graph resumed to terminal",
+    "03-kill_resume": "PASS — checkpoints pre=10 post=10 idempotent=True"
+  },
+  "isolation": {
+    "08-project_isolation": "PASS — a_in_a=True a_in_b=False tools_a=1 tools_b=0",
+    "studio_vs_production_checkpointer": "Studio Agent Server dev checkpointer ≠ production PostgresSaver; thread namespaces separate"
+  },
+  "scenarios": [
+    {"id": "01", "name": "start_via_cli", "status": "PASS"},
+    {"id": "02", "name": "status_reports_checkpoint", "status": "PASS"},
+    {"id": "03", "name": "kill_resume_partial", "status": "PASS"},
+    {"id": "03", "name": "kill_resume", "status": "PASS"},
+    {"id": "05", "name": "human_interrupt_pending", "status": "PASS"},
+    {"id": "06", "name": "approve_resume", "status": "PASS"},
+    {"id": "07", "name": "cancel_preserves_evidence", "status": "PASS"},
+    {"id": "08", "name": "project_isolation", "status": "PASS"},
+    {"id": "09", "name": "worktree_path", "status": "PASS"},
+    {"id": "10", "name": "tool_lease_lifecycle", "status": "PASS"},
+    {"id": "11", "name": "low_risk_skips_ab", "status": "PASS"},
+    {"id": "12", "name": "high_risk_ab_decision", "status": "PASS"},
+    {"id": "13", "name": "independent_judge_inputs", "status": "PASS"},
+    {"id": "14", "name": "topology_parity", "status": "PASS"},
+    {"id": "15", "name": "langgraph_json_valid", "status": "PASS"},
+    {"id": "17", "name": "state_matches_postgres", "status": "PASS"},
+    {"id": "19", "name": "bifrost_memory_unchanged", "status": "PASS"}
+  ],
+  "related_audits": [
+    "audits/M6/fixture-e2e-summary.json",
+    "audits/M6/m6-acceptance-summary.json",
+    "audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md",
+    "audits/DEEP_AGENTS_WORKER_ACCEPTANCE_2026-07-21.md",
+    "audits/MEMORY_GATEWAY_HEALTH_2026-07-22.md"
+  ]
+}

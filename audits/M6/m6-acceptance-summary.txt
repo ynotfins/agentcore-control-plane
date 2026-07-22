@@ -1,5 +1,5 @@
 PASS 1 - PostgreSQL-backed LangGraph checkpoints - checkpoint_tables=3
-PASS 2 - Workflow resume after process restart - run_id=38991b03-e543-471d-840e-153aea054a11 status=running
+PASS 2 - Workflow resume after process restart - run_id=dcb31d40-a837-4d4d-b023-32f8221175d8 status=running
 PASS 3 - Project and thread isolation - proj_a_run_in_proj_b=False (want False)
 PASS 4 - Persist and recover Milestone/Macro/Micro/checklist/evidence state - milestone=M6 checklist=completed evidence=ok
 PASS 5 - Block scope drift without approval - no_drift=True drift_detected=True

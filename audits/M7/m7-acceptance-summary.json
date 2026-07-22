@@ -1,6 +1,6 @@
 {
-  "run_id": "20260717222128",
-  "timestamp": "2026-07-17T22:21:28.049523+00:00",
+  "run_id": "20260722045558",
+  "timestamp": "2026-07-22T04:55:58.000731+00:00",
   "pass_count": 19,
   "fail_count": 0,
   "total": 19,
@@ -22,7 +22,7 @@
       "check": 3,
       "name": "All approved catalog items have provenance and license",
       "status": "PASS",
-      "detail": "approved=13 missing_provenance=[] missing_license=[]"
+      "detail": "approved=20 missing_provenance=[] missing_license=[]"
     },
     {
       "check": 4,
@@ -34,7 +34,7 @@
       "check": 5,
       "name": "Generated MCP project: lint passes, tests pass",
       "status": "PASS",
-      "detail": "lint_rc=0 test_rc=0 tests=4 passed in 0.17s"
+      "detail": "lint_rc=0 test_rc=0 tests=4 passed in 0.20s"
     },
     {
       "check": 6,
@@ -46,7 +46,7 @@
       "check": 7,
       "name": "Generated LangGraph project: lint passes, checkpoint/resume tests pass",
       "status": "PASS",
-      "detail": "lint_rc=0 test_rc=0 result=============================== 3 passed in 0.40s =============================="
+      "detail": "lint_rc=0 test_rc=0 result=============================== 3 passed in 0.41s =============================="
     },
     {
       "check": 8,
