@@ -1,0 +1,94 @@
+{
+  "audit": "MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-21",
+  "client": "minimax-code",
+  "version": "3.0.53.91",
+  "active_data_dir": "C:\\Users\\ynotf\\.minimax",
+  "mcp_config_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+  "mcp_entry_count": 4,
+  "mcp_bifrost_entry": "agentcore-gateway",
+  "bifrost_health": "ok",
+  "bifrost_tools_count": 147,
+  "agentcore_memory_tool_count": 10,
+  "agentcore_memory_tool_names": [
+    "memory_status",
+    "startup_context",
+    "retrieve_context",
+    "append_event",
+    "propose_fact",
+    "expand_source",
+    "session_open",
+    "session_close",
+    "build_handoff",
+    "docs_search"
+  ],
+  "agentcore_project_router_tool_count": 4,
+  "agentcore_project_router_tool_names": [
+    "project_list",
+    "project_activate",
+    "project_status",
+    "project_clear"
+  ],
+  "lifecycle": {
+    "1_project_list": {
+      "diagnostic": "PASS",
+      "native": "n/a — tool not exposed as a function call in this session",
+      "note": "55 registered projects under D:\\github; sample first 3: advanced-agent-team, agency-agents, agent-swarm"
+    },
+    "2_project_activate": {
+      "diagnostic": "NOT_RETRIED",
+      "native": "n/a",
+      "note": "Would mutate H:\\AgentRuntime\\bifrost\\state\\active-project.json; deferred to operator's fresh chat"
+    },
+    "3_session_open": {"diagnostic": "BLOCKED", "native": "n/a", "note": "agentcore_memory upstream timeouts at 2m tool-execution cap"},
+    "4_startup_context": {"diagnostic": "FAIL (2m timeout)", "native": "n/a", "note": "agentcore_memory upstream degraded; see bifrost stdout log"},
+    "5_append_event": {"diagnostic": "BLOCKED", "native": "n/a", "note": "blocked by upstream; idempotency-key contract defined in GLOBAL_RULES.md"},
+    "6_append_repeat_idempotency": {"diagnostic": "BLOCKED", "native": "n/a", "note": "blocked by upstream"},
+    "7_retrieve_context": {"diagnostic": "BLOCKED", "native": "n/a", "note": "blocked by upstream"},
+    "8_expand_source": {"diagnostic": "BLOCKED", "native": "n/a", "note": "blocked by upstream"},
+    "9_build_handoff": {"diagnostic": "BLOCKED", "native": "n/a", "note": "blocked by upstream"},
+    "10_session_close": {"diagnostic": "BLOCKED", "native": "n/a", "note": "blocked by upstream"},
+    "11_resume_same_session": {"diagnostic": "BLOCKED", "native": "n/a", "note": "blocked by upstream"},
+    "12_switch_projects_isolation": {"diagnostic": "BLOCKED", "native": "n/a", "note": "blocked by upstream"},
+    "13_switch_back_continuity": {"diagnostic": "BLOCKED", "native": "n/a", "note": "blocked by upstream"},
+    "14_exactly_10_agentcore_memory_tools": {
+      "diagnostic": "PASS",
+      "native": "n/a",
+      "note": "tools/list enumerates exactly the 10 stable names from PROJECT_ANCHOR §5"
+    }
+  },
+  "filesystem_root": "D:\\github",
+  "forbidden_tools_absent": true,
+  "forbidden_patterns_checked": [
+    "swarm",
+    "psql",
+    "postgres",
+    "bifrost_admin",
+    "admin",
+    "desktop-commander",
+    "global-memory-gateway",
+    "context7",
+    "mem0",
+    "composio",
+    "hostinger"
+  ],
+  "bifrost_upstream_caveats": [
+    "serena: known-disconnected (PROJECT_ANCHOR and ops/bifrost/evidence); tools appear in tools/list but call timeouts expected",
+    "agentcore_memory: repeatedly disconnects and reconnects during validation window; both memory_status and startup_context consistently timeout at 2m tool-execution cap. Out of scope for this client-local enrollment."
+  ],
+  "native_validation_status": "BLOCKED",
+  "native_validation_blocker": "agentcore_memory upstream degraded + mcp__* tool functions not exposed to the running agent (MiniMax Code product limitation). Native lifecycle must be re-run in a fresh MiniMax Code chat after the global rules reload and after the agentcore_memory upstream is healthy.",
+  "enrollment_status": "configured_restart_required",
+  "roll_forward_path": [
+    "Operator restarts MiniMax Code",
+    "Operator opens a new chat in a registered non-Swarm test project (e.g. D:\\github\\agentcore-control-plane)",
+    "Agent runs project_activate -> session_open -> startup_context -> append_event (idempotency) -> retrieve_context -> expand_source -> build_handoff -> session_close; resume; isolation",
+    "Once all 14 lifecycle steps pass with evidence, promote enrollment_status to live_validated and update ide-profiles/minimax/IDE_PROFILE.yaml last_validation_date to that date"
+  ],
+  "rollback": {
+    "backup_root": "E:\\AgentCore-Backups\\minimax-enroll-20260722T031719Z",
+    "restore_commands": [
+      "Copy-Item -Force 'E:\\AgentCore-Backups\\minimax-enroll-20260722T031719Z\\AGENT.md' 'C:\\Users\\ynotf\\.minimax\\AGENT.md'",
+      "Copy-Item -Force 'E:\\AgentCore-Backups\\minimax-enroll-20260722T031719Z\\rules\\agentcore-memory.md' 'C:\\Users\\ynotf\\.minimax\\rules\\agentcore-memory.md'"
+    ]
+  }
+}

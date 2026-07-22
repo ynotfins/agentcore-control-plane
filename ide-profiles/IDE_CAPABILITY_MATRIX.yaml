@@ -108,20 +108,46 @@ managed_ides:
       agentcore-memory tools.
 
   minimax:
-    installed_version: unverified
-    rule_mechanism: unverified
+    installed_version: 3.0.53.91
+    rule_mechanism: 'data-dir-root AGENT.md + per-rule rules/*.md (mechanism not officially documented; delivered through install prompt + live file)'
     mcp_schema: minimax_mcp_json
     mcp_transport: http/streamable
     env_var_handling: env-headers-supported
     restart_behavior: client-restart
-    editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
-    last_validated: unverified
-    m8_enrollment: awaiting_operator_import
+    editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
+    last_validated: '2026-07-21'
+    m8_enrollment: configured_restart_required
+    m8_validation_evidence:
+      mcp_entry_count: 4
+      gateway_status: healthy
+      bifrost_health: ok
+      bifrost_tools_count: 147
+      agentcore_memory_tools: 10
+      agentcore_project_router_tools: 4
+      forbidden_tools_absent: true
+      filesystem_root_bounded: 'D:\github'
+      project_list_ok: true
+      project_list_count: 55
+      memory_status_ok: false
+      memory_status_blocker: 'agentcore_memory upstream degraded at Bifrost transport layer (out of scope for client-local config)'
     m8_notes: >-
-      Config artifact in ide-profiles/minimax/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md.
-      Operator action: follow INSTALL_OR_UPDATE.md; import config artifact; restart client;
-      confirm tools/list returns 10 agentcore-memory tools. Live config path unverified on
-      this machine.
+      ENROLLED 2026-07-21. Live config at C:\Users\ynotf\.minimax\mcp\mcp.json with
+      agentcore-gateway entry (type=http, url=http://127.0.0.1:8080/mcp, Authorization
+      Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}, timeout=300). Live global rules at
+      C:\Users\ynotf\.minimax\AGENT.md (15038 B) and per-rule file at
+      C:\Users\ynotf\.minimax\rules\agentcore-memory.md (4701 B) installed from
+      canonical ide-profiles/minimax/GLOBAL_RULES.md and
+      contracts/global-agent-policy.yaml policy_revision 2026-07-17. Backup at
+      E:\AgentCore-Backups\minimax-enroll-20260722T031719Z. Pre-change Codex-flavored
+      AGENT.md (1195 lines) replaced with 60-line canonical rendering. Three local
+      companion MCP entries (matrix, cu, trash) at 127.0.0.1:15321 and agent.minimax.io
+      remain enabled — not Bifrost upstream duplicates. agentcore_memory upstream is
+      currently in a disconnect/reconnect loop at the Bifrost transport layer; both
+      memory_status and startup_context consistently timeout at 2m tool-execution cap.
+      Re-run the full native memory lifecycle in a fresh MiniMax Code chat once the
+      upstream is healthy to promote to live_validated. Evidence:
+      audits/MINIMAX_CODE_GATEWAY_ENROLLMENT_2026-07-21.md and
+      audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-21.json.
 
   antigravity:
     installed_version: unverified

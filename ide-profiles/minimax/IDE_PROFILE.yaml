@@ -1,25 +1,38 @@
 ide_id: minimax
-display_name: MiniMax
+display_name: MiniMax Code
 swarm_managed: false
-installed_version: unverified
-live_global_rule_target: unverified
+installed_version: 3.0.53.91
+live_global_rule_target: 'C:\Users\ynotf\.minimax\AGENT.md'
 live_mcp_config_target: 'C:\Users\ynotf\.minimax\mcp\mcp.json'
-rule_mechanism: unverified
+rule_mechanism: 'data-dir-root AGENT.md + per-rule rules/*.md (mechanism not officially documented; delivered through install prompt + live file)'
 mcp_schema: minimax_mcp_json
 mcp_transport: http/streamable
 env_var_handling: 'supports env headers (per gateway-client contract)'
 restart_behavior: 'restart client after MCP config changes'
 editability:
-  global_rules: unverified
-  project_rules: unverified
-  mcp_config: direct_write          # file-writable; approval-gated
+  global_rules: direct_write          # AGENT.md at the data-dir root; file-writable; approval-gated
+  project_rules: direct_write          # rules/*.md; file-writable; approval-gated
+  mcp_config: direct_write          # mcp.json; file-writable; approval-gated
 installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: unverified
+last_validation_date: '2026-07-21'
 mcp_template_source: renderers/gateway-clients/minimax.json
+m8_enrollment: configured_restart_required
 known_limitations:
-  - 'Global-rule mechanism unverified; until verified, rules are delivered through the install prompt.'
+  - 'Global-rule mechanism unverified by product docs; mechanism is data-dir-root AGENT.md + per-rule rules/*.md (verified empirically 2026-07-21).'
+  - 'MCP tools are not exposed as direct function calls in the running agent session (product limitation); full native memory lifecycle must be re-run in a fresh MiniMax Code chat after restart.'
+  - 'agentcore_memory upstream at the Bifrost layer is currently in a degraded disconnect/reconnect loop (transport-layer); outside the scope of this client-local enrollment task.'
 semantic_parity_gaps:
-  - 'Rule persistence unverified.'
+  - 'Rule persistence unverified by product docs; the live file at C:\Users\ynotf\.minimax\AGENT.md is the documented target and matches the canonical ide-profiles/minimax/GLOBAL_RULES.md rendering.'
+enrollment_evidence:
+  audit: audits/MINIMAX_CODE_GATEWAY_ENROLLMENT_2026-07-21.md
+  lifecycle: audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-21.json
+  backup_root: E:\AgentCore-Backups\minimax-enroll-20260722T031719Z
+  bifrost_health: ok
+  tools_list_count: 147
+  agentcore_memory_tools: 10
+  agentcore_project_router_tools: 4
+  forbidden_tools_absent: true
+  filesystem_root_bounded: 'D:\github'
