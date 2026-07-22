@@ -1,10 +1,11 @@
 # AgentCore Autonomous Workflow & LangGraph Studio Runbook
 
-**Status:** READY — `python -m agentcore workflow {init,start,status,pause,approve,reject,resume,cancel,logs,evidence,topology,studio}` available. 17/17 E2E recovery scenarios PASS. Studio topology parity PASS. Production and Studio persistence are isolated.
+**Status:** READY — `python -m agentcore workflow {init,start,status,pause,approve,reject,resume,cancel,logs,evidence,topology,studio}` from `D:\github\agentcore-control-plane`. Fixture E2E **17/17 PASS**. Topology fingerprint `a86e40e8ddd0a370…`. Production and Studio persistence are isolated.
 
-**Authority:** `BLUEPRINT.md` M6 + `MEMORY_PLATFORM_EXECUTION_PLAN.md` M6 + `AGENTS.md` §Database Contract.
+**Authority:** `BLUEPRINT.md` M6 + `MEMORY_PLATFORM_EXECUTION_PLAN.md` M6 + `AGENTS.md`.
 
-**See also:** `docs/operations/OPENROUTER_MCP.md` (JIT lease → VK bridge) · `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md` · `docs/bifrost/UNIFIED_GATEWAY_SETUP.md` · `CONTEXT_BLOCK.md` §0a
+**Quickstart:** `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`  
+**See also:** `docs/operations/OPENROUTER_MCP.md` · `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md` · `audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md` · `audits/LANGGRAPH_END_TO_END_RECOVERY_2026-07-21.json`
 
 ---
 
@@ -12,273 +13,221 @@
 
 | Role | Path |
 |---|---|
-| Control plane (canonical repo) | `D:\github\agentcore-control-plane` |
-| Operator CLI launcher | `scripts\agentcore\workflow_cli.py` |
+| Control plane (canonical; run all commands here) | `D:\github\agentcore-control-plane` |
+| Operator CLI | `scripts\agentcore\workflow_cli.py` |
 | Studio adapter | `scripts\agentcore\studio.py` + `scripts\agentcore_workflow\studio\` |
 | Workflow engine | `scripts\agentcore_workflow\` |
-| Migration source | `migrations\m6\` (applied to PostgreSQL 18 at `127.0.0.1:55433`) |
-| Studio acceptance runner | `scripts\agentcore\studio_accept.py` |
-| E2E recovery suite | `scripts\agentcore_workflow\tests\fixture_e2e.py` |
-| Fixture project (disposable) | `D:\agentcore-fixture\fixture-project` |
-| Fixture bare remote | `D:\agentcore-fixture\fixture-remote.git` |
-| Acceptance evidence | `audits\M6\` |
+| Migrations | `migrations\m6\` → PG18 `127.0.0.1:55433` |
+| E2E suite | `scripts\agentcore_workflow\tests\fixture_e2e.py` |
+| Fixture project | `D:\agentcore-fixture\fixture-project` |
+| Evidence | `audits\M6\` |
+
+Do **not** run production workflow commands from `D:\github\deepagents`. Deep Agents is a PyPI worker pin only (`deepagents==0.6.12`).
 
 ---
 
-## 2. Environment variables (names only — never put values in source or docs)
+## 2. Environment variables (names only)
 
-| Variable | Required for | Default |
+| Variable | Required for | Default / posture |
 |---|---|---|
-| `AGENT_CORE_POSTGRES_PASSWORD` | All production + E2E commands (PG18 superuser; not an agentcore_worker password) | _(User env var only)_ |
-| `BIFROST_MCP_VIRTUAL_KEY` | Production + Studio MCP client (builder VK fallback) | _(User env var only)_ |
-| `BIFROST_MCP_VK_WORKFLOW` | Optional dedicated workflow VK override | _(optional)_ |
-| `BIFROST_ADMIN_KEY` | Automatic JIT lease → Bifrost VK bridge | _(User env var only)_ |
-| `LANGSMITH_TRACING` | Studio only | `false` (forced by `studio.py`) |
-| `LANGGRAPH_ANALYTICS` | Studio only | `false` (forced by `studio.py`) |
-| `LANGGRAPH_HOST` | Studio only | `127.0.0.1` (forced by `studio.py`) |
-| `LANGGRAPH_PORT` | Studio only | `2024` |
-| `PYTHONIOENCODING` | PowerShell wrapper | `utf-8` (recommended) |
+| `AGENT_CORE_POSTGRES_PASSWORD` | Production + E2E (PG18) | User env only |
+| `BIFROST_MCP_VIRTUAL_KEY` | MCP client (builder VK fallback) | User env only |
+| `BIFROST_MCP_VK_WORKFLOW` | Optional workflow VK override | optional |
+| `BIFROST_ADMIN_KEY` | JIT lease → Bifrost VK bridge | User env only |
+| `LANGSMITH_TRACING` | Studio | forced `false` by `studio.py` |
+| `LANGGRAPH_CLI_NO_ANALYTICS` | Studio | forced `1` by `studio.py` |
+| `LANGGRAPH_ANALYTICS` | Studio (legacy alias) | forced `false` |
+| `LANGGRAPH_HOST` | Studio | forced `127.0.0.1` |
+| `LANGGRAPH_PORT` | Studio | `2024` (abort on collision) |
+| `LANGSMITH_API_KEY` | Hosted Studio browser auth only | optional; missing ≠ stop |
 
-**Never** set `LANGSMITH_TRACING=true` for normal Studio runs. The `agentcore_workflow` graph is local-only by default and the `studio.py` launcher refuses to launch without `LANGSMITH_TRACING` defaulted to `false`.
-
-There is **no** committed `.env` file. The repository has no Postgres connection strings in code, docs, or arguments. All secrets live as Windows User-scope environment variables (per `AGENTS.md` and `CLAUDE.md`).
+No committed `.env`. Never print secret values. Never paste `LANGSMITH_API_KEY` into chat.
 
 ---
 
-## 3. Production launcher — operator commands
+## 3. Production launcher
 
-All commands run from `D:\github\agentcore-control-plane\` with the `scripts/` directory on `PYTHONPATH` (i.e. via `python -m agentcore`):
+From `D:\github\agentcore-control-plane` (via `python -m agentcore`):
 
 ```powershell
-# Initialise a target project (idempotent; one-time per repo)
+cd D:\github\agentcore-control-plane
+
 python -m agentcore workflow init `
-    --project-key fixture-project-a `
-    --project-name "Fixture Project A" `
-    --target-path D:\agentcore-fixture\fixture-project `
-    --trust-class project_verified
+  --project-key fixture-project-a `
+  --project-name "Fixture Project A" `
+  --target-path D:\agentcore-fixture\fixture-project `
+  --trust-class project_verified
 
-# Start a workflow run; goal is either --goal "..." or --goal-file path
 python -m agentcore workflow start `
-    --project-key fixture-project-a `
-    --milestone M6 `
-    --goal "Diagnose the failing tests in calc.py and apply a minimal fix."
+  --project-key fixture-project-a `
+  --milestone M6 `
+  --goal "Diagnose the failing tests in calc.py and apply a minimal fix."
 
-# Start a workflow run with OpenRouter explicit selection
-# --provider openrouter requires an explicit --model from the OpenRouter model catalog.
-python -m agentcore workflow start `
-    --project-key fixture-project-a `
-    --milestone M6 `
-    --provider openrouter `
-    --model minimax/minimax-m3 `
-    --goal "Diagnose the failing tests in calc.py and apply a minimal fix."
-
-# Display the sanitized available models catalog for OpenRouter
-python -m agentcore workflow models --provider openrouter
-
-# Observe state
-python -m agentcore workflow status --project-key fixture-project-a
-
-# Pause / approve / reject / resume / cancel — all reference the latest pending pause or active run
+python -m agentcore workflow status  --project-key fixture-project-a
 python -m agentcore workflow pause   --project-key fixture-project-a --reason "operator audit"
 python -m agentcore workflow approve --project-key fixture-project-a --decision approve --notes "approved"
 python -m agentcore workflow reject  --project-key fixture-project-a --decision reject   --notes "needs more"
 python -m agentcore workflow resume  --project-key fixture-project-a
 python -m agentcore workflow cancel  --project-key fixture-project-a --reason "abort"
-
-# Logs / evidence / topology
 python -m agentcore workflow logs     --project-key fixture-project-a --tail 50
 python -m agentcore workflow evidence --project-key fixture-project-a --run <run_db_id>
-python -m agentcore workflow topology  # shows prod + studio fingerprint + node list
+python -m agentcore workflow topology
 ```
 
-JSON output is available via `--json`. Exit codes:
-- `0` — success
-- `2` — pre-flight / platform health failure
-- `3` — runtime workflow error
-- `4` — pause/decision conflict
-- `5` — internal error (bug)
+Exit codes: `0` ok · `2` pre-flight · `3` runtime · `4` pause conflict · `5` internal.
 
 ---
 
-## 4. Lifecycle — goal → completion
+## 4. Lifecycle (goal → completion)
 
-1. **Operator invokes `workflow init`** with a project key + target path. The CLI:
-   - validates platform health (Bifrost gateway reachable, PG18 reachable, M6 migrations applied);
-   - inserts/upserts a row in `agentcore.projects` (`project_key`, `project_name`, `root_path`, `trust_class`);
-   - registers the Git remote in `agentcore.repositories`;
-   - creates an isolated Git worktree under `D:\github\<project_key>\wt\` if the `--worktree` flag is set (else uses the `root_path` directly).
-
-2. **Operator invokes `workflow start`** with `--goal` (or `--goal-file`). The CLI:
-   - opens a new thread (UUID) and inserts a `wf_runs` row + `wf_threads` row;
-   - loads Project Charter, STATE, Milestones, checklists, and tool manifest;
-   - opens an AgentCore memory session via `agentcore-memory`;
-   - calls `agentcore_workflow.workflow.run_workflow(...)` against the **production** `PostgresSaver` (PG18, `public.checkpoints`);
-   - returns the `thread_uuid` and `run_db_id`.
-
-3. The graph executes against the registered project. It moves through:
-   `start → gate_check → deterministic_checks → risk_assess → critics_and_score → judge_node → micro_execute | da_builder | human_pause | …`.
-
-4. **Human pauses** surface as rows in `agentcore.wf_human_pauses`. The CLI surfaces them via `workflow status` and `workflow logs`. The operator uses `workflow approve` / `workflow reject` (or `resume` if not paused) to continue.
-
-5. **Each successful micro-step** writes evidence rows to `agentcore.wf_evidence` through SECURITY DEFINER functions only.
-
-6. **On terminal completion**, the CLI:
-   - regenerates the project `STATE.md`, `DECISIONS.md`, `CONTEXT_INDEX.md` projections;
-   - commits and pushes per `docs/GIT_PUSH_ONLY_POLICY.md` when the project policy allows;
-   - closes the memory session;
-   - prints a deterministic handoff JSON.
+1. `workflow init` — platform health, project/repo rows, optional worktree.
+2. `workflow start` — thread + `wf_runs` / `wf_threads`, memory session, production `PostgresSaver` (PG18 `public.checkpoints`).
+3. Graph: `start → gate_check → deterministic_checks → risk_assess → critics_and_score → judge_node → micro_execute | da_builder | human_pause | …`.
+4. Human pauses → `wf_human_pauses`; resolve via `approve` / `reject` / `resume`.
+5. Evidence → `wf_evidence` (SECURITY DEFINER only).
+6. Terminal → projections, optional push per Git policy, memory session close.
 
 ---
 
 ## 5. Pause / approve / resume / cancel
 
-- `workflow pause` — sets the active run status to `paused` (preserves checkpoints). Idempotent.
-- `workflow approve --decision approve --notes "..."` — resolves the most-recent pending pause as `approved` and queues a resume; the thread continues from the saved checkpoint.
-- `workflow approve --decision reject --notes "..."` — resolves the pause as `rejected`; the run routes to `workflow_fail` and evidence is preserved.
-- `workflow resume` — re-executes the thread from the latest checkpoint in PG18 (`public.checkpoints`). Safe to run after a process kill: no completed node is repeated, evidence is idempotent.
-- `workflow cancel` — sets the run to `aborted` (the `wf_run_status` enum), resolves any pending pause as `cancelled`, preserves evidence. The thread is closed but checkpoints remain.
+| Command | Effect |
+|---|---|
+| `pause` | Active run → `paused`; checkpoints kept |
+| `approve --decision approve` | Resolve pending pause; resume from checkpoint |
+| `approve --decision reject` / `reject` | Pause → rejected; route toward fail; evidence kept |
+| `resume` | Continue from latest PG18 checkpoint (safe after kill) |
+| `cancel` | Run → `aborted`; pending pause cancelled; evidence kept |
 
 ---
 
 ## 6. Restart recovery
 
-The production runner is crash-safe by design. To verify after a kill:
-
 ```powershell
-# Status reports thread, run, milestone, current node, checkpoint, blockers
 python -m agentcore workflow status --project-key <project_key>
-
-# Resume (no args needed; uses the most-recent run for the project)
 python -m agentcore workflow resume  --project-key <project_key>
 ```
 
-The runner reads the canonical thread UUID from `public.checkpoints` and continues execution. The 17/17 E2E suite (`scripts\agentcore_workflow\tests\fixture_e2e.py`) explicitly covers this in scenarios `03-kill_resume_partial` and `03-kill_resume`.
+Covered by fixture scenarios `03-kill_resume_partial` and `03-kill_resume` (17/17 suite).
 
 ---
 
-## 7. Logs / evidence locations
+## 7. Logs / evidence
 
-| Artefact | Path |
+| Artefact | Location |
 |---|---|
-| Per-run logs (CLI output, captured to disk) | `audits\M6\<run_db_id>.log` (when `--log-file` is set) |
-| Workflow evidence rows (canonical) | `agentcore.wf_evidence` (PG18) |
-| Workflow abort / fail reasons | `agentcore.wf_run_status` enum + `agentcore.wf_human_pauses.resolution` |
-| Acceptance summary | `audits\M6\fixture-e2e-summary.json` |
-| Studio acceptance | `audits\M6\studio-acceptance.json` |
-| LangGraph CLI dev log | `audits\M6\studio-dev.log` (when `studio` is run with `--log-file`) |
+| CLI logs | `audits\M6\` when `--log-file` set |
+| Evidence rows | `agentcore.wf_evidence` |
+| E2E summary | `audits\M6\fixture-e2e-summary.json` |
+| Studio launch | `audits\M6\studio-launch-stdout.log` |
+| Studio interrupt accept | `audits\M6\studio-interrupt-accept.json` |
 
 ---
 
-## 8. PostgreSQL checkpoint location
+## 8. PostgreSQL vs Studio checkpointers
 
-| Surface | Database / Schema / Table |
+| Surface | Persistence |
 |---|---|
-| **Production** checkpoints | PG18 `127.0.0.1:55433` → `agent_core` DB → `public.checkpoints`, `public.checkpoint_blobs`, `public.checkpoint_writes` (created by `PostgresSaver.setup()`) |
-| **Studio** checkpoints | Agent Server dev checkpointer (sqlite/in-memory managed by `langgraph dev`); **separate** from production. |
-| Project / thread / run registry | `agentcore.projects`, `agentcore.wf_runs`, `agentcore.wf_threads` |
-| Workflow evidence | `agentcore.wf_evidence`, `agentcore.wf_gate_evals`, `agentcore.wf_critic_runs` |
-| Human pauses | `agentcore.wf_human_pauses` |
-| Capability leases | `agentcore.capability_leases`, `agentcore.capability_profiles` |
+| **Production** | PG18 `127.0.0.1:55433` / `agent_core` / `public.checkpoints` (+ blobs/writes) via `PostgresSaver` |
+| **Studio** | Agent Server **dev** checkpointer (sqlite/in-memory). **Not** production PostgresSaver |
+| Registry / evidence | `agentcore.wf_*`, leases, pauses — production only |
 
-The production PostgresSaver and Studio dev checkpointer **never share a thread id**. E2E scenario `studio_sees_production_thread_status = 404` confirms this isolation.
+Production and Studio **never share thread IDs**. Isolation proven (`studio_sees_production_thread_status = 404`).
+
+Topology fingerprint (prod = studio):
+
+```text
+a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32
+```
 
 ---
 
-## 9. LangGraph Studio start / stop
+## 9. LangGraph Studio (Option A)
 
-### Start
+### Posture
+
+- Default port **2024** on `127.0.0.1` only; abort on collision (no silent rebind).
+- Force `LANGSMITH_TRACING=false` and `LANGGRAPH_CLI_NO_ANALYTICS=1` (refuse launch if tracing already truthy unless `--allow-dangerous-langsmith-tracing`).
+- **Anonymous / local Studio first.** Missing `LANGSMITH_API_KEY` is **not** a global stop.
+- If the hosted Studio browser requires auth, emit gate `LANGSMITH_STUDIO_BROWSER_CREDENTIAL_REQUIRED` and ask the operator to set User-scope env var **name** `LANGSMITH_API_KEY` only (never print the value).
+- Complete non-browser work first (`--no-browser`).
+- No persistent Windows service. Stop with Ctrl+C.
+
+### Start / stop
 
 ```powershell
 cd D:\github\agentcore-control-plane
-python -m agentcore workflow studio --port 8124 --no-browser
+python -m agentcore workflow studio --port 2024 --no-browser
+# Ctrl+C to stop
 ```
 
-Output reports:
-- local API URL: `http://127.0.0.1:8124`
-- Studio connection hint: open https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:8124
-- topology fingerprint (must match production `topology_fingerprint`)
-- `LANGSMITH_TRACING=false`, `LANGGRAPH_ANALYTICS=false`, `LANGGRAPH_HOST=127.0.0.1`
+URLs (sanitized):
 
-### Stop
+- Local API: `http://127.0.0.1:2024`
+- Docs: `http://127.0.0.1:2024/docs`
+- Hosted Studio: `https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024`
 
-`Ctrl+C` in the terminal window. There is **no** persistent Windows service for Studio.
+### Chrome 142+ Private Network Access
 
-### One-shot acceptance
+If `http://127.0.0.1:2024/docs` returns **200** but hosted Studio cannot fetch the local Agent Server: open site info for `https://smith.langchain.com` and allow **Local network access**. Do **not** bind LAN or open a tunnel as the first fix.
 
-```powershell
-python -m agentcore.studio_accept --port 8124
-```
+### Live acceptance (2026-07-21/22)
 
-Writes `audits\M6\studio-acceptance.json` with `health_ok`, `assistant_id`, `thread_id`, `topology_fingerprint`, `tracing`, `host`.
+See `audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md`: local `/docs` 200, tracing false, `/info` `langsmith: false`, browser credential gate pending when key absent, PNA diagnostic documented.
 
 ---
 
-## 10. Studio vs production persistence
+## 10. Studio vs production
 
-| Aspect | Production (`python -m agentcore workflow ...`) | Studio (`langgraph dev`) |
+| Aspect | Production | Studio |
 |---|---|---|
-| Checkpointer | `PostgresSaver` against `public.checkpoints` | Agent Server dev checkpointer (sqlite/in-memory) |
-| Database | PG18 `127.0.0.1:55433`, `agent_core` | none / sqlite file in `.langgraph_api` |
-| Project / run registry | `agentcore.wf_*` tables | none |
-| Topology | `agentcore_workflow.workflow.build_topology()` | same module, same function |
-| Topology fingerprint | `topology_fingerprint(build_topology())` | identical (deterministic SHA256) |
-| Thread id format | UUID | UUID (separate namespace) |
-| Resume after kill | yes, via `public.checkpoints` | yes, via dev checkpointer (sqlite) |
-| Tracing to LangSmith | off by default, never enabled in production runs | off by default; operator may set `LANGSMITH_TRACING=true` (NOT recommended — would leak project data) |
-| Localhost bind | N/A (CLI) | forced `127.0.0.1` |
+| Checkpointer | `PostgresSaver` → `public.checkpoints` | Agent Server dev (sqlite/memory) |
+| Bind | N/A (CLI) | `127.0.0.1:2024` |
+| Topology module | `build_topology()` | same |
+| Fingerprint | `a86e40e8…` | must match (parity abort) |
+| Tracing | off | forced off |
+| Analytics | N/A | `LANGGRAPH_CLI_NO_ANALYTICS=1` |
 
-**Do not run Studio against a real operator project for destructive testing.** Use the disposable fixture at `D:\agentcore-fixture\fixture-project`.
+Use the disposable fixture for Studio destructive tests — not a live operator project.
 
 ---
 
 ## 11. Troubleshooting
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| `langgraph dev` exits immediately with `ModuleNotFoundError: No module named 'agentcore_workflow'` | `scripts/` not installed editable | `pip install -e D:\github\agentcore-control-plane\scripts` |
-| `langgraph dev` exits with `Required package 'langgraph-api' is not installed` | `langgraph-cli[inmem]` extra missing | `pip install -U "langgraph-cli[inmem]==0.4.29"` |
-| Studio server boot reaches "Shutting down remote graphs" | graph import failed | check `audits\M6\studio-dev.log`; `agentcore_workflow` must be importable |
-| `workflow status` reports `run_db_id` but no checkpoint | run was started in `--no-checkpointer` mode (Studio) | run via `python -m agentcore workflow start` (production) |
-| `workflow approve` returns exit 4 | pause already resolved by a parallel process | re-run `workflow status` to see latest pause; do not retry the same pause |
-| `workflow cancel` returns "no active run" | run already `aborted` or `completed` | idempotent; check `wf_run_status` row |
-| E2E fails with `relation "agentcore.wf_*" does not exist` | M6 migrations not applied | re-run `psql -h 127.0.0.1 -p 55433 -U postgres -d agent_core -f migrations\m6\*.sql` |
-| Studio thread UUID not visible to production | intentional; namespaces are separate | use the production thread UUID for production runs, a separate Studio UUID for Studio runs |
+| Symptom | Fix |
+|---|---|
+| `ModuleNotFoundError: agentcore_workflow` | `pip install -e D:\github\agentcore-control-plane\scripts` |
+| Missing `langgraph-api` | `pip install -U "langgraph-cli[inmem]==0.4.29"` |
+| Port 2024 in use | Stop the other listener or choose another free port explicitly |
+| Hosted Studio blank; `/docs` OK | Chrome PNA → allow Local network access on smith.langchain.com |
+| Browser asks for LangSmith auth | Gate `LANGSMITH_STUDIO_BROWSER_CREDENTIAL_REQUIRED` — set User env name `LANGSMITH_API_KEY` (value never in chat) |
+| Exit 4 on approve | Pause already resolved; re-check `status` |
+| Studio thread invisible to production | Intentional namespace isolation |
 
 ---
 
 ## 12. Rollback
 
-| Surface | Rollback action |
+| Surface | Action |
 |---|---|
-| Production workflow CLI | revert commits touching `scripts\agentcore\workflow_cli.py` and `scripts\agentcore_workflow\`; restart gateway; do not migrate schema down on a populated DB |
-| Studio adapter | revert commits touching `scripts\agentcore\studio.py`, `scripts\agentcore_workflow\studio\*`, and `scripts\pyproject.toml`; remove editable install with `pip uninstall agentcore_workflow` |
-| Schema (M6) | only run the DOWN migrations from `migrations\m6\down_*.sql` against a verified-empty namespace; otherwise preserve historical runs and create a forward-only patch |
-| Topology fingerprint drift | revert the change that touched `agentcore_workflow\workflow.py` (`NODE_ORDER`, `_AFTER_*`, `interrupt_before`); topology changes are a locked architecture decision and require explicit AGENTS.md revision |
+| Production CLI / engine | Revert `workflow_cli.py` / `agentcore_workflow/`; do not DOWN-migrate populated DB |
+| Studio adapter | Revert `studio.py` + `studio/`; uninstall editable if needed |
+| Fingerprint drift | Revert topology changes in `workflow.py`; fingerprint is locked architecture |
 
 ---
 
-## 13. Security and Swarm boundaries
+## 13. Security / Swarm
 
-- **No** `.env` file is committed. All secrets live as Windows User-scope environment variables.
-- **No** PostgreSQL credentials appear in command arguments, documentation, logs, or Git history.
-- **No** AgentCore application data is sent to LangSmith. `LANGSMITH_TRACING` is `false` by default in both production and Studio.
-- **No** Docker / WSL is required for either production or Studio.
-- **No** persistent Studio Windows service is created.
-- The **Swarm** ecosystem (SwarmRecall, SwarmVault, SwarmClaw) is **separate** and **untouched** by this work. The Studio adapter and the production launcher do not import, depend on, or call any Swarm component.
-- Bifrost gateway contract and the exact ten `agentcore-memory` tools are **unchanged**. Verified by E2E scenario `19-bifrost_memory_unchanged`.
+- No `.env`; no Postgres credentials in docs/args/logs.
+- No AgentCore data to LangSmith by default (`LANGSMITH_TRACING=false`).
+- SwarmRecall / SwarmVault / SwarmClaw untouched.
+- Ten-tool `agentcore-memory` surface unchanged (E2E `19-bifrost_memory_unchanged`).
 
 ---
 
 ## 14. Cross-references
 
-- `AGENTS.md` — agent contract, Git policy, Swarm boundary
-- `PROJECT_ANCHOR.md` — runtime endpoints, drive roles
-- `BLUEPRINT.md` — locked M6 architecture
-- `MASTER_CONFIG_AND_PROMPT.md` — Bifrost gateway + ten-tool memory surface
-- `docs\AGENTCORE_AUTOMATION_OPERATIONS.md` — broader automation ops
-- `docs\handoffs\AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` — gateway handoff
-- `scripts\agentcore_workflow\README.md` — workflow package docs
-- `scripts\agentcore_workflow\studio\README.md` — Studio adapter docs
-- `audits\M6\fixture-e2e-summary.json` — 17/17 E2E result
-- `audits\M6\studio-acceptance.json` — Studio acceptance result
-- `audits\M6\m6-acceptance-summary.json` — M6 acceptance summary
+- Quickstart: `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`
+- ADR: `docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md`
+- Audits: `audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md`, `audits/LANGGRAPH_END_TO_END_RECOVERY_2026-07-21.json`, `audits/DEEP_AGENTS_WORKER_ACCEPTANCE_2026-07-21.md`, `audits/MEMORY_GATEWAY_HEALTH_2026-07-22.md`
+- Memory health: `audits/MEMORY_GATEWAY_HEALTH_2026-07-22.md`

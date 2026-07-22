@@ -254,6 +254,14 @@ def run_workflow(
     conninfo: str | None = None,
     provider: str | None = None,
     model: str | None = None,
+    *,
+    goal: str = "",
+    acceptance_criteria: list | None = None,
+    charter_override: bool = False,
+    autonomous: bool = False,
+    context_profile: str = "standard-context",
+    risk_profile: str = "medium",
+    budget_profile: str = "",
 ) -> dict:
     """Start or resume a workflow run against the production PostgresSaver.
 
@@ -264,6 +272,10 @@ def run_workflow(
         thread_uuid:   Existing thread UUID to resume (None = new run)
         resume_from:   Human pause decision dict for resume (None = fresh start)
         conninfo:      PostgreSQL connection string
+        goal:          Operator goal text (recorded + optional charter synthesis)
+        acceptance_criteria: Optional acceptance lines (forces charter synthesis on M6)
+        autonomous:    Strict fixture/autonomous gate mode
+        context_profile / risk_profile / budget_profile: run profiles
 
     Returns:
         Final workflow state dict.
@@ -293,7 +305,14 @@ def run_workflow(
             else:
                 state = initial_state(
                     project_id, project_key, thread_uuid, milestone_key,
-                    provider=provider or "", model=model or ""
+                    provider=provider or "", model=model or "",
+                    goal=goal or "",
+                    acceptance_criteria=acceptance_criteria,
+                    charter_override=charter_override,
+                    autonomous=autonomous,
+                    context_profile=context_profile or "standard-context",
+                    risk_profile=risk_profile or "medium",
+                    budget_profile=budget_profile or "",
                 )
                 result = graph.invoke(state, config=config)
 

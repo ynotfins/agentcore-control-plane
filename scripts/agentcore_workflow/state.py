@@ -39,6 +39,18 @@ class WorkflowState(TypedDict):
     current_micro_key: str   # current micro step key
     current_micro_db_id: str
 
+    # ── Goal / charter (immutable requirement capture) ────────────────────────
+    goal: str                # operator goal text (--goal / --goal-file)
+    acceptance_criteria: list  # optional acceptance lines from --acceptance-file
+    charter_id: str          # wf_charters.id when synthesized/persisted
+    charter_override: bool   # force synthesis even for M6
+    autonomous: bool         # strict fixture/autonomous mode for gates
+    context_profile: str     # memory context profile name
+    risk_profile: str        # risk/budget profile hint for synthesis + ceilings
+    budget_profile: str      # optional token/time budget profile name
+    gate_evidence: dict      # optional pre-supplied gate evidence {gate: details}
+    required_gates: list     # gate names that require evidence in autonomous mode
+
     # ── Step catalogue (loaded from DB, used for navigation) ─────────────────
     macro_steps: list[dict]  # [{key, label, ordinal, risk_class}]
     micro_steps: list[dict]  # [{key, label, ordinal, risk_class, macro_key}]
@@ -84,6 +96,10 @@ class WorkflowState(TypedDict):
     da_critic_result: dict   # last DA critic output (findings only; post_exec_judge adjudicates)
     da_combined_score: float # post-execution combined score (0.70 * pre-exec + 0.30 * DA critic)
     post_exec_verdict: str   # verdict from post_exec_judge: proceed|needs_operator|block
+    # Resource budget tracking (worker ceilings live in env; these are run-scoped counters)
+    da_rework_count: int     # times builder re-entered for the same micro after critic/judge
+    da_budget: dict          # optional {tokens_used, token_budget, elapsed_ms, time_budget_ms}
+    da_heavy_gpu_active: bool  # VRAM admission stub: True while one heavy GPU task holds the slot
 
     # ── A/B alternate implementation (optional, bounded, high-risk only) ─────
     # Activated by node_risk_assess when ab_enabled=True (risk >= high, uncertainty >= 0.5).
@@ -113,6 +129,14 @@ def initial_state(
     milestone_key: str = "M6",
     provider: str = "",
     model: str = "",
+    *,
+    goal: str = "",
+    acceptance_criteria: list | None = None,
+    charter_override: bool = False,
+    autonomous: bool = False,
+    context_profile: str = "standard-context",
+    risk_profile: str = "medium",
+    budget_profile: str = "",
 ) -> WorkflowState:
     """Return a fresh workflow state for a new run."""
     return WorkflowState(
@@ -128,6 +152,16 @@ def initial_state(
         current_macro_db_id="",
         current_micro_key="",
         current_micro_db_id="",
+        goal=goal or "",
+        acceptance_criteria=list(acceptance_criteria or []),
+        charter_id="",
+        charter_override=bool(charter_override),
+        autonomous=bool(autonomous),
+        context_profile=context_profile or "standard-context",
+        risk_profile=risk_profile or "medium",
+        budget_profile=budget_profile or "",
+        gate_evidence={},
+        required_gates=[],
         macro_steps=[],
         micro_steps=[],
         checklist_items=[],
@@ -153,6 +187,9 @@ def initial_state(
         da_critic_result={},
         da_combined_score=0.0,
         post_exec_verdict="",
+        da_rework_count=0,
+        da_budget={},
+        da_heavy_gpu_active=False,
         ab_alt_worktree_path="",
         ab_alt_result={},
         ab_selected="",

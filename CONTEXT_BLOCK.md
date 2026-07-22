@@ -10,6 +10,7 @@ implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
 ops_runbooks:
   - docs/operations/OPENROUTER_MCP.md
   - docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md
+  - docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md
   - docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md
 ---
 
@@ -27,10 +28,10 @@ Mutable live facts that supersede older “future migration / degraded memory / 
 | --- | --- |
 | PostgreSQL | PG18 `127.0.0.1:55433` is canonical for `agent_core` / `cognee_core`. PG16 `:55432` is rollback/legacy/Swarm-owned evidence only. |
 | `agentcore-memory` | Ten-tool surface live via Bifrost; not “degraded until platform lands”. |
-| M6 workflow | Productized CLI + PostgresSaver; Studio is localhost/dev-only. Runbook: `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`. |
+| M6 workflow | Productized CLI + PostgresSaver from control-plane only; Studio `127.0.0.1:2024` (dev checkpointer ≠ PostgresSaver). Runbook: `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`; quickstart: `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`. |
 | Capability leases | PostgreSQL leases + `scripts/bifrost/jit_vk_bridge.py` grant/revoke exact OpenRouter tool groups. |
 | OpenRouter MCP | Registry `dormant` + lifecycle `authenticated_dormant`; gateway-only; no direct IDE MCP. Runbook: `docs/operations/OPENROUTER_MCP.md`. |
-| IDE clients | Single `agentcore-gateway` at `http://127.0.0.1:8080/mcp`. Cherry Studio aligned 2026-07-20 with **runtime repair** the same night (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`): enrolled, official x64, Home UI usable, DeepSeek chat proven, gateway-only MCP, Global Memory off, lifecycle PASS. Continual-learning auto user-prompt injection disabled (`docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`). Cursor Stage A new-chat hooks installed 2026-07-20 (`docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md`, `audits/CURSOR_HOOK_LOCKOUT_2026-07-20.md`) — pending operator `Continue.` acceptance. |
+| IDE clients | Single `agentcore-gateway` at `http://127.0.0.1:8080/mcp`. Cherry Studio aligned 2026-07-20 with **runtime repair** the same night (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`): enrolled, official x64, Home UI usable, DeepSeek chat proven, gateway-only MCP, Global Memory off, lifecycle PASS. Continual-learning auto user-prompt injection disabled (`docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`). Cursor Stage A new-chat hooks installed 2026-07-20 (`docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md`, `audits/CURSOR_HOOK_LOCKOUT_2026-07-20.md`) — **hard gate pending:** final operator `Continue.` acceptance. CLIENT-LOCAL enrollment scope: `MASTER_CONFIG_AND_PROMPT.md` §10 / `audits/IDE_SELF_ENROLLMENT_SCOPE_VALIDATION_2026-07-21.md`. |
 | LangGraph MCP | Shared `scripts/agentcore_workflow/mcp_client.py` → localhost gateway — `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`. |
 | Swarm | Separate ecosystem; not part of non-Swarm IDE baselines (BLUEPRINT § Swarm boundary). |
 

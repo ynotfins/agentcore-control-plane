@@ -94,6 +94,93 @@ def update_run_status(run_db_id: str, status: str, **kwargs: Any) -> None:
 # Milestone / Macro / Micro upserts
 # ─────────────────────────────────────────────────────────────────────────────
 
+def upsert_charter(
+    project_id: str,
+    title: str,
+    goal: str,
+    locked_milestones: list | None = None,
+    acceptance_criteria: list | None = None,
+    *,
+    lock: bool = True,
+    locked_by: str = "workflow_start",
+) -> str:
+    """Insert the next immutable charter version for a project (wf_charters)."""
+    with conn(admin=True) as c:
+        row = c.execute(
+            """
+            INSERT INTO agentcore.wf_charters
+                (project_id, version, title, goal, locked_milestones, acceptance_criteria,
+                 locked_at, locked_by)
+            SELECT
+                %s,
+                COALESCE((SELECT MAX(version) FROM agentcore.wf_charters WHERE project_id = %s), 0) + 1,
+                %s, %s, %s::jsonb, %s::jsonb,
+                CASE WHEN %s THEN now() ELSE NULL END,
+                CASE WHEN %s THEN %s ELSE NULL END
+            RETURNING id
+            """,
+            (
+                project_id,
+                project_id,
+                title,
+                goal,
+                json.dumps(locked_milestones or []),
+                json.dumps(acceptance_criteria or []),
+                lock,
+                lock,
+                locked_by,
+            ),
+        ).fetchone()
+        return str(row["id"])
+
+
+def persist_step_catalogue(
+    milestone_db_id: str,
+    project_id: str,
+    macro_steps: list[dict],
+    micro_steps: list[dict],
+    checklist_items: list[dict] | None = None,
+) -> dict[str, str]:
+    """Upsert macro/micro/checklist rows for a milestone. Returns micro_key → id map."""
+    macro_ids: dict[str, str] = {}
+    for macro in sorted(macro_steps, key=lambda x: int(x.get("ordinal") or 0)):
+        macro_ids[macro["key"]] = upsert_macro_step(
+            milestone_db_id,
+            project_id,
+            macro["key"],
+            macro.get("label") or macro["key"],
+            int(macro.get("ordinal") or 0),
+            macro.get("risk_class") or "low",
+        )
+
+    micro_ids: dict[str, str] = {}
+    for micro in sorted(micro_steps, key=lambda x: int(x.get("ordinal") or 0)):
+        macro_id = macro_ids.get(str(micro.get("macro_key") or ""))
+        if not macro_id:
+            continue
+        micro_ids[micro["key"]] = upsert_micro_step(
+            macro_id,
+            project_id,
+            micro["key"],
+            micro.get("label") or micro["key"],
+            int(micro.get("ordinal") or 0),
+            micro.get("risk_class") or "low",
+        )
+
+    for item in checklist_items or []:
+        micro_id = micro_ids.get(str(item.get("micro_key") or ""))
+        if not micro_id:
+            continue
+        upsert_checklist_item(
+            micro_id,
+            project_id,
+            item["key"],
+            item.get("label") or item["key"],
+            int(item.get("ordinal") or 0),
+        )
+    return micro_ids
+
+
 def upsert_milestone(run_db_id: str, project_id: str, milestone_key: str, label: str) -> str:
     with conn(admin=True) as c:
         row = c.execute(

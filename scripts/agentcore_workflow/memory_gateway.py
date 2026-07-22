@@ -113,11 +113,18 @@ def open_memory_session(project_key: str, **kwargs: Any) -> dict[str, Any]:
     return call_gateway_tool(name, args)
 
 
-def startup_context(project_key: str, session_id: Optional[str] = None, budget_name: str = "small") -> dict[str, Any]:
+def startup_context(
+    project_key: str,
+    session_id: Optional[str] = None,
+    budget_name: str = "small",
+    context_profile: Optional[str] = None,
+) -> dict[str, Any]:
     name = resolve_memory_tool_name("startup_context")
     args: dict[str, Any] = {"project_key": project_key, "budget_name": budget_name}
     if session_id:
         args["session_id"] = session_id
+    if context_profile:
+        args["context_profile"] = context_profile
     return call_gateway_tool(name, args)
 
 

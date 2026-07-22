@@ -1,6 +1,6 @@
 # Automatic Cursor New-Chat Recovery
 
-**Status:** Stage A installed (sessionStart + beforeSubmitPrompt only) — pending operator new-chat acceptance  
+**Status:** Stage A installed (sessionStart + beforeSubmitPrompt only) — **HARD GATE PENDING:** operator must type only `Continue.` in a new chat before Stage B (`preToolUse`) may register  
 **Authority:** `PROJECT_ANCHOR.md` · `BLUEPRINT.md` · `docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`
 
 ## Goal
@@ -68,7 +68,7 @@ When `agentcore-gateway` is temporarily unavailable:
 4. Run `python scripts/agentcore_cursor/test_hook_protocol.py --iterations 100`
 5. Backup prior hooks.json to `E:\AgentCore-Backups\`
 6. Atomically rename `hooks.json.new` → `hooks.json`
-7. Restart Cursor and run operator acceptance (type only `Continue.` in a new chat)
+7. Restart Cursor and run the final `Continue.` hard gate (type only `Continue.` in a new chat; Stage B blocked until this passes)
 
 ## Rollback
 
@@ -81,15 +81,17 @@ Copy-Item E:\AgentCore-Backups\cursor-hook-lockout-20260720-223737\hooks.json.bl
 
 To disable hooks entirely: move `.cursor/hooks.json` to `E:\AgentCore-Backups\cursor-hook-lockout-<timestamp>\hooks.json.disabled`.
 
-## Acceptance
+## Acceptance — final `Continue.` hard gate
 
-Operator opens a **new** Cursor Agent chat in this repo and types only:
+**Hard gate (still pending until operator completes it):** Stage A is installed, but operator new-chat acceptance is the final gate. Do not register `preToolUse` (Stage B) and do not claim automatic recovery “done” until this passes.
+
+Operator opens a **new** Cursor Agent chat in this repo and types **only**:
 
 ```text
 Continue.
 ```
 
-The agent must report project/worktree, resumed `session_key`, current task, blocker, and next action with AgentCore source IDs — without a pasted recap prompt.
+Pass criteria: the agent reports project/worktree, resumed `session_key`, current task, blocker, and next action with AgentCore source IDs — without a pasted recap prompt. Fail / skip leaves the hard gate pending.
 
 ## Related audits
 

@@ -124,8 +124,42 @@ value not otherwise available without custom implementation.
 - Modify Bifrost configuration or IDE configuration
 - Access paths outside the assigned worktree
 - Read or write AGENTS.md files (MemoryMiddleware is disabled)
+- Persist summarization / conversation archives into the worktree (SummarizationMiddleware durable offload is neutralized)
 - Send traces to LangSmith without operator approval
 - Read `.env` files (secrets come from Windows User env vars only)
+
+### Summarization neutralization (2026-07-21)
+
+`deepagents==0.6.12` installs `SummarizationMiddleware` by default. That middleware can offload conversation history into durable paths under the worktree and create a second source of truth.
+
+**Mitigation in `deepagents_worker.py`:**
+
+- `HarnessProfile(excluded_middleware=frozenset({"SummarizationMiddleware"}))`
+- `CompositeBackend` routes `/conversation_history/` to a process-private temp directory deleted after the worker returns
+- MemoryMiddleware remains `memory=None`; worker checkpointer remains `None` (ephemeral only)
+
+Evidence: `audits/DEEP_AGENTS_WORKER_ACCEPTANCE_2026-07-21.md`.
+
+### Resource ceilings (2026-07-21)
+
+Bounded concurrency and iteration for CHAOSCENTRAL hardware (i9-14900KF / 128GB / RTX 4070 SUPER 12GB). Defaults are env-overridable (names only):
+
+| Env var | Default | Role |
+| --- | --- | --- |
+| `AGENTCORE_DA_MAX_CONCURRENT` | `4` | Process semaphore for concurrent DA workers |
+| `AGENTCORE_DA_MAX_SUBAGENTS` | `0` | Disables GP subagent / `task` fan-out |
+| `AGENTCORE_DA_MAX_REWORK` | `2` | `gate_resource` fails when rework exceeds |
+| `AGENTCORE_DA_TOKEN_BUDGET` | `32000` | Soft token budget metadata / gate |
+| `AGENTCORE_WORKER_TIMEOUT_SEC` | `180` | Hang → evidence-backed `worker_timeout` |
+| `AGENTCORE_DA_MAX_ITERATIONS_BUILDER` | `3` | Builder loop cap |
+| `AGENTCORE_DA_MAX_ITERATIONS_CRITIC` | `2` | Critic loop cap |
+| `AGENTCORE_DA_VRAM_SLOTS` | `1` | VRAM admission stub |
+
+Topology fingerprint remains unchanged by these ceilings:
+
+```text
+a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32
+```
 
 ### Memory Boundary
 

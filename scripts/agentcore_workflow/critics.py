@@ -270,16 +270,30 @@ def judge(score: float, det_checks: list[dict], gate_verdicts: dict[str, str], r
     """Independent judge: returns (verdict, reasoning).
 
     verdict: 'proceed' | 'needs_operator' | 'block'
+
+    Hard deterministic gate failures OVERRIDE scores — the judge cannot waive them.
     """
     failed_checks = [c["check"] for c in det_checks if not c.get("passed", False)]
     failed_gates = [g for g, v in gate_verdicts.items() if v == "fail"]
 
-    # Hard blocks: failed critical gates or critical checks
-    critical_gates = {"requirement", "scope", "security", "migration"}
-    critical_failures = [g for g in failed_gates if g in critical_gates]
-
-    if critical_failures:
-        return "block", f"Critical gate failures: {', '.join(critical_failures)}"
+    # Any hard deterministic gate failure is non-waivable (scores cannot override).
+    try:
+        from .gates import HARD_DETERMINISTIC_GATES
+        hard = HARD_DETERMINISTIC_GATES
+    except Exception:
+        hard = {
+            "requirement", "scope", "security", "migration", "resource", "drift",
+            "arch", "secret_scan", "filesystem_boundary", "dependency_scan",
+            "formatting", "lint", "typecheck", "unit", "integration", "depwire_verify",
+        }
+    hard_failures = [g for g in failed_gates if g in hard]
+    if hard_failures:
+        return "block", (
+            f"Hard deterministic gate failures (non-waivable): {', '.join(hard_failures)}"
+        )
+    if failed_gates:
+        # Unknown gate names still hard-block — fail-closed.
+        return "block", f"Gate failures (non-waivable): {', '.join(failed_gates)}"
 
     if failed_checks and risk_class in ("high", "critical"):
         return "block", f"Deterministic checks failed on {risk_class} risk work: {', '.join(failed_checks)}"
@@ -289,8 +303,8 @@ def judge(score: float, det_checks: list[dict], gate_verdicts: dict[str, str], r
 
     if score >= SCORE_OPERATOR_THRESHOLD:
         reason = f"Score {score:.4f} above operator threshold but below proceed threshold"
-        if failed_gates:
-            reason += f"; failed gates: {', '.join(failed_gates)}"
+        if failed_checks:
+            reason += f"; failed checks: {', '.join(failed_checks)}"
         return "needs_operator", reason
 
     return "block", (

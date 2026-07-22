@@ -154,12 +154,29 @@ def tool_defs() -> list[dict[str, Any]]:
         },
         {
             "name": "append_event",
-            "description": "Append an immutable event through AgentCore memory (idempotent; no raw SQL exposed).",
+            "description": (
+                "Append an immutable event through AgentCore memory (idempotent; no raw SQL exposed). "
+                "event_kind must be one of: prompt, message, tool_event, decision, output, "
+                "accepted_evidence, state_transition, test_result, handoff."
+            ),
             "inputSchema": {
                 "type": "object",
                 "properties": {
                     "session_id": text_schema,
-                    "event_kind": text_schema,
+                    "event_kind": {
+                        "type": "string",
+                        "enum": [
+                            "prompt",
+                            "message",
+                            "tool_event",
+                            "decision",
+                            "output",
+                            "accepted_evidence",
+                            "state_transition",
+                            "test_result",
+                            "handoff",
+                        ],
+                    },
                     "idempotency_key": text_schema,
                     "payload": {"type": "object"},
                     "trust_class": text_schema,
@@ -617,9 +634,35 @@ def session_close(args: dict[str, Any]) -> dict[str, Any]:
     return {"ok": bool(row), "session_id": args["session_id"]}
 
 
+# Canonical DB enum agentcore.event_kind (migrations/m2/001_up_canonical_identity_immutable_evidence.sql).
+# Keep in sync with PostgreSQL; invalid values previously surfaced as sanitized gateway errors.
+_VALID_EVENT_KINDS = frozenset(
+    {
+        "prompt",
+        "message",
+        "tool_event",
+        "decision",
+        "output",
+        "accepted_evidence",
+        "state_transition",
+        "test_result",
+        "handoff",
+    }
+)
+
+
 def append_event(args: dict[str, Any]) -> dict[str, Any]:
     created_path: Path | None = None
     try:
+        event_kind = str(args.get("event_kind") or "").strip()
+        if event_kind not in _VALID_EVENT_KINDS:
+            return {
+                "ok": False,
+                "error": "invalid_event_kind",
+                "detail": (
+                    f"event_kind must be one of: {', '.join(sorted(_VALID_EVENT_KINDS))}"
+                ),
+            }
         with db() as conn, conn.cursor() as cur:
             cur.execute(
                 """

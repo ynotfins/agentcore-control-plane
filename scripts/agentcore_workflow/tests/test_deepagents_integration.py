@@ -191,7 +191,15 @@ def test_08_context_offloading_does_not_lose_evidence():
     source = inspect.getsource(run_builder_worker)
     # MemoryMiddleware must not be instantiated (it may be mentioned in a clarifying comment)
     assert "MemoryMiddleware(" not in source, "builder must NOT instantiate MemoryMiddleware"
-    assert "middleware=[fs_middleware]" in source, "builder must pass only fs_middleware"
+    # Builder must use bounded agent helper (backend + permissions), not MemoryMiddleware
+    module_src = inspect.getsource(
+        __import__("agentcore_workflow.deepagents_worker", fromlist=["_create_bounded_agent"])
+    )
+    from agentcore_workflow import deepagents_worker as daw
+    bounded_src = inspect.getsource(daw._create_bounded_agent)
+    assert "memory=None" in bounded_src, "bounded agent must pass memory=None"
+    assert "SummarizationMiddleware" in inspect.getsource(daw._ensure_bounded_harness_profile)
+    assert "CompositeBackend" in inspect.getsource(daw._build_worktree_backend)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

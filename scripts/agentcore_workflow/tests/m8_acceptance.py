@@ -308,9 +308,13 @@ def test_15_no_secrets():
         lo = line.lower()
         return any(s.lower() in lo for s in _ENV_SAFE)
 
-    secret_patterns = [
-        "-----BEGIN",   # PEM private keys
-        "sk-",          # OpenAI-style API keys
+    import re
+
+    # Match real secret shapes only — avoid false positives like "task-classifications"
+    # containing the substring "sk-".
+    secret_res = [
+        re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
+        re.compile(r"\bsk-[A-Za-z0-9]{16,}\b"),  # OpenAI-style API keys
     ]
     scan_files = [
         REPO_ROOT / "contracts" / "bifrost-upstream-mcp-registry.json",
@@ -322,12 +326,13 @@ def test_15_no_secrets():
         if not f.exists():
             continue
         text = f.read_text(encoding="utf-8", errors="replace")
-        for pat in secret_patterns:
-            hit_lines = [l for l in text.splitlines()
-                         if pat.lower() in l.lower()
-                         and not _is_env_reference(l)]
+        for rx in secret_res:
+            hit_lines = [
+                l for l in text.splitlines()
+                if rx.search(l) and not _is_env_reference(l)
+            ]
             if hit_lines:
-                found_secrets.append(f"{f.name}:{pat.strip()}")
+                found_secrets.append(f"{f.name}:{rx.pattern}")
                 break
 
     passed = len(found_secrets) == 0

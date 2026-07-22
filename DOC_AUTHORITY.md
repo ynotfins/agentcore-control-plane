@@ -16,7 +16,7 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 3. `BLUEPRINT.md` — locked goal, architecture, storage roles, lossless guarantees, and Milestone exit criteria (operator-approved; change requires explicit approval)
 4. `CONTEXT_BLOCK.md` — current mutable system state and implementation progress
 5. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance (derives from BLUEPRINT.md; BLUEPRINT wins on conflicts)
-6. Current Bifrost contracts, ops runbooks, and handoffs (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, plus current handoffs under `docs/handoffs/` — use the newest dated handoff for live status; the 2026-07-12 Bifrost handoff remains historical cutover evidence)
+6. Current Bifrost contracts, ops runbooks, and handoffs (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`, `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, plus current handoffs under `docs/handoffs/` — use the newest dated handoff for live status; the 2026-07-12 Bifrost handoff remains historical cutover evidence)
 7. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine-fact authority (hardware, drives, installed software, runtime snapshots)
 
 No other root or docs file may silently override this chain. If a document conflicts with a higher level, the higher level wins and the document must be reconciled or reclassified.
@@ -44,6 +44,7 @@ No other root or docs file may silently override this chain. If a document confl
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` — effectively-unbounded durable-memory and bounded recovery source handoff
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` — live rollout evidence: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated
 - `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` — M6 LangGraph production + Studio runbook
+- `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md` — exact `python -m agentcore workflow …` commands from control-plane
 - `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` — final release acceptance report with validator matrix and HEAD reference
 
 **Add as needed:**
@@ -104,6 +105,10 @@ No other root or docs file may silently override this chain. If a document confl
 | `docs/handoffs/OPENROUTER_MCP_OAUTH_BIND_HANDOFF_2026-07-20.md` | OpenRouter MCP OAuth bind + JIT availability claim |
 | `docs/operations/OPENROUTER_MCP.md` | OpenRouter MCP runbook (registry `dormant` vs lifecycle `authenticated_dormant`) |
 | `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` | M6 LangGraph production + Studio runbook |
+| `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md` | Operator quickstart (control-plane cwd only) |
+| `audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md` | Studio port 2024 live accept + PNA / browser-credential gate |
+| `audits/LANGGRAPH_END_TO_END_RECOVERY_2026-07-21.json` | Fixture E2E 17/17 + topology / kill-resume / isolation |
+| `audits/MEMORY_GATEWAY_HEALTH_2026-07-22.md` | agentcore-memory gateway health + lifecycle proof |
 | `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` | **Final release acceptance** — M8 consolidation, resource-location model, all validators PASS, exact ten tools verified, HEAD `a843cf1` (point-in-time; main has advanced) |
 | `ops/bifrost/evidence/20260714-0204-runtime-repair/RUNTIME_REPAIR_EVIDENCE.md` | Current runtime repair evidence: scheduled task owner, MCP validation, Cursor MCP_DOCKER removal |
 | `artifacts/bifrost-gateway-cutover-2026-07-12/` | Cutover backups, hashes, evidence |

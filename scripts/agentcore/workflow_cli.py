@@ -352,6 +352,28 @@ def cmd_start(args: argparse.Namespace) -> int:
         print("ERROR: Either --goal or --goal-file must be specified.", file=sys.stderr)
         return 2
 
+    acceptance: list[str] = []
+    acceptance_file = getattr(args, "acceptance_file", None)
+    if acceptance_file:
+        acc_path = Path(acceptance_file).resolve()
+        if not acc_path.exists():
+            print(f"ERROR: acceptance file does not exist: {acc_path}", file=sys.stderr)
+            return 2
+        acceptance = [
+            ln.strip(" -*\t")
+            for ln in acc_path.read_text(encoding="utf-8").splitlines()
+            if ln.strip()
+        ]
+
+    autonomous = bool(getattr(args, "autonomous", False))
+    context_profile = getattr(args, "context_profile", None) or "standard-context"
+    risk_profile = (
+        getattr(args, "risk_profile", None)
+        or getattr(args, "budget_profile", None)
+        or "medium"
+    )
+    budget_profile = getattr(args, "budget_profile", None) or ""
+
     if args.provider == "openrouter" and not args.model:
         print("ERROR: --provider openrouter requires an explicit --model.", file=sys.stderr)
         return 2
@@ -425,6 +447,12 @@ def cmd_start(args: argparse.Namespace) -> int:
             conninfo=_pg_conninfo(),
             provider=args.provider,
             model=args.model,
+            goal=goal,
+            acceptance_criteria=acceptance,
+            autonomous=autonomous,
+            context_profile=context_profile,
+            risk_profile=risk_profile,
+            budget_profile=budget_profile,
         )
     except Exception as exc:
         wf_db.update_run_status(run_db_id, "failed")
@@ -667,6 +695,21 @@ def cmd_resume(args: argparse.Namespace) -> int:
     for resume-after-pause; this command handles resume-after-process-restart.
     """
     run = _find_run(args.thread, args.run)
+    if run is None and args.project_key:
+        # Resolve latest interruptible run for the project (running/paused).
+        psycopg, dict_row = _import_psycopg()
+        proj = _resolve_project(args.project_key)
+        if proj is not None and psycopg is not None:
+            with psycopg.connect(_pg_conninfo(), row_factory=dict_row) as c:
+                row = c.execute(
+                    "SELECT id, langgraph_thread, project_id, status, current_milestone, "
+                    "current_macro, current_micro, ab_enabled, started_at, updated_at, completed_at "
+                    "FROM agentcore.wf_runs WHERE project_id = %s "
+                    "AND status IN ('running','paused','interrupted') "
+                    "ORDER BY started_at DESC LIMIT 1",
+                    (proj["id"],),
+                ).fetchone()
+                run = dict(row) if row else None
     if run is None:
         print("ERROR: run not found", file=sys.stderr)
         return 2
@@ -865,11 +908,12 @@ def cmd_topology(args: argparse.Namespace) -> int:
 
 
 def cmd_studio(args: argparse.Namespace) -> int:
-    """Start LangGraph Studio (Agent Server) for this graph.
+    """Start LangGraph Studio (Agent Server) for this graph (Option A).
 
-    This is a dev/debug surface only. Production persistence uses the
-    canonical PostgresSaver; Studio uses an Agent Server dev checkpointer
-    and stays localhost-only.
+    Dev/debug surface only. Production persistence uses the canonical
+    PostgresSaver; Studio uses an Agent Server dev checkpointer, binds
+    127.0.0.1 only, forces LANGSMITH_TRACING=false unless the dangerous
+    override flag is set, and aborts on topology/port collision.
     """
     # Hand off to the Studio CLI shim. We import lazily so a missing
     # langgraph CLI does not break the rest of the workflow CLI.
@@ -1005,6 +1049,16 @@ def build_parser() -> argparse.ArgumentParser:
                          help="operator goal (free text; recorded as requirement scope)")
     p_start.add_argument("--goal-file", default=None,
                          help="Path to goal file (recorded as requirement scope)")
+    p_start.add_argument("--acceptance-file", default=None,
+                         help="Optional acceptance criteria file (forces charter synthesis on M6)")
+    p_start.add_argument("--autonomous", action="store_true",
+                         help="Strict autonomous/fixture gate mode (required evidence enforced)")
+    p_start.add_argument("--context-profile", default="standard-context",
+                         help="AgentCore memory context profile (default: standard-context)")
+    p_start.add_argument("--risk-profile", default=None,
+                         help="Risk profile for charter synthesis (low|medium|high|critical)")
+    p_start.add_argument("--budget-profile", default=None,
+                         help="Budget profile alias (also accepted as risk/budget hint)")
     p_start.add_argument("--milestone", default="M6")
     p_start.add_argument("--provider", default=None, help="LLM provider (e.g., 'openrouter')")
     p_start.add_argument("--model", default=None, help="Selected model ID")
@@ -1067,11 +1121,29 @@ def build_parser() -> argparse.ArgumentParser:
     p_top.add_argument("--json", action="store_true")
     p_top.set_defaults(func=cmd_topology)
 
-    p_studio = sub.add_parser("studio", help="Start LangGraph Studio (Agent Server) dev server")
-    p_studio.add_argument("--port", type=int, default=2024,
-                          help="local Agent Server port (default 2024)")
-    p_studio.add_argument("--no-browser", action="store_true",
-                          help="do not auto-open Studio in the default browser")
+    p_studio = sub.add_parser(
+        "studio",
+        help="Start LangGraph Studio (Agent Server) — Option A, localhost-only",
+    )
+    p_studio.add_argument(
+        "--port",
+        type=int,
+        default=2024,
+        help="local Agent Server port (default 2024; aborts on collision)",
+    )
+    p_studio.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="complete non-browser work first (default launcher posture; always passed to langgraph)",
+    )
+    p_studio.add_argument(
+        "--allow-dangerous-langsmith-tracing",
+        action="store_true",
+        help=(
+            "DANGEROUS: allow LANGSMITH_TRACING=true (sends AgentCore data to "
+            "LangSmith). Refused by default."
+        ),
+    )
     p_studio.add_argument("--json", action="store_true")
     p_studio.set_defaults(func=cmd_studio)
 

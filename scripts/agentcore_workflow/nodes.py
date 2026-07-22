@@ -64,6 +64,13 @@ def _now() -> str:
 
 def node_start(state: WorkflowState) -> dict:
     """Register the workflow run and load/initialise milestone state."""
+    from .charter import (
+        first_micro_key,
+        m6_catalogue,
+        synthesize_from_goal,
+        use_m6_hardcoded_catalogue,
+    )
+
     updates: dict = {}
 
     # Register run in agentcore (idempotent)
@@ -82,43 +89,87 @@ def node_start(state: WorkflowState) -> dict:
             state["milestone_key"], f"Milestone {state['milestone_key']}",
         )
         updates["milestone_db_id"] = m_id
+    else:
+        m_id = state["milestone_db_id"]
 
-    # Bootstrap default macro/micro steps if not already in state
+    goal_text = (
+        state.get("goal")
+        or (state.get("execution_result") or {}).get("goal")
+        or state.get("operator_decision")
+        or ""
+    )
+    if isinstance(goal_text, str):
+        goal_text = goal_text.strip()
+    else:
+        goal_text = str(goal_text or "")
+    if goal_text and not state.get("goal"):
+        updates["goal"] = goal_text
+
+    acceptance = state.get("acceptance_criteria") or []
+    keep_m6 = use_m6_hardcoded_catalogue(
+        state.get("milestone_key") or "",
+        acceptance_criteria=acceptance,
+        charter_override=bool(state.get("charter_override")),
+    )
+
+    # Bootstrap macro/micro steps if not already in state
     if not state.get("macro_steps"):
-        macro_steps = [
-            {"key": "M6.1", "label": "Apply M6 migration and verify schema", "ordinal": 1, "risk_class": "medium"},
-            {"key": "M6.2", "label": "Initialize LangGraph checkpointer", "ordinal": 2, "risk_class": "medium"},
-            {"key": "M6.3", "label": "Configure per-project capability profiles", "ordinal": 3, "risk_class": "high"},
-            {"key": "M6.4", "label": "Validate project/thread isolation", "ordinal": 4, "risk_class": "high"},
-            {"key": "M6.5", "label": "Run acceptance tests", "ordinal": 5, "risk_class": "medium"},
-        ]
-        micro_steps = [
-            {"key": "M6.1.1", "label": "Run UP migration", "ordinal": 1, "risk_class": "medium", "macro_key": "M6.1"},
-            {"key": "M6.1.2", "label": "Verify schema_migrations row", "ordinal": 2, "risk_class": "low", "macro_key": "M6.1"},
-            {"key": "M6.2.1", "label": "Run setup_tables()", "ordinal": 1, "risk_class": "medium", "macro_key": "M6.2"},
-            {"key": "M6.2.2", "label": "Smoke-test checkpoint write/read", "ordinal": 2, "risk_class": "low", "macro_key": "M6.2"},
-            {"key": "M6.3.1", "label": "Seed core_active tools for project", "ordinal": 1, "risk_class": "low", "macro_key": "M6.3"},
-            {"key": "M6.3.2", "label": "JIT lease test tool — verify expiry", "ordinal": 2, "risk_class": "medium", "macro_key": "M6.3"},
-            {"key": "M6.4.1", "label": "Concurrent project isolation test", "ordinal": 1, "risk_class": "high", "macro_key": "M6.4"},
-            {"key": "M6.5.1", "label": "Run all 18 acceptance checks", "ordinal": 1, "risk_class": "medium", "macro_key": "M6.5"},
-        ]
-        checklist_items = [
-            {"key": "M6.1.1.a", "label": "Migration applied without errors", "ordinal": 1, "micro_key": "M6.1.1"},
-            {"key": "M6.1.1.b", "label": "DOWN migration verified reversible", "ordinal": 2, "micro_key": "M6.1.1"},
-            {"key": "M6.2.1.a", "label": "checkpoints schema created", "ordinal": 1, "micro_key": "M6.2.1"},
-            {"key": "M6.3.2.a", "label": "JIT lease created", "ordinal": 1, "micro_key": "M6.3.2"},
-            {"key": "M6.3.2.b", "label": "JIT lease expired on step completion", "ordinal": 2, "micro_key": "M6.3.2"},
-            {"key": "M6.4.1.a", "label": "Project A tools invisible to Project B", "ordinal": 1, "micro_key": "M6.4.1"},
-        ]
-        updates["macro_steps"] = macro_steps
-        updates["micro_steps"] = micro_steps
-        updates["checklist_items"] = checklist_items
+        if keep_m6:
+            cat = m6_catalogue()
+            updates["macro_steps"] = cat["macro_steps"]
+            updates["micro_steps"] = cat["micro_steps"]
+            updates["checklist_items"] = cat["checklist_items"]
+        elif goal_text:
+            synthesized = synthesize_from_goal(
+                goal_text,
+                milestone_key=state.get("milestone_key") or "G1",
+                acceptance_criteria=acceptance,
+                risk_profile=state.get("risk_profile") or "medium",
+            )
+            updates["macro_steps"] = synthesized["macro_steps"]
+            updates["micro_steps"] = synthesized["micro_steps"]
+            updates["checklist_items"] = synthesized["checklist_items"]
+            try:
+                charter_id = db.upsert_charter(
+                    state["project_id"],
+                    synthesized["title"],
+                    synthesized["goal"],
+                    synthesized["locked_milestones"],
+                    synthesized["acceptance_criteria"],
+                )
+                updates["charter_id"] = charter_id
+            except Exception as exc:
+                updates.setdefault("errors", [])
+                updates["errors"] = list(state.get("errors") or []) + [
+                    f"charter_persist_degraded: {type(exc).__name__}"
+                ]
+        # else: leave empty — requirement gate will fail
 
-    # Set first pending macro if not set
-    if not state.get("current_macro_key"):
-        macros = updates.get("macro_steps", state.get("macro_steps", []))
-        if macros:
-            updates["current_macro_key"] = macros[0]["key"]
+        # Persist catalogue into wf_* tables when we have a milestone row
+        macros = updates.get("macro_steps") or []
+        micros = updates.get("micro_steps") or []
+        checks = updates.get("checklist_items") or []
+        if macros and m_id:
+            try:
+                db.persist_step_catalogue(
+                    m_id, state["project_id"], macros, micros, checks,
+                )
+            except Exception as exc:
+                updates.setdefault("errors", [])
+                err_list = list(updates.get("errors") or state.get("errors") or [])
+                err_list.append(f"catalogue_persist_degraded: {type(exc).__name__}")
+                updates["errors"] = err_list
+
+    # Set first pending macro + micro if not set (fixes empty-micro skip bug)
+    macros = updates.get("macro_steps", state.get("macro_steps", []))
+    micros = updates.get("micro_steps", state.get("micro_steps", []))
+    if not state.get("current_macro_key") and macros:
+        updates["current_macro_key"] = macros[0]["key"]
+    macro_key = updates.get("current_macro_key") or state.get("current_macro_key") or ""
+    if not state.get("current_micro_key"):
+        micro_key = first_micro_key(macros, micros, macro_key)
+        if micro_key:
+            updates["current_micro_key"] = micro_key
 
     # Resolve worktree_path from the project's root_path (DA worker boundary)
     if not state.get("worktree_path"):
@@ -134,7 +185,7 @@ def node_start(state: WorkflowState) -> dict:
             pass  # worktree_path stays empty; da_enabled will be False
 
     # Open governed AgentCore memory session via agentcore-gateway (shared MCP path).
-    # Refresh tool visibility at workflow start (lease epoch bump consumers).
+    # Always append the goal once. Degrade gracefully if memory unavailable.
     if not state.get("memory_session_id"):
         try:
             from . import memory_gateway
@@ -148,6 +199,7 @@ def node_start(state: WorkflowState) -> dict:
                 milestone=state.get("milestone_key"),
                 model_provider=state.get("provider") or None,
                 model_id=state.get("model") or None,
+                context_profile=state.get("context_profile") or "standard-context",
             )
             # Result shapes vary; accept session_id at top-level or nested.
             sid = ""
@@ -166,17 +218,23 @@ def node_start(state: WorkflowState) -> dict:
                                 pass
             if sid:
                 updates["memory_session_id"] = sid
-                memory_gateway.startup_context(state["project_key"], session_id=sid)
-                # Append original goal/prompt before any worker execution.
-                goal = state.get("execution_result", {}).get("goal") if isinstance(state.get("execution_result"), dict) else None
-                # Prefer goal from checklist/evidence if present in state extensions
+                memory_gateway.startup_context(
+                    state["project_key"],
+                    session_id=sid,
+                    context_profile=state.get("context_profile") or "standard-context",
+                )
                 prompt_payload = {
                     "kind": "workflow_start",
                     "project_key": state["project_key"],
                     "thread_uuid": state.get("thread_uuid"),
                     "run_db_id": run_db_id,
                     "milestone_key": state.get("milestone_key"),
-                    "goal": goal or state.get("operator_decision") or "",
+                    "goal": goal_text,
+                    "acceptance_criteria": acceptance,
+                    "charter_id": updates.get("charter_id") or state.get("charter_id") or "",
+                    "autonomous": bool(state.get("autonomous")),
+                    "context_profile": state.get("context_profile") or "standard-context",
+                    "risk_profile": state.get("risk_profile") or "medium",
                 }
                 memory_gateway.append_event(
                     sid,
@@ -188,10 +246,16 @@ def node_start(state: WorkflowState) -> dict:
             # Memory gateway is required for enrollment proofs but must not crash
             # deterministic fixture paths that lack VK env in disposable CI.
             updates.setdefault("errors", [])
-            if isinstance(updates["errors"], list):
-                updates["errors"] = list(state.get("errors") or []) + [
-                    f"memory_gateway_bootstrap_degraded: {type(exc).__name__}"
-                ]
+            if isinstance(updates.get("errors"), list):
+                updates["errors"] = list(state.get("errors") or []) + list(updates.get("errors") or [])
+                # de-dupe while preserving order
+                seen: set[str] = set()
+                deduped: list[str] = []
+                for e in updates["errors"] + [f"memory_gateway_bootstrap_degraded: {type(exc).__name__}"]:
+                    if e not in seen:
+                        seen.add(e)
+                        deduped.append(e)
+                updates["errors"] = deduped
 
     updates["next_action"] = "gate_check"
     updates["errors"] = updates.get("errors") or []
@@ -617,6 +681,10 @@ def node_next_step(state: WorkflowState) -> dict:
             "judge_verdict": "",
             "gates_passed": [],
             "gates_failed": [],
+            "da_rework_count": 0,
+            "da_budget": {},
+            "da_builder_result": {},
+            "da_critic_result": {},
         }
 
     # Advance to next macro
@@ -649,6 +717,10 @@ def node_next_step(state: WorkflowState) -> dict:
             "judge_verdict": "",
             "gates_passed": [],
             "gates_failed": [],
+            "da_rework_count": 0,
+            "da_budget": {},
+            "da_builder_result": {},
+            "da_critic_result": {},
         }
 
     # All done
@@ -825,6 +897,31 @@ def node_da_builder(state: WorkflowState) -> dict:
     elif state.get("model"):
         model_spec = state["model"]
 
+    # Rework counter: increments when builder re-enters after a prior builder result.
+    prior_builder = state.get("da_builder_result") or {}
+    rework_count = int(state.get("da_rework_count") or 0)
+    if prior_builder.get("status") in ("completed", "failed"):
+        rework_count += 1
+
+    from .deepagents_worker import resource_ceiling_defaults
+    ceilings = resource_ceiling_defaults()
+    if rework_count > ceilings["max_rework"]:
+        # Escalate on rework budget exhaustion (no topology change; use existing fail edge).
+        msg = (
+            f"rework budget exhausted: da_rework_count={rework_count} "
+            f"exceeds max_rework={ceilings['max_rework']}"
+        )
+        return {
+            "da_rework_count": rework_count,
+            "next_action": "workflow_fail",
+            "errors": [msg],
+            "da_builder_result": {
+                "status": "failed",
+                "error": msg,
+                "escalated": "rework_exhausted",
+            },
+        }
+
     worker_result = run_builder_worker(
         task=task,
         worktree_path=worktree_path,
@@ -834,6 +931,12 @@ def node_da_builder(state: WorkflowState) -> dict:
         thread_uuid=thread_uuid,
         model=model_spec,
     )
+
+    # Fold worker timing into da_budget for gate_resource time/token checks.
+    da_budget = dict(state.get("da_budget") or {})
+    da_budget["elapsed_ms"] = int(worker_result.get("elapsed_ms") or 0)
+    if worker_result.get("token_budget") is not None:
+        da_budget.setdefault("token_budget", worker_result.get("token_budget"))
 
     # Record durable evidence through agentcore-memory path (not DA's MemorySaver).
     if run_db_id:
@@ -851,6 +954,8 @@ def node_da_builder(state: WorkflowState) -> dict:
     return {
         "da_builder_result": worker_result,
         "execution_result": worker_result,
+        "da_rework_count": rework_count,
+        "da_budget": da_budget,
         "next_action": next_action,
         "errors": ([f"DA builder failed: {worker_result.get('error')}"]
                    if worker_result.get("status") != "completed" else []),
