@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-07-17"
+policy_revision: "2026-07-21"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -23,6 +23,15 @@ mandatory_rules:
       Non-Swarm IDEs use exactly one MCP entry: agentcore-gateway at http://127.0.0.1:8080/mcp
       with Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}. Never paste the upstream registry
       or direct per-tool MCP entries into IDE configs.
+
+  - id: client-local-execution-scope
+    title: CLIENT-LOCAL EXECUTION SCOPE
+    rule: >-
+      The IDE running this prompt may inspect and modify only its own live configuration,
+      rules, agent settings, and backup. Configuration examples for other IDEs are reference
+      material only. Do not inspect, back up, repair, restart, validate, or modify another IDE.
+      Cross-IDE reconciliation is a separate AgentCore control-plane task that requires
+      explicit operator authorization.
 
   - id: swarm-isolation
     title: Swarm isolation

@@ -19,6 +19,18 @@ authorization, a timestamped backup, and post-change validation.
 4. Env handling: supports ${env:VAR} style header expansion (per gateway-client contract).
 5. Restart behavior: restart Claude Code session after config or env-var changes.
 
+## CLIENT-LOCAL EXECUTION SCOPE
+
+The IDE running this prompt may inspect and modify only its own live
+configuration, rules, agent settings, and backup.
+
+Configuration examples for other IDEs are reference material only.
+
+Do not inspect, back up, repair, restart, validate, or modify another IDE.
+
+Cross-IDE reconciliation is a separate AgentCore control-plane task that
+requires explicit operator authorization.
+
 ## After any change
 
 Run the checks in `ide-profiles/claude-code/VALIDATION.md` and record the date in `IDE_PROFILE.yaml` (`last_validation_date`).

@@ -19,6 +19,18 @@ authorization, a timestamped backup, and post-change validation.
 4. Env handling: bearer_token_env_var (no inline header env expansion; no generic timeout_seconds field).
 5. Restart behavior: restart Codex session after config.toml or env-var changes.
 
+## CLIENT-LOCAL EXECUTION SCOPE
+
+The IDE running this prompt may inspect and modify only its own live
+configuration, rules, agent settings, and backup.
+
+Configuration examples for other IDEs are reference material only.
+
+Do not inspect, back up, repair, restart, validate, or modify another IDE.
+
+Cross-IDE reconciliation is a separate AgentCore control-plane task that
+requires explicit operator authorization.
+
 ## After any change
 
 Run the checks in `ide-profiles/codex/VALIDATION.md` and record the date in `IDE_PROFILE.yaml` (`last_validation_date`).

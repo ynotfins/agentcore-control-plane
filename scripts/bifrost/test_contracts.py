@@ -168,6 +168,17 @@ def main() -> int:
     )
     check("ide:renderings current", result.returncode == 0, result.stdout.strip()[:200])
 
+    # IDE-local enrollment prompts must stay client-scoped (no multi-IDE live edits).
+    scope_result = subprocess.run(
+        [sys.executable, str(REPO / "scripts" / "bifrost" / "validate_ide_enrollment_scope.py")],
+        capture_output=True, text=True, cwd=REPO,
+    )
+    check(
+        "ide:client-local enrollment scope",
+        scope_result.returncode == 0,
+        (scope_result.stdout or scope_result.stderr).strip()[:300],
+    )
+
     # Every mandatory rule id appears in every rendered GLOBAL_RULES.md (no silent omission).
     if policy:
         rule_titles = [rule["title"] for rule in policy["mandatory_rules"]]

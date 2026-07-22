@@ -217,13 +217,14 @@ Allowed roots: registered `D:\github\...` git worktrees. Reject Swarm / `F:\Agen
 
 ## 6.5. Autonomous workflow + LangGraph Studio pointer
 
-**Canonical runbook:** `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`
-**Launcher:** `python -m agentcore workflow {init|start|status|pause|approve|reject|resume|cancel|logs|evidence|topology|studio}`
-**Studio adapter:** `scripts/agentcore_workflow/studio/` (langgraph.json + graph.py)
-**Shared MCP client:** `scripts/agentcore_workflow/mcp_client.py` + `memory_gateway.py` (`langchain-mcp-adapters==0.3.0`); node policy in `node_tool_policy.py`. Prefer `BIFROST_MCP_VK_WORKFLOW` when set; else builder VK with node-scoped filtering.
-**Acceptance:** 17/17 E2E recovery scenarios PASS — see `audits/M6/fixture-e2e-summary.json`. Gateway enrollment evidence: `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`.
+**Canonical runbook:** `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`  
+**Quickstart (exact commands):** `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md` — always `cd D:\github\agentcore-control-plane` (never `D:\github\deepagents`).  
+**Launcher:** `python -m agentcore workflow {init|start|status|pause|approve|reject|resume|cancel|logs|evidence|topology|studio}`  
+**Studio:** `127.0.0.1:2024`, `LANGSMITH_TRACING=false`, `LANGGRAPH_CLI_NO_ANALYTICS=1`, anonymous first; adapter `scripts/agentcore_workflow/studio/` + `scripts/agentcore/studio.py`.  
+**Shared MCP client:** `scripts/agentcore_workflow/mcp_client.py` + `memory_gateway.py` (`langchain-mcp-adapters==0.3.0`); node policy in `node_tool_policy.py`. Prefer `BIFROST_MCP_VK_WORKFLOW` when set; else builder VK with node-scoped filtering.  
+**Acceptance:** 17/17 E2E — `audits/M6/fixture-e2e-summary.json` / `audits/LANGGRAPH_END_TO_END_RECOVERY_2026-07-21.json`. Studio live: `audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md`. Gateway enrollment: `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`. Memory health: `audits/MEMORY_GATEWAY_HEALTH_2026-07-22.md`.
 
-The agentcore-memory ten-tool surface, Bifrost gateway contracts, and Swarm ecosystem are unchanged by this work.
+The agentcore-memory ten-tool surface, Bifrost gateway contracts, and Swarm ecosystem are unchanged by this work. CLIENT-LOCAL IDE enrollment scope remains in §10 (do not edit other IDEs' live configs from a single-client install prompt).
 
 ---
 
@@ -478,6 +479,18 @@ Before editing the IDE config, prove the native Bifrost Gateway is running persi
 - bind: 127.0.0.1:8080 only
 - health: GET http://127.0.0.1:8080/health returns 200
 - direct MCP initialize, initialized notification, tools/list, and one safe read-only tool call succeed
+
+CLIENT-LOCAL EXECUTION SCOPE
+
+The IDE running this prompt may inspect and modify only its own live
+configuration, rules, agent settings, and backup.
+
+Configuration examples for other IDEs are reference material only.
+
+Do not inspect, back up, repair, restart, validate, or modify another IDE.
+
+Cross-IDE reconciliation is a separate AgentCore control-plane task that
+requires explicit operator authorization.
 
 Safety rules:
 - Back up the live IDE config before any change and record SHA-256.

@@ -36,6 +36,18 @@ Before editing the IDE config, prove the native Bifrost Gateway is running persi
 - health: GET http://127.0.0.1:8080/health returns 200
 - direct MCP initialize, initialized notification, tools/list, and one safe read-only tool call succeed
 
+CLIENT-LOCAL EXECUTION SCOPE
+
+The IDE running this prompt may inspect and modify only its own live
+configuration, rules, agent settings, and backup.
+
+Configuration examples for other IDEs are reference material only.
+
+Do not inspect, back up, repair, restart, validate, or modify another IDE.
+
+Cross-IDE reconciliation is a separate AgentCore control-plane task that
+requires explicit operator authorization.
+
 Safety rules:
 - Back up the live IDE config before any change and record SHA-256.
 - Preserve model, auth, account, sandbox, context, profile, theme, and non-MCP app settings.
