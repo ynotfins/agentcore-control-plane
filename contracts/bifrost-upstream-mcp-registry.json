@@ -27,7 +27,6 @@
         "artiforge",
         "depwire",
         "tentra",
-        "obsidian-vault",
         "playwright",
         "filesystem",
         "agentcore-memory",
@@ -47,7 +46,6 @@
         "sequential-thinking",
         "context-fabric",
         "depwire",
-        "obsidian-vault",
         "filesystem",
         "agentcore-memory",
         "agentcore-project-router"
@@ -76,7 +74,6 @@
       "purpose": "Documentation lookup and durable note retrieval.",
       "allowed_server_ids": [
         "arabold-docs",
-        "obsidian-vault",
         "sequential-thinking",
         "agentcore-project-router"
       ],
@@ -93,7 +90,6 @@
         "agentcore-memory",
         "depwire",
         "artiforge",
-        "obsidian-vault",
         "arabold-docs"
       ],
       "default_tools_policy": "allow_permitted",
@@ -616,12 +612,7 @@
         "*"
       ],
       "denied_tools": [],
-      "capability_profiles": [
-        "builder",
-        "reviewer",
-        "docs-knowledge",
-        "operator"
-      ],
+      "capability_profiles": [],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -634,10 +625,10 @@
           "spawn_failure"
         ]
       },
-      "rollback_route": "Disable obsidian_vault; leave vault files untouched.",
-      "enabled": true,
+      "rollback_route": "Re-enable obsidian_vault client_config + VK grants; leave vault files untouched.",
+      "enabled": false,
       "bifrost_client_name": "obsidian_vault",
-      "status": "active",
+      "status": "disabled",
       "notes": [
         "OBSIDIAN_* names only \u2014 never embed key values.",
         "Non-secret defaults may set OBSIDIAN_BASE_URL=https://127.0.0.1:27124 and OBSIDIAN_VERIFY_SSL=false in renderer."

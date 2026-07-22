@@ -36,8 +36,10 @@ $stderrLog = Join-Path $logDir 'bifrost-gateway.stderr.log'
 $env:CURSOR_API_URL = if ($env:CURSOR_API_URL) { $env:CURSOR_API_URL } else { 'https://api.cursor.com' }
 $env:DISABLE_THOUGHT_LOGGING = 'true'
 if (-not $env:HOME) { $env:HOME = $env:USERPROFILE }
-if (-not $env:OBSIDIAN_BASE_URL) { $env:OBSIDIAN_BASE_URL = 'https://127.0.0.1:27124' }
-if (-not $env:OBSIDIAN_VERIFY_SSL) { $env:OBSIDIAN_VERIFY_SSL = 'false' }
+# Obsidian vault MCP upstream disabled 2026-07-22; env defaults removed.
+# Restore if re-enabling obsidian_vault:
+#   if (-not $env:OBSIDIAN_BASE_URL) { $env:OBSIDIAN_BASE_URL = 'https://127.0.0.1:27124' }
+#   if (-not $env:OBSIDIAN_VERIFY_SSL) { $env:OBSIDIAN_VERIFY_SSL = 'false' }
 
 $exe = Join-Path $RuntimeRoot 'bin\bifrost-http.exe'
 if (-not (Test-Path -LiteralPath $exe)) {
