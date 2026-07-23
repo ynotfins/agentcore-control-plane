@@ -38,3 +38,14 @@ enrollment_evidence:
   forbidden_tools_absent: true
   filesystem_root_bounded: 'D:\github'
   root_cause_prior_missing_tools: 'Bifrost gateway process terminated (graceful shutdown); not MiniMax mcp.json defect'
+status_reconciliation:
+  reconciled_at: '2026-07-23'
+  source_handoff: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+  source_handoff_date: '2026-07-22'
+  claim: 'MiniMax cli.js native invocation route is absent/broken'
+  finding: >-
+    Native acceptance blocked: wrappers `mavis.cmd` and `minimax.cmd` point to nonexistent
+    `C:\Users\ynotf\AppData\Local\Programs\MiniMax Code\resources\resources\daemon\cli.js`;
+    no MCP invocation group was present in the in-session `mavis` function surface.
+  status_after_reconciliation: configured_restart_required
+  next_step: 'Determine whether MiniMax Code supports native MCP invocation or document unsupported_with_reason with product evidence.'

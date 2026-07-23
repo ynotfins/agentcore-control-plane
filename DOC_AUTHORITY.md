@@ -103,6 +103,7 @@ No other root or docs file may silently override this chain. If a document confl
 | `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` | Live rollout handoff: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated |
 | `docs/handoffs/AGENTCORE_AUTONOMOUS_WORKFLOW_STUDIO_HANDOFF_2026-07-17.md` | Workflow + Studio productization handoff (prefer `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` for commands) |
 | `docs/handoffs/OPENROUTER_MCP_OAUTH_BIND_HANDOFF_2026-07-20.md` | OpenRouter MCP OAuth bind + JIT availability claim |
+| `docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md` | **Newest current full-chat handoff** — operator-supplied status snapshot, MiniMax cli.js, Codex launch failure, Open Interpreter persistence, and next workstreams (does not override locked authority chain) |
 | `docs/operations/OPENROUTER_MCP.md` | OpenRouter MCP runbook (registry `dormant` vs lifecycle `authenticated_dormant`) |
 | `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` | M6 LangGraph production + Studio runbook |
 | `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md` | Operator quickstart (control-plane cwd only) |
@@ -213,3 +214,15 @@ All historical docs must not be run as instructions without current operator app
 - Continual-learning Cursor plugin auto-trigger disabled; do not re-enable user-role followups — `docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`.
 - `depwire-cloud` and `github-mcp` remain deferred/`enabled=false` until healthy verification
 - Live IDE cutover completion evidence still incomplete for some clients (see Bifrost handoff / artifacts / IDE profiles)
+
+---
+
+## Client-status admissibility rule
+
+Client-status claims are admissible only when they are sourced from files **present in this repository** under one of:
+
+- `docs/handoffs/` — operator-authored current-state handoffs
+- `audits/` — validator, enrollment, lifecycle, or runtime-repair evidence
+- `ide-profiles/` — source-controlled per-IDE profiles and capability matrix
+
+ChatGPT-side or other external handoffs must be committed to `docs/handoffs/` and classified as current-state before they may be used to rebuild any status matrix, profile, or runbook claim. Config-file presence alone does not prove native lifecycle validation.

@@ -4,7 +4,7 @@
 # Configuration mode summary: the normal way this client receives its AgentCore baseline.
 # Do not guess values — 'unverified' until evidence exists.
 
-matrix_revision: "2026-07-22"
+matrix_revision: "2026-07-23"
 policy_source: contracts/global-agent-policy.yaml
 model_context_profile_source: contracts/model-context-profiles.json
 self_enrollment_contract:
@@ -67,15 +67,18 @@ managed_ides:
     env_var_handling: bearer_token_env_var
     restart_behavior: session-restart
     editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
-    last_validated: '2026-07-14'
-    m8_enrollment: configured_restart_required
+    last_validated: '2026-07-22'
+    m8_enrollment: unverified
     m8_notes: >-
       Config verified 2026-07-14 at C:\Users\ynotf\.codex\config.toml: agentcore-gateway entry
       present with url, bearer_token_env_var=BIFROST_MCP_VIRTUAL_KEY, enabled=true,
       startup_timeout_sec=300, tool_timeout_sec=300. All config paths direct_write.
-      AGENTS.md and CLAUDE.md present at all managed repos. New Codex session required to
-      activate. Status advances to live_validated after operator starts new session and
-      confirms tools/list returns 10 agentcore-memory tools.
+      AGENTS.md and CLAUDE.md present at all managed repos.
+      Reconciled 2026-07-23: Codex desktop application would not open correctly; launch could
+      fall back to Chrome/browser. Native acceptance cannot run until the application launches.
+      Evidence: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md §9 (created 2026-07-22).
+      Status advances to live_validated only after operator repairs the desktop application,
+      starts a new session, and confirms tools/list returns 10 agentcore-memory tools.
 
   claude-code:
     installed_version: unverified
@@ -142,9 +145,13 @@ managed_ides:
       C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax (same MiniMax Code data root);
       it is not a separate Mavis application install. Three local companion MCP entries
       (matrix, cu, trash) remain enabled — these are not Bifrost upstream duplicates.
+      Native acceptance blocked: wrappers `mavis.cmd` and `minimax.cmd` point to nonexistent
+      `resources\resources\daemon\cli.js`; no MCP invocation group observed in-session.
+      Reconciled 2026-07-23 per docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md §5.3.
       Status advances to live_validated only after operator runs the full native memory lifecycle
-      in a fresh MiniMax Code chat. Evidence: audits/MINIMAX_CODE_REPAIR_2026-07-22.md and
-      audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-22.json.
+      in a fresh MiniMax Code chat or documents `unsupported_with_reason` with product evidence.
+      Evidence: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md (created 2026-07-22),
+      audits/MINIMAX_CODE_REPAIR_2026-07-22.md, audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-22.json.
 
   minimax-classic:
     installed_version: 1.0.0.5
@@ -194,14 +201,19 @@ managed_ides:
     env_var_handling: no-env-headers-vk-materialized-live-only
     restart_behavior: session-restart
     editability: { global_rules: manual_import, project_rules: unsupported, mcp_config: direct_write }
-    last_validated: unverified
+    last_validated: '2026-07-22'
     m8_enrollment: awaiting_operator_import
     m8_notes: >-
       Config artifact in ide-profiles/open-interpreter/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md.
       Global rules injected via profile system message (manual import). Project-level rules
       unsupported by product. Env var secrets must be materialized (no env-headers).
-      Operator action: follow INSTALL_OR_UPDATE.md; apply profile artifact; restart session;
-      confirm tools/list returns 10 agentcore-memory tools.
+      Reconciled 2026-07-23: operator previously saw agentcore-gateway connected and working,
+      but after reopening the client no longer looked configured. Persistent root cause not
+      established; dedicated diagnostic task required.
+      Evidence: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md §7 (created 2026-07-22).
+      Operator action: follow INSTALL_OR_UPDATE.md; apply profile artifact; locate actual
+      persistent MCP configuration; restart session; confirm tools/list returns 10
+      agentcore-memory tools; record unsupported_with_reason if the product lacks native MCP support.
 
   cherry-studio:
     installed_version: 1.9.12

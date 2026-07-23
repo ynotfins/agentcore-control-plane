@@ -23,3 +23,13 @@ known_limitations:
   - 'TOML config: use bearer_token_env_var, startup_timeout_sec, tool_timeout_sec (not headers/timeout_seconds).'
   - 'Codex-managed extras (node_repl, plugin MCP servers) are preserved beside the gateway entry.'
 semantic_parity_gaps: []
+status_reconciliation:
+  reconciled_at: '2026-07-23'
+  source_handoff: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+  source_handoff_date: '2026-07-22'
+  claim: 'Codex desktop launch failure'
+  finding: >-
+    Codex desktop application would not open correctly; launch could fall back to Chrome/browser.
+    Config file presence (2026-07-14) does not prove native application launch or MCP lifecycle.
+  status_after_reconciliation: unverified
+  next_step: 'Repair the Codex/ChatGPT desktop application through the official supported path, then run native gateway lifecycle validation.'

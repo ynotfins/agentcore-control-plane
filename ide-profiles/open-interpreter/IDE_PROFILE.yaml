@@ -24,3 +24,13 @@ known_limitations:
   - 'Rules live in profile system message; parity depends on operator import.'
 semantic_parity_gaps:
   - 'Rules delivery is manual via profile system message.'
+status_reconciliation:
+  reconciled_at: '2026-07-23'
+  source_handoff: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+  source_handoff_date: '2026-07-22'
+  claim: 'Open Interpreter persistence failure'
+  finding: >-
+    Operator previously saw agentcore-gateway connected and working, but after reopening the client
+    no longer looked configured. Persistent root cause not established; dedicated diagnostic task required.
+  status_after_reconciliation: awaiting_operator_import
+  next_step: 'Locate actual persistent MCP configuration, apply supported gateway setup, and prove native lifecycle survives a client restart.'
