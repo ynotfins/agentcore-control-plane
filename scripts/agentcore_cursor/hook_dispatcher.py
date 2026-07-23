@@ -53,19 +53,35 @@ def _log(event: str, message: str, *, exc: BaseException | None = None) -> None:
 
 
 def _stdin_preview(raw: str) -> str:
-    """Bounded, redacted preview for diagnostics (never log full prompts/secrets)."""
-    sample = raw[:120].replace("\r", "\\r").replace("\n", "\\n")
+    """Bounded, redacted preview for diagnostics (never log full prompts/secrets).
+
+    Includes a hex preview when the raw bytes contain non-ASCII or control
+    characters, which helps diagnose encoding/escaping defects.
+    """
     for token in ("Bearer ", "password", "api_key", "secret"):
-        if token.lower() in sample.lower():
+        if token.lower() in raw.lower():
             return f"<redacted len={len(raw)}>"
+    sample = raw[:120].replace("\r", "\\r").replace("\n", "\\n")
+    prefix = raw[:40]
+    if any(ord(c) > 127 or c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f" for c in prefix):
+        hex_preview = prefix.encode("utf-8", errors="replace").hex()
+        return f"len={len(raw)} hex_preview={hex_preview} text_preview={sample!r}"
     return f"len={len(raw)} preview={sample!r}"
 
 
 def _parse_hook_json(raw: str) -> dict[str, Any] | None:
+    """Parse the hook JSON payload, tolerating trailing garbage and embedded braces.
+
+    Cursor occasionally appends extra whitespace, trailing control characters, or
+    other data after the JSON object. The parser extracts the first valid object
+    by scanning from the first ``{`` to each subsequent ``}`` rather than using
+    the last ``}`` in the entire buffer, which avoids mis-parsing prompts that
+    contain brace characters.
+    """
     text = raw.strip()
     if not text:
         return {}
-    # Cursor may emit a single object, or occasionally trailing whitespace/newlines.
+    # Fast path: a single well-formed object.
     try:
         data = json.loads(text)
         if isinstance(data, dict):
@@ -73,16 +89,24 @@ def _parse_hook_json(raw: str) -> dict[str, Any] | None:
         return {}
     except json.JSONDecodeError:
         pass
-    # Tolerate leading BOM / junk before first '{'
+    # Tolerate leading junk and trailing garbage by finding the first valid object.
     start = text.find("{")
-    end = text.rfind("}")
-    if start >= 0 and end > start:
-        try:
-            data = json.loads(text[start : end + 1])
-            if isinstance(data, dict):
-                return data
-        except json.JSONDecodeError:
-            pass
+    if start < 0:
+        return None
+    # Scan forward to each closing brace; return the first complete dict.
+    depth = 0
+    for i, ch in enumerate(text[start:], start):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    data = json.loads(text[start : i + 1])
+                    if isinstance(data, dict):
+                        return data
+                except json.JSONDecodeError:
+                    continue
     return None
 
 

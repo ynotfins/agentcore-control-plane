@@ -140,6 +140,28 @@ def test_malformed_input() -> None:
     )
     doc = _parse_stdout(proc.stdout)
     _validate_event("sessionStart", doc)
+    # Trailing garbage after a valid JSON object (common Cursor defect)
+    proc = subprocess.run(
+        [sys.executable, str(DISPATCHER), "sessionStart"],
+        input='{"event":"sessionStart","session_id":"garbage-test"}\n\x00trailing',
+        capture_output=True,
+        text=True,
+        timeout=30,
+        cwd=str(REPO),
+    )
+    doc = _parse_stdout(proc.stdout)
+    _validate_event("sessionStart", doc)
+    # Prompt containing brace characters must not confuse the parser
+    proc = subprocess.run(
+        [sys.executable, str(DISPATCHER), "beforeSubmitPrompt"],
+        input='{"prompt":"print {\\"key\\":1}","conversation_id":"brace-test"}',
+        capture_output=True,
+        text=True,
+        timeout=30,
+        cwd=str(REPO),
+    )
+    doc = _parse_stdout(proc.stdout)
+    assert doc.get("continue") is True, "beforeSubmitPrompt with braces must fail open"
 
 
 def test_missing_gateway_degraded() -> None:
