@@ -1,3 +1,9 @@
+---
+description: AgentCore Windows environment variable policy
+globs: ["**/*"]
+alwaysApply: true
+---
+
 # AgentCore Windows Environment Variable Policy
 
 AgentCore uses Windows Environment Variables, not `.env` files, for secrets and local runtime configuration.

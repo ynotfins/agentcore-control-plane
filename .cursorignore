@@ -1,1 +1,15 @@
 # Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+
+# Runtime / context / cache / tool state that should never be indexed as project source
+.context-fabric/
+.serena/
+.depwire/
+.agentcore/runtime/
+.cursor/hooks/state/
+
+# Local ephemeral build artifacts and lock files that are not canonical source
+scripts/uv.lock
+scripts/_scratch/
+scripts/cherry/_node_workspace/
+scripts/cherry/_scratch*.py
+scripts/cherry/_scratch*.js
