@@ -1,0 +1,84 @@
+{
+  "generated_at": "2026-07-23T05:15:30Z",
+  "repo": "D:\\github\\agentcore-control-plane",
+  "head": "1bf84a1ab2c440f4a00f0fec822bc9f8e34c5268",
+  "branch": "main",
+  "active_rules": [
+    {
+      "path": "D:\\github\\agentcore-control-plane\\.cursor\\rules\\agentcore-active-bootstrap.mdc",
+      "exists": true,
+      "size": 4691,
+      "sha256": "D710D5CCEA571BC6C5931EB7CB2E57E1CC99D30A3FD022C440EC2A7E91CFB521",
+      "mtime": "2026-07-21T05:47:32Z"
+    },
+    {
+      "path": "D:\\github\\agentcore-control-plane\\.cursor\\rules\\agentcore-env-policy.mdc",
+      "exists": true,
+      "size": 2254,
+      "sha256": "56F26580E8C9019834A6BB60D29419C2B372DFE9FA8AF4D114E0AFEC37AFA34D",
+      "mtime": "2026-07-17T17:36:30Z"
+    },
+    {
+      "path": "D:\\github\\agentcore-control-plane\\.cursor\\hooks.json",
+      "exists": true,
+      "size": 453,
+      "sha256": "1C658608CAD545D3A45692D5E6A29E5F4F177F10FEAC479C855DE3382C8FE363",
+      "mtime": "2026-07-21T05:47:54Z"
+    },
+    {
+      "path": "D:\\github\\agentcore-control-plane\\.cursor\\hooks\\agentcore-hook.cmd",
+      "exists": true,
+      "size": 803,
+      "sha256": "7ADA9D07699C3346B73DC2B042C753463F58D3D3BC4CF53247A3D5E872BDB115",
+      "mtime": "2026-07-21T05:47:54Z"
+    },
+    {
+      "path": "D:\\github\\agentcore-control-plane\\.cursor\\hooks\\agentcore-hook.ps1",
+      "exists": true,
+      "size": 1887,
+      "sha256": "EAEA02D2F63873764E2BC60A9FDEBB5D4874286CA072E243812AA461F7BD3F03",
+      "mtime": "2026-07-21T05:47:54Z"
+    },
+    {
+      "path": "D:\\github\\.cursor\\rules\\00-memory-autopilot.mdc",
+      "exists": true,
+      "size": 1398,
+      "sha256": "CB5F25696DEABAEFD912330774EE5334CAED6D54B0BA07450A1BAB2D1CA80540",
+      "mtime": "2026-02-19T00:58:33Z"
+    },
+    {
+      "path": "D:\\.cursor\\rules\\openmemory.mdc",
+      "exists": true,
+      "size": 12980,
+      "sha256": "F865D7F9650A87FFC1EC00D2E7243B4D157AE1568B6865FCEA3EA5A7159843F5",
+      "mtime": "2026-05-07T02:44:13Z"
+    },
+    {
+      "path": "C:\\Users\\ynotf\\.cursor\\rules\\30-memory-usage.mdc",
+      "exists": true,
+      "size": 3030,
+      "sha256": "DD69907AC075BBC98AADD6966F78E547069F601608A45D6EB3FAF0DDA18002E5",
+      "mtime": "2026-06-30T01:27:25Z"
+    }
+  ],
+  "phantom_tree": {
+    "root": "D:\\github\\agentcore-control-plane\\github\\agentcore-control-plane",
+    "files": [
+      {
+        "path": "github\\agentcore-control-plane\\.agentcore\\runtime\\cursor-bootstrap.json",
+        "size": 2806,
+        "sha256": "707C33BCE3A72CB051B73D1EF2AC63F2C79E23A8399C7CB5F78AA82B61409993"
+      },
+      {
+        "path": "github\\agentcore-control-plane\\.agentcore\\runtime\\cursor-bootstrap.md",
+        "size": 2501,
+        "sha256": "14568AA4F98BEB93A582B00C307947C88AC59C7506EB8942184E030EDBC8D787"
+      },
+      {
+        "path": "github\\agentcore-control-plane\\.cursor\\rules\\agentcore-active-bootstrap.mdc",
+        "size": 2609,
+        "sha256": "023F90DE6AECAC39499277658C92781C39DE513C155A45FD3CDE1FD7F2CEB261"
+      }
+    ]
+  }
+}
