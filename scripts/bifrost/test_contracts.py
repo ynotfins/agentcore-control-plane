@@ -179,6 +179,17 @@ def main() -> int:
         (scope_result.stdout or scope_result.stderr).strip()[:300],
     )
 
+    # Per-dimension client-status schema and semantic/temporal invariants.
+    status_result = subprocess.run(
+        [sys.executable, str(REPO / "scripts" / "bifrost" / "validate_client_status.py")],
+        capture_output=True, text=True, cwd=REPO,
+    )
+    check(
+        "ide:client-status semantic/temporal invariants",
+        status_result.returncode == 0,
+        (status_result.stdout or status_result.stderr).strip()[:300],
+    )
+
     # Every mandatory rule id appears in every rendered GLOBAL_RULES.md (no silent omission).
     if policy:
         rule_titles = [rule["title"] for rule in policy["mandatory_rules"]]

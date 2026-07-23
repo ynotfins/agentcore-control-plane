@@ -1,14 +1,19 @@
+
+
 ide_id: cherry-studio
 display_name: Cherry Studio
 swarm_managed: false
 installed_version: 1.9.12
-live_global_rule_target: 'AgentCore Workspace Agent system prompt (imported via scripts/cherry/configure_agentcore_agent.py; source: docs/prompts/cherry-agentcore-workspace-agent.md)'
-live_mcp_config_target: 'C:\Users\ynotf\AppData\Roaming\CherryStudio\Local Storage\leveldb (redux persist:cherry-studio -> mcp.servers)'
-rule_mechanism: 'AgentCore Workspace Agent system prompt (manual_import)'
+live_global_rule_target: 'AgentCore Workspace Agent system prompt (imported via scripts/cherry/configure_agentcore_agent.py;
+  source: docs/prompts/cherry-agentcore-workspace-agent.md)'
+live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\CherryStudio\Local Storage\leveldb
+  (redux persist:cherry-studio -> mcp.servers)
+rule_mechanism: AgentCore Workspace Agent system prompt (manual_import)
 mcp_schema: cherry_studio_leveldb
 mcp_transport: streamableHttp
-env_var_handling: 'no ${env:} expansion; materialize BIFROST_MCP_VIRTUAL_KEY bearer into live LevelDB store via scripts/cherry/enroll_agentcore_gateway.py'
-restart_behavior: 'fully quit Cherry Studio, run enrollment script, relaunch'
+env_var_handling: no ${env:} expansion; materialize BIFROST_MCP_VIRTUAL_KEY bearer
+  into live LevelDB store via scripts/cherry/enroll_agentcore_gateway.py
+restart_behavior: fully quit Cherry Studio, run enrollment script, relaunch
 editability:
   global_rules: manual_import
   project_rules: unsupported
@@ -19,16 +24,57 @@ validation_required: true
 restart_required: true
 last_validation_date: '2026-07-20'
 mcp_template_source: renderers/gateway-clients/cherry-studio.json
-m8_enrollment: live_validated
+m8_enrollment: configured_restart_required
 known_limitations:
-  - 'Cherry persists MCP servers in Local Storage LevelDB under redux key persist:cherry-studio; no simple file edit.'
-  - 'Cherry does not expand ${env:} in headers; bearer must be materialized into the live store by the enrollment script.'
-  - 'Cherry Global Memory must be OFF; builtin @cherry/* inMemory MCP servers must remain inactive.'
-  - 'Rules are delivered through the AgentCore Workspace Agent system prompt, not a file-based global rule.'
+- Cherry persists MCP servers in Local Storage LevelDB under redux key persist:cherry-studio;
+  no simple file edit.
+- Cherry does not expand ${env:} in headers; bearer must be materialized into the
+  live store by the enrollment script.
+- Cherry Global Memory must be OFF; builtin @cherry/* inMemory MCP servers must remain
+  inactive.
+- Rules are delivered through the AgentCore Workspace Agent system prompt, not a file-based
+  global rule.
 semantic_parity_gaps:
-  - 'Rule delivery depends on the operator/agent running scripts/cherry/configure_agentcore_agent.py to import the canonical AgentCore Workspace Agent prompt.'
+- Rule delivery depends on the operator/agent running scripts/cherry/configure_agentcore_agent.py
+  to import the canonical AgentCore Workspace Agent prompt.
 enrollment_evidence:
   audit: audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md
   lifecycle: audits/CHERRY_MEMORY_LIFECYCLE_2026-07-20.json
   runtime_repair: audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md
   runbook: docs/operations/CHERRY_STUDIO_AGENTCORE.md
+dimensions:
+  application_launch:
+    status: live_validated
+    evidence_path: audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md
+    evidence_ts: '2026-07-20T00:00:00Z'
+    superseded_by: null
+  gateway_configuration:
+    status: live_validated
+    evidence_path: audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md
+    evidence_ts: '2026-07-20T00:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: live_validated
+    evidence_path: audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md
+    evidence_ts: '2026-07-20T00:00:00Z'
+    superseded_by: null
+  native_memory_lifecycle:
+    status: configured_restart_required
+    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+    evidence_ts: '2026-07-22T00:00:00Z'
+    superseded_by: null
+  fresh_chat_recovery:
+    status: configured_restart_required
+    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+    evidence_ts: '2026-07-22T00:00:00Z'
+    superseded_by: null
+  persistence_after_restart:
+    status: configured_restart_required
+    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+    evidence_ts: '2026-07-22T00:00:00Z'
+    superseded_by: null
+  operator_gate:
+    status: configured_restart_required
+    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+    evidence_ts: '2026-07-22T00:00:00Z'
+    superseded_by: null

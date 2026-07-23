@@ -1,18 +1,20 @@
+
+
 ide_id: claude-code
 display_name: Claude Code
 swarm_managed: false
 installed_version: unverified
-live_global_rule_target: 'C:\Users\ynotf\.claude\CLAUDE.md'
-live_mcp_config_target: 'C:\Users\ynotf\.claude.json'
-rule_mechanism: 'global CLAUDE.md (~/.claude/CLAUDE.md) + per-repo CLAUDE.md'
+live_global_rule_target: C:\Users\ynotf\.claude\CLAUDE.md
+live_mcp_config_target: C:\Users\ynotf\.claude.json
+rule_mechanism: global CLAUDE.md (~/.claude/CLAUDE.md) + per-repo CLAUDE.md
 mcp_schema: claude_code_json
 mcp_transport: http/streamable
-env_var_handling: 'supports ${env:VAR} style header expansion (per gateway-client contract)'
-restart_behavior: 'restart Claude Code session after config or env-var changes'
+env_var_handling: supports ${env:VAR} style header expansion (per gateway-client contract)
+restart_behavior: restart Claude Code session after config or env-var changes
 editability:
-  global_rules: direct_write        # file-writable Markdown; live edits approval-gated by policy
+  global_rules: direct_write
   project_rules: direct_write
-  mcp_config: direct_write          # merge into mcpServers only; approval-gated
+  mcp_config: direct_write
 installation_mode: generated_prompt
 backup_required: true
 validation_required: true
@@ -20,5 +22,42 @@ restart_required: true
 last_validation_date: unverified
 mcp_template_source: renderers/gateway-clients/claude-code.json
 known_limitations:
-  - 'Merge into existing mcpServers key; do not invent unrelated top-level keys in .claude.json.'
+- Merge into existing mcpServers key; do not invent unrelated top-level keys in .claude.json.
 semantic_parity_gaps: []
+dimensions:
+  application_launch:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/claude-code/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  gateway_configuration:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/claude-code/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/claude-code/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  native_memory_lifecycle:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/claude-code/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  fresh_chat_recovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/claude-code/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  persistence_after_restart:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/claude-code/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  operator_gate:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/claude-code/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+m8_enrollment: awaiting_operator_import

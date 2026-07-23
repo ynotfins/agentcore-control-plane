@@ -1,18 +1,21 @@
+
+
 ide_id: open-interpreter
 display_name: Open Interpreter
 swarm_managed: false
 installed_version: unverified
-live_global_rule_target: 'Open Interpreter profile/system message (profiles under %APPDATA%\interpreter)'
-live_mcp_config_target: 'C:\Users\ynotf\AppData\Roaming\interpreter\config.json'
-rule_mechanism: 'profile system message / custom instructions'
+live_global_rule_target: Open Interpreter profile/system message (profiles under %APPDATA%\interpreter)
+live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\interpreter\config.json
+rule_mechanism: profile system message / custom instructions
 mcp_schema: open_interpreter_json
 mcp_transport: http/streamable
-env_var_handling: 'no env-header expansion — VK materialized into live config during approved cutover only'
-restart_behavior: 'restart interpreter session after config changes'
+env_var_handling: no env-header expansion — VK materialized into live config during
+  approved cutover only
+restart_behavior: restart interpreter session after config changes
 editability:
-  global_rules: manual_import       # system-message/profile edit by operator (do not modify open-interpreter-01/ without explicit request)
+  global_rules: manual_import
   project_rules: unsupported
-  mcp_config: direct_write          # file-writable; approval-gated; VK materialization allowed per contract note
+  mcp_config: direct_write
 installation_mode: generated_prompt
 backup_required: true
 validation_required: true
@@ -20,17 +23,56 @@ restart_required: true
 last_validation_date: unverified
 mcp_template_source: renderers/gateway-clients/open-interpreter.json
 known_limitations:
-  - 'No env-header expansion: resolved VK may exist in the live config only (never in Git).'
-  - 'Rules live in profile system message; parity depends on operator import.'
+- 'No env-header expansion: resolved VK may exist in the live config only (never in
+  Git).'
+- Rules live in profile system message; parity depends on operator import.
 semantic_parity_gaps:
-  - 'Rules delivery is manual via profile system message.'
+- Rules delivery is manual via profile system message.
 status_reconciliation:
   reconciled_at: '2026-07-23'
   source_handoff: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
   source_handoff_date: '2026-07-22'
-  claim: 'Open Interpreter persistence failure'
-  finding: >-
-    Operator previously saw agentcore-gateway connected and working, but after reopening the client
-    no longer looked configured. Persistent root cause not established; dedicated diagnostic task required.
+  claim: Open Interpreter persistence failure
+  finding: Operator previously saw agentcore-gateway connected and working, but after
+    reopening the client no longer looked configured. Persistent root cause not established;
+    dedicated diagnostic task required.
   status_after_reconciliation: awaiting_operator_import
-  next_step: 'Locate actual persistent MCP configuration, apply supported gateway setup, and prove native lifecycle survives a client restart.'
+  next_step: Locate actual persistent MCP configuration, apply supported gateway setup,
+    and prove native lifecycle survives a client restart.
+dimensions:
+  application_launch:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  gateway_configuration:
+    status: configured_restart_required
+    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+    evidence_ts: '2026-07-22T00:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  native_memory_lifecycle:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  fresh_chat_recovery:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  persistence_after_restart:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  operator_gate:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+m8_enrollment: awaiting_operator_import

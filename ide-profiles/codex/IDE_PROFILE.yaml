@@ -1,35 +1,78 @@
+
+
 ide_id: codex
 display_name: Codex (OpenAI)
 swarm_managed: false
 installed_version: unverified
-live_global_rule_target: 'C:\Users\ynotf\.codex\AGENTS.md'
-live_mcp_config_target: 'C:\Users\ynotf\.codex\config.toml'
-rule_mechanism: 'global AGENTS.md (~/.codex/AGENTS.md) + per-repo AGENTS.md'
+live_global_rule_target: C:\Users\ynotf\.codex\AGENTS.md
+live_mcp_config_target: C:\Users\ynotf\.codex\config.toml
+rule_mechanism: global AGENTS.md (~/.codex/AGENTS.md) + per-repo AGENTS.md
 mcp_schema: codex_toml
 mcp_transport: http/streamable
-env_var_handling: 'bearer_token_env_var (no inline header env expansion; no generic timeout_seconds field)'
-restart_behavior: 'restart Codex session after config.toml or env-var changes'
+env_var_handling: bearer_token_env_var (no inline header env expansion; no generic
+  timeout_seconds field)
+restart_behavior: restart Codex session after config.toml or env-var changes
 editability:
-  global_rules: direct_write        # file-writable Markdown; live edits approval-gated by policy
+  global_rules: direct_write
   project_rules: direct_write
-  mcp_config: direct_write          # TOML file; live edits approval-gated by policy
+  mcp_config: direct_write
 installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-07-14'  # Codex cutover commits 5820244/81e90eb
+last_validation_date: '2026-07-14'
 mcp_template_source: renderers/gateway-clients/codex.json
 known_limitations:
-  - 'TOML config: use bearer_token_env_var, startup_timeout_sec, tool_timeout_sec (not headers/timeout_seconds).'
-  - 'Codex-managed extras (node_repl, plugin MCP servers) are preserved beside the gateway entry.'
+- 'TOML config: use bearer_token_env_var, startup_timeout_sec, tool_timeout_sec (not
+  headers/timeout_seconds).'
+- Codex-managed extras (node_repl, plugin MCP servers) are preserved beside the gateway
+  entry.
 semantic_parity_gaps: []
 status_reconciliation:
   reconciled_at: '2026-07-23'
   source_handoff: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
   source_handoff_date: '2026-07-22'
-  claim: 'Codex desktop launch failure'
-  finding: >-
-    Codex desktop application would not open correctly; launch could fall back to Chrome/browser.
-    Config file presence (2026-07-14) does not prove native application launch or MCP lifecycle.
+  claim: Codex desktop launch failure
+  finding: Codex desktop application would not open correctly; launch could fall back
+    to Chrome/browser. Config file presence (2026-07-14) does not prove native application
+    launch or MCP lifecycle.
   status_after_reconciliation: unverified
-  next_step: 'Repair the Codex/ChatGPT desktop application through the official supported path, then run native gateway lifecycle validation.'
+  next_step: Repair the Codex/ChatGPT desktop application through the official supported
+    path, then run native gateway lifecycle validation.
+dimensions:
+  application_launch:
+    status: fail
+    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+    evidence_ts: '2026-07-22T00:00:00Z'
+    superseded_by: null
+  gateway_configuration:
+    status: configured_restart_required
+    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+    evidence_ts: '2026-07-22T00:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  native_memory_lifecycle:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  fresh_chat_recovery:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  persistence_after_restart:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  operator_gate:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+m8_enrollment: unverified

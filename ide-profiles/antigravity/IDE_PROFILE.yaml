@@ -1,20 +1,22 @@
+
+
 ide_id: antigravity
 display_name: Antigravity (Gemini)
 swarm_managed: false
 installed_version: unverified
 live_global_rule_target: unverified
-live_mcp_config_target: 'C:\Users\ynotf\.gemini\config\mcp_config.json'
+live_mcp_config_target: C:\Users\ynotf\.gemini\config\mcp_config.json
 alternate_mcp_config_targets:
-  - 'C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json'
+- C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json
 rule_mechanism: unverified
 mcp_schema: antigravity_mcp_json
 mcp_transport: http/streamable
-env_var_handling: 'supports env headers (per gateway-client contract)'
-restart_behavior: 'restart client after MCP config changes'
+env_var_handling: supports env headers (per gateway-client contract)
+restart_behavior: restart client after MCP config changes
 editability:
   global_rules: unverified
   project_rules: unverified
-  mcp_config: direct_write          # file-writable; approval-gated
+  mcp_config: direct_write
 installation_mode: generated_prompt
 backup_required: true
 validation_required: true
@@ -22,7 +24,45 @@ restart_required: true
 last_validation_date: unverified
 mcp_template_source: renderers/gateway-clients/antigravity.json
 known_limitations:
-  - 'Two candidate MCP config paths; verify which one the installed build reads before any live change.'
-  - 'Global-rule mechanism unverified.'
+- Two candidate MCP config paths; verify which one the installed build reads before
+  any live change.
+- Global-rule mechanism unverified.
 semantic_parity_gaps:
-  - 'Rule persistence unverified.'
+- Rule persistence unverified.
+dimensions:
+  application_launch:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  gateway_configuration:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  native_memory_lifecycle:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  fresh_chat_recovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  persistence_after_restart:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+  operator_gate:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-07-14T00:00:00Z'
+    superseded_by: null
+m8_enrollment: awaiting_operator_import
