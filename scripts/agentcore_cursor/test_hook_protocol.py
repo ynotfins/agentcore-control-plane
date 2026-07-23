@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -183,6 +184,25 @@ def test_no_orphan_processes() -> None:
         raise RuntimeError(f"possible orphan python processes: before={before} after={after}")
 
 
+def test_drive_relative_root_rejected() -> None:
+    """Drive-relative workspace roots must not create a phantom tree under the repo."""
+    phantom = REPO / "github" / "agentcore-control-plane"
+    if phantom.exists():
+        shutil.rmtree(phantom)
+    payload = {
+        "event": "sessionStart",
+        "session_id": "hook-test-drive-relative",
+        "workspace_roots": ["d:github\\agentcore-control-plane"],
+    }
+    code, out, err = _run_hook("sessionStart", payload)
+    if code not in (0, 2):
+        raise RuntimeError(f"sessionStart drive-relative exit {code}, stderr={err[:200]}")
+    doc = _parse_stdout(out)
+    _validate_event("sessionStart", doc)
+    if phantom.exists():
+        raise RuntimeError("phantom tree regenerated from drive-relative workspace root")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--iterations", type=int, default=100)
@@ -220,6 +240,10 @@ def main() -> int:
 
     print("  special: orphan process check")
     test_no_orphan_processes()
+    print("    PASS")
+
+    print("  special: drive-relative root rejected")
+    test_drive_relative_root_rejected()
     print("    PASS")
 
     print("ALL PASS")

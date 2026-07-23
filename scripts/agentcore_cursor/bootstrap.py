@@ -34,6 +34,13 @@ SECRET_PATTERNS = [
     re.compile(r"postgresql(\+[^:]+)?:\/\/[^\s'\"]+"),
 ]
 
+LOG_ROOT = Path(
+    os.environ.get(
+        "AGENTCORE_CURSOR_BOOTSTRAP_LOG_ROOT",
+        r"H:\AgentRuntime\clients\cursor\logs",
+    )
+)
+
 
 @dataclass
 class SessionChoice:
@@ -75,6 +82,19 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _log(event: str, message: str) -> None:
+    """Append a diagnostic line to the bootstrap log; never raises."""
+    try:
+        LOG_ROOT.mkdir(parents=True, exist_ok=True)
+        day = datetime.now(timezone.utc).strftime("%Y%m%d")
+        line = f"{_now()} [{event}] {message}"
+        path = LOG_ROOT / f"bootstrap-{day}.log"
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(line + "\n")
+    except OSError:
+        pass
+
+
 def _redact(text: str) -> str:
     out = text
     for pat in SECRET_PATTERNS:
@@ -98,14 +118,33 @@ def _git(cwd: Path, *args: str) -> str:
 
 
 def resolve_workspace(explicit: str | None = None) -> Path:
+    """Resolve a safe, absolute workspace root.
+
+    Rejects Windows drive-relative paths (e.g. ``d:github\...``) and any root
+    that does not contain a ``.git`` directory or match the hook's current
+    working directory. This prevents the bootstrap from writing a phantom
+    workspace tree under a relative drive path.
+    """
+    candidates: list[str] = []
     if explicit:
-        return Path(explicit).resolve()
+        candidates.append(explicit)
     for key in ("CURSOR_PROJECT_DIR", "AGENTCORE_PROJECT_ROOT"):
         val = os.environ.get(key)
         if val:
-            return Path(val).resolve()
-    # Hook cwd is normally the project root for project hooks.
-    return Path.cwd().resolve()
+            candidates.append(val)
+    cwd = Path.cwd().resolve()
+    for raw in candidates:
+        path = Path(raw)
+        # Windows drive-relative paths like 'd:github\...' are not absolute.
+        if not path.is_absolute():
+            _log("resolve_workspace", f"rejected non-absolute workspace root: {raw!r}")
+            continue
+        resolved = path.resolve()
+        # Must be a git repo root or match the hook cwd to avoid phantom trees.
+        if (resolved / ".git").is_dir() or resolved == cwd:
+            return resolved
+        _log("resolve_workspace", f"rejected root lacking .git and not matching cwd: {resolved}")
+    return cwd
 
 
 def resolve_project_key(root: Path, gw: GatewayClient | None = None) -> str:
