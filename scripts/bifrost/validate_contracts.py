@@ -339,6 +339,156 @@ def authority_policy_checks(registry: dict[str, Any]) -> list[str]:
     return errors
 
 
+def strict_master_config_audit(registry: dict[str, Any]) -> list[str]:
+    """Hard-failure audit of MASTER_CONFIG_AND_PROMPT.md and related enrollment surfaces."""
+    import yaml  # noqa: PLC0415
+
+    errors: list[str] = []
+    master = REPO_ROOT / "MASTER_CONFIG_AND_PROMPT.md"
+    install_prompt = REPO_ROOT / "docs" / "prompts" / "install-agentcore-gateway-in-ide.md"
+    matrix_path = REPO_ROOT / "ide-profiles" / "IDE_CAPABILITY_MATRIX.yaml"
+
+    if not master.exists():
+        return ["MASTER_CONFIG_AND_PROMPT.md missing"]
+    content = master.read_text(encoding="utf-8")
+
+    # 1. BLUEPRINT.md in authority chain with absolute path
+    if "@D:\\github\\agentcore-control-plane\\BLUEPRINT.md" not in content:
+        errors.append("MASTER_CONFIG: BLUEPRINT.md missing from authority chain as @-prefixed absolute path")
+
+    # 2. Canonical single gateway entry
+    if "agentcore-gateway" not in content or "http://127.0.0.1:8080/mcp" not in content:
+        errors.append("MASTER_CONFIG: missing canonical single gateway entry")
+    if "${env:BIFROST_MCP_VIRTUAL_KEY}" not in content:
+        errors.append("MASTER_CONFIG: missing env-var bearer auth form")
+
+    # 3. Exact ten memory tools
+    expected_tools = [
+        "memory_status", "startup_context", "retrieve_context", "append_event",
+        "propose_fact", "expand_source", "session_open", "session_close",
+        "build_handoff", "docs_search",
+    ]
+    for tool in expected_tools:
+        if tool not in content:
+            errors.append(f"MASTER_CONFIG: missing memory tool {tool}")
+
+    # 4. Obsidian not presented as default enabled
+    if re.search(r"(?i)obsidian[^.\n]{0,80}default[^.\n]{0,80}enabled", content):
+        errors.append("MASTER_CONFIG: Obsidian presented as default enabled")
+    if re.search(r"(?i)obsidian[^.\n]{0,80}enabled[^.\n]{0,80}by default", content):
+        errors.append("MASTER_CONFIG: Obsidian presented as enabled by default")
+
+    # 5. MiniMax Code and Classic not conflated
+    if re.search(r"(?i)minimax[^a-z0-9_.]mavis|minimax\s*code/classic|minimax/classic", content):
+        errors.append("MASTER_CONFIG: MiniMax Code and Classic may be conflated")
+    if "MiniMax Code" not in content or "MiniMax Agent Classic" not in content:
+        errors.append("MASTER_CONFIG: MiniMax Code and MiniMax Agent Classic must be listed separately")
+
+    # 6. Mavis not falsely presented as separate executable client
+    mavis_row = re.search(r"(?im)^\|\s*mavis\s*\|", content)
+    if mavis_row:
+        errors.append("MASTER_CONFIG: Mavis listed as a separate managed client in matrix/table")
+    if re.search(r"(?i)\bmavis\b[^.\n]{0,120}separate[^.\n]{0,120}client", content):
+        if "not a separate" not in content.lower():
+            errors.append("MASTER_CONFIG: Mavis presented as a separate executable client")
+
+    # 7. manual/UI-only clients not given direct-write mcp config (matrix + profiles)
+    if matrix_path.exists():
+        matrix = yaml.safe_load(matrix_path.read_text(encoding="utf-8"))
+        for ide_id, ide in (matrix.get("managed_ides") or {}).items():
+            mode = ide.get("configuration_mode")
+            edit = ide.get("editability") or {}
+            if mode in ("UI_only", "manual_import") and edit.get("mcp_config") == "direct_write":
+                errors.append(f"MATRIX: {ide_id} is {mode} but mcp_config is direct_write")
+    for profile_path in sorted((REPO_ROOT / "ide-profiles").glob("*/IDE_PROFILE.yaml")):
+        profile = yaml.safe_load(profile_path.read_text(encoding="utf-8"))
+        if profile.get("swarm_managed"):
+            continue
+        ide_id = profile.get("ide_id") or profile_path.parent.name
+        mode = profile.get("installation_mode") or profile.get("configuration_mode")
+        edit = profile.get("editability") or {}
+        if mode in ("UI_only", "manual_import") and edit.get("mcp_config") == "direct_write":
+            errors.append(f"PROFILE: {ide_id} is {mode} but mcp_config is direct_write")
+
+    # 8. Setup prompt must not edit another IDE
+    # Covered by scripts/bifrost/validate_ide_enrollment_scope.py; run it as a companion.
+
+    # 9. Required file references use @ + absolute path
+    for path in (master, install_prompt):
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        # Remove command lines (python/pwsh) before checking bare absolute paths;
+        # those lines instruct execution, not required reads.
+        filtered_lines = [
+            line for line in text.splitlines()
+            if not re.match(r"^\s*(?:python|py|pwsh|powershell)\s+", line, re.IGNORECASE)
+        ]
+        filtered_text = "\n".join(filtered_lines)
+        # Flag bare D:\github\... or C:\Users\... without @ when instructing reads
+        for m in re.finditer(r"(?m)(?<!@)(?<![\w./\\-])(D:\\(?:github|ChaosCentral)[^\s`\"')\]]+\\[^\s`\"')\]]+)(?:\.(?:md|yaml|yml|json|py))", filtered_text):
+            errors.append(f"{path.name}: absolute path missing @ prefix: {m.group(1)[:80]}")
+        for m in re.finditer(r"(?m)(?<!@)(?<![\w./\\-])(C:\\Users\\ynotf\\[^\s`\"')\]]+)(?:\.(?:md|yaml|yml|json|py))", filtered_text):
+            errors.append(f"{path.name}: user-profile path missing @ prefix: {m.group(1)[:80]}")
+
+    # 10. C-drive user path omits C:\Users\ynotf
+    if re.search(r"C:\\Users\\\.\.\.", content):
+        errors.append("MASTER_CONFIG: contains shortened C:\\Users\\... form")
+
+    # 11. Global rules omit the memory lifecycle
+    policy_path = REPO_ROOT / "contracts" / "global-agent-policy.yaml"
+    if policy_path.exists():
+        policy = yaml.safe_load(policy_path.read_text(encoding="utf-8"))
+        rule_ids = {r.get("id") for r in policy.get("mandatory_rules", [])}
+        required = {"memory-lifecycle-continuous-capture", "durable-memory-context", "recovery-first"}
+        missing = required - rule_ids
+        if missing:
+            errors.append(f"GLOBAL_POLICY: missing memory lifecycle rule(s): {missing}")
+
+    # 12. Configuration presence is not reported as native validation
+    if "Do not claim completion from config files alone" not in content:
+        errors.append("MASTER_CONFIG: missing 'configuration presence is not native validation' statement")
+    if "Do not mark live_validated from config inspection alone" not in content:
+        errors.append("MASTER_CONFIG: missing 'do not mark live_validated from config inspection' statement")
+
+    # 13. Mutable runtime facts not presented as permanent architecture
+    if re.search(r"HEAD\s+[a-f0-9]{7,}", content):
+        errors.append("MASTER_CONFIG: mutable HEAD hash presented as permanent authority")
+    if re.search(r"(?i)\b(?:1[0-9]|2[0-9]|3[0-9])\s+tools\b", content):
+        errors.append("MASTER_CONFIG: mutable runtime tool count presented as permanent architecture")
+    if re.search(r"(?i)\b(?:1[0-9]|2[0-9])\s+enabled\s+upstream\b", content):
+        errors.append("MASTER_CONFIG: mutable upstream enabled count presented as permanent architecture")
+
+    # 14. Secrets or resolved bearer values in Git
+    for path in (master, install_prompt):
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for needle in ("sk-bf-ag", "sk-proj-", "sk-ant-", "sk-or-v1-", "ghp_", "Bearer sk-"):
+            if needle in text:
+                errors.append(f"{path.name}: possible resolved secret literal ({needle})")
+
+    # 15. Follow-on Cursor task needs continuation prompt
+    if "CURSOR CONTINUATION PROMPT" not in content:
+        errors.append("MASTER_CONFIG: missing CURSOR CONTINUATION PROMPT section")
+
+    # 16. Supported clients list must be current and not generic
+    if "Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio" not in content:
+        errors.append("MASTER_CONFIG: supported client list missing or stale")
+
+    # 17. Cherry Studio and MiniMax Classic must be present in the matrix
+    if matrix_path.exists():
+        managed = matrix.get("managed_ides", {})
+        if "cherry-studio" not in managed:
+            errors.append("MATRIX: cherry-studio missing from managed_ides")
+        if "minimax-classic" not in managed:
+            errors.append("MATRIX: minimax-classic missing from managed_ides")
+        if "mavis" in managed:
+            errors.append("MATRIX: mavis still listed as a managed IDE")
+
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict-master-drift", action="store_true", help="Treat master drift stub notices as errors")
@@ -356,6 +506,7 @@ def main() -> int:
     errors.extend(validate_schema(gateway, gateway_schema, "gateway-client"))
     errors.extend(semantic_registry_checks(registry))
     errors.extend(authority_policy_checks(registry))
+    errors.extend(strict_master_config_audit(registry))
     notices.extend(stub_master_config_drift())
 
     if notices:
@@ -374,7 +525,7 @@ def main() -> int:
     print("OK: registry + gateway-client schemas valid")
     print(f"OK: enabled servers={len(enabled)} disabled/deferred={len(registry['servers']) - len(enabled)}")
     print("OK: authority + policy contracts valid (hierarchy, banners, wildcard transitional note, rule files)")
-    print("OK: master-config drift check stub (no hard failures)")
+    print("OK: master-config strict audit passed")
     return 0
 
 

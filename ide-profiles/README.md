@@ -28,19 +28,22 @@ ide-profiles/
 - OpenClaw/ClawX are **Swarm-managed** — recorded in the matrix, no non-Swarm profile created.
 - New managed clients are added only after verification against the live machine.
 
-## Semantic parity report (2026-07-14)
+## Semantic parity report (2026-07-22)
 
-All 15 mandatory rules from the canonical policy are present in every rendered `GLOBAL_RULES.md`. Delivery capability differs by product:
+All mandatory rules from the canonical policy are present in every rendered `GLOBAL_RULES.md`. Delivery capability differs by product:
 
-| IDE | Rules delivery | MCP entry | Parity status |
-| -- | -- | -- | -- |
-| cursor | project rules `direct_write`; global User Rules `manual_import` | one gateway entry (validated 2026-07-13, 127 tools) | full (delivery of global rules is manual paste) |
-| codex | `AGENTS.md` `direct_write` | one gateway entry (validated 2026-07-14) | full |
-| claude-code | `CLAUDE.md` `direct_write` | one gateway entry (unvalidated) | full pending live validation |
-| claude-desktop | `manual_import` (no rules file) | one gateway entry; VK materialized live-only | partial — depends on operator pasting rules |
-| minimax | `unverified` rule mechanism | one gateway entry (unvalidated) | pending verification |
-| antigravity | `unverified` rule mechanism; two candidate MCP paths | one gateway entry (unvalidated) | pending verification |
-| mavis | `unverified` rule mechanism | one gateway entry (unvalidated) | pending verification |
-| open-interpreter | `manual_import` via profile system message | one gateway entry; VK materialized live-only | partial — depends on operator import |
+| IDE | Configuration mode | Rules delivery | MCP entry | Parity status |
+| -- | -- | -- | -- | -- |
+| cursor | generated_prompt | project rules `direct_write`; global User Rules `manual_import` | one gateway entry (live validated 2026-07-16, 10 memory tools) | full (delivery of global rules is manual paste) |
+| codex | generated_prompt | `AGENTS.md` `direct_write` | one gateway entry (config validated 2026-07-14) | full pending live session validation |
+| claude-code | generated_prompt | `CLAUDE.md` `direct_write` | one gateway entry (unvalidated) | full pending live validation |
+| claude-desktop | generated_prompt | `manual_import` (no rules file) | one gateway entry; VK materialized live-only | partial — depends on operator pasting rules |
+| minimax | generated_prompt | `AGENT.md` `direct_write` | one gateway entry (config validated 2026-07-22; native lifecycle pending) | full pending operator chat acceptance |
+| minimax-classic | UI_only | `AGENT.md` `direct_write` | Matrix cloud custom MCP UI (no local mcp.json) | full pending operator cloud enrollment + chat acceptance |
+| antigravity | unverified | unverified | one gateway entry (unvalidated) | unverified |
+| open-interpreter | generated_prompt | `manual_import` via profile system message | one gateway entry; VK materialized live-only | partial — depends on operator import |
+| cherry-studio | UI_only | `manual_import` via AgentCore Workspace Agent prompt | Local Storage LevelDB (enrollment script) | live validated 2026-07-20 |
+
+`C:\Users\ynotf\.mavis` is a junction to `C:\Users\ynotf\.minimax` (same MiniMax Code data root); it is not a separate executable Mavis client and does not receive its own managed profile.
 
 No mandatory rule is silently omitted anywhere: every gap above is recorded in the corresponding `IDE_PROFILE.yaml` and rendered into that IDE's `GLOBAL_RULES.md` under "Product-specific notes and omissions".

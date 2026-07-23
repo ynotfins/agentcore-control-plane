@@ -58,7 +58,9 @@
       "syntax": "minimax_mcp_json",
       "supports_env_headers": true,
       "notes": [
-        "C:\\Users\\ynotf\\.mavis is a junction to C:\\Users\\ynotf\\.minimax (MiniMax Code data root)"
+        "MiniMax Code (D:\\Apps\\MiniMax Code or C:\\Users\\ynotf\\AppData\\Local\\Programs\\MiniMax Code)",
+        "C:\\Users\\ynotf\\.mavis is a junction to C:\\Users\\ynotf\\.minimax (same MiniMax Code data root); not a separate Mavis application install",
+        "MiniMax Agent Classic is a separate product with its own profile (minimax-classic)"
       ]
     },
     "minimax-classic": {
@@ -81,15 +83,6 @@
       ],
       "syntax": "antigravity_mcp_json",
       "supports_env_headers": true
-    },
-    "mavis": {
-      "enabled": true,
-      "config_path": "C:\\Users\\ynotf\\.mavis\\mcp\\mcp.json",
-      "syntax": "mavis_mcp_json",
-      "supports_env_headers": true,
-      "notes": [
-        "On this workstation C:\\Users\\ynotf\\.mavis is a junction to C:\\Users\\ynotf\\.minimax (MiniMax Code); not a separate Mavis application install"
-      ]
     },
     "open-interpreter": {
       "enabled": true,

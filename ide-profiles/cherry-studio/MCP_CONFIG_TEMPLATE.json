@@ -1,0 +1,25 @@
+{
+  "_template_note": "Cherry Studio persists MCP servers in Local Storage LevelDB under redux key persist:cherry-studio -> mcp.servers. This sanitized record is the intended AgentCore enrollment shape. The bearer is materialized from Windows User env BIFROST_MCP_VIRTUAL_KEY by scripts/cherry/enroll_agentcore_gateway.py because Cherry does not expand ${env:} in headers. Never commit a resolved bearer.",
+  "id": "agentcore-gateway",
+  "name": "agentcore-gateway",
+  "type": "streamableHttp",
+  "url": "http://127.0.0.1:8080/mcp",
+  "active": true,
+  "timeout": 300,
+  "headers": {
+    "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+  },
+  "provider": "AgentCore",
+  "_agentcore": {
+    "renderer": "cherry-studio",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "enrollment_path": "ide-profiles/cherry-studio/MCP_ENROLLMENT_UI.md",
+    "agent": {
+      "id": "agentcore-workspace-agent",
+      "display_name": "AgentCore Workspace Agent",
+      "model": "deepseek:deepseek-v4-pro",
+      "mcps": ["agentcore-gateway"],
+      "prompt_source": "docs/prompts/cherry-agentcore-workspace-agent.md"
+    }
+  }
+}

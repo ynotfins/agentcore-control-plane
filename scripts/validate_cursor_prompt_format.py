@@ -35,15 +35,24 @@ FURTHER_WORK = re.compile(
 )
 
 
+def _strip_command_lines(text: str) -> str:
+    """Remove lines that are shell/CLI commands, not required reads."""
+    return "\n".join(
+        line for line in text.splitlines()
+        if not re.match(r"^\s*(?:python|py|pwsh|powershell|npx|node|npm|uv|cargo)\s+", line, re.IGNORECASE)
+    )
+
+
 def validate_text(text: str, *, require_continuation_if_flagged: bool = True) -> list[str]:
     errors: list[str] = []
     if ELLIPSIS_USER.search(text):
         errors.append("found shortened user-profile path form C:\\Users\\...; use @C:\\Users\\ynotf\\...")
 
     # Flag bare absolute C:/D: paths that are not @-prefixed (common authority list mistakes).
-    for m in re.finditer(r"(?m)(?<!@)(?<![A-Za-z0-9_])([A-Za-z]:\\(?:github|Users)\\[^\s`\"')\]]+)", text):
+    # Skip command lines, which instruct execution rather than required reads.
+    scan_text = _strip_command_lines(text)
+    for m in re.finditer(r"(?m)(?<!@)(?<![A-Za-z0-9_])([A-Za-z]:\\(?:github|Users)\\[^\s`\"')\]]+)", scan_text):
         path = m.group(1)
-        # Allow inside code fences only if they are examples of bad forms — still flag.
         errors.append(f"absolute path missing @ prefix: {path}")
 
     if require_continuation_if_flagged and FURTHER_WORK.search(text) and not CONTINUATION_HEADER.search(text):

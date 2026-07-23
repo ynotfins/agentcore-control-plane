@@ -1,9 +1,10 @@
 # IDE Capability Matrix — managed clients and rule/MCP delivery capabilities
 # Source facts: ide-profiles/<ide>/IDE_PROFILE.yaml (this file is the cross-IDE summary).
-# Editability modes: direct_write | generated_prompt | manual_import | unsupported | unverified
+# Editability modes: direct_write | generated_prompt | manual_import | UI_only | unsupported | unverified
+# Configuration mode summary: the normal way this client receives its AgentCore baseline.
 # Do not guess values — 'unverified' until evidence exists.
 
-matrix_revision: "2026-07-16"
+matrix_revision: "2026-07-22"
 policy_source: contracts/global-agent-policy.yaml
 model_context_profile_source: contracts/model-context-profiles.json
 self_enrollment_contract:
@@ -24,11 +25,13 @@ enrollment_status_codes:
   live_validated: "MCP verified, tools confirmed, identity isolated, rolling context proven live"
   configured_restart_required: "Config written to live path; IDE/session restart required to activate"
   awaiting_operator_import: "Artifact generated; operator must install per INSTALL_OR_UPDATE.md and restart"
+  awaiting_operator_cloud_mcp_enrollment: "Operator must enroll via product's cloud MCP UI/API"
   unsupported_with_reason: "Product does not support required MCP baseline (see notes)"
 
 managed_ides:
   cursor:
     installed_version: unverified
+    configuration_mode: generated_prompt
     rule_mechanism: 'native project rules (.cursor/rules, AGENTS.md) + app-settings User Rules'
     mcp_schema: cursor_mcp_json
     mcp_transport: http/streamable
@@ -57,16 +60,17 @@ managed_ides:
 
   codex:
     installed_version: unverified
+    configuration_mode: generated_prompt
     rule_mechanism: 'global + per-repo AGENTS.md'
     mcp_schema: codex_toml
     mcp_transport: http/streamable
     env_var_handling: bearer_token_env_var
     restart_behavior: session-restart
     editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
-    last_validated: '2026-07-16'
+    last_validated: '2026-07-14'
     m8_enrollment: configured_restart_required
     m8_notes: >-
-      Config verified 2026-07-16 at C:\Users\ynotf\.codex\config.toml: agentcore-gateway entry
+      Config verified 2026-07-14 at C:\Users\ynotf\.codex\config.toml: agentcore-gateway entry
       present with url, bearer_token_env_var=BIFROST_MCP_VIRTUAL_KEY, enabled=true,
       startup_timeout_sec=300, tool_timeout_sec=300. All config paths direct_write.
       AGENTS.md and CLAUDE.md present at all managed repos. New Codex session required to
@@ -75,6 +79,7 @@ managed_ides:
 
   claude-code:
     installed_version: unverified
+    configuration_mode: generated_prompt
     rule_mechanism: 'global + per-repo CLAUDE.md'
     mcp_schema: claude_code_json
     mcp_transport: http/streamable
@@ -91,6 +96,7 @@ managed_ides:
 
   claude-desktop:
     installed_version: unverified
+    configuration_mode: generated_prompt
     rule_mechanism: 'app preferences / project instructions (no rules file)'
     mcp_schema: claude_desktop_json
     mcp_transport: http/streamable
@@ -109,48 +115,62 @@ managed_ides:
 
   minimax:
     installed_version: 3.0.53.91
-    rule_mechanism: 'data-dir-root AGENT.md + per-rule rules/*.md (mechanism not officially documented; delivered through install prompt + live file)'
+    configuration_mode: generated_prompt
+    rule_mechanism: 'data-dir-root AGENT.md + per-rule rules/*.md'
     mcp_schema: minimax_mcp_json
     mcp_transport: http/streamable
     env_var_handling: env-headers-supported
     restart_behavior: client-restart
     editability: { global_rules: direct_write, project_rules: direct_write, mcp_config: direct_write }
-    last_validated: '2026-07-21'
+    last_validated: '2026-07-22'
     m8_enrollment: configured_restart_required
     m8_validation_evidence:
       mcp_entry_count: 4
       gateway_status: healthy
       bifrost_health: ok
-      bifrost_tools_count: 147
       agentcore_memory_tools: 10
       agentcore_project_router_tools: 4
+      playwright_tools: 24
       forbidden_tools_absent: true
       filesystem_root_bounded: 'D:\github'
       project_list_ok: true
-      project_list_count: 55
-      memory_status_ok: false
-      memory_status_blocker: 'agentcore_memory upstream degraded at Bifrost transport layer (out of scope for client-local config)'
     m8_notes: >-
-      ENROLLED 2026-07-21. Live config at C:\Users\ynotf\.minimax\mcp\mcp.json with
+      ENROLLED 2026-07-22. Live config at C:\Users\ynotf\.minimax\mcp\mcp.json with
       agentcore-gateway entry (type=http, url=http://127.0.0.1:8080/mcp, Authorization
       Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}, timeout=300). Live global rules at
-      C:\Users\ynotf\.minimax\AGENT.md (15038 B) and per-rule file at
-      C:\Users\ynotf\.minimax\rules\agentcore-memory.md (4701 B) installed from
-      canonical ide-profiles/minimax/GLOBAL_RULES.md and
-      contracts/global-agent-policy.yaml policy_revision 2026-07-17. Backup at
-      E:\AgentCore-Backups\minimax-enroll-20260722T031719Z. Pre-change Codex-flavored
-      AGENT.md (1195 lines) replaced with 60-line canonical rendering. Three local
-      companion MCP entries (matrix, cu, trash) at 127.0.0.1:15321 and agent.minimax.io
-      remain enabled — not Bifrost upstream duplicates. agentcore_memory upstream is
-      currently in a disconnect/reconnect loop at the Bifrost transport layer; both
-      memory_status and startup_context consistently timeout at 2m tool-execution cap.
-      Re-run the full native memory lifecycle in a fresh MiniMax Code chat once the
-      upstream is healthy to promote to live_validated. Evidence:
-      audits/MINIMAX_CODE_GATEWAY_ENROLLMENT_2026-07-21.md and
-      audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-21.json.
+      C:\Users\ynotf\.minimax\AGENT.md installed from canonical ide-profiles/minimax/GLOBAL_RULES.md.
+      C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax (same MiniMax Code data root);
+      it is not a separate Mavis application install. Three local companion MCP entries
+      (matrix, cu, trash) remain enabled — these are not Bifrost upstream duplicates.
+      Status advances to live_validated only after operator runs the full native memory lifecycle
+      in a fresh MiniMax Code chat. Evidence: audits/MINIMAX_CODE_REPAIR_2026-07-22.md and
+      audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-22.json.
+
+  minimax-classic:
+    installed_version: 1.0.0.5
+    configuration_mode: UI_only
+    rule_mechanism: 'workspace AGENT.md at C:\Users\ynotf\.minimax-agent\AGENT.md'
+    mcp_schema: matrix_cloud_custom_mcp
+    mcp_transport: http-via-matrix-cloud-catalog
+    env_var_handling: no-env-headers-vk-materialized-in-cloud-ui-only
+    restart_behavior: full-app-restart
+    editability: { global_rules: direct_write, project_rules: unsupported, mcp_config: manual_import }
+    last_validated: '2026-07-22'
+    m8_enrollment: awaiting_operator_cloud_mcp_enrollment
+    m8_notes: >-
+      PRODUCT IDENTITY VERIFIED 2026-07-22. MiniMax Agent (Classic v1.0.0), App ID
+      com.minimax.agent-classic, executable D:\Apps\MiniMaxAgent-Classic\MiniMax Agent.exe,
+      isolated user-data C:\Users\ynotf\AppData\Roaming\MiniMaxAgent-Classic.
+      No local mcp.json; custom MCP is enrolled through the MiniMax Matrix cloud UI/API
+      (server_name=agentcore-gateway, base_url=http://127.0.0.1:8080/mcp, mcp_server_type=UserCustomized).
+      Global rules installed at C:\Users\ynotf\.minimax-agent\AGENT.md. Status advances to
+      live_validated only after operator completes cloud MCP enrollment and runs the native
+      lifecycle in a fresh Classic chat. Evidence: audits/MINIMAX_CLASSIC_REPAIR_2026-07-22.md and
+      ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md.
 
   antigravity:
     installed_version: unverified
+    configuration_mode: unverified
     rule_mechanism: unverified
     mcp_schema: antigravity_mcp_json
     mcp_transport: http/streamable
@@ -165,24 +185,9 @@ managed_ides:
       confirm tools/list returns 10 agentcore-memory tools. Live config path unverified on
       this machine.
 
-  mavis:
-    installed_version: unverified
-    rule_mechanism: unverified
-    mcp_schema: mavis_mcp_json
-    mcp_transport: http/streamable
-    env_var_handling: env-headers-supported
-    restart_behavior: client-restart
-    editability: { global_rules: unverified, project_rules: unverified, mcp_config: direct_write }
-    last_validated: unverified
-    m8_enrollment: awaiting_operator_import
-    m8_notes: >-
-      Config artifact in ide-profiles/mavis/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md.
-      Operator action: follow INSTALL_OR_UPDATE.md; import config artifact; restart client;
-      confirm tools/list returns 10 agentcore-memory tools. Live config path unverified on
-      this machine.
-
   open-interpreter:
     installed_version: unverified
+    configuration_mode: generated_prompt
     rule_mechanism: 'profile system message'
     mcp_schema: open_interpreter_json
     mcp_transport: http/streamable
@@ -198,11 +203,52 @@ managed_ides:
       Operator action: follow INSTALL_OR_UPDATE.md; apply profile artifact; restart session;
       confirm tools/list returns 10 agentcore-memory tools.
 
+  cherry-studio:
+    installed_version: 1.9.12
+    configuration_mode: UI_only
+    rule_mechanism: 'AgentCore Workspace Agent system prompt (manual import via configure script)'
+    mcp_schema: cherry_studio_leveldb
+    mcp_transport: streamableHttp
+    env_var_handling: no-env-headers-vk-materialized-by-enrollment-script
+    restart_behavior: full-app-restart
+    editability: { global_rules: manual_import, project_rules: unsupported, mcp_config: manual_import }
+    last_validated: '2026-07-20'
+    m8_enrollment: live_validated
+    m8_validation_evidence:
+      configuration_enrolled: true
+      mcp_protocol_validated: true
+      application_runtime_usable: true
+      home_usable: true
+      agents_usable: true
+      provider_model_usable: true
+      agent_conversation_usable: true
+      mcp_mounted: true
+      memory_lifecycle_validated: true
+      project_isolation_validated: true
+      global_memory_off: true
+      rollback_validated: true
+      agentcore_memory_tools: 10
+      agentcore_project_router_tools: 4
+    m8_notes: >-
+      LIVE VALIDATED 2026-07-20 (runtime repaired same night). Official x64 install,
+      agentcore-gateway enrolled in Local Storage LevelDB, AgentCore Workspace Agent mounted
+      with model deepseek:deepseek-v4-pro, memory lifecycle + project isolation proven.
+      Cherry does not expand ${env:}; enrollment script materializes BIFROST_MCP_VIRTUAL_KEY
+      into the live store. Global Memory OFF; builtin inMemory MCP inactive.
+      Evidence: audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md,
+      audits/CHERRY_MEMORY_LIFECYCLE_2026-07-20.json,
+      audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md,
+      docs/operations/CHERRY_STUDIO_AGENTCORE.md.
+
 swarm_managed_clients:
   openclaw:
     note: 'Swarm-managed (OpenClaw/ClawX). No non-Swarm profile is created. Outside Bifrost IDE cutover scope.'
   clawx:
     note: 'Swarm-managed. No non-Swarm profile is created.'
+
+mavis_alias_note: >-
+  C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax (same MiniMax Code data root).
+  It is not a separate executable Mavis client and does not receive its own managed profile.
 
 discovery_note: >-
   Additional installed managed non-Swarm clients are added to this matrix only after
