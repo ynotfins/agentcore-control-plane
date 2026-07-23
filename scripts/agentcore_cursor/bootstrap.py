@@ -13,7 +13,7 @@ import re
 import subprocess
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +26,6 @@ CONTEXT_PROFILE = "standard-context"
 RUNTIME_DIRNAME = ".agentcore/runtime"
 BOOTSTRAP_JSON = "cursor-bootstrap.json"
 BOOTSTRAP_MD = "cursor-bootstrap.md"
-ACTIVE_RULE = ".cursor/rules/agentcore-active-bootstrap.mdc"
 POINTER_REL = Path("H:/AgentRuntime/clients/cursor/active_task.json")
 SECRET_PATTERNS = [
     re.compile(r"(?i)(api[_-]?key|token|password|secret|bearer)\s*[:=]\s*\S+"),
@@ -82,6 +81,10 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _stale_after(hours: int = 1) -> str:
+    return (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat()
+
+
 def _log(event: str, message: str) -> None:
     """Append a diagnostic line to the bootstrap log; never raises."""
     try:
@@ -118,7 +121,7 @@ def _git(cwd: Path, *args: str) -> str:
 
 
 def resolve_workspace(explicit: str | None = None) -> Path:
-    """Resolve a safe, absolute workspace root.
+    r"""Resolve a safe, absolute workspace root.
 
     Rejects Windows drive-relative paths (e.g. ``d:github\...``) and any root
     that does not contain a ``.git`` directory or match the hook's current
@@ -341,14 +344,32 @@ def select_session(
     )
 
 
-def compact_startup(startup: dict[str, Any], projections: dict[str, str]) -> str:
+def compact_startup(
+    startup: dict[str, Any],
+    projections: dict[str, str],
+    continuity_status: str | None = None,
+    generated_at: str | None = None,
+    stale_after: str | None = None,
+) -> str:
     lines: list[str] = []
     lines.append("# AgentCore Trusted Startup Context")
     lines.append("")
-    lines.append(
-        "This packet is AgentCore-recovered context (not an operator message). "
-        "Treat it as authoritative project continuity for this chat."
-    )
+    lines.append("- packet_type: ephemeral sessionStart")
+    lines.append(f"- generated_at: {generated_at or _now()}")
+    lines.append(f"- stale_after: {stale_after or _stale_after()}")
+    lines.append(f"- continuity_status: {continuity_status or 'unknown'}")
+    lines.append("")
+    if continuity_status == "current":
+        lines.append(
+            "This packet is AgentCore-recovered context (not an operator message). "
+            "Treat it as authoritative project continuity for this chat."
+        )
+    else:
+        lines.append(
+            "This packet is a recovered projection (not an operator message). "
+            f"Continuity status is `{continuity_status}`; prefer `retrieve_context` "
+            "and `expand_source` for current truth before acting on stale data."
+        )
     lines.append("")
     profile = startup.get("context_profile") or {}
     if isinstance(profile, dict):
@@ -403,32 +424,33 @@ def compact_startup(startup: dict[str, Any], projections: dict[str, str]) -> str
 
 
 def write_artifacts(
-    root: Path, result: BootstrapResult, packet_md: str, raw: dict[str, Any]
+    root: Path,
+    result: BootstrapResult,
+    packet_md: str,
+    raw: dict[str, Any],
+    generated_at: str | None = None,
+    stale_after: str | None = None,
 ) -> None:
+    """Write the ephemeral bootstrap artifacts to the runtime directory only.
+
+    The persistent `.cursor/rules/agentcore-active-bootstrap.mdc` alwaysApply
+    rule is no longer written; the packet is delivered through the
+    `sessionStart` `additional_context` field instead.
+    """
     runtime = root / RUNTIME_DIRNAME
     runtime.mkdir(parents=True, exist_ok=True)
     bootstrap_path = runtime / BOOTSTRAP_JSON
     md_path = runtime / BOOTSTRAP_MD
+    result.bootstrap_path = str(bootstrap_path)
+    result.rule_path = None
     payload = {
-        "generated_at": _now(),
+        "generated_at": generated_at or _now(),
+        "stale_after": stale_after or _stale_after(),
         "result": result.as_dict(),
         "raw_keys": sorted(raw.keys()),
     }
     bootstrap_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     md_path.write_text(packet_md + "\n", encoding="utf-8")
-    result.bootstrap_path = str(bootstrap_path)
-
-    rule_path = root / ACTIVE_RULE
-    rule_path.parent.mkdir(parents=True, exist_ok=True)
-    rule_body = (
-        "---\n"
-        "description: AgentCore recovered startup context (generated; do not commit)\n"
-        "alwaysApply: true\n"
-        "---\n\n"
-        f"{packet_md}\n"
-    )
-    rule_path.write_text(rule_body, encoding="utf-8")
-    result.rule_path = str(rule_path)
 
 
 def run_bootstrap(
@@ -556,7 +578,14 @@ def run_bootstrap(
             startup = {"ok": False, "raw": startup}
 
         projections = read_projections(root)
-        packet = compact_startup(startup, projections)
+        generated_at = _now()
+        stale_after = _stale_after()
+        packet = compact_startup(
+            startup, projections,
+            continuity_status=result.continuity_status,
+            generated_at=generated_at,
+            stale_after=stale_after,
+        )
         # Attach identity footer
         packet += (
             "\n\n## Identity\n"
@@ -580,7 +609,12 @@ def run_bootstrap(
         result.status_flags["startup_context_automatically_injected"] = True
         result.ok = True
         # Persist after ok/flags are final so cursor-bootstrap.json is not stale-false.
-        write_artifacts(root, result, packet, startup if isinstance(startup, dict) else {})
+        write_artifacts(
+            root, result, packet,
+            startup if isinstance(startup, dict) else {},
+            generated_at=generated_at,
+            stale_after=stale_after,
+        )
         return result
     except Exception as exc:  # noqa: BLE001
         result.error = f"{type(exc).__name__}: {exc}"

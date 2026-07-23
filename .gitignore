@@ -71,6 +71,9 @@ artifacts/
 *.egg
 .langgraph_api/
 
+# Generated ephemeral Cursor rule (delivered via sessionStart additional_context only)
+.cursor/rules/agentcore-active-bootstrap.mdc
+
 # Swarm and memory runtime spillover
 swarmclaw-data/
 swarmvault-state/
