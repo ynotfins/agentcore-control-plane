@@ -1,0 +1,119 @@
+---
+description: AgentCore foundation rule — stable architecture, memory lifecycle, and security boundaries for all Cursor work in this repository.
+globs: ["**/*"]
+alwaysApply: true
+---
+<!-- DERIVED FROM contracts/global-agent-policy.yaml (policy_revision 2026-07-22).
+     Semantic changes go into the canonical policy, never into this rendering.
+     STAGING ONLY — not active until Phase 2 cutover. -->
+
+# AgentCore Foundation
+
+## 1. Authority order
+
+Read before acting on any managed project:
+
+1. `PROJECT_ANCHOR.md` — immutable constitution and Bifrost gateway override
+2. `DOC_AUTHORITY.md` — document hierarchy and what to read
+3. `BLUEPRINT.md` — locked architecture, storage roles, lossless guarantees, Milestone exit criteria
+4. `CONTEXT_BLOCK.md` — current mutable system state and progress
+5. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — Milestone execution guidance
+6. Current handoffs under `docs/handoffs/` (newest dated file for live status)
+7. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — authoritative machine facts
+
+`D:\MCP-Control-Plane` is evidence only; `D:\github\agentcore-control-plane` is the sole design authority.
+
+## 2. Canonical data model
+
+PostgreSQL 18 at `127.0.0.1:55433` is canonical for `agent_core` and `cognee_core`.
+
+Generated projections (`.agentcore/STATE.md`, `DECISIONS.md`, `CONTEXT_INDEX.md`) are read-only views. Never hand-edit them. Compaction is non-destructive: summaries are versioned, expandable, and never replace originals.
+
+## 3. MCP routing — one gateway only
+
+```
+agentcore-gateway   http://127.0.0.1:8080/mcp
+                    Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
+```
+
+This is the only MCP entry for Cursor. Never paste upstream servers or direct per-tool MCP entries into `mcp.json`. Never expose Bifrost admin tools.
+
+## 4. Session lifecycle — required at every chat
+
+Before acting on project work:
+
+1. **Activate project:** `project_activate` with the repository path.
+2. **Open or resume session:** `session_open` — use `project_key`, `client_key`, `agent_key`, `session_key`. Reuse the same `session_key` when continuing a task; create a new one for a new task under the same project.
+3. **Retrieve startup context:** `startup_context` with `project_key` and `context_profile`.
+4. **Append the operator prompt:** `append_event` with `event_kind: prompt` and a deterministic `idempotency_key` before executing any tools.
+5. **During work:** `append_event` for accepted evidence, decisions, test results, blockers, and state transitions after each durable Micro step.
+6. **When context is incomplete:** `retrieve_context` before asking the operator to repeat history.
+7. **For exact verification:** `expand_source` using `event_id` or `summary_id` — never paraphrase a precise source from memory.
+8. **At task or session close:** run deterministic validation, `build_handoff`, `session_close`.
+
+Tool name reference (`agentcore_memory-*`):  
+`memory_status` · `session_open` · `session_close` · `startup_context` · `retrieve_context`  
+`append_event` · `expand_source` · `propose_fact` · `build_handoff` · `docs_search`
+
+Project router (`agentcore_project_router-*`):  
+`project_list` · `project_activate` · `project_status` · `project_clear`
+
+## 5. Recovery
+
+Never assume information is permanently lost because it is absent from the current chat.
+
+Before asking the operator to repeat project history: call `retrieve_context`, then `expand_source` for exact originals, then `build_handoff` for full reconstruction.
+
+## 6. Write boundaries
+
+Write only inside the assigned repo/worktree and role-appropriate runtime roots.
+
+- Never expose whole-drive filesystem roots.
+- Never format or re-provision `H:` (live Bifrost runtime).
+- Write boundaries: `docs/DRIVE_WRITE_BOUNDARY_RULE.md`.
+
+## 7. Secrets and environment
+
+- Windows User-scope environment variables only. No `.env` files anywhere.
+- Never print, store, log, or commit secret values. Configs reference env var names only.
+- If an env var is missing: stop and report the variable name — never create a local fallback.
+
+## 8. No direct database access
+
+Normal agents never connect to PostgreSQL directly and never hold database credentials.
+
+Memory flows through `agentcore-gateway` → `agentcore-memory`. Trusted direct SQL exists only in explicitly approved ops/admin runners (`AGENT_CORE_PGUSER=agent_ingest` via approved scripts).
+
+## 9. Swarm isolation
+
+SwarmRecall, SwarmVault, and SwarmClaw are a separate ecosystem. Never require Swarm MCP servers, Swarm databases, or Swarm file roots for non-Swarm work. OpenClaw/ClawX are outside the Bifrost IDE cutover scope.
+
+## 10. Deterministic verification before completion
+
+Run the narrowest applicable deterministic tests, validators, linters, and security scans before claiming a task complete. No step is complete from intention, confidence, or narrative.
+
+Evidence reference required for any `passed` checklist item.
+
+## 11. Git policy
+
+Push after every completed task. Validate narrowly, secret/junk scan, stage only source-controlled files, commit, push `origin main` or the active branch. Never pull/fetch/merge/rebase/force-push without explicit operator instruction. Policy: `docs/GIT_PUSH_ONLY_POLICY.md`.
+
+## 12. Cursor path format
+
+File and folder references in Cursor prompts require `@` with full absolute Windows paths, for example `@D:\github\agentcore-control-plane\BLUEPRINT.md`. Never shorten to relative paths. Every completed task requiring further Cursor work must include a `CURSOR CONTINUATION PROMPT` section.
+
+## 13. Forbidden routes
+
+`context7` · Hostinger · raw Mem0 · direct Composio · `global-memory-gateway` (retired) ·  
+direct per-IDE MCP server baselines · whole-drive filesystem MCP roots ·  
+Postgres credentials in IDE configs · Swarm MCP in non-Swarm IDE baselines · port 65432
+
+## 14. Governed changes
+
+Persistent rule, skill, hook, Bifrost, or MCP configuration changes require a separate governed task with backup, validation, and operator approval. This rule does not self-modify.
+
+---
+<!-- Source: contracts/global-agent-policy.yaml — policy_revision 2026-07-22
+     Cursor IDE profile: ide-profiles/cursor/IDE_PROFILE.yaml
+     Staging path: ide-profiles/cursor/staging/agentcore-foundation.mdc
+     Do not activate until Phase 2 cutover is operator-approved. -->
