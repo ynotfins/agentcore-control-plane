@@ -171,25 +171,6 @@
         "is_ping_available": true
       },
       {
-        "name": "obsidian_vault",
-        "connection_type": "stdio",
-        "stdio_config": {
-          "command": "C:\\Program Files\\PowerShell\\7\\pwsh.EXE",
-          "args": [
-            "-NoProfile",
-            "-NonInteractive",
-            "-File",
-            "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
-          ],
-          "envs": []
-        },
-        "tools_to_execute": [
-          "*"
-        ],
-        "auth_type": "none",
-        "is_ping_available": true
-      },
-      {
         "name": "openrouter",
         "connection_type": "http",
         "connection_string": "https://mcp.openrouter.ai/mcp",
@@ -271,6 +252,24 @@
         ],
         "auth_type": "none",
         "is_ping_available": true
+      },
+      {
+        "name": "skills_hub",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Program Files\\nodejs\\node.EXE",
+          "args": [
+            "H:\\AgentRuntime\\skills-hub\\start.mjs"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "search_skills",
+          "get_skill_detail",
+          "list_installed_skills"
+        ],
+        "auth_type": "none",
+        "is_ping_available": false
       },
       {
         "name": "tentra",
@@ -360,12 +359,6 @@
             ]
           },
           {
-            "mcp_client_name": "obsidian_vault",
-            "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
             "mcp_client_name": "playwright",
             "tools_to_execute": [
               "*"
@@ -381,6 +374,14 @@
             "mcp_client_name": "serena",
             "tools_to_execute": [
               "*"
+            ]
+          },
+          {
+            "mcp_client_name": "skills_hub",
+            "tools_to_execute": [
+              "search_skills",
+              "get_skill_detail",
+              "list_installed_skills"
             ]
           },
           {
@@ -453,12 +454,6 @@
           },
           {
             "mcp_client_name": "filesystem",
-            "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
-            "mcp_client_name": "obsidian_vault",
             "tools_to_execute": [
               "*"
             ]
@@ -537,12 +532,6 @@
             ]
           },
           {
-            "mcp_client_name": "obsidian_vault",
-            "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
             "mcp_client_name": "sequential_thinking",
             "tools_to_execute": [
               "*"
@@ -588,12 +577,6 @@
           },
           {
             "mcp_client_name": "depwire",
-            "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
-            "mcp_client_name": "obsidian_vault",
             "tools_to_execute": [
               "*"
             ]

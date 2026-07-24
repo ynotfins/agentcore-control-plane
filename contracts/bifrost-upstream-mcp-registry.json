@@ -31,8 +31,7 @@
         "filesystem",
         "agentcore-memory",
         "agentcore-project-router",
-        "firebase-mcp",
-        "google-sheets-mcp"
+        "skills-hub"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -994,22 +993,28 @@
     "skills-hub": {
       "canonical_id": "skills-hub",
       "display_name": "Skills-Hub MCP",
-      "purpose": "Dynamic skill search and retrieval from the Skills-Hub public registry. All registry content is raw_untrusted. No mutation/install/publish operations exposed by default.",
+      "purpose": "Dynamic skill search and metadata retrieval from the Skills-Hub public registry via an isolated process-local home. All registry content is raw_untrusted. install_skill is explicitly denied.",
       "owner": "agentcore",
       "pinned_version": "0.1.7",
       "connection_type": "stdio",
       "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
       "arguments": [
-        "H:\\AgentRuntime\\skills-hub\\node_modules\\@skills-hub-ai\\mcp\\dist\\index.js"
+        "H:\\AgentRuntime\\skills-hub\\start.mjs"
       ],
       "env_var_names": [],
       "timeout_seconds": 30,
       "health_check_type": "none",
       "project_scope": "global",
       "write_classification": "read_only",
-      "permitted_tools": [],
-      "denied_tools": [],
-      "capability_profiles": [],
+      "permitted_tools": [
+        "search_skills",
+        "get_skill_detail",
+        "list_installed_skills"
+      ],
+      "denied_tools": [
+        "install_skill"
+      ],
+      "capability_profiles": ["builder"],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -1020,18 +1025,20 @@
         "backoff_seconds": 2,
         "retry_on": ["spawn_failure"]
       },
-      "rollback_route": "Set enabled=false; remove from all VK mcp_configs. Skills-Hub content cannot override AgentCore authority.",
-      "enabled": false,
+      "rollback_route": "Set enabled=false; remove from VK mcp_configs; restart Bifrost. Skills-Hub content cannot override AgentCore authority. Rollback leaves isolated home dir intact.",
+      "enabled": true,
       "bifrost_client_name": "skills_hub",
-      "status": "dormant",
+      "status": "active",
       "notes": [
-        "INSTALL: @skills-hub-ai/mcp@0.1.7 (0.1.8-0.1.10 blocked by missing @skills-hub-ai/installer@0.1.0 on npm).",
-        "CLI: @skills-hub-ai/cli@0.3.5 (0.4.1 blocked by same missing installer dep).",
-        "VULNERABILITY: @hono/node-server path traversal moderate GHSA-frvp-7c67-39w9. Mitigated: STDIO-only mode.",
-        "REMOTE HTTP: https://api.skills-hub.ai/mcp returns Cloudflare 403/1010. Local STDIO used.",
-        "SKILL SCAN: Server scans ~/.claude/skills/ and ~/.cursor/skills/. ~/.cursor/skills/ quarantined. ~/.claude/skills/ contains Codex skills. Enable only after operator reviews skill exposure scope.",
-        "CONTENT TRUST: All retrieved skill content is raw_untrusted. May not override AgentCore authority.",
-        "DORMANT: Add to a capability profile only after operator reviews skill exposure and cross-product contamination risk.",
+        "ISOLATION: Launched via H:\\AgentRuntime\\skills-hub\\start.mjs which sets process.env.USERPROFILE/HOME/HOMEDRIVE/HOMEPATH to H:\\AgentRuntime\\skills-hub\\home before import.",
+        "ISOLATION PROVEN 2026-07-24 Phase 4B: process-local HOME/USERPROFILE/HOMEDRIVE/HOMEPATH -> H:\\AgentRuntime\\skills-hub\\home; FS access audit showed zero reads of real user skill roots; Bifrost list_installed saw only isolated sentinel; sentinel removed afterward.",
+        "SECURITY: @hono/node-server pinned 2.0.11 via npm overrides (GHSA-frvp-7c67-39w9). npm audit 0 vulnerabilities after lock reinstall.",
+        "HONO REACHABILITY: STDIO entry dist/index.js uses StdioServerTransport only; streamableHttp.js (imports @hono/node-server) not in import graph; no HTTP listener; serveStatic unreachable.",
+        "INSTALL: @skills-hub-ai/mcp@0.1.7 (0.1.8-0.1.10 blocked: @skills-hub-ai/installer@0.1.0 not on npm).",
+        "CLI: @skills-hub-ai/cli@0.3.5 installed but NOT exposed through Bifrost.",
+        "REMOTE HTTP: https://api.skills-hub.ai/mcp blocked by Cloudflare 403/1010. Local STDIO used.",
+        "DENIED TOOL: install_skill is explicitly denied. search_skills and get_skill_detail query the remote skills-hub.ai API; responses are raw_untrusted.",
+        "CONTENT TRUST: All retrieved skill content classified raw_untrusted. Cannot override AgentCore authority.",
         "Package source control: D:\\github\\agentcore-control-plane\\tools\\skills-hub\\",
         "Runtime: H:\\AgentRuntime\\skills-hub\\",
         "License: MIT. Repository: https://github.com/tinh2/skills-hub"
@@ -1053,12 +1060,11 @@
       "env_var_names": [
         "FIREBASE_TOKEN",
         "GOOGLE_APPLICATION_CREDENTIALS",
-        "GCLOUD_PROJECT",
-        "FIREBASE_PROJECT_ID"
+        "GCLOUD_PROJECT"
       ],
       "timeout_seconds": 120,
       "health_check_type": "none",
-      "project_scope": "global",
+      "project_scope": "project",
       "write_classification": "write_capable",
       "permitted_tools": [
         "firestore_get_document",
@@ -1077,7 +1083,7 @@
         "firebase_init",
         "firebase_deploy"
       ],
-      "capability_profiles": ["builder"],
+      "capability_profiles": [],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -1089,14 +1095,16 @@
         "retry_on": ["spawn_failure", "timeout"]
       },
       "rollback_route": "Set enabled=false; remove from VK mcp_configs. Firebase data unchanged; CLI auth token unaffected.",
-      "enabled": true,
+      "enabled": false,
       "bifrost_client_name": "firebase_mcp",
-      "status": "deferred",
+      "status": "dormant_project_scoped",
+      "deferred": true,
       "notes": [
+        "DORMANT PROJECT-SCOPED: Removed from live Bifrost client_configs and builder VK default exposure. No Firebase tool is visible without a future JIT project lease.",
+        "Auth: firebase CLI login already complete (firebase login completed as ynotfins@gmail.com). No global FIREBASE_PROJECT_ID set (cleared User-scope 2026-07-24 Phase 4B).",
         "License: MIT. Official Google/Firebase tool (firebase-tools@15.24.0).",
-        "AUTH SETUP: (1) Run: firebase login (browser OAuth, one-time per machine). OR (2) Set FIREBASE_TOKEN env var from: firebase login:ci. Also set FIREBASE_PROJECT_ID in Windows User scope. GOOGLE_APPLICATION_CREDENTIALS (service account JSON path) is optional ADC fallback.",
-        "Status deferred until firebase login is completed and FIREBASE_PROJECT_ID is set.",
-        "Set status=active and enabled=true after completing auth setup and verifying tools/list.",
+        "AUTH SETUP: Use firebase CLI login state. Do not set machine-global FIREBASE_PROJECT_ID. Future lease must resolve project identity from agentcore-project-router and launch with --dir <validated project directory>.",
+        "Future wrapper requirements: launch with --dir <project-dir> and --only <features>; resolve project identity from agentcore-project-router; one bounded process per project/worktree; prevent cross-project state reuse; separate read and mutation tools; operator-gate deploy/delete/admin operations.",
         "Firestore tools: get, query, add, update, delete documents and list collections.",
         "Auth tools: get/list Firebase Auth users.",
         "Apps Script: NOT covered by Firebase MCP. No official MCP for Apps Script as of 2026-07-24.",
@@ -1115,13 +1123,10 @@
       "arguments": [],
       "env_var_names": [
         "GOOGLE_SHEETS_OAUTH_CLIENT_ID",
-        "GOOGLE_SHEETS_OAUTH_CLIENT_SECRET",
-        "GOOGLE_SHEETS_ACCESS_TOKEN"
+        "GOOGLE_SHEETS_OAUTH_CLIENT_SECRET"
       ],
-      "auth_type": "headers",
-      "headers": {
-        "Authorization": "Bearer env.GOOGLE_SHEETS_ACCESS_TOKEN"
-      },
+      "auth_type": "oauth",
+      "headers": {},
       "timeout_seconds": 60,
       "health_check_type": "none",
       "project_scope": "global",
@@ -1135,7 +1140,7 @@
         "sheets.update_spreadsheet"
       ],
       "denied_tools": [],
-      "capability_profiles": ["builder"],
+      "capability_profiles": [],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -1146,17 +1151,18 @@
         "backoff_seconds": 3,
         "retry_on": ["http_5xx", "timeout"]
       },
-      "rollback_route": "Set enabled=false; remove from VK mcp_configs. Google Sheets data unchanged. Revoke OAuth token at console.cloud.google.com/apis/credentials.",
+      "rollback_route": "Set enabled=false; remove from VK mcp_configs. Google Sheets data unchanged. Revoke OAuth at Google Cloud credentials console.",
       "enabled": false,
       "bifrost_client_name": "google_sheets_mcp",
-      "status": "deferred",
+      "status": "developer_preview_oauth_pending",
+      "deferred": true,
       "notes": [
-        "Official Google remote MCP. Endpoint: https://sheetsmcp.googleapis.com/mcp/v1",
-        "Tools: get_values, get_spreadsheet, update_values, update_formulas, insert_dimension, update_spreadsheet.",
-        "APPS SCRIPT: No official dedicated MCP as of 2026-07-24. Workaround: use Apps Script API (https://script.googleapis.com/v1/scripts/{id}:run) via a custom HTTP caller.",
-        "AUTH SETUP: (1) Create Google Cloud project. (2) Enable: gcloud services enable sheetsmcp.googleapis.com sheets.googleapis.com drive.googleapis.com. (3) Configure OAuth consent screen. (4) Create OAuth 2.0 Client ID (Desktop app). (5) Set Windows User env vars: GOOGLE_SHEETS_OAUTH_CLIENT_ID + GOOGLE_SHEETS_OAUTH_CLIENT_SECRET. (6) Get token: gcloud auth application-default login && gcloud auth print-access-token. (7) Set GOOGLE_SHEETS_ACCESS_TOKEN in Windows User scope. (8) Set enabled=true + restart Bifrost.",
-        "Token expires hourly. Refresh: gcloud auth print-access-token, then update GOOGLE_SHEETS_ACCESS_TOKEN env var.",
-        "Bifrost forwards Authorization: Bearer env.GOOGLE_SHEETS_ACCESS_TOKEN header to the remote endpoint.",
+        "STATUS: developer_preview_oauth_pending. Zero default exposure. Not in any capability_profiles.",
+        "Official Google remote MCP. Endpoint: https://sheetsmcp.googleapis.com/mcp/v1. Transport: HTTP. Auth: OAuth 2.0 client flow with renewable credential state (not a manually copied short-lived access token).",
+        "APPS SCRIPT: No official dedicated MCP as of 2026-07-24. Keep deferred; do not implement custom wrapper; do not create credentials/endpoints/tools for Apps Script in this phase.",
+        "FORBIDDEN: Do not request or store GOOGLE_SHEETS_ACCESS_TOKEN as a persistent Windows User variable. Short-lived access tokens are not durable authentication.",
+        "Required before activation: (1) Prove Bifrost OAuth 2.0 compatibility with Google OAuth flow; (2) consent/scopes approved; (3) credential storage protected (not plain Windows env var); (4) refresh behavior passes; (5) read/write capability profiles separated (sheets-read / sheets-write); (6) prompt-injection risk documented; (7) operator approves activation.",
+        "Target capability split: sheets-read (get_values, get_spreadsheet) and sheets-write (update_values, update_formulas, insert_dimension, update_spreadsheet) as separate JIT-leased groups.",
         "Sheet content never logged by Bifrost (log_content=false)."
       ]
     }

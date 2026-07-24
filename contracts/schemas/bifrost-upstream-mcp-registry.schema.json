@@ -232,7 +232,16 @@
         "deferred": { "type": "boolean" },
         "status": {
           "type": "string",
-          "enum": ["active", "deferred", "disabled", "quarantine", "dormant"]
+          "enum": [
+            "active",
+            "deferred",
+            "disabled",
+            "quarantine",
+            "dormant",
+            "dormant_project_scoped",
+            "developer_preview_oauth_pending"
+          ],
+          "description": "Lifecycle posture. dormant_project_scoped = registered but not default-exposed pending project lease. developer_preview_oauth_pending = registered remote MCP awaiting OAuth proof."
         },
         "oauth_config": {
           "type": "object",
