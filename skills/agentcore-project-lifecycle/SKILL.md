@@ -26,13 +26,14 @@ AUTHORITY & PRECONDITIONS
    - Router: `agentcore_project_router` (`project_activate`, `project_status`, `project_list`)
    - Memory: `agentcore_memory` (`session_open`, `startup_context`, `append_event`, `retrieve_context`, `expand_source`, `build_handoff`, `session_close`)
    - Docs: `arabold_docs` (`search_docs`, `fetch_url`)
-   - Continuity: `context_fabric` (`cf_capture`, `cf_drift`, `cf_health`)
+   - Continuity (optional / capability-gated): `context_fabric` (`cf_capture`, `cf_drift`, `cf_health` when available)
 2. **Templates Source**: `@D:\github\agentcore-control-plane\templates\project-governance\.agentcore`
 3. **Hard Boundaries**:
    - Never write `.env` files (use Windows User environment variables only).
    - Never direct-write generated projections (`.agentcore/STATE.md`, `DECISIONS.md`, `CONTEXT_INDEX.md`).
    - Never execute raw SQL against PostgreSQL.
    - Never cross Swarm boundaries (SwarmRecall, SwarmVault, SwarmClaw are excluded).
+   - **Context Fabric Boundary**: Context Fabric is an optional, capability-gated component. Its absence or failure must never block bootstrap, milestone entry, or milestone exit. PostgreSQL and AgentCore memory remain canonical; Git provides workspace history fallback. Context Fabric does not write durable ledgers or auto-install git hooks.
 
 ============================================================
 OPERATION 1: NEW PROJECT BOOTSTRAP (MILESTONE 0)

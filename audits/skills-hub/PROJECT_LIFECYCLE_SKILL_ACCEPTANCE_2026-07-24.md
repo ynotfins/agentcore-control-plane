@@ -95,10 +95,11 @@ Live rendered active skill:
 - `C:\Users\ynotf\.cursor\skills\agentcore-project-lifecycle\SKILL.md`
 
 **Hash Verification**:
-- Source SHA-256: `13E33016AB384C0F8C6014EFBE63715010BA7A75AF88E7C25E6874AB1EF0136C`
-- Live SHA-256:   `13E33016AB384C0F8C6014EFBE63715010BA7A75AF88E7C25E6874AB1EF0136C`
+- Source SHA-256: `7C97B389A4123AA0A3E4301BD9CE05F52110C58A210EA324C06074B7F4209B68`
+- Live SHA-256:   `7C97B389A4123AA0A3E4301BD9CE05F52110C58A210EA324C06074B7F4209B68`
 - Byte-Identical: **YES**
-- Active Cursor Skill Count: **1**
+- Active Operator Cursor Skill Count: **1**
+- Context Fabric Boundary: Refined in Phase 5B to explicitly state that Context Fabric is optional, capability-gated, and noncanonical (PostgreSQL & AgentCore memory remain canonical authority).
 
 ---
 
