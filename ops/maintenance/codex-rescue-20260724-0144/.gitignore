@@ -1,0 +1,9 @@
+# Rescue snapshot — never commit. AGENTS.md: "Exclude unrelated runtime
+# files, live configs, credentials, databases, caches, backups, and raw
+# config dumps from repository commits."
+#
+# This directory exists as a forensic safety net and forensic evidence.
+# Only the README is allowed in the repo.
+*
+!README.md
+!.gitignore
