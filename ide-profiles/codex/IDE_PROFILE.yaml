@@ -1,9 +1,7 @@
-
-
 ide_id: codex
 display_name: Codex (OpenAI)
 swarm_managed: false
-installed_version: unverified
+installed_version: '26.715.10079.0 (MSIX OpenAI.Codex); CLI 0.137.0'
 live_global_rule_target: C:\Users\ynotf\.codex\AGENTS.md
 live_mcp_config_target: C:\Users\ynotf\.codex\config.toml
 rule_mechanism: global AGENTS.md (~/.codex/AGENTS.md) + per-repo AGENTS.md
@@ -20,59 +18,61 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-07-14'
+last_validation_date: '2026-07-25'
 mcp_template_source: renderers/gateway-clients/codex.json
 known_limitations:
 - 'TOML config: use bearer_token_env_var, startup_timeout_sec, tool_timeout_sec (not
   headers/timeout_seconds).'
 - Codex-managed extras (node_repl, plugin MCP servers) are preserved beside the gateway
   entry.
+- Native 14-step lifecycle still requires operator Codex UI session with Bifrost healthy.
 semantic_parity_gaps: []
 status_reconciliation:
-  reconciled_at: '2026-07-23'
-  source_handoff: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-  source_handoff_date: '2026-07-22'
+  reconciled_at: '2026-07-25'
+  source: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
   claim: Codex desktop launch failure
-  finding: Codex desktop application would not open correctly; launch could fall back
-    to Chrome/browser. Config file presence (2026-07-14) does not prove native application
-    launch or MCP lifecycle.
-  status_after_reconciliation: unverified
-  next_step: Repair the Codex/ChatGPT desktop application through the official supported
-    path, then run native gateway lifecycle validation.
+  finding: Stale. OpenAI.Codex MSIX 26.715.10079.0 and ChatGPT Classic desktop are
+    installed Ok and were running 2026-07-25; agentcore-gateway present in config.toml
+    and mcp list.
+  status_after_reconciliation: configured_restart_required
+  next_step: Operator runs 14-step native lifecycle inside Codex desktop on agentcore-control-plane.
+enrollment_evidence:
+  audit: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+  backup_root: E:\AgentCore-Backups\codex-repair-20260725
 dimensions:
   application_launch:
-    status: fail
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    status: live_validated
+    evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   gateway_configuration:
-    status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    status: live_validated
+    evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   gateway_discovery:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: live_validated
+    evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   native_memory_lifecycle:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: configured_restart_required
+    evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   fresh_chat_recovery:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: configured_restart_required
+    evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   persistence_after_restart:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: configured_restart_required
+    evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   operator_gate:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: configured_restart_required
+    evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
-m8_enrollment: unverified
+m8_enrollment: configured_restart_required

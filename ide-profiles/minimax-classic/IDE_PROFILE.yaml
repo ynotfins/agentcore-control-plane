@@ -22,7 +22,7 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-07-22'
+last_validation_date: '2026-07-25'
 mcp_template_source: ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md
 m8_enrollment: awaiting_operator_cloud_mcp_enrollment
 known_limitations:
