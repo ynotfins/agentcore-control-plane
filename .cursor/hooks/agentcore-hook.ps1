@@ -5,6 +5,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
 $dispatcher = Join-Path $PSScriptRoot "..\..\scripts\agentcore_cursor\hook_dispatcher.py"
 if (-not (Test-Path -LiteralPath $dispatcher)) {
     [Console]::Out.Write('{"error":"missing_dispatcher"}')

@@ -155,10 +155,10 @@ def _controlled_error(event: str, exc: BaseException) -> dict[str, Any]:
     if event == "beforeSubmitPrompt":
         # Fail open: allow operator submission; spool/bootstrap may catch up later.
         return {"continue": True, "agent_message": f"AgentCore hook degraded: {msg}"}
-    if event == "preToolUse":
-        # Fail open: never deny all tools because the dispatcher crashed.
+    if event in ("preToolUse", "beforeShellExecution"):
+        # Fail open: never block tools or shell because the dispatcher crashed.
         return {"permission": "allow", "agent_message": f"AgentCore hook degraded: {msg}"}
-    if event in ("sessionEnd", "stop"):
+    if event in ("sessionEnd", "stop", "afterFileEdit", "postToolUse"):
         return {}
     return {}
 
@@ -171,7 +171,7 @@ def _dispatch(event: str, payload: dict[str, Any]) -> dict[str, Any]:
             return {"env": {"AGENTCORE_BOOTSTRAP_OK": "0"}}
         if event == "beforeSubmitPrompt":
             return {"continue": True}
-        if event == "preToolUse":
+        if event in ("preToolUse", "beforeShellExecution"):
             return {"permission": "allow"}
         return {}
 

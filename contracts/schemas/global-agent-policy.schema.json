@@ -3,7 +3,7 @@
   "$id": "agentcore://schemas/global-agent-policy",
   "title": "AgentCore Canonical Global Agent Policy (YAML, validated after load)",
   "type": "object",
-  "required": ["policy_id", "policy_revision", "authority_repo", "mandatory_rules", "forbidden_routes", "references"],
+  "required": ["policy_id", "policy_revision", "authority_repo", "mandatory_rules", "task_class_gates", "forbidden_routes", "references"],
   "properties": {
     "policy_id": { "const": "agentcore-global-agent-policy" },
     "policy_revision": { "type": "string" },
@@ -18,6 +18,20 @@
           "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
           "title": { "type": "string" },
           "rule": { "type": "string", "minLength": 20 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "task_class_gates": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["tool_name", "gate_type", "rule"],
+        "properties": {
+          "tool_name": { "type": "string" },
+          "gate_type": { "type": "string" },
+          "rule": { "type": "string" }
         },
         "additionalProperties": false
       }

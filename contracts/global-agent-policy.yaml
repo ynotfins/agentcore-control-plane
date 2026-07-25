@@ -242,6 +242,29 @@ forbidden_routes:
   - Swarm MCP in non-Swarm IDE baselines
   - port 65432 as an active route
 
+task_class_gates:
+  - tool_name: "arabold-docs"
+    gate_type: "mandatory"
+    rule: "Mandatory before using/changing external packages, SDKs, APIs, CLIs, schemas, protocols or versions."
+  - tool_name: "serena"
+    gate_type: "mandatory"
+    rule: "Mandatory before unfamiliar cross-file edits, symbol moves, public API changes, rename/delete or architecture-sensitive source changes. If unavailable, block high-risk structural edits rather than claiming its verification occurred."
+  - tool_name: "sequential-thinking"
+    gate_type: "mandatory"
+    rule: "Mandatory before architecture, migration, concurrency, recovery, major refactor or cross-system decisions."
+  - tool_name: "depwire"
+    gate_type: "mandatory"
+    rule: "Mandatory before and after structural changes."
+  - tool_name: "playwright"
+    gate_type: "mandatory"
+    rule: "Mandatory for browser/UI/E2E acceptance."
+  - tool_name: "skills-hub"
+    gate_type: "on_demand"
+    rule: "On-demand for specialized procedural knowledge, read-only through Bifrost."
+  - tool_name: "context-fabric"
+    gate_type: "optional"
+    rule: "Optional and capability-gated; not canonical and not a completion blocker."
+
 references:
   project_execution_policy: contracts/project-execution-policy.json
   tool_lifecycle_policy: contracts/project-tool-lifecycle.json

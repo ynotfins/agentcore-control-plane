@@ -12,6 +12,36 @@
         "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/agentcore-hook.ps1 -Event beforeSubmitPrompt",
         "timeout": 90
       }
+    ],
+    "preToolUse": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/agentcore-hook.ps1 -Event preToolUse",
+        "timeout": 90
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/agentcore-hook.ps1 -Event beforeShellExecution",
+        "timeout": 90
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/agentcore-hook.ps1 -Event afterFileEdit",
+        "timeout": 90
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/agentcore-hook.ps1 -Event postToolUse",
+        "timeout": 90
+      }
+    ],
+    "stop": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/agentcore-hook.ps1 -Event stop",
+        "timeout": 90
+      }
     ]
   }
 }

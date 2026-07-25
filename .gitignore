@@ -6,6 +6,7 @@
 .depwire/cache.db
 .depwire/health-history.json
 depwire-output.json
+.agentcore/runtime/
 
 # Raw live-config inventory dumps (secret-bearing; never commit)
 reports/_raw/
