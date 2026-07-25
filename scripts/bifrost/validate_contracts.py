@@ -6,6 +6,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -141,6 +143,35 @@ def semantic_registry_checks(registry: dict[str, Any]) -> list[str]:
                 )
 
     return errors
+
+
+def output_schema_checks() -> list[str]:
+    """Delegate MCP outputSchema coverage to scripts/bifrost/validate_output_schemas.py.
+
+    Contract-level gate only (--skip-rendered): a stale generated Bifrost artifact is
+    reported by test_contracts.py, which runs the full validator including the
+    rendered-artifact drift gate.
+    """
+    validator = REPO_ROOT / "scripts" / "bifrost" / "validate_output_schemas.py"
+    if not validator.exists():
+        return ["output-schema: scripts/bifrost/validate_output_schemas.py missing"]
+    result = subprocess.run(
+        [sys.executable, str(validator), "--skip-rendered"],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    if result.returncode == 0:
+        return []
+    detail = [
+        line.strip()[2:].strip()
+        for line in (result.stdout or result.stderr).splitlines()
+        if line.strip().startswith("- ")
+    ]
+    if not detail:
+        detail = [f"validator exited {result.returncode}"]
+    return [f"output-schema: {line}" for line in detail]
 
 
 def stub_master_config_drift() -> list[str]:
@@ -507,6 +538,7 @@ def main() -> int:
     errors.extend(semantic_registry_checks(registry))
     errors.extend(authority_policy_checks(registry))
     errors.extend(strict_master_config_audit(registry))
+    errors.extend(output_schema_checks())
     notices.extend(stub_master_config_drift())
 
     if notices:
@@ -526,6 +558,7 @@ def main() -> int:
     print(f"OK: enabled servers={len(enabled)} disabled/deferred={len(registry['servers']) - len(enabled)}")
     print("OK: authority + policy contracts valid (hierarchy, banners, wildcard transitional note, rule files)")
     print("OK: master-config strict audit passed")
+    print("OK: MCP outputSchema coverage — MissingOutputSchema=0 (contract gate)")
     return 0
 
 

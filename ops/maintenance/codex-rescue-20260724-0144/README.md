@@ -154,3 +154,13 @@ If codex is in a worse state for any reason, the full sessions + auth tree can b
 5. Edit the one line; re-run doctor; re-run `codex mcp list`; sanity `codex exec` round-trip; read `state_5.sqlite` for thread inventory.
 
 Total downtime: ≈10 s of CLI interaction, no agent process kill required.
+
+## Quarantine note (Phase 1 hardening, 2026-07-24)
+
+The following were moved out of the source tree to `E:\AgentCore-Backups\codex-rescue-sessions-20260724` and must not be re-committed:
+
+- `auth.json`
+- `sessions/`
+- `archived_sessions/`
+
+Config rollback copies (`config.toml.*`), `session_index.jsonl`, and this README remain in-repo as evidence.

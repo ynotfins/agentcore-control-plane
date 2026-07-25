@@ -1,0 +1,19 @@
+Reading additional input from stdin...
+Open Interpreter v0.0.10 (research preview)
+--------
+workdir: D:\github\agentcore-control-plane
+model: deepseek/deepseek-v4-flash
+provider: openrouter
+approval: never
+sandbox: danger-full-access
+reasoning effort: none
+reasoning summaries: none
+session id: 019f938a-9bc4-7073-880d-430a66655c18
+--------
+user
+Reply with the single word: PONG
+interpreter
+PONG
+PONG
+tokens used
+23,607

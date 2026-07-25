@@ -12,7 +12,7 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 - Do not edit live client configs during repo-only phases.
 - Create a timestamped rollback copy before editing existing managed files.
 - Use unlock -> edit -> validate -> re-lock for managed files.
-- Patch Bifrost renderers/`scripts/bifrost/render_bifrost_config.py` (and `scripts/mcp_control_plane.py` when still relevant) first when generated outputs would otherwise drift.
+- Patch Bifrost renderers/`scripts/bifrost/render_bifrost_config.py` first when generated outputs would otherwise drift. (`scripts/mcp_control_plane.py` is archived under `docs/archive/`.)
 - Keep contracts, Bifrost renderers, gateway-client renderers, ops scripts, and validators aligned.
 - Use deterministic validators before reporting completion (`scripts/bifrost/validate_contracts.py`, project validators).
 - AgentCore does not use `.env` files for secrets or local runtime configuration. Use Windows environment variables only.

@@ -204,6 +204,44 @@ def main() -> int:
     check("registry:wildcards documented", not wildcards or "tool_lifecycle_note" in registry,
           f"undocumented wildcards: {wildcards}")
 
+    # --- MCP outputSchema coverage (MissingOutputSchema must be zero) ---
+    # Full gate including the generated-artifact drift check: a contract or registry
+    # change that has not been re-rendered leaves live tools/list without outputSchema.
+    output_schema_result = subprocess.run(
+        [sys.executable, str(REPO / "scripts" / "bifrost" / "validate_output_schemas.py")],
+        capture_output=True, text=True, cwd=REPO,
+    )
+    check(
+        "mcp:outputSchema coverage (MissingOutputSchema=0)",
+        output_schema_result.returncode == 0,
+        (output_schema_result.stdout or output_schema_result.stderr).strip()[:400],
+    )
+
+    # Normalizer self-proof: emitted envelopes validate against emitted schemas.
+    adapter_selftest = subprocess.run(
+        [
+            sys.executable,
+            str(REPO / "scripts" / "bifrost" / "mcp_output_schema_adapter.py"),
+            "--self-test",
+        ],
+        capture_output=True, text=True, cwd=REPO,
+    )
+    check(
+        "mcp:output normalizer self-test",
+        adapter_selftest.returncode == 0,
+        (adapter_selftest.stdout or adapter_selftest.stderr).strip()[:400],
+    )
+
+    # Registry wiring must reference the normalizer that the renderer injects.
+    adapter_block = registry.get("output_schema_adapter") or {}
+    check(
+        "mcp:output adapter wired in registry",
+        bool(adapter_block.get("enabled"))
+        and (REPO / str(adapter_block.get("script", "")).replace("\\", "/")).exists()
+        and (REPO / str(adapter_block.get("contract", "")).replace("\\", "/")).exists(),
+        f"output_schema_adapter={adapter_block}",
+    )
+
     # --- CONTEXT_BLOCK repaired ---
     context_block = read("CONTEXT_BLOCK.md")
     check("context-block:no stray fence", not context_block.lstrip().startswith("```"))

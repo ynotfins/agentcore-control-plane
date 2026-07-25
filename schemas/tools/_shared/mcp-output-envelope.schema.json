@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentcore.local/schemas/tools/_shared/mcp-output-envelope.schema.json",
+  "title": "AgentCore MCP Tool Output Envelope",
+  "description": "Canonical shape of CallToolResult.structuredContent for every tool exposed through agentcore-gateway. MCP 2025-06-18+ semantics: tool.outputSchema describes structuredContent, not the human-readable content blocks. Source of truth for scripts/bifrost/mcp_output_schema.py; the builder emits a compact, self-contained projection of this file as each tool's outputSchema.",
+  "envelope_version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "success",
+    "status",
+    "summary",
+    "data",
+    "evidence",
+    "warnings",
+    "errors",
+    "next_actions",
+    "meta"
+  ],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "description": "True when the tool completed its contract without an error result."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "partial", "error"],
+      "description": "ok = complete; partial = succeeded with truncation/degradation; error = failed."
+    },
+    "summary": {
+      "type": "string",
+      "description": "Short single-paragraph human/model summary. Never contains secrets or raw dumps."
+    },
+    "data": {
+      "type": ["object", "array", "null"],
+      "additionalProperties": true,
+      "description": "Tool payload. Family-specific hint properties are advisory only; extra keys are always allowed so the advertised schema never invalidates a conforming upstream payload."
+    },
+    "evidence": {
+      "type": "array",
+      "description": "Bounded, resolvable handles (ids, paths, urls, hashes). Never inline file bodies here.",
+      "items": { "$ref": "#/$defs/evidence_ref" }
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Non-fatal notices such as truncation, degraded retrieval, or omitted structure.",
+      "items": { "type": "string" }
+    },
+    "errors": {
+      "type": "array",
+      "description": "Structured failures. Empty when status is ok.",
+      "items": { "$ref": "#/$defs/tool_error" }
+    },
+    "next_actions": {
+      "type": "array",
+      "description": "Short imperative follow-ups the caller may take.",
+      "items": { "type": "string" }
+    },
+    "meta": { "$ref": "#/$defs/result_meta" }
+  },
+  "$defs": {
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "description": "Evidence kind, e.g. event, artifact, file, url, symbol, screenshot." },
+        "id": { "type": "string" },
+        "path": { "type": "string" },
+        "url": { "type": "string" },
+        "label": { "type": "string" },
+        "hash": { "type": "string" }
+      }
+    },
+    "tool_error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "retryable": { "type": "boolean" }
+      }
+    },
+    "result_meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "schema_version", "redacted"],
+      "properties": {
+        "tool": { "type": "string", "description": "Upstream (unprefixed) tool name." },
+        "server": { "type": "string", "description": "AgentCore canonical upstream server id." },
+        "schema_version": { "type": "string", "description": "Envelope version this result conforms to." },
+        "project_key": { "type": "string" },
+        "session_key": { "type": "string" },
+        "event_id": { "type": "string" },
+        "cursor": { "type": "string" },
+        "redacted": { "type": "boolean", "description": "True when the normalizer masked a secret-looking token in summary." }
+      }
+    },
+    "family_data": {
+      "description": "Family-specific hint shapes substituted into properties.data. All are permissive (additionalProperties true, no required keys) so a conforming structuredContent always validates.",
+      "generic": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {}
+      },
+      "memory": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "ok": { "type": "boolean" },
+          "project_key": { "type": "string" },
+          "session_id": { "type": "string" },
+          "session_key": { "type": "string" },
+          "event_id": { "type": "string" },
+          "proposal_id": { "type": "string" },
+          "idempotent_replay": { "type": "boolean" },
+          "context_profile": { "type": "string" },
+          "continuation_cursor": { "type": "string" },
+          "items": { "type": "array" },
+          "results": { "type": "array" },
+          "source_ids": { "type": "array", "items": { "type": "string" } },
+          "current_projections": { "type": "array" },
+          "recovery": { "type": "object" },
+          "identity": { "type": ["object", "null"] }
+        }
+      },
+      "project_router": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "ok": { "type": "boolean" },
+          "count": { "type": "integer" },
+          "projects": { "type": "array" },
+          "active": { "type": ["object", "null"] },
+          "cleared_at": { "type": "string" },
+          "rejected_policy": { "type": "object" }
+        }
+      },
+      "docs": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "library": { "type": "string" },
+          "version": { "type": "string" },
+          "url": { "type": "string" },
+          "job_id": { "type": "string" },
+          "status": { "type": "string" },
+          "results": { "type": "array" },
+          "libraries": { "type": "array" },
+          "pages_indexed": { "type": "integer" },
+          "indexed_at": { "type": "string" }
+        }
+      },
+      "code_intel": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "symbols": { "type": "array" },
+          "files": { "type": "array" },
+          "references": { "type": "array" },
+          "match_count": { "type": "integer" },
+          "confidence": { "type": "number" },
+          "impacted_files": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "reasoning": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "thought_index": { "type": "integer" },
+          "total_planned": { "type": "integer" },
+          "needs_more_thought": { "type": "boolean" },
+          "branches": { "type": "array", "items": { "type": "string" } },
+          "next_step": { "type": "string" }
+        }
+      },
+      "dep_graph": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "node_count": { "type": "integer" },
+          "edge_count": { "type": "integer" },
+          "dependencies": { "type": "array" },
+          "dependents": { "type": "array" },
+          "impact_level": { "type": "string" },
+          "affected_files": { "type": "array", "items": { "type": "string" } },
+          "risks": { "type": "array" },
+          "score": { "type": "number" }
+        }
+      },
+      "diagram": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "diagram_id": { "type": "string" },
+          "url": { "type": "string" },
+          "path": { "type": "string" },
+          "name": { "type": "string" },
+          "version": { "type": ["string", "integer"] },
+          "services": { "type": "array" },
+          "node_count": { "type": "integer" },
+          "edge_count": { "type": "integer" },
+          "render_status": { "type": "string" }
+        }
+      },
+      "context_fabric": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "capture_id": { "type": "string" },
+          "query_id": { "type": "string" },
+          "decision_id": { "type": "string" },
+          "drift_severity": { "type": "string" },
+          "context_pack": { "type": "object" },
+          "health": { "type": "object" }
+        }
+      },
+      "fs_artifact": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "path": { "type": "string" },
+          "paths": { "type": "array", "items": { "type": "string" } },
+          "entry_count": { "type": "integer" },
+          "bytes": { "type": "integer" },
+          "truncated": { "type": "boolean" },
+          "operation": { "type": "string" }
+        }
+      },
+      "browser": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "url": { "type": "string" },
+          "title": { "type": "string" },
+          "operation": { "type": "string" },
+          "artifact_path": { "type": "string" },
+          "console_message_count": { "type": "integer" },
+          "network_request_count": { "type": "integer" },
+          "risk_flags": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "external": {
+        "type": ["object", "array", "null"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "status": { "type": "string" },
+          "url": { "type": "string" },
+          "count": { "type": "integer" },
+          "items": { "type": "array" },
+          "trust_class": { "type": "string" }
+        }
+      }
+    }
+  }
+}

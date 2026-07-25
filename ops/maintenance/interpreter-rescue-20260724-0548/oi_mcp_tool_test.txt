@@ -1,0 +1,113 @@
+Reading additional input from stdin...
+Open Interpreter v0.0.10 (research preview)
+--------
+workdir: D:\github\agentcore-control-plane
+model: minimax/minimax-m3
+provider: openrouter
+approval: never
+sandbox: danger-full-access
+reasoning effort: none
+reasoning summaries: none
+session id: 019f938b-48ac-7d43-839a-d73980179ce4
+--------
+user
+Use the agentcore-gateway MCP server: call the memory_status tool and tell me what it returns. If you cannot call it, say EXACTLY 'MCP_UNREACHABLE'.
+interpreter
+IΓÇÖll query the agentcore memory status now.
+mcp: agentcore-gateway/agentcore_memory-memory_status started
+mcp: agentcore-gateway/agentcore_memory-memory_status (completed)
+interpreter
+The `agentcore-memory` `memory_status` tool returned:
+
+```json
+{
+  "ok": true,
+  "server": "agentcore-memory",
+  "version": "0.6.0",
+  "status": "healthy",
+  "checked_at": "2026-07-24T09:53:42.953470+00:00",
+  "components": {
+    "postgres_agent_core": {
+      "endpoint": "127.0.0.1:55433",
+      "reachable": true,
+      "role": "canonical AgentCore database listener probe",
+      "migrations": [
+        "m2.001",
+        "m3.001",
+        "m3.002",
+        "m4.001_quarantine_filter",
+        "m5.001",
+        "m6.001",
+        "m8.001",
+        "m8.002"
+      ]
+    },
+    "gateway_write_path": {
+      "note": "Normal durable memory writes are governed through compact tools only; no raw SQL/admin tools exposed."
+    },
+    "cognee": {
+      "status": "available",
+      "backend": "cognee",
+      "version": "1.3.0",
+      "installation_path": "H:\\AgentRuntime\\agentcore-memory\\cognee\\.venv311\\Lib\\site-packages\\cognee\\__init__.py",
+      "detail": "Native Windows package import succeeded in isolated Cognee venv; canonical retrieval remains PostgreSQL-backed."
+    },
+    "langgraph": {
+      "status": "m6_integrated",
+      "checkpointer": "langgraph-checkpoint-postgres==3.1.0",
+      "checkpoint_tables": "public.checkpoints/checkpoint_blobs/checkpoint_writes",
+      "workflow_tables": "agentcore.wf_runs/wf_milestones/wf_macro_steps/wf_micro_steps",
+      "capability_profiles": "agentcore.capability_profiles (PostgreSQL-backed M6 leases)"
+    }
+  },
+  "secrets": "never_returned"
+}
+```
+The `agentcore-memory` `memory_status` tool returned:
+
+```json
+{
+  "ok": true,
+  "server": "agentcore-memory",
+  "version": "0.6.0",
+  "status": "healthy",
+  "checked_at": "2026-07-24T09:53:42.953470+00:00",
+  "components": {
+    "postgres_agent_core": {
+      "endpoint": "127.0.0.1:55433",
+      "reachable": true,
+      "role": "canonical AgentCore database listener probe",
+      "migrations": [
+        "m2.001",
+        "m3.001",
+        "m3.002",
+        "m4.001_quarantine_filter",
+tokens used
+107,336
+        "m5.001",
+        "m6.001",
+        "m8.001",
+        "m8.002"
+      ]
+    },
+    "gateway_write_path": {
+      "note": "Normal durable memory writes are governed through compact tools only; no raw SQL/admin tools exposed."
+    },
+    "cognee": {
+      "status": "available",
+      "backend": "cognee",
+      "version": "1.3.0",
+      "installation_path": "H:\\AgentRuntime\\agentcore-memory\\cognee\\.venv311\\Lib\\site-packages\\cognee\\__init__.py",
+      "detail": "Native Windows package import succeeded in isolated Cognee venv; canonical retrieval remains PostgreSQL-backed."
+    },
+    "langgraph": {
+      "status": "m6_integrated",
+      "checkpointer": "langgraph-checkpoint-postgres==3.1.0",
+      "checkpoint_tables": "public.checkpoints/checkpoint_blobs/checkpoint_writes",
+      "workflow_tables": "agentcore.wf_runs/wf_milestones/wf_macro_steps/wf_micro_steps",
+      "capability_profiles": "agentcore.capability_profiles (PostgreSQL-backed M6 leases)"
+    }
+  },
+  "secrets": "never_returned"
+}
+```

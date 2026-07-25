@@ -19,6 +19,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_PATH = REPO_ROOT / "contracts" / "bifrost-upstream-mcp-registry.json"
 GATEWAY_CLIENT_PATH = REPO_ROOT / "contracts" / "agentcore-gateway-client.json"
+OUTPUT_SCHEMA_CONTRACT_PATH = REPO_ROOT / "contracts" / "mcp-tool-output-schemas.json"
 DEFAULT_RUNTIME_ROOT = Path(r"H:\AgentRuntime\bifrost")
 SANITIZED_RENDERER = REPO_ROOT / "renderers" / "bifrost" / "config.sanitized.json"
 SANITIZED_CONFIG_COPY = REPO_ROOT / "renderers" / "bifrost" / "config.json"
@@ -80,6 +81,79 @@ def wrapper_command(authority: str, wrapper_script: str) -> tuple[str, list[str]
     return "cmd.exe", ["/c", abs_wrapper]
 
 
+class OutputSchemaWiring:
+    """Injects the MCP outputSchema / structuredContent normalizer into stdio launches.
+
+    Bifrost is a passthrough gateway: it forwards whatever an upstream advertises in
+    tools/list and whatever it returns from tools/call. Since most upstreams predate
+    MCP 2025-06-18 structured output, the only architecture-preserving injection point
+    is the upstream stdio command itself. This adds no MCP route and no tool.
+    """
+
+    def __init__(self, registry: dict[str, Any], *, enabled: bool = True) -> None:
+        block = dict(registry.get("output_schema_adapter") or {})
+        self.configured = bool(block)
+        self.enabled = bool(block.get("enabled")) and enabled
+        self.authority = str(registry.get("authority") or REPO_ROOT)
+        self.interpreter = str(block.get("interpreter") or "")
+        self.script_rel = str(block.get("script") or "")
+        self.contract_rel = str(block.get("contract") or "")
+        self.contract: dict[str, Any] = {}
+        if self.contract_rel:
+            candidate = REPO_ROOT / self.contract_rel.replace("\\", "/")
+            if candidate.exists():
+                self.contract = load_json(candidate)
+        self.wrapped: list[str] = []
+
+    def _authority_path(self, relative: str) -> str:
+        # Built with explicit Windows separators (not Path.__truediv__) so the render
+        # is byte-identical whether it runs on the Bifrost host or in POSIX CI, which
+        # keeps the generated-artifact drift check free of false positives.
+        root = self.authority.rstrip("\\/")
+        tail = relative.replace("/", "\\").lstrip("\\")
+        return f"{root}\\{tail}"
+
+    def mode(self, canonical_id: str) -> str:
+        entry = (self.contract.get("servers") or {}).get(canonical_id) or {}
+        return str(entry.get("adapter") or "unsupported")
+
+    def applies_to(self, canonical_id: str) -> bool:
+        if not (self.enabled and self.interpreter and self.script_rel):
+            return False
+        return self.mode(canonical_id) == "stdio_envelope"
+
+    def wrap(
+        self, canonical_id: str, command: str, args: list[str]
+    ) -> tuple[str, list[str]]:
+        wrapped_args = [
+            "-u",
+            self._authority_path(self.script_rel),
+            "--server",
+            canonical_id,
+            "--contract",
+            self._authority_path(self.contract_rel),
+            "--",
+            command,
+            *args,
+        ]
+        self.wrapped.append(canonical_id)
+        return self.interpreter, wrapped_args
+
+    def meta(self) -> dict[str, Any]:
+        return {
+            "configured": self.configured,
+            "enabled": self.enabled,
+            "contract": self.contract_rel,
+            "envelope_version": self.contract.get("envelope_version"),
+            "wrapped_servers": sorted(set(self.wrapped)),
+            "note": (
+                "tool.outputSchema and CallToolResult.structuredContent are injected by "
+                "scripts/bifrost/mcp_output_schema_adapter.py in front of each wrapped "
+                "stdio upstream; human-readable content blocks are preserved."
+            ),
+        }
+
+
 # On Windows Bifrost STDIO, listing env names and reconstructing the process
 # environment has caused CreateProcess "The parameter is incorrect".
 # Prefer full parent-env inheritance (empty envs list). Secrets must be present
@@ -87,7 +161,11 @@ def wrapper_command(authority: str, wrapper_script: str) -> tuple[str, list[str]
 BASE_ENVS: list[str] = []
 
 
-def build_stdio_client(server: dict[str, Any], authority: str) -> dict[str, Any]:
+def build_stdio_client(
+    server: dict[str, Any],
+    authority: str,
+    output_schema: "OutputSchemaWiring | None" = None,
+) -> dict[str, Any]:
     name = server["bifrost_client_name"]
     canonical = server["canonical_id"]
     tools = list(server.get("permitted_tools") or ["*"])
@@ -103,6 +181,9 @@ def build_stdio_client(server: dict[str, Any], authority: str) -> dict[str, Any]
         command = server["executable_or_url"]
         args = list(server.get("arguments") or [])
         envs = list(BASE_ENVS)
+
+    if output_schema is not None and output_schema.applies_to(canonical):
+        command, args = output_schema.wrap(canonical, command, args)
 
     health = str(server.get("health_check_type") or "mcp_list_tools")
     is_ping_available = health in {"mcp_ping", "ping"}
@@ -136,6 +217,8 @@ def build_stdio_client(server: dict[str, Any], authority: str) -> dict[str, Any]
     }
     if denied:
         notes["denied_tools"] = denied
+    if output_schema is not None:
+        notes["output_schema_adapter"] = output_schema.mode(canonical)
     client["notes_agentcore"] = notes
 
     return client
@@ -196,7 +279,11 @@ def build_http_client(server: dict[str, Any], oauth_state: dict[str, Any] | None
     return client
 
 
-def build_mcp_client_configs(registry: dict[str, Any], oauth_state: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+def build_mcp_client_configs(
+    registry: dict[str, Any],
+    oauth_state: dict[str, Any] | None = None,
+    output_schema: "OutputSchemaWiring | None" = None,
+) -> list[dict[str, Any]]:
     authority = registry["authority"]
     clients: list[dict[str, Any]] = []
     for _key, server in sorted(registry["servers"].items(), key=lambda kv: kv[0]):
@@ -206,7 +293,7 @@ def build_mcp_client_configs(registry: dict[str, Any], oauth_state: dict[str, An
             continue
         ctype = server["connection_type"]
         if ctype in ("stdio", "router"):
-            clients.append(build_stdio_client(server, authority))
+            clients.append(build_stdio_client(server, authority, output_schema))
         elif ctype in ("http", "sse"):
             clients.append(build_http_client(server, oauth_state))
         else:
@@ -303,6 +390,7 @@ def build_bifrost_config(
     registry: dict[str, Any],
     gateway_client: dict[str, Any],
     oauth_state: dict[str, Any] | None = None,
+    output_schema: "OutputSchemaWiring | None" = None,
 ) -> dict[str, Any]:
     _ = gateway_client  # reserved for future timeout / URL cross-checks
     return {
@@ -345,7 +433,7 @@ def build_bifrost_config(
             }
         },
         "mcp": {
-            "client_configs": build_mcp_client_configs(registry, oauth_state),
+            "client_configs": build_mcp_client_configs(registry, oauth_state, output_schema),
             "tool_manager_config": {
                 "tool_execution_timeout": "2m",
                 "max_agent_depth": 1,
@@ -358,7 +446,12 @@ def build_bifrost_config(
     }
 
 
-def build_sanitized_sidecar(registry: dict[str, Any], config: dict[str, Any], oauth_state_present: bool = False) -> dict[str, Any]:
+def build_sanitized_sidecar(
+    registry: dict[str, Any],
+    config: dict[str, Any],
+    oauth_state_present: bool = False,
+    output_schema: "OutputSchemaWiring | None" = None,
+) -> dict[str, Any]:
     """Source-controlled sanitized copy with AgentCore metadata (still no secrets)."""
     payload = json.loads(json.dumps(config))
     payload["agentcore_meta"] = {
@@ -382,6 +475,8 @@ def build_sanitized_sidecar(registry: dict[str, Any], config: dict[str, Any], oa
             "Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration."
         ),
     }
+    if output_schema is not None:
+        payload["agentcore_meta"]["output_schema"] = output_schema.meta()
     return payload
 
 
@@ -438,6 +533,15 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Do not write renderers/bifrost sanitized copies.",
     )
+    parser.add_argument(
+        "--no-output-adapter",
+        action="store_true",
+        help=(
+            "Rollback switch: render upstream stdio launches without the MCP "
+            "outputSchema/structuredContent normalizer. tools/list will then omit "
+            "outputSchema and validate_output_schemas.py will report MissingOutputSchema."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -456,7 +560,21 @@ def main() -> int:
     else:
         print("OAuth state: pre-enrollment (no state file or empty) — oauth_config (public params) will be used")
 
-    config = build_bifrost_config(registry, gateway_client, oauth_state)
+    output_schema = OutputSchemaWiring(registry, enabled=not args.no_output_adapter)
+    if not output_schema.configured:
+        print(
+            "WARNING: registry has no output_schema_adapter block — "
+            "tools/list will not advertise outputSchema"
+        )
+    elif not output_schema.enabled:
+        print("Output-schema normalizer: DISABLED (rollback posture)")
+    elif not output_schema.contract:
+        print(
+            f"WARNING: output-schema contract not found at {output_schema.contract_rel} — "
+            "no upstream will be wrapped"
+        )
+
+    config = build_bifrost_config(registry, gateway_client, oauth_state, output_schema)
     assert_no_secret_literals(config)
 
     if args.stdout:
@@ -479,7 +597,7 @@ def main() -> int:
 
     if not args.skip_renderer:
         oauth_state_present = bool(oauth_state)
-        sanitized = build_sanitized_sidecar(registry, config, oauth_state_present)
+        sanitized = build_sanitized_sidecar(registry, config, oauth_state_present, output_schema)
         assert_no_secret_literals(sanitized)
         write_json(SANITIZED_RENDERER, sanitized)
         write_json(SANITIZED_CONFIG_COPY, sanitized)
@@ -488,6 +606,11 @@ def main() -> int:
 
     enabled = [c["name"] for c in config["mcp"]["client_configs"]]
     print(f"Enabled Bifrost MCP clients ({len(enabled)}): {', '.join(enabled)}")
+    wrapped = sorted(set(output_schema.wrapped))
+    print(
+        f"Output-schema normalizer wrapped {len(wrapped)} stdio upstream(s): "
+        f"{', '.join(wrapped) if wrapped else '<none>'}"
+    )
     return 0
 
 

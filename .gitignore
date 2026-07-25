@@ -7,6 +7,22 @@
 .depwire/health-history.json
 depwire-output.json
 .agentcore/runtime/
+.agentcore/*.previous
+
+# Runtime logs that must not re-enter source control
+audits/M6/studio-launch-stdout.log
+audits/M6/studio-launch-stderr.log
+**/studio-dev.log
+**/studio-dev.err
+
+# Maintenance secret-bearing / session blobs (quarantined to E:\AgentCore-Backups)
+ops/maintenance/**/auth.json
+ops/maintenance/**/sessions/
+ops/maintenance/**/archived_sessions/
+ops/maintenance/**/*.sqlite
+ops/maintenance/**/*.sqlite3
+ops/maintenance/**/state_*.sqlite
+ops/maintenance/**/logs_*.sqlite
 
 # Raw live-config inventory dumps (secret-bearing; never commit)
 reports/_raw/

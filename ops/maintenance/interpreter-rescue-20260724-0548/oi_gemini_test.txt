@@ -1,0 +1,21 @@
+Reading additional input from stdin...
+Open Interpreter v0.0.10 (research preview)
+--------
+workdir: D:\github\agentcore-control-plane
+model: google/gemini-3-flash-preview
+provider: openrouter
+approval: never
+sandbox: danger-full-access
+reasoning effort: none
+reasoning summaries: none
+session id: 019f938a-c532-7131-a192-29dec0397895
+--------
+user
+Reply with the single word: PONG
+ERROR: Reconnecting... 1/5
+ERROR: Reconnecting... 2/5
+ERROR: Reconnecting... 3/5
+ERROR: Reconnecting... 4/5
+ERROR: Reconnecting... 5/5
+ERROR: unexpected status 404 Not Found: No endpoints available matching your guardrail restrictions and data policy. Configure: https://openrouter.ai/settings/privacy, url: https://openrouter.ai/api/v1/responses, cf-ray: a20209104ac7de9a-EWR
+ERROR: unexpected status 404 Not Found: No endpoints available matching your guardrail restrictions and data policy. Configure: https://openrouter.ai/settings/privacy, url: https://openrouter.ai/api/v1/responses, cf-ray: a20209104ac7de9a-EWR

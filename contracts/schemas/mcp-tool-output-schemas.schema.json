@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentcore.local/contracts/schemas/mcp-tool-output-schemas.schema.json",
+  "title": "AgentCore MCP Tool Output Schema Binding Contract",
+  "description": "Binds every upstream server in contracts/bifrost-upstream-mcp-registry.json to an output-schema profile so tools/list can advertise tool.outputSchema and tool results can carry conforming structuredContent. No secrets, no per-tool payload dumps.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "gateway_id",
+    "envelope_schema_path",
+    "envelope_version",
+    "defaults",
+    "profiles",
+    "servers"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "minLength": 1 },
+    "gateway_id": { "type": "string", "const": "agentcore-gateway" },
+    "envelope_schema_path": {
+      "type": "string",
+      "description": "Repo-relative path to the canonical envelope JSON Schema.",
+      "minLength": 1
+    },
+    "envelope_version": {
+      "type": "string",
+      "description": "Must equal envelope_version inside the envelope schema file.",
+      "minLength": 1
+    },
+    "notes": { "type": "array", "items": { "type": "string" } },
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detail", "max_summary_chars", "max_structured_bytes", "structured_from_text_json"],
+      "properties": {
+        "detail": {
+          "type": "string",
+          "enum": ["compact", "full", "minimal"],
+          "description": "compact (default, ~1.5KB/tool) strips descriptions. minimal (~0.5KB/tool) also collapses the evidence/error/meta item shapes and the family data hints; structuredContent still validates. full keeps descriptions and is for review only."
+        },
+        "max_summary_chars": { "type": "integer", "minimum": 40, "maximum": 2000 },
+        "max_structured_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 4194304,
+          "description": "Upper bound on upstream text considered for JSON->data promotion."
+        },
+        "structured_from_text_json": {
+          "type": "boolean",
+          "description": "Promote JSON-in-text results into envelope.data. Text content blocks are always preserved."
+        },
+        "max_output_schema_bytes": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 16384,
+          "description": "Validator ceiling for a single advertised outputSchema (minified)."
+        }
+      }
+    },
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["family", "description"],
+        "properties": {
+          "family": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Key under $defs.family_data in the envelope schema."
+          },
+          "description": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "servers": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["adapter", "default_profile"],
+        "properties": {
+          "adapter": {
+            "type": "string",
+            "enum": ["stdio_envelope", "upstream_native", "unsupported"],
+            "description": "stdio_envelope = renderer wraps the stdio launch with the AgentCore normalizer. upstream_native = upstream already advertises outputSchema and emits conforming structuredContent. unsupported = no normalization path (must stay out of every capability profile)."
+          },
+          "default_profile": { "type": "string", "minLength": 1 },
+          "tool_profiles": {
+            "type": "object",
+            "propertyNames": { "pattern": "^[A-Za-z0-9_.-]+$" },
+            "additionalProperties": { "type": "string", "minLength": 1 },
+            "description": "Per-tool profile overrides for tools whose payload family differs from the server default."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Required justification when adapter is unsupported."
+          },
+          "notes": { "type": "array", "items": { "type": "string" } }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": { "adapter": { "const": "unsupported" } },
+              "required": ["adapter"]
+            },
+            "then": { "required": ["reason"] }
+          }
+        ]
+      }
+    }
+  }
+}

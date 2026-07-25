@@ -105,8 +105,7 @@ def backup_cherry(dest_root: Path) -> Path:
 
 def ensure_node_deps() -> None:
     nm = CHERRY_PKG / "node_modules" / "classic-level"
-    alt = CHERRY_PKG / "_node_workspace" / "node_modules" / "classic-level"
-    if nm.is_dir() or alt.is_dir():
+    if nm.is_dir():
         return
     print("installing classic-level under scripts/cherry (local only)")
     subprocess.check_call(["npm", "install", "--omit=dev"], cwd=str(CHERRY_PKG))

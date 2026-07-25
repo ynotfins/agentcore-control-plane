@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-07-22T04:51:05.087084+00:00",
+  "timestamp": "2026-07-25T02:12:50.700753+00:00",
   "results": [
     {
       "id": "01",
       "status": "PASS",
       "name": "start_via_cli",
-      "fact": "started thread=b5d1df56 checkpoints=10 completed=True judge=proceed"
+      "fact": "started thread=3534e052 checkpoints=10 completed=True judge=proceed"
     },
     {
       "id": "02",
       "status": "PASS",
       "name": "status_reports_checkpoint",
-      "fact": "run=4264054a thread=b5d1df56 checkpoints=10 blockers=1"
+      "fact": "run=8934ccd1 thread=3534e052 checkpoints=10 blockers=1"
     },
     {
       "id": "03",
@@ -29,13 +29,13 @@
       "id": "05",
       "status": "PASS",
       "name": "human_interrupt_pending",
-      "fact": "pause_id=c003b7e1 visible_via_cli=True"
+      "fact": "pause_id=78457a54 visible_via_cli=True"
     },
     {
       "id": "06",
       "status": "PASS",
       "name": "approve_resume",
-      "fact": "pause=c003b7e1 resolution=approved decision=approve cli_rc=0"
+      "fact": "pause=78457a54 resolution=approved decision=approve cli_rc=0"
     },
     {
       "id": "07",
@@ -65,7 +65,7 @@
       "id": "12",
       "status": "PASS",
       "name": "high_risk_ab_decision",
-      "fact": "high_ab=True critical_ab=True ab_id=2bb9ff3a"
+      "fact": "high_ab=True critical_ab=True ab_id=59aa89c9"
     },
     {
       "id": "13",
@@ -77,7 +77,7 @@
       "id": "10",
       "status": "PASS",
       "name": "tool_lease_lifecycle",
-      "fact": "during=jit_leased after=dormant lease_id=3ed9b37d"
+      "fact": "during=jit_leased after=dormant lease_id=b4f1447e"
     },
     {
       "id": "14",
@@ -95,7 +95,7 @@
       "id": "17",
       "status": "PASS",
       "name": "state_matches_postgres",
-      "fact": "project_a wf_runs=26 wf_evidence=6"
+      "fact": "project_a wf_runs=46 wf_evidence=11"
     },
     {
       "id": "19",

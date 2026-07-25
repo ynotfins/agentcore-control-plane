@@ -79,9 +79,12 @@ foreach ($relativePath in $rendererFiles) {
   Add-Check "Renderer $relativePath" ($null -ne $server -and $server.command -eq $expectedCommand -and (@($server.args) -join "|") -eq "mcp" -and $server.env.DEPWIRE_NO_TELEMETRY -eq "1") "governed DepWire stdio definition"
 }
 
-$generatorPath = Join-Path $rootPath "scripts\mcp_control_plane.py"
-$generatorText = if (Test-Path -LiteralPath $generatorPath) { Get-Content -Raw -LiteralPath $generatorPath } else { "" }
-Add-Check "Generator source" ($generatorText.Contains("DEPWIRE_SERVER") -and $generatorText.Contains("[mcp_servers.depwire]")) "renderer and Codex generation know DepWire"
+# Legacy mcp_control_plane.py archived 2026-07-24; Bifrost registry is the generator authority.
+$registryPath = Join-Path $rootPath "contracts\bifrost-upstream-mcp-registry.json"
+$registryText = if (Test-Path -LiteralPath $registryPath) { Get-Content -Raw -LiteralPath $registryPath } else { "" }
+$rendererPath = Join-Path $rootPath "scripts\bifrost\render_bifrost_config.py"
+$rendererText = if (Test-Path -LiteralPath $rendererPath) { Get-Content -Raw -LiteralPath $rendererPath } else { "" }
+Add-Check "Generator source" ($registryText.Contains('"depwire"') -and $rendererText.Length -gt 0) "Bifrost registry and renderer know DepWire"
 
 $masterPath = Join-Path $rootPath "MASTER_CONFIG_AND_PROMPT.md"
 $masterText = if (Test-Path -LiteralPath $masterPath) { Get-Content -Raw -LiteralPath $masterPath } else { "" }

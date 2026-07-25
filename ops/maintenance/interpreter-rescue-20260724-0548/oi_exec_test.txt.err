@@ -1,0 +1,16 @@
+Reading additional input from stdin...
+Open Interpreter v0.0.10 (research preview)
+--------
+workdir: D:\github\agentcore-control-plane
+model: minimax/minimax-m3
+provider: openrouter
+approval: never
+sandbox: danger-full-access
+reasoning effort: none
+reasoning summaries: none
+session id: 019f938a-0cab-7690-b30d-38260c4bcb8e
+--------
+user
+Reply with the single word: PONG
+tokens used
+55

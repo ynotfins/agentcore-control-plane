@@ -1,3 +1,7 @@
+# ARCHIVED — superseded by Bifrost contracts + scripts/bifrost/render_bifrost_config.py
+# and renderers/gateway-clients/. Do not execute as current non-Swarm IDE baseline.
+# See DOC_AUTHORITY.md historical table. Archived during Phase 1 hardening 2026-07-24.
+# ---------------------------------------------------------------------------
 from __future__ import annotations
 
 import argparse
@@ -2045,3 +2049,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

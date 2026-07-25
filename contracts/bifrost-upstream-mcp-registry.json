@@ -12,6 +12,18 @@
     "AgentSwarm",
     "F:\\AgentCore\\agentmemory"
   ],
+  "output_schema_adapter": {
+    "enabled": true,
+    "interpreter": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+    "script": "scripts\\bifrost\\mcp_output_schema_adapter.py",
+    "contract": "contracts\\mcp-tool-output-schemas.json",
+    "notes": [
+      "MCP 2025-06-18+ outputSchema/structuredContent normalizer. Bifrost is a passthrough gateway and does not synthesize schemas, so normalization is injected in front of each stdio upstream by scripts/bifrost/render_bifrost_config.py.",
+      "Adds no MCP route, no gateway front door, and no tool. Per-server applicability is declared in contracts/mcp-tool-output-schemas.json (adapter: stdio_envelope | upstream_native | unsupported).",
+      "Rollback: set enabled=false (or render with --no-output-adapter), re-render, restart Bifrost. Upstream stdio launches revert to their raw command and outputSchema disappears.",
+      "Fail-open by design: if the contract cannot be loaded the normalizer relays raw JSON-RPC unchanged."
+    ]
+  },
   "tool_lifecycle_note": "TRANSITIONAL WILDCARD EXPOSURE: permitted_tools [\"*\"] grants on some non-OpenRouter servers remain a documented transitional state per contracts/project-tool-lifecycle.json (wildcard_policy.transitional_exception). M6 PostgreSQL capability leases + scripts/bifrost/jit_vk_bridge.py are live for exact OpenRouter named groups (docs/operations/OPENROUTER_MCP.md). Do not extend wildcard grants to new servers without review.",
   "capability_profiles": {
     "builder": {

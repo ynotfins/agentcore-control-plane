@@ -1,0 +1,19 @@
+Reading additional input from stdin...
+Open Interpreter v0.0.10 (research preview)
+--------
+workdir: D:\github\agentcore-control-plane
+model: minimax-m3
+provider: minimax
+approval: never
+sandbox: danger-full-access
+session id: 019f938a-ff0c-7c31-82e3-405e339ddd0c
+--------
+user
+Reply with the single word: PONG
+ERROR: Reconnecting... 1/5
+ERROR: Reconnecting... 2/5
+ERROR: Reconnecting... 3/5
+ERROR: Reconnecting... 4/5
+ERROR: Reconnecting... 5/5
+ERROR: unexpected status 404 Not Found: 404 page not found, url: https://api.minimax.io/anthropic/v1/v1/messages?beta=true
+ERROR: unexpected status 404 Not Found: 404 page not found, url: https://api.minimax.io/anthropic/v1/v1/messages?beta=true

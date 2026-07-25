@@ -198,10 +198,12 @@ Add-Result $results "current session sees required env vars" ($missingProcess.Co
 Add-Result $results "AGENT_CORE_PGUSER policy value" ($valueMismatches.Count -eq 0) $valueDetail
 
 $gatewayChecks = @(
+  # scripts/mcp_control_plane.py archived to docs/archive/ (2026-07-24 Phase 1 hardening).
+  # Live env-policy checks use Bifrost gateway contracts + sanitized renderers only.
   [pscustomobject]@{
-    Path = "scripts\mcp_control_plane.py"
-    UserPattern = 'AGENT_CORE_PGUSER": "agent_ingest"'
-    PasswordPattern = 'AGENT_CORE_PGPASSWORD": "\$\{ENV:AGENT_CORE_AGENT_INGEST_PASSWORD\}"'
+    Path = "contracts\agentcore-gateway-client.json"
+    UserPattern = 'BIFROST_MCP_VIRTUAL_KEY'
+    PasswordPattern = '\$\{env:BIFROST_MCP_VIRTUAL_KEY\}'
   },
   [pscustomobject]@{
     Path = "renderers\cursor-global.mcp.json"

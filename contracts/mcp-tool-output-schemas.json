@@ -1,0 +1,183 @@
+{
+  "schema_version": "2026-07-25",
+  "gateway_id": "agentcore-gateway",
+  "envelope_schema_path": "schemas/tools/_shared/mcp-output-envelope.schema.json",
+  "envelope_version": "1.0.0",
+  "notes": [
+    "MCP 2025-06-18+: tool.outputSchema describes CallToolResult.structuredContent only. Human-readable content blocks are always preserved unchanged.",
+    "Bifrost is a passthrough gateway; it does not synthesize schemas. Normalization happens in scripts/bifrost/mcp_output_schema_adapter.py, injected into each stdio launch by scripts/bifrost/render_bifrost_config.py.",
+    "Single gateway architecture is unchanged: no new MCP route, no new tool, no second front door.",
+    "Every server that is enabled AND reachable through a capability profile must resolve to adapter stdio_envelope or upstream_native, otherwise scripts/bifrost/validate_output_schemas.py reports MissingOutputSchema.",
+    "http/sse upstreams cannot be wrapped by a stdio normalizer; they stay adapter=unsupported and must remain out of capability_profiles[*].allowed_server_ids.",
+    "tools/list size: defaults.detail=compact emits ~1.5KB of outputSchema per tool (~210KB across the current surface). Switch to detail=minimal (~0.5KB per tool, ~60KB total) if client context cost matters more than per-tool schema detail; structuredContent still validates under either setting."
+  ],
+  "defaults": {
+    "detail": "compact",
+    "max_summary_chars": 400,
+    "max_structured_bytes": 131072,
+    "structured_from_text_json": true,
+    "max_output_schema_bytes": 4096
+  },
+  "profiles": {
+    "generic": {
+      "family": "generic",
+      "description": "Fallback envelope with an unconstrained data payload."
+    },
+    "memory": {
+      "family": "memory",
+      "description": "AgentCore durable memory: stable ids, session/project keys, cursors, projections. Never credentials."
+    },
+    "project_router": {
+      "family": "project_router",
+      "description": "Registered worktree activation: project_key, active project, safe root path, boundary policy."
+    },
+    "docs": {
+      "family": "docs",
+      "description": "Documentation indexing/search: library, version, source url, job/index status, result refs."
+    },
+    "code_intel": {
+      "family": "code_intel",
+      "description": "Semantic code navigation: symbol/file refs, match counts, impacted files. No whole-file dumps."
+    },
+    "reasoning": {
+      "family": "reasoning",
+      "description": "Structured planning progress only. Hidden chain-of-thought is never surfaced in summary."
+    },
+    "dep_graph": {
+      "family": "dep_graph",
+      "description": "Dependency graph, blast radius, impact level, risks, verification recommendations."
+    },
+    "diagram": {
+      "family": "diagram",
+      "description": "Architecture/graph artifacts: diagram id/url/path, node and edge counts, render status."
+    },
+    "context_fabric": {
+      "family": "context_fabric",
+      "description": "Capture/query ids, context pack refs, drift severity, decision ids."
+    },
+    "fs_artifact": {
+      "family": "fs_artifact",
+      "description": "Bounded filesystem artifacts: paths, counts, byte sizes, truncation flags."
+    },
+    "browser": {
+      "family": "browser",
+      "description": "Bounded browser automation: url, operation, artifact refs, console/network counts, risk flags."
+    },
+    "external": {
+      "family": "external",
+      "description": "External/untrusted registries and remote agents: ids, status, urls, trust class."
+    }
+  },
+  "servers": {
+    "agentcore-memory": {
+      "adapter": "stdio_envelope",
+      "default_profile": "memory",
+      "tool_profiles": {
+        "docs_search": "docs"
+      },
+      "notes": [
+        "Upstream already returns structuredContent (legacy payload). The normalizer preserves it verbatim under envelope.data, so direct-stdio acceptance tests are unaffected."
+      ]
+    },
+    "agentcore-project-router": {
+      "adapter": "stdio_envelope",
+      "default_profile": "project_router"
+    },
+    "arabold-docs": {
+      "adapter": "stdio_envelope",
+      "default_profile": "docs"
+    },
+    "serena": {
+      "adapter": "stdio_envelope",
+      "default_profile": "code_intel"
+    },
+    "sequential-thinking": {
+      "adapter": "stdio_envelope",
+      "default_profile": "reasoning"
+    },
+    "cursor-agent-mcp": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external"
+    },
+    "context-fabric": {
+      "adapter": "stdio_envelope",
+      "default_profile": "context_fabric"
+    },
+    "depwire": {
+      "adapter": "stdio_envelope",
+      "default_profile": "dep_graph",
+      "tool_profiles": {
+        "get_project_docs": "docs",
+        "update_project_docs": "docs",
+        "visualize_graph": "diagram",
+        "search_symbols": "code_intel",
+        "get_symbol_info": "code_intel"
+      }
+    },
+    "tentra": {
+      "adapter": "stdio_envelope",
+      "default_profile": "diagram",
+      "tool_profiles": {
+        "query_symbols": "code_intel",
+        "find_references": "code_intel",
+        "find_similar_code": "code_intel",
+        "get_symbol_neighbors": "code_intel",
+        "safe_rename": "code_intel",
+        "explain_code_path": "code_intel",
+        "get_quality_hotspots": "dep_graph",
+        "list_god_nodes": "dep_graph"
+      }
+    },
+    "playwright": {
+      "adapter": "stdio_envelope",
+      "default_profile": "browser"
+    },
+    "filesystem": {
+      "adapter": "stdio_envelope",
+      "default_profile": "fs_artifact"
+    },
+    "skills-hub": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external",
+      "notes": [
+        "Skills-Hub registry content is raw_untrusted; the envelope never promotes it."
+      ]
+    },
+    "mcp-debugger": {
+      "adapter": "stdio_envelope",
+      "default_profile": "generic"
+    },
+    "obsidian-vault": {
+      "adapter": "stdio_envelope",
+      "default_profile": "fs_artifact"
+    },
+    "github-mcp": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external"
+    },
+    "firebase-mcp": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external"
+    },
+    "artiforge": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "http upstream; a stdio normalizer cannot wrap it. Keep enabled=false and out of every capability profile until an http-side contract exists."
+    },
+    "depwire-cloud": {
+      "adapter": "unsupported",
+      "default_profile": "dep_graph",
+      "reason": "http upstream; not wrappable by the stdio normalizer. Remains enabled=false."
+    },
+    "openrouter": {
+      "adapter": "unsupported",
+      "default_profile": "external",
+      "reason": "http upstream, status dormant, zero tools without an M6 capability lease. Must not appear in capability_profiles[*].allowed_server_ids."
+    },
+    "google-sheets-mcp": {
+      "adapter": "unsupported",
+      "default_profile": "external",
+      "reason": "remote http upstream in developer_preview_oauth_pending; zero default exposure."
+    }
+  }
+}

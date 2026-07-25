@@ -1,0 +1,174 @@
+approval_policy = "never"
+cli_auth_credentials_store = "file"
+file_opener = "cursor"
+forced_login_method = "chatgpt"
+mcp_oauth_credentials_store = "file"
+model = "minimax/minimax-m3"
+model_auto_compact_token_limit = 850000
+model_context_window = 1000000
+model_provider = "openrouter"
+model_provider_id = "openrouter"
+sandbox_mode = "danger-full-access"
+web_search = "live"
+
+[features]
+apps = false
+memories = true
+multi_agent = true
+plugins = false
+shell_snapshot = true
+shell_tool = true
+unified_exec = true
+
+[interpreter_app]
+default_profile_id = "autonomous-os"
+fast_profile_id = "autonomous-fast"
+profiles = [
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-os", isBuiltin = false, modelId = "minimax/minimax-m3", name = "Autonomous OS - MiniMax M3", provider = "api", useResponsesApi = true, wireApi = "responses", visionModel = { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", modelId = "minimax/minimax-m3", provider = "api" } },
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-deepseek-pro", isBuiltin = false, modelId = "deepseek/deepseek-v4-pro", name = "Autonomous DeepSeek V4 Pro", provider = "api", useResponsesApi = true, wireApi = "responses" },
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-gemini-flash", isBuiltin = false, modelId = "google/gemini-3-flash-preview", name = "Autonomous Gemini 3 Flash Preview", provider = "api", useResponsesApi = true, wireApi = "responses", visionModel = { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", modelId = "google/gemini-3-flash-preview", provider = "api" } },
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-glm", isBuiltin = false, modelId = "z-ai/glm-5.2", name = "Autonomous GLM 5.2", provider = "api", useResponsesApi = true, wireApi = "responses" },
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-mimo", isBuiltin = false, modelId = "xiaomi/mimo-v2.5", name = "Autonomous Xiaomi MiMo V2.5", provider = "api", useResponsesApi = true, wireApi = "responses", visionModel = { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", modelId = "xiaomi/mimo-v2.5", provider = "api" } },
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-fast", isBuiltin = false, modelId = "deepseek/deepseek-v4-flash", name = "Autonomous Fast - DeepSeek V4 Flash", provider = "api", useResponsesApi = true, wireApi = "responses" },
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-minimax-m1", isBuiltin = false, modelId = "minimax/minimax-m1", name = "Autonomous MiniMax M1", provider = "api", useResponsesApi = true, wireApi = "responses" },
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-glm-vision", isBuiltin = false, modelId = "z-ai/glm-5v-turbo", name = "Autonomous GLM 5V Turbo", provider = "api", useResponsesApi = true, wireApi = "responses", visionModel = { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", modelId = "z-ai/glm-5v-turbo", provider = "api" } },
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-qwen-clean-code", isBuiltin = false, modelId = "qwen/qwen-2.5-72b-instruct", name = "Autonomous Qwen 2.5 72B Clean Code", provider = "api", useResponsesApi = true, wireApi = "responses" },
+  { apiFormat = "openai", apiKey = "${env:OPENROUTER_API_KEY}", baseURL = "https://openrouter.ai/api/v1", codexProfileId = "openrouter", id = "autonomous-unrestricted", isBuiltin = false, modelId = "cognitivecomputations/dolphin-mistral-24b-venice-edition", name = "Autonomous Dolphin Venice Unrestricted", provider = "api", useResponsesApi = true, wireApi = "responses" },
+]
+
+[interpreter_app.providers]
+
+[interpreter_app.providers."builtin:agent"]
+createdAt = 0
+id = "builtin:agent"
+name = "CLI Agent"
+type = "agent"
+updatedAt = 0
+
+[interpreter_app.providers."builtin:hosted"]
+createdAt = 0
+id = "builtin:hosted"
+name = "Hosted"
+type = "hosted"
+updatedAt = 0
+
+[interpreter_app.providers."builtin:local"]
+createdAt = 0
+id = "builtin:local"
+name = "Local (Ollama / LM Studio)"
+type = "local"
+updatedAt = 0
+
+[interpreter_app.providers."builtin:openai-oauth"]
+createdAt = 0
+id = "builtin:openai-oauth"
+name = "OpenAI (OAuth)"
+type = "openai-oauth"
+updatedAt = 0
+
+[mcp_servers.agentcore-gateway]
+bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"
+enabled = true
+startup_timeout_sec = 300
+tool_timeout_sec = 300
+url = "http://127.0.0.1:8080/mcp"
+
+[model_providers.custom]
+base_url = "https://api.minimax.io/v1"
+experimental_bearer_token = "${env:MINIMAX_API_KEY}"
+name = "Custom Endpoint"
+requires_openai_auth = false
+wire_api = "responses"
+
+[model_providers.custom.http_headers]
+Authorization = "Bearer ${env:MINIMAX_API_KEY}"
+
+[model_providers.deepseek]
+base_url = "https://api.deepseek.com"
+env_key = "DEEPSEEK_API_KEY"
+name = "DeepSeek"
+wire_api = "chat"
+
+[model_providers.github-copilot]
+base_url = "https://api.githubcopilot.com"
+env_key = "GITHUB_TOKEN"
+name = "GitHub Copilot"
+wire_api = "chat"
+
+[model_providers.github-models]
+base_url = "https://models.github.ai/inference"
+env_key = "GITHUB_TOKEN"
+name = "GitHub Models"
+wire_api = "chat"
+
+[model_providers.huggingface]
+base_url = "https://router.huggingface.co/v1"
+env_key = "HF_TOKEN"
+name = "Hugging Face"
+wire_api = "chat"
+
+[model_providers.minimax]
+base_url = "https://api.minimax.io/anthropic/v1"
+env_key = "MINIMAX_API_KEY"
+name = "MiniMax (minimax.io)"
+wire_api = "messages"
+
+[model_providers.minimax-cn]
+base_url = "https://api.minimaxi.com/anthropic/v1"
+env_key = "MINIMAX_API_KEY"
+name = "MiniMax (minimaxi.com)"
+wire_api = "messages"
+
+[model_providers.minimax-cn-coding-plan]
+base_url = "https://api.minimaxi.com/anthropic/v1"
+env_key = "MINIMAX_API_KEY"
+name = "MiniMax Token Plan (minimaxi.com)"
+wire_api = "messages"
+
+[model_providers.minimax-coding-plan]
+base_url = "https://api.minimax.io/anthropic/v1"
+env_key = "MINIMAX_API_KEY"
+name = "MiniMax Token Plan (minimax.io)"
+wire_api = "messages"
+
+[model_providers.ollama-cloud]
+base_url = "https://ollama.com/v1"
+env_key = "OLLAMA_API_KEY"
+name = "Ollama Cloud"
+wire_api = "chat"
+
+[model_providers.openai_api_key]
+base_url = "https://api.openai.com/v1"
+env_key = "OPENAI_API_KEY"
+name = "OpenAI (API key)"
+requires_openai_auth = false
+wire_api = "responses"
+
+[model_providers.openrouter]
+env_key = "OPENROUTER_API_KEY"
+base_url = "https://openrouter.ai/api/v1"
+experimental_bearer_token = "${env:OPENROUTER_API_KEY}"
+name = "OpenRouter"
+requires_openai_auth = false
+wire_api = "responses"
+
+[model_providers.openrouter.http_headers]
+Authorization = "Bearer ${env:OPENROUTER_API_KEY}"
+
+[projects.'c:\users\ynotf']
+trust_level = "trusted"
+
+[projects.'d:\interpreter-workspace']
+trust_level = "trusted"
+
+[projects.'d:\libraries\pinokio\workspaces\20260714-3mjii5']
+trust_level = "trusted"
+
+[projects.'d:\github\agentcore-control-plane']
+trust_level = "trusted"
+
+[tui.model_availability_nux]
+
+
+
+

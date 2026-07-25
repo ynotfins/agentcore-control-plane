@@ -45,6 +45,37 @@
       "type": "string",
       "description": "Transitional tool-exposure classification note (see contracts/project-tool-lifecycle.json). Informational only; not rendered into the Bifrost runtime config."
     },
+    "output_schema_adapter": {
+      "type": "object",
+      "description": "Wiring for the MCP outputSchema / structuredContent normalizer that render_bifrost_config.py injects in front of each stdio upstream. Adds no MCP route and no tool; per-server applicability is declared in the contract referenced by `contract`.",
+      "additionalProperties": false,
+      "required": ["enabled", "interpreter", "script", "contract"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Master switch. false renders upstream stdio launches unwrapped (rollback posture; outputSchema disappears and the validator reports MissingOutputSchema)."
+        },
+        "interpreter": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute path to the Python interpreter that runs the normalizer. Never a secret."
+        },
+        "script": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Authority-relative path to the normalizer entrypoint."
+        },
+        "contract": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Authority-relative path to contracts/mcp-tool-output-schemas.json."
+        },
+        "notes": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
     "capability_profiles": {
       "type": "object",
       "minProperties": 1,
