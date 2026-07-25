@@ -1,78 +1,86 @@
-
-
 ide_id: open-interpreter
-display_name: Open Interpreter
+display_name: Open Interpreter (CLI)
 swarm_managed: false
-installed_version: unverified
-live_global_rule_target: Open Interpreter profile/system message (profiles under %APPDATA%\interpreter)
-live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\interpreter\config.json
-rule_mechanism: profile system message / custom instructions
-mcp_schema: open_interpreter_json
-mcp_transport: http/streamable
-env_var_handling: no env-header expansion — VK materialized into live config during
-  approved cutover only
-restart_behavior: restart interpreter session after config changes
+installed_version: 0.0.10
+live_global_rule_target: C:\Users\ynotf\.openinterpreter\AGENT.md
+live_mcp_config_target: C:\Users\ynotf\.openinterpreter\config.toml
+rule_mechanism: CLI home AGENT.md + project AGENTS.md (manual/best-effort); GUI customInstructions are a separate unsupported MCP surface
+mcp_schema: open_interpreter_toml_mcp_servers
+mcp_transport: http
+env_var_handling: bearer_token_env_var = BIFROST_MCP_VIRTUAL_KEY (supported; do not materialize into Git)
+restart_behavior: restart interpreter session / daemon after config changes
 editability:
-  global_rules: manual_import
-  project_rules: unsupported
+  global_rules: direct_write
+  project_rules: direct_write
   mcp_config: direct_write
 installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: unverified
+last_validation_date: '2026-07-25'
 mcp_template_source: renderers/gateway-clients/open-interpreter.json
 known_limitations:
-- 'No env-header expansion: resolved VK may exist in the live config only (never in
-  Git).'
-- Rules live in profile system message; parity depends on operator import.
+- Two products exist: CLI Open Interpreter 0.0.10 (~/.openinterpreter/config.toml) and
+  GUI Interpreter 0.2.183 (%APPDATA%\interpreter\config.json). Only CLI has persistent
+  Bifrost MCP today.
+- GUI has no mcpServers schema in live config — unsupported_with_reason for gateway MCP.
+- Full 14-step memory lifecycle not re-run in Phase 4B; memory_status native call proven.
 semantic_parity_gaps:
-- Rules delivery is manual via profile system message.
+- GLOBAL_RULES.md profile header still mentions stale Roaming paths until next render_ide_rules.py
+  regeneration from this IDE_PROFILE.yaml.
+enrollment_evidence:
+  audit: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+  backup_root: E:\AgentCore-Backups\oi-repair-20260725
+  rescue_dir: ops/maintenance/interpreter-rescue-20260724-0548
 status_reconciliation:
-  reconciled_at: '2026-07-23'
-  source_handoff: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-  source_handoff_date: '2026-07-22'
+  reconciled_at: '2026-07-25'
+  source: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
   claim: Open Interpreter persistence failure
-  finding: Operator previously saw agentcore-gateway connected and working, but after
-    reopening the client no longer looked configured. Persistent root cause not established;
-    dedicated diagnostic task required.
-  status_after_reconciliation: awaiting_operator_import
-  next_step: Locate actual persistent MCP configuration, apply supported gateway setup,
-    and prove native lifecycle survives a client restart.
+  finding: 'False disappearance — GUI vs CLI conflation. CLI config.toml retained
+    agentcore-gateway; GUI never had MCP. CLI mcp list + memory_status + daemon-kill
+    persistence proven 2026-07-25.'
+  status_after_reconciliation: live_validated
+  next_step: Optional operator 14-step lifecycle via CLI; do not enroll GUI MCP until
+    product exposes a supported schema.
 dimensions:
   application_launch:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: live_validated
+    evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   gateway_configuration:
-    status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    status: live_validated
+    evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   gateway_discovery:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: live_validated
+    evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   native_memory_lifecycle:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: configured_restart_required
+    evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   fresh_chat_recovery:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: configured_restart_required
+    evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   persistence_after_restart:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: live_validated
+    evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   operator_gate:
-    status: unverified
-    evidence_path: null
-    evidence_ts: null
+    status: live_validated
+    evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
-m8_enrollment: awaiting_operator_import
+  gui_mcp:
+    status: unsupported_with_reason
+    evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
+    superseded_by: null
+m8_enrollment: live_validated

@@ -1,20 +1,21 @@
 {
-  "mcpServers": {
+  "mcp_servers": {
     "agentcore-gateway": {
-      "type": "http",
       "url": "http://127.0.0.1:8080/mcp",
-      "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-      },
-      "timeout": 300
+      "bearer_token_env_var": "BIFROST_MCP_VIRTUAL_KEY",
+      "enabled": true,
+      "startup_timeout_sec": 300,
+      "tool_timeout_sec": 300
     }
   },
   "_agentcore": {
     "renderer": "open-interpreter",
     "source_contract": "contracts/agentcore-gateway-client.json",
+    "live_target": "C:\\Users\\ynotf\\.openinterpreter\\config.toml",
     "notes": [
-      "Live cutover may materialize BIFROST_MCP_VIRTUAL_KEY when env expansion is unsupported."
+      "CLI Open Interpreter uses TOML [mcp_servers.<name>] with bearer_token_env_var — not JSON mcpServers.",
+      "GUI Interpreter (%APPDATA%\\interpreter\\config.json) has no MCP schema — unsupported for gateway enrollment."
     ]
   },
-  "_template_note": "DERIVED from renderers/gateway-clients/open-interpreter.json (source contract: contracts/agentcore-gateway-client.json). Do not hand-edit; regenerate from the contract."
+  "_template_note": "Illustrative TOML-shaped template for CLI home config.toml. Apply with interpreter mcp add or direct TOML edit after backup."
 }
