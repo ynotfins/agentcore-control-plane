@@ -37,6 +37,18 @@
           "weight": 1
         }
       ]
+    },
+    "openrouter": {
+      "keys": [
+        {
+          "name": "openrouter-primary",
+          "value": "env.OPENROUTER_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1
+        }
+      ]
     }
   },
   "mcp": {
@@ -316,14 +328,8 @@
             "--contract",
             "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
             "--",
-            "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
-            "start-mcp-server",
-            "--transport",
-            "stdio",
-            "--context",
-            "ide",
-            "--project",
-            "D:\\github\\agentcore-control-plane"
+            "C:\\Program Files\\nodejs\\node.EXE",
+            "D:\\github\\agentcore-control-plane\\ops\\bifrost\\wrappers\\serena-prewarm.js"
           ],
           "envs": []
         },

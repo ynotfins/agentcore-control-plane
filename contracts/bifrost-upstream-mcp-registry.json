@@ -157,9 +157,10 @@
       "rollback_route": "Disable arabold_docs in Bifrost mcp.client_configs and restore direct IDE entry only under explicit operator approval.",
       "enabled": true,
       "bifrost_client_name": "arabold_docs",
-      "status": "disabled",
+      "status": "active",
       "notes": [
-        "Vendored package path under ~/.cursor/vendor/arabold-docs-mcp"
+        "Vendored package path under ~/.cursor/vendor/arabold-docs-mcp",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. enabled=true is authoritative for Bifrost launch; do not disable to chase startup latency — arabold-docs is mandatory for exact-version docs."
       ]
     },
     "serena": {
@@ -169,15 +170,9 @@
       "owner": "agentcore",
       "pinned_version": "1.5.4.dev0",
       "connection_type": "stdio",
-      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
+      "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
       "arguments": [
-        "start-mcp-server",
-        "--transport",
-        "stdio",
-        "--context",
-        "ide",
-        "--project",
-        "D:\\github\\agentcore-control-plane"
+        "D:\\github\\agentcore-control-plane\\ops\\bifrost\\wrappers\\serena-prewarm.js"
       ],
       "env_var_names": [],
       "timeout_seconds": 180,
@@ -204,14 +199,15 @@
           "spawn_failure"
         ]
       },
-      "rollback_route": "Disable serena wrapper; clear active project; fall back to direct serena.exe only with explicit project cwd.",
+      "rollback_route": "Restore serena.exe direct launch args from git history; or disable serena client in Bifrost.",
       "enabled": true,
       "bifrost_client_name": "serena",
-      "status": "disabled",
+      "status": "active",
       "notes": [
-        "Launched directly under Bifrost for reliability on Windows.",
+        "Phase 2 (2026-07-24): launched via ops/bifrost/wrappers/serena-prewarm.js to answer Bifrost initialize/tools/list/ping immediately while Serena finishes MCP lifetime setup (READY_SIGNAL).",
+        "Prewarm spawns serena.exe start-mcp-server --transport stdio --context ide --project D:\\github\\agentcore-control-plane.",
         "Project activation remains via agentcore-project-router + Serena tools.",
-        "Wrapper scripts under scripts/project_router/wrappers remain available for pooling experiments."
+        "Do not set enabled=false merely because status was previously stale-disabled; Serena is required for architecture-sensitive edits."
       ]
     },
     "sequential-thinking": {
@@ -258,9 +254,10 @@
       "rollback_route": "Disable sequential_thinking client in Bifrost; do not restore thinking-patterns.",
       "enabled": true,
       "bifrost_client_name": "sequential_thinking",
-      "status": "disabled",
+      "status": "active",
       "notes": [
-        "Set DISABLE_THOUGHT_LOGGING=true in Bifrost stdio envs."
+        "Set DISABLE_THOUGHT_LOGGING=true in Bifrost stdio envs.",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled — required for architecture/recovery decisions."
       ]
     },
     "cursor-agent-mcp": {
@@ -305,9 +302,10 @@
       "rollback_route": "Disable cursor_agent_mcp; keep CURSOR_API_KEY in Windows User env only.",
       "enabled": true,
       "bifrost_client_name": "cursor_agent_mcp",
-      "status": "disabled",
+      "status": "active",
       "notes": [
-        "CURSOR_API_URL fixed to https://api.cursor.com in renderer env map (non-secret)."
+        "CURSOR_API_URL fixed to https://api.cursor.com in renderer env map (non-secret).",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled for Cursor cloud-agent orchestration."
       ]
     },
     "context-fabric": {
@@ -735,7 +733,8 @@
       "status": "active",
       "notes": [
         "Bounded to D:\\github only (no whole-drive roots).",
-        "Further narrowing via project router wrappers remains optional."
+        "Further narrowing via project router wrappers remains optional.",
+        "WILDCARD PLAN (Phase 2 documented; Phase 7 enforcement): replace permitted_tools ['*'] with named inventory from @modelcontextprotocol/server-filesystem@2026.7.10 — proposed: read_file, read_text_file, read_media_file, write_file, edit_file, create_directory, list_directory, list_directory_with_sizes, directory_tree, move_file, search_files, get_file_info, list_allowed_directories. Do not grant path escapes outside D:\\github."
       ]
     },
     "github-mcp": {

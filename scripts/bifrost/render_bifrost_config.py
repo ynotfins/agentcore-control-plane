@@ -41,6 +41,7 @@ STATIC_ENV_VALUES: dict[str, dict[str, str]] = {
 
 SECRET_ENV_NAMES = {
     "OPENAI_API_KEY",
+    "OPENROUTER_API_KEY",
     "CURSOR_API_KEY",
     "ARTIFORGE_PAT",
     "ARTIFORGE_MCP_URL",
@@ -420,6 +421,10 @@ def build_bifrost_config(
                 "path": "./logs/logs.db",
             },
         },
+        # Provider keys are env.NAME references only. OPENAI_API_KEY must be a real
+        # OpenAI platform key (sk-...); OPENROUTER_API_KEY is the OpenRouter key (sk-or-...).
+        # Do not place an OpenRouter key under the openai provider — Bifrost will call
+        # platform.openai.com/list-models and fall back to static catalogs (DRIFT-06).
         "providers": {
             "openai": {
                 "keys": [
@@ -430,7 +435,17 @@ def build_bifrost_config(
                         "weight": 1,
                     }
                 ]
-            }
+            },
+            "openrouter": {
+                "keys": [
+                    {
+                        "name": "openrouter-primary",
+                        "value": "env.OPENROUTER_API_KEY",
+                        "models": ["*"],
+                        "weight": 1,
+                    }
+                ]
+            },
         },
         "mcp": {
             "client_configs": build_mcp_client_configs(registry, oauth_state, output_schema),
