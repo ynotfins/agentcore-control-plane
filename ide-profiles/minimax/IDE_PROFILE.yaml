@@ -1,5 +1,3 @@
-
-
 ide_id: minimax
 display_name: MiniMax Code
 swarm_managed: false
@@ -9,8 +7,9 @@ live_mcp_config_target: C:\Users\ynotf\.minimax\mcp\mcp.json
 rule_mechanism: data-dir-root AGENT.md + per-rule rules/*.md (mechanism not officially
   documented; delivered through install prompt + live file)
 mcp_schema: minimax_mcp_json
-mcp_transport: http/streamable
-env_var_handling: supports env headers (per gateway-client contract)
+mcp_transport: streamable-http
+env_var_handling: '${env:BIFROST_MCP_VIRTUAL_KEY} often NOT expanded by MiniMax daemon
+  (401 observed 2026-07-14); materialize VK into live mcp.json Authorization header'
 restart_behavior: restart client after MCP config changes
 editability:
   global_rules: direct_write
@@ -20,44 +19,43 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-07-22'
+last_validation_date: '2026-07-25'
 mcp_template_source: renderers/gateway-clients/minimax.json
 m8_enrollment: configured_restart_required
 known_limitations:
 - Global-rule mechanism unverified by product docs; mechanism is data-dir-root AGENT.md
   + per-rule rules/*.md (verified empirically 2026-07-21).
-- MCP tools are not exposed as direct function calls outside a MiniMax chat session
-  (product limitation); full native memory lifecycle requires operator chat acceptance.
-- C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax (same MiniMax Code
-  data root); do not treat it as a separate Mavis application install.
+- CLI wrappers mavis.cmd/minimax.cmd target nonexistent resources/resources/daemon/cli.js
+  on 3.0.53.91 — CLI route unsupported (MINIMAX_CODE_NATIVE_MCP_UNSUPPORTED_WITH_REASON
+  for CLI only). Do not patch app.asar.
+- Builtin matrix MCP command path also missing matrix-mcp-cli/index.js on this install.
+- In-app MCP is product-supported (changelog 3.0.20+ / native exposure 3.0.28+); native
+  14-step lifecycle still requires operator MiniMax chat (not live_validated).
+- C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax; not a separate Mavis app.
 semantic_parity_gaps:
-- Rule persistence unverified by product docs; the live file at C:\Users\ynotf\.minimax\AGENT.md
-  is the documented target and matches the canonical ide-profiles/minimax/GLOBAL_RULES.md
-  rendering.
+- Rule persistence unverified by product docs; live AGENT.md matches ide-profiles/minimax/GLOBAL_RULES.md.
 enrollment_evidence:
-  audit: audits/MINIMAX_CODE_REPAIR_2026-07-22.md
+  audit: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+  prior_repair: audits/MINIMAX_CODE_REPAIR_2026-07-22.md
   prior_enrollment: audits/MINIMAX_CODE_GATEWAY_ENROLLMENT_2026-07-21.md
   lifecycle: audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-22.json
-  backup_root: E:\AgentCore-Backups\minimax-repair-20260722T205648Z
+  backup_root: E:\AgentCore-Backups\minimax-repair-20260725-phase4a
+  prior_backup_root: E:\AgentCore-Backups\minimax-repair-20260722T205648Z
   bifrost_health: ok
-  tools_list_count: 135
-  agentcore_memory_tools: 10
-  agentcore_project_router_tools: 4
-  forbidden_tools_absent: true
-  filesystem_root_bounded: D:\github
-  root_cause_prior_missing_tools: Bifrost gateway process terminated (graceful shutdown);
-    not MiniMax mcp.json defect
+  phase4a_repair: materialized_vk_and_streamable_http
 status_reconciliation:
-  reconciled_at: '2026-07-23'
-  source_handoff: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-  source_handoff_date: '2026-07-22'
+  reconciled_at: '2026-07-25'
+  source: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
   claim: MiniMax cli.js native invocation route is absent/broken
-  finding: 'Native acceptance blocked: wrappers `mavis.cmd` and `minimax.cmd` point
-    to nonexistent `C:\Users\ynotf\AppData\Local\Programs\MiniMax Code\resources\resources\daemon\cli.js`;
-    no MCP invocation group was present in the in-session `mavis` function surface.'
+  finding: 'CLI wrappers point to nonexistent daemon\\cli.js (unsupported). In-app
+    mcp.json path exists; prior 401 was unexpanded ${env:} placeholder — repaired by
+    materializing User-scope BIFROST_MCP_VIRTUAL_KEY and setting type streamable-http.
+    Native 14-step still operator-gated.'
   status_after_reconciliation: configured_restart_required
-  next_step: Determine whether MiniMax Code supports native MCP invocation or document
-    unsupported_with_reason with product evidence.
+  cli_route_signal: MINIMAX_CODE_NATIVE_MCP_UNSUPPORTED_WITH_REASON
+  in_app_route_signal: configured_restart_required
+  next_step: Operator restarts MiniMax Code and runs 14-step native acceptance from
+    audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
 dimensions:
   application_launch:
     status: live_validated
@@ -66,31 +64,36 @@ dimensions:
     superseded_by: null
   gateway_configuration:
     status: live_validated
-    evidence_path: audits/MINIMAX_CODE_REPAIR_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   gateway_discovery:
-    status: live_validated
-    evidence_path: audits/MINIMAX_CODE_REPAIR_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    status: configured_restart_required
+    evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   native_memory_lifecycle:
     status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   fresh_chat_recovery:
     status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   persistence_after_restart:
     status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   operator_gate:
     status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
+    superseded_by: null
+  cli_daemon_route:
+    status: unsupported_with_reason
+    evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
