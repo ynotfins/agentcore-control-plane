@@ -39,14 +39,16 @@ Contrary to a greenfield deploy assumption, New API is **already live**:
 - Status API: `http://127.0.0.1:3000/api/status` → 200 `success`
 - Docs: `docs/CHERRY_NEWAPI_INTEGRATION.md`
 
-### Hardening applied this phase
+### Hardening recommended (blocked outside AgentCore worktree this chat)
 
-Compose port binding tightened from `0.0.0.0:3000` to **`127.0.0.1:3000`** in `D:\github\new-api\docker-compose.yml`. Operator should recreate the service to apply:
+Compose currently publishes `3000:3000` with HostIp empty (all interfaces). Prefer:
 
-```powershell
-cd D:\github\new-api
-docker compose up -d
+```yaml
+ports:
+  - "127.0.0.1:${NEWAPI_HOST_PORT:-3000}:3000"
 ```
+
+in `D:\github\new-api\docker-compose.yml`, then `docker compose up -d` from that repo in an authorized maintenance chat. Stage B correctly denied an out-of-worktree edit from `agentcore-control-plane`.
 
 ## Cherry token
 
@@ -55,6 +57,6 @@ Least-privilege Cherry → New API token configuration remains operator UI work 
 ## Signals
 
 - `DOCKER_DATA_ON_C_OPERATOR_RELOCATION_REQUIRED`
-- `NEW_API_ALREADY_DEPLOYED_LOCALHOST_BIND_HARDENED`
+- `NEW_API_ALREADY_DEPLOYED` (localhost-bind hardening pending authorized edit in `D:\github\new-api`)
 
-**Phase 8 exit:** Audit complete; New API present; localhost bind patched in compose; Docker VHDX relocation deferred to operator window.
+**Phase 8 exit:** Audit complete; New API present/healthy; Docker VHDX relocation deferred; New API bind harden deferred to authorized `new-api` worktree.
