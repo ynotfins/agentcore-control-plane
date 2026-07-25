@@ -1,8 +1,8 @@
 # IDE Alignment and MASTER_CONFIG Acceptance — Closeout (2026-07-24 / 2026-07-25)
 
-**Repo:** `D:\github\agentcore-control-plane`  
-**Master:** `MASTER_CONFIG_AND_PROMPT.md` (Phase 5 rebuild)  
-**Companion:** `audits/closeout/AGENTCORE_SYSTEM_HARDENING_2026-07-24.md`
+**Repo:** `@D:\github\agentcore-control-plane`  
+**Master:** `@D:\github\agentcore-control-plane\MASTER_CONFIG_AND_PROMPT.md` (Phase 5 rebuild)  
+**Companion:** `@D:\github\agentcore-control-plane\audits\closeout\AGENTCORE_SYSTEM_HARDENING_2026-07-24.md`
 
 ---
 
