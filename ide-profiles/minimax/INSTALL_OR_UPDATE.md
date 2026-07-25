@@ -16,7 +16,7 @@ authorization, a timestamped backup, and post-change validation.
 1. Template: `ide-profiles/minimax/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/minimax.json`).
 2. Live target: `C:\Users\ynotf\.minimax\mcp\mcp.json` — exactly one `agentcore-gateway` entry.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
-4. Env handling: supports env headers (per gateway-client contract).
+4. Env handling: ${env:BIFROST_MCP_VIRTUAL_KEY} often NOT expanded by MiniMax daemon (401 observed 2026-07-14); materialize VK into live mcp.json Authorization header.
 5. Restart behavior: restart client after MCP config changes.
 
 ## CLIENT-LOCAL EXECUTION SCOPE

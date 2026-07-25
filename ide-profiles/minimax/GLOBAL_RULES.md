@@ -18,7 +18,7 @@
 | Backup required | yes |
 | Validation required | yes |
 | Restart required | yes |
-| Last validated | 2026-07-22 |
+| Last validated | 2026-07-25 |
 
 ## Mandatory rules
 
@@ -61,6 +61,8 @@
 ## Product-specific notes and omissions
 
 - Limitation: Global-rule mechanism unverified by product docs; mechanism is data-dir-root AGENT.md + per-rule rules/*.md (verified empirically 2026-07-21).
-- Limitation: MCP tools are not exposed as direct function calls outside a MiniMax chat session (product limitation); full native memory lifecycle requires operator chat acceptance.
-- Limitation: C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax (same MiniMax Code data root); do not treat it as a separate Mavis application install.
-- Parity gap: Rule persistence unverified by product docs; the live file at C:\Users\ynotf\.minimax\AGENT.md is the documented target and matches the canonical ide-profiles/minimax/GLOBAL_RULES.md rendering.
+- Limitation: CLI wrappers mavis.cmd/minimax.cmd target nonexistent resources/resources/daemon/cli.js on 3.0.53.91 — CLI route unsupported (MINIMAX_CODE_NATIVE_MCP_UNSUPPORTED_WITH_REASON for CLI only). Do not patch app.asar.
+- Limitation: Builtin matrix MCP command path also missing matrix-mcp-cli/index.js on this install.
+- Limitation: In-app MCP is product-supported (changelog 3.0.20+ / native exposure 3.0.28+); native 14-step lifecycle still requires operator MiniMax chat (not live_validated).
+- Limitation: C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax; not a separate Mavis app.
+- Parity gap: Rule persistence unverified by product docs; live AGENT.md matches ide-profiles/minimax/GLOBAL_RULES.md.

@@ -18,7 +18,7 @@
 | Backup required | yes |
 | Validation required | yes |
 | Restart required | yes |
-| Last validated | 2026-07-22 |
+| Last validated | 2026-07-25 |
 
 ## Mandatory rules
 

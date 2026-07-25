@@ -4,39 +4,29 @@
 # Configuration mode summary: the normal way this client receives its AgentCore baseline.
 # Do not guess values — 'unverified' until evidence exists.
 
-
-
-matrix_revision: '2026-07-23'
+matrix_revision: '2026-07-25'
 policy_source: contracts/global-agent-policy.yaml
 model_context_profile_source: contracts/model-context-profiles.json
 self_enrollment_contract:
-  session_open: Each managed client opens/resumes its project session with verified
-    client identity, repository/worktree/Git identity, selected provider/model identity,
-    and a named context profile. Unknown models use standard-context only as a safe
-    fallback; the IDE's configured hard context window is never lowered.
-  startup_context: Request the selected model profile and load the smallest high-signal
-    active packet. A 4096 token budget is acceptance/legacy-only, never the production
-    default or durable-memory cap.
-  recovery: If local conversational context is missing or suspect, call retrieve_context
-    with a recovery mode and stable pagination, expand_source for exact originals,
-    and build_handoff for current project reconstruction before asking the operator
-    to repeat history.
+  session_open: Each managed client opens/resumes its project session with verified client identity, repository/worktree/Git
+    identity, selected provider/model identity, and a named context profile. Unknown models use standard-context only as a
+    safe fallback; the IDE's configured hard context window is never lowered.
+  startup_context: Request the selected model profile and load the smallest high-signal active packet. A 4096 token budget
+    is acceptance/legacy-only, never the production default or durable-memory cap.
+  recovery: If local conversational context is missing or suspect, call retrieve_context with a recovery mode and stable pagination,
+    expand_source for exact originals, and build_handoff for current project reconstruction before asking the operator to
+    repeat history.
 enrollment_status_codes:
-  live_validated: MCP verified, tools confirmed, identity isolated, rolling context
-    proven live
-  configured_restart_required: Config written to live path; IDE/session restart required
-    to activate
-  awaiting_operator_import: Artifact generated; operator must install per INSTALL_OR_UPDATE.md
-    and restart
-  awaiting_operator_cloud_mcp_enrollment: Operator must enroll via product's cloud
-    MCP UI/API
+  live_validated: MCP verified, tools confirmed, identity isolated, rolling context proven live
+  configured_restart_required: Config written to live path; IDE/session restart required to activate
+  awaiting_operator_import: Artifact generated; operator must install per INSTALL_OR_UPDATE.md and restart
+  awaiting_operator_cloud_mcp_enrollment: Operator must enroll via product's cloud MCP UI/API
   unsupported_with_reason: Product does not support required MCP baseline (see notes)
 managed_ides:
   cursor:
     installed_version: unverified
     configuration_mode: generated_prompt
-    rule_mechanism: native project rules (.cursor/rules, AGENTS.md) + app-settings
-      User Rules
+    rule_mechanism: native project rules (.cursor/rules, AGENTS.md) + app-settings User Rules
     mcp_schema: cursor_mcp_json
     mcp_transport: http/streamable
     env_var_handling: env-headers-supported
@@ -45,7 +35,7 @@ managed_ides:
       global_rules: manual_import
       project_rules: direct_write
       mcp_config: direct_write
-    last_validated: '2026-07-16'
+    last_validated: '2026-07-13'
     m8_enrollment: live_validated
     m8_validation_evidence:
       session_open_ok: true
@@ -58,12 +48,10 @@ managed_ides:
       project_isolation_proven: true
       validation_session_id: 4c274044-20de-4efd-b2f5-34b8d6186063
       validation_ts: '2026-07-16T09:30:00Z'
-    m8_notes: 'LIVE VALIDATED 2026-07-16. MCP config at C:\Users\ynotf\.cursor\mcp.json
-      with agentcore-gateway entry (http, bearer auth). 10-tool surface confirmed
-      via GetMcpTools + live tool calls: session_open, append_event, startup_context
-      (L0 raw tail), retrieve_context, session_close all passed. Two-project isolation
-      proof: Project A data absent from Project B context. Identity isolated by project-scoped
-      capability profiles.'
+    m8_notes: 'LIVE VALIDATED 2026-07-16. MCP config at C:\Users\ynotf\.cursor\mcp.json with agentcore-gateway entry (http,
+      bearer auth). 10-tool surface confirmed via GetMcpTools + live tool calls: session_open, append_event, startup_context
+      (L0 raw tail), retrieve_context, session_close all passed. Two-project isolation proof: Project A data absent from Project
+      B context. Identity isolated by project-scoped capability profiles.'
     dimensions:
       application_launch:
         status: live_validated
@@ -101,7 +89,7 @@ managed_ides:
         evidence_ts: '2026-07-16T09:30:00Z'
         superseded_by: null
   codex:
-    installed_version: unverified
+    installed_version: 26.715.10079.0 (MSIX OpenAI.Codex); CLI 0.137.0
     configuration_mode: generated_prompt
     rule_mechanism: global + per-repo AGENTS.md
     mcp_schema: codex_toml
@@ -112,53 +100,50 @@ managed_ides:
       global_rules: direct_write
       project_rules: direct_write
       mcp_config: direct_write
-    last_validated: '2026-07-22'
-    m8_enrollment: unverified
-    m8_notes: 'Config verified 2026-07-14 at C:\Users\ynotf\.codex\config.toml: agentcore-gateway
-      entry present with url, bearer_token_env_var=BIFROST_MCP_VIRTUAL_KEY, enabled=true,
-      startup_timeout_sec=300, tool_timeout_sec=300. All config paths direct_write.
-      AGENTS.md and CLAUDE.md present at all managed repos. Reconciled 2026-07-23:
-      Codex desktop application would not open correctly; launch could fall back to
-      Chrome/browser. Native acceptance cannot run until the application launches.
-      Evidence: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md §9 (created
-      2026-07-22). Status advances to live_validated only after operator repairs the
-      desktop application, starts a new session, and confirms tools/list returns 10
-      agentcore-memory tools.'
+    last_validated: '2026-07-25'
+    m8_enrollment: configured_restart_required
+    m8_notes: 'Config verified 2026-07-14 at C:\Users\ynotf\.codex\config.toml: agentcore-gateway entry present with url,
+      bearer_token_env_var=BIFROST_MCP_VIRTUAL_KEY, enabled=true, startup_timeout_sec=300, tool_timeout_sec=300. All config
+      paths direct_write. AGENTS.md and CLAUDE.md present at all managed repos. Reconciled 2026-07-23: Codex desktop application
+      would not open correctly; launch could fall back to Chrome/browser. Native acceptance cannot run until the application
+      launches. Evidence: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md §9 (created 2026-07-22). Status advances
+      to live_validated only after operator repairs the desktop application, starts a new session, and confirms tools/list
+      returns 10 agentcore-memory tools.'
     dimensions:
       application_launch:
-        status: fail
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        status: live_validated
+        evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       gateway_configuration:
-        status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        status: live_validated
+        evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       gateway_discovery:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: live_validated
+        evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       native_memory_lifecycle:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: configured_restart_required
+        evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       fresh_chat_recovery:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: configured_restart_required
+        evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       persistence_after_restart:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: configured_restart_required
+        evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       operator_gate:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: configured_restart_required
+        evidence_path: audits/CODEX_DESKTOP_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
   claude-code:
     installed_version: unverified
@@ -174,10 +159,9 @@ managed_ides:
       mcp_config: direct_write
     last_validated: unverified
     m8_enrollment: awaiting_operator_import
-    m8_notes: 'CLAUDE.md present at all managed repo roots. Config artifact in ide-profiles/claude-code/.
-      Operator action: run claude mcp add agentcore-gateway http://127.0.0.1:8080/mcp
-      with bearer token header (BIFROST_MCP_VIRTUAL_KEY). Then restart session and
-      confirm 10 agentcore-memory tools are returned by tools/list.'
+    m8_notes: 'CLAUDE.md present at all managed repo roots. Config artifact in ide-profiles/claude-code/. Operator action:
+      run claude mcp add agentcore-gateway http://127.0.0.1:8080/mcp with bearer token header (BIFROST_MCP_VIRTUAL_KEY). Then
+      restart session and confirm 10 agentcore-memory tools are returned by tools/list.'
     dimensions:
       application_launch:
         status: awaiting_operator_import
@@ -228,12 +212,11 @@ managed_ides:
       mcp_config: direct_write
     last_validated: unverified
     m8_enrollment: configured_restart_required
-    m8_notes: 'Config verified 2026-07-16 at C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json:
-      agentcore-gateway entry present in mcpServers with type=http, url=http://127.0.0.1:8080/mcp,
-      and materialized bearer token in headers (required; Claude Desktop does not
-      support env-header expansion). Full Claude Desktop application restart required
-      to activate. Status advances to live_validated after operator restarts Claude
-      Desktop and confirms tools/list returns 10 agentcore-memory tools.'
+    m8_notes: 'Config verified 2026-07-16 at C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json: agentcore-gateway
+      entry present in mcpServers with type=http, url=http://127.0.0.1:8080/mcp, and materialized bearer token in headers
+      (required; Claude Desktop does not support env-header expansion). Full Claude Desktop application restart required to
+      activate. Status advances to live_validated after operator restarts Claude Desktop and confirms tools/list returns 10
+      agentcore-memory tools.'
     dimensions:
       application_launch:
         status: unverified
@@ -282,7 +265,7 @@ managed_ides:
       global_rules: direct_write
       project_rules: direct_write
       mcp_config: direct_write
-    last_validated: '2026-07-22'
+    last_validated: '2026-07-25'
     m8_enrollment: configured_restart_required
     m8_validation_evidence:
       mcp_entry_count: 4
@@ -294,19 +277,15 @@ managed_ides:
       forbidden_tools_absent: true
       filesystem_root_bounded: D:\github
       project_list_ok: true
-    m8_notes: 'ENROLLED 2026-07-22. Live config at C:\Users\ynotf\.minimax\mcp\mcp.json
-      with agentcore-gateway entry (type=http, url=http://127.0.0.1:8080/mcp, Authorization
-      Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}, timeout=300). Live global rules at C:\Users\ynotf\.minimax\AGENT.md
-      installed from canonical ide-profiles/minimax/GLOBAL_RULES.md. C:\Users\ynotf\.mavis
-      is a junction to C:\Users\ynotf\.minimax (same MiniMax Code data root); it is
-      not a separate Mavis application install. Three local companion MCP entries
-      (matrix, cu, trash) remain enabled — these are not Bifrost upstream duplicates.
-      Native acceptance blocked: wrappers `mavis.cmd` and `minimax.cmd` point to nonexistent
-      `resources\resources\daemon\cli.js`; no MCP invocation group observed in-session.
-      Reconciled 2026-07-23 per docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-      §5.3. Status advances to live_validated only after operator runs the full native
-      memory lifecycle in a fresh MiniMax Code chat or documents `unsupported_with_reason`
-      with product evidence. Evidence: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+    m8_notes: 'ENROLLED 2026-07-22. Live config at C:\Users\ynotf\.minimax\mcp\mcp.json with agentcore-gateway entry (type=http,
+      url=http://127.0.0.1:8080/mcp, Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}, timeout=300). Live global rules
+      at C:\Users\ynotf\.minimax\AGENT.md installed from canonical ide-profiles/minimax/GLOBAL_RULES.md. C:\Users\ynotf\.mavis
+      is a junction to C:\Users\ynotf\.minimax (same MiniMax Code data root); it is not a separate Mavis application install.
+      Three local companion MCP entries (matrix, cu, trash) remain enabled — these are not Bifrost upstream duplicates. Native
+      acceptance blocked: wrappers `mavis.cmd` and `minimax.cmd` point to nonexistent `resources\resources\daemon\cli.js`;
+      no MCP invocation group observed in-session. Reconciled 2026-07-23 per docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
+      §5.3. Status advances to live_validated only after operator runs the full native memory lifecycle in a fresh MiniMax
+      Code chat or documents `unsupported_with_reason` with product evidence. Evidence: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
       (created 2026-07-22), audits/MINIMAX_CODE_REPAIR_2026-07-22.md, audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-22.json.'
     dimensions:
       application_launch:
@@ -316,33 +295,38 @@ managed_ides:
         superseded_by: null
       gateway_configuration:
         status: live_validated
-        evidence_path: audits/MINIMAX_CODE_REPAIR_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       gateway_discovery:
-        status: live_validated
-        evidence_path: audits/MINIMAX_CODE_REPAIR_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        status: configured_restart_required
+        evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       native_memory_lifecycle:
         status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       fresh_chat_recovery:
         status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       persistence_after_restart:
         status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       operator_gate:
         status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
+        superseded_by: null
+      cli_daemon_route:
+        status: unsupported_with_reason
+        evidence_path: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
   minimax-classic:
     installed_version: 1.0.0.5
@@ -356,17 +340,14 @@ managed_ides:
       global_rules: direct_write
       project_rules: unsupported
       mcp_config: manual_import
-    last_validated: '2026-07-22'
+    last_validated: '2026-07-25'
     m8_enrollment: awaiting_operator_cloud_mcp_enrollment
-    m8_notes: 'PRODUCT IDENTITY VERIFIED 2026-07-22. MiniMax Agent (Classic v1.0.0),
-      App ID com.minimax.agent-classic, executable D:\Apps\MiniMaxAgent-Classic\MiniMax
-      Agent.exe, isolated user-data C:\Users\ynotf\AppData\Roaming\MiniMaxAgent-Classic.
-      No local mcp.json; custom MCP is enrolled through the MiniMax Matrix cloud UI/API
-      (server_name=agentcore-gateway, base_url=http://127.0.0.1:8080/mcp, mcp_server_type=UserCustomized).
-      Global rules installed at C:\Users\ynotf\.minimax-agent\AGENT.md. Status advances
-      to live_validated only after operator completes cloud MCP enrollment and runs
-      the native lifecycle in a fresh Classic chat. Evidence: audits/MINIMAX_CLASSIC_REPAIR_2026-07-22.md
-      and ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md.'
+    m8_notes: 'PRODUCT IDENTITY VERIFIED 2026-07-22. MiniMax Agent (Classic v1.0.0), App ID com.minimax.agent-classic, executable
+      D:\Apps\MiniMaxAgent-Classic\MiniMax Agent.exe, isolated user-data C:\Users\ynotf\AppData\Roaming\MiniMaxAgent-Classic.
+      No local mcp.json; custom MCP is enrolled through the MiniMax Matrix cloud UI/API (server_name=agentcore-gateway, base_url=http://127.0.0.1:8080/mcp,
+      mcp_server_type=UserCustomized). Global rules installed at C:\Users\ynotf\.minimax-agent\AGENT.md. Status advances to
+      live_validated only after operator completes cloud MCP enrollment and runs the native lifecycle in a fresh Classic chat.
+      Evidence: audits/MINIMAX_CLASSIC_REPAIR_2026-07-22.md and ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md.'
     dimensions:
       application_launch:
         status: live_validated
@@ -417,9 +398,8 @@ managed_ides:
       mcp_config: direct_write
     last_validated: unverified
     m8_enrollment: awaiting_operator_import
-    m8_notes: 'Config artifact in ide-profiles/antigravity/MCP_CONFIG_TEMPLATE.json
-      and INSTALL_OR_UPDATE.md. Operator action: follow INSTALL_OR_UPDATE.md; import
-      config artifact; restart client; confirm tools/list returns 10 agentcore-memory
+    m8_notes: 'Config artifact in ide-profiles/antigravity/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md. Operator action:
+      follow INSTALL_OR_UPDATE.md; import config artifact; restart client; confirm tools/list returns 10 agentcore-memory
       tools. Live config path unverified on this machine.'
     dimensions:
       application_launch:
@@ -458,7 +438,7 @@ managed_ides:
         evidence_ts: '2026-07-14T00:00:00Z'
         superseded_by: null
   open-interpreter:
-    installed_version: unverified
+    installed_version: 0.0.10
     configuration_mode: generated_prompt
     rule_mechanism: profile system message
     mcp_schema: open_interpreter_json
@@ -469,60 +449,61 @@ managed_ides:
       global_rules: manual_import
       project_rules: unsupported
       mcp_config: direct_write
-    last_validated: '2026-07-22'
-    m8_enrollment: awaiting_operator_import
-    m8_notes: 'Config artifact in ide-profiles/open-interpreter/MCP_CONFIG_TEMPLATE.json
-      and INSTALL_OR_UPDATE.md. Global rules injected via profile system message (manual
-      import). Project-level rules unsupported by product. Env var secrets must be
-      materialized (no env-headers). Reconciled 2026-07-23: operator previously saw
-      agentcore-gateway connected and working, but after reopening the client no longer
-      looked configured. Persistent root cause not established; dedicated diagnostic
-      task required. Evidence: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-      §7 (created 2026-07-22). Operator action: follow INSTALL_OR_UPDATE.md; apply
-      profile artifact; locate actual persistent MCP configuration; restart session;
-      confirm tools/list returns 10 agentcore-memory tools; record unsupported_with_reason
-      if the product lacks native MCP support.'
+    last_validated: '2026-07-25'
+    m8_enrollment: configured_restart_required
+    m8_notes: 'Config artifact in ide-profiles/open-interpreter/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md. Global
+      rules injected via profile system message (manual import). Project-level rules unsupported by product. Env var secrets
+      must be materialized (no env-headers). Reconciled 2026-07-23: operator previously saw agentcore-gateway connected and
+      working, but after reopening the client no longer looked configured. Persistent root cause not established; dedicated
+      diagnostic task required. Evidence: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md §7 (created 2026-07-22).
+      Operator action: follow INSTALL_OR_UPDATE.md; apply profile artifact; locate actual persistent MCP configuration; restart
+      session; confirm tools/list returns 10 agentcore-memory tools; record unsupported_with_reason if the product lacks native
+      MCP support.'
     dimensions:
       application_launch:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: live_validated
+        evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       gateway_configuration:
-        status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        status: live_validated
+        evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       gateway_discovery:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: live_validated
+        evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       native_memory_lifecycle:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: configured_restart_required
+        evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       fresh_chat_recovery:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: configured_restart_required
+        evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       persistence_after_restart:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: live_validated
+        evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       operator_gate:
-        status: unverified
-        evidence_path: null
-        evidence_ts: null
+        status: live_validated
+        evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
+        superseded_by: null
+      gui_mcp:
+        status: unsupported_with_reason
+        evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
   cherry-studio:
     installed_version: 1.9.12
     configuration_mode: UI_only
-    rule_mechanism: AgentCore Workspace Agent system prompt (manual import via configure
-      script)
+    rule_mechanism: AgentCore Workspace Agent system prompt (manual import via configure script)
     mcp_schema: cherry_studio_leveldb
     mcp_transport: streamableHttp
     env_var_handling: no-env-headers-vk-materialized-by-enrollment-script
@@ -531,7 +512,7 @@ managed_ides:
       global_rules: manual_import
       project_rules: unsupported
       mcp_config: manual_import
-    last_validated: '2026-07-20'
+    last_validated: '2026-07-25'
     m8_enrollment: configured_restart_required
     m8_validation_evidence:
       configuration_enrolled: true
@@ -548,12 +529,10 @@ managed_ides:
       rollback_validated: true
       agentcore_memory_tools: 10
       agentcore_project_router_tools: 4
-    m8_notes: 'LIVE VALIDATED 2026-07-20 (runtime repaired same night). Official x64
-      install, agentcore-gateway enrolled in Local Storage LevelDB, AgentCore Workspace
-      Agent mounted with model deepseek:deepseek-v4-pro, memory lifecycle + project
-      isolation proven. Cherry does not expand ${env:}; enrollment script materializes
-      BIFROST_MCP_VIRTUAL_KEY into the live store. Global Memory OFF; builtin inMemory
-      MCP inactive. Evidence: audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md, audits/CHERRY_MEMORY_LIFECYCLE_2026-07-20.json,
+    m8_notes: 'LIVE VALIDATED 2026-07-20 (runtime repaired same night). Official x64 install, agentcore-gateway enrolled in
+      Local Storage LevelDB, AgentCore Workspace Agent mounted with model deepseek:deepseek-v4-pro, memory lifecycle + project
+      isolation proven. Cherry does not expand ${env:}; enrollment script materializes BIFROST_MCP_VIRTUAL_KEY into the live
+      store. Global Memory OFF; builtin inMemory MCP inactive. Evidence: audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md, audits/CHERRY_MEMORY_LIFECYCLE_2026-07-20.json,
       audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md, docs/operations/CHERRY_STUDIO_AGENTCORE.md.'
     dimensions:
       application_launch:
@@ -573,34 +552,36 @@ managed_ides:
         superseded_by: null
       native_memory_lifecycle:
         status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       fresh_chat_recovery:
         status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       persistence_after_restart:
         status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
       operator_gate:
         status: configured_restart_required
-        evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-        evidence_ts: '2026-07-22T00:00:00Z'
+        evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
+        superseded_by: null
+      target_agent_session_schema:
+        status: live_validated
+        evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+        evidence_ts: '2026-07-25T00:00:00Z'
         superseded_by: null
 swarm_managed_clients:
   openclaw:
-    note: Swarm-managed (OpenClaw/ClawX). No non-Swarm profile is created. Outside
-      Bifrost IDE cutover scope.
+    note: Swarm-managed (OpenClaw/ClawX). No non-Swarm profile is created. Outside Bifrost IDE cutover scope.
   clawx:
     note: Swarm-managed. No non-Swarm profile is created.
-mavis_alias_note: C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax (same
-  MiniMax Code data root). It is not a separate executable Mavis client and does not
-  receive its own managed profile.
-discovery_note: 'Additional installed managed non-Swarm clients are added to this
-  matrix only after verification against the live machine (installed application,
-  config paths, rule mechanism). Candidates observed in evidence but unverified: VS
-  Code (Copilot/MCP), Android Studio.'
+mavis_alias_note: C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax (same MiniMax Code data root). It is not
+  a separate executable Mavis client and does not receive its own managed profile.
+discovery_note: 'Additional installed managed non-Swarm clients are added to this matrix only after verification against the
+  live machine (installed application, config paths, rule mechanism). Candidates observed in evidence but unverified: VS Code
+  (Copilot/MCP), Android Studio.'

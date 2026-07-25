@@ -18,7 +18,7 @@
 | Backup required | yes |
 | Validation required | yes |
 | Restart required | yes |
-| Last validated | 2026-07-20 |
+| Last validated | 2026-07-25 |
 
 ## Mandatory rules
 
@@ -64,4 +64,5 @@
 - Limitation: Cherry does not expand ${env:} in headers; bearer must be materialized into the live store by the enrollment script.
 - Limitation: Cherry Global Memory must be OFF; builtin @cherry/* inMemory MCP servers must remain inactive.
 - Limitation: Rules are delivered through the AgentCore Workspace Agent system prompt, not a file-based global rule.
+- Limitation: DRIFT-01 UI session-create failure during Bifrost-down windows is not a missing-agent defect; native UI 14-step still operator-gated (see Phase 4C audit).
 - Parity gap: Rule delivery depends on the operator/agent running scripts/cherry/configure_agentcore_agent.py to import the canonical AgentCore Workspace Agent prompt.

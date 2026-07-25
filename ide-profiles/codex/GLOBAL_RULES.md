@@ -18,7 +18,7 @@
 | Backup required | yes |
 | Validation required | yes |
 | Restart required | yes |
-| Last validated | 2026-07-14 |
+| Last validated | 2026-07-25 |
 
 ## Mandatory rules
 
@@ -62,3 +62,4 @@
 
 - Limitation: TOML config: use bearer_token_env_var, startup_timeout_sec, tool_timeout_sec (not headers/timeout_seconds).
 - Limitation: Codex-managed extras (node_repl, plugin MCP servers) are preserved beside the gateway entry.
+- Limitation: Native 14-step lifecycle still requires operator Codex UI session with Bifrost healthy.

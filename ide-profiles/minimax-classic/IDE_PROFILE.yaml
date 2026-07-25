@@ -39,10 +39,16 @@ semantic_parity_gaps:
 - Cloud MCP schema does not use the minimax_mcp_json local file format used by MiniMax
   Code.
 enrollment_evidence:
-  audit: audits/MINIMAX_CLASSIC_REPAIR_2026-07-22.md
+  audit: audits/MINIMAX_CLASSIC_ENROLLMENT_2026-07-24.md
+  prior_repair: audits/MINIMAX_CLASSIC_REPAIR_2026-07-22.md
   backup_root: E:\AgentCore-Backups\minimax-classic-repair-20260722T210236Z
   executable: D:\Apps\MiniMaxAgent-Classic\MiniMax Agent.exe
   app_id: com.minimax.agent-classic
+  phase4e_signal: MINIMAX_CLASSIC_UI_ENROLLMENT_PENDING
+status_reconciliation:
+  reconciled_at: '2026-07-25'
+  finding: No local mcp.json; Matrix UI enrollment still required; no public tunnel created.
+  status_after_reconciliation: awaiting_operator_cloud_mcp_enrollment
 dimensions:
   application_launch:
     status: live_validated

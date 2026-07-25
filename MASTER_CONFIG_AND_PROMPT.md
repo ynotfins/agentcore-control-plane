@@ -1,11 +1,13 @@
 # MASTER_CONFIG_AND_PROMPT.md — AgentCore Universal IDE Self-Enrollment Package
 
-**Updated:** 2026-07-22 — dynamic IDE-profile selection, MiniMax Code and MiniMax Agent Classic split into distinct profiles, Cherry Studio live-validated, Mavis removed as separate client, Obsidian tools not in default gateway baseline, zero mutable runtime counts as architecture authority.
+**Updated:** 2026-07-25 — Phase 4 IDE verdicts reconciled; Cursor Stage B live; MiniMax Code vs Classic separated; Cherry DRIFT-01 reconciled (session schema proven; native UI lifecycle still operator-gated); Open Interpreter CLI persistent; Codex desktop packages healthy; explicit Swarm development/runtime boundary; Cursor `@` + absolute-path rule mandatory.
 **Repository:** `@D:\github\agentcore-control-plane`
 **Authority:** `PROJECT_ANCHOR.md` §0 Bifrost Gateway Override → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → current contracts/runbooks
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`, `contracts/global-agent-policy.yaml`, `contracts/model-context-profiles.json`
 
 This file is the thin, self-sufficient root setup guide for every supported non-Swarm IDE on `CHAOSCENTRAL`. It contains architecture, authority order, security boundaries, memory lifecycle, and **one** embedded self-enrollment prompt. Client-specific schemas, long procedures, and historical evidence live in `ide-profiles/`, `renderers/gateway-clients/`, and `docs/`.
+
+**Cursor path rule:** Every Cursor instruction that names a file or folder MUST use `@` + the full absolute Windows path (for example `@D:\github\agentcore-control-plane\BLUEPRINT.md`). Never use shortened repo-relative paths. Never abbreviate a user-profile path with an ellipsis; always write the full `@C:\Users\ynotf\...` form when a user-profile path is required.
 
 ---
 
@@ -23,20 +25,24 @@ Read and follow in this order. Nothing below overrides anything above it.
 
 `@D:\github\agentcore-control-plane\AGENTS.md` is the agent operating contract. `@D:\MCP-Control-Plane` is compatibility/live-ops evidence only, never design authority.
 
+Do **not** treat mutable tool counts, Bifrost uptime, or live IDE screenshots as architecture authority. Read live posture from `@D:\github\agentcore-control-plane\CONTEXT_BLOCK.md` and current audits.
+
 ---
 
 ## 2. Architecture — exactly one gateway
 
 ```text
-Supported non-Swarm IDE (Cursor, Codex, Claude Code/Desktop, MiniMax Code and MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio)
+Supported non-Swarm IDE (Cursor, Codex, Claude Code/Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter CLI, Cherry Studio)
   -> ONE MCP entry: agentcore-gateway
        url:  http://127.0.0.1:8080/mcp
        auth: Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
-  -> Bifrost native Gateway (H:\AgentRuntime\bifrost, bifrost-http.exe v2.0.0-prerelease1)
+  -> Bifrost native Gateway (H:\AgentRuntime\bifrost, bifrost-http.exe)
   -> approved upstream MCP servers from contracts/bifrost-upstream-mcp-registry.json
 ```
 
 Never paste the full upstream registry into an IDE. Never add a second AgentCore MCP front door. Project-specific behavior is selected through `agentcore-project-router`, not duplicate gateway entries.
+
+If a client cannot expand `${env:…}` (observed: MiniMax Code daemon → 401), materialize the User-scope `BIFROST_MCP_VIRTUAL_KEY` into the **live** config only — never commit the resolved value.
 
 ---
 
@@ -45,9 +51,28 @@ Never paste the full upstream registry into an IDE. Never add a second AgentCore
 - Secrets live only in Windows User-scope environment variables. No `.env` files.
 - Never print, store, or commit resolved bearer tokens, virtual keys, API keys, PATs, DB passwords, or live secret-bearing IDE configs.
 - Live IDE configs are app-owned; changes flow through the approved self-enrollment prompt/ops with backup first.
-- SwarmRecall, SwarmVault, and SwarmClaw are a **separate ecosystem**. Do not require Swarm MCP, Swarm databases, or Swarm file roots for non-Swarm IDE work. Do not modify Swarm product installs.
-- OpenClaw/ClawX are Swarm-managed and outside the non-Swarm Bifrost IDE cutover.
 - Forbidden active routes: Context7, raw Mem0, direct Composio, Hostinger, `:65432`, whole-drive filesystem MCP roots, Postgres credentials in IDE configs, `global-memory-gateway` as a default route.
+- OpenClaw/ClawX are Swarm-managed and outside the non-Swarm Bifrost IDE cutover.
+
+## SWARM DEVELOPMENT AND RUNTIME BOUNDARY
+
+Cursor and other non-Swarm IDEs may use AgentCore for development continuity on
+Swarm-ecosystem projects.
+
+SwarmClaw, SwarmRecall, and SwarmVault runtime processes and runtime agents do NOT use:
+- AgentCore memory (agentcore-memory, PostgreSQL 18, agent_core database)
+- Bifrost gateway or agentcore-gateway
+- AgentCore projections (STATE.md, GLOBAL_STATE.md, DECISIONS.md, CONTEXT_INDEX.md)
+- AgentCore virtual keys or capability leases
+
+Developer-side AgentCore evidence (audits, handoffs, plans, .agentcore project registrations)
+must never be packaged into or consumed by the Swarm runtime.
+
+Swarm runtime has its own memory, databases (PostgreSQL 16 :55432), services (SwarmRecall API
+:3300, SwarmVault file-based), tools, prompts, and backups.
+
+SwarmDock, SwarmRelay, and SwarmFeed are deferred and disabled. They must not receive
+AgentCore endpoints, keys, or credentials.
 
 ---
 
@@ -88,24 +113,24 @@ Before asking the operator to repeat project history, query `agentcore-memory`. 
 
 ## 5. Project/worktree and context-management rules
 
-- Write only inside the assigned repo/worktree and role-appropriate runtime roots per `docs/DRIVE_WRITE_BOUNDARY_RULE.md`.
+- Write only inside the assigned repo/worktree and role-appropriate runtime roots per `@D:\github\agentcore-control-plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`.
 - Every durable project asset on `D:`, `E:`, `F:`, `G:`, or `H:` must be registered via the governed memory surface (`register_artifact_location`). Temporary files on `I:` are exempt only while temporary and must be deleted or promoted at task close.
 - Query resource locations through `retrieve_context` and `build_handoff`; the canonical view is `agentcore.v_project_resource_map`.
 - `CONTEXT_INDEX.md` is a generated projection; agents never directly edit it.
 - Never create an unregistered durable project location on `D:`, `E:`, `F:`, `G:`, or `H:`.
-- Push after every completed task per `docs/GIT_PUSH_ONLY_POLICY.md`. Never pull/fetch/merge/rebase or force-push without explicit operator instruction. Stage only source-controlled files.
+- Push after every completed task per `@D:\github\agentcore-control-plane\docs\GIT_PUSH_ONLY_POLICY.md`. Never pull/fetch/merge/rebase or force-push without explicit operator instruction. Stage only source-controlled files.
 
 ---
 
 ## 6. Global-rule installation requirements
 
-Attaching this file and running the embedded prompt must install or generate the matching IDE's complete AgentCore global rules. The canonical semantic policy is `contracts/global-agent-policy.yaml`. Rendered per-IDE rules live in `ide-profiles/<ide>/GLOBAL_RULES.md`.
+Attaching this file and running the embedded prompt must install or generate the matching IDE's complete AgentCore global rules. The canonical semantic policy is `@D:\github\agentcore-control-plane\contracts\global-agent-policy.yaml`. Rendered per-IDE rules live in `@D:\github\agentcore-control-plane\ide-profiles\<ide>\GLOBAL_RULES.md`.
 
-Delivery depends on the IDE's declared editability (read from `ide-profiles/<ide>/IDE_PROFILE.yaml`):
+Delivery depends on the IDE's declared editability (read from `@D:\github\agentcore-control-plane\ide-profiles\<ide>\IDE_PROFILE.yaml`):
 
 - `direct_write` — write the rendered `GLOBAL_RULES.md` to the documented live target after backup.
 - `manual_import` — present the rendered `GLOBAL_RULES.md` to the operator and require import/paste; do not silently skip.
-- `UI_only` — follow the enrollment UI document in `ide-profiles/<ide>/MCP_ENROLLMENT_UI.md`.
+- `UI_only` — follow the enrollment UI document in `@D:\github\agentcore-control-plane\ide-profiles\<ide>\MCP_ENROLLMENT_UI.md`.
 - `unsupported` — stop and report `unsupported_with_reason`.
 - `unverified` — stop and report the missing evidence before acting.
 
@@ -115,25 +140,26 @@ Preserve client-native safety, sandbox, approval, account, and UI settings. Do n
 
 ## 7. Client identification and profile selection
 
-Supported non-Swarm clients (current as of 2026-07-22):
+Supported non-Swarm clients (current as of 2026-07-25 Phase 4 reconciliation):
 
 | Client | Profile directory | Configuration mode | Native validation status |
 | --- | --- | --- | --- |
-| Cursor | `ide-profiles/cursor/` | generated_prompt | live_validated (2026-07-16) |
-| Codex (ChatGPT desktop Codex view) | `ide-profiles/codex/` | generated_prompt | configured_restart_required |
+| Cursor | `ide-profiles/cursor/` | generated_prompt | **live_validated** — Stage B hooks live; Continue. hard gate proven (`audits/cursor-context/CURSOR_CONTINUE_HARD_GATE_AND_STAGE_B_REGISTRATION_2026-07-24.md`) |
+| Codex (OpenAI Codex / ChatGPT desktop Codex view) | `ide-profiles/codex/` | generated_prompt | configured_restart_required — desktop packages healthy + gateway configured; UI 14-step still operator-gated (`audits/CODEX_DESKTOP_REPAIR_2026-07-24.md`) |
 | Claude Code | `ide-profiles/claude-code/` | generated_prompt | awaiting_operator_import |
 | Claude Desktop | `ide-profiles/claude-desktop/` | generated_prompt | configured_restart_required |
-| MiniMax Code | `ide-profiles/minimax/` | generated_prompt | configured_restart_required (native acceptance pending) |
-| MiniMax Agent Classic | `ide-profiles/minimax-classic/` | UI_only | awaiting_operator_cloud_mcp_enrollment |
-| Antigravity | `ide-profiles/antigravity/` | unverified | awaiting_operator_import |
-| Open Interpreter | `ide-profiles/open-interpreter/` | generated_prompt | awaiting_operator_import |
-| Cherry Studio | `ide-profiles/cherry-studio/` | UI_only | live_validated (2026-07-20) |
+| MiniMax Code | `ide-profiles/minimax/` | generated_prompt | configured_restart_required — in-app MCP supported (VK materialize + streamable-http); **CLI wrappers unsupported** (`daemon\cli.js` missing); native chat lifecycle operator-gated (`audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md`) |
+| MiniMax Agent Classic | `ide-profiles/minimax-classic/` | UI_only | awaiting_operator_cloud_mcp_enrollment — Matrix custom-MCP UI only; **no public tunnel** (`audits/MINIMAX_CLASSIC_ENROLLMENT_2026-07-24.md`) |
+| Antigravity | `ide-profiles/antigravity/` | unverified | awaiting_operator_import — stop if unverified |
+| Open Interpreter **CLI** | `ide-profiles/open-interpreter/` | generated_prompt | configured_restart_required — gateway persistence/discovery proven (`~/.openinterpreter/config.toml`); full 14-step still operator-gated (`audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md`) |
+| Open Interpreter **GUI** (`Interpreter.exe`) | n/a (not a separate profile) | unsupported | `unsupported_with_reason` — no MCP schema in `%APPDATA%\interpreter\config.json` |
+| Cherry Studio | `ide-profiles/cherry-studio/` | UI_only / scripts | configured_restart_required — target Agent + session schema proven; native UI 14-step operator-gated; do **not** claim premature full `live_validated` (`audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md`) |
 
-`@C:\Users\ynotf\.mavis` is a junction to `@C:\Users\ynotf\.minimax` (same MiniMax Code data root). It is not a separate executable Mavis client and does not receive its own managed profile. MiniMax Code and MiniMax Agent Classic are distinct products with distinct profiles, paths, and enrollment mechanisms; do not conflate them.
+`@C:\Users\ynotf\.mavis` is a junction to `@C:\Users\ynotf\.minimax` (same MiniMax Code data root). It is not a separate executable Mavis client and does not receive its own managed profile. **MiniMax Code and MiniMax Agent Classic are distinct products** with distinct profiles, paths, and enrollment mechanisms; do not conflate them.
 
 The agent must:
 1. Identify its own IDE from the list above.
-2. Read `ide-profiles/<ide>/IDE_PROFILE.yaml`.
+2. Read `@D:\github\agentcore-control-plane\ide-profiles\<ide>\IDE_PROFILE.yaml`.
 3. Refuse to edit a different IDE's live config or rules.
 4. Use only the matching profile's template and procedure.
 5. Stop with `unsupported_with_reason` if the IDE is unsupported or unidentifiable.
@@ -142,19 +168,17 @@ The agent must:
 
 ## 8. Exact single-gateway contract
 
-The canonical gateway connection is defined in `contracts/agentcore-gateway-client.json`:
+The canonical gateway connection is defined in `@D:\github\agentcore-control-plane\contracts\agentcore-gateway-client.json`:
 
 - Name: `agentcore-gateway`
 - URL: `http://127.0.0.1:8080/mcp`
 - Auth header: `Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}`
 - Timeout: 300 seconds
-- Transport: `http/streamable`
+- Transport: `http/streamable` (prefer `streamable-http` / `streamableHttp` when the client schema requires that literal)
 
-Cursor canonical path: `@C:\Users\ynotf\.cursor\mcp.json`. Every other client uses its own documented path from `ide-profiles/<ide>/IDE_PROFILE.yaml` and `contracts/agentcore-gateway-client.json`.
+Cursor canonical path: `@C:\Users\ynotf\.cursor\mcp.json`. Every other client uses its own documented path from `@D:\github\agentcore-control-plane\ide-profiles\<ide>\IDE_PROFILE.yaml`.
 
-If a client cannot expand `${env:…}` in headers, materialize the Windows User-env value into the **live** config only during the approved cutover — never commit the resolved value.
-
-Adding future MCP servers: add once to `contracts/bifrost-upstream-mcp-registry.json`, pin version, classify, render Bifrost config, validate, restart Bifrost, test. Leave IDE configs unchanged unless the single gateway connection itself changes.
+Adding future MCP servers: add once to `@D:\github\agentcore-control-plane\contracts\bifrost-upstream-mcp-registry.json`, pin version, classify, render Bifrost config, validate, restart Bifrost, test. Leave IDE configs unchanged unless the single gateway connection itself changes.
 
 ---
 
@@ -195,7 +219,7 @@ After any change:
 9. Project isolation — project_key boundary enforced
 10. Tool surface — exactly ten `agentcore-memory` tools; none added or removed
 
-Do not mark live_validated from config inspection alone. Configuration presence is not native validation.
+Do not mark live_validated from config inspection alone. Configuration presence is not native validation. Do not use raw HTTP and call it native.
 
 ---
 
@@ -204,8 +228,8 @@ Do not mark live_validated from config inspection alone. Configuration presence 
 Stop and report the accurate state when:
 
 - **manual_import** — rules or MCP config must be imported by the operator; the agent cannot safely complete the step unattended. Provide the exact rendered artifact and instructions.
-- **UI_only** — the product has no file-based config; enrollment happens through the product's UI/API (e.g., Cherry Studio LevelDB scripts, MiniMax Classic Matrix cloud). Provide the enrollment UI document and ask the operator to run it.
-- **unsupported_with_reason** — the product does not support the required MCP baseline or cannot be identified. State the reason.
+- **UI_only** — the product has no file-based config; enrollment happens through the product's UI/API (e.g., MiniMax Classic Matrix cloud). Provide `@D:\github\agentcore-control-plane\ide-profiles\<ide>\MCP_ENROLLMENT_UI.md` and ask the operator to run it. **Never create a public tunnel** to reach `127.0.0.1`.
+- **unsupported_with_reason** — the product does not support the required MCP baseline or cannot be identified. State the reason (examples: MiniMax Code CLI `daemon\cli.js` missing; Open Interpreter GUI has no MCP schema).
 - **unverified** — the live config path or rule mechanism is not evidenced on this machine. Do not guess.
 - **awaiting_operator_import** / **awaiting_operator_cloud_mcp_enrollment** — configuration artifact is ready; operator action and a fresh IDE chat are required to promote to `live_validated`.
 
@@ -220,6 +244,7 @@ Step 0 — Identify yourself
 Identify which IDE you are running in. Choose exactly one from:
 Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio.
 If you cannot identify your IDE with confidence, stop and report unsupported_with_reason.
+If you are Open Interpreter GUI (Interpreter.exe) rather than CLI, stop with unsupported_with_reason (no MCP schema).
 
 Step 1 — Read your profile and authority
 Read these files using @ + full absolute Windows paths:
@@ -234,6 +259,7 @@ Read these files using @ + full absolute Windows paths:
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\VALIDATION.md
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\MCP_CONFIG_TEMPLATE.*
 If your IDE is UI_only, also read @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\MCP_ENROLLMENT_UI.md.
+Also read the Swarm boundary in @D:\github\agentcore-control-plane\MASTER_CONFIG_AND_PROMPT.md.
 
 Step 2 — CLIENT-LOCAL EXECUTION SCOPE
 The IDE running this prompt may inspect and modify only its own live configuration, rules, agent settings, and backup. Configuration examples for other IDEs are reference material only. Do not inspect, back up, repair, restart, validate, or modify another IDE. Cross-IDE reconciliation is a separate AgentCore control-plane task requiring explicit operator authorization.
@@ -257,7 +283,7 @@ Step 5 — Configure exactly one MCP entry
 Add or merge only one AgentCore baseline entry named agentcore-gateway:
   url: http://127.0.0.1:8080/mcp
   Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
-Use the schema-correct MCP_CONFIG_TEMPLATE for your IDE. For clients that cannot expand ${env:}, materialize the bearer from Windows User env into the live config only (never commit it). Remove any direct duplicate baseline MCP entries now served by Bifrost. For Cursor, remove MCP_DOCKER unless the operator explicitly approves a documented unique-capability exception. Do not paste the full upstream registry. Do not add Swarm MCP, OpenRouter MCP direct, or raw database tools.
+Use the schema-correct MCP_CONFIG_TEMPLATE for your IDE. For clients that cannot expand ${env:}, materialize the bearer from Windows User env into the live config only (never commit it). Remove any direct duplicate baseline MCP entries now served by Bifrost. For Cursor, remove MCP_DOCKER unless the operator explicitly approves a documented unique-capability exception. Do not paste the full upstream registry. Do not add Swarm MCP, OpenRouter MCP direct, or raw database tools. Do not create a public tunnel for localhost MCP.
 
 Step 6 — Restart/reload the IDE
 Fully restart or reload the IDE so environment references and the new MCP config are visible. The required restart behavior is in your IDE_PROFILE.yaml.
@@ -270,7 +296,7 @@ Step 7 — Validate syntax and discovery
 - Confirm no Swarm, raw SQL/database, whole-drive filesystem, or Bifrost admin tools are exposed.
 
 Step 8 — Native memory lifecycle validation (do not skip)
-1. Activate the current project via agentcore_project_router-project_activate (e.g., agentcore-control-plane at `@D:\github\agentcore-control-plane`).
+1. Activate the current project via agentcore_project_router-project_activate (e.g., agentcore-control-plane at @D:\github\agentcore-control-plane).
 2. session_open with a stable session_key that includes your IDE id and today's date.
 3. startup_context with the selected model context profile (use standard-context if your model is unknown; never lower the IDE's configured hard context window).
 4. append_event documenting this enrollment/validation run with a deterministic idempotency key.
@@ -312,18 +338,21 @@ Key references:
 - `@D:\github\agentcore-control-plane\docs\bifrost\CAPABILITY_PROFILES.md`
 - `@D:\github\agentcore-control-plane\docs\operations\OPENROUTER_MCP.md`
 - `@D:\github\agentcore-control-plane\docs\operations\AUTOMATIC_NEW_CHAT_RECOVERY.md`
-- `@D:\github\agentcore-control-plane\audits\M8\UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md`
-- `@D:\github\agentcore-control-plane\audits\MEMORY_GATEWAY_HEALTH_2026-07-22.md`
-- `@D:\github\agentcore-control-plane\audits\CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`
-- `@D:\github\agentcore-control-plane\audits\MINIMAX_CODE_REPAIR_2026-07-22.md`
-- `@D:\github\agentcore-control-plane\audits\MINIMAX_CLASSIC_REPAIR_2026-07-22.md`
+- `@D:\github\agentcore-control-plane\audits\cursor-context\CURSOR_CONTINUE_HARD_GATE_AND_STAGE_B_REGISTRATION_2026-07-24.md`
+- `@D:\github\agentcore-control-plane\audits\MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md`
+- `@D:\github\agentcore-control-plane\audits\MINIMAX_CLASSIC_ENROLLMENT_2026-07-24.md`
+- `@D:\github\agentcore-control-plane\audits\OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md`
+- `@D:\github\agentcore-control-plane\audits\CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md`
+- `@D:\github\agentcore-control-plane\audits\CODEX_DESKTOP_REPAIR_2026-07-24.md`
 - `@D:\github\agentcore-control-plane\audits\IDE_SELF_ENROLLMENT_SCOPE_VALIDATION_2026-07-21.md`
 
 ---
 
 ## 14. Historical reference (do not execute as current baseline)
 
-Before the Bifrost cutover, each IDE carried a full direct MCP server list (arabold-docs, serena, sequential-thinking, swarmrecall, swarmvault, filesystem with broad roots, etc.). That model drifted and is superseded by the single `agentcore-gateway` entry. The pre-2026-07-12 direct-server blocks are preserved only as rollback evidence under `E:\AgentCore-Backups\` and archived handoffs; they are not the current active setup path.
+Before the Bifrost cutover, each IDE carried a full direct MCP server list. That model drifted and is superseded by the single `agentcore-gateway` entry. Pre-cutover direct-server blocks are preserved only as rollback evidence under `E:\AgentCore-Backups\` and archived handoffs; they are not the current active setup path.
+
+The July 12 Bifrost cutover handoff is historical evidence only — do not execute it as the current baseline. Use `@D:\github\agentcore-control-plane\CONTEXT_BLOCK.md` and current Phase 4 audits instead.
 
 The `experiments/bifrost-go-sdk-smoke/` directory is an isolated Go SDK proof-of-concept; it is **not** the Bifrost MCP Gateway.
 
@@ -331,7 +360,7 @@ The `experiments/bifrost-go-sdk-smoke/` directory is an isolated Go SDK proof-of
 
 ## CURSOR CONTINUATION PROMPT
 
-If additional Cursor work is needed after this audit (for example, running the native memory lifecycle acceptance inside MiniMax Code, MiniMax Agent Classic, Codex, Claude Code/Desktop, Antigravity, or Open Interpreter), paste the following into a fresh Cursor chat on `@D:\github\agentcore-control-plane`:
+If additional Cursor work is needed after this audit (for example, running the native memory lifecycle acceptance inside MiniMax Code, MiniMax Agent Classic, Codex, Claude Code/Desktop, Antigravity, Cherry Studio, or Open Interpreter CLI), paste the following into a fresh Cursor chat on `@D:\github\agentcore-control-plane`:
 
 ```text
 Run the AgentCore native lifecycle acceptance for the selected IDE only.
