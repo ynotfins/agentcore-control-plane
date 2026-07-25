@@ -325,7 +325,11 @@
       "project_scope": "project",
       "write_classification": "bounded_write",
       "permitted_tools": [
-        "*"
+        "cf_capture",
+        "cf_drift",
+        "cf_health",
+        "cf_log_decision",
+        "cf_query"
       ],
       "denied_tools": [],
       "capability_profiles": [
@@ -349,7 +353,8 @@
       "bifrost_client_name": "context_fabric",
       "status": "active",
       "notes": [
-        "Project-scoped only via router; reject Swarm and agentmemory roots."
+        "Project-scoped only via router; reject Swarm and agentmemory roots.",
+        "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* → unprefixed)."
       ]
     },
     "mcp-debugger": {
@@ -446,7 +451,7 @@
         "Prefer headers auth if Artiforge exposes a Bearer/header mode.",
         "Current live Artiforge MCP requires query-param PAT composition.",
         "Set Windows User env ARTIFORGE_MCP_URL to the composed URL using ARTIFORGE_PAT locally (never commit).",
-        "Bifrost connection_string uses env.ARTIFORGE_MCP_URL only \u2014 no secret literals in config.",
+        "Bifrost connection_string uses env.ARTIFORGE_MCP_URL only — no secret literals in config.",
         "If upstream returns 401 User is inactive, treat as deferred until ARTIFORGE_PAT is refreshed."
       ],
       "deferred": true
@@ -641,7 +646,7 @@
       "bifrost_client_name": "obsidian_vault",
       "status": "disabled",
       "notes": [
-        "OBSIDIAN_* names only \u2014 never embed key values.",
+        "OBSIDIAN_* names only — never embed key values.",
         "Non-secret defaults may set OBSIDIAN_BASE_URL=https://127.0.0.1:27124 and OBSIDIAN_VERIFY_SSL=false in renderer."
       ]
     },
@@ -686,7 +691,7 @@
       "bifrost_client_name": "playwright",
       "status": "active",
       "notes": [
-        "Bounded automation only \u2014 no Swarm or agentmemory roots."
+        "Bounded automation only — no Swarm or agentmemory roots."
       ]
     },
     "filesystem": {
@@ -708,7 +713,20 @@
       "project_scope": "project",
       "write_classification": "bounded_write",
       "permitted_tools": [
-        "*"
+        "read_file",
+        "read_text_file",
+        "read_media_file",
+        "read_multiple_files",
+        "write_file",
+        "edit_file",
+        "create_directory",
+        "list_directory",
+        "list_directory_with_sizes",
+        "directory_tree",
+        "move_file",
+        "search_files",
+        "get_file_info",
+        "list_allowed_directories"
       ],
       "denied_tools": [],
       "capability_profiles": [
@@ -733,8 +751,7 @@
       "status": "active",
       "notes": [
         "Bounded to D:\\github only (no whole-drive roots).",
-        "Further narrowing via project router wrappers remains optional.",
-        "WILDCARD PLAN (Phase 2 documented; Phase 7 enforcement): replace permitted_tools ['*'] with named inventory from @modelcontextprotocol/server-filesystem@2026.7.10 — proposed: read_file, read_text_file, read_media_file, write_file, edit_file, create_directory, list_directory, list_directory_with_sizes, directory_tree, move_file, search_files, get_file_info, list_allowed_directories. Do not grant path escapes outside D:\\github."
+        "Phase 7: permitted_tools named inventory from live tools/list (filesystem-* → unprefixed)."
       ]
     },
     "github-mcp": {
@@ -798,8 +815,8 @@
       "connection_type": "stdio",
       "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
       "arguments": [
-    "-u",
-    "D:\\github\\agentcore-control-plane\\scripts\\agentcore_memory\\server.py"
+        "-u",
+        "D:\\github\\agentcore-control-plane\\scripts\\agentcore_memory\\server.py"
       ],
       "env_var_names": [],
       "timeout_seconds": 30,
@@ -867,65 +884,140 @@
       "project_scope": "global",
       "write_classification": "bounded_write",
       "permitted_tools": [
-        "list-models", "get-model", "list-model-endpoints", "list-providers",
-        "list-daily-model-rankings", "list-app-rankings", "list-benchmarks",
-        "list-task-classifications", "search-docs", "view-skills", "ping",
-        "get-preset", "list-presets",
-        "get-credits", "get-generation", "send-feedback",
-        "generate-speech", "transcribe-audio"
+        "list-models",
+        "get-model",
+        "list-model-endpoints",
+        "list-providers",
+        "list-daily-model-rankings",
+        "list-app-rankings",
+        "list-benchmarks",
+        "list-task-classifications",
+        "search-docs",
+        "view-skills",
+        "ping",
+        "get-preset",
+        "list-presets",
+        "get-credits",
+        "get-generation",
+        "send-feedback",
+        "generate-speech",
+        "transcribe-audio"
       ],
-      "denied_tools": ["send-message", "generate-image"],
+      "denied_tools": [
+        "send-message",
+        "generate-image"
+      ],
       "tool_groups": {
         "openrouter-discovery-read": {
           "tools": [
-            "list-models", "get-model", "list-model-endpoints", "list-providers",
-            "list-daily-model-rankings", "list-app-rankings", "list-benchmarks",
-            "list-task-classifications", "search-docs", "view-skills", "ping",
-            "get-preset", "list-presets"
+            "list-models",
+            "get-model",
+            "list-model-endpoints",
+            "list-providers",
+            "list-daily-model-rankings",
+            "list-app-rankings",
+            "list-benchmarks",
+            "list-task-classifications",
+            "search-docs",
+            "view-skills",
+            "ping",
+            "get-preset",
+            "list-presets"
           ],
           "access_policy": "jit_short",
           "description": "Read-only model catalog, presets, benchmarks, docs, and metadata. Short project/task-scoped JIT lease. Zero default exposure.",
-          "lease_defaults": { "max_duration_seconds": 3600, "max_invocations": 100, "requires_approval": false }
+          "lease_defaults": {
+            "max_duration_seconds": 3600,
+            "max_invocations": 100,
+            "requires_approval": false
+          }
         },
         "openrouter-account": {
-          "tools": ["get-credits", "get-generation", "send-feedback"],
+          "tools": [
+            "get-credits",
+            "get-generation",
+            "send-feedback"
+          ],
           "access_policy": "operator_scope",
           "description": "Account-sensitive reads and feedback write. Requires operator scope and approval.",
-          "lease_defaults": { "max_duration_seconds": 1800, "max_invocations": 20, "requires_approval": true }
+          "lease_defaults": {
+            "max_duration_seconds": 1800,
+            "max_invocations": 20,
+            "requires_approval": true
+          }
         },
         "openrouter-media-generation": {
-          "tools": ["generate-speech"],
+          "tools": [
+            "generate-speech"
+          ],
           "access_policy": "billable_approval",
           "description": "Cost-sensitive media generation. Operator-approved JIT only with invocation and cost bounds. Never auto-activate. Never include repository source, secrets, or private content.",
-          "lease_defaults": { "max_duration_seconds": 900, "max_invocations": 5, "requires_approval": true },
+          "lease_defaults": {
+            "max_duration_seconds": 900,
+            "max_invocations": 5,
+            "requires_approval": true
+          },
           "content_trust_class": "raw_untrusted"
         },
         "openrouter-transcription": {
-          "tools": ["transcribe-audio"],
+          "tools": [
+            "transcribe-audio"
+          ],
           "access_policy": "billable_approval",
           "description": "Sensitive external file upload plus potentially billable processing. Operator-approved JIT only. Uploaded/transcribed content is raw_untrusted unless explicitly promoted. Never upload repository files, secrets, private records, or unrelated context.",
-          "lease_defaults": { "max_duration_seconds": 900, "max_invocations": 3, "requires_approval": true },
+          "lease_defaults": {
+            "max_duration_seconds": 900,
+            "max_invocations": 3,
+            "requires_approval": true
+          },
           "content_trust_class": "raw_untrusted",
           "upload_policy": {
-            "forbid": ["repository_files", "secrets", "private_records", "unrelated_context"],
+            "forbid": [
+              "repository_files",
+              "secrets",
+              "private_records",
+              "unrelated_context"
+            ],
             "trust_class_on_result": "raw_untrusted"
           }
         },
         "openrouter-billable": {
-          "tools": ["send-message", "generate-image"],
+          "tools": [
+            "send-message",
+            "generate-image"
+          ],
           "access_policy": "billable_approval",
           "description": "Billable inference/image calls. Remain in denied_tools — never grant from discovery leases. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation.",
-          "lease_defaults": { "max_duration_seconds": 900, "max_invocations": 5, "requires_approval": true }
+          "lease_defaults": {
+            "max_duration_seconds": 900,
+            "max_invocations": 5,
+            "requires_approval": true
+          }
         }
       },
       "auth_type": "oauth",
       "oauth_config": {
         "server_url": "https://openrouter.ai",
-        "scopes": ["mcp"]
+        "scopes": [
+          "mcp"
+        ]
       },
-      "capability_profiles": ["operator"],
-      "logging_policy": { "log_invocations": true, "log_content": false, "redact_secrets": true },
-      "retry_policy": { "max_attempts": 2, "backoff_seconds": 3, "retry_on": ["http_5xx", "timeout"] },
+      "capability_profiles": [
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 3,
+        "retry_on": [
+          "http_5xx",
+          "timeout"
+        ]
+      },
       "rollback_route": "Set enabled=false; confirm no direct per-IDE entries; re-render Bifrost config; restart via \\AgentCore\\AgentCore-Bifrost-Gateway. OAuth token revocable at openrouter.ai/keys.",
       "enabled": true,
       "bifrost_client_name": "openrouter",
@@ -1025,7 +1117,9 @@
       "denied_tools": [
         "install_skill"
       ],
-      "capability_profiles": ["builder"],
+      "capability_profiles": [
+        "builder"
+      ],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -1034,7 +1128,9 @@
       "retry_policy": {
         "max_attempts": 1,
         "backoff_seconds": 2,
-        "retry_on": ["spawn_failure"]
+        "retry_on": [
+          "spawn_failure"
+        ]
       },
       "rollback_route": "Set enabled=false; remove from VK mcp_configs; restart Bifrost. Skills-Hub content cannot override AgentCore authority. Rollback leaves isolated home dir intact.",
       "enabled": true,
@@ -1103,7 +1199,10 @@
       "retry_policy": {
         "max_attempts": 2,
         "backoff_seconds": 2,
-        "retry_on": ["spawn_failure", "timeout"]
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
       },
       "rollback_route": "Set enabled=false; remove from VK mcp_configs. Firebase data unchanged; CLI auth token unaffected.",
       "enabled": false,
@@ -1160,7 +1259,10 @@
       "retry_policy": {
         "max_attempts": 2,
         "backoff_seconds": 3,
-        "retry_on": ["http_5xx", "timeout"]
+        "retry_on": [
+          "http_5xx",
+          "timeout"
+        ]
       },
       "rollback_route": "Set enabled=false; remove from VK mcp_configs. Google Sheets data unchanged. Revoke OAuth at Google Cloud credentials console.",
       "enabled": false,

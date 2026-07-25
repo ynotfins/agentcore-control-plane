@@ -158,7 +158,11 @@
           "envs": []
         },
         "tools_to_execute": [
-          "*"
+          "cf_capture",
+          "cf_drift",
+          "cf_health",
+          "cf_log_decision",
+          "cf_query"
         ],
         "auth_type": "none",
         "is_ping_available": true
@@ -233,7 +237,20 @@
           "envs": []
         },
         "tools_to_execute": [
-          "*"
+          "read_file",
+          "read_text_file",
+          "read_media_file",
+          "read_multiple_files",
+          "write_file",
+          "edit_file",
+          "create_directory",
+          "list_directory",
+          "list_directory_with_sizes",
+          "directory_tree",
+          "move_file",
+          "search_files",
+          "get_file_info",
+          "list_allowed_directories"
         ],
         "auth_type": "none",
         "is_ping_available": true
@@ -439,7 +456,11 @@
           {
             "mcp_client_name": "context_fabric",
             "tools_to_execute": [
-              "*"
+              "cf_capture",
+              "cf_drift",
+              "cf_health",
+              "cf_log_decision",
+              "cf_query"
             ]
           },
           {
@@ -457,7 +478,20 @@
           {
             "mcp_client_name": "filesystem",
             "tools_to_execute": [
-              "*"
+              "read_file",
+              "read_text_file",
+              "read_media_file",
+              "read_multiple_files",
+              "write_file",
+              "edit_file",
+              "create_directory",
+              "list_directory",
+              "list_directory_with_sizes",
+              "directory_tree",
+              "move_file",
+              "search_files",
+              "get_file_info",
+              "list_allowed_directories"
             ]
           },
           {
@@ -545,7 +579,11 @@
           {
             "mcp_client_name": "context_fabric",
             "tools_to_execute": [
-              "*"
+              "cf_capture",
+              "cf_drift",
+              "cf_health",
+              "cf_log_decision",
+              "cf_query"
             ]
           },
           {
@@ -557,7 +595,20 @@
           {
             "mcp_client_name": "filesystem",
             "tools_to_execute": [
-              "*"
+              "read_file",
+              "read_text_file",
+              "read_media_file",
+              "read_multiple_files",
+              "write_file",
+              "edit_file",
+              "create_directory",
+              "list_directory",
+              "list_directory_with_sizes",
+              "directory_tree",
+              "move_file",
+              "search_files",
+              "get_file_info",
+              "list_allowed_directories"
             ]
           },
           {

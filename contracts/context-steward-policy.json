@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "policy_id": "context-steward",
+  "updated_at": "2026-07-25",
+  "purpose": "Bounded monitoring worker that proposes continuity repairs without owning canonical memory or Bifrost/IDE authority.",
+  "cadence": {
+    "event_driven": ["append_event", "checkpoint", "commit", "handoff", "session_close"],
+    "active_workflow_watchdog_minutes": 30,
+    "stable_system_deep_audit_hours": 48,
+    "silent_on_clean_deep_audit": true
+  },
+  "check_types": [
+    "missed_event",
+    "duplicate_event",
+    "wrong_drive_path",
+    "stale_projection",
+    "restart_recovery",
+    "project_isolation"
+  ],
+  "proposal_mechanism": {
+    "write_target": "agentcore.context_steward_proposals",
+    "finding_target": "agentcore.context_steward_findings",
+    "noncanonical_projection": ".agentcore/MILESTONE_DELTA.md",
+    "requires_operator_or_agent_acceptance": true,
+    "never_auto_apply_to_authority_docs": true
+  },
+  "forbidden_authority": [
+    "PROJECT_ANCHOR.md",
+    "BLUEPRINT.md",
+    "MILESTONES.md",
+    "DOC_AUTHORITY.md",
+    "contracts/bifrost-upstream-mcp-registry.json",
+    "GLOBAL_STATE.md",
+    "STATE.md",
+    "DECISIONS.md",
+    "CONTEXT_INDEX.md"
+  ],
+  "swarm_boundary": "Steward must never write into Swarm runtime roots or require Swarm MCP."
+}
