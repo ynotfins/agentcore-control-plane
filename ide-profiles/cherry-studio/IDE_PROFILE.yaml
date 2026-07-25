@@ -22,7 +22,7 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-07-20'
+last_validation_date: '2026-07-25'
 mcp_template_source: renderers/gateway-clients/cherry-studio.json
 m8_enrollment: configured_restart_required
 known_limitations:
@@ -34,14 +34,24 @@ known_limitations:
   inactive.
 - Rules are delivered through the AgentCore Workspace Agent system prompt, not a file-based
   global rule.
+- DRIFT-01 UI session-create failure during Bifrost-down windows is not a missing-agent
+  defect; native UI 14-step still operator-gated (see Phase 4C audit).
 semantic_parity_gaps:
 - Rule delivery depends on the operator/agent running scripts/cherry/configure_agentcore_agent.py
   to import the canonical AgentCore Workspace Agent prompt.
 enrollment_evidence:
-  audit: audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md
+  audit: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+  prior_enrollment: audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md
   lifecycle: audits/CHERRY_MEMORY_LIFECYCLE_2026-07-20.json
   runtime_repair: audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md
   runbook: docs/operations/CHERRY_STUDIO_AGENTCORE.md
+  backup_root: E:\AgentCore-Backups\cherry-repair-20260725
+status_reconciliation:
+  reconciled_at: '2026-07-25'
+  drift: DRIFT-01
+  finding: Target agent/model/gateway intact; sessions already existed; Bifrost CONNECTION_REFUSED
+    during operator UI failure window; DB session insert proven.
+  status_after_reconciliation: configured_restart_required
 dimensions:
   application_launch:
     status: live_validated
@@ -60,21 +70,26 @@ dimensions:
     superseded_by: null
   native_memory_lifecycle:
     status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   fresh_chat_recovery:
     status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   persistence_after_restart:
     status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   operator_gate:
     status: configured_restart_required
-    evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
-    evidence_ts: '2026-07-22T00:00:00Z'
+    evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
+    superseded_by: null
+  target_agent_session_schema:
+    status: live_validated
+    evidence_path: audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md
+    evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
