@@ -34,7 +34,85 @@
           "models": [
             "*"
           ],
-          "weight": 1
+          "weight": 1.0
+        }
+      ]
+    },
+    "anthropic": {
+      "keys": [
+        {
+          "name": "anthropic-oi-key",
+          "value": "env.ANTHROPIC_API_KEY_OI",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ],
+      "network_config": {
+        "default_request_timeout_in_seconds": 180
+      }
+    },
+    "gemini": {
+      "keys": [
+        {
+          "name": "gemini-primary",
+          "value": "env.GEMINI_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ]
+    },
+    "xai": {
+      "keys": [
+        {
+          "name": "xai-primary",
+          "value": "env.XAI_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ]
+    },
+    "deepseek": {
+      "keys": [
+        {
+          "name": "deepseek-primary",
+          "value": "env.DEEPSEEK_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ]
+    },
+    "openrouter": {
+      "keys": [
+        {
+          "name": "openrouter-primary",
+          "value": "env.OPENROUTER_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ]
+    },
+    "ollama": {
+      "keys": [
+        {
+          "name": "ollama-local",
+          "value": "",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0,
+          "ollama_key_config": {
+            "url": "http://127.0.0.1:11434"
+          }
         }
       ]
     }
@@ -65,7 +143,7 @@
           "docs_search"
         ],
         "auth_type": "none",
-        "is_ping_available": false
+        "is_ping_available": true
       },
       {
         "name": "agentcore_project_router",
@@ -85,7 +163,7 @@
           "project_clear"
         ],
         "auth_type": "none",
-        "is_ping_available": false
+        "is_ping_available": true
       },
       {
         "name": "arabold_docs",
@@ -235,15 +313,9 @@
         "name": "serena",
         "connection_type": "stdio",
         "stdio_config": {
-          "command": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
+          "command": "C:\\Program Files\\nodejs\\node.EXE",
           "args": [
-            "start-mcp-server",
-            "--transport",
-            "stdio",
-            "--context",
-            "ide",
-            "--project",
-            "D:\\github\\agentcore-control-plane"
+            "H:\\AgentRuntime\\bifrost\\wrappers\\serena-prewarm.js"
           ],
           "envs": []
         },
@@ -269,7 +341,7 @@
           "list_installed_skills"
         ],
         "auth_type": "none",
-        "is_ping_available": false
+        "is_ping_available": true
       },
       {
         "name": "tentra",
@@ -295,6 +367,41 @@
       "max_agent_depth": 1,
       "disable_auto_tool_inject": true
     }
+  },
+  "agentcore_meta": {
+    "gateway_id": "agentcore-gateway",
+    "authority": "D:\\github\\agentcore-control-plane",
+    "runtime_root": "H:\\AgentRuntime\\bifrost",
+    "swarm_exclusion": [
+      "swarmrecall",
+      "swarmvault",
+      "swarmclaw",
+      "SwarmRecall",
+      "SwarmVault",
+      "AgentSwarm",
+      "F:\\AgentCore\\agentmemory"
+    ],
+    "secret_policy": "env.NAME references only; never embed secret literals",
+    "static_env_defaults": {
+      "sequential-thinking": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      },
+      "cursor-agent-mcp": {
+        "CURSOR_API_URL": "https://api.cursor.com"
+      },
+      "obsidian-vault": {
+        "OBSIDIAN_BASE_URL": "https://127.0.0.1:27124",
+        "OBSIDIAN_VERIFY_SSL": "false"
+      }
+    },
+    "vk_env_names": [
+      "BIFROST_MCP_VIRTUAL_KEY",
+      "BIFROST_MCP_VK_REVIEWER",
+      "BIFROST_MCP_VK_DATABASE_VALIDATOR",
+      "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
+      "BIFROST_MCP_VK_OPERATOR"
+    ],
+    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json) — present=True. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration."
   },
   "governance": {
     "virtual_keys": [
@@ -400,7 +507,67 @@
             "key_ids": [
               "*"
             ],
-            "weight": 1
+            "weight": 1.0
+          },
+          {
+            "provider": "anthropic",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "gemini",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "xai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "deepseek",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "openrouter",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
           }
         ]
       },
@@ -416,22 +583,17 @@
               "memory_status",
               "startup_context",
               "retrieve_context",
-              "append_event",
-              "propose_fact",
               "expand_source",
-              "session_open",
-              "session_close",
-              "build_handoff",
-              "docs_search"
+              "docs_search",
+              "build_handoff"
             ]
           },
           {
             "mcp_client_name": "agentcore_project_router",
             "tools_to_execute": [
               "project_list",
-              "project_activate",
               "project_status",
-              "project_clear"
+              "project_activate"
             ]
           },
           {
@@ -441,21 +603,23 @@
             ]
           },
           {
-            "mcp_client_name": "context_fabric",
-            "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
             "mcp_client_name": "depwire",
             "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
-            "mcp_client_name": "filesystem",
-            "tools_to_execute": [
-              "*"
+              "connect_repo",
+              "get_architecture_summary",
+              "get_dependencies",
+              "get_dependents",
+              "get_file_context",
+              "get_health_score",
+              "list_files",
+              "search_symbols",
+              "get_symbol_info",
+              "get_temporal_graph",
+              "impact_analysis",
+              "visualize_graph",
+              "get_project_docs",
+              "find_dead_code",
+              "get_decisions"
             ]
           },
           {
@@ -465,9 +629,11 @@
             ]
           },
           {
-            "mcp_client_name": "serena",
+            "mcp_client_name": "skills_hub",
             "tools_to_execute": [
-              "*"
+              "search_skills",
+              "get_skill_detail",
+              "list_installed_skills"
             ]
           }
         ]
@@ -484,22 +650,18 @@
               "memory_status",
               "startup_context",
               "retrieve_context",
-              "append_event",
-              "propose_fact",
-              "expand_source",
               "session_open",
               "session_close",
-              "build_handoff",
-              "docs_search"
+              "docs_search",
+              "build_handoff"
             ]
           },
           {
             "mcp_client_name": "agentcore_project_router",
             "tools_to_execute": [
               "project_list",
-              "project_activate",
               "project_status",
-              "project_clear"
+              "project_activate"
             ]
           },
           {
@@ -517,12 +679,20 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agentcore_memory",
+            "tools_to_execute": [
+              "memory_status",
+              "retrieve_context",
+              "docs_search",
+              "expand_source"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_project_router",
             "tools_to_execute": [
               "project_list",
-              "project_activate",
               "project_status",
-              "project_clear"
+              "project_activate"
             ]
           },
           {
@@ -535,6 +705,14 @@
             "mcp_client_name": "sequential_thinking",
             "tools_to_execute": [
               "*"
+            ]
+          },
+          {
+            "mcp_client_name": "skills_hub",
+            "tools_to_execute": [
+              "search_skills",
+              "get_skill_detail",
+              "list_installed_skills"
             ]
           }
         ]
@@ -580,44 +758,88 @@
             "tools_to_execute": [
               "*"
             ]
+          },
+          {
+            "mcp_client_name": "sequential_thinking",
+            "tools_to_execute": [
+              "*"
+            ]
+          }
+        ],
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "anthropic",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "gemini",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "xai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "deepseek",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "openrouter",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
           }
         ]
       }
     ]
-  },
-  "agentcore_meta": {
-    "gateway_id": "agentcore-gateway",
-    "authority": "D:\\github\\agentcore-control-plane",
-    "runtime_root": "H:\\AgentRuntime\\bifrost",
-    "swarm_exclusion": [
-      "swarmrecall",
-      "swarmvault",
-      "swarmclaw",
-      "SwarmRecall",
-      "SwarmVault",
-      "AgentSwarm",
-      "F:\\AgentCore\\agentmemory"
-    ],
-    "secret_policy": "env.NAME references only; never embed secret literals",
-    "static_env_defaults": {
-      "sequential-thinking": {
-        "DISABLE_THOUGHT_LOGGING": "true"
-      },
-      "cursor-agent-mcp": {
-        "CURSOR_API_URL": "https://api.cursor.com"
-      },
-      "obsidian-vault": {
-        "OBSIDIAN_BASE_URL": "https://127.0.0.1:27124",
-        "OBSIDIAN_VERIFY_SSL": "false"
-      }
-    },
-    "vk_env_names": [
-      "BIFROST_MCP_VIRTUAL_KEY",
-      "BIFROST_MCP_VK_REVIEWER",
-      "BIFROST_MCP_VK_DATABASE_VALIDATOR",
-      "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
-      "BIFROST_MCP_VK_OPERATOR"
-    ],
-    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json) \u2014 present=True. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration."
   }
 }
+

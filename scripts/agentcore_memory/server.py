@@ -77,6 +77,21 @@ def postgres_reachable(timeout: float = 1.5) -> tuple[bool, str]:
         return False, exc.__class__.__name__
 
 
+def _ok_response_schema(extra_props: dict | None = None) -> dict:
+    """Shared base output schema: all tools return {ok, error?, ...}."""
+    props: dict = {
+        "ok": {"type": "boolean", "description": "True when operation succeeded."},
+        "error": {"type": "string", "description": "Error message when ok=false."},
+    }
+    if extra_props:
+        props.update(extra_props)
+    return {
+        "type": "object",
+        "properties": props,
+        "required": ["ok"],
+        "additionalProperties": True,
+    }
+
 def tool_defs() -> list[dict[str, Any]]:
     text_schema = {"type": "string"}
     text_array_schema = {"type": "array", "items": text_schema}
@@ -108,15 +123,31 @@ def tool_defs() -> list[dict[str, Any]]:
     return [
         {
             "name": "memory_status",
+            "title": "Memory Status",
             "description": "Return sanitized memory/gateway status summary without secrets.",
             "inputSchema": {
                 "type": "object",
                 "properties": {},
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "server_name": {"type": "string"},
+                "server_version": {"type": "string"},
+                "postgres": {"type": "string"},
+                "migrations": {"type": "array", "items": {"type": "string"}},
+                "knowledge_memory": {"type": "object"},
+            }),
+            "annotations": {
+                "title": "Memory Status",
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "session_open",
+            "title": "Session Open",
             "description": "Open or create a governed AgentCore memory session for a project/client/agent.",
             "inputSchema": {
                 "type": "object",
@@ -141,9 +172,25 @@ def tool_defs() -> list[dict[str, Any]]:
                 "required": ["project_key"],
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "session_id": {"type": "string"},
+                "session_key": {"type": "string"},
+                "project_id": {"type": "string"},
+                "project_key": {"type": "string"},
+                "resumed": {"type": "boolean"},
+                "created_at": {"type": "string"},
+            }),
+            "annotations": {
+                "title": "Session Open",
+                "readOnlyHint": False,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "session_close",
+            "title": "Session Close",
             "description": "Close a governed AgentCore memory session.",
             "inputSchema": {
                 "type": "object",
@@ -151,9 +198,21 @@ def tool_defs() -> list[dict[str, Any]]:
                 "required": ["session_id"],
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "session_id": {"type": "string"},
+                "ended_at": {"type": "string"},
+            }),
+            "annotations": {
+                "title": "Session Close",
+                "readOnlyHint": False,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "append_event",
+            "title": "Append Event",
             "description": (
                 "Append an immutable event through AgentCore memory (idempotent; no raw SQL exposed). "
                 "event_kind must be one of: prompt, message, tool_event, decision, output, "
@@ -185,9 +244,22 @@ def tool_defs() -> list[dict[str, Any]]:
                 "required": ["session_id", "event_kind", "idempotency_key", "payload"],
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "event_id": {"type": "string"},
+                "idempotent_replay": {"type": "boolean"},
+                "sequence_number": {"type": "integer"},
+            }),
+            "annotations": {
+                "title": "Append Event",
+                "readOnlyHint": False,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "retrieve_context",
+            "title": "Retrieve Context",
             "description": "Retrieve bounded context for a project using model-specific token budgets.",
             "inputSchema": {
                 "type": "object",
@@ -204,9 +276,24 @@ def tool_defs() -> list[dict[str, Any]]:
                 "required": ["project_key"],
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "items": {"type": "array", "items": {"type": "object"}},
+                "continuation_cursor": {"type": "string"},
+                "has_more": {"type": "boolean"},
+                "token_estimate": {"type": "integer"},
+                "context_profile": {"type": "string"},
+            }),
+            "annotations": {
+                "title": "Retrieve Context",
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "startup_context",
+            "title": "Startup Context",
             "description": "Return a startup context packet for a project/session.",
             "inputSchema": {
                 "type": "object",
@@ -218,9 +305,25 @@ def tool_defs() -> list[dict[str, Any]]:
                 "required": ["project_key"],
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "project_key": {"type": "string"},
+                "context_profile": {"type": "string"},
+                "items": {"type": "array", "items": {"type": "object"}},
+                "token_estimate": {"type": "integer"},
+                "hard_limit": {"type": "integer"},
+                "projection_revision": {"type": "integer"},
+            }),
+            "annotations": {
+                "title": "Startup Context",
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "expand_source",
+            "title": "Expand Source",
             "description": "Expand a summary, event, or artifact reference back to exact source evidence.",
             "inputSchema": {
                 "type": "object",
@@ -241,9 +344,26 @@ def tool_defs() -> list[dict[str, Any]]:
                 ],
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "event_id": {"type": "string"},
+                "kind": {"type": "string"},
+                "payload": {"type": "object"},
+                "occurred_at": {"type": "string"},
+                "trust_class": {"type": "string"},
+                "continuation_cursor": {"type": "string"},
+                "has_more": {"type": "boolean"},
+            }),
+            "annotations": {
+                "title": "Expand Source",
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "propose_fact",
+            "title": "Propose Fact",
             "description": "Create a governed fact proposal/review record instead of silently replacing truth.",
             "inputSchema": {
                 "type": "object",
@@ -257,9 +377,23 @@ def tool_defs() -> list[dict[str, Any]]:
                 "required": ["project_key", "fact_key", "proposed_value"],
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "proposal_id": {"type": "string"},
+                "fact_key": {"type": "string"},
+                "status": {"type": "string"},
+                "created_at": {"type": "string"},
+            }),
+            "annotations": {
+                "title": "Propose Fact",
+                "readOnlyHint": False,
+                "destructiveHint": False,
+                "idempotentHint": False,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "build_handoff",
+            "title": "Build Handoff",
             "description": "Build a compact project handoff packet from canonical memory state.",
             "inputSchema": {
                 "type": "object",
@@ -267,9 +401,24 @@ def tool_defs() -> list[dict[str, Any]]:
                 "required": ["project_key"],
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "project_key": {"type": "string"},
+                "handoff_text": {"type": "string"},
+                "projection_revision": {"type": "integer"},
+                "source_revision": {"type": "string"},
+                "token_estimate": {"type": "integer"},
+            }),
+            "annotations": {
+                "title": "Build Handoff",
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "docs_search",
+            "title": "Docs Search",
             "description": "Search indexed AgentCore memory documentation/context metadata (Arabold remains source for external docs).",
             "inputSchema": {
                 "type": "object",
@@ -284,9 +433,19 @@ def tool_defs() -> list[dict[str, Any]]:
                 "required": ["query"],
                 "additionalProperties": False,
             },
+            "outputSchema": _ok_response_schema({
+                "results": {"type": "array", "items": {"type": "object"}},
+                "total": {"type": "integer"},
+            }),
+            "annotations": {
+                "title": "Docs Search",
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
     ]
-
 
 def db() -> psycopg.Connection[Any]:
     password = os.environ.get(PG_PASSWORD_ENV)
@@ -1718,3 +1877,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+

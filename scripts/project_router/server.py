@@ -129,11 +129,30 @@ def tool_defs() -> list[dict[str, Any]]:
     return [
         {
             "name": "project_list",
+            "title": "Project List",
             "description": "List registered project worktrees allowed for AgentCore project-scoped MCP servers.",
             "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "ok": {"type": "boolean"},
+                    "projects": {"type": "array", "items": {"type": "object"}},
+                    "active": {"type": ["string", "null"]},
+                },
+                "required": ["ok"],
+                "additionalProperties": True,
+            },
+            "annotations": {
+                "title": "Project List",
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "project_activate",
+            "title": "Project Activate",
             "description": "Activate a registered project by path or id for project-scoped upstream MCP servers.",
             "inputSchema": {
                 "type": "object",
@@ -143,19 +162,71 @@ def tool_defs() -> list[dict[str, Any]]:
                 },
                 "additionalProperties": False,
             },
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "ok": {"type": "boolean"},
+                    "activated": {"type": "string"},
+                    "project": {"type": "object"},
+                    "error": {"type": "string"},
+                },
+                "required": ["ok"],
+                "additionalProperties": True,
+            },
+            "annotations": {
+                "title": "Project Activate",
+                "readOnlyHint": False,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "project_status",
+            "title": "Project Status",
             "description": "Show the currently active project, if any.",
             "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "ok": {"type": "boolean"},
+                    "active": {"type": ["string", "null"]},
+                    "project": {"type": ["object", "null"]},
+                },
+                "required": ["ok"],
+                "additionalProperties": True,
+            },
+            "annotations": {
+                "title": "Project Status",
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
         {
             "name": "project_clear",
+            "title": "Project Clear",
             "description": "Clear the active project selection.",
             "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "ok": {"type": "boolean"},
+                    "cleared": {"type": "string"},
+                },
+                "required": ["ok"],
+                "additionalProperties": True,
+            },
+            "annotations": {
+                "title": "Project Clear",
+                "readOnlyHint": False,
+                "destructiveHint": True,
+                "idempotentHint": True,
+                "openWorldHint": False,
+            },
         },
     ]
-
 
 def _match_project(projects: list[dict[str, str]], path: str | None, pid: str | None) -> dict[str, str] | None:
     if path:
@@ -300,3 +371,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
