@@ -1,0 +1,12 @@
+---
+description: Local vs Cloud Agent /in-cloud subagents, project hooks on cloud VMs, Bifrost gateway and Swarm exclusion for cloud runs.
+alwaysApply: false
+---
+
+# Cloud / Local Agent Boundary
+
+- Prefer local Agent for control-plane, secrets, and Windows environment-variable work.
+- Use `/in-cloud` only for isolated parallel work that does not need local home hooks or live machine secrets.
+- Cloud agents load project `.cursor/hooks.json` only — not `~/.cursor/hooks.json`.
+- Keep IDE tools on `agentcore-gateway`; never add direct OpenRouter or Swarm MCP for cloud convenience.
+- Do not modify Swarm product code from AgentCore cloud sessions.

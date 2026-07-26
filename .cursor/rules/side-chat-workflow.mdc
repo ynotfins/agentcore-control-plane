@@ -1,0 +1,11 @@
+---
+description: When to use Cursor Side Chat vs main Agent for research, Q&A, and tangents without interrupting primary work.
+alwaysApply: false
+---
+
+# Side Chat Workflow
+
+- Use `/side` or `/btw` for clarification, docs lookup, and alternative exploration while the main agent runs.
+- Default side chats to read/search/answer; do not start broad refactors there unless the user asks.
+- Pull conclusions back into the main thread with an @-mention of the side chat when a decision is locked.
+- Do not duplicate AgentCore memory writes from casual side-chat explorations.
