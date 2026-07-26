@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-20 (handoff table reconciliation + current-state synthesis at `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md`; architecture unchanged)
+**Updated:** 2026-07-25 (admitted `AGENTCORE_SWARM_DUAL_ECOSYSTEM_HANDOFF_2026-07-25.md` as newest current handoff; architecture unchanged)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -49,6 +49,7 @@ No other root or docs file may silently override this chain. If a document confl
 
 **Add as needed:**
 
+- `docs/handoffs/AGENTCORE_SWARM_DUAL_ECOSYSTEM_HANDOFF_2026-07-25.md` — newest current accepted handoff (AgentCore + Swarm dual ecosystem)
 - `docs/operations/OPENROUTER_MCP.md` — OpenRouter MCP (≠ API provider); OAuth + JIT bridge
 - `docs/handoffs/OPENROUTER_MCP_OAUTH_BIND_HANDOFF_2026-07-20.md` — OpenRouter OAuth bind topic handoff
 - `docs/handoffs/AGENTCORE_AUTONOMOUS_WORKFLOW_STUDIO_HANDOFF_2026-07-17.md` — workflow/Studio productization handoff (prefer runbook for commands)
@@ -103,7 +104,8 @@ No other root or docs file may silently override this chain. If a document confl
 | `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` | Live rollout handoff: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated |
 | `docs/handoffs/AGENTCORE_AUTONOMOUS_WORKFLOW_STUDIO_HANDOFF_2026-07-17.md` | Workflow + Studio productization handoff (prefer `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` for commands) |
 | `docs/handoffs/OPENROUTER_MCP_OAUTH_BIND_HANDOFF_2026-07-20.md` | OpenRouter MCP OAuth bind + JIT availability claim |
-| `docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md` | **Newest current full-chat handoff** — operator-supplied status snapshot, MiniMax cli.js, Codex launch failure, Open Interpreter persistence, and next workstreams (does not override locked authority chain) |
+| `docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md` | Previous full-chat handoff snapshot — operator-supplied status snapshot (superseded for dual-ecosystem state by July 25 handoff) |
+| `docs/handoffs/AGENTCORE_SWARM_DUAL_ECOSYSTEM_HANDOFF_2026-07-25.md` | **Newest current accepted handoff** — dual-ecosystem execution map, AgentCore + Swarm isolation boundaries, ChatGPT/Cursor/Codex workflow, and next workstreams (does not override locked authority chain) |
 | `docs/operations/OPENROUTER_MCP.md` | OpenRouter MCP runbook (registry `dormant` vs lifecycle `authenticated_dormant`) |
 | `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` | M6 LangGraph production + Studio runbook |
 | `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md` | Operator quickstart (control-plane cwd only) |

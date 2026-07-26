@@ -1,5 +1,7 @@
 # Cherry Studio + new-api Integration Index
 
+> **HISTORICAL / TASK-SPECIFIC REFERENCE ONLY — SUPERSEDED.** Pre-alignment Cherry Studio/new-api integration notes. Current Cherry Studio authority is `docs/operations/CHERRY_STUDIO_AGENTCORE.md` and `audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md`. Excluded from default ChatGPT Project Sources.
+
 > Canonical AgentCore policy for the two local AI clients at
 > `D:\github\cherry-studio` and `D:\github\new-api`. This document is
 > the index; per-project details live in the `AGENTCORE.md` files in

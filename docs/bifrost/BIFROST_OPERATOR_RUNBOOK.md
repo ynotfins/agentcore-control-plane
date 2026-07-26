@@ -12,8 +12,8 @@
 Invoke-WebRequest "http://127.0.0.1:8080/health" -UseBasicParsing
 
 # Check MCP tools
-\ = [System.Environment]::GetEnvironmentVariable("BIFROST_MCP_VIRTUAL_KEY", "User")
-\ = @{ "Authorization" = "Bearer \" }
+$vk = [System.Environment]::GetEnvironmentVariable("BIFROST_MCP_VIRTUAL_KEY", "User")
+$headers = @{ "Authorization" = "Bearer $vk" }
 # ... (initialize, notifications/initialized, then tools/list)
 ```
 
@@ -49,7 +49,7 @@ To add a new VK:
 3. Add VK entry to config.json
 4. Restart Bifrost
 
-Current VKs: builder, reviewer, database-validator, docs-knowledge, operator, chatgpt (pending env var)
+Current VKs: builder, reviewer, database-validator, docs-knowledge, operator, chatgpt (User-scope env var set; narrow profile pending remediation audit)
 
 ## Provider Management
 

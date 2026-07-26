@@ -12,7 +12,7 @@ mandatory_rules:
     title: AgentCore authority
     rule: >-
       D:\github\agentcore-control-plane is the single source authority. Read order:
-      PROJECT_ANCHOR.md -> DOC_AUTHORITY.md -> CONTEXT_BLOCK.md ->
+      PROJECT_ANCHOR.md -> DOC_AUTHORITY.md -> BLUEPRINT.md -> CONTEXT_BLOCK.md ->
       docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md -> Bifrost contracts/handoff ->
       D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md (machine facts).
       D:\MCP-Control-Plane is evidence only.
@@ -96,10 +96,12 @@ mandatory_rules:
       On restart after an unclean exit: locate the latest open session for the same
       project/client/task, resume it safely, retrieve events after the last projection, rebuild
       startup context, and record a recovery event.
-      Cursor Stage A (2026-07-20): project hooks sessionStart + beforeSubmitPrompt only via
-      scripts/agentcore_cursor/hook_dispatcher.py; preToolUse is offline-tested but not registered
-      until operator acceptance. Hooks must fail open on internal errors and never emit
-      followup_message or continual-learning prompts. Runbook: docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md.
+      Cursor Stage B integrity harness (2026-07-24): project hooks (sessionStart, beforeSubmitPrompt,
+      preToolUse, beforeShellExecution, afterFileEdit, postToolUse, stop) registered via
+      scripts/agentcore_cursor/hook_dispatcher.py; Continue. hard gate and 26/26 acceptance suite PASS
+      (audits/cursor-context/CURSOR_STAGE_B_INTEGRITY_HARNESS_ACCEPTANCE_2026-07-24.md). Hooks fail open
+      on internal errors and never emit followup_message or continual-learning prompts.
+      Runbook: docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md.
       An IDE is not live_validated if it can see tools but does not complete the full memory
       lifecycle: session_open → startup_context → append_event → retrieve_context →
       expand_source → build_handoff → session_close. Do not lower the IDE model's configured

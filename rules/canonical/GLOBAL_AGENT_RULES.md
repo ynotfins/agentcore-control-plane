@@ -5,7 +5,7 @@ This file is the human-readable rendering. Per-IDE renderings live under `ide-pr
 
 ## Mandatory rules
 
-1. **AgentCore authority.** `D:\github\agentcore-control-plane` is the single source authority. Read order: `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `CONTEXT_BLOCK.md` → `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` → Bifrost contracts/handoff → `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` (machine facts). `D:\MCP-Control-Plane` is evidence only.
+1. **AgentCore authority.** `D:\github\agentcore-control-plane` is the single source authority. Read order: `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` → Bifrost contracts/handoff → `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` (machine facts). `D:\MCP-Control-Plane` is evidence only.
 2. **One Bifrost gateway entry.** Non-Swarm IDEs use exactly one MCP entry: `agentcore-gateway` at `http://127.0.0.1:8080/mcp` with `Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}`. Never paste the upstream registry or direct per-tool MCP entries into IDE configs.
 3. **Swarm isolation.** SwarmRecall, SwarmVault, and SwarmClaw are a separate ecosystem. Never require Swarm MCP servers, Swarm databases, or Swarm file roots for non-Swarm work. Never modify Swarm product installs. OpenClaw/ClawX are Swarm-managed.
 4. **New Project Bootstrap.** Every new managed project runs Milestone 0 per `docs/agent-policy/NEW_PROJECT_BOOTSTRAP.md` before broad implementation.

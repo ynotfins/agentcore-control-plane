@@ -1,5 +1,7 @@
 # Serena MCP Configuration
 
+> **HISTORICAL REFERENCE ONLY — SUPERSEDED (2026-07-14).** Pre-Bifrost Serena configuration reference. Current Serena launch is managed via `contracts/bifrost-upstream-mcp-registry.json` and `ops/bifrost/wrappers/serena-prewarm.js` behind `agentcore-gateway`. Excluded from default ChatGPT Project Sources.
+
 This document is the AgentCore source-of-truth for Serena MCP setup on CHAOSCENTRAL.
 
 ## Current Authority

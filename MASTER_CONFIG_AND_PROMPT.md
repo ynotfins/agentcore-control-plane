@@ -114,7 +114,7 @@ Before asking the operator to repeat project history, query `agentcore-memory`. 
 ## 5. Project/worktree and context-management rules
 
 - Write only inside the assigned repo/worktree and role-appropriate runtime roots per `@D:\github\agentcore-control-plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`.
-- Every durable project asset on `D:`, `E:`, `F:`, `G:`, or `H:` must be registered via the governed memory surface (`register_artifact_location`). Temporary files on `I:` are exempt only while temporary and must be deleted or promoted at task close.
+- Every durable project asset on `D:`, `E:`, `F:`, `G:`, or `H:` must be appended or proposed with provenance via the governed `agentcore-memory` surface (e.g., via `append_event` or `propose_fact`); internal artifact placement is registered by the AgentCore worker (via `register_artifact_location`). Temporary files on `I:` are exempt only while temporary and must be deleted or promoted at task close.
 - Query resource locations through `retrieve_context` and `build_handoff`; the canonical view is `agentcore.v_project_resource_map`.
 - `CONTEXT_INDEX.md` is a generated projection; agents never directly edit it.
 - Never create an unregistered durable project location on `D:`, `E:`, `F:`, `G:`, or `H:`.

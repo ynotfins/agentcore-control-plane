@@ -1,7 +1,7 @@
 # MCP Classification Matrix — Bifrost Upstream
 
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`
-**Updated:** 2026-07-20
+**Updated:** 2026-07-25
 **Scope:** Non-Swarm AgentCore gateway only. Swarm* excluded.
 **Dormant catalog:** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`
 **Architecture authority:** `BLUEPRINT.md` (this matrix must not invent alternate memory identities or Swarm wiring)
@@ -18,12 +18,13 @@
 | depwire | depwire | router | project | write_capable | active | builder, reviewer, operator |
 | depwire-cloud | depwire_cloud | http | global | read_only | **disabled/deferred** | builder, operator (when enabled) |
 | tentra | tentra | router | project | bounded_write | active | builder |
-| obsidian-vault | obsidian_vault | stdio | global | bounded_write | active | builder, reviewer, docs-knowledge, operator |
+| obsidian-vault | obsidian_vault | stdio | global | bounded_write | **disabled** (zero tools in default baseline) | preserved app/vault outside default MCP surface |
 | playwright | playwright | stdio | global | bounded_write | active | builder |
 | filesystem | filesystem | router | project | bounded_write | active | builder, reviewer |
 | github-mcp | github_mcp | stdio | global | write_capable | **deferred/disabled** | builder, operator (when enabled) |
-| agentcore-memory | agentcore_memory | stdio | global | read_only | active (10-tool surface live) | builder, reviewer, database-validator, operator |
-| agentcore-project-router | agentcore_project_router | stdio | global | bounded_write | active | all profiles |
+| agentcore-memory | agentcore_memory | stdio | global | read_only | active (exact 10-tool surface live) | builder, reviewer, database-validator, operator |
+| agentcore-project-router | agentcore_project_router | stdio | global | bounded_write | active (exact 4-tool surface live) | all profiles |
+| skills-hub | skills_hub | stdio | global | read_only | active (exact 3-tool read surface live) | builder |
 
 ## OpenRouter MCP — registered dormant
 
@@ -59,6 +60,7 @@
 
 - Bifrost MCP client names use underscores; AgentCore canonical IDs keep hyphens.
 - Project-scoped servers must launch through `scripts/project_router` wrappers after `project_activate`.
-- Counts implemented in registry: **13 enabled** (including openrouter dormant), **4 disabled/deferred** (`mcp-debugger`, `artiforge`, `depwire-cloud`, `github-mcp`) — as validated by `scripts/bifrost/validate_contracts.py` in-repo.
+- Architectural exact tool counts: `agentcore-memory` = 10, `agentcore-project-router` = 4, `skills-hub` = 3 read-only tools (`install_skill` denied). Third-party counts (Arabold, OpenRouter) reflect point-in-time upstream discovery and evolve independently.
+- Output schema passthrough: stdio upstreams pass through or use the envelope adapter (`contracts/mcp-tool-output-schemas.json`); Bifrost does not synthesize proxy schemas.
 - OpenRouter is registered dormant: zero tools exposed without an active M6 capability lease + `scripts/bifrost/jit_vk_bridge.py`. See `docs/operations/OPENROUTER_MCP.md`. LangGraph clients use the same localhost gateway path (`docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`).
-- Future GitLab/GitKraken/Firecrawl/Sheets/Cloudflare/AgentMail/Vercel/docs MCP entries remain catalogued pending official pin + named inventory; they are not live Bifrost clients until an enablement gate passes.
+- Swarm exposure remains strictly zero across all non-Swarm IDE baselines.

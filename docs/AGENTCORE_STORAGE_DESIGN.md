@@ -1,5 +1,7 @@
 # AgentCore Storage Design
 
+> **HISTORICAL / SUPERSEDED (2026-06-24).** Pre-Bifrost / pre-PG18 storage layout notes. Implementation authority is `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` and locked drive roles in `BLUEPRINT.md`. Excluded from default ChatGPT Project Sources.
+
 Generated: 2026-06-24
 
 ## Active Drive

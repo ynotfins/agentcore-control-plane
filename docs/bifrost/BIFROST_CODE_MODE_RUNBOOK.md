@@ -1,5 +1,7 @@
 # Bifrost Code Mode Runbook
 
+> **TASK-SPECIFIC RUNBOOK — EXCLUDED FROM DEFAULT PROJECT SOURCES.** Code Mode is a task-specific VFS meta-tool feature of Bifrost. Excluded from default ChatGPT Project Sources unless a Code Mode workstream is explicitly active.
+
 **Authority:** `renderers/bifrost/config.json` (mcp.tool_manager_config)  
 **Updated:** 2026-07-24  
 **Current State:** Binding level `server` (Bifrost default; set in config.db)
