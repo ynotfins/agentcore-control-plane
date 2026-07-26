@@ -55,6 +55,7 @@ SECRET_ENV_NAMES = {
     "BIFROST_MCP_VK_DATABASE_VALIDATOR",
     "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
     "BIFROST_MCP_VK_OPERATOR",
+    "BIFROST_MCP_VK_CHATGPT",
 }
 
 
@@ -311,6 +312,55 @@ def profile_mcp_configs(registry: dict[str, Any], profile_id: str) -> list[dict[
     profile = registry["capability_profiles"][profile_id]
     allowed = set(profile.get("allowed_server_ids") or [])
     configs: list[dict[str, Any]] = []
+
+    if profile_id == "chatgpt":
+        chatgpt_tools_map = {
+            "agentcore_memory": [
+                "memory_status",
+                "startup_context",
+                "retrieve_context",
+                "expand_source",
+                "docs_search",
+                "session_open",
+                "append_event",
+                "build_handoff",
+                "session_close",
+            ],
+            "agentcore_project_router": [
+                "project_list",
+                "project_status",
+                "project_activate",
+            ],
+            "skills_hub": [
+                "search_skills",
+                "get_skill_detail",
+                "list_installed_skills",
+            ],
+            "arabold_docs": [
+                "search_docs",
+                "fetch_url",
+                "list_libraries",
+                "find_version",
+                "get_job_info",
+            ],
+            "sequential_thinking": [
+                "sequentialthinking",
+            ],
+        }
+        for canonical_id in sorted(allowed):
+            server = registry["servers"].get(canonical_id)
+            if not server or not server.get("enabled"):
+                continue
+            client_name = server["bifrost_client_name"]
+            if client_name in chatgpt_tools_map:
+                configs.append(
+                    {
+                        "mcp_client_name": client_name,
+                        "tools_to_execute": chatgpt_tools_map[client_name],
+                    }
+                )
+        return configs
+
     for canonical_id in sorted(allowed):
         server = registry["servers"].get(canonical_id)
         if not server or not server.get("enabled"):
@@ -383,6 +433,13 @@ def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
             "value": "env.BIFROST_MCP_VK_OPERATOR",
             "is_active": True,
             "mcp_configs": profile_mcp_configs(registry, "operator"),
+        },
+        {
+            "id": "vk-agentcore-chatgpt",
+            "name": "chatgpt",
+            "value": "env.BIFROST_MCP_VK_CHATGPT",
+            "is_active": True,
+            "mcp_configs": profile_mcp_configs(registry, "chatgpt"),
         },
     ]
 
@@ -482,6 +539,7 @@ def build_sanitized_sidecar(
             "BIFROST_MCP_VK_DATABASE_VALIDATOR",
             "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
             "BIFROST_MCP_VK_OPERATOR",
+            "BIFROST_MCP_VK_CHATGPT",
         ],
         "oauth_state_note": (
             "Post-enrollment: oauth_config_id loaded from runtime state file "

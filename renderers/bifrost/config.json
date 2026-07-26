@@ -735,6 +735,60 @@
             ]
           }
         ]
+      },
+      {
+        "id": "vk-agentcore-chatgpt",
+        "name": "chatgpt",
+        "value": "env.BIFROST_MCP_VK_CHATGPT",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_memory",
+            "tools_to_execute": [
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "expand_source",
+              "docs_search",
+              "session_open",
+              "append_event",
+              "build_handoff",
+              "session_close"
+            ]
+          },
+          {
+            "mcp_client_name": "agentcore_project_router",
+            "tools_to_execute": [
+              "project_list",
+              "project_status",
+              "project_activate"
+            ]
+          },
+          {
+            "mcp_client_name": "arabold_docs",
+            "tools_to_execute": [
+              "search_docs",
+              "fetch_url",
+              "list_libraries",
+              "find_version",
+              "get_job_info"
+            ]
+          },
+          {
+            "mcp_client_name": "sequential_thinking",
+            "tools_to_execute": [
+              "sequentialthinking"
+            ]
+          },
+          {
+            "mcp_client_name": "skills_hub",
+            "tools_to_execute": [
+              "search_skills",
+              "get_skill_detail",
+              "list_installed_skills"
+            ]
+          }
+        ]
       }
     ]
   },
@@ -769,7 +823,8 @@
       "BIFROST_MCP_VK_REVIEWER",
       "BIFROST_MCP_VK_DATABASE_VALIDATOR",
       "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
-      "BIFROST_MCP_VK_OPERATOR"
+      "BIFROST_MCP_VK_OPERATOR",
+      "BIFROST_MCP_VK_CHATGPT"
     ],
     "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json) \u2014 present=True. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration.",
     "output_schema": {

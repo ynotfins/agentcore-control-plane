@@ -109,6 +109,21 @@
       "notes": [
         "Virtual key stub: env.BIFROST_MCP_VK_OPERATOR"
       ]
+    },
+    "chatgpt": {
+      "display_name": "ChatGPT",
+      "purpose": "Narrow read-focused surface for ChatGPT secure tunnel.",
+      "allowed_server_ids": [
+        "arabold-docs",
+        "sequential-thinking",
+        "agentcore-memory",
+        "agentcore-project-router",
+        "skills-hub"
+      ],
+      "default_tools_policy": "deny_by_default",
+      "notes": [
+        "Dedicated virtual key: env.BIFROST_MCP_VK_CHATGPT"
+      ]
     }
   },
   "servers": {
@@ -139,7 +154,8 @@
         "reviewer",
         "docs-knowledge",
         "database-validator",
-        "operator"
+        "operator",
+        "chatgpt"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -236,7 +252,8 @@
       "capability_profiles": [
         "builder",
         "reviewer",
-        "docs-knowledge"
+        "docs-knowledge",
+        "chatgpt"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -840,7 +857,8 @@
         "builder",
         "reviewer",
         "database-validator",
-        "operator"
+        "operator",
+        "chatgpt"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -1070,7 +1088,8 @@
         "reviewer",
         "database-validator",
         "docs-knowledge",
-        "operator"
+        "operator",
+        "chatgpt"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -1118,7 +1137,8 @@
         "install_skill"
       ],
       "capability_profiles": [
-        "builder"
+        "builder",
+        "chatgpt"
       ],
       "logging_policy": {
         "log_invocations": true,
