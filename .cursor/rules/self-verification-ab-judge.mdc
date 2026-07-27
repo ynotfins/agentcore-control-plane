@@ -1,0 +1,58 @@
+---
+description: Multi-agent self-verification, A/B candidate generation, and fresh-context judge evaluation for complex code changes.
+alwaysApply: false
+---
+
+# Multi-Agent Self-Verification, A/B Testing & Judge Rule
+
+This rule implements production-grade multi-agent self-verification within Cursor. It prevents silent error accumulation on complex tasks through isolated candidate generation and fresh-context independent adjudication.
+
+---
+
+## When to Trigger
+
+Trigger this workflow for:
+- Architecture-impacting changes or multi-file refactors
+- Complex algorithm implementations or database schema migrations
+- High-risk security or state-management modifications
+- Unclear tradeoffs between multiple implementation strategies
+
+Do **NOT** trigger for routine tasks, typo fixes, simple file reads, or single-line edits.
+
+---
+
+## Workflow Steps
+
+```
+[Primary Agent] ----------> Option A Implementation ----\
+                                                         +---> [Deterministic Tests] ---> [Independent Judge (Fresh Context)] ---> Winner
+[Task: best-of-n-runner] -> Option B (A/B Worktree) ----/
+```
+
+### 1. Primary Implementation (Option A)
+- Implement the primary solution (Option A) in the workspace.
+- Run local deterministic verification tools (e.g. `pytest`, `npm test`, `typecheck`, `ruff`).
+
+### 2. A/B Candidate Generation (Option B)
+- When significant tradeoffs or uncertainties exist, launch an A/B tester subagent using the `Task` tool:
+  - `subagent_type`: `"best-of-n-runner"`
+  - `description`: `"Generate A/B alternative candidate (Option B)"`
+  - `prompt`: Detail the requirements, constraints, and instruct the subagent to explore an alternative implementation path in its isolated worktree branch.
+
+### 3. Evidence Collection
+- Collect test results, linter outputs, execution logs, and diff summaries for both Option A and Option B.
+
+### 4. Independent Judge Adjudication (Fresh-Context Grader)
+- Launch an independent grader subagent using the `Task` tool:
+  - `subagent_type`: `"code-reviewer"` or `"bugbot"`
+  - `description`: `"Grade Option A vs Option B candidates"`
+- **Fresh Context Isolation Rule:** Pass ONLY the requirements rubric, Option A diff, Option B diff, and test evidence to the judge subagent. Do **NOT** include the primary agent's intermediate scratchpad or thought trace.
+- **Judge Rubric:**
+  - **Deterministic Pass Rate:** Must pass all tests and lint checks (hard non-waivable requirement).
+  - **Constitutional Alignment:** Adheres to `CONSTITUTION.md` and repository design patterns.
+  - **Maintainability & Complexity:** Prefers clean, modular, and maintainable solutions over clever hacks.
+
+### 5. Selection and Finalization
+- Apply the winning candidate (Option A or Option B).
+- Discard the losing experiment worktree/branch.
+- Summarize the judge's decision and rationale for the user.

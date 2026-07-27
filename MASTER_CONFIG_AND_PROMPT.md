@@ -24,6 +24,7 @@ Read and follow in this order. Nothing below overrides anything above it.
 7. Machine-fact authority — `@D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md`
 
 `@D:\github\agentcore-control-plane\AGENTS.md` is the agent operating contract. `@D:\MCP-Control-Plane` is compatibility/live-ops evidence only, never design authority.
+`@D:\github\agentcore-control-plane\AUTHORITY_LOCK.md` and `@D:\github\agentcore-control-plane\contracts\authority-lock.yaml` define protected source classes. `@D:\github\agentcore-control-plane\docs\boundaries\SWARM_FOREIGN_BOUNDARY.md` is the minimal Swarm pointer; it does not import Swarm runtime authority.
 
 Do **not** treat mutable tool counts, Bifrost uptime, or live IDE screenshots as architecture authority. Read live posture from `@D:\github\agentcore-control-plane\CONTEXT_BLOCK.md` and current audits.
 
@@ -60,6 +61,7 @@ Cursor and other non-Swarm IDEs may use AgentCore for development continuity on
 Swarm-ecosystem projects.
 
 SwarmClaw, SwarmRecall, and SwarmVault runtime processes and runtime agents do NOT use:
+
 - AgentCore memory (agentcore-memory, PostgreSQL 18, agent_core database)
 - Bifrost gateway or agentcore-gateway
 - AgentCore projections (STATE.md, GLOBAL_STATE.md, DECISIONS.md, CONTEXT_INDEX.md)
@@ -68,8 +70,9 @@ SwarmClaw, SwarmRecall, and SwarmVault runtime processes and runtime agents do N
 Developer-side AgentCore evidence (audits, handoffs, plans, .agentcore project registrations)
 must never be packaged into or consumed by the Swarm runtime.
 
-Swarm runtime has its own memory, databases (PostgreSQL 16 :55432), services (SwarmRecall API
-:3300, SwarmVault file-based), tools, prompts, and backups.
+Swarm runtime has its own memory, services, tools, prompts, databases, and backups.
+Mutable Swarm runtime facts such as ports, storage paths, credentials, and launch commands
+are owned by `@D:\github\swarm-ecosystem-control` and must be read from its current authority.
 
 SwarmDock, SwarmRelay, and SwarmFeed are deferred and disabled. They must not receive
 AgentCore endpoints, keys, or credentials.
@@ -142,22 +145,23 @@ Preserve client-native safety, sandbox, approval, account, and UI settings. Do n
 
 Supported non-Swarm clients (current as of 2026-07-25 Phase 4 reconciliation):
 
-| Client | Profile directory | Configuration mode | Native validation status |
-| --- | --- | --- | --- |
-| Cursor | `ide-profiles/cursor/` | generated_prompt | **live_validated** — Stage B hooks live; Continue. hard gate proven (`audits/cursor-context/CURSOR_CONTINUE_HARD_GATE_AND_STAGE_B_REGISTRATION_2026-07-24.md`) |
-| Codex (OpenAI Codex / ChatGPT desktop Codex view) | `ide-profiles/codex/` | generated_prompt | configured_restart_required — desktop packages healthy + gateway configured; UI 14-step still operator-gated (`audits/CODEX_DESKTOP_REPAIR_2026-07-24.md`) |
-| Claude Code | `ide-profiles/claude-code/` | generated_prompt | awaiting_operator_import |
-| Claude Desktop | `ide-profiles/claude-desktop/` | generated_prompt | configured_restart_required |
-| MiniMax Code | `ide-profiles/minimax/` | generated_prompt | configured_restart_required — in-app MCP supported (VK materialize + streamable-http); **CLI wrappers unsupported** (`daemon\cli.js` missing); native chat lifecycle operator-gated (`audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md`) |
-| MiniMax Agent Classic | `ide-profiles/minimax-classic/` | UI_only | awaiting_operator_cloud_mcp_enrollment — Matrix custom-MCP UI only; **no public tunnel** (`audits/MINIMAX_CLASSIC_ENROLLMENT_2026-07-24.md`) |
-| Antigravity | `ide-profiles/antigravity/` | unverified | awaiting_operator_import — stop if unverified |
-| Open Interpreter **CLI** | `ide-profiles/open-interpreter/` | generated_prompt | configured_restart_required — gateway persistence/discovery proven (`~/.openinterpreter/config.toml`); full 14-step still operator-gated (`audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md`) |
-| Open Interpreter **GUI** (`Interpreter.exe`) | n/a (not a separate profile) | unsupported | `unsupported_with_reason` — no MCP schema in `%APPDATA%\interpreter\config.json` |
-| Cherry Studio | `ide-profiles/cherry-studio/` | UI_only / scripts | configured_restart_required — target Agent + session schema proven; native UI 14-step operator-gated; do **not** claim premature full `live_validated` (`audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md`) |
+| Client                                            | Profile directory                | Configuration mode | Native validation status                                                                                                                                                                                                                    |
+| ------------------------------------------------- | -------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cursor                                            | `ide-profiles/cursor/`           | generated_prompt   | **live_validated** — Stage B hooks live; Continue. hard gate proven (`audits/cursor-context/CURSOR_CONTINUE_HARD_GATE_AND_STAGE_B_REGISTRATION_2026-07-24.md`)                                                                              |
+| Codex (OpenAI Codex / ChatGPT desktop Codex view) | `ide-profiles/codex/`            | generated_prompt   | configured_restart_required — desktop packages healthy + gateway configured; UI 14-step still operator-gated (`audits/CODEX_DESKTOP_REPAIR_2026-07-24.md`)                                                                                  |
+| Claude Code                                       | `ide-profiles/claude-code/`      | generated_prompt   | awaiting_operator_import                                                                                                                                                                                                                    |
+| Claude Desktop                                    | `ide-profiles/claude-desktop/`   | generated_prompt   | configured_restart_required                                                                                                                                                                                                                 |
+| MiniMax Code                                      | `ide-profiles/minimax/`          | generated_prompt   | configured_restart_required — in-app MCP supported (VK materialize + streamable-http); **CLI wrappers unsupported** (`daemon\cli.js` missing); native chat lifecycle operator-gated (`audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md`) |
+| MiniMax Agent Classic                             | `ide-profiles/minimax-classic/`  | UI_only            | awaiting_operator_cloud_mcp_enrollment — Matrix custom-MCP UI only; **no public tunnel** (`audits/MINIMAX_CLASSIC_ENROLLMENT_2026-07-24.md`)                                                                                                |
+| Antigravity                                       | `ide-profiles/antigravity/`      | unverified         | awaiting_operator_import — stop if unverified                                                                                                                                                                                               |
+| Open Interpreter **CLI**                          | `ide-profiles/open-interpreter/` | generated_prompt   | configured_restart_required — gateway persistence/discovery proven (`~/.openinterpreter/config.toml`); full 14-step still operator-gated (`audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md`)                                              |
+| Open Interpreter **GUI** (`Interpreter.exe`)      | n/a (not a separate profile)     | unsupported        | `unsupported_with_reason` — no MCP schema in `%APPDATA%\interpreter\config.json`                                                                                                                                                            |
+| Cherry Studio                                     | `ide-profiles/cherry-studio/`    | UI_only / scripts  | configured_restart_required — target Agent + session schema proven; native UI 14-step operator-gated; do **not** claim premature full `live_validated` (`audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md`)                                  |
 
 `@C:\Users\ynotf\.mavis` is a junction to `@C:\Users\ynotf\.minimax` (same MiniMax Code data root). It is not a separate executable Mavis client and does not receive its own managed profile. **MiniMax Code and MiniMax Agent Classic are distinct products** with distinct profiles, paths, and enrollment mechanisms; do not conflate them.
 
 The agent must:
+
 1. Identify its own IDE from the list above.
 2. Read `@D:\github\agentcore-control-plane\ide-profiles\<ide>\IDE_PROFILE.yaml`.
 3. Refuse to edit a different IDE's live config or rules.
@@ -185,11 +189,13 @@ Adding future MCP servers: add once to `@D:\github\agentcore-control-plane\contr
 ## 9. Backup, secrets, and safe handling
 
 Before any live IDE config change:
+
 - Back up the live config outside Git to `E:\AgentCore-Backups\<client>-<timestamp>`.
 - Record SHA-256 of the backup and the original.
 - Preserve model, auth, account, sandbox, context, profile, theme, and non-MCP app settings.
 
 After any change:
+
 - Validate JSON/TOML syntax.
 - Restart/reload the IDE so environment references are visible.
 - Confirm the IDE shows `agentcore-gateway` connected/ready.
@@ -334,6 +340,7 @@ python D:\github\agentcore-control-plane\scripts\validate_cursor_prompt_format.p
 Also run a secret/junk scan before commit. Live IDE configs are not committed.
 
 Key references:
+
 - `@D:\github\agentcore-control-plane\docs\bifrost\UNIFIED_GATEWAY_SETUP.md`
 - `@D:\github\agentcore-control-plane\docs\bifrost\CAPABILITY_PROFILES.md`
 - `@D:\github\agentcore-control-plane\docs\operations\OPENROUTER_MCP.md`
@@ -368,3 +375,7 @@ Authority: @D:\github\agentcore-control-plane\PROJECT_ANCHOR.md, @D:\github\agen
 Read the IDE profile at @D:\github\agentcore-control-plane\ide-profiles\<ide>\IDE_PROFILE.yaml and the validation steps at @D:\github\agentcore-control-plane\ide-profiles\<ide>\VALIDATION.md.
 Scope to the selected IDE's live config only; do not touch other IDEs. Prove Bifrost health, then complete session_open -> startup_context -> append_event -> retrieve_context -> expand_source -> build_handoff -> session_close -> resume -> project isolation, and confirm exactly ten agentcore-memory tools. Record sanitized evidence in @D:\github\agentcore-control-plane\audits\ and update the IDE profile last_validation_date.
 ```
+
+---
+
+New Project Mandatory Steps

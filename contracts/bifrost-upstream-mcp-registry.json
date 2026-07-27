@@ -221,8 +221,8 @@
       "status": "active",
       "notes": [
         "Phase 2 (2026-07-24): launched via ops/bifrost/wrappers/serena-prewarm.js to answer Bifrost initialize/tools/list/ping immediately while Serena finishes MCP lifetime setup (READY_SIGNAL).",
-        "Prewarm spawns serena.exe start-mcp-server --transport stdio --context ide --project D:\\github\\agentcore-control-plane.",
-        "Project activation remains via agentcore-project-router + Serena tools.",
+        "Prewarm spawns serena.exe start-mcp-server --transport stdio --context ide for the active allowlisted control-plane project.",
+        "The wrapper monitors agentcore-project-router active-project state and restarts only the Serena child when switching between the AgentCore and Swarm control repositories.",
         "Do not set enabled=false merely because status was previously stale-disabled; Serena is required for architecture-sensitive edits."
       ]
     },

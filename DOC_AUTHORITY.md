@@ -82,6 +82,7 @@ No other root or docs file may silently override this chain. If a document confl
 | -- | -- |
 | `PROJECT_ANCHOR.md` | Immutable constitution: Bifrost gateway override, drives (incl. H/I/J), endpoints, memory path, baseline, forbidden routes |
 | `BLUEPRINT.md` | **Locked implementation blueprint** — final goal, architecture, drive roles, allocation-unit targets, lossless guarantees, STATE model, Milestone exit criteria (M0–M8), tool policy, security boundaries, change-control list. Operator-approved; Cursor may not change locked items without explicit approval. |
+| `AUTHORITY_LOCK.md` / `contracts/authority-lock.yaml` | Authority-lock classification and enforcement manifest for operator-locked, governed mutable, generated read-only, and normal workstream files. |
 | `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` | Detailed Milestone execution guidance; derives from BLUEPRINT.md; BLUEPRINT wins on conflicts |
 | `docs/agent-policy/*.md` | Global New Project Bootstrap, Milestone execution, checklist, tool-lifecycle, and read-order policy |
 | `contracts/global-agent-policy.yaml` | Canonical machine-readable semantic agent policy (source for per-IDE rule profiles) |
@@ -90,6 +91,7 @@ No other root or docs file may silently override this chain. If a document confl
 | `contracts/agentcore-gateway-client.json` | Single `agentcore-gateway` client connection contract |
 | `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md` | Why native Windows Bifrost Gateway, H: runtime, auth, pin |
 | `docs/adr/ADR-2026-07-12-configuration-source-of-truth.md` | Contracts → renderer → H: live config; IDEs get gateway entry only |
+| `SERENA.md` | Current Serena project configuration, Bifrost/project-router wiring, IDE usage, and recovery runbook |
 | `docs/bifrost/*.md` | Classification, profiles, Tentra local mode, Depwire reconciliation, migration/rollback |
 | `SECURITY.md` | Secret and security policy |
 | `AGENTS.md` | Source-controlled agent operating contract |
@@ -106,6 +108,7 @@ No other root or docs file may silently override this chain. If a document confl
 | `docs/handoffs/OPENROUTER_MCP_OAUTH_BIND_HANDOFF_2026-07-20.md` | OpenRouter MCP OAuth bind + JIT availability claim |
 | `docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md` | Previous full-chat handoff snapshot — operator-supplied status snapshot (superseded for dual-ecosystem state by July 25 handoff) |
 | `docs/handoffs/AGENTCORE_SWARM_DUAL_ECOSYSTEM_HANDOFF_2026-07-25.md` | **Newest current accepted handoff** — dual-ecosystem execution map, AgentCore + Swarm isolation boundaries, ChatGPT/Cursor/Codex workflow, and next workstreams (does not override locked authority chain) |
+| `docs/boundaries/SWARM_FOREIGN_BOUNDARY.md` / `contracts/foreign-ecosystem-boundaries.yaml` | Minimal pointer-only Swarm foreign-boundary capsule. Mutable Swarm runtime facts remain owned by `D:\github\swarm-ecosystem-control`. |
 | `docs/operations/OPENROUTER_MCP.md` | OpenRouter MCP runbook (registry `dormant` vs lifecycle `authenticated_dormant`) |
 | `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` | M6 LangGraph production + Studio runbook |
 | `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md` | Operator quickstart (control-plane cwd only) |

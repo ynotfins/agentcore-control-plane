@@ -61,6 +61,13 @@ def _editability_answer(profile: dict, key: str) -> str:
     return "unverified"
 
 
+def _markdown_table_value(value: object) -> str:
+    text = str(value)
+    if any(marker in text for marker in ("<", ">", "http://", "https://")):
+        return f"`{text}`"
+    return text
+
+
 def render(profile: dict, policy: dict) -> str:
     lines: list[str] = []
     lines.append(f"# Global Agent Rules — {profile.get('display_name', profile['ide_id'])}")
@@ -76,7 +83,7 @@ def render(profile: dict, policy: dict) -> str:
     lines.append("| Field | Value |")
     lines.append("| -- | -- |")
     for label, getter in HEADER_KEYS:
-        lines.append(f"| {label} | {getter(profile)} |")
+        lines.append(f"| {label} | {_markdown_table_value(getter(profile))} |")
     lines.append("")
     lines.append("## Mandatory rules")
     lines.append("")

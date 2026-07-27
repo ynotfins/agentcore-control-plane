@@ -4,7 +4,7 @@ This repository, `D:\github\agentcore-control-plane`, is the canonical Git sourc
 
 Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_AUTHORITY.md`, and current evidence/handoff documents. Do not treat compatibility/live-ops roots as design authority.
 
-**Start here (read in this order):** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → `contracts/bifrost-upstream-mcp-registry.json` + `contracts/agentcore-gateway-client.json` → `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md` → `MASTER_CONFIG_AND_PROMPT.md`. Historical Bifrost cutover evidence: `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` (pointer → archive). For memory/database work, also read `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (implementation authority). Project execution policy: `docs/agent-policy/`.
+**Start here (read in this order):** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → `contracts/bifrost-upstream-mcp-registry.json` + `contracts/agentcore-gateway-client.json` → `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md` → `SERENA.md` → `MASTER_CONFIG_AND_PROMPT.md`. Historical Bifrost cutover evidence: `docs/handoffs/AGENTCORE_BIFROST_GATEWAY_HANDOFF_2026-07-12.md` (pointer → archive). For memory/database work, also read `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (implementation authority). Project execution policy: `docs/agent-policy/`.
 
 ## Operating Rules
 
@@ -14,6 +14,8 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 - Use unlock -> edit -> validate -> re-lock for managed files.
 - Patch Bifrost renderers/`scripts/bifrost/render_bifrost_config.py` first when generated outputs would otherwise drift. (`scripts/mcp_control_plane.py` is archived under `docs/archive/`.)
 - Keep contracts, Bifrost renderers, gateway-client renderers, ops scripts, and validators aligned.
+- Respect `AUTHORITY_LOCK.md` and `contracts/authority-lock.yaml`. Operator-locked files require authority-maintainer approval, rollback evidence, validators, and independent review. Generated projections remain read-only to ordinary agents.
+- Keep the Swarm relationship pointer-only through `docs/boundaries/SWARM_FOREIGN_BOUNDARY.md` and `contracts/foreign-ecosystem-boundaries.yaml`; mutable Swarm ports, data roots, credentials, launch commands, and service state belong only to `D:\github\swarm-ecosystem-control`.
 - Use deterministic validators before reporting completion (`scripts/bifrost/validate_contracts.py`, project validators).
 - AgentCore does not use `.env` files for secrets or local runtime configuration. Use Windows environment variables only.
 - Persistent memory writes go through `agentcore-gateway` → `agentcore-memory` only. Memory/database implementation follows `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`. (`AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` are historical PG16-era evidence; read them only for live PG16 cluster facts, never as current instructions.)
@@ -24,7 +26,7 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 
 - **IDE MCP primary:** use the single Bifrost `agentcore-gateway` entry defined by `PROJECT_ANCHOR.md` and `contracts/agentcore-gateway-client.json`. Do not paste the full upstream registry into each IDE.
 - **Planning:** `sequential-thinking` (via gateway).
-- **Repo code work:** Serena via **project router** (`agentcore-project-router` activate → Serena wrapper). Prefer project-scoped cwd.
+- **Repo code work:** Serena via **project router** (`agentcore-project-router` activate → Serena wrapper); follow `SERENA.md` for the semantic workflow and failure boundaries. Prefer project-scoped cwd.
 - **Depwire:** Prefer Depwire **through agentcore-gateway** after cutover. Local Depwire CLI/MCP remains available for diagnostics and exact workspace graphs; Depwire Cloud stays deferred until enabled/healthy in the registry.
 - **Tentra:** Local mode only; launch via project-router wrapper and follow current classified evidence for mutable data paths.
 - **Docs:** `arabold-docs` first for current library/SDK/docs answers. Keep Bifrost docs indexed (`bifrost` / `2.0.0-prerelease1`).
@@ -47,6 +49,7 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thin
 - New projects run Milestone 0 (Bootstrap) per `docs/agent-policy/NEW_PROJECT_BOOTSTRAP.md` before broad implementation.
 - Milestones use entry/exit gates per `docs/agent-policy/MILESTONE_EXECUTION_STANDARD.md`; Micro steps require evidence per `docs/agent-policy/CHECKLIST_STANDARD.md`.
 - Progressive tool disclosure per `docs/agent-policy/TOOL_LIFECYCLE_POLICY.md`: only currently needed tools exposed; tool audits at every Milestone entry and exit. M6 PostgreSQL leases + Bifrost JIT VK bridge are live for OpenRouter tool groups; `TOOL_MANIFEST.yaml` still records project desired state. Do not expose OpenRouter MCP directly in IDEs — gateway + lease only (`docs/operations/OPENROUTER_MCP.md`).
+- Multi-Agent Self-Verification & A/B Judge: For complex, architecture-impacting, or high-risk tasks, follow `.cursor/rules/self-verification-ab-judge.mdc`. Launch `best-of-n-runner` for A/B candidate exploration and `code-reviewer`/`bugbot` in a fresh context window as an independent judge.
 
 ## Database Contract
 

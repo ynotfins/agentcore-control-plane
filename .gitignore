@@ -98,6 +98,12 @@ swarmrelay-messages/
 agentmemory/
 postgres/
 
+# Local model weights, voice clone tools, and experimental workspaces
+pretrained_models/
+tools/voice-clone/
+minimax-projects/
+langsmith-projects/
+
 # Private first-responder and incident data
 **/incident-data/
 **/incident_data/

@@ -7,11 +7,19 @@
  * Source: D:\github\agentcore-control-plane\ops\bifrost\wrappers\serena-prewarm.js
  */
 const { spawn } = require("child_process");
+const fs = require("fs");
 
 const SERENA_EXE = "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe";
-const SERENA_ARGS = ["start-mcp-server","--transport","stdio","--context","ide","--project","D:\\github\\agentcore-control-plane"];
+const ACTIVE_PROJECT_STATE = "H:\\AgentRuntime\\bifrost\\state\\active-project.json";
+const ALLOWED_PROJECTS = [
+  "D:\\github\\agentcore-control-plane",
+  "D:\\github\\swarm-ecosystem-control",
+];
+const DEFAULT_PROJECT = ALLOWED_PROJECTS[0];
+const SERENA_ARGS_PREFIX = ["start-mcp-server","--transport","stdio","--context","ide"];
 const READY_SIGNAL = "MCP server lifetime setup complete";
-const STARTUP_TIMEOUT_MS = 45000;
+const STARTUP_TIMEOUT_MS = 10000;
+const EARLY_BRIDGE_DELAY_MS = 5000;
 const WRAPPER_INIT_ID = "__wrapper_init__";
 
 const CACHED_TOOLS = [{"name":"replace_content","title":"Replace Content","description":"Replaces one or more occurrences of a given pattern in a file with new content.\n\nThis is the preferred way to replace content in a file whenever the symbol-level\ntools are not appropriate.\n\nVERY IMPORTANT: The \"regex\" mode allows very large sections of code to be replaced without fully quoting them!\nUse a regex of the form \"beginning.*?end-of-text-to-be-replaced\" to be faster and more economical!\nALWAYS try to use wildcards to avoid specifying the exact content to be replaced,\nespecially if it spans several lines. Note that you cannot make mistakes, because if the regex should match\nmultiple occurrences while you disabled `allow_multiple_occurrences`, an error will be returned, and you can retry\nwith a revised regex.\nTherefore, using regex mode with suitable wildcards is usually the best choice!.","inputSchema":{"properties":{"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file."},"needle":{"title":"Needle","type":"string","description":"The string or regex pattern to search for.\nIf `mode` is \"literal\", this string will be matched exactly.\nIf `mode` is \"regex\", this string will be treated as a regular expression (syntax of Python's `re` module,\nwith flags DOTALL and MULTILINE enabled)."},"repl":{"title":"Repl","type":"string","description":"The replacement string (verbatim).\nIf mode is \"regex\", the string can contain backreferences to matched groups in the needle regex,\nspecified using the syntax $!1, $!2, etc. for groups 1, 2, etc."},"mode":{"enum":["literal","regex"],"title":"Mode","type":"string","description":"Either \"literal\" or \"regex\", specifying how the `needle` parameter is to be interpreted."},"allow_multiple_occurrences":{"default":false,"title":"Allow Multiple Occurrences","type":"boolean","description":"Whether to allow matching and replacing multiple occurrences.\nIf false and multiple occurrences are found, an error will be returned."}},"required":["relative_path","needle","repl","mode"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Replace Content","readOnlyHint":false,"destructiveHint":true}},{"name":"replace_in_files","title":"Replace In Files","description":"Replaces occurrences of a pattern across multiple files in ONE call.\n\nThis is the preferred tool for repeated small edits (renames, import swaps, annotation changes,\npath prefixes) spanning several files or many places in one file: one call with a SHORT pattern\nreplaces many single-file replacements with long disambiguating needles.\n\nRecommended protocol whenever there is ANY risk of unintended replacements:\n1. Call with dry_run=True: every prospective change is returned as a minimal line diff with an\n   occurrence id; nothing is modified.\n2. Call again with dry_run=False, passing the ids you want in occurrence_ids (omit it to apply\n   all). You pick the desired replacements from the list - no counting, no needle-crafting.\n\nFor clearly unambiguous bulk replacements you may skip the dry run; pass expected_count as a\nguard. If the actual number of matches differs, NOTHING is changed and the diff list is\nreturned, so a failed guard costs one call and gives you the dry-run output to select from. Returns in a dry run, the prospective changes; otherwise a summary of the applied replacements.","inputSchema":{"properties":{"needle":{"title":"Needle","type":"string","description":"The string (mode \"literal\") or regular expression (mode \"regex\"; Python `re`\nsyntax with DOTALL and MULTILINE) to search for."},"repl":{"title":"Repl","type":"string","description":"The replacement string. In regex mode, backreferences to matched groups can be\nspecified as $!1, $!2, etc."},"mode":{"enum":["literal","regex"],"title":"Mode","type":"string","description":"Either \"literal\" or \"regex\", specifying how `needle` is to be interpreted."},"relative_path":{"default":"","title":"Relative Path","type":"string","description":"Only consider this file or directory (default: the whole project)."},"paths_include_glob":{"default":"","title":"Paths Include Glob","type":"string","description":"Optional glob (relative to the project root, e.g. \"src/**/*.java\")\nrestricting which files are considered."},"paths_exclude_glob":{"default":"","title":"Paths Exclude Glob","type":"string","description":"Optional glob of files to exclude; takes precedence over the include glob."},"dry_run":{"default":false,"title":"Dry Run","type":"boolean","description":"If True, do not modify anything; return the prospective changes as a list of\ndiffs with occurrence ids."},"occurrence_ids":{"anyOf":[{"items":{"type":"string"},"type":"array"},{"type":"null"}],"default":null,"title":"Occurrence Ids","description":"Optional list of occurrence ids (obtained from a dry run) to which the\nreplacement is restricted; if any id is unknown or stale, NOTHING is changed. If omitted,\nall occurrences are replaced."},"expected_count":{"default":-1,"title":"Expected Count","type":"integer","description":"Optional guard for calls without occurrence_ids: the number of\noccurrences you expect to be replaced. If the actual count differs, nothing is changed and\nthe list of prospective changes is returned. -1 disables the guard."},"max_answer_chars":{"default":-1,"title":"Max Answer Chars","type":"integer","description":"If the output exceeds this many characters, a shortened version is\nreturned. -1 uses the configured default."}},"required":["needle","repl","mode"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Replace In Files","readOnlyHint":false,"destructiveHint":true}},{"name":"replace_symbol_body","title":"Replace Symbol Body","description":"Replaces the body of the given symbol.\n\nIMPORTANT: Only replace symbol bodies if you have previously made a retrieval with include_body=True and thus know what\nconstitutes the body!.","inputSchema":{"properties":{"name_path":{"title":"Name Path","type":"string","description":"Name path of the symbol whose body to replace."},"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file containing the symbol."},"body":{"title":"Body","type":"string","description":"The new symbol body. The symbol body is the definition of a symbol\nin the programming language, including e.g. the signature line for functions.\nDepending on the language, it may or may not include a preceding docstring or other preceding annotations."}},"required":["name_path","relative_path","body"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Replace Symbol Body","readOnlyHint":false,"destructiveHint":true}},{"name":"insert_after_symbol","title":"Insert After Symbol","description":"Use this to insert code after a class/method/function definition.\nDon't use to insert after assignments (constants, fields).","inputSchema":{"properties":{"name_path":{"title":"Name Path","type":"string","description":"Name path of the symbol after which to insert content."},"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file containing the symbol."},"body":{"title":"Body","type":"string","description":"The body/content to be inserted. The inserted code shall begin with the next line after\nthe symbol."}},"required":["name_path","relative_path","body"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Insert After Symbol","readOnlyHint":false,"destructiveHint":true}},{"name":"insert_before_symbol","title":"Insert Before Symbol","description":"Inserts the given content before the beginning of the definition of the given symbol (via the symbol's location).\nA typical use case is to insert a new class, function, method, field or variable assignment; or\na new import statement before the first symbol in the file.","inputSchema":{"properties":{"name_path":{"title":"Name Path","type":"string","description":"Name path of the symbol before which to insert content."},"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file containing the symbol."},"body":{"title":"Body","type":"string","description":"The body/content to be inserted before the line in which the referenced symbol is defined."}},"required":["name_path","relative_path","body"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Insert Before Symbol","readOnlyHint":false,"destructiveHint":true}},{"name":"search_for_pattern","title":"Search For Pattern","description":"Searches for a regex pattern across project files, returning whole matched lines (plus optional context).\nPrefer symbolic operations if you know which symbols you are looking for!. Returns A mapping from file paths to matched consecutive lines (0-based line numbers).","inputSchema":{"properties":{"substring_pattern":{"title":"Substring Pattern","type":"string","description":"Regular expression to search for."},"context_lines_before":{"default":0,"title":"Context Lines Before","type":"integer","description":"Number of context lines to include before each match."},"context_lines_after":{"default":0,"title":"Context Lines After","type":"integer","description":"Number of context lines to include after each match."},"paths_include_glob":{"default":"","title":"Paths Include Glob","type":"string","description":"Optional glob (relative to project root, e.g. ``\"src/**/*.ts\"``) restricting which files are searched."},"paths_exclude_glob":{"default":"","title":"Paths Exclude Glob","type":"string","description":"Optional glob to exclude files; takes precedence over `paths_include_glob`."},"relative_path":{"default":"","title":"Relative Path","type":"string","description":"Restricts the search to this file or subdirectory of the project root."},"restrict_search_to_code_files":{"default":false,"title":"Restrict Search To Code Files","type":"boolean","description":"Whether to search only files containing analyzable code symbols\n(useful when looking for class/method definitions); otherwise also search non-code files."},"multiline":{"default":true,"title":"Multiline","type":"boolean","description":"Whether to apply multi-line matching (default: True), enabling the flags re.DOTALL and re.MULTILINE."},"max_answer_chars":{"default":-1,"title":"Max Answer Chars","type":"integer","description":"If the output exceeds this many characters, a progressively shortened summary is returned instead.\n``-1`` uses the configured default."}},"required":["substring_pattern"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Search For Pattern","readOnlyHint":true,"destructiveHint":false}},{"name":"get_symbols_overview","title":"Get Symbols Overview","description":"Use this tool to get a high-level understanding of the code symbols in a file.\nThis should be the first tool to call when you want to understand a new file, unless you already know\nwhat you are looking for. Returns a JSON object containing symbols grouped by kind in a compact format.","inputSchema":{"properties":{"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file to get the overview of."},"depth":{"default":-1,"title":"Depth","type":"integer","description":"Depth up to which descendants shall be retrieved.\nDefault (-1) results in a language specific choice: 1 for java and kotlin and 0 for other languages."},"max_answer_chars":{"default":-1,"title":"Max Answer Chars","type":"integer","description":"If the overview is longer than this number of characters,\nno content will be returned. -1 means the default value from the config will be used.\nDon't adjust unless there is really no other way to get the content required for the task."}},"required":["relative_path"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Get Symbols Overview","readOnlyHint":true,"destructiveHint":false}},{"name":"find_symbol","title":"Find Symbol","description":"Retrieves information on all symbols/code entities (classes, methods, etc.) based on the given name path pattern.\nThe returned symbol information can be used for edits or further queries.\nSpecify `depth > 0` to also retrieve children/descendants (e.g., methods of a class).\n\nA name path is a path in the symbol tree *within a source file*.\nFor example, the method `my_method` defined in class `MyClass` would have the name path `MyClass/my_method`.\nIf a symbol is overloaded (e.g., in Java), a 0-based index is appended (e.g. \"MyClass/my_method[0]\") to\nuniquely identify it.\n\nTo search for a symbol, you provide a name path pattern that is used to match against name paths.\nIt can be\n * a simple name (e.g. \"method\"), which will match any symbol with that name\n * a relative path like \"class/method\", which will match any symbol with that name path suffix\n * an absolute name path \"/class/method\" (absolute name path), which requires an exact match of the full name path within the source file.\nAppend an index `[i]` to match a specific overload only, e.g. \"MyClass/my_method[1]\". Returns symbols (with locations) matching the name.","inputSchema":{"properties":{"name_path_pattern":{"title":"Name Path Pattern","type":"string","description":"The name path matching pattern (see above)."},"depth":{"default":0,"title":"Depth","type":"integer","description":"Depth up to which descendants shall be retrieved (e.g. use 1 to also retrieve immediate children;\nfor the case where the symbol is a class, this will return its methods).\nIgnored if `include_body=True`. Default 0."},"relative_path":{"default":"","title":"Relative Path","type":"string","description":"(optional) restrict search to this file or directory. If None, searches entire codebase.\nIf a directory is passed, the search will be restricted to the files in that directory.\nIf a file is passed, the search will be restricted to that file."},"include_body":{"default":false,"title":"Include Body","type":"boolean","description":"Whether to include the symbol's source code. Use judiciously."},"include_info":{"default":false,"title":"Include Info","type":"boolean","description":"Whether to include additional info (hover-like, typically including docstring and signature),\nabout the symbol (ignored if include_body is True). Info is never included for child symbols.\nNote: Depending on the language, this can be slow (e.g., C/C++)."},"include_kinds":{"default":[],"items":{"type":"integer"},"title":"Include Kinds","type":"array","description":"(optional) limits results to the given LSP symbol kinds (integers)."},"exclude_kinds":{"default":[],"items":{"type":"integer"},"title":"Exclude Kinds","type":"array","description":"(optional) list of LSP symbol kinds (integers) to exclude."},"substring_matching":{"default":false,"title":"Substring Matching","type":"boolean","description":"If True, use substring matching for the last element of the pattern, such that\n\"Foo/get\" would match \"Foo/getValue\" and \"Foo/getData\"."},"max_matches":{"default":-1,"title":"Max Matches","type":"integer","description":"Maximum number of permitted matches. If exceeded, a shortened result is returned\nwhich allows refining the search. -1 (default) means no limit. Set to 1 if you search for a single symbol."},"max_answer_chars":{"default":-1,"title":"Max Answer Chars","type":"integer","description":"Max result length; -1 for default."}},"required":["name_path_pattern"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Find Symbol","readOnlyHint":true,"destructiveHint":false}},{"name":"find_referencing_symbols","title":"Find Referencing Symbols","description":"Finds references to the symbol at the given `name_path`. The result will contain metadata about the referencing symbols\nas well as a short code snippet around the reference. Returns a list of JSON objects with the symbols referencing the requested symbol.","inputSchema":{"properties":{"name_path":{"title":"Name Path","type":"string","description":"Name path of the symbol."},"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file containing the symbol for which to find references.\nNote: for external dependencies, this must be an identifier starting with `<ext` that you have received\nearlier (don't try to guess!)."},"include_kinds":{"default":[],"items":{"type":"integer"},"title":"Include Kinds","type":"array","description":"(optional) limits results to the given LSP symbol kinds (integers)."},"exclude_kinds":{"default":[],"items":{"type":"integer"},"title":"Exclude Kinds","type":"array","description":"Optional list of LSP symbol kinds (integers) to exclude."},"max_answer_chars":{"default":-1,"title":"Max Answer Chars","type":"integer","description":"Max result length; -1 for default."}},"required":["name_path","relative_path"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Find Referencing Symbols","readOnlyHint":true,"destructiveHint":false}},{"name":"find_implementations","title":"Find Implementations","description":"Finds implementations of the symbol at the given `name_path`. Returns a list of JSON objects with the symbols implementing the requested symbol.","inputSchema":{"properties":{"name_path":{"title":"Name Path","type":"string","description":"The symbol's name path."},"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file containing the symbol for which to find implementations.\nNote that here you can't pass a directory but must pass a file."},"include_info":{"default":false,"title":"Include Info","type":"boolean","description":"Whether to include additional info (hover-like, typically including docstring and signature),\nabout the implementing symbols."},"include_kinds":{"default":[],"items":{"type":"integer"},"title":"Include Kinds","type":"array","description":"(optional) limits results to the given LSP symbol kinds (integers)."},"exclude_kinds":{"default":[],"items":{"type":"integer"},"title":"Exclude Kinds","type":"array","description":"(optional) list of LSP symbol kinds (integers) to exclude."},"max_answer_chars":{"default":-1,"title":"Max Answer Chars","type":"integer","description":"Max result length; -1 for default."}},"required":["name_path","relative_path"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Find Implementations","readOnlyHint":true,"destructiveHint":false}},{"name":"find_declaration","title":"Find Declaration","description":"Finds the declaration of a symbol.","inputSchema":{"properties":{"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the source file containing the symbol for which to find the declaration."},"regex":{"title":"Regex","type":"string","description":"A regular expression with one group, where the group matches the symbol for which to perform the lookup.\nFor example, to find the declaration of the `process` method in a call like `obj.process()`,\npass an expression like \"obj\\.(process)\\(process_input_arg=37\\)\".\nPrefer regexes with sufficiently large context around the group to render the match unambiguous.\nUses Python syntax with MULTILINE and DOTALL flags enabled."},"containing_symbol_name_path":{"anyOf":[{"type":"string"},{"type":"null"}],"default":null,"title":"Containing Symbol Name Path","description":"Optional name path of a containing symbol whose body shall be searched instead of the full file."},"include_body":{"default":false,"title":"Include Body","type":"boolean","description":"Whether to include the symbol's body in the result. Default False."},"include_info":{"default":false,"title":"Include Info","type":"boolean","description":"Whether to include additional info (hover-like). Default False."}},"required":["relative_path","regex"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Find Declaration","readOnlyHint":true,"destructiveHint":false}},{"name":"get_diagnostics_for_file","title":"Get Diagnostics For File","description":"Gets diagnostics for a file. Diagnostics are grouped as `relative_path -> severity -> name_path -> diagnostics_results`.\nIf a diagnostic cannot be mapped to a symbol, it is grouped under the special name path `<file>`. Returns grouped diagnostics for the requested file.","inputSchema":{"properties":{"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file to inspect."},"start_line":{"default":0,"title":"Start Line","type":"integer","description":"The first 0-based line to include. Defaults to 0."},"end_line":{"default":-1,"title":"End Line","type":"integer","description":"The last 0-based line to include. Defaults to -1, which means until the end of the file."},"min_severity":{"default":4,"title":"Min Severity","type":"integer","description":"Minimum LSP severity to include, where 1=Error, 2=Warning, 3=Information, 4=Hint.\nDiagnostics with lower-or-equal numeric severity are returned."},"max_answer_chars":{"default":-1,"title":"Max Answer Chars","type":"integer","description":"Max result length; -1 for default."}},"required":["relative_path"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Get Diagnostics For File","readOnlyHint":true,"destructiveHint":false}},{"name":"rename_symbol","title":"Rename Symbol","description":"Renames the symbol with the given `name_path` to `new_name` throughout the entire codebase.\nNote: for languages with method overloading, like Java, name_path may have to include a method's\nsignature to uniquely identify a method. Returns result summary indicating success or failure.","inputSchema":{"properties":{"name_path":{"title":"Name Path","type":"string","description":"Name path of the symbol to rename."},"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file containing the symbol to rename."},"new_name":{"title":"New Name","type":"string","description":"The new name for the symbol."}},"required":["name_path","relative_path","new_name"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Rename Symbol","readOnlyHint":false,"destructiveHint":true}},{"name":"safe_delete_symbol","title":"Safe Delete Symbol","description":"Deletes the symbol if it is safe to do so (i.e., if there are no references to it)\nor returns a list of references to it.","inputSchema":{"properties":{"name_path_pattern":{"title":"Name Path Pattern","type":"string","description":"Name path of the symbol to delete."},"relative_path":{"title":"Relative Path","type":"string","description":"The relative path to the file containing the symbol to delete."}},"required":["name_path_pattern","relative_path"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Safe Delete Symbol","readOnlyHint":false,"destructiveHint":true}},{"name":"write_memory","title":"Write Memory","description":"Write information about this project that can be useful for future tasks in md format.\nThe name should be meaningful and can include \"/\" to organize into topics.\nIf explicitly instructed, use the \"global/\" prefix for writing a memory that is shared across projects.\nReferences to other memories should be inside backticks and prefixed with mem:,\ne.g., `mem:auth`.","inputSchema":{"properties":{"memory_name":{"title":"Memory Name","type":"string","description":"Memory name."},"content":{"title":"Content","type":"string","description":"Memory content, utf8-encoded."},"max_chars":{"default":-1,"title":"Max Chars","type":"integer","description":"See other tools."}},"required":["memory_name","content"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Write Memory","readOnlyHint":false,"destructiveHint":true}},{"name":"read_memory","title":"Read Memory","description":"Use to read a memory that is likely to be relevant to the current task, inferring relevance e.g. from the name.","inputSchema":{"properties":{"memory_name":{"title":"Memory Name","type":"string"}},"required":["memory_name"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Read Memory","readOnlyHint":true,"destructiveHint":false}},{"name":"list_memories","title":"List Memories","description":"Lists available memories, optionally filtered by topic.","inputSchema":{"properties":{"topic":{"default":"","title":"Topic","type":"string"}},"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"List Memories","readOnlyHint":true,"destructiveHint":false}},{"name":"delete_memory","title":"Delete Memory","description":"Delete a memory, only call if instructed explicitly or permission was granted by the user.","inputSchema":{"properties":{"memory_name":{"title":"Memory Name","type":"string"}},"required":["memory_name"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Delete Memory","readOnlyHint":false,"destructiveHint":true}},{"name":"rename_memory","title":"Rename Memory","description":"Rename or move a memory, use \"/\" in the name to organize into topics.\nThe \"global\" topic should only be used if explicitly instructed.\nReferences to other memories that are marked with the `mem:` prefix will be updated accordingly.\nReferences in read-only memories are not affected.","inputSchema":{"properties":{"old_name":{"title":"Old Name","type":"string"},"new_name":{"title":"New Name","type":"string"}},"required":["old_name","new_name"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Rename Memory","readOnlyHint":false,"destructiveHint":true}},{"name":"edit_memory","title":"Edit Memory","description":"Replace content matching a regular expression in a memory.","inputSchema":{"properties":{"memory_name":{"title":"Memory Name","type":"string","description":"The name of the memory."},"needle":{"title":"Needle","type":"string","description":"The string or regex pattern to search for. In regex mode, be careful to not replace too much!\nIf `mode` is \"literal\", this string will be matched exactly.\nIf `mode` is \"regex\", this string will be treated as a regular expression (syntax of Python's `re` module,\nwith the MULTILINE and DOTALL flags enabled)."},"repl":{"title":"Repl","type":"string","description":"The replacement string (verbatim)."},"mode":{"enum":["literal","regex"],"title":"Mode","type":"string","description":"Either \"literal\" or \"regex\", specifying how the `needle` parameter is to be interpreted."},"allow_multiple_occurrences":{"default":false,"title":"Allow Multiple Occurrences","type":"boolean","description":"Whether to allow matching and replacing multiple occurrences.\nIf false and multiple occurrences are found, an error will be returned."}},"required":["memory_name","needle","repl","mode"],"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Edit Memory","readOnlyHint":false,"destructiveHint":true}},{"name":"open_dashboard","title":"Open Dashboard","description":"Opens the Serena web dashboard in the default web browser.","inputSchema":{"properties":{},"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Open Dashboard","readOnlyHint":true,"destructiveHint":false}},{"name":"onboarding","title":"Onboarding","description":"Call this tool if onboarding was not performed yet.\nYou will call this tool at most once per conversation. Returns instructions on how to create the onboarding information.","inputSchema":{"properties":{},"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Onboarding","readOnlyHint":true,"destructiveHint":false}},{"name":"initial_instructions","title":"Initial Instructions","description":"Provides the 'Serena Instructions Manual', which contains essential information on how to use the Serena toolbox.\nIMPORTANT: If you have not yet read the manual, call this tool immediately after you are given your task by the user,\nas it will critically inform you!.","inputSchema":{"properties":{},"title":"applyArguments","type":"object"},"outputSchema":{"properties":{"result":{"title":"Result","type":"string"}},"required":["result"],"title":"applyOutput","type":"object"},"annotations":{"title":"Initial Instructions","readOnlyHint":true,"destructiveHint":false}}]
@@ -23,12 +31,35 @@ let serenaStdoutBuf = "";
 let inboundBuf = "";    // Buffer for parsing Bifrost stdin lines (all states)
 let servedInit = false;
 let servedTools = false;
-
-const serenaProc = spawn(SERENA_EXE, SERENA_ARGS, { stdio: ["pipe","pipe","pipe"] });
+let serenaProc = null;
+let currentProject = null;
+let spawnGeneration = 0;
 
 function log(msg) { process.stderr.write("[serena-prewarm] " + msg + "\n"); }
 function toBifrost(obj) { process.stdout.write(JSON.stringify(obj) + "\n"); }
-function toSerena(line) { if (!serenaProc.killed) serenaProc.stdin.write(line + "\n"); }
+function toSerena(line) {
+  if (serenaProc && !serenaProc.killed) serenaProc.stdin.write(line + "\n");
+}
+
+function readActiveProject() {
+  try {
+    const state = JSON.parse(fs.readFileSync(ACTIVE_PROJECT_STATE, "utf8"));
+    const candidate = String(state.path || "").replace(/\//g, "\\").replace(/[\\]+$/, "");
+    const match = ALLOWED_PROJECTS.find(
+      (project) => project.toLowerCase() === candidate.toLowerCase(),
+    );
+    return match || DEFAULT_PROJECT;
+  } catch (_) {
+    return DEFAULT_PROJECT;
+  }
+}
+
+function stopSerena() {
+  if (!serenaProc || serenaProc.killed) return;
+  try { serenaProc.stdin.end(); } catch (_) {}
+  try { serenaProc.kill(); } catch (_) {}
+  serenaProc = null;
+}
 
 function handleBifrostLine(line) {
   if (!line.trim()) return;
@@ -79,63 +110,117 @@ process.stdin.on("data", function(chunk) {
 
 process.stdin.on("end", function() {
   if (inboundBuf.trim()) handleBifrostLine(inboundBuf);
-  if (!serenaProc.killed) serenaProc.stdin.end();
+  if (serenaProc && !serenaProc.killed) serenaProc.stdin.end();
 });
 
-function onSerenaProcessReady() {
+function onSerenaProcessReady(child, generation) {
+  if (child !== serenaProc || generation !== spawnGeneration || state !== "waiting_serena") return;
   state = "initializing_serena";
-  log("Serena ready. Sending wrapper init...");
-  toSerena(JSON.stringify({
+  log("Serena ready for " + currentProject + ". Sending wrapper init...");
+  child.stdin.write(JSON.stringify({
     jsonrpc: "2.0", id: WRAPPER_INIT_ID, method: "initialize",
     params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "bifrost-prewarm", version: "1.0" } }
-  }));
+  }) + "\n");
 }
 
-function onSerenaInitialized() {
+function onSerenaInitialized(child, generation) {
+  if (child !== serenaProc || generation !== spawnGeneration || state !== "initializing_serena") return;
   state = "bridging";
   log("Bridging. Flushing " + pendingMessages.length + " buffered messages.");
-  toSerena(JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized", params: {} }));
+  child.stdin.write(JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized", params: {} }) + "\n");
   for (const msg of pendingMessages) {
     try {
       const m = JSON.parse(msg);
       // Skip already-handled synthetic messages
       if (m.method === "initialize" || m.method === "tools/list") continue;
     } catch(e) {}
-    toSerena(msg);
+    child.stdin.write(msg + "\n");
   }
   pendingMessages = [];
 }
 
-// Serena stdout -> Bifrost
-serenaProc.stdout.on("data", function(chunk) {
-  serenaStdoutBuf += chunk.toString();
-  const lines = serenaStdoutBuf.split("\n");
-  serenaStdoutBuf = lines.pop();
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    if (state === "initializing_serena") {
-      try {
-        const m = JSON.parse(line);
-        if (m.id === WRAPPER_INIT_ID) { log("Swallowed Serena init resp."); onSerenaInitialized(); continue; }
-      } catch(e) {}
+function spawnSerena(project) {
+  const generation = ++spawnGeneration;
+  currentProject = project;
+  state = "waiting_serena";
+  serenaStdoutBuf = "";
+  const child = spawn(
+    SERENA_EXE,
+    [...SERENA_ARGS_PREFIX, "--project", project],
+    { stdio: ["pipe", "pipe", "pipe"] },
+  );
+  serenaProc = child;
+
+  child.stdout.on("data", function(chunk) {
+    serenaStdoutBuf += chunk.toString();
+    const lines = serenaStdoutBuf.split("\n");
+    serenaStdoutBuf = lines.pop();
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      if (state === "initializing_serena") {
+        try {
+          const message = JSON.parse(line);
+          if (message.id === WRAPPER_INIT_ID) {
+            log("Swallowed Serena init response.");
+            onSerenaInitialized(child, generation);
+            continue;
+          }
+        } catch (_) {}
+      }
+      process.stdout.write(line + "\n");
     }
-    process.stdout.write(line + "\n");
-  }
-});
+  });
 
-serenaProc.stderr.on("data", function(chunk) {
-  process.stderr.write(chunk);
-  if (state === "waiting_serena" && chunk.toString().includes(READY_SIGNAL)) onSerenaProcessReady();
-});
+  let serenaStderrBuf = "";
+  child.stderr.on("data", function(chunk) {
+    const text = chunk.toString();
+    serenaStderrBuf = (serenaStderrBuf + text).slice(-8192);
+    if (state === "waiting_serena" && serenaStderrBuf.includes(READY_SIGNAL)) {
+      serenaStderrBuf = "";
+      log("Serena readiness signal received.");
+      onSerenaProcessReady(child, generation);
+    }
+  });
 
-serenaProc.on("exit", function(code) { process.exit(code || 0); });
-serenaProc.on("error", function(err) { log("Error: " + err.message); process.exit(1); });
+  child.on("exit", function(code) {
+    if (child !== serenaProc || generation !== spawnGeneration) return;
+    serenaProc = null;
+    log("Serena exited for " + currentProject + " (code=" + code + ").");
+    process.exit(code || 0);
+  });
+  child.on("error", function(err) {
+    if (child !== serenaProc || generation !== spawnGeneration) return;
+    log("Serena error: " + err.message);
+    process.exit(1);
+  });
 
-const t = setTimeout(function() {
-  log("Startup timeout. State: " + state);
-  if (state === "waiting_serena") onSerenaProcessReady();
-  else if (state === "initializing_serena") onSerenaInitialized();
-}, STARTUP_TIMEOUT_MS);
-t.unref();
+  const timeout = setTimeout(function() {
+    if (child !== serenaProc || generation !== spawnGeneration) return;
+    log("Startup timeout for " + project + ". State: " + state);
+    if (state === "waiting_serena") onSerenaProcessReady(child, generation);
+    else if (state === "initializing_serena") onSerenaInitialized(child, generation);
+  }, STARTUP_TIMEOUT_MS);
+  timeout.unref();
 
+  // Do not make Bifrost wait for a logging signal that may be buffered by the
+  // Windows child process. Serena queues stdin until its MCP lifetime is ready.
+  setTimeout(function() {
+    if (child === serenaProc && generation === spawnGeneration && state === "waiting_serena") {
+      log("Early bridge fallback after " + EARLY_BRIDGE_DELAY_MS + "ms.");
+      onSerenaProcessReady(child, generation);
+    }
+  }, EARLY_BRIDGE_DELAY_MS);
+  log("Spawned Serena for " + project + ".");
+}
+
+setInterval(function() {
+  const desiredProject = readActiveProject();
+  if (desiredProject === currentProject) return;
+  log("Active project changed from " + currentProject + " to " + desiredProject + ".");
+  stopSerena();
+  state = "waiting_serena";
+  spawnSerena(desiredProject);
+}, 1000).unref();
+
+spawnSerena(readActiveProject());
 log("Pre-warm proxy started.");

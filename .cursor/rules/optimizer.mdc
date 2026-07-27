@@ -1,6 +1,5 @@
 ---
 description: Cursor IDE optimization, rules/hooks/agents audit, changelog feature fit, workflow improvements. Use when asked about Cursor settings, Optimize Cursor, Status Check, .cursor/rules, or changelog features. Expert IDE tuner, workflow strategist, and Sub-Agent orchestrator.
-model: claude-3.5-sonnet
 alwaysApply: false
 readonly: true
 ---
@@ -46,11 +45,11 @@ If a gap is found, draft the full `.md` file for the user in your log.
   - **Action:** Draft `backend.md` focused on API schemas and Pydantic validation.
 - **Scenario:** High volume of bugs or "fix this" prompts.
   - **Gap:** No "QA Engineer" agent found.
-  - **Action:** Draft `qa-engineer.md` focused on writing test cases before code.
 
-## Reporting Protocol
-
-Maintain a silent "Optimization Log". When asked "Status Report" or "Optimize", output a table:
+| Category | Issue / Gap | Suggested Fix |
+| :--- | :--- | :--- |
+| **Agent Gap** | No QA Agent detected | "Create `.cursor/agents/qa.md` (See draft below)" |
+| **Workflow** | Redundant or stale `.mdc` settings | "Clean up duplicate globs or instructions in rules" |
 
 | Category | Issue / Gap | Suggested Fix |
 | :--- | :--- | :--- |

@@ -31,6 +31,36 @@ from agentcore_cursor.bootstrap import (  # noqa: E402
 from agentcore_cursor.session_scope import SessionScope  # noqa: E402
 
 
+SERENA_MAINTENANCE_SCRIPT = Path(
+    r"D:\github\agentcore-control-plane\scripts\agentcore_cursor\serena_maintenance.py"
+)
+SERENA_MAINTENANCE_APPROVAL_PATTERN = r"AUTH-[0-9]{4}-[0-9]{2}-[0-9]{2}-[A-Z0-9_-]+"
+AUTHORITY_APPROVAL_PATTERN = SERENA_MAINTENANCE_APPROVAL_PATTERN
+AUTHORITY_OPERATOR_LOCKED = {
+    "PROJECT_ANCHOR.md",
+    "BLUEPRINT.md",
+    "MILESTONES.md",
+    "AUTHORITY_LOCK.md",
+    "contracts/authority-lock.yaml",
+}
+AUTHORITY_GENERATED_READ_ONLY = {
+    ".agentcore/STATE.md",
+    ".agentcore/DECISIONS.md",
+    ".agentcore/CONTEXT_INDEX.md",
+}
+GLOBAL_GENERATED_READ_ONLY = {
+    str(Path(r"C:\Users\ynotf\.agentcore\GLOBAL_STATE.md").resolve()).lower()
+}
+AUTHORITY_SHELL_PROTECTED_FRAGMENT = (
+    r"(PROJECT_ANCHOR\.md|BLUEPRINT\.md|MILESTONES\.md|AUTHORITY_LOCK\.md|"
+    r"contracts[\\/]+authority-lock\.yaml|\.agentcore[\\/]+(?:STATE|DECISIONS|CONTEXT_INDEX)\.md)"
+)
+AUTHORITY_SHELL_PROTECTED_PATTERN = re.compile(
+    AUTHORITY_SHELL_PROTECTED_FRAGMENT,
+    re.IGNORECASE,
+)
+
+
 def os_environ_get(name: str) -> str | None:
     return os.environ.get(name)
 
@@ -183,6 +213,42 @@ def _get_target_path(tool_input: dict[str, Any]) -> Optional[str]:
     return None
 
 
+def _authority_relative_path(root_path: Path, target_p: Path) -> str | None:
+    try:
+        rel = target_p.relative_to(root_path)
+    except ValueError:
+        return None
+    return rel.as_posix()
+
+
+def _authority_path_class(root_path: Path, target_p: Path) -> str | None:
+    rel = _authority_relative_path(root_path, target_p)
+    if rel in AUTHORITY_OPERATOR_LOCKED:
+        return "operator_locked"
+    if rel in AUTHORITY_GENERATED_READ_ONLY:
+        return "generated_read_only"
+    if str(target_p).lower() in GLOBAL_GENERATED_READ_ONLY:
+        return "generated_read_only"
+    return None
+
+
+def _has_authority_approval() -> bool:
+    capability = os.environ.get("AGENTCORE_AUTHORITY_CAPABILITY")
+    approval_id = os.environ.get("AGENTCORE_AUTHORITY_APPROVAL_ID")
+    return (
+        capability == "authority_maintainer"
+        and bool(approval_id)
+        and re.fullmatch(AUTHORITY_APPROVAL_PATTERN, approval_id) is not None
+    )
+
+
+def _has_projection_worker_provenance() -> bool:
+    return (
+        os.environ.get("AGENTCORE_AUTHORITY_CAPABILITY") == "projection_worker"
+        or os.environ.get("AGENTCORE_GENERATED_FILE_OWNER") == "projection_worker"
+    )
+
+
 def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
     """Stage B preToolUse deterministic gating.
     
@@ -278,6 +344,24 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
             if target:
                 target_p = _normalize_workspace_path(target)
                 root_p = _normalize_workspace_path(str(root_path))
+                authority_class = _authority_path_class(root_p, target_p)
+                if authority_class == "operator_locked" and not _has_authority_approval():
+                    return {
+                        "permission": "deny",
+                        "user_message": (
+                            "AgentCore Stage B Deny: operator_locked authority file requires "
+                            "AGENTCORE_AUTHORITY_CAPABILITY=authority_maintainer and a valid "
+                            "AGENTCORE_AUTHORITY_APPROVAL_ID"
+                        ),
+                    }
+                if authority_class == "generated_read_only" and not _has_projection_worker_provenance():
+                    return {
+                        "permission": "deny",
+                        "user_message": (
+                            "AgentCore Stage B Deny: generated_read_only projection requires "
+                            "projection_worker provenance"
+                        ),
+                    }
                 is_under_root = False
                 try:
                     target_p.relative_to(root_p)
@@ -307,6 +391,12 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 DENY_SHELL_PATTERNS = [
+    # Authority lock protected writes/deletes via shell
+    (re.compile(
+        r"(?is)(>|>>|out-file|set-content|add-content|remove-item|rename-item|move-item|del\s+|erase\s+).{0,240}"
+        + AUTHORITY_SHELL_PROTECTED_FRAGMENT,
+        re.IGNORECASE,
+    ), "authority-lock protected file shell mutation forbidden"),
     # Remote shell pipes
     (re.compile(r"(curl|wget|iwr|invoke-webrequest).*\b(pipe|\|)\s*(bash|sh|powershell|pwsh|iex|cmd)", re.IGNORECASE), "remote shell pipe"),
     # Unversioned remote installers
@@ -330,12 +420,51 @@ DENY_SHELL_PATTERNS = [
 ]
 
 
+def is_serena_maintenance_command(command: str) -> bool:
+    """Accept only the fixed, audited Serena repair command shape."""
+
+    normalized = re.sub(r"\s+", " ", command.strip().replace("/", "\\"))
+    if any(operator in normalized for operator in (";", "&&", "||", "|", ">", "<")):
+        return False
+    script = re.escape(str(SERENA_MAINTENANCE_SCRIPT))
+    script_token = rf'(?:"{script}"|{script})'
+    pattern = (
+        rf"^(?:python|python\.exe|py|py\.exe)\s+{script_token}\s+"
+        rf"(?:repair|install_cursor_rule)"
+        rf"\s+--capability\s+authority_maintainer"
+        rf"\s+--approval-id\s+{SERENA_MAINTENANCE_APPROVAL_PATTERN}"
+        rf"(?:\s+--dry-run)?$"
+    )
+    return re.fullmatch(pattern, normalized, flags=re.IGNORECASE) is not None
+
+
+def _is_serena_maintenance_invocation(command: str) -> bool:
+    normalized = command.strip().replace("/", "\\")
+    script = re.escape(str(SERENA_MAINTENANCE_SCRIPT))
+    return re.search(
+        rf"(?i)(?:^|[;&|]\s*)(?:python|python\.exe|py|py\.exe)\s+"
+        rf'(?:"{script}"|{script})\s+(?:repair|install_cursor_rule)\b',
+        normalized,
+    ) is not None
+
+
 def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
     """Stage B beforeShellExecution deterministic gating."""
     try:
         command = str(payload.get("command") or payload.get("text") or "").strip()
         if not command:
             return {"permission": "allow"}
+
+        if _is_serena_maintenance_invocation(command):
+            if is_serena_maintenance_command(command):
+                return {
+                    "permission": "allow",
+                    "agent_message": "Approved bounded Serena maintenance command.",
+                }
+            return {
+                "permission": "deny",
+                "user_message": "AgentCore Stage B Shell Deny: unapproved Serena maintenance command",
+            }
 
         for pattern, reason in DENY_SHELL_PATTERNS:
             if pattern.search(command):

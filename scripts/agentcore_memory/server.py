@@ -58,6 +58,10 @@ HOT_ARTIFACT_ROOT = Path(
         "AGENTCORE_HOT_ARTIFACT_ROOT", r"H:\AgentRuntime\agentcore-memory\artifacts"
     )
 )
+DEFAULT_ACTIVE_CONTEXT_LIMIT = int(os.environ.get("AGENTCORE_MEMORY_DEFAULT_ACTIVE_LIMIT", "25"))
+DEFAULT_RECOVERY_PAGE_SIZE = int(os.environ.get("AGENTCORE_MEMORY_DEFAULT_PAGE_SIZE", "25"))
+MAX_ACTIVE_CONTEXT_LIMIT = int(os.environ.get("AGENTCORE_MEMORY_MAX_ACTIVE_LIMIT", "200"))
+DEFAULT_RESPONSE_TEXT_LIMIT = int(os.environ.get("AGENTCORE_MEMORY_RESPONSE_TEXT_LIMIT", "4000"))
 
 
 def _now() -> str:
@@ -495,6 +499,38 @@ def to_jsonable(value: Any) -> Any:
     if isinstance(value, tuple):
         return [to_jsonable(v) for v in value]
     return value
+
+
+def _truncate_text(value: str, limit: int = DEFAULT_RESPONSE_TEXT_LIMIT) -> tuple[str, bool, int]:
+    if len(value) <= limit:
+        return value, False, 0
+    return value[:limit], True, len(value) - limit
+
+
+def compact_response_item(item: dict[str, Any]) -> dict[str, Any]:
+    """Bound large MCP response fields; exact originals remain behind expand_source."""
+    compacted = dict(item)
+    if isinstance(compacted.get("body"), str):
+        preview, truncated, omitted = _truncate_text(compacted["body"])
+        if truncated:
+            compacted["body"] = preview
+            compacted["body_truncated_for_response"] = True
+            compacted["body_omitted_char_count"] = omitted
+    if isinstance(compacted.get("payload"), (dict, list, str)):
+        payload_text = json.dumps(compacted["payload"], ensure_ascii=False, default=str)
+        preview, truncated, omitted = _truncate_text(payload_text)
+        if truncated:
+            compacted["payload"] = {"preview": preview}
+            compacted["payload_truncated_for_response"] = True
+            compacted["payload_omitted_char_count"] = omitted
+    if isinstance(compacted.get("provenance"), (dict, list, str)):
+        provenance_text = json.dumps(compacted["provenance"], ensure_ascii=False, default=str)
+        preview, truncated, omitted = _truncate_text(provenance_text)
+        if truncated:
+            compacted["provenance"] = {"preview": preview}
+            compacted["provenance_truncated_for_response"] = True
+            compacted["provenance_omitted_char_count"] = omitted
+    return compacted
 
 
 def vector_literal(values: Any) -> str | None:
@@ -1196,7 +1232,9 @@ def retrieve_chronology_page(
             page_params,
         )
         remaining = int(cur.fetchone()["remaining"])
-        requested_page_size = int(args.get("page_size") or profile.retrieval_page_size)
+        requested_page_size = int(
+            args.get("page_size") or min(DEFAULT_RECOVERY_PAGE_SIZE, profile.retrieval_page_size)
+        )
         page_size = max(1, min(requested_page_size, profile.retrieval_page_size))
         cur.execute(
             f"""
@@ -1250,10 +1288,10 @@ def retrieve_chronology_page(
             item_tokens = estimate_tokens(item)
             if item_tokens > profile.active_packet_limit:
                 raise ValueError("recovery item metadata exceeds active packet limit")
-            items.append(item)
+            items.append(compact_response_item(item))
             used_tokens += item_tokens
             break
-        items.append(item)
+        items.append(compact_response_item(item))
         used_tokens += item_tokens
 
     cursor_anchor = items[-1] if items else None
@@ -1359,7 +1397,10 @@ def retrieve_context(args: dict[str, Any]) -> dict[str, Any]:
             """,
             (project["id"], assembler_budget),
         )
-        items = cur.fetchall()
+        all_items = [compact_response_item(dict(row)) for row in cur.fetchall()]
+        requested_limit = int(args.get("limit") or DEFAULT_ACTIVE_CONTEXT_LIMIT)
+        active_limit = max(1, min(requested_limit, MAX_ACTIVE_CONTEXT_LIMIT))
+        items = all_items[:active_limit]
         retrieval_results = hybrid_retrieval(args, conn)
     return {
         "ok": True,
@@ -1367,6 +1408,7 @@ def retrieve_context(args: dict[str, Any]) -> dict[str, Any]:
         "budget_name": assembler_budget,
         "context_profile": profile.as_dict(),
         "items": items,
+        "omitted_active_item_count": max(0, len(all_items) - len(items)),
         "retrieval_results": retrieval_results,
         "durable_memory_limit": None,
         "durable_memory_contract": "effectively_unbounded_by_model_token_limits",
@@ -1697,11 +1739,13 @@ def build_handoff(args: dict[str, Any]) -> dict[str, Any]:
     active_args = {
         "project_key": args["project_key"],
         "context_profile": args.get("context_profile") or "standard-context",
+        "limit": args.get("active_limit") or DEFAULT_ACTIVE_CONTEXT_LIMIT,
     }
     context = retrieve_context(active_args)
     recovery_args = {
         **args,
         "recovery_mode": args.get("recovery_mode") or "current_state",
+        "page_size": args.get("page_size") or DEFAULT_RECOVERY_PAGE_SIZE,
         "record_recovery": args.get("record_recovery", True),
     }
     recovery = retrieve_context(recovery_args)

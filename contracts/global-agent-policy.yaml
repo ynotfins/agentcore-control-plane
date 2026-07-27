@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-07-22"
+policy_revision: "2026-07-26"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -20,7 +20,7 @@ mandatory_rules:
   - id: single-gateway
     title: One Bifrost gateway entry
     rule: >-
-      Non-Swarm IDEs use exactly one MCP entry: agentcore-gateway at http://127.0.0.1:8080/mcp
+      Non-Swarm IDEs use exactly one MCP entry: agentcore-gateway at `http://127.0.0.1:8080/mcp`
       with Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}. Never paste the upstream registry
       or direct per-tool MCP entries into IDE configs.
 
@@ -47,6 +47,23 @@ mandatory_rules:
       before broad implementation: register worktree, load context, preserve the operator prompt
       verbatim, run Context Fabric capture/drift, discover architecture (Serena/Depwire/Tentra),
       resolve exact versions via Arabold, create governance files from templates, audit tools.
+
+  - id: semantic-toolchain
+    title: Serena-centered powerhouse toolchain
+    rule: >-
+      For every nontrivial implementation, debugging, refactor, architecture, or recovery task,
+      activate the project through agentcore-project-router and follow the wiring/runbook in
+      D:\github\agentcore-control-plane\SERENA.md. Before semantic work, ensure the active project
+      has its own valid .serena/project.yml with a current languages list; register or repair it
+      through the approved project workflow rather than creating a machine-wide fallback. Use
+      Serena through agentcore-gateway for semantic code understanding before structural edits;
+      use sequential-thinking for planning and critique, arabold-docs for exact-version external
+      documentation, Context Fabric at bootstrap and Milestone entry/exit, Depwire before and
+      after structural changes, and Artiforge for high-leverage architecture scans. Keep
+      disclosure progressive: do not invoke every server on every turn, do not substitute text
+      search for Serena when semantic analysis applies, do not share one Serena process across
+      unrelated projects, and block high-risk structural work when a required tool is unavailable.
+      Swarm runtime remains outside AgentCore; developer-side continuity does not change that boundary.
 
   - id: durable-memory-context
     title: Effectively-unbounded durable memory
@@ -75,9 +92,9 @@ mandatory_rules:
     title: Continuous durable capture and project-centric resume
     rule: >-
       Project memory is project-centric, not IDE-folder-centric. Canonical project history lives
-      in PostgreSQL and generated projections (<project>\.agentcore\STATE.md,
+      in PostgreSQL and generated projections (`{project}\.agentcore\STATE.md`,
       DECISIONS.md, CONTEXT_INDEX.md). Client-specific directories under
-      H:\AgentRuntime\clients\<client_key>\ may hold only cache, logs, scratch, and temporary
+      `H:\AgentRuntime\clients\{client_key}\` may hold only cache, logs, scratch, and temporary
       bundles — never canonical project history.
       At every new IDE chat or process restart: (1) resolve and activate the registered
       project/worktree; (2) read generated STATE.md; (3) open or resume the correct session
@@ -250,7 +267,7 @@ task_class_gates:
     rule: "Mandatory before using/changing external packages, SDKs, APIs, CLIs, schemas, protocols or versions."
   - tool_name: "serena"
     gate_type: "mandatory"
-    rule: "Mandatory before unfamiliar cross-file edits, symbol moves, public API changes, rename/delete or architecture-sensitive source changes. If unavailable, block high-risk structural edits rather than claiming its verification occurred."
+    rule: "Mandatory through agentcore-project-router and agentcore-gateway before unfamiliar cross-file edits, symbol moves, public API changes, rename/delete or architecture-sensitive source changes. Read SERENA.md and use symbol overview/references/diagnostics as appropriate. If unavailable, block high-risk structural edits rather than claiming its verification occurred."
   - tool_name: "sequential-thinking"
     gate_type: "mandatory"
     rule: "Mandatory before architecture, migration, concurrency, recovery, major refactor or cross-system decisions."
@@ -264,8 +281,11 @@ task_class_gates:
     gate_type: "on_demand"
     rule: "On-demand for specialized procedural knowledge, read-only through Bifrost."
   - tool_name: "context-fabric"
-    gate_type: "optional"
-    rule: "Optional and capability-gated; not canonical and not a completion blocker."
+    gate_type: "mandatory_at_project_gates"
+    rule: "Mandatory at project bootstrap and Milestone entry/exit when the capability is available; use capture, drift, and health checks. It remains non-canonical and is not required for routine Micro steps when no gate is active."
+  - tool_name: "artiforge"
+    gate_type: "conditional"
+    rule: "Mandatory for high-leverage architecture scans, system maps, or cross-service boundary reviews; do not invoke it for routine single-file edits. Keep it project-scoped and report the limitation if unavailable."
 
 references:
   project_execution_policy: contracts/project-execution-policy.json

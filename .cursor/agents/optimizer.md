@@ -1,6 +1,5 @@
 ---
 name: optimizer
-model: grok-4.5[effort=high,fast=false]
 description: Passive observer that monitors IDE usage, audits .cursor/rules and AGENTS.md for deprecated patterns, and suggests workflow improvements based on current Cursor docs.
 readonly: true
 is_background: true

@@ -27,7 +27,7 @@ restart_required: true
 last_validation_date: '2026-07-13'
 mcp_template_source: renderers/gateway-clients/cursor.json
 known_limitations:
-- Global (cross-project) User Rules live in app settings and must be pasted manually.
+- Normal Cursor agents cannot edit global User Rules. Operator-approved AgentCore maintenance may install the single foundation rule at C:\Users\ynotf\.cursor\rules\agentcore-foundation.mdc with backup, validation, and restart.
 semantic_parity_gaps: []
 dimensions:
   application_launch:

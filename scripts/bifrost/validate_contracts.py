@@ -174,6 +174,29 @@ def output_schema_checks() -> list[str]:
     return [f"output-schema: {line}" for line in detail]
 
 
+def authority_lock_checks() -> list[str]:
+    validator = REPO_ROOT / "scripts" / "validate_authority_lock.py"
+    if not validator.exists():
+        return ["authority-lock: scripts/validate_authority_lock.py missing"]
+    result = subprocess.run(
+        [sys.executable, str(validator)],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    if result.returncode == 0:
+        return []
+    detail = [
+        line.strip()[2:].strip()
+        for line in (result.stdout or result.stderr).splitlines()
+        if line.strip().startswith("- ")
+    ]
+    if not detail:
+        detail = [f"validator exited {result.returncode}"]
+    return [f"authority-lock: {line}" for line in detail]
+
+
 def stub_master_config_drift() -> list[str]:
     """Verify MASTER_CONFIG_AND_PROMPT.md contains the required universal IDE setup rules."""
     master = REPO_ROOT / "MASTER_CONFIG_AND_PROMPT.md"
@@ -538,6 +561,7 @@ def main() -> int:
     errors.extend(semantic_registry_checks(registry))
     errors.extend(authority_policy_checks(registry))
     errors.extend(strict_master_config_audit(registry))
+    errors.extend(authority_lock_checks())
     errors.extend(output_schema_checks())
     notices.extend(stub_master_config_drift())
 
@@ -558,6 +582,7 @@ def main() -> int:
     print(f"OK: enabled servers={len(enabled)} disabled/deferred={len(registry['servers']) - len(enabled)}")
     print("OK: authority + policy contracts valid (hierarchy, banners, wildcard transitional note, rule files)")
     print("OK: master-config strict audit passed")
+    print("OK: authority-lock and foreign-boundary manifests valid")
     print("OK: MCP outputSchema coverage — MissingOutputSchema=0 (contract gate)")
     return 0
 
