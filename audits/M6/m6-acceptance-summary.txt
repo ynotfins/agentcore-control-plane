@@ -1,10 +1,10 @@
 PASS 1 - PostgreSQL-backed LangGraph checkpoints - checkpoint_tables=3
-PASS 2 - Workflow resume after process restart - run_id=5e9df246-71bc-44e8-b263-8c831f5da964 status=running
+PASS 2 - Workflow resume after process restart - run_id=52344ab7-b756-4fbc-b8ac-64e9a574035c status=running
 PASS 3 - Project and thread isolation - proj_a_run_in_proj_b=False (want False)
 PASS 4 - Persist and recover Milestone/Macro/Micro/checklist/evidence state - milestone=M6 checklist=completed evidence=ok
 PASS 5 - Block scope drift without approval - no_drift=True drift_detected=True
 PASS 6 - Deterministic checks run before critic/judge - all_passed=False check_count=4
-PASS 7 - Risk-selected critics (zero for low; more for high) - low=0 medium=2 high=4 high_run=4
+PASS 7 - Risk-selected critics (zero for low; more for high) - low=0 medium=3 high=5 high_run=5
 PASS 8 - Deterministic scorer produces consistent 0.0-1.0 score - score=1.0000 deterministic=True above_0.85=True
 PASS 9 - Independent judge (proceed/needs_operator/block) - proceed=proceed block=block needs_op=needs_operator
 PASS 10 - Human pause recorded and resolved; run status restored - resolution=approved run_status=running

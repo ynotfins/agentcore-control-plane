@@ -35,6 +35,7 @@ from __future__ import annotations
 import json
 import os
 import re as _re
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -131,6 +132,7 @@ def _deterministic_worker_result(
             "status": "completed",
             "output": f"[deterministic-fixture] builder completed: {task[:200]}",
             "files_changed": list(files_changed or []),
+            "gate_evidence": {},
             "error": None,
             "elapsed_ms": elapsed,
             "model": "deterministic-fixture",
@@ -340,6 +342,109 @@ def _git_files_changed(worktree: Path, before: set[str]) -> list[str]:
     except (OSError, subprocess.SubprocessError):
         pass
     return changed
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Post-build tool gate runner (Gaps 1 + 2)
+# Runs formatting/lint/typecheck/depwire against builder's changed files.
+# Returns {gate_name: {"passed": bool, "findings": [...], "tool": str}}.
+# Keys are absent when the tool is not on PATH (gate falls back to warn/skip).
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _run_tool_gates_after_build(
+    *,
+    files_changed: list[str],
+    worktree: Path,
+) -> dict[str, dict[str, Any]]:
+    """Invoke real linting/typecheck/depwire tools against the builder's diff.
+
+    Called inside run_builder_worker after the agent completes.  Results are
+    stored in the returned gate_evidence dict which node_da_builder writes into
+    state["gate_evidence"] so that:
+      - gate_formatting / gate_lint / gate_typecheck consume real pass/fail on
+        the NEXT gate_check cycle (and immediately via node_post_exec_judge).
+      - gate_depwire_verify consumes real impact evidence similarly.
+
+    Defensive design:
+      - Tool absent → key omitted → existing _tool_hook_gate warn/skip fires.
+      - Subprocess failure / timeout → caught, key omitted or passed=False.
+      - Never raises; always returns a dict (possibly empty).
+    """
+    gate_ev: dict[str, dict[str, Any]] = {}
+    py_files = [f for f in files_changed if f.endswith(".py")]
+
+    # ── formatting + lint (ruff covers both) ─────────────────────────────────
+    if py_files and shutil.which("ruff"):
+        abs_py = [str(worktree / f) for f in py_files]
+        try:
+            proc = subprocess.run(
+                ["ruff", "check", "--output-format", "concise"] + abs_py,
+                capture_output=True, text=True, timeout=45, check=False,
+                cwd=str(worktree),
+            )
+            passed = proc.returncode == 0
+            findings = [ln for ln in (proc.stdout + proc.stderr).splitlines() if ln.strip()][:30]
+            ruff_ev = {"passed": passed, "findings": findings, "tool": "ruff",
+                       "files_checked": len(py_files)}
+            gate_ev["formatting"] = ruff_ev
+            gate_ev["lint"] = ruff_ev
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+
+    # ── typecheck (mypy preferred; pyright as fallback) ───────────────────────
+    if py_files:
+        for tc_cmd in (["mypy", "--ignore-missing-imports", "--no-error-summary"],
+                       ["pyright", "--outputjson"]):
+            if not shutil.which(tc_cmd[0]):
+                continue
+            abs_py = [str(worktree / f) for f in py_files]
+            try:
+                proc = subprocess.run(
+                    tc_cmd + abs_py,
+                    capture_output=True, text=True, timeout=60, check=False,
+                    cwd=str(worktree),
+                )
+                passed = proc.returncode == 0
+                findings = [ln for ln in (proc.stdout + proc.stderr).splitlines() if ln.strip()][:30]
+                gate_ev["typecheck"] = {"passed": passed, "findings": findings,
+                                        "tool": tc_cmd[0], "files_checked": len(py_files)}
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+            break
+
+    # ── depwire verify ────────────────────────────────────────────────────────
+    if files_changed and shutil.which("depwire"):
+        try:
+            proc = subprocess.run(
+                ["depwire", "verify", "--path", str(worktree)],
+                capture_output=True, text=True, timeout=60, check=False,
+                cwd=str(worktree),
+            )
+            passed = proc.returncode == 0
+            raw_out = proc.stdout.strip()
+            findings = [ln for ln in (proc.stdout + proc.stderr).splitlines() if ln.strip()][:30]
+            dw_ev: dict[str, Any] = {
+                "passed": passed,
+                "findings": findings,
+                "tool": "depwire",
+                "files_checked": len(files_changed),
+            }
+            # Parse structured JSON if depwire emits it
+            if raw_out.startswith("{") or raw_out.startswith("["):
+                try:
+                    parsed = json.loads(raw_out)
+                    if isinstance(parsed, dict):
+                        for key in ("blast_radius_count", "god_node_detected",
+                                    "dependency_direction_violation", "hotspots"):
+                            if key in parsed:
+                                dw_ev[key] = parsed[key]
+                except (json.JSONDecodeError, ValueError):
+                    pass
+            gate_ev["depwire_verify"] = dw_ev
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+
+    return gate_ev
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -608,11 +713,14 @@ Work only within your assigned worktree: {root}
                     final_text = m.content
                     break
 
+            files_changed = _git_files_changed(root, before_files)
+            gate_ev = _run_tool_gates_after_build(files_changed=files_changed, worktree=root)
             elapsed = int((datetime.now(UTC) - t0).total_seconds() * 1000)
             return {
                 "status": "completed",
                 "output": final_text[:8000],
-                "files_changed": _git_files_changed(root, before_files),
+                "files_changed": files_changed,
+                "gate_evidence": gate_ev,
                 "error": None,
                 "elapsed_ms": elapsed,
                 "model": model,
@@ -628,6 +736,7 @@ Work only within your assigned worktree: {root}
             "status": "failed",
             "output": "",
             "files_changed": _git_files_changed(root, before_files),
+            "gate_evidence": {},
             "error": f"{type(exc).__name__}: {exc}",
             "elapsed_ms": elapsed,
             "model": model,

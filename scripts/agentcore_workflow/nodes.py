@@ -52,6 +52,12 @@ from langgraph.types import interrupt
 
 from .state import WorkflowState
 from . import db, gates, critics
+from .charter import M6_MICRO_STEPS as _M6_MICRO_STEPS
+
+# Derived at import time from the canonical charter catalogue so it stays in
+# sync automatically when M6_MICRO_STEPS is extended (e.g. M6.1.2 would have
+# been missed by a hardcoded literal set).
+KNOWN_MICRO_KEYS: frozenset[str] = frozenset(m["key"] for m in _M6_MICRO_STEPS)
 
 
 def _now() -> str:
@@ -509,6 +515,27 @@ def node_micro_execute(state: WorkflowState) -> dict:
     project_id = state["project_id"]
     micro_db_id = state.get("current_micro_db_id", "")
 
+    # Guard: for synthesized (non-M6-bootstrap) projects this node has no
+    # execution path.  A missing worktree / da_enabled=False means the DA
+    # builder already fell through here.  Silently completing would produce a
+    # false-positive "completed" evidence record with zero real work done.
+    if micro_key not in KNOWN_MICRO_KEYS:
+        msg = (
+            f"No execution path for micro step '{micro_key}': da_enabled=False "
+            "and this is not a known M6 bootstrap key.  Ensure a valid "
+            "worktree_path exists so risk_assess can enable the DA builder."
+        )
+        if micro_db_id:
+            try:
+                db.set_micro_step_result(micro_db_id, "failed")
+            except Exception:
+                pass
+        return {
+            "execution_result": {"micro_key": micro_key, "status": "no_execution_path", "error": msg},
+            "next_action": "workflow_fail",
+            "errors": [msg],
+        }
+
     if micro_db_id:
         db.set_micro_step_result(
             micro_db_id, "running",
@@ -673,7 +700,10 @@ def node_next_step(state: WorkflowState) -> dict:
             "current_micro_key": next_micro["key"],
             "current_micro_db_id": "",  # will be upserted by gate_check
             "next_action": "gate_check",
-            # Reset per-step tracking
+            # Reset per-step tracking; gate_evidence must be cleared so
+            # lint/depwire results from the previous step do not leak into
+            # gate_check or node_post_exec_judge for the next unrelated step.
+            "gate_evidence": {},
             "det_checks_passed": False,
             "det_checks_details": [],
             "critic_results": [],
@@ -710,6 +740,9 @@ def node_next_step(state: WorkflowState) -> dict:
             "current_micro_key": first_micro["key"] if first_micro else "",
             "current_micro_db_id": "",
             "next_action": "gate_check",
+            # Reset per-step tracking; gate_evidence cleared for same reason
+            # as the next-micro branch above.
+            "gate_evidence": {},
             "det_checks_passed": False,
             "det_checks_details": [],
             "critic_results": [],
@@ -888,7 +921,9 @@ def node_da_builder(state: WorkflowState) -> dict:
     worker_ready = DEEPAGENTS_AVAILABLE or _worker_mode() in ("deterministic", "hang")
     if not worker_ready or not worktree_path:
         # Graceful fallback: DA not available, route to standard micro_execute.
-        return {"next_action": "micro_execute", "da_builder_result": {"status": "skipped_no_da"}}
+        # Clear gate_evidence so no stale results from a prior step leak through.
+        return {"next_action": "micro_execute", "da_builder_result": {"status": "skipped_no_da"},
+                "gate_evidence": {}}
 
     # Resolve model spec for the worker (default to openai:gpt-4o-mini if not specified)
     model_spec = "openai:gpt-4o-mini"
@@ -907,6 +942,7 @@ def node_da_builder(state: WorkflowState) -> dict:
     ceilings = resource_ceiling_defaults()
     if rework_count > ceilings["max_rework"]:
         # Escalate on rework budget exhaustion (no topology change; use existing fail edge).
+        # Clear gate_evidence so no stale results from a prior step leak through.
         msg = (
             f"rework budget exhausted: da_rework_count={rework_count} "
             f"exceeds max_rework={ceilings['max_rework']}"
@@ -915,6 +951,7 @@ def node_da_builder(state: WorkflowState) -> dict:
             "da_rework_count": rework_count,
             "next_action": "workflow_fail",
             "errors": [msg],
+            "gate_evidence": {},
             "da_builder_result": {
                 "status": "failed",
                 "error": msg,
@@ -938,6 +975,11 @@ def node_da_builder(state: WorkflowState) -> dict:
     if worker_result.get("token_budget") is not None:
         da_budget.setdefault("token_budget", worker_result.get("token_budget"))
 
+    # Extract gate_evidence produced by _run_tool_gates_after_build.
+    # Surfaced at the top-level state key so node_post_exec_judge and the NEXT
+    # gate_check cycle can consume real lint/typecheck/depwire results.
+    gate_ev = dict(worker_result.get("gate_evidence") or {})
+
     # Record durable evidence through agentcore-memory path (not DA's MemorySaver).
     if run_db_id:
         try:
@@ -954,6 +996,7 @@ def node_da_builder(state: WorkflowState) -> dict:
     return {
         "da_builder_result": worker_result,
         "execution_result": worker_result,
+        "gate_evidence": gate_ev,
         "da_rework_count": rework_count,
         "da_budget": da_budget,
         "next_action": next_action,
@@ -1112,6 +1155,15 @@ def node_post_exec_judge(state: WorkflowState) -> dict:
     det_checks: list = state.get("det_checks_details", [])
     gate_verdicts: dict = {g: "pass" for g in state.get("gates_passed", [])}
     gate_verdicts.update({g: "fail" for g in state.get("gates_failed", [])})
+
+    # Augment gate_verdicts with real post-build evidence from node_da_builder.
+    # Any gate that the builder's tool run marked passed=False is merged in so
+    # that lint/typecheck/depwire failures from the current diff block this step,
+    # not merely the next one.
+    builder_gate_ev = state.get("gate_evidence") or {}
+    for _gname, _gev in builder_gate_ev.items():
+        if isinstance(_gev, dict) and _gev.get("passed") is False:
+            gate_verdicts[_gname] = "fail"
 
     builder_result: dict = state.get("da_builder_result", {})
     da_critic_result: dict = state.get("da_critic_result", {"passed": True, "score": 1.0})

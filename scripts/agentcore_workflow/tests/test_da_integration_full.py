@@ -223,13 +223,22 @@ def test_10_da_context_offloading_preserves_agentcore_evidence_references():
 
 
 def test_11_deterministic_gates_run_before_worker(proj_a_id):
-    """11. Deterministic gates run before the DA worker via the M6 gate_check node."""
-    from agentcore_workflow.workflow import build_graph
-    wf_src = inspect.getsource(build_graph)
-    # gate_check comes before da_builder in the graph topology
-    gate_pos = wf_src.find('"gate_check"')
-    da_pos = wf_src.find('"da_builder"')
-    assert gate_pos < da_pos, "gate_check must be declared before da_builder in graph"
+    """11. Deterministic gates run before the DA worker via the M6 gate_check node.
+
+    Uses build_topology() + NODE_ORDER to verify structure, not getsource(build_graph).
+    build_graph is a thin PostgresSaver-wiring wrapper — its source text does not
+    contain node name strings, so getsource comparisons always return -1 < -1 → False.
+    """
+    from agentcore_workflow.workflow import build_topology, NODE_ORDER
+
+    t = build_topology()
+    # Verify both nodes exist in the compiled topology
+    assert "gate_check" in t.builder.nodes, "gate_check must be registered in the topology"
+    assert "da_builder" in t.builder.nodes, "da_builder must be registered in the topology"
+    # Verify canonical ordering: gate_check precedes da_builder
+    assert NODE_ORDER.index("gate_check") < NODE_ORDER.index("da_builder"), (
+        "gate_check must appear before da_builder in NODE_ORDER"
+    )
     # Drift gate is in the registry and runs deterministically
     from agentcore_workflow.gates import GATE_REGISTRY
     assert "drift" in GATE_REGISTRY
@@ -331,32 +340,46 @@ def test_17_swarm_remains_untouched():
 # ─────────────────────────────────────────────────────────────────────────────
 
 def test_da_graph_routing_structure():
-    """Verify da_builder, da_critic, and post_exec_judge are correctly wired (M8 invariant)."""
-    from agentcore_workflow.workflow import build_graph
-    wf_src = inspect.getsource(build_graph)
-    assert "da_builder" in wf_src, "da_builder must be in the graph"
-    assert "da_critic" in wf_src, "da_critic must be in the graph"
-    assert '"da_builder"' in wf_src
-    assert '"da_critic"' in wf_src
-    # M8 invariant: da_critic always routes to post_exec_judge (critic never self-adjudicates).
-    # Updated for A/B path: da_critic uses a CONDITIONAL edge that routes to either
-    # ab_alternate (when ab_enabled=True) or post_exec_judge directly (when ab_enabled=False).
-    # ab_alternate always routes to post_exec_judge. The invariant is preserved: da_critic
-    # never routes to evidence_record or workflow_fail directly.
-    assert 'add_conditional_edges("da_critic"' in wf_src or 'add_edge("da_critic"' in wf_src, (
-        "da_critic must have an edge to post_exec_judge path (M8 invariant: critic is not its own judge)"
+    """Verify da_builder, da_critic, and post_exec_judge are correctly wired (M8 invariant).
+
+    Uses build_topology() and the _AFTER_* conditional-edge option-sets — the
+    canonical fingerprint contract — instead of getsource(build_graph) text search.
+    getsource(build_graph) only contains PostgresSaver wiring, not node names.
+    """
+    from agentcore_workflow.workflow import (
+        build_topology,
+        NODE_ORDER,
+        _AFTER_DA_CRITIC,
+        _AFTER_POST_JUDGE,
+        _AFTER_DA_BUILDER,
     )
-    assert '"post_exec_judge"' in wf_src and '"ab_alternate"' in wf_src, (
-        "Both post_exec_judge and ab_alternate must be targets reachable from da_critic path"
+
+    t = build_topology()
+    # All required nodes present
+    for node in ("da_builder", "da_critic", "post_exec_judge", "ab_alternate"):
+        assert node in t.builder.nodes, f"{node} must be registered in the topology"
+
+    # da_critic conditional edges include both ab_alternate and post_exec_judge
+    # (M8 invariant: da_critic never routes directly to evidence_record or workflow_fail)
+    assert "ab_alternate" in _AFTER_DA_CRITIC, (
+        "ab_alternate must be a conditional edge target of da_critic"
     )
-    assert 'add_edge("ab_alternate", "post_exec_judge")' in wf_src, (
-        "ab_alternate must have a fixed edge to post_exec_judge (A/B path invariant)"
+    assert "post_exec_judge" in _AFTER_DA_CRITIC, (
+        "post_exec_judge must be a conditional edge target of da_critic"
     )
-    # post_exec_judge uses conditional edge (independent judge routes to evidence_record or workflow_fail)
-    assert 'add_conditional_edges("post_exec_judge"' in wf_src, (
-        "post_exec_judge must use conditional edge to evidence_record or workflow_fail"
+    assert "evidence_record" not in _AFTER_DA_CRITIC, (
+        "da_critic must never route directly to evidence_record (M8 invariant)"
     )
-    assert '"post_exec_judge"' in wf_src, "post_exec_judge node must be declared"
+    assert "workflow_fail" not in _AFTER_DA_CRITIC, (
+        "da_critic must never route directly to workflow_fail (M8 invariant)"
+    )
+
+    # post_exec_judge conditional edges route to evidence_record or workflow_fail
+    assert "evidence_record" in _AFTER_POST_JUDGE
+    assert "workflow_fail" in _AFTER_POST_JUDGE
+
+    # da_builder can route to da_critic (normal path)
+    assert "da_critic" in _AFTER_DA_BUILDER
 
 
 def test_da_critic_finding_reaches_scorer_and_can_affect_verdict():
@@ -471,3 +494,215 @@ def test_da_drift_gate_deterministic():
     # gate wrapper
     verdict, _ = gate_drift({"execution_result": {}, "macro_steps": []})
     assert verdict == "pass"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Production-readiness hardening tests (Gaps 1–5b + new)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_gate_formatting_real_evidence():
+    """gate_formatting uses real passed=False evidence instead of tool-presence stub."""
+    from agentcore_workflow.gates import gate_formatting
+    state_fail = {"execution_result": {"gate_evidence": {"formatting": {"passed": False, "findings": ["E501"]}}}}
+    verdict, details = gate_formatting(state_fail)
+    assert verdict == "fail", f"expected fail from evidence, got {verdict}: {details}"
+
+
+def test_gate_lint_real_evidence():
+    """gate_lint uses real passed=False evidence."""
+    from agentcore_workflow.gates import gate_lint
+    state_fail = {"execution_result": {"gate_evidence": {"lint": {"passed": False, "findings": ["W291"]}}}}
+    verdict, details = gate_lint(state_fail)
+    assert verdict == "fail", f"expected fail from evidence, got {verdict}: {details}"
+
+
+def test_gate_typecheck_real_evidence():
+    """gate_typecheck uses real passed=False evidence."""
+    from agentcore_workflow.gates import gate_typecheck
+    state_fail = {"execution_result": {"gate_evidence": {"typecheck": {"passed": False, "findings": ["error: incompatible type"]}}}}
+    verdict, details = gate_typecheck(state_fail)
+    assert verdict == "fail", f"expected fail from evidence, got {verdict}: {details}"
+
+
+def test_gate_depwire_real_evidence():
+    """gate_depwire_verify uses real passed=False evidence."""
+    from agentcore_workflow.gates import gate_depwire_verify
+    state_fail = {"execution_result": {"gate_evidence": {"depwire_verify": {"passed": False, "findings": ["cycle detected"]}}}}
+    verdict, details = gate_depwire_verify(state_fail)
+    assert verdict == "fail", f"expected fail from evidence, got {verdict}: {details}"
+
+
+def test_gate_arch_structural_signals():
+    """gate_arch fails when Depwire evidence reports a god-node pattern."""
+    from agentcore_workflow.gates import gate_arch
+    state = {
+        "gate_evidence": {
+            "depwire_verify": {
+                "passed": True,  # depwire itself passed but flagged structural issues
+                "god_node_detected": True,
+                "god_node_name": "core_module",
+                "findings": [],
+            }
+        },
+        "macro_steps": [],
+    }
+    verdict, details = gate_arch(state)
+    assert verdict == "fail", f"god_node_detected must cause gate_arch to fail, got {verdict}: {details}"
+    assert any("god-node" in str(v).lower() for v in details.get("violations", [])), (
+        "violations must mention god-node"
+    )
+
+
+def test_gate_arch_keyword_fallback_unaffected():
+    """gate_arch keyword check still works when no Depwire evidence is present."""
+    from agentcore_workflow.gates import gate_arch
+    state_clean = {"gate_evidence": {}, "macro_steps": [{"label": "Install PostgreSQL checkpointer"}]}
+    verdict, _ = gate_arch(state_clean)
+    assert verdict == "pass"
+
+    state_bad = {"gate_evidence": {}, "macro_steps": [{"label": "Add mem0 store as cache"}]}
+    verdict2, details2 = gate_arch(state_bad)
+    assert verdict2 == "fail", f"keyword check must still block mem0: {details2}"
+
+
+def test_critic_refactor_risk_present():
+    """critic_refactor_risk is registered at medium, high, and critical risk levels."""
+    from agentcore_workflow.critics import CRITIC_REGISTRY, critic_refactor_risk
+    for level in ("medium", "high", "critical"):
+        assert critic_refactor_risk in CRITIC_REGISTRY[level], (
+            f"critic_refactor_risk must be in CRITIC_REGISTRY['{level}']"
+        )
+    assert critic_refactor_risk not in CRITIC_REGISTRY["low"]
+
+
+def test_critic_refactor_risk_file_count_heuristic():
+    """critic_refactor_risk flags passed=False when 9+ files are changed."""
+    from agentcore_workflow.critics import critic_refactor_risk
+    many_files = [f"src/module_{i}.py" for i in range(9)]
+    state = {
+        "gate_evidence": {},
+        "execution_result": {"files_changed": many_files},
+    }
+    result = critic_refactor_risk(state, [])
+    assert result["passed"] is False, (
+        f"9 files changed must trigger refactor_risk: findings={result.get('findings')}"
+    )
+    assert result["critic"] == "refactor_risk"
+
+
+def test_critic_refactor_risk_depwire_blast_radius():
+    """critic_refactor_risk flags passed=False on Depwire blast_radius_count > 5."""
+    from agentcore_workflow.critics import critic_refactor_risk
+    state = {
+        "gate_evidence": {
+            "depwire_verify": {
+                "passed": True,
+                "blast_radius_count": 8,
+                "findings": [],
+            }
+        },
+        "execution_result": {"files_changed": ["single.py"]},
+    }
+    result = critic_refactor_risk(state, [])
+    assert result["passed"] is False, (
+        f"blast_radius_count=8 must trigger refactor_risk: findings={result.get('findings')}"
+    )
+
+
+def test_micro_execute_unknown_key_fails():
+    """node_micro_execute routes unknown micro keys to workflow_fail (no silent no-op)."""
+    from agentcore_workflow.nodes import node_micro_execute
+    from agentcore_workflow.state import initial_state
+
+    state = dict(initial_state("00000000-0000-0000-0000-000000000002", "test-noop", str(uuid.uuid4())))
+    state["current_micro_key"] = "SYNTHESIZED.1.1"   # not in KNOWN_MICRO_KEYS
+    state["current_macro_key"] = "SYNTHESIZED.1"
+    state["macro_steps"] = [{"key": "SYNTHESIZED.1", "label": "Unknown synthesized step", "ordinal": 1, "risk_class": "medium"}]
+    state["micro_steps"] = [{"key": "SYNTHESIZED.1.1", "label": "Do something new", "ordinal": 1, "risk_class": "medium", "macro_key": "SYNTHESIZED.1"}]
+    state["da_enabled"] = False
+    state["worktree_path"] = ""
+
+    result = node_micro_execute(state)
+    assert result["next_action"] == "workflow_fail", (
+        f"Unknown micro key with da_enabled=False must route to workflow_fail, "
+        f"got: {result['next_action']}"
+    )
+    assert result["errors"], "errors list must be non-empty"
+    exec_res = result.get("execution_result", {})
+    assert exec_res.get("status") == "no_execution_path", (
+        f"execution_result status must be 'no_execution_path', got: {exec_res.get('status')}"
+    )
+
+
+def test_micro_execute_all_known_keys_unaffected():
+    """All 8 M6 bootstrap micro keys still reach the try block (no false guard trigger)."""
+    from agentcore_workflow.nodes import KNOWN_MICRO_KEYS
+    from agentcore_workflow.charter import M6_MICRO_STEPS
+
+    # All charter keys must be in KNOWN_MICRO_KEYS
+    charter_keys = {m["key"] for m in M6_MICRO_STEPS}
+    assert charter_keys == KNOWN_MICRO_KEYS, (
+        f"KNOWN_MICRO_KEYS must equal charter M6_MICRO_STEPS keys.\n"
+        f"  missing from KNOWN: {charter_keys - KNOWN_MICRO_KEYS}\n"
+        f"  extra in KNOWN:     {KNOWN_MICRO_KEYS - charter_keys}"
+    )
+    # Specifically confirm M6.1.2 is present (was missing in the prior hardcoded draft)
+    assert "M6.1.2" in KNOWN_MICRO_KEYS, "M6.1.2 must be in KNOWN_MICRO_KEYS"
+
+
+def test_post_exec_judge_builder_lint_fail_blocks():
+    """node_post_exec_judge routes to workflow_fail when builder gate_evidence has lint failure."""
+    from agentcore_workflow.nodes import node_post_exec_judge
+    from agentcore_workflow.state import initial_state
+
+    base = dict(initial_state("00000000-0000-0000-0000-000000000003", "test-lint", str(uuid.uuid4())))
+    base["current_micro_key"] = "M6.3.1"
+    base["current_risk_class"] = "medium"
+    base["score"] = 0.95  # would pass on its own
+    base["det_checks_details"] = [{"check": "migration_applied", "passed": True}]
+    base["gates_passed"] = ["requirement", "scope"]
+    base["gates_failed"] = []
+    base["da_builder_result"] = {"status": "completed", "output": "done"}
+    base["da_critic_result"] = {"passed": True, "score": 1.0, "findings": []}
+    # Builder gate_evidence carries a lint failure
+    base["gate_evidence"] = {"lint": {"passed": False, "findings": ["E501 line too long"], "tool": "ruff"}}
+
+    result = node_post_exec_judge(base)
+    assert result["next_action"] == "workflow_fail", (
+        f"Lint failure in gate_evidence must cause post_exec_judge to block, "
+        f"got: {result['next_action']} (verdict={result.get('post_exec_verdict')})"
+    )
+
+def test_gate_evidence_reset_in_next_step():
+    """node_next_step clears gate_evidence in both next-micro and next-macro branches."""
+    from agentcore_workflow.nodes import node_next_step
+    from agentcore_workflow.state import initial_state
+
+    base = dict(initial_state("00000000-0000-0000-0000-000000000004", "test-reset", str(uuid.uuid4())))
+    base["gate_evidence"] = {"lint": {"passed": False, "findings": ["stale"]}}
+    base["macro_steps"] = [
+        {"key": "M6.1", "label": "Macro 1", "ordinal": 1, "risk_class": "medium"},
+        {"key": "M6.2", "label": "Macro 2", "ordinal": 2, "risk_class": "medium"},
+    ]
+    base["micro_steps"] = [
+        {"key": "M6.1.1", "label": "Step 1", "ordinal": 1, "risk_class": "medium", "macro_key": "M6.1"},
+        {"key": "M6.1.2", "label": "Step 2", "ordinal": 2, "risk_class": "low", "macro_key": "M6.1"},
+        {"key": "M6.2.1", "label": "Step 3", "ordinal": 1, "risk_class": "medium", "macro_key": "M6.2"},
+    ]
+    base["current_macro_key"] = "M6.1"
+    base["current_micro_key"] = "M6.1.1"
+
+    # next-micro branch
+    result_micro = node_next_step(base)
+    assert result_micro.get("gate_evidence") == {}, (
+        f"next-micro branch must reset gate_evidence to {{}}, got: {result_micro.get('gate_evidence')}"
+    )
+    assert result_micro["current_micro_key"] == "M6.1.2"
+
+    # Advance to end of M6.1 micros → next-macro branch
+    base2 = {**base, "current_micro_key": "M6.1.2",
+              "gate_evidence": {"typecheck": {"passed": False, "findings": ["stale"]}}}
+    result_macro = node_next_step(base2)
+    assert result_macro.get("gate_evidence") == {}, (
+        f"next-macro branch must reset gate_evidence to {{}}, got: {result_macro.get('gate_evidence')}"
+    )

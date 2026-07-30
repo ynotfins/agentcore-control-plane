@@ -197,12 +197,69 @@ def critic_no_swarm_mutation(state: dict, evidence: list[dict]) -> dict:
     }
 
 
+def critic_refactor_risk(state: dict, evidence: list[dict]) -> dict:
+    """Critic: flag growing complexity, hotspot, or blast-radius risk.
+
+    Runs at medium+ risk *before* the step completes.  Consumes Depwire
+    impact/blast-radius evidence when available; falls back to heuristics
+    (file-count shock, drift score) when Depwire is absent.
+
+    Signature follows the existing critic convention:
+        (state, evidence) -> {"critic": str, "risk_class": str, "passed": bool, ...}
+    """
+    findings: list[str] = []
+
+    # ── Source 1: Depwire evidence from gate_evidence ─────────────────────────
+    gate_ev = state.get("gate_evidence") or {}
+    dw_ev = gate_ev.get("depwire_verify") or {}
+    if isinstance(dw_ev, dict) and dw_ev:
+        blast = dw_ev.get("blast_radius_count")
+        if isinstance(blast, (int, float)) and blast > 5:
+            findings.append(f"Depwire blast-radius: {blast} transitive deps affected (threshold 5)")
+        if dw_ev.get("god_node_detected"):
+            findings.append(f"Depwire: god-node pattern detected: {dw_ev.get('god_node_name', 'unknown')}")
+        if dw_ev.get("dependency_direction_violation"):
+            findings.append(
+                f"Depwire: dependency direction violation: {dw_ev.get('direction_detail', 'see depwire output')}"
+            )
+        hotspots = dw_ev.get("hotspots") or []
+        if isinstance(hotspots, list) and len(hotspots) > 3:
+            findings.append(f"Depwire: {len(hotspots)} hotspot(s) flagged — architectural drift risk")
+
+    # ── Source 2: File-count heuristic (no tool required) ────────────────────
+    exec_res = state.get("execution_result") or {}
+    files_changed = exec_res.get("files_changed") or []
+    if isinstance(files_changed, list) and len(files_changed) > 8:
+        findings.append(
+            f"Large diff: {len(files_changed)} files changed — hotspot or scope-creep risk"
+        )
+
+    # ── Source 3: Drift score from gate_evidence ──────────────────────────────
+    drift_ev = gate_ev.get("drift") or {}
+    if isinstance(drift_ev, dict):
+        drift_score = drift_ev.get("score")
+        if isinstance(drift_score, (int, float)) and drift_score > 0.5:
+            findings.append(
+                f"High drift score {drift_score:.2f} (threshold 0.50) — complexity/hotspot risk"
+            )
+
+    passed = len(findings) == 0
+    return {
+        "critic": "refactor_risk",
+        "risk_class": "medium",
+        "passed": passed,
+        "findings": findings or ["no refactor or complexity risk detected"],
+    }
+
+
 # Risk → critic mapping
 CRITIC_REGISTRY: dict[str, list] = {
     "low": [],                                       # no critics for low-risk work
-    "medium": [critic_schema_change, critic_lease_expiry],
-    "high": [critic_schema_change, critic_isolation_boundary, critic_lease_expiry, critic_no_swarm_mutation],
-    "critical": [critic_schema_change, critic_isolation_boundary, critic_lease_expiry, critic_no_swarm_mutation],
+    "medium": [critic_schema_change, critic_lease_expiry, critic_refactor_risk],
+    "high": [critic_schema_change, critic_isolation_boundary, critic_lease_expiry,
+             critic_no_swarm_mutation, critic_refactor_risk],
+    "critical": [critic_schema_change, critic_isolation_boundary, critic_lease_expiry,
+                 critic_no_swarm_mutation, critic_refactor_risk],
 }
 
 

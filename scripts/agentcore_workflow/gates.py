@@ -170,6 +170,14 @@ def gate_arch(state: dict) -> tuple[str, dict]:
     """Check that no forbidden architecture patterns are being introduced.
     Forbidden: second canonical memory store, Swarm dependency, Mem0 installation,
     Docker/WSL for core platform, replacing PostgreSQL as canonical authority.
+
+    Enhanced (Gap 4): also consults Depwire/Tentra structural evidence from
+    state["gate_evidence"]["depwire_verify"] when available.  Signals checked:
+      - god_node_detected   → hard architectural violation
+      - dependency_direction_violation → hard architectural violation
+      - hotspots (> 3)      → warning appended, not an immediate fail by itself
+    Falls back gracefully to keyword-only check when evidence is absent — never
+    hard-fails solely because Depwire is unavailable.
     """
     errors = []
     macro_labels = " ".join(s.get("label", "") for s in state.get("macro_steps", []))
@@ -186,9 +194,41 @@ def gate_arch(state: dict) -> tuple[str, dict]:
     for term, reason in forbidden_terms:
         if term in lower_labels:
             errors.append(reason)
+
+    # ── Structural evidence from Depwire / Tentra (additive, never required) ──
+    warnings: list[str] = []
+    gate_ev = state.get("gate_evidence") or {}
+    exec_res = state.get("execution_result") or {}
+    if isinstance(exec_res, dict):
+        nested_ev = exec_res.get("gate_evidence") or {}
+        if isinstance(nested_ev, dict) and nested_ev:
+            gate_ev = {**nested_ev, **gate_ev}
+    dw_ev = gate_ev.get("depwire_verify") or {}
+    if isinstance(dw_ev, dict) and dw_ev:
+        if dw_ev.get("god_node_detected"):
+            errors.append(
+                f"Depwire: god-node pattern detected ({dw_ev.get('god_node_name', 'unknown')}) "
+                "— architecture drift violation"
+            )
+        if dw_ev.get("dependency_direction_violation"):
+            errors.append(
+                f"Depwire: dependency direction violation: "
+                f"{dw_ev.get('direction_detail', 'see depwire output')}"
+            )
+        hotspots = dw_ev.get("hotspots") or []
+        if isinstance(hotspots, list) and len(hotspots) > 3:
+            warnings.append(f"Depwire: {len(hotspots)} hotspot(s) — review for architectural debt")
+
+    details: dict[str, Any] = {
+        "gate": "arch",
+        "checked_terms": [t for t, _ in forbidden_terms],
+        "depwire_evidence_present": bool(dw_ev),
+    }
     if errors:
-        return "fail", {"gate": "arch", "violations": errors}
-    return "pass", {"gate": "arch", "checked_terms": [t for t, _ in forbidden_terms]}
+        return "fail", {**details, "violations": errors, "warnings": warnings}
+    if warnings:
+        return "warn", {**details, "warnings": warnings}
+    return "pass", details
 def gate_doc_version(state: dict) -> tuple[str, dict]:
     """Verify that the BLUEPRINT.md reference matches the locked version."""
     blueprint = REPO_ROOT / "BLUEPRINT.md"
