@@ -53,7 +53,7 @@ def _find_stale_runs(*, hours: float, project_key: str | None) -> list[dict]:
             r.id,
             r.project_id,
             r.langgraph_thread,
-            r.created_at,
+            r.started_at,
             r.updated_at,
             r.current_milestone,
             r.metadata,
@@ -110,7 +110,7 @@ def _format_table(rows: list[dict]) -> str:
     for r in rows:
         rid = str(r.get("id", ""))[:36]
         pk = str(r.get("project_key") or "unknown")[:24]
-        upd = str(r.get("updated_at") or "")[:26]
+        upd = str(r.get("started_at") or r.get("updated_at") or "")[:26]
         ns = r.get("last_checkpoint_ns")
         chk = f"ns={ns}" if ns is not None else "no checkpoint"
         lines.append(f"  {rid:<36}  {pk:<24}  {upd:<26}  {chk}")

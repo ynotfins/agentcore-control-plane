@@ -82,12 +82,15 @@ $bifrostArgs = @(
   '-log-style', 'json'
 )
 
-try {
-  & $exe @bifrostArgs 1>> $stdoutLog 2>> $stderrLog
-  $exitCode = $LASTEXITCODE
-  Write-AgentCoreLog "bifrost-http exited code=$exitCode"
-  exit $exitCode
-} catch {
-  Write-AgentCoreLog "bifrost-http launch failed: $($_.Exception.Message)"
-  throw
+while ($true) {
+  try {
+    Write-AgentCoreLog "Starting bifrost-http process..."
+    & $exe @bifrostArgs 1>> $stdoutLog 2>> $stderrLog
+    $exitCode = $LASTEXITCODE
+    Write-AgentCoreLog "bifrost-http process exited code=$exitCode"
+  } catch {
+    Write-AgentCoreLog "bifrost-http launch failed: $($_.Exception.Message)"
+  }
+  Write-AgentCoreLog "Restarting bifrost-http in 2 seconds..."
+  Start-Sleep -Seconds 2
 }

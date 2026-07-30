@@ -14,8 +14,31 @@ import json
 import os
 import re
 import sys
+import subprocess
+import urllib.request
 from pathlib import Path
 from typing import Any
+
+def _ensure_bifrost_gateway_running() -> None:
+    """Smoke-check http://127.0.0.1:8080/health; auto-start Bifrost Gateway if down."""
+    try:
+        req = urllib.request.Request("http://127.0.0.1:8080/health", method="GET")
+        with urllib.request.urlopen(req, timeout=1.0) as resp:
+            if resp.status == 200:
+                return
+    except Exception:
+        pass
+    start_script = Path(r"D:\github\agentcore-control-plane\ops\bifrost\Start-AgentCoreBifrostGateway.ps1")
+    if start_script.is_file():
+        try:
+            subprocess.Popen(
+                ["pwsh", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(start_script)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+        except Exception:
+            pass
 
 # Ensure scripts/ is importable when launched from repo hooks.
 _SCRIPTS = Path(__file__).resolve().parents[1]
@@ -66,6 +89,7 @@ def os_environ_get(name: str) -> str | None:
 
 
 def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
+    _ensure_bifrost_gateway_running()
     conversation_id = (
         payload.get("session_id")
         or payload.get("conversation_id")
@@ -118,6 +142,7 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
+    _ensure_bifrost_gateway_running()
     prompt = str(
         payload.get("prompt")
         or payload.get("text")
