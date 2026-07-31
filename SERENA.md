@@ -1,10 +1,10 @@
 # Serena — AgentCore Semantic Code Intelligence
 
-**Authority:** `D:\github\agentcore-control-plane`  
-**Scope:** AgentCore-managed developer tooling and the neutral dual-control-plane
-Cursor workspace  
-**Runtime:** Serena `1.5.4.dev0` through Bifrost `2.0.0-prerelease1`  
-**Last verified:** 2026-07-26
+**Authority:** `D:\github\agentcore-control-plane`
+**Scope:** AgentCore-managed developer tooling and the optional neutral dual-control-plane
+Cursor workspace for read-only collision/boundary audits only
+**Runtime:** Serena `1.5.4.dev0` through Bifrost `2.0.0-prerelease1`
+**Last verified:** 2026-07-31
 
 This document describes how Serena is configured, routed, isolated, validated,
 and used by supported IDEs. It is a developer-tooling contract. It does not
@@ -65,16 +65,16 @@ Global Serena configuration:
 
 `C:\Users\ynotf\.serena\serena_config.yml`
 
-The current baseline registry contains the two control planes:
+The current baseline registry may contain the two control-plane roots for
+neutral dual-workspace boundary audits:
 
 - `D:\github\agentcore-control-plane`
 - `D:\github\swarm-ecosystem-control`
 
-Other repositories are not modified by this repair. Before using Serena on
-another repository, create or regenerate that repository's current
-`.serena\project.yml` with a valid `languages` list and register it through the
-approved project workflow. Do not put unrelated projects into one shared
-Serena process or create a machine-wide fallback configuration.
+That dual listing does **not** authorize normal AgentCore IDE continuity on
+Swarm projects. If the operator-selected project is Swarm-owned, HARD STOP with
+`swarm_project_refused`. Do not open AgentCore memory sessions, enroll IDE
+profiles, or persist Swarm work through AgentCore for Swarm-owned roots.
 
 AgentCore:
 
@@ -85,7 +85,7 @@ Configured languages:
 - `python`
 - `powershell`
 
-Swarm control plane:
+Swarm control-plane path (boundary-audit only; not AgentCore continuity):
 
 `D:\github\swarm-ecosystem-control\.serena\project.yml`
 
@@ -93,6 +93,13 @@ Configured languages:
 
 - `powershell`
 - `typescript` (Serena's JavaScript language-server route)
+
+Other repositories are not modified by this repair. Before using Serena on
+another AgentCore / enrolled non-Swarm repository, create or regenerate that
+repository's current `.serena\project.yml` with a valid `languages` list and
+register it through the approved project workflow. Do not put unrelated
+projects into one shared Serena process or create a machine-wide fallback
+configuration.
 
 Global behavior:
 
@@ -103,9 +110,9 @@ Global behavior:
 - dashboard binds to loopback
 - project-local Serena data remains under each project’s `.serena` directory
 
-The Swarm product repositories may be opened through their own Swarm workspace
-and must remain independent runtime projects. Do not add Swarm product
-directories to the AgentCore global MCP baseline.
+The Swarm product repositories remain independent runtime projects under Swarm
+authority. Do not add Swarm product directories to the AgentCore global MCP
+baseline. Do not treat Swarm-owned paths as AgentCore-managed projects.
 
 ## Bifrost and project switching
 
@@ -117,9 +124,12 @@ The Serena wrapper is:
 
 `D:\github\agentcore-control-plane\ops\bifrost\wrappers\serena-prewarm.js`
 
-The active project-router state is:
+The active project-router state (current Bifrost runtime root) is:
 
-`H:\AgentRuntime\bifrost\state\active-project.json`
+`F:\AgentCore\runtime\bifrost\state\active-project.json`
+
+Historical path `H:\AgentRuntime\bifrost\state\active-project.json` is not the
+final AgentCore home; remaining H: vacation is Milestone M9.
 
 The wrapper:
 
@@ -128,15 +138,18 @@ The wrapper:
 2. buffers readiness safely without forwarding an unbounded child stderr
    stream;
 3. starts the child for the active project only;
-4. allows only the two control-plane paths;
-5. restarts the Serena child when `agentcore-project-router` switches between
-   AgentCore and Swarm control;
+4. allows only the registered control-plane paths;
+5. restarts the Serena child when `agentcore-project-router` switches the
+   active AgentCore / enrolled non-Swarm project (or a read-only dual-workspace
+   boundary-audit activation);
 6. never expands the allowlist to vendor roots or whole-drive paths.
 
 Project switching is not a shared semantic index. It is one active Serena child
 at a time, with separate language-server state and separate `.serena` caches.
-The combined Cursor workspace may show both control planes, but the active
-project and write boundary remain singular.
+A combined Cursor workspace may show both control planes for read-only
+collision audits, but the active project and write boundary remain singular,
+and normal AgentCore sessions must refuse Swarm-owned selection with
+`swarm_project_refused`.
 
 ## Optimal agent workflow
 
@@ -199,7 +212,7 @@ verification. Block high-risk structural edits and report the missing evidence.
 
 ## IDE usage
 
-All normal non-Swarm IDE clients use the same gateway contract:
+All normal AgentCore / enrolled non-Swarm IDE clients use the same gateway contract:
 
 `http://127.0.0.1:8080/mcp`
 
@@ -227,8 +240,10 @@ Profile restrictions are intentional:
 - A profile that does not include Serena must not be “fixed” by adding a direct
   IDE MCP entry; use the appropriate governed profile.
 - SwarmClaw, SwarmRecall, and SwarmVault runtime processes never use
-  AgentCore/Bifrost/Serena. Developer-side continuity while editing Swarm is
-  permitted, but it must not enter Swarm runtime.
+  AgentCore/Bifrost/Serena. Former language permitting AgentCore IDE
+  development continuity on Swarm projects is historical and revoked. Use
+  Swarm’s own control plane for Swarm work; AgentCore may only perform
+  read-only dual-workspace boundary audits.
 
 ## Failure handling and self-healing
 
@@ -281,8 +296,10 @@ Then verify:
 1. Bifrost `/health` is healthy.
 2. `tools/list` includes Serena through the gateway.
 3. A safe semantic query passes for AgentCore.
-4. Activate Swarm control and repeat the query.
-5. Restore the intended active project.
+4. Confirm Swarm-owned selection is refused for normal AgentCore continuity
+   (`swarm_project_refused`); read-only dual-workspace boundary-audit
+   activation is optional and must not persist Swarm work into AgentCore memory.
+5. Restore the intended AgentCore / enrolled non-Swarm active project.
 6. Check the latest Serena log for a clean startup and absence of
    `KeyError: 'languages'`, fatal exceptions, and uncontrolled restart loops.
 
@@ -302,21 +319,27 @@ python D:\github\agentcore-control-plane\scripts\agentcore_cursor\test_hook_prot
 python D:\github\agentcore-control-plane\scripts\render_ide_rules.py --check
 ```
 
-Semantic acceptance requires both:
+Semantic acceptance requires:
 
 - AgentCore: a safe `get_symbols_overview` or `find_symbol` query in
-  `D:\github\agentcore-control-plane`;
-- Swarm control: a safe semantic query in
-  `D:\github\swarm-ecosystem-control`.
+  `D:\github\agentcore-control-plane`.
+- Optional boundary-audit only: a read-only semantic query in
+  `D:\github\swarm-ecosystem-control` that must not open AgentCore memory
+  continuity or treat Swarm as an AgentCore-managed project.
 
 Native IDE acceptance additionally proves the IDE itself can:
 
 - see the gateway after restart;
-- activate each control-plane project;
+- activate only AgentCore / enrolled non-Swarm projects for normal work;
+- refuse Swarm-owned selection with `swarm_project_refused` (optional
+  read-only dual-workspace boundary audit must not open AgentCore memory
+  continuity);
 - use Serena without direct MCP entries;
-- keep Git and writes scoped to the active repository;
-- preserve the AgentCore memory lifecycle;
-- switch projects without cross-project semantic or memory leakage.
+- keep Git and writes scoped to the active AgentCore / enrolled non-Swarm
+  repository;
+- preserve the AgentCore memory lifecycle on allowed projects only;
+- switch among allowed projects without cross-project semantic or memory
+  leakage.
 
 The current repair evidence is:
 

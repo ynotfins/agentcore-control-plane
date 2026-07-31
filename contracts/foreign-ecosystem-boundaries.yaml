@@ -15,14 +15,21 @@ capsules:
       - AgentCore must not consume SwarmRecall memory as AgentCore memory.
       - AgentCore must not consume SwarmVault graph/wiki/state as AgentCore memory.
       - AgentCore must not consume SwarmClaw sessions, tasks, prompts, skills, or runtime state.
-      - AgentCore must not use Swarm credentials, Swarm databases, Swarm backup roots, or Swarm MCP entries as a non-Swarm baseline.
+      - AgentCore must not use Swarm credentials, Swarm databases, Swarm backup roots, or Swarm MCP entries as an AgentCore / enrolled non-Swarm baseline.
+      - No normal AgentCore IDE continuity on Swarm projects; selected Swarm-owned paths stop with swarm_project_refused.
+    swarm_memory_pointer:
+      - SwarmRecall is the Swarm ecosystem required memory/context layer.
+      - Do not claim SwarmRecall replaces SwarmClaw native application databases (including SQLite) unless proven under Swarm authority.
     permitted_developer_relationship:
-      - Cursor may use AgentCore developer continuity while inspecting or editing Swarm repositories.
-      - Developer-side evidence may point to Swarm authority but must not become Swarm runtime input.
+      - A neutral dual workspace may be used for read-only collision and boundary audits only.
+      - Read-only boundary-audit evidence may point to Swarm authority but must not become Swarm runtime input.
+      - Former AgentCore IDE development-continuity-on-Swarm-projects language is historical and revoked (2026-07-31).
     shared_machine_collision_constraints:
       - AgentCore and Swarm must keep distinct ports, databases, credentials, process supervisors, prompts, tools, projections, and backup roots.
+      - No canonical resource may be jointly owned.
       - Mutable Swarm runtime facts are owned by Swarm authority, not this repository.
-    last_verification_timestamp: '2026-07-26T07:00:00Z'
+      - Exclusive Swarm hot ownership of H: is the target after Milestone M9 acceptance; AgentCore hot namespace remains F:\AgentCore\...
+    last_verification_timestamp: '2026-07-31T17:30:00Z'
 validation:
   deterministic_pointer_check:
     require_foreign_files_exist: true

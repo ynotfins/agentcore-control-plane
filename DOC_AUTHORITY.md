@@ -1,9 +1,9 @@
 # Document Authority Index — AgentCore Control Plane
 
 **Source authority:** `D:\github\agentcore-control-plane`
-**Bifrost runtime:** `H:\AgentRuntime\bifrost` (not design authority)
+**Bifrost runtime (current):** `F:\AgentCore\runtime\bifrost` (not design authority; historical `H:\AgentRuntime\bifrost` is vacated for Bifrost — remaining H: vacation is Milestone M9)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-25 (admitted `AGENTCORE_SWARM_DUAL_ECOSYSTEM_HANDOFF_2026-07-25.md` as newest current handoff; architecture unchanged)
+**Updated:** 2026-07-31 (align Bifrost runtime path and Swarm foreign-boundary posture with ecosystem separation reconciliation)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -89,8 +89,8 @@ No other root or docs file may silently override this chain. If a document confl
 | `MASTER_CONFIG_AND_PROMPT.md` | Controlling IDE MCP/rules setup after Bifrost rebuild |
 | `contracts/bifrost-upstream-mcp-registry.json` | Canonical upstream MCP servers + capability profiles |
 | `contracts/agentcore-gateway-client.json` | Single `agentcore-gateway` client connection contract |
-| `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md` | Why native Windows Bifrost Gateway, H: runtime, auth, pin |
-| `docs/adr/ADR-2026-07-12-configuration-source-of-truth.md` | Contracts → renderer → H: live config; IDEs get gateway entry only |
+| `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md` | Why native Windows Bifrost Gateway, auth, pin (original H: placement is historical evidence; current runtime is `F:\AgentCore\runtime\bifrost`) |
+| `docs/adr/ADR-2026-07-12-configuration-source-of-truth.md` | Contracts → renderer → live Bifrost config; IDEs get gateway entry only (current live root `F:\AgentCore\runtime\bifrost`) |
 | `SERENA.md` | Current Serena project configuration, Bifrost/project-router wiring, IDE usage, and recovery runbook |
 | `docs/bifrost/*.md` | Classification, profiles, Tentra local mode, Depwire reconciliation, migration/rollback |
 | `SECURITY.md` | Secret and security policy |

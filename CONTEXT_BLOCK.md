@@ -142,8 +142,9 @@ Claude Code / approved MCP clients / LangGraph workflows
              +-------------+-------------+
              |                           |
              v                           v
-     H:\AgentRuntime              E:\AgentCoreArchive
+     F:\AgentCore\runtime         E:\AgentCore\...
      hot spool/scratch            cold immutable/archive
+     (incl. bifrost)
 ```
 
 ### ADOPTED DECISION — Bifrost composition (completed cutover)

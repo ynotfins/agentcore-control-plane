@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-07-26"
+policy_revision: "2026-07-31"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -37,8 +37,14 @@ mandatory_rules:
     title: Swarm isolation
     rule: >-
       SwarmRecall, SwarmVault, and SwarmClaw are a separate ecosystem. Never require Swarm MCP
-      servers, Swarm databases, or Swarm file roots for non-Swarm work. Never modify Swarm
-      product installs. OpenClaw/ClawX are Swarm-managed and outside the non-Swarm baseline.
+      servers, Swarm databases, or Swarm file roots for AgentCore / enrolled non-Swarm work.
+      Never modify Swarm product installs. OpenClaw/ClawX are Swarm-managed and outside the
+      AgentCore baseline. No normal AgentCore IDE continuity on Swarm projects: if the selected
+      path is Swarm-owned, HARD STOP with swarm_project_refused. Do not persist Swarm work
+      through AgentCore memory, project router, or IDE profiles. A neutral dual workspace may
+      be used only for read-only collision and boundary audits. SwarmRecall is Swarm’s required
+      memory/context layer; do not claim it replaces SwarmClaw native application databases
+      unless proven under Swarm authority.
 
   - id: new-project-bootstrap
     title: New Project Bootstrap (Milestone 0)
@@ -63,7 +69,8 @@ mandatory_rules:
       disclosure progressive: do not invoke every server on every turn, do not substitute text
       search for Serena when semantic analysis applies, do not share one Serena process across
       unrelated projects, and block high-risk structural work when a required tool is unavailable.
-      Swarm runtime remains outside AgentCore; developer-side continuity does not change that boundary.
+      Swarm runtime remains outside AgentCore. Do not use Serena/project-router activation as
+      AgentCore IDE continuity on Swarm-owned projects; refuse with swarm_project_refused.
 
   - id: durable-memory-context
     title: Effectively-unbounded durable memory
@@ -212,8 +219,10 @@ mandatory_rules:
     title: Project/worktree write boundaries
     rule: >-
       Write only inside the assigned repo/worktree and role-appropriate runtime roots per
-      docs/DRIVE_WRITE_BOUNDARY_RULE.md. Never expose whole-drive filesystem roots. Never format
-      or re-provision H: (live Bifrost runtime).
+      docs/DRIVE_WRITE_BOUNDARY_RULE.md. Never expose whole-drive filesystem roots. AgentCore
+      Bifrost/runtime state lives under F:\AgentCore\runtime (current). Never expand AgentCore
+      write authority into H: or E:\Swarm\...; H: is reserved for Swarm after M9 acceptance.
+      Never format or re-provision H:.
 
   - id: secrets
     title: Secrets policy
@@ -258,7 +267,9 @@ forbidden_routes:
   - direct per-IDE MCP server baselines
   - whole-drive filesystem MCP roots
   - Postgres credentials in IDE configs
-  - Swarm MCP in non-Swarm IDE baselines
+  - Swarm MCP in AgentCore / enrolled non-Swarm IDE baselines
+  - AgentCore IDE continuity / memory sessions on Swarm-owned projects
+  - 'treating H:\AgentRuntime or any H: path as AgentCore final runtime home'
   - port 65432 as an active route
 
 task_class_gates:

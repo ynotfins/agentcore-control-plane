@@ -1,5 +1,6 @@
 # Global Agent Rules
 
+> **Updated 2026-07-31 (ecosystem separation):** Drive roles align with `PROJECT_ANCHOR.md`.
 > **Canonical policy pointer (2026-07-14):** The full canonical global agent policy now lives in
 > `rules/canonical/GLOBAL_AGENT_RULES.md` and `contracts/global-agent-policy.yaml`, with project
 > execution standards in `docs/agent-policy/`. This file remains for the environment-variable and
@@ -51,9 +52,10 @@ Known current AgentCore variables include:
 
 - Source repos: `D:\github`
 - Hot runtime data: `F:\AgentCore` (database/vector/index tier)
-- Gateway/agent runtime: `H:\AgentRuntime` (live Bifrost gateway — never format H:)
-- Archive/cold + backups: `E:\AgentCoreArchive` (second backup copy: `G:`)
+- Gateway/agent runtime: `F:\AgentCore\runtime` (live Bifrost under `F:\AgentCore\runtime\bifrost`; historical `H:\AgentRuntime` is not the final AgentCore home)
+- Archive/cold + backups: `E:\AgentCore\...` only (second backup copy: `G:`)
 - Disposable scratch: `I:` — portable media: `J:`
+- `H:` is reserved for Swarm after M9 acceptance; do not expand AgentCore write authority there
 
 Do not place runtime databases, logs, backups, incident data, or private response data inside source repositories.
 

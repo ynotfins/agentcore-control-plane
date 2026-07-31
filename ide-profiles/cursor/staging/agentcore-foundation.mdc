@@ -3,9 +3,9 @@ description: AgentCore foundation rule — stable architecture, memory lifecycle
 globs: ["**/*"]
 alwaysApply: true
 ---
-<!-- DERIVED FROM contracts/global-agent-policy.yaml (policy_revision 2026-07-22).
+<!-- DERIVED FROM contracts/global-agent-policy.yaml (policy_revision 2026-07-31).
      Semantic changes go into the canonical policy, never into this rendering.
-     STAGING ONLY — not active until Phase 2 cutover. -->
+     Repo staging source for Cursor foundation rule installs. -->
 
 # AgentCore Foundation
 
@@ -51,11 +51,11 @@ Before acting on project work:
 7. **For exact verification:** `expand_source` using `event_id` or `summary_id` — never paraphrase a precise source from memory.
 8. **At task or session close:** run deterministic validation, `build_handoff`, `session_close`.
 
-Tool name reference (`agentcore_memory-*`):  
-`memory_status` · `session_open` · `session_close` · `startup_context` · `retrieve_context`  
+Tool name reference (`agentcore_memory-*`):
+`memory_status` · `session_open` · `session_close` · `startup_context` · `retrieve_context`
 `append_event` · `expand_source` · `propose_fact` · `build_handoff` · `docs_search`
 
-Project router (`agentcore_project_router-*`):  
+Project router (`agentcore_project_router-*`):
 `project_list` · `project_activate` · `project_status` · `project_clear`
 
 ## 5. Recovery
@@ -69,7 +69,8 @@ Before asking the operator to repeat project history: call `retrieve_context`, t
 Write only inside the assigned repo/worktree and role-appropriate runtime roots.
 
 - Never expose whole-drive filesystem roots.
-- Never format or re-provision `H:` (live Bifrost runtime).
+- AgentCore Bifrost/runtime state lives under `F:\AgentCore\runtime` (current).
+- Never expand AgentCore write authority into `H:` or `E:\Swarm\...`; never format or re-provision `H:`.
 - Write boundaries: `docs/DRIVE_WRITE_BOUNDARY_RULE.md`.
 
 ## 7. Secrets and environment
@@ -86,7 +87,7 @@ Memory flows through `agentcore-gateway` → `agentcore-memory`. Trusted direct 
 
 ## 9. Swarm isolation
 
-SwarmRecall, SwarmVault, and SwarmClaw are a separate ecosystem. Never require Swarm MCP servers, Swarm databases, or Swarm file roots for non-Swarm work. OpenClaw/ClawX are outside the Bifrost IDE cutover scope.
+SwarmRecall, SwarmVault, and SwarmClaw are a separate ecosystem. Never require Swarm MCP servers, Swarm databases, or Swarm file roots for AgentCore / enrolled non-Swarm work. OpenClaw/ClawX are outside the Bifrost IDE cutover scope. No normal AgentCore IDE continuity on Swarm projects — HARD STOP with `swarm_project_refused`. SwarmRecall is Swarm’s required memory/context layer; do not claim it replaces SwarmClaw native application databases unless proven under Swarm authority.
 
 ## 10. Deterministic verification before completion
 
@@ -104,16 +105,18 @@ File and folder references in Cursor prompts require `@` with full absolute Wind
 
 ## 13. Forbidden routes
 
-`context7` · Hostinger · raw Mem0 · direct Composio · `global-memory-gateway` (retired) ·  
-direct per-IDE MCP server baselines · whole-drive filesystem MCP roots ·  
-Postgres credentials in IDE configs · Swarm MCP in non-Swarm IDE baselines · port 65432
+`context7` · Hostinger · raw Mem0 · direct Composio · `global-memory-gateway` (retired) ·
+direct per-IDE MCP server baselines · whole-drive filesystem MCP roots ·
+Postgres credentials in IDE configs · Swarm MCP in AgentCore IDE baselines ·
+AgentCore IDE continuity / memory sessions on Swarm-owned projects ·
+treating `H:\AgentRuntime` or any `H:` path as AgentCore final runtime home · port 65432
 
 ## 14. Governed changes
 
 Persistent rule, skill, hook, Bifrost, or MCP configuration changes require a separate governed task with backup, validation, and operator approval. This rule does not self-modify.
 
 ---
-<!-- Source: contracts/global-agent-policy.yaml — policy_revision 2026-07-22
+<!-- Source: contracts/global-agent-policy.yaml — policy_revision 2026-07-31
      Cursor IDE profile: ide-profiles/cursor/IDE_PROFILE.yaml
      Staging path: ide-profiles/cursor/staging/agentcore-foundation.mdc
-     Do not activate until Phase 2 cutover is operator-approved. -->
+     Live install remains a separate governed ops step; this file is repo authority only. -->
