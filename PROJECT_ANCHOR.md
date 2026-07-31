@@ -4,26 +4,47 @@
 > Do not edit without explicit operator approval.
 > Document hierarchy: see `DOC_AUTHORITY.md`. Locked implementation blueprint: `BLUEPRINT.md` (level 3 in hierarchy). Memory/database implementation authority: see `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (`database-plan.md` is historical schema evidence only).
 >
-> **Operator approval (2026-07-12):** This constitution edit was explicitly authorized by the Bifrost MCP Gateway cutover task. The previous §0 Native-First Swarm override remains historical for the Swarm ecosystem only; it is superseded below for **non-Swarm IDEs**.
->
-> **Operator approval (2026-07-14):** The authority reconciliation task was explicitly authorized to add §0.1 (Project Execution Boundaries) and repoint the schema-design reference to the memory-platform execution plan.
->
-> **Operator approval (2026-07-14):** `BLUEPRINT.md` was added as the locked implementation blueprint at hierarchy level 3. BLUEPRINT.md governs final architecture, storage roles, allocation-unit targets, lossless memory guarantees, STATE.md behavior, Cognee/Mem0 decision, Bifrost identities, Swarm isolation, and locked Milestones M0–M8 exit criteria.
+> **Operator approval (2026-07-12):** Bifrost MCP Gateway cutover — non-Swarm IDE single-gateway baseline.
+> **Operator approval (2026-07-14):** §0.1 Project Execution Boundaries; BLUEPRINT.md locked at hierarchy level 3.
+> **Operator approval (2026-07-31):** Ecosystem and drive separation reconciliation — AgentCore and Swarm are independent control planes; AgentCore hot namespace is `F:\AgentCore\...`; `H:` is reserved for Swarm after relocation acceptance.
+
+---
+
+## Ecosystem and Drive Separation — Read First
+
+AgentCore and Swarm are **independent control planes**. They share a machine, not authority, runtime, memory, credentials, or backups.
+
+| Domain | Ownership |
+| --- | --- |
+| AgentCore repository / design authority | `D:\github\agentcore-control-plane` |
+| AgentCore hot runtime / data namespace | `F:\AgentCore\...` |
+| AgentCore staging | `I:` (unless later changed by explicit authority) |
+| AgentCore cold / backup namespace | `E:\AgentCore\...` only |
+| Swarm hot runtime / data | `H:` exclusively (after AgentCore relocation and acceptance cutover) |
+| Swarm cold / backup namespace | `E:\Swarm\...` only |
+
+**Hard rules**
+
+- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
+- Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
+- No canonical resource may be jointly owned.
+- Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
+- Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
 
 ---
 
 ## 0. Bifrost Gateway Override (2026-07-12, operator-approved)
 
-> **LIVE-STATE OVERRIDE for NON-SWARM IDEs.** Bifrost native Gateway (`bifrost-http.exe`, pinned **v2.0.0-prerelease1**) is the workstation MCP gateway. Non-Swarm IDEs connect to **one** endpoint only:
+> **LIVE-STATE OVERRIDE for AgentCore / non-Swarm IDEs.** Bifrost native Gateway (`bifrost-http.exe`, pinned **v2.0.0-prerelease1**) is the AgentCore workstation MCP gateway. AgentCore IDEs and explicitly enrolled non-Swarm clients connect to **one** endpoint only:
 >
 > ```text
 > agentcore-gateway  http://127.0.0.1:8080/mcp
 > Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
 > ```
 >
-> Upstream MCP servers are registered behind Bifrost via `contracts/bifrost-upstream-mcp-registry.json` and rendered into `F:\AgentCore\runtime\bifrost\config.json`. IDEs must not embed the full per-server baseline.
+> Upstream MCP servers are registered behind Bifrost via `contracts/bifrost-upstream-mcp-registry.json` and rendered into the live Bifrost config under `F:\AgentCore\runtime\bifrost\`. IDEs must not embed the full per-server baseline.
 >
-> **Memory path (non-Swarm):**
+> **Memory path (AgentCore / enrolled non-Swarm):**
 >
 > ```text
 > IDE agent
@@ -31,9 +52,9 @@
 >   -> agentcore-memory   (stable ten-tool server identity; live via gateway — do not invent alternate memory MCP entries)
 > ```
 >
-> **Swarm exclusion:** SwarmRecall, SwarmVault, and SwarmClaw are a **separate ecosystem**. Do not require Swarm MCP servers in non-Swarm IDE baselines. Do not depend on Swarm for AgentCore control-plane / non-Swarm IDE work. Swarm product installs remain untouched by this gateway cutover.
+> **Swarm exclusion:** Swarm is a separate ecosystem. Do not require Swarm MCP servers in AgentCore IDE baselines. Do not depend on Swarm for AgentCore control-plane work. Do not treat Swarm repositories as AgentCore projects. Swarm product installs are outside AgentCore write authority.
 >
-> The 2026-07-01 Native-First Swarm override (former §0) is **superseded for non-Swarm IDEs** by this section. It may still describe Swarm-product-local behavior inside the Swarm ecosystem, but it is not the mandatory MCP baseline for Cursor, Codex, Claude Code/Desktop, MiniMax, Mavis, Antigravity, or Open Interpreter.
+> The 2026-07-01 Native-First Swarm override (former §0) is **superseded for AgentCore IDEs** by this section. It may still describe Swarm-product-local behavior inside the Swarm ecosystem, but it is not the mandatory MCP baseline for Cursor, Codex, Claude Code/Desktop, MiniMax, Mavis, Antigravity, Cherry Studio, or Open Interpreter when doing AgentCore work.
 >
 > The Go SDK experiment under `experiments/bifrost-go-sdk-smoke/` is **not** the workstation MCP gateway.
 
@@ -41,65 +62,75 @@
 
 ## 0.1 Project Execution Boundaries (2026-07-14, operator-approved)
 
-Non-negotiable invariants for every managed project:
+Non-negotiable invariants for every AgentCore-managed project:
 
 1. **Milestone governance.** New projects use Milestones (outcome boundaries), Macro steps, Micro steps, strict checklists, evidence-backed completion, project context checkpoints, and Milestone tool audits. Policy: `docs/agent-policy/`.
 2. **Progressive tool disclosure.** All approved tools remain available for activation, but only the tools needed for the current project and current Milestone are actively exposed to the model. A project begins with a safe Bootstrap profile, never with unrestricted administrative or destructive authority. The full builder catalog must not remain permanently loaded into every model turn.
-3. **Milestone-gated capability leases.** Tools outside the current Milestone's active set are activated through audited, expiring leases. Runtime lease enforcement is implemented by the memory platform (PostgreSQL-backed, Milestone M6 of `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`); until then the tool manifest records policy and desired state only.
+3. **Milestone-gated capability leases.** Tools outside the current Milestone's active set are activated through audited, expiring leases. Runtime lease enforcement is implemented by the memory platform (PostgreSQL-backed, Milestone M6); the tool manifest records policy and desired state.
 4. **Hardcoded standards.** The operating model in `docs/agent-policy/` and `contracts/global-agent-policy.yaml` is source-controlled authority; per-IDE rule renderings under `ide-profiles/` derive from it and may not contradict it.
+5. **Project enrollment boundary.** AgentCore-controlled IDE agents work only on AgentCore and explicitly enrolled non-Swarm projects. Swarm work is performed by Swarm’s own control plane and Swarm-owned agents. A neutral dual workspace may be used for read-only collision and boundary audits. No normal AgentCore execution session may treat a Swarm repository as an AgentCore project. No AgentCore MCP, memory, project router, or IDE profile may persist Swarm work.
 
 ---
 
 ## 1. Authority
 
 - **Source / config authority:** `D:\github\agentcore-control-plane` — all governance, contracts, renderers, validators, ops scripts, migrations, and docs.
-- **Bifrost runtime root:** `F:\AgentCore\runtime\bifrost` — live `bifrost-http.exe`, `config.json`, sqlite stores, logs, state. Not a design authority.
+- **Bifrost runtime root (current state):** `F:\AgentCore\runtime\bifrost` — live `bifrost-http.exe`, `config.json`, sqlite stores, logs, state. Not a design authority.
 - **Compatibility / live-ops evidence only:** `D:\MCP-Control-Plane` — NOT a design authority. Agents must not treat it or any doc under it as current instructions.
+- **Swarm foreign pointer only:** `docs/boundaries/SWARM_FOREIGN_BOUNDARY.md` and `contracts/foreign-ecosystem-boundaries.yaml`. Mutable Swarm facts belong only to `D:\github\swarm-ecosystem-control`.
+
+---
 
 ## 2. Drive Roles
 
 | Drive | Role |
 | ----- | ---- |
 | `C:`  | OS, apps, user profile, live IDE configs (app-owned; not directly edited without approval) |
-| `D:`  | Source repos, projects, worktrees, build evidence (code/source tier); config authority lives here |
-| `E:`  | Docs archive / cold storage / backups / exports / emergency spool only (no primary SQL) |
-| `F:`  | AgentCore dedicated hot NVMe: PostgreSQL 18, Bifrost/AgentRuntime (`F:\AgentCore\runtime`), memory hot artifacts, Tentra, MCP helpers, caches (access DB via service/API/CLI wrappers only) |
-| `G:`  | Backup target only |
-| `H:`  | Swarm ecosystem dedicated hot NVMe (not AgentCore). AgentCore must not place canonical runtime or rollback here. |
+| `D:`  | Source repos, projects, worktrees, build evidence (code/source tier); AgentCore config authority lives here |
+| `E:`  | Cold storage / archives / backups. AgentCore cold/backup data only under `E:\AgentCore\...`. Swarm cold/backup data only under `E:\Swarm\...`. No primary SQL. |
+| `F:`  | AgentCore dedicated hot NVMe: PostgreSQL 18, Bifrost/AgentRuntime under `F:\AgentCore\...`, memory hot artifacts, Tentra, MCP helpers, caches (access DB via service/API/CLI wrappers only) |
+| `G:`  | Second backup copy target only |
+| `H:`  | Reserved exclusively for Swarm hot runtime/data after AgentCore relocation acceptance. AgentCore must not place canonical runtime, data, or rollback here. |
 | `I:`  | AgentCore disposable scratch / staging only |
 | `J:`  | Portable media / transfer only |
 
-## 3. Runtime Endpoints
+Mutable path details, transitional leftover locations, and acceptance evidence live in `CONTEXT_BLOCK.md`, current handoffs, and audits — not here.
 
-> **Operator approval (2026-07-17):** PostgreSQL 18 at `127.0.0.1:55433` is the canonical AgentCore data platform as of the memory-platform build.
-> PostgreSQL 16 at `127.0.0.1:55432` is **rollback/legacy evidence and Swarm-owned databases only**; it is no longer the canonical AgentCore endpoint.
+---
+
+## 3. Runtime Endpoints (AgentCore)
+
+> **Operator approval (2026-07-17):** PostgreSQL 18 at `127.0.0.1:55433` is the canonical AgentCore data platform.
+> PostgreSQL 16 at `127.0.0.1:55432` is **rollback/legacy evidence only** for AgentCore; it must not host AgentCore `agent_core` or `cognee_core`.
 > `agent_core` and `cognee_core` live on PostgreSQL 18 (`F:\PostgreSQL18\data`).
-> This update was authorized by the final hardening and cleanup pass (2026-07-17). See `CLAUDE.md` runtime facts.
 
 | Component | Endpoint / Path |
 | --------- | --------------- |
 | **AgentCore Bifrost MCP Gateway** | `http://127.0.0.1:8080/mcp` (`agentcore-gateway`) |
-| Bifrost runtime | `F:\AgentCore\runtime\bifrost` (`bin\bifrost-http.exe`, `config.json`, sqlite under `data/` / `logs/`) |
+| Bifrost runtime (current) | `F:\AgentCore\runtime\bifrost` |
 | **PostgreSQL 18 cluster (canonical AgentCore)** | `127.0.0.1:55433` (`F:\PostgreSQL18\data`) |
-| `agent_core` DB | governed canonical AgentCore DB on PostgreSQL 18 (`127.0.0.1:55433`) |
-| `cognee_core` DB | Cognee-owned database on PostgreSQL 18 (`127.0.0.1:55433`) |
-| PostgreSQL 16 cluster (legacy/rollback only) | `127.0.0.1:55432` (`F:\AgentCore\database_cluster`) — Swarm-owned DBs and rollback evidence only |
-| `swarmrecall` DB | native SwarmRecall app DB — **separate from `agent_core`; never merged** (PostgreSQL 16; Swarm ecosystem only) |
-| SwarmRecall API | `http://127.0.0.1:3300` (Swarm ecosystem; not required for non-Swarm IDEs) |
-| Meilisearch | `http://127.0.0.1:7700` |
-| SwarmVault root | `F:\AgentCore\agentmemory\swarmvault` (Swarm ecosystem; file-based) |
-| Obsidian REST | `https://127.0.0.1:27124` |
-| OpenClaw gateway | `http://127.0.0.1:18789` (not part of Bifrost IDE cutover) |
+| `agent_core` DB | governed canonical AgentCore DB on PostgreSQL 18 |
+| `cognee_core` DB | Cognee-owned database on PostgreSQL 18 |
+| PostgreSQL 16 (legacy/rollback only) | `127.0.0.1:55432` (`F:\AgentCore\database_cluster`) — AgentCore rollback/legacy evidence only |
+| LangGraph Studio (dev-only) | `127.0.0.1:2024` — not a persistent Windows service; not production checkpointer |
+| Obsidian REST | `https://127.0.0.1:27124` (application vault; outside default MCP surface) |
+
+Swarm ports, Swarm databases, Swarm vault roots, OpenClaw/ClawX gateways, and Swarm MCP endpoints are **not** AgentCore constitution endpoints. Collision-avoidance pointers live in the foreign-boundary capsule and Swarm’s own control plane.
 
 **Forbidden:**
 
-- Port `:65432` — no active runtime route; archived/historical evidence only. Use `:55433` for AgentCore canonical PostgreSQL 18.
-- Port `:55432` — legacy/rollback and Swarm-only; must not be used for AgentCore `agent_core` or `cognee_core`.
+- Port `:65432` — no active AgentCore runtime route. Use `:55433` for AgentCore canonical PostgreSQL 18.
+- Port `:55432` for AgentCore `agent_core` or `cognee_core`.
 - Whole-drive filesystem MCP roots (`C:\`, `D:\`, `F:\`, `H:\`, home-directory-wide) in IDE or gateway configs.
 - Direct PostgreSQL credentials, connection strings, or ingest passwords in any IDE MCP config.
 - Embedding resolved virtual-key / API-key values in Git.
+- Treating `H:\AgentRuntime` (or any `H:` path) as AgentCore’s final runtime/data home.
+- Requiring Swarm MCP servers in AgentCore IDE baselines.
+- Persisting Swarm project work through AgentCore memory, project router, or IDE profiles.
 
-## 4. Canonical Memory Path (non-Swarm IDEs)
+---
+
+## 4. Canonical Memory Path (AgentCore / enrolled non-Swarm)
 
 ```text
 IDE agent
@@ -109,13 +140,15 @@ IDE agent
 
 The `agentcore-memory` server id is stable. The full ten-tool memory platform landed with M3.002 and is live-validated (Cursor enrolled 2026-07-17).
 
-Normal agents must not: raw-SQL into `agent_core` or `swarmrecall`; place Postgres secrets in IDE configs; dual-write into Swarm DBs from non-Swarm IDEs; direct-write into `F:\AgentCore\agentmemory`; direct-write into the active Obsidian vault; print secrets; create `.env` files.
+Normal agents must not: raw-SQL into `agent_core`; place Postgres secrets in IDE configs; write into Swarm DBs or vaults; direct-write into AgentCore hot artifact roots; direct-write into the active Obsidian vault; print secrets; create `.env` files; open AgentCore memory sessions against Swarm-owned repositories.
+
+---
 
 ## 5. Gateway Tool Contract
 
 **IDE-visible surface:** tools exposed by Bifrost according to the active virtual-key / capability profile (see `contracts/bifrost-upstream-mcp-registry.json`).
 
-**Exact ten `agentcore-memory` tools (live as of M3.002, 2026-07-17):**
+**Exact ten** `agentcore-memory` **tools (live as of M3.002, 2026-07-17):**
 `memory_status`, `startup_context`, `retrieve_context`, `append_event`, `propose_fact`, `expand_source`, `session_open`, `session_close`, `build_handoff`, `docs_search`
 
 **Project router tools:**
@@ -123,29 +156,41 @@ Normal agents must not: raw-SQL into `agent_core` or `swarmrecall`; place Postgr
 
 No SQL, DDL, database-admin, backup-admin, or Bifrost-admin tools are exposed to normal agents. See `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` §7 for live validation evidence.
 
+---
+
 ## 6. Memory System Roles
 
-- `agentcore-memory` = stable non-Swarm IDE memory identity (via Bifrost).
+- `agentcore-memory` = stable AgentCore IDE memory identity (via Bifrost).
 - `agent_core` = governed canonical AgentCore PostgreSQL/pgvector DB (ops/gateway internals; not direct IDE SQL).
-- SwarmRecall / SwarmVault / SwarmClaw = **separate Swarm ecosystem** — not part of the non-Swarm IDE mandatory baseline.
+- SwarmRecall / SwarmVault / SwarmClaw / SwarmDock / SwarmFeed / SwarmRelay / OpenClaw / ClawX = **separate Swarm ecosystem** — not part of the AgentCore IDE mandatory baseline and not AgentCore subsystems.
 
-## 7. Swarm Ecosystem Scope (independent)
+---
 
-- Swarm products may continue to use native SwarmRecall / SwarmVault locally inside their own ecosystem.
-- **Non-Swarm IDEs must not require Swarm MCP.**
-- Staged / blocked unless local-only proven & approved: SwarmRelay, SwarmFeed, SwarmDock.
-- Bifrost cutover ops must not modify Swarm product installs or Swarm launchers except to **exclude** Swarm entries from non-Swarm IDE baselines.
+## 7. Swarm Pointer (independent — not AgentCore)
 
-## 8. Mandatory MCP Baseline (non-Swarm IDEs)
+AgentCore may retain only minimum collision-avoidance facts:
+
+- Swarm is an independent ecosystem centered on SwarmClaw.
+- Intended Swarm components include SwarmClaw, SwarmRecall, SwarmVault, SwarmDock, SwarmFeed, and Swarm-owned OpenClaw agents. SwarmRelay is intended to be installed but disabled until separately approved by the Swarm build.
+- Swarm owns its own runtime, databases, RAG, memory, vaults, indexes, credentials, MCP servers, agents, services, schedules, backups, and recovery. Exclusive Swarm hot ownership of `H:` is the **target after M9 acceptance**. Swarm cold/backup under `E:\Swarm\...` is operator-intent / external target (AgentCore does not implement Swarm layout).
+- Cloud models are allowed for Swarm when they provide the best capability; that does not authorize Swarm local DB/RAG/memory/index/state onto AgentCore drives.
+- AgentCore must not prescribe or modify Swarm’s native internal setup.
+- Detailed Swarm architecture belongs only in Swarm’s control plane and an operator-carried neutral boundary contract.
+
+---
+
+## 8. Mandatory MCP Baseline (AgentCore / enrolled non-Swarm IDEs)
 
 ```text
 agentcore-gateway   # sole IDE MCP entry
                     # upstream registry lives behind Bifrost
 ```
 
-Canonical upstream set (behind the gateway, not pasted into each IDE) is defined in `contracts/bifrost-upstream-mcp-registry.json`. Builder profile typically includes arabold-docs, serena (via project router), sequential-thinking, cursor-agent-mcp, context-fabric, mcp-debugger, artiforge, depwire, tentra, obsidian-vault, playwright, filesystem (project-scoped), agentcore-memory, agentcore-project-router. Deferred/disabled until healthy: `depwire-cloud`, `github-mcp`.
+Canonical upstream set (behind the gateway, not pasted into each IDE) is defined in `contracts/bifrost-upstream-mcp-registry.json`. Builder profile typically includes arabold-docs, serena (via project router), sequential-thinking, cursor-agent-mcp, context-fabric, mcp-debugger, artiforge, depwire, tentra, playwright, filesystem (project-scoped), agentcore-memory, agentcore-project-router. Deferred/disabled until healthy: `depwire-cloud`, `github-mcp`.
 
-Ollama remains optional — not a mandatory MCP baseline server.
+Ollama remains optional — not a mandatory MCP baseline server. Swarm MCP servers must never appear in this baseline.
+
+---
 
 ## 9. Forbidden Active Routes
 
@@ -156,27 +201,36 @@ direct composio
 Hostinger
 hosted SwarmRecall / hosted SwarmVault as IDE defaults
 direct SQL as a normal-memory route
-:65432 active runtime route
+:65432 active AgentCore runtime route
 D:\MCP-Control-Plane as design authority
 whole-drive filesystem MCP roots
 Postgres credentials in IDE MCP configs
 Go SDK smoke treated as the MCP gateway
-Swarm MCP required in non-Swarm IDE baselines
+Swarm MCP required in AgentCore IDE baselines
+AgentCore memory/project-router sessions for Swarm-owned repos
+H: as AgentCore final runtime/data home
 ```
+
+---
 
 ## 10. Secrets & Config
 
-- No `.env` files anywhere in this system.
+- No `.env` files anywhere in the AgentCore system.
 - Windows User-scope environment variables only.
 - Bifrost config uses `env.NAME` references; IDE gateway clients use `${env:BIFROST_MCP_VIRTUAL_KEY}` (or materialize into live config only when the client cannot expand env headers — never commit the resolved value).
 - Never store or print raw secret values. Docs may name env var names and paths only.
 - Live IDE configs are app-owned; changes flow through renderers + `docs/prompts/install-agentcore-gateway-in-ide.md` / cutover ops with backup first.
 
+---
+
 ## 11. Automation Posture
 
 - Bifrost Gateway install/start/stop/test/backup/restore scripts live under `ops/bifrost/`.
-- Retained scheduled work may include Bifrost logon start, Postgres/SwarmRecall/Meilisearch ownership (Swarm ecosystem), nightly backup, and manual validators.
+- Retained AgentCore scheduled work may include Bifrost logon start, PostgreSQL backup/restore tests, nightly backup, and manual validators.
+- Swarm service ownership, Swarm schedules, and Swarm launchers are outside AgentCore authority.
 - Monitor automations remain removed/deferred unless operator-approved.
+
+---
 
 ## 12. Git Policy
 
@@ -187,6 +241,9 @@ Swarm MCP required in non-Swarm IDE baselines
 - Never stage live secret-bearing configs, rendered PAT URLs, DB dumps, caches, node_modules, runtime artifacts, `.env` files, or live `F:\AgentCore\runtime` / `F:\PostgreSQL18` runtime state.
 - If a task changes only live runtime state or live IDE configs, write an evidence report under `artifacts/` and commit/push that instead.
 - For remote lookups, use a separate read-only clone under `D:\github-readonly\<repo>`.
+- Full policy: `docs/GIT_PUSH_ONLY_POLICY.md`.
+
+---
 
 ## 13. Hard Stop Gates (require explicit operator approval)
 
@@ -197,12 +254,16 @@ Swarm MCP required in non-Swarm IDE baselines
 - service start/stop (outside approved Bifrost ops scripts when already authorized)
 - Docker mutation
 - secret rotation/removal
-- SwarmVault source deletion / Swarm product mutation
-- raw writes to F:\AgentCore
+- Swarm product mutation / Swarm vault deletion / Swarm schedule changes
+- raw writes to F:\AgentCore outside approved ops
 - raw writes to the active Obsidian vault
 - remote pull/fetch/merge/rebase
 - treating experiments/bifrost-go-sdk-smoke as production gateway
+- treating a Swarm repository as an AgentCore-managed project
+- expanding AgentCore write authority into H: or E:\Swarm\...
 ```
+
+---
 
 ## 14. Change Policy
 

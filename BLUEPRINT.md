@@ -1,21 +1,67 @@
 # BLUEPRINT.md — AgentCore Global Memory, Context, and Database Platform
 
-> **Status:** Locked implementation blueprint  
-> **Repository:** `D:\github\agentcore-control-plane`  
-> **Machine:** `CHAOSCENTRAL`  
-> **Operator:** Tony Valentine (`ynotf`)  
-> **Scope:** Non-Swarm AgentCore platform only  
-> **Last updated:** 2026-07-20 (pointers only; architecture unchanged)  
+> **Status:** Locked implementation blueprint
+> **Repository:** `D:\github\agentcore-control-plane`
+> **Machine:** `CHAOSCENTRAL`
+> **Operator:** Tony Valentine (`ynotf`)
+> **Scope:** Non-Swarm AgentCore platform only
+> **Last updated:** 2026-07-31 (ecosystem/drive separation reconciliation; architecture otherwise preserved)
 >
-> This file is the stable blueprint for the memory/context/database build.  
+> This file is the stable blueprint for the memory/context/database build.
 > It defines the goal, architecture, storage roles, immutable guarantees, and Milestone exit criteria.
 >
 > Cursor may optimize Macro and Micro steps from repository and machine evidence. Cursor may not change the architecture, Milestone outcomes, Milestone ordering, storage authority, lossless guarantees, Cognee decision, Bifrost identities, or Swarm boundary without explicit operator approval.
 >
-> **Operational runbooks (do not override this architecture):**  
-> `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`,  
-> `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, `docs/bifrost/CAPABILITY_PROFILES.md`,  
+> **Operational runbooks (do not override this architecture):**
+> `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`,
+> `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, `docs/bifrost/CAPABILITY_PROFILES.md`,
 > `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`. Mutable live status lives in `CONTEXT_BLOCK.md`.
+
+---
+
+## Ecosystem and Drive Separation — Read First
+
+AgentCore and Swarm are **independent control planes**. They share a machine, not authority, runtime, memory, credentials, or backups.
+
+| Domain | Ownership |
+| --- | --- |
+| AgentCore repository / design authority | `D:\github\agentcore-control-plane` |
+| AgentCore hot runtime / data namespace | `F:\AgentCore\...` |
+| AgentCore staging | `I:` (unless later changed by explicit authority) |
+| AgentCore cold / backup namespace | `E:\AgentCore\...` only |
+| Swarm hot runtime / data | `H:` exclusively (after AgentCore relocation and acceptance cutover) |
+| Swarm cold / backup namespace | `E:\Swarm\...` only |
+
+**Hard rules**
+
+- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
+- Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
+- No canonical resource may be jointly owned.
+- Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
+- Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
+
+```mermaid
+flowchart LR
+  subgraph AC["AgentCore — independent"]
+    Repo["D:\\github\\agentcore-control-plane"]
+    Hot["F:\\AgentCore\\..."]
+    Cold["E:\\AgentCore\\..."]
+    Stage["I: staging"]
+    GW["agentcore-gateway :8080"]
+    Mem["agentcore-memory"]
+    PG["PostgreSQL 18 :55433"]
+  end
+  subgraph SW["Swarm — independently owned"]
+    Hdrive["H: reserved hot"]
+    Ecold["E:\\Swarm\\..."]
+  end
+  Repo --> Hot
+  Hot --> GW --> Mem --> PG
+  Hot --> Cold
+  Hot --> Stage
+  AC -.->|no connectivity| SW
+  SW -.->|no connectivity| AC
+```
 
 ---
 
@@ -40,7 +86,7 @@ Historical, Swarm-only, superseded, and compatibility documents do not override 
 
 ## 2. Final Goal
 
-Build one local, durable, lossless memory and context platform for every non-Swarm IDE and agent on `CHAOSCENTRAL`.
+Build one local, durable, lossless memory and context platform for every AgentCore / enrolled non-Swarm IDE and agent on `CHAOSCENTRAL`, centered on LangGraph Studio and the AgentCore workflow runtime, able to orchestrate approved IDE and coding agents for maximum engineering benefit within AgentCore’s governed project, safety, validation, and write boundaries.
 
 The platform must:
 
@@ -53,9 +99,10 @@ The platform must:
 - Keep PostgreSQL as the canonical authority.
 - Use Cognee only for curated semantic and relationship memory.
 - Use LangGraph for durable autonomous workflows and checkpoints.
-- Expose memory through the existing Bifrost gateway.
-- Keep SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, and ClawX independent and untouched.
+- Expose memory through the existing Bifrost gateway (`agentcore-gateway`).
+- Keep SwarmRecall, SwarmVault, SwarmClaw, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, and ClawX independent and untouched.
 - Deep Agents (`deepagents==0.6.12`, MIT) may be used as an optional worker harness inside LangGraph nodes; it is not a canonical memory, workflow, policy, or tool authority. See `docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md`.
+- Operate only on AgentCore and explicitly enrolled non-Swarm projects. Never treat Swarm repositories as AgentCore projects.
 
 The platform is for one human operator with large local storage. Durable storage and complete provenance are preferred over aggressive deletion.
 
@@ -64,10 +111,10 @@ The platform is for one human operator with large local storage. Durable storage
 ## 3. Locked Architecture
 
 ```text
-Non-Swarm IDEs and agents
+AgentCore / enrolled non-Swarm IDEs and agents
         |
         v
-Bifrost: agentcore-gateway
+Bifrost: agentcore-gateway  (http://127.0.0.1:8080/mcp)
         |
         v
 Bifrost upstream: agentcore-memory
@@ -84,14 +131,15 @@ Bifrost upstream: agentcore-memory
         |     - LangGraph persistence
         |     - documentation metadata and indexes
         |
-        +-- H:
-        |     - Bifrost runtime
+        +-- F:\AgentCore\...   (AgentCore hot — Bifrost CURRENT; remaining leaves CURRENT/TARGET per M9)
+        |     - Bifrost runtime (F:\AgentCore\runtime\bifrost)  [CURRENT STATE]
         |     - hot content-addressed artifacts
         |     - context/compaction scratch
         |     - active models and caches
         |     - service logs
+        |     - client caches under F:\AgentCore\runtime\clients\{client_key}\
         |
-        +-- E:
+        +-- E:\AgentCore\...   (AgentCore cold/backup — TARGET; transitional roots may exist)
         |     - cold original evidence
         |     - archived artifacts
         |     - official documentation corpus
@@ -109,7 +157,47 @@ Bifrost upstream: agentcore-memory
               - <project>\.agentcore\STATE.md
               - <project>\.agentcore\DECISIONS.md
               - <project>\.agentcore\CONTEXT_INDEX.md
+
+External boundary (not AgentCore):
+  Swarm: independently owned; H: reserved; E:\Swarm\... cold/backup; no connectivity.
 ```
+
+```mermaid
+flowchart TB
+  IDE["AgentCore IDE / enrolled non-Swarm agent"]
+  GW["agentcore-gateway"]
+  MEM["agentcore-memory"]
+  PG[(PostgreSQL 18 agent_core / cognee_core)]
+  BF["F:\\AgentCore\\runtime\\bifrost"]
+  ART["F:\\AgentCore hot artifacts"]
+  COLD["E:\\AgentCore cold / backups"]
+  LG["LangGraph production + Studio"]
+  DA["Deep Agents worker harness"]
+  SWARM["Swarm independently owned<br/>H: reserved — no connectivity"]
+
+  IDE --> GW --> MEM --> PG
+  GW --- BF
+  MEM --> ART
+  ART --> COLD
+  LG --> PG
+  LG --> GW
+  LG --> DA
+  IDE -.->|forbidden| SWARM
+  MEM -.->|forbidden| SWARM
+  GW -.->|forbidden| SWARM
+  PG -.->|forbidden| SWARM
+```
+
+### Status labels for storage claims
+
+| Claim | Label |
+| --- | --- |
+| Bifrost at `F:\AgentCore\runtime\bifrost` | **current state** (live + relocated on main) |
+| Historical Bifrost at `H:\AgentRuntime\...` | **historical evidence** |
+| Remaining AgentCore leaves on `H:` (if any) | **transitional** — M9 vacate |
+| AgentCore cold under `E:\AgentCore\...` | **target**; `E:\AgentCore-Backups` may be transitional |
+| `H:` exclusive Swarm hot | **target** after M9 acceptance |
+| Full migration / negative-access acceptance | **do not assert complete** until M9 evidence exists |
 
 ### Canonical authority
 
@@ -183,7 +271,7 @@ Use Lossless Claw as a reference for:
 - exact `grep` / `describe` / `expand`-style recall;
 - lossless pointers from summaries back to originals.
 
-Do not import OpenClaw-specific runtime assumptions into the non-Swarm AgentCore platform.
+Do not import OpenClaw-specific runtime assumptions into the AgentCore platform. Do not treat SwarmClaw/OpenClaw as AgentCore subsystems.
 
 ### Vector and index policy
 
@@ -244,34 +332,34 @@ Rules:
 ### Drive roles
 
 | Drive | Device/role | Locked use |
-|---|---|---|
+| --- | --- | --- |
 | C: | OS and applications | Windows, user profile, IDE-owned global files; no high-volume database writes |
-| D: | Project NVMe | Repositories, worktrees, builds, tests |
-| E: | 10 TB HGST HDD | Cold evidence, documentation, archives, backups, WAL archive |
-| F: | 4 TB Samsung 990 PRO | AgentCore dedicated hot: PostgreSQL 18, pgvector, Bifrost/AgentRuntime (`F:\AgentCore\runtime`), memory hot artifacts, indexes, caches |
+| D: | Project NVMe | Repositories, worktrees, builds, tests; AgentCore source authority |
+| E: | 10 TB HGST HDD | Cold evidence/archives/backups. AgentCore only under `E:\AgentCore\...`. Swarm only under `E:\Swarm\...`. No primary SQL |
+| F: | 4 TB Samsung 990 PRO | AgentCore dedicated hot: PostgreSQL 18, pgvector, Bifrost/AgentRuntime under `F:\AgentCore\...`, memory hot artifacts, indexes, caches |
 | G: | 4 TB external HDD | Second backup copy |
-| H: | 2 TB Crucial P5 Plus NVMe | Swarm ecosystem dedicated hot runtime/data (not AgentCore). AgentCore must not place canonical runtime or rollback here. |
-| I: | 1 TB Crucial BX500 SATA SSD | Disposable staging and sequential temporary exports only |
+| H: | 2 TB Crucial P5 Plus NVMe | Reserved exclusively for Swarm hot runtime/data after AgentCore relocation acceptance. Not AgentCore |
+| I: | 1 TB Crucial BX500 SATA SSD | AgentCore disposable staging and sequential temporary exports only |
 | J: | 1 TB portable exFAT SSD | Portable transfer only |
 
 ### Allocation-unit targets
 
 | Drive | Target filesystem/allocation unit | Rule |
-|---|---:|---|
+| --- | --- | --- |
 | C: | Existing NTFS / 4 KB | Preserve |
 | D: | Existing NTFS / 4 KB | Preserve |
 | E: | NTFS / 64 KB | Verify; correct only if mismatched |
 | F: | NTFS / 64 KB | Verify; correct only if mismatched |
-| H: | NTFS / 64 KB | Verify; correct only if mismatched |
+| H: | NTFS / 64 KB | Swarm concern after cutover; AgentCore must not place canonical workload here |
 | I: | NTFS / 64 KB | Expected to require correction |
 | G: | Preserve | Do not format |
 | J: | Preserve exFAT | Do not format |
 
 ### Storage preparation authorization
 
-Before durable platform installation, Cursor may inspect and correct E:, F:, H:, and I: when their live allocation-unit size does not match the target.
+Before durable platform installation, Cursor may inspect and correct E:, F:, and I: when their live allocation-unit size does not match the target. H: correction for Swarm is outside AgentCore implementation authority after separation lock; AgentCore must not format H: as part of ordinary AgentCore work.
 
-For any drive requiring correction:
+For any AgentCore-authorized drive requiring correction:
 
 1. Identify the physical disk by model, serial/device identity, disk number, volume GUID, and drive letter.
 2. Inventory files, services, tasks, open handles, ACLs, and used space.
@@ -288,10 +376,27 @@ Never format C:, D:, G:, or J:.
 
 Never format by drive letter alone.
 
-F:\AgentCore\runtime contains the live Bifrost runtime and AgentCore hot AgentRuntime leaves.  
-H: is reserved for the Swarm ecosystem and must not hold AgentCore canonical runtime or rollback.  
-F: also contains preserved PostgreSQL material under `F:\PostgreSQL18`.  
+`F:\AgentCore\runtime` contains the live Bifrost runtime and AgentCore hot AgentRuntime leaves (**current state**).
+`H:` is reserved for the Swarm ecosystem and must not hold AgentCore canonical runtime or rollback (**target after M9**; treat any remaining AgentCore leaves as **transitional**).
+`F:` also contains preserved PostgreSQL material under `F:\PostgreSQL18`.
 Those contents must be backed up and restored or reinstalled deliberately before related builds continue.
+
+### Swarm external-boundary box (pointer only)
+
+```text
+Swarm: independently owned; H: reserved; E:\Swarm\... cold/backup; no connectivity.
+```
+
+AgentCore may know only minimum collision-avoidance facts (see `PROJECT_ANCHOR.md` §7). Do not embed Swarm blueprints, ports, credentials, installers, or native setup procedures in this file. Official Swarm product docs (retrieved 2026-07-31) distinguish:
+
+- SwarmClaw native memory uses SQLite (`data/memory.db`) per current SwarmClaw docs — **do not claim** SwarmRecall replaces that native backend unless separately proven.
+- SwarmRecall is a first-class intended Swarm ecosystem component (operator intent + separate product), not an AgentCore optional add-on.
+- SwarmVault integrates with SwarmClaw as a scoped MCP knowledge backend with an explicit vault working directory.
+- SwarmFeed has documented native SwarmClaw integration and is also self-hostable; any self-hosted local DB/search/event/cache/RAG state must remain Swarm-owned on H:.
+- SwarmDock is a documented connector/MCP marketplace (hosted mode does not invent a local SwarmDock DB requirement); any local adapter/cache/credential/self-hosted state must remain Swarm-owned on H:.
+- SwarmRelay is intended installed-but-disabled until the Swarm build establishes supported role/state/activation — **not** claimed live here.
+
+These are boundary pointers and operator-intent distinctions, **not** authorization to install or configure Swarm from AgentCore.
 
 ---
 
@@ -308,7 +413,7 @@ Required guarantees:
 5. Every fact retains provenance and source evidence.
 6. Any summary or fact can expand back to exact original evidence.
 7. Compaction is deterministic, versioned, idempotent, and restart-safe.
-8. Archiving from H: to E: does not break retrieval or expansion.
+8. Archiving from AgentCore hot (`F:\AgentCore\...`) to AgentCore cold (`E:\AgentCore\...`) does not break retrieval or expansion.
 9. Contradictory facts create proposals/reviews instead of silent overwrites.
 10. Trust labels and provenance follow every stored and retrieved item.
 11. Secrets are redacted before durable storage.
@@ -348,12 +453,13 @@ C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
 - Every project agent reads `STATE.md` at startup and before a Milestone transition.
 - Every accepted project change updates durable state before the session closes.
 - `STATE.md` records current truth, progress, blockers, active Milestone, next actions, and verified decisions—not raw transcripts.
+- Swarm work must never be persisted into AgentCore STATE projections.
 
 ---
 
 ## 7. Project Execution Rules
 
-Every managed project uses:
+Every AgentCore-managed project uses:
 
 - Project Charter
 - Locked Milestones
@@ -367,6 +473,8 @@ Every managed project uses:
 - Tool audits
 - Restore points
 - Durable handoffs
+
+Swarm repositories are not AgentCore-managed projects. Dual-workspace visibility is read-only for collision/boundary audits unless the operator expands write scope explicitly inside AgentCore authority.
 
 ### Milestones versus steps
 
@@ -390,6 +498,8 @@ Do not pre-plan hundreds of speculative Micro steps. Refine the current Mileston
 ---
 
 ## 8. Locked Milestones
+
+Detailed exit-criteria text for M0–M8 is preserved below. M9 is the bounded AgentCore relocation/separation milestone. Full status table: `MILESTONES.md`.
 
 ## M0 — Authority and Execution Foundation
 
@@ -416,8 +526,8 @@ Do not pre-plan hundreds of speculative Micro steps. Refine the current Mileston
 
 **Exit criteria:**
 
-- E:, F:, H:, and I: allocation units verified.
-- Any mismatched target is safely corrected with backup, hash verification, restore, and service validation.
+- E:, F:, and I: allocation units verified for AgentCore use; H: not used as AgentCore canonical storage.
+- Any mismatched AgentCore target is safely corrected with backup, hash verification, restore, and service validation.
 - Existing PostgreSQL cluster and roles inventoried.
 - Logical and physical backups created.
 - At least one isolated restore test passes.
@@ -425,7 +535,7 @@ Do not pre-plan hundreds of speculative Micro steps. Refine the current Mileston
 - Required databases and least-privilege service roles exist.
 - Old PostgreSQL cluster remains preserved and recoverable.
 - Rollback is proven.
-- No durable database, WAL, checkpoint, queue, or lock workload is placed on I: or E:.
+- No durable database, WAL, checkpoint, queue, or lock workload is placed on I: or E: primary SQL paths.
 
 **Rollback point:** pre-format manifests/backups and preserved prior PostgreSQL cluster.
 
@@ -464,7 +574,7 @@ Do not pre-plan hundreds of speculative Micro steps. Refine the current Mileston
 - Session windows are token-budgeted and importance-aware.
 - Hierarchical compression/decay is deterministic where practical and preserves exact source edges.
 - Exact expansion works after compaction.
-- Exact expansion works after archival to E:.
+- Exact expansion works after archival to AgentCore cold on E:.
 - Context assembly obeys model-specific token budgets.
 - `GLOBAL_STATE.md` and project `STATE.md` regenerate deterministically using the adopted COMB-style projection convention.
 - Static/stable context is separated from active/dynamic context.
@@ -480,7 +590,7 @@ Do not pre-plan hundreds of speculative Micro steps. Refine the current Mileston
 
 ## M4 — AgentCore Memory Gateway
 
-**Outcome:** Every non-Swarm IDE uses the completed memory system through the existing Bifrost connection.
+**Outcome:** Every AgentCore / enrolled non-Swarm IDE uses the completed memory system through the existing Bifrost connection.
 
 **Required compact surface:**
 
@@ -508,6 +618,7 @@ docs_search
 - Degraded components are reported clearly.
 - No raw database or administration tools are exposed.
 - Restart and reconnect tests pass.
+- Swarm MCP is not required and not present in the AgentCore IDE baseline.
 
 **Rollback point:** prior compatible `agentcore-memory` adapter and Bifrost upstream configuration.
 
@@ -525,7 +636,7 @@ docs_search
 - HNSW is the initial ANN strategy where indexing is justified.
 - IVFFlat, pgvectorscale, and DiskANN remain benchmark-gated optional upgrades.
 - Any acceleration extension demonstrates a material measured benefit before adoption.
-- Official source documents live on E: and searchable metadata/indexes live on F:.
+- Official source documents live on AgentCore cold E: and searchable metadata/indexes live on F:.
 - Cognee runs natively on Windows behind `KnowledgeMemoryPort`.
 - Cognee uses a separate `cognee_core` database on the PostgreSQL 18 service.
 - Only promoted facts, decisions, verified fixes, reusable patterns, and curated documentation concepts enter Cognee.
@@ -540,7 +651,7 @@ docs_search
 
 ## M6 — Durable LangGraph Autonomous Workflow
 
-**Outcome:** Autonomous development work resumes safely and verifies its own progress.
+**Outcome:** Autonomous development work resumes safely and verifies its own progress. LangGraph Studio remains the interactive autonomy surface for AgentCore-managed arbitrary-project engineering within governed boundaries.
 
 **Exit criteria:**
 
@@ -556,6 +667,10 @@ docs_search
 - Concurrent projects cannot change each other’s visible tools, leases, or state.
 - Expired leases revoke correctly.
 - A/B implementation occurs only when risk or uncertainty justifies it.
+- Production CLI runs from `D:\github\agentcore-control-plane` only.
+- Studio is localhost-bound (`127.0.0.1:2024`), uses the Agent Server dev checkpointer (not production PostgresSaver), never shares thread IDs with production, and is not a persistent Windows service.
+- Deep Agents remains a bounded worker harness inside LangGraph nodes only.
+- Workflows refuse Swarm-owned repositories as AgentCore projects.
 
 **Rollback point:** last accepted LangGraph checkpoint and prior capability profile revision.
 
@@ -588,8 +703,8 @@ docs_search
 
 **Exit criteria:**
 
-- Native Windows lifecycle ownership for required services.
-- Backup to E: and second copy to G:.
+- Native Windows lifecycle ownership for required AgentCore services.
+- Backup to AgentCore cold namespace on E: and second copy to G:.
 - WAL archive and retention rules work.
 - Restore tests pass.
 - PostgreSQL, Bifrost, memory service, compaction worker, Cognee, and LangGraph restart tests pass.
@@ -602,8 +717,19 @@ docs_search
 - Operator quick-start, health, backup, restore-test, and diagnostic commands work.
 - Swarm remains untouched.
 - Final cutover is reversible.
+- AgentCore continues LangGraph Studio / autonomous arbitrary-project production-readiness under AgentCore write boundaries only.
 
 **Rollback point:** preserved old cluster, previous gateway adapter, verified backups, and last accepted platform release.
+
+---
+
+## M9 — AgentCore Relocation and Ecosystem Separation
+
+**Outcome:** AgentCore vacates `H:`, locks hot runtime/data under `F:\AgentCore\...`, isolates cold/backup under `E:\AgentCore\...`, and proves AgentCore cannot access the final Swarm domain. Swarm is not built by this milestone.
+
+**Exit criteria:** See `MILESTONES.md` M9 (inventory, relocation, cold/backup isolation, contracts/renderers/runbooks, restart/recovery, negative-access tests, context-contamination checks, Git/document acceptance, rollback gate, external boundary condition).
+
+**Rollback point:** last accepted Bifrost/runtime backup and pre-M9 authority revision set.
 
 ---
 
@@ -634,6 +760,7 @@ Rules:
 - Administrative, destructive, whole-drive, secret-bearing, hosted-upload, raw-database, and live-IDE-config tools are operator-only.
 - Runtime profiles and leases become PostgreSQL-backed in M6.
 - Do not build a competing YAML/JSON lease authority before the database foundation exists.
+- Swarm MCP tools are forbidden in the AgentCore IDE baseline.
 
 ---
 
@@ -643,14 +770,15 @@ Rules:
 - No `.env` files for AgentCore.
 - No secret values in documentation, contracts, IDE configurations, logs, evidence, or Git.
 - Services bind to localhost unless explicitly approved.
-- Agents write only to their assigned project/worktree and authorized storage paths.
+- Agents write only to their assigned AgentCore / enrolled non-Swarm project/worktree and authorized AgentCore storage paths.
 - Swarm data, configs, databases, tasks, and tools are excluded.
 - No whole-drive filesystem roots for normal agents.
 - No direct IDE SQL.
 - Migration execution uses a dedicated role and evidence gate.
 - Destructive migrations require explicit approval.
 - Live IDE configs are changed only by their documented IDE-specific installation method.
-- Bifrost remains the sole normal non-Swarm MCP front door.
+- Bifrost remains the sole normal AgentCore MCP front door.
+- No AgentCore IDE continuity model for Swarm projects.
 
 ---
 
@@ -677,6 +805,8 @@ A backup is accepted only after a restore succeeds.
 
 No original evidence is deleted merely because a summary exists.
 
+AgentCore backups must not write into Swarm backup namespaces. Swarm backups are outside AgentCore recovery scope.
+
 ---
 
 ## 12. Change Control
@@ -692,13 +822,15 @@ Changes requiring explicit operator approval:
 - Changing Bifrost identities
 - Adding a second normal IDE MCP front door
 - Combining AgentCore with Swarm
-- Formatting a drive outside the authorized E:/F:/H:/I: correction scope
+- Restoring AgentCore IDE continuity on Swarm projects
+- Formatting a drive outside the authorized AgentCore E:/F:/I: correction scope
 - Formatting any drive without stable physical-disk identification and verified backup
 - Moving canonical workload roles between drives
 - Allowing IDE agents direct database credentials
 - Removing immutable evidence or exact source expansion
 - Making STATE files manually edited canonical sources
 - Introducing Docker or WSL as a core dependency
+- Placing AgentCore canonical runtime/data back onto H:
 
 Cursor must stop and ask before making one of these changes.
 
@@ -739,6 +871,7 @@ No Milestone is complete because code exists. It is complete only when its exit 
 The platform is complete only when:
 
 - All M0–M8 exit criteria pass.
+- M9 relocation/separation exit criteria pass (or are explicitly deferred by operator with residual risk accepted).
 - Lossless append, compact, archive, retrieve, and exact-expand cycles pass.
 - Multiple IDE sessions remain isolated and coherent.
 - Project `STATE.md` remains current and reproducible.
@@ -747,14 +880,14 @@ The platform is complete only when:
 - No stale authority changes agent behavior.
 - No IDE requires direct database access.
 - No second canonical memory system exists.
-- Swarm remains untouched.
+- Swarm remains untouched and unreachable from AgentCore normal ops.
 - The operator can run health, backup, restore-test, and diagnostics without reconstructing the architecture from chat history.
 
 ---
 
 ## 15. Final Context-Source Audit and Immediate Next Action
 
-Before M1 executes, Cursor performs one final context-source audit. This is the last architecture-alignment pass, not another redesign cycle.
+Before executing relocation/separation work (M9) or any storage-authority change, Cursor performs a context-source audit. This is an architecture-alignment pass, not another redesign cycle.
 
 Audit every source that can influence Cursor or another managed agent, including:
 
@@ -776,20 +909,20 @@ Audit every source that can influence Cursor or another managed agent, including
 
 Cursor must produce one concise mental model covering:
 
-- current machine and drive roles;
+- current machine and drive roles (F: AgentCore hot; H: Swarm reserved);
 - current gateway and tool topology;
 - canonical memory/data planes;
 - lossless context behavior;
 - Cognee’s role;
 - COMB’s role;
 - Distill/Lossless-Claw reference behavior;
-- LangGraph’s role;
+- LangGraph’s role and Studio isolation;
 - STATE projection behavior;
 - trust and promotion flow;
-- Swarm isolation;
+- Swarm isolation / no connectivity;
 - current Milestone and rollback point.
 
-If a live context source contradicts this blueprint, Cursor makes the smallest justified correction, reruns validators, records the correction, and proceeds.
+If a live context source contradicts this blueprint, Cursor makes the smallest justified correction **inside authorized write scope**, reruns validators, records the correction, and proceeds. Files outside the authorized task write set require operator confirmation before edit.
 
 Cursor must not create another competing plan or authority layer.
 
@@ -798,8 +931,6 @@ After the audit:
 1. Confirm this file exists at the repository root as `BLUEPRINT.md`.
 2. Confirm it is classified as current in `DOC_AUTHORITY.md`.
 3. Confirm it is referenced from `PROJECT_ANCHOR.md`, `CONTEXT_BLOCK.md`, and the memory-platform handoff.
-4. Confirm M0 remains satisfied.
-5. Refine M1 Macro/Micro steps from live evidence.
-6. Execute M1 under its approved safety boundaries.
-7. Stop only for an ambiguous physical disk identity, failed backup/restore proof, an authority-changing decision, or another explicitly locked operator gate.
-
+4. Confirm M0–M8 accepted evidence remains intact.
+5. Execute M9 under its approved safety boundaries when authorized.
+6. Stop only for an ambiguous physical disk identity, failed backup/restore proof, an authority-changing decision, or another explicitly locked operator gate.
