@@ -370,7 +370,7 @@
             "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
             "--",
             "C:\\Program Files\\nodejs\\node.EXE",
-            "H:\\AgentRuntime\\skills-hub\\start.mjs"
+            "F:\\AgentCore\\runtime\\skills-hub\\start.mjs"
           ],
           "envs": []
         },
@@ -795,7 +795,7 @@
   "agentcore_meta": {
     "gateway_id": "agentcore-gateway",
     "authority": "D:\\github\\agentcore-control-plane",
-    "runtime_root": "H:\\AgentRuntime\\bifrost",
+    "runtime_root": "F:\\AgentCore\\runtime\\bifrost",
     "swarm_exclusion": [
       "swarmrecall",
       "swarmvault",
@@ -826,7 +826,7 @@
       "BIFROST_MCP_VK_OPERATOR",
       "BIFROST_MCP_VK_CHATGPT"
     ],
-    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json) \u2014 present=True. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration.",
+    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) \u2014 present=True. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration.",
     "output_schema": {
       "configured": true,
       "enabled": true,

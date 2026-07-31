@@ -21,7 +21,7 @@
 > Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
 > ```
 >
-> Upstream MCP servers are registered behind Bifrost via `contracts/bifrost-upstream-mcp-registry.json` and rendered into `H:\AgentRuntime\bifrost\config.json`. IDEs must not embed the full per-server baseline.
+> Upstream MCP servers are registered behind Bifrost via `contracts/bifrost-upstream-mcp-registry.json` and rendered into `F:\AgentCore\runtime\bifrost\config.json`. IDEs must not embed the full per-server baseline.
 >
 > **Memory path (non-Swarm):**
 >
@@ -53,7 +53,7 @@ Non-negotiable invariants for every managed project:
 ## 1. Authority
 
 - **Source / config authority:** `D:\github\agentcore-control-plane` — all governance, contracts, renderers, validators, ops scripts, migrations, and docs.
-- **Bifrost runtime root:** `H:\AgentRuntime\bifrost` — live `bifrost-http.exe`, `config.json`, sqlite stores, logs, state. Not a design authority.
+- **Bifrost runtime root:** `F:\AgentCore\runtime\bifrost` — live `bifrost-http.exe`, `config.json`, sqlite stores, logs, state. Not a design authority.
 - **Compatibility / live-ops evidence only:** `D:\MCP-Control-Plane` — NOT a design authority. Agents must not treat it or any doc under it as current instructions.
 
 ## 2. Drive Roles
@@ -63,10 +63,10 @@ Non-negotiable invariants for every managed project:
 | `C:`  | OS, apps, user profile, live IDE configs (app-owned; not directly edited without approval) |
 | `D:`  | Source repos, projects, worktrees, build evidence (code/source tier); config authority lives here |
 | `E:`  | Docs archive / cold storage / backups / exports / emergency spool only (no primary SQL) |
-| `F:`  | PostgreSQL / hot indexes / hot local database & search runtime (access via service/API/CLI wrappers only) |
+| `F:`  | AgentCore dedicated hot NVMe: PostgreSQL 18, Bifrost/AgentRuntime (`F:\AgentCore\runtime`), memory hot artifacts, Tentra, MCP helpers, caches (access DB via service/API/CLI wrappers only) |
 | `G:`  | Backup target only |
-| `H:`  | Bifrost runtime, models, caches, AgentRuntime (`H:\AgentRuntime\bifrost`, Tentra data, MCP process helpers) |
-| `I:`  | Disposable scratch only |
+| `H:`  | Swarm ecosystem dedicated hot NVMe (not AgentCore). AgentCore must not place canonical runtime or rollback here. |
+| `I:`  | AgentCore disposable scratch / staging only |
 | `J:`  | Portable media / transfer only |
 
 ## 3. Runtime Endpoints
@@ -79,7 +79,7 @@ Non-negotiable invariants for every managed project:
 | Component | Endpoint / Path |
 | --------- | --------------- |
 | **AgentCore Bifrost MCP Gateway** | `http://127.0.0.1:8080/mcp` (`agentcore-gateway`) |
-| Bifrost runtime | `H:\AgentRuntime\bifrost` (`bin\bifrost-http.exe`, `config.json`, sqlite under `data/` / `logs/`) |
+| Bifrost runtime | `F:\AgentCore\runtime\bifrost` (`bin\bifrost-http.exe`, `config.json`, sqlite under `data/` / `logs/`) |
 | **PostgreSQL 18 cluster (canonical AgentCore)** | `127.0.0.1:55433` (`F:\PostgreSQL18\data`) |
 | `agent_core` DB | governed canonical AgentCore DB on PostgreSQL 18 (`127.0.0.1:55433`) |
 | `cognee_core` DB | Cognee-owned database on PostgreSQL 18 (`127.0.0.1:55433`) |
@@ -184,7 +184,7 @@ Swarm MCP required in non-Swarm IDE baselines
 - **Push after every completed task.** Validate narrowly, secret/junk scan, stage only source-controlled files, commit, push `origin main` (or the active feature branch when that is the task branch).
 - Do not pull, fetch, merge, rebase, or remote-update unless the operator explicitly asks.
 - Never force-push without explicit operator approval.
-- Never stage live secret-bearing configs, rendered PAT URLs, DB dumps, caches, node_modules, runtime artifacts, `.env` files, or `F:\AgentCore` / `H:\AgentRuntime` runtime state.
+- Never stage live secret-bearing configs, rendered PAT URLs, DB dumps, caches, node_modules, runtime artifacts, `.env` files, or live `F:\AgentCore\runtime` / `F:\PostgreSQL18` runtime state.
 - If a task changes only live runtime state or live IDE configs, write an evidence report under `artifacts/` and commit/push that instead.
 - For remote lookups, use a separate read-only clone under `D:\github-readonly\<repo>`.
 

@@ -2,7 +2,7 @@
   "schema_version": "2026-07-12",
   "gateway_id": "agentcore-gateway",
   "authority": "D:\\github\\agentcore-control-plane",
-  "runtime_root": "H:\\AgentRuntime\\bifrost",
+  "runtime_root": "F:\\AgentCore\\runtime\\bifrost",
   "swarm_exclusion": [
     "swarmrecall",
     "swarmvault",
@@ -608,13 +608,13 @@
           "spawn_failure"
         ]
       },
-      "rollback_route": "Disable tentra wrapper; data remains at H:\\AgentRuntime\\tentra\\data.",
+      "rollback_route": "Disable tentra wrapper; data remains at F:\\AgentCore\\runtime\\tentra\\data.",
       "enabled": true,
       "bifrost_client_name": "tentra",
       "status": "active",
       "notes": [
         "Local mode only. Do not run tentra-mcp init or init --hook.",
-        "Data path expected under H:\\AgentRuntime\\tentra\\data via TENTRA_DATA_DIR."
+        "Data path expected under F:\\AgentCore\\runtime\\tentra\\data via TENTRA_DATA_DIR."
       ]
     },
     "obsidian-vault": {
@@ -1044,7 +1044,7 @@
         "LIFECYCLE: installed_dormant -> ready_auth_on_first_use -> authenticated_dormant (OAuth connected) -> jit_leased. Registry status remains 'dormant' by validator contract because tools require a live M6 lease.",
         "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY — OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
         "ENCRYPTION: BIFROST_ENCRYPTION_KEY required in Windows User scope; OAuth token stored encrypted in data/config.db.",
-        "OAUTH BINDING: Runtime state H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json holds oauth_config_id + mcp_client_id only. After enrollment, runtime config.json must use oauth_config_id (not oauth_config) or restart unbinds the client.",
+        "OAUTH BINDING: Runtime state F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json holds oauth_config_id + mcp_client_id only. After enrollment, runtime config.json must use oauth_config_id (not oauth_config) or restart unbinds the client.",
         "RENDERER BEHAVIOR: Pre-enrollment git/sanitized renderers embed oauth_config public params. Post-enrollment runtime render substitutes oauth_config_id from state file. Do not commit runtime oauth_config_id into Git renderers (OR-10).",
         "ZERO TOOLS exposed without a live M6 capability lease + Bifrost VK mcp_configs grant via scripts/bifrost/jit_vk_bridge.py. capability_profiles: [operator] is JIT-eligible reference only.",
         "openrouter must NOT appear in capability_profiles[*].allowed_server_ids — enforced by validator.",
@@ -1056,7 +1056,7 @@
         "AUTHENTICATED LIVE INVENTORY 2026-07-20: 20 tools; hash 83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e. All 20 live tools now classified (18 permitted + 2 denied).",
         "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
         "No OPENROUTER_MCP_KEY in Windows env — OAuth token managed by Bifrost config.db only.",
-        "oauth_config_id is runtime-only metadata in H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json. Never committed to Git, source renderers, IDE configs, or logs."
+        "oauth_config_id is runtime-only metadata in F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json. Never committed to Git, source renderers, IDE configs, or logs."
       ]
     },
     "agentcore-project-router": {
@@ -1103,12 +1103,12 @@
           "spawn_failure"
         ]
       },
-      "rollback_route": "Disable agentcore_project_router; clear H:\\AgentRuntime\\bifrost\\state\\active-project.json manually.",
+      "rollback_route": "Disable agentcore_project_router; clear F:\\AgentCore\\runtime\\bifrost\\state\\active-project.json manually.",
       "enabled": true,
       "bifrost_client_name": "agentcore_project_router",
       "status": "active",
       "notes": [
-        "State file: H:\\AgentRuntime\\bifrost\\state\\active-project.json",
+        "State file: F:\\AgentCore\\runtime\\bifrost\\state\\active-project.json",
         "Allowed roots scanned from D:\\github git repos with Swarm path rejection."
       ]
     },
@@ -1121,7 +1121,7 @@
       "connection_type": "stdio",
       "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
       "arguments": [
-        "H:\\AgentRuntime\\skills-hub\\start.mjs"
+        "F:\\AgentCore\\runtime\\skills-hub\\start.mjs"
       ],
       "env_var_names": [],
       "timeout_seconds": 30,
@@ -1157,8 +1157,8 @@
       "bifrost_client_name": "skills_hub",
       "status": "active",
       "notes": [
-        "ISOLATION: Launched via H:\\AgentRuntime\\skills-hub\\start.mjs which sets process.env.USERPROFILE/HOME/HOMEDRIVE/HOMEPATH to H:\\AgentRuntime\\skills-hub\\home before import.",
-        "ISOLATION PROVEN 2026-07-24 Phase 4B: process-local HOME/USERPROFILE/HOMEDRIVE/HOMEPATH -> H:\\AgentRuntime\\skills-hub\\home; FS access audit showed zero reads of real user skill roots; Bifrost list_installed saw only isolated sentinel; sentinel removed afterward.",
+        "ISOLATION: Launched via F:\\AgentCore\\runtime\\skills-hub\\start.mjs which sets process.env.USERPROFILE/HOME/HOMEDRIVE/HOMEPATH to F:\\AgentCore\\runtime\\skills-hub\\home before import.",
+        "ISOLATION PROVEN 2026-07-24 Phase 4B: process-local HOME/USERPROFILE/HOMEDRIVE/HOMEPATH -> F:\\AgentCore\\runtime\\skills-hub\\home; FS access audit showed zero reads of real user skill roots; Bifrost list_installed saw only isolated sentinel; sentinel removed afterward.",
         "SECURITY: @hono/node-server pinned 2.0.11 via npm overrides (GHSA-frvp-7c67-39w9). npm audit 0 vulnerabilities after lock reinstall.",
         "HONO REACHABILITY: STDIO entry dist/index.js uses StdioServerTransport only; streamableHttp.js (imports @hono/node-server) not in import graph; no HTTP listener; serveStatic unreachable.",
         "INSTALL: @skills-hub-ai/mcp@0.1.7 (0.1.8-0.1.10 blocked: @skills-hub-ai/installer@0.1.0 not on npm).",
@@ -1167,7 +1167,7 @@
         "DENIED TOOL: install_skill is explicitly denied. search_skills and get_skill_detail query the remote skills-hub.ai API; responses are raw_untrusted.",
         "CONTENT TRUST: All retrieved skill content classified raw_untrusted. Cannot override AgentCore authority.",
         "Package source control: D:\\github\\agentcore-control-plane\\tools\\skills-hub\\",
-        "Runtime: H:\\AgentRuntime\\skills-hub\\",
+        "Runtime: F:\\AgentCore\\runtime\\skills-hub\\",
         "License: MIT. Repository: https://github.com/tinh2/skills-hub"
       ]
     },

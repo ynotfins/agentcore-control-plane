@@ -40,7 +40,7 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
 ## Runtime facts
 
 ```text
-Bifrost gateway: http://127.0.0.1:8080/mcp   (H:\AgentRuntime\bifrost; scheduled task \AgentCore\AgentCore-Bifrost-Gateway)
+Bifrost gateway: http://127.0.0.1:8080/mcp   (F:\AgentCore\runtime\bifrost; scheduled task \AgentCore\AgentCore-Bifrost-Gateway)
 PostgreSQL 18:   127.0.0.1:55433   (F:\PostgreSQL18\data; canonical AgentCore agent_core + cognee_core)
 PostgreSQL 16:   127.0.0.1:55432   (F:\AgentCore\database_cluster; rollback/legacy evidence and Swarm-owned DBs only)
 

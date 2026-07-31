@@ -2,7 +2,7 @@
 """Render Bifrost config.json from AgentCore registry + gateway client contracts.
 
 Writes:
-  - runtime config (default H:\\AgentRuntime\\bifrost\\config.json and config\\config.json)
+  - runtime config (default F:\\AgentCore\\runtime\\bifrost\\config.json and config\\config.json)
   - source-controlled sanitized copy under renderers/bifrost/
 
 Never embeds secret values. Uses env.NAME references for Bifrost.
@@ -20,7 +20,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_PATH = REPO_ROOT / "contracts" / "bifrost-upstream-mcp-registry.json"
 GATEWAY_CLIENT_PATH = REPO_ROOT / "contracts" / "agentcore-gateway-client.json"
 OUTPUT_SCHEMA_CONTRACT_PATH = REPO_ROOT / "contracts" / "mcp-tool-output-schemas.json"
-DEFAULT_RUNTIME_ROOT = Path(r"H:\AgentRuntime\bifrost")
+DEFAULT_RUNTIME_ROOT = Path(r"F:\AgentCore\runtime\bifrost")
 SANITIZED_RENDERER = REPO_ROOT / "renderers" / "bifrost" / "config.sanitized.json"
 SANITIZED_CONFIG_COPY = REPO_ROOT / "renderers" / "bifrost" / "config.json"
 
@@ -266,7 +266,7 @@ def build_http_client(server: dict[str, Any], oauth_state: dict[str, Any] | None
     #
     # WARNING: re-rendering without the runtime state file after enrollment may create a new
     # pending OAuth client and orphan the enrolled one.  Operator must keep
-    # H:\AgentRuntime\bifrost\state\oauth-clients.json present after enrollment.
+    # F:\AgentCore\runtime\bifrost\state\oauth-clients.json present after enrollment.
     oauth_cfg = server.get("oauth_config")
     if auth_type == "oauth" and oauth_cfg:
         state_entry = (oauth_state or {}).get(name, {})
@@ -543,7 +543,7 @@ def build_sanitized_sidecar(
         ],
         "oauth_state_note": (
             "Post-enrollment: oauth_config_id loaded from runtime state file "
-            f"(H:\\AgentRuntime\\bifrost\\state\\oauth-clients.json) — present={oauth_state_present}. "
+            f"(F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) — present={oauth_state_present}. "
             "That file is runtime-only and never committed. "
             "Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration."
         ),

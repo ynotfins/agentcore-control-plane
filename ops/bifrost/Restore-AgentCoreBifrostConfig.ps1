@@ -6,7 +6,7 @@
 param(
   [Parameter(Mandatory = $true)]
   [string]$BackupDir,
-  [string]$RuntimeRoot = 'H:\AgentRuntime\bifrost',
+  [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [switch]$SkipRenderRefresh
 )
 

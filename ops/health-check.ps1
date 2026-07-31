@@ -44,7 +44,7 @@ if (Test-Path $bifrostStatus) {
 }
 
 # Skills-Hub
-$skillsStart = 'H:\AgentRuntime\skills-hub\start.mjs'
+$skillsStart = 'F:\AgentCore\runtime\skills-hub\start.mjs'
 Check 'skills_hub_start_mjs' (Test-Path $skillsStart) $skillsStart
 
 # LangGraph Studio env (User-scope)
@@ -67,7 +67,7 @@ $restore = Get-ChildItem (Join-Path $repo 'audits\M5\pg18-restore-test-*.json') 
 Check 'pg18_restore_test_artifact' ($null -ne $restore) $(if ($restore) { $restore.Name } else { 'none' })
 
 # Bifrost log size warning (>50MB)
-$stdout = 'H:\AgentRuntime\bifrost\logs\bifrost-gateway.stdout.log'
+$stdout = 'F:\AgentCore\runtime\bifrost\logs\bifrost-gateway.stdout.log'
 if (Test-Path $stdout) {
   $len = (Get-Item $stdout).Length
   $ok = $len -lt 50MB

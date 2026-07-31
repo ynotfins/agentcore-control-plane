@@ -8,7 +8,7 @@ param(
   [string[]]$Databases = @("agent_core", "cognee_core"),
   [string]$AdminUser = "postgres",
   [string]$RepoRoot = "D:\github\agentcore-control-plane",
-  [string]$BifrostRuntimeConfig = "H:\AgentRuntime\bifrost\config.json",
+  [string]$BifrostRuntimeConfig = "F:\AgentCore\runtime\bifrost\config.json",
   [switch]$SkipBaseBackup
 )
 

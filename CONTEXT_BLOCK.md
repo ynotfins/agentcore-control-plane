@@ -664,33 +664,19 @@ Use only for independent backup copies and restore testing.
 
 G: is not a live database, vector index, context store, or runtime tier.
 
-### H: — high-speed AgentCore runtime tier
+### F: — AgentCore dedicated hot runtime and database tier
 
-**VERIFIED FACT**
+**VERIFIED FACT — 2026-07-31 (supersedes H: Bifrost runtime placement)**
 
-H: is the internal 2 TB Crucial P5 Plus NVMe installed through the PCIe expansion path.
+AgentCore Bifrost MCP Gateway and hot AgentRuntime leaves live under `F:\AgentCore\runtime` (including `bifrost`, `agentcore-memory`, `skills-hub`, `tentra`, `clients`, `mcp-processes`, `service-logs`). PostgreSQL 18 remains at `F:\PostgreSQL18\data`. Durable AgentCore rollback copies for this relocation live under `E:\AgentCore-Backups` only.
 
-**VERIFIED FACT — 2026-07-14 (supersedes any provisioning language)**
+### H: — Swarm ecosystem dedicated hot tier (not AgentCore)
 
-H: is **already provisioned and live**. It hosts the running Bifrost MCP Gateway at `H:\AgentRuntime\bifrost` (binary, config, sqlite stores, logs, state) and Tentra data at `H:\AgentRuntime\tentra\data`. **H: must never be formatted, re-provisioned, or repartitioned.** Any earlier "provision H:" instruction is void.
+**VERIFIED FACT — 2026-07-31**
 
-### ADOPTED DECISION
+H: is reserved for the Swarm ecosystem high-performance runtime/data root. AgentCore must not place canonical runtime, Bifrost state, or durable rollback material on H: after the dual-ecosystem cutover gate. Historical `H:\AgentRuntime` was AgentCore-owned prior to relocation and must not be treated as current AgentCore authority.
 
-Additional AgentCore runtime directories are created alongside the existing runtime (no formatting, no relocation of the live Bifrost runtime):
-
-```text
-H:\AgentRuntime\artifact-hot\
-H:\AgentRuntime\context-scratch\
-H:\AgentRuntime\compaction-scratch\
-H:\AgentRuntime\service-logs\
-H:\AgentRuntime\temporary-indexes\
-```
-
-Docker Desktop relocation to H: is **not** part of the memory platform (no Docker/WSL dependency for the core platform). Any Docker relocation is a separate operator-approved task.
-
-H: contains no sole canonical copy of durable memory.
-
-### I: — developer cache and staging tier
+### I: — AgentCore developer cache and staging tier
 
 **VERIFIED FACT**
 

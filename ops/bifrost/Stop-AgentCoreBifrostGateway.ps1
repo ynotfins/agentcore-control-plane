@@ -4,7 +4,7 @@
 #>
 [CmdletBinding()]
 param(
-  [string]$RuntimeRoot = 'H:\AgentRuntime\bifrost',
+  [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$TaskName = 'AgentCore-Bifrost-Gateway',
   [string]$TaskPath = '\AgentCore\',
   [int]$Port = 8080

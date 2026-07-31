@@ -4,7 +4,7 @@
 #>
 [CmdletBinding()]
 param(
-  [string]$RuntimeRoot = 'H:\AgentRuntime\bifrost',
+  [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$BaseUrl = 'http://127.0.0.1:8080',
   [string]$RepoRoot = 'D:\github\agentcore-control-plane',
   [string]$CursorMcpPath = 'C:\Users\ynotf\.cursor\mcp.json'
@@ -56,7 +56,16 @@ if (Test-Path -LiteralPath $configPath) {
 
 $validate = Join-Path $RepoRoot 'scripts\bifrost\validate_contracts.py'
 if (Test-Path -LiteralPath $validate) {
-  python $validate | Out-Host
+  $pythonCmd = $null
+  foreach ($c in @('py', 'python', 'python3')) {
+    $cmd = Get-Command $c -ErrorAction SilentlyContinue
+    if ($cmd) { $pythonCmd = $cmd.Source; break }
+  }
+  if (-not $pythonCmd -and (Test-Path 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe')) {
+    $pythonCmd = 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe'
+  }
+  if (-not $pythonCmd) { throw 'Python interpreter not found for validate_contracts.py' }
+  & $pythonCmd $validate | Out-Host
   Assert-True ($LASTEXITCODE -eq 0) 'validate_contracts.py'
 }
 

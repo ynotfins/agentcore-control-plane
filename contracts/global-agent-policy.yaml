@@ -94,7 +94,7 @@ mandatory_rules:
       Project memory is project-centric, not IDE-folder-centric. Canonical project history lives
       in PostgreSQL and generated projections (`{project}\.agentcore\STATE.md`,
       DECISIONS.md, CONTEXT_INDEX.md). Client-specific directories under
-      `H:\AgentRuntime\clients\{client_key}\` may hold only cache, logs, scratch, and temporary
+      `F:\AgentCore\runtime\clients\{client_key}\` may hold only cache, logs, scratch, and temporary
       bundles — never canonical project history.
       At every new IDE chat or process restart: (1) resolve and activate the registered
       project/worktree; (2) read generated STATE.md; (3) open or resume the correct session

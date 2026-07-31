@@ -10,7 +10,7 @@
 #>
 [CmdletBinding()]
 param(
-  [string]$RuntimeRoot = 'H:\AgentRuntime\bifrost',
+  [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$HostAddress = '127.0.0.1',
   [int]$Port = 8080
 )

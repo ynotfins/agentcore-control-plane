@@ -12,10 +12,11 @@
   - `D:\github\vendor\memory`
 - Runtime roots:
   - `F:\PostgreSQL18` (canonical PostgreSQL 18 data/service tier for `agent_core` and `cognee_core`)
-  - `F:\AgentCore` (preserved PG16 rollback/legacy evidence and Swarm-owned runtime state)
-  - `H:\AgentRuntime` (live Bifrost gateway + Tentra data — never format H:)
+  - `F:\AgentCore\runtime` (live Bifrost gateway, Tentra, skills-hub, memory hot artifacts)
+  - `F:\AgentCore` (legacy/preserved trees; not Swarm runtime authority)
+  - `H:` reserved for Swarm ecosystem hot runtime (AgentCore must not place canonical runtime/rollback here)
 - Archive/backup root:
-  - `E:\AgentCoreArchive` (canonical; live E: also carries `E:\AgentCore-Backups`)
+  - `E:\AgentCoreArchive` and `E:\AgentCore-Backups` (durable AgentCore rollback lives here)
 - Governed non-Swarm IDE memory:
   - `agentcore-gateway` at `http://127.0.0.1:8080/mcp`
   - stable ten-tool `agentcore-memory` identity behind Bifrost
@@ -43,7 +44,7 @@ AgentCore does not use `.env` files. All secrets and runtime credentials are sto
 - Schema: `migrations/m3/002_up_unbounded_recovery_context_profiles.sql`
 - Profiles: `contracts/model-context-profiles.json`
 - Purpose: model-aware active packets, complete chronological pagination, exact source expansion,
-  non-destructive summary correction, governed Git snapshots, and H:/E: artifact recovery behind
+  non-destructive summary correction, governed Git snapshots, and F:/E: artifact recovery behind
   the existing ten-tool surface
 - Validation: `scripts/agentcore_memory/test_recovery.py` and
   `scripts/memory_platform/Test-M3FullRecovery.ps1`
@@ -52,7 +53,7 @@ AgentCore does not use `.env` files. All secrets and runtime credentials are sto
 
 ### AgentCore Bifrost Gateway Runtime
 
-- Location: `H:\AgentRuntime\bifrost`
+- Location: `F:\AgentCore\runtime\bifrost`
 - Endpoint: `http://127.0.0.1:8080/mcp`
 - Startup owner: Windows Scheduled Task `\AgentCore\AgentCore-Bifrost-Gateway`
 - Launcher: `ops\bifrost\Launch-AgentCoreBifrostGateway.ps1` keeps `bifrost-http.exe` in the foreground so Task Scheduler can restart it.

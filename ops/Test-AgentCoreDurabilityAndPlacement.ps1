@@ -47,7 +47,7 @@
 
   Output:
     STDOUT: human-readable PASS/WARN/FAIL lines.
-    H:\AgentRuntime\service-logs\durability-audit-<timestamp>.json — machine-readable report.
+    F:\AgentCore\runtime\service-logs\durability-audit-<timestamp>.json — machine-readable report.
     E:\AgentCoreArchive\agentcore-memory\audits\<date>\durability-audit-<timestamp>.json — cold evidence.
 
 .PARAMETER Mode
@@ -100,7 +100,7 @@ $stamp     = Get-Date -Format "yyyyMMdd-HHmmss"
 $dateDir   = Get-Date -Format "yyyy-MM-dd"
 
 # Report paths
-$hotLogDir   = "H:\AgentRuntime\service-logs"
+$hotLogDir   = "F:\AgentCore\runtime\service-logs"
 $coldLogDir  = "E:\AgentCoreArchive\agentcore-memory\audits\$dateDir"
 $hotReport   = Join-Path $hotLogDir  "durability-audit-$stamp.json"
 $coldReport  = Join-Path $coldLogDir "durability-audit-$stamp.json"
@@ -376,9 +376,9 @@ except Exception as e:
     Warn "locations" "Resource-location check failed: $($locCheck.error)"
   }
 
-  # 11. Unregistered durable paths on approved AgentCore hot root (H:\AgentRuntime\agentcore-memory)
+  # 11. Unregistered durable paths on approved AgentCore hot root (F:\AgentCore\runtime\agentcore-memory)
   Write-Host "`n11. Unregistered durable hot artifacts..."
-  $hotRoot = "H:\AgentRuntime\agentcore-memory\artifacts"
+  $hotRoot = "F:\AgentCore\runtime\agentcore-memory\artifacts"
   if (Test-Path $hotRoot) {
     $hotFiles  = (Get-ChildItem -Recurse -File $hotRoot -ErrorAction SilentlyContinue).Count
     $unreg = Invoke-PyQuery @"
@@ -410,7 +410,7 @@ except Exception as e:
 
   # 12. Production references to retired worktrees
   Write-Host "`n12. Production references to retired worktrees..."
-  $bifrostConfigPath = "H:\AgentRuntime\bifrost\config.json"
+  $bifrostConfigPath = "F:\AgentCore\runtime\bifrost\config.json"
   $retiredCheck = Invoke-PyQuery @"
 import sys, json, psycopg
 dsn = sys.argv[1]
@@ -775,7 +775,7 @@ if (-not $encKeyPresent) {
 } else {
     Ok "or-encryption-key" "BIFROST_ENCRYPTION_KEY present in $encKeyScope scope (name verified; value not examined)"
     # Verify Bifrost recognizes encryption as enabled (check for absence of plaintext-storage warning in logs)
-    $logFile = "H:\AgentRuntime\bifrost\logs\bifrost-gateway.stdout.log"
+    $logFile = "F:\AgentCore\runtime\bifrost\logs\bifrost-gateway.stdout.log"
     if (Test-Path $logFile) {
         $plaintextWarn = Get-Content $logFile -Tail 200 | Select-String "encryption.*disabled|config.*not.*encrypt|plaintext.*token" -CaseSensitive:$false
         if ($plaintextWarn) {
@@ -840,7 +840,7 @@ if (Test-Path $registryPath) {
 
 # OR-1b. Single registration — exactly one openrouter in registry and live Bifrost client_configs
 Write-Host "`nOR-1b. Single OpenRouter registration..."
-$liveCfgPath = "H:\AgentRuntime\bifrost\config.json"
+$liveCfgPath = "F:\AgentCore\runtime\bifrost\config.json"
 if (Test-Path $liveCfgPath) {
     try {
         $liveCfg = Get-Content $liveCfgPath -Raw | ConvertFrom-Json
@@ -886,7 +886,7 @@ try {
 
 # OR-1d. Bifrost pin evidence — binary present; sha256 recorded; docs pin v2.0.0-prerelease1
 Write-Host "`nOR-1d. Bifrost pin verification..."
-$bifrostExe = "H:\AgentRuntime\bifrost\bin\bifrost-http.exe"
+$bifrostExe = "F:\AgentCore\runtime\bifrost\bin\bifrost-http.exe"
 $pinDoc = "v2.0.0-prerelease1"
 if (Test-Path $bifrostExe) {
     $exeHash = (Get-FileHash $bifrostExe -Algorithm SHA256).Hash
@@ -1001,7 +1001,7 @@ foreach ($vkCheck in @(
 
 # OR-3. config.db security posture — presence, ACL restriction, not in Git
 Write-Host "`nOR-3. config.db secret-bearing posture and ACL check..."
-$configDb = "H:\AgentRuntime\bifrost\data\config.db"
+$configDb = "F:\AgentCore\runtime\bifrost\data\config.db"
 if (Test-Path $configDb) {
     Ok "or-configdb-present" "config.db present at $configDb — classified as secret-bearing"
     # ACL evaluation: check that only SYSTEM and owner have access (no Everyone/Users/All)
@@ -1020,7 +1020,7 @@ if (Test-Path $configDb) {
         Warn "or-configdb-acl" "Could not evaluate config.db ACL: $($_.Exception.Message)"
     }
     # Confirm not tracked in Git
-    $inGit = (git -C $repoRoot ls-files --error-unmatch "H:\AgentRuntime\bifrost\data\config.db" 2>&1)
+    $inGit = (git -C $repoRoot ls-files --error-unmatch "F:\AgentCore\runtime\bifrost\data\config.db" 2>&1)
     if ($LASTEXITCODE -eq 0) {
         Fail "or-configdb-not-in-git" "config.db appears tracked in Git — must never be committed"
     } else {
@@ -1031,7 +1031,7 @@ if (Test-Path $configDb) {
 }
 
 # Verify oauth-clients.json (runtime state file) is not committed to Git
-$oauthStateFile = "H:\AgentRuntime\bifrost\state\oauth-clients.json"
+$oauthStateFile = "F:\AgentCore\runtime\bifrost\state\oauth-clients.json"
 if (Test-Path $oauthStateFile) {
     $inGit2 = (git -C $repoRoot ls-files --error-unmatch $oauthStateFile 2>&1)
     if ($LASTEXITCODE -eq 0) {
@@ -1118,7 +1118,7 @@ if (-not $encKeyPresent) {
 
 # OR-6. Runtime config.json: no token literals; oauth_config_id not in source renderers
 Write-Host "`nOR-6. Runtime config token scan and oauth_config_id placement check..."
-$runtimeCfg = "H:\AgentRuntime\bifrost\config.json"
+$runtimeCfg = "F:\AgentCore\runtime\bifrost\config.json"
 if (Test-Path $runtimeCfg) {
     $cfgContent = Get-Content $runtimeCfg -Raw
     if ($cfgContent -match "sk-or-v1-|access_token.*:.*[A-Za-z0-9]{40}") {

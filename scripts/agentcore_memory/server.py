@@ -55,7 +55,7 @@ REPO_PATH = Path(
 )
 HOT_ARTIFACT_ROOT = Path(
     os.environ.get(
-        "AGENTCORE_HOT_ARTIFACT_ROOT", r"H:\AgentRuntime\agentcore-memory\artifacts"
+        "AGENTCORE_HOT_ARTIFACT_ROOT", r"F:\AgentCore\runtime\agentcore-memory\artifacts"
     )
 )
 DEFAULT_ACTIVE_CONTEXT_LIMIT = int(os.environ.get("AGENTCORE_MEMORY_DEFAULT_ACTIVE_LIMIT", "25"))

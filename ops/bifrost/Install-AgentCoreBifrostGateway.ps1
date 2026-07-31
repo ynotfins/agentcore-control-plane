@@ -8,7 +8,7 @@
 #>
 [CmdletBinding()]
 param(
-  [string]$RuntimeRoot = 'H:\AgentRuntime\bifrost',
+  [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$RepoRoot = 'D:\github\agentcore-control-plane',
   [string]$TaskName = 'AgentCore-Bifrost-Gateway',
   [string]$TaskPath = '\AgentCore\',
@@ -32,7 +32,7 @@ $backupsDir = Join-Path $RuntimeRoot 'backups'
 $exePath = Join-Path $binDir 'bifrost-http.exe'
 $renderScript = Join-Path $RepoRoot 'scripts\bifrost\render_bifrost_config.py'
 
-foreach ($dir in @($RuntimeRoot, $binDir, $configDir, $dataDir, $logsDir, $stateDir, $backupsDir, 'H:\AgentRuntime\mcp-processes', 'H:\AgentRuntime\tentra\data')) {
+foreach ($dir in @($RuntimeRoot, $binDir, $configDir, $dataDir, $logsDir, $stateDir, $backupsDir, 'F:\AgentCore\runtime\mcp-processes', 'F:\AgentCore\runtime\tentra\data')) {
   New-Item -ItemType Directory -Force -Path $dir | Out-Null
 }
 
@@ -60,14 +60,23 @@ foreach ($key in $nonSecretDefaults.Keys) {
 }
 
 Write-AgentCoreInfo "Rendering Bifrost config into $RuntimeRoot"
-python $renderScript --out (Join-Path $RuntimeRoot 'config.json')
+$pythonCmd = $null
+foreach ($c in @('py', 'python', 'python3')) {
+  $cmd = Get-Command $c -ErrorAction SilentlyContinue
+  if ($cmd) { $pythonCmd = $cmd.Source; break }
+}
+if (-not $pythonCmd -and (Test-Path 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe')) {
+  $pythonCmd = 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe'
+}
+if (-not $pythonCmd) { throw 'Python interpreter not found (tried py/python/python3 and Python313 path).' }
+& $pythonCmd $renderScript --out (Join-Path $RuntimeRoot 'config.json')
 if ($LASTEXITCODE -ne 0) {
   throw "render_bifrost_config.py failed with exit $LASTEXITCODE"
 }
 
 $validateScript = Join-Path $RepoRoot 'scripts\bifrost\validate_contracts.py'
 if (Test-Path -LiteralPath $validateScript) {
-  python $validateScript
+  & $pythonCmd $validateScript
   if ($LASTEXITCODE -ne 0) {
     throw "validate_contracts.py failed with exit $LASTEXITCODE"
   }

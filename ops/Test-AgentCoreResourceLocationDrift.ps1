@@ -23,7 +23,7 @@ param(
   [string]$Dbname   = "agent_core",
   [string]$DbUser   = "postgres",
   [string]$RepoRoot = "D:\github\agentcore-control-plane",
-  [string]$BifrostConfigPath = "H:\AgentRuntime\bifrost\config.json"
+  [string]$BifrostConfigPath = "F:\AgentCore\runtime\bifrost\config.json"
 )
 
 $ErrorActionPreference = "Stop"

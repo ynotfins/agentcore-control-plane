@@ -4,8 +4,8 @@
 #>
 [CmdletBinding()]
 param(
-  [string]$RuntimeRoot = 'H:\AgentRuntime\bifrost',
-  [string]$BackupRoot = 'H:\AgentRuntime\bifrost\backups'
+  [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
+  [string]$BackupRoot = 'F:\AgentCore\runtime\bifrost\backups'
 )
 
 $ErrorActionPreference = 'Stop'

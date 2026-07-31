@@ -593,7 +593,7 @@ if ($agentsText -notmatch [regex]::Escape($requiredAuthorityPointer)) {
 }
 $agentsMutablePatterns = @(
   [pscustomobject]@{ label = "localhost/runtime port"; pattern = "127\.0\.0\.1:\d+" },
-  [pscustomobject]@{ label = "Bifrost runtime path"; pattern = "H:\\AgentRuntime" },
+  [pscustomobject]@{ label = "Bifrost runtime path"; pattern = "F:\\AgentCore\\runtime" },
   [pscustomobject]@{ label = "runtime memory/database path"; pattern = "F:\\(?:AgentCore|PostgreSQL)" },
   [pscustomobject]@{ label = "compatibility/live-ops runtime path"; pattern = "D:\\MCP-Control-Plane" },
   [pscustomobject]@{ label = "PostgreSQL service state"; pattern = "PostgreSQL\s+\d+\s+runs|AgentCore-PostgreSQL\d+" },

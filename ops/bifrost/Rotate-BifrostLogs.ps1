@@ -9,7 +9,7 @@
 #>
 [CmdletBinding()]
 param(
-  [string]$LogDir = 'H:\AgentRuntime\bifrost\logs',
+  [string]$LogDir = 'F:\AgentCore\runtime\bifrost\logs',
   [long]$MaxBytes = 20MB,
   [int]$KeepCount = 5
 )

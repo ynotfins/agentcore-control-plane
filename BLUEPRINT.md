@@ -248,9 +248,9 @@ Rules:
 | C: | OS and applications | Windows, user profile, IDE-owned global files; no high-volume database writes |
 | D: | Project NVMe | Repositories, worktrees, builds, tests |
 | E: | 10 TB HGST HDD | Cold evidence, documentation, archives, backups, WAL archive |
-| F: | 4 TB Samsung 990 PRO | PostgreSQL 18, pgvector, hot indexes, canonical database state |
+| F: | 4 TB Samsung 990 PRO | AgentCore dedicated hot: PostgreSQL 18, pgvector, Bifrost/AgentRuntime (`F:\AgentCore\runtime`), memory hot artifacts, indexes, caches |
 | G: | 4 TB external HDD | Second backup copy |
-| H: | 2 TB Crucial P5 Plus NVMe | Bifrost runtime, hot artifacts, models, caches, compaction scratch |
+| H: | 2 TB Crucial P5 Plus NVMe | Swarm ecosystem dedicated hot runtime/data (not AgentCore). AgentCore must not place canonical runtime or rollback here. |
 | I: | 1 TB Crucial BX500 SATA SSD | Disposable staging and sequential temporary exports only |
 | J: | 1 TB portable exFAT SSD | Portable transfer only |
 
@@ -288,9 +288,10 @@ Never format C:, D:, G:, or J:.
 
 Never format by drive letter alone.
 
-H: contains the live Bifrost runtime.  
-F: may contain preserved PostgreSQL material.  
-Those contents must be backed up and restored or reinstalled deliberately before the build continues.
+F:\AgentCore\runtime contains the live Bifrost runtime and AgentCore hot AgentRuntime leaves.  
+H: is reserved for the Swarm ecosystem and must not hold AgentCore canonical runtime or rollback.  
+F: also contains preserved PostgreSQL material under `F:\PostgreSQL18`.  
+Those contents must be backed up and restored or reinstalled deliberately before related builds continue.
 
 ---
 
