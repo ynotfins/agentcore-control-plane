@@ -15,7 +15,7 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 - Patch Bifrost renderers/`scripts/bifrost/render_bifrost_config.py` first when generated outputs would otherwise drift. (`scripts/mcp_control_plane.py` is archived under `docs/archive/`.)
 - Keep contracts, Bifrost renderers, gateway-client renderers, ops scripts, and validators aligned.
 - Respect `AUTHORITY_LOCK.md` and `contracts/authority-lock.yaml`. Operator-locked files require authority-maintainer approval, rollback evidence, validators, and independent review. Generated projections remain read-only to ordinary agents.
-- Keep the Swarm relationship pointer-only through `docs/boundaries/SWARM_FOREIGN_BOUNDARY.md` and `contracts/foreign-ecosystem-boundaries.yaml`; mutable Swarm ports, data roots, credentials, launch commands, and service state belong only to `D:\github\swarm-ecosystem-control`.
+- Keep the Swarm relationship through `docs/boundaries/SWARM_FOREIGN_BOUNDARY.md` and `contracts/foreign-ecosystem-boundaries.yaml`. SwarmClaw/SwarmVault mutable facts belong to `D:\github\swarm-ecosystem-control`. Neutral shared SwarmRecall is machine-level infrastructure per `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE` / `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md`. Portable Context Engine: `D:\github\agentcore-context-engine`.
 - Use deterministic validators before reporting completion (`scripts/bifrost/validate_contracts.py`, project validators).
 - AgentCore does not use `.env` files for secrets or local runtime configuration. Use Windows environment variables only.
 - Persistent memory writes go through `agentcore-gateway` → `agentcore-memory` only. Memory/database implementation follows `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`. (`AGENT_DATABASE_BOOTSTRAP.md` and `contracts/global-memory-database-contract.json` are historical PG16-era evidence; read them only for live PG16 cluster facts, never as current instructions.)
@@ -30,14 +30,14 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 - **Depwire:** Prefer Depwire **through agentcore-gateway** after cutover. Local Depwire CLI/MCP remains available for diagnostics and exact workspace graphs; Depwire Cloud stays deferred until enabled/healthy in the registry.
 - **Tentra:** Local mode only; launch via project-router wrapper and follow current classified evidence for mutable data paths.
 - **Docs:** `arabold-docs` first for current library/SDK/docs answers. Keep Bifrost docs indexed (`bifrost` / `2.0.0-prerelease1`).
-- **Memory (non-Swarm):** `agentcore-memory` stable identity via gateway (ten-tool surface live; do not invent alternate memory MCP entries). Do not route normal non-Swarm IDE work through SwarmRecall/SwarmVault.
+- **Memory (non-Swarm):** `agentcore-memory` stable identity via gateway (ten-tool surface live; do not invent alternate memory MCP entries). Server-side projection to the **neutral shared SwarmRecall** plane is allowed; do not install raw SwarmRecall/SwarmVault MCP or Recall keys in IDE configs. Context Engine orchestrates above the facade (`D:\github\agentcore-context-engine`).
 - **Project continuity:** `context-fabric` only for approved Git-managed workspaces via project router; do not initialize under Swarm or runtime memory roots.
 - **Architecture scans:** `artiforge` for high-leverage scans only.
 - **Connected app workflows:** keep Composio quarantined until explicitly re-enabled.
 
-## Swarm exclusion boundary
+## Swarm / neutral-memory boundary
 
-SwarmRecall, SwarmVault, and SwarmClaw are a **separate ecosystem**. This control plane's non-Swarm IDE baseline must not depend on them. Do not modify Swarm product code or require Swarm MCP entries in Cursor/Codex/Claude/MiniMax/Mavis/Antigravity/Open Interpreter for AgentCore gateway work. OpenClaw/ClawX are outside Bifrost IDE cutover scope.
+SwarmVault and SwarmClaw remain a **separate Swarm ecosystem** for execution. Ordinary IDE baselines must not require Swarm MCP entries. Neutral shared SwarmRecall may be used only through `agentcore-memory` (server-side). Do not paste raw SwarmRecall MCP into Cursor/Codex/Claude/MiniMax/Mavis/Antigravity/Open Interpreter. OpenClaw/ClawX are outside Bifrost IDE cutover scope; SwarmClaw uses its own Recall adapter.
 
 ## Stop Policy
 

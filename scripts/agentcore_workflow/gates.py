@@ -35,13 +35,15 @@ SECRET_PATTERNS = (
     re.compile(r"(?i)Bearer\s+[A-Za-z0-9\-._~+/]+=*"),
     re.compile(r"(?i)-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
 )
+# AUTH-2026-08-01: neutral shared SwarmRecall is an approved semantic plane.
+# Keep forbidding Mem0, SwarmVault-as-IDE-dependency, Qdrant, Redis, Docker.
 FORBIDDEN_DEPENDENCY_HINTS = (
     "mem0",
-    "swarmrecall",
     "swarmvault",
     "qdrant",
     "redis",
     "docker",
+    "dual-recall",
 )
 def _autonomous_strict(state: dict) -> bool:
     if state.get("autonomous"):
@@ -181,10 +183,13 @@ def gate_arch(state: dict) -> tuple[str, dict]:
     """
     errors = []
     macro_labels = " ".join(s.get("label", "") for s in state.get("macro_steps", []))
+    # AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE: neutral shared SwarmRecall is
+    # approved as a semantic projection plane. Raw SwarmVault IDE dependency and
+    # dual-Recall / Mem0 / Docker remain forbidden.
     forbidden_terms = [
         ("mem0", "Mem0 is not permitted in v1"),
-        ("swarmrecall", "SwarmRecall is Swarm-only"),
-        ("swarmvault", "SwarmVault is Swarm-only"),
+        ("swarmvault", "SwarmVault must not become an AgentCore IDE memory dependency"),
+        ("dual-recall", "Dual-Recall topology is rejected"),
         ("qdrant", "No second canonical vector store"),
         ("redis", "No Redis dependency for core platform"),
         ("docker", "No Docker dependency for core platform"),

@@ -30,6 +30,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 from knowledge_memory import get_knowledge_memory_port
+from neutral_recall import project_curated_fact, recall_configured, recall_health, search_semantic
 from recovery import (
     EXCLUDED_NORMAL_TRUST_CLASSES,
     ModelContextProfile,
@@ -39,6 +40,9 @@ from recovery import (
     estimate_tokens,
     recovery_scope_hash,
 )
+
+# Event kinds eligible for neutral shared SwarmRecall semantic projection (never raw prompts).
+_RECALL_PROJECT_KINDS = frozenset({"decision", "accepted_evidence", "output"})
 
 SERVER_NAME = "agentcore-memory"
 SERVER_VERSION = "0.6.0"
@@ -806,6 +810,13 @@ def memory_status() -> dict[str, Any]:
                 "note": "Normal durable memory writes are governed through compact tools only; no raw SQL/admin tools exposed.",
             },
             "cognee": knowledge_status,
+            "neutral_shared_swarmrecall": {
+                "classification": "machine_level_neutral_semantic_plane",
+                "configured": recall_configured(),
+                "health": recall_health(),
+                "approval_id": "AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE",
+                "note": "Server-side adapter only; raw Recall MCP excluded from IDE baselines.",
+            },
             "langgraph": {
                 "status": "m6_integrated",
                 "checkpointer": "langgraph-checkpoint-postgres==3.1.0",
@@ -956,13 +967,40 @@ def append_event(args: dict[str, Any]) -> dict[str, Any]:
                 (event_id,),
             )
             linked_artifact_id = cur.fetchone()["artifact_id"]
+            # Resolve project_key for optional Recall projection (after commit).
+            cur.execute(
+                "SELECT project_key FROM agentcore.projects WHERE id = %s",
+                (ctx["project_id"],),
+            )
+            project_row = cur.fetchone()
+            project_key = str(project_row["project_key"]) if project_row else "unknown"
             conn.commit()
-        return {
+        recall_projection: dict[str, Any] | None = None
+        if event_kind in _RECALL_PROJECT_KINDS:
+            summary_text = str((args.get("payload") or {}).get("summary") or "").strip()
+            if not summary_text:
+                summary_text = str((args.get("payload") or {}).get("text") or "").strip()
+            if summary_text:
+                recall_projection = project_curated_fact(
+                    project_key=project_key,
+                    content=summary_text[:4000],
+                    category="decision" if event_kind == "decision" else "fact",
+                    source_event_id=str(event_id),
+                    importance=0.8 if event_kind == "decision" else 0.65,
+                )
+        result = {
             "ok": True,
             "event_id": str(event_id),
             "artifact_id": str(linked_artifact_id) if linked_artifact_id else None,
             "idempotent_replay": False,
         }
+        if recall_projection is not None:
+            result["neutral_recall_projection"] = {
+                "ok": bool(recall_projection.get("ok")),
+                "degraded": bool(recall_projection.get("degraded")),
+                "skipped": bool(recall_projection.get("skipped")),
+            }
+        return result
     except Exception:
         if created_path is not None:
             created_path.unlink(missing_ok=True)
@@ -1732,7 +1770,25 @@ def propose_fact(args: dict[str, Any]) -> dict[str, Any]:
         )
         proposal_id = cur.fetchone()["proposal_id"]
         conn.commit()
-    return {"ok": True, "proposal_id": str(proposal_id), "status": "proposed"}
+    # Best-effort semantic projection; PG18 proposal remains authoritative.
+    content = f"{args['fact_key']}: {json.dumps(args['proposed_value'])[:1500]}"
+    projection = project_curated_fact(
+        project_key=str(args["project_key"]),
+        content=content,
+        category="fact",
+        source_event_id=str(proposal_id),
+        importance=0.7,
+    )
+    return {
+        "ok": True,
+        "proposal_id": str(proposal_id),
+        "status": "proposed",
+        "neutral_recall_projection": {
+            "ok": bool(projection.get("ok")),
+            "degraded": bool(projection.get("degraded")),
+            "skipped": bool(projection.get("skipped")),
+        },
+    }
 
 
 def build_handoff(args: dict[str, Any]) -> dict[str, Any]:

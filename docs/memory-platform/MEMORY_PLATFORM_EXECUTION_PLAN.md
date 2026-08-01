@@ -11,14 +11,16 @@
 
 These decisions are operator-approved and may not be changed without explicit operator approval:
 
-- **PostgreSQL 18 + pgvector** is the canonical non-Swarm authority for identity, evidence, policy, queue, claim, lease, and workflow state.
-- **AgentCore itself** owns immutable evidence, rolling context, compaction, exact source expansion, project state, and generated STATE.md projections.
-- **Cognee** is the selected curated semantic/knowledge-graph subsystem behind an AgentCore adapter (`KnowledgeMemoryPort`). **Mem0 is rejected for v1 and must not be installed.**
+- **PostgreSQL 18 + pgvector** is the canonical AgentCore authority for identity, evidence, policy, queue, claim, lease, and workflow/LangGraph checkpoint state.
+- **AgentCore itself** owns immutable evidence, rolling context orchestration (via portable Context Engine + `agentcore-memory`), compaction planning, exact source expansion, project state, and generated STATE.md projections.
+- **Cognee** is the selected curated AgentCore knowledge-graph **processing** subsystem behind an AgentCore adapter (`KnowledgeMemoryPort`). **Mem0 is rejected for v1 and must not be installed.**
+- **Neutral shared SwarmRecall** (AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE) is the approved cross-client **semantic projection** plane (global + per-project pools). It is not a second exact-evidence ledger and must not store LangGraph checkpoints or raw transcripts as canonical evidence. Meilisearch is a rebuildable lexical projection of Recall PG rows.
+- **Portable Context Engine** repository: `D:\github\agentcore-context-engine` — orchestration above `agentcore-memory` and neutral Recall; does not replace Cognee or PG18.
 - **Bifrost** retains the stable IDE-facing `agentcore-gateway` (`http://127.0.0.1:8080/mcp`).
 - The memory subsystem retains the stable Bifrost upstream identity **`agentcore-memory`**. No IDE configuration change is required at any Milestone.
 - **Swarm remains independent.** SwarmRecall/SwarmVault/SwarmClaw are never a dependency of this platform.
 - **No Docker or WSL dependency** for the core platform.
-- **No Redis, Memurai, Qdrant, LanceDB, Neo4j, or any second canonical memory store.** A separate engine requires a benchmark proving a distinct requirement that PostgreSQL FTS, pgvector, and Cognee cannot satisfy.
+- **No Redis, Memurai, Qdrant, LanceDB, Neo4j, or any second canonical exact-evidence store.** Neutral shared SwarmRecall is an operator-approved cross-client semantic projection (not a second evidence ledger). Additional engines still require a benchmark + operator approval.
 - `database-plan.md` and `AGENT_DATABASE_BOOTSTRAP.md` are historical evidence; do not implement their schemas, tool names, or Swarm memory planes.
 - `D:\github\memory-context-database` is supporting corpus/template planning, not the controlling architecture.
 

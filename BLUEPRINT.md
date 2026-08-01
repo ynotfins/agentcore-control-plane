@@ -100,7 +100,7 @@ The platform must:
 - Use Cognee only for curated semantic and relationship memory.
 - Use LangGraph for durable autonomous workflows and checkpoints.
 - Expose memory through the existing Bifrost gateway (`agentcore-gateway`).
-- Keep SwarmRecall, SwarmVault, SwarmClaw, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, and ClawX independent and untouched.
+- Keep SwarmVault, SwarmClaw, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, and ClawX as Swarm-owned execution surfaces. Use one **neutral shared SwarmRecall** semantic plane (AUTH-2026-08-01) via `agentcore-memory` server-side only; portable Context Engine at `D:\github\agentcore-context-engine`.
 - Deep Agents (`deepagents==0.6.12`, MIT) may be used as an optional worker harness inside LangGraph nodes; it is not a canonical memory, workflow, policy, or tool authority. See `docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md`.
 - Operate only on AgentCore and explicitly enrolled non-Swarm projects. Never treat Swarm repositories as AgentCore projects.
 

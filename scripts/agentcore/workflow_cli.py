@@ -423,7 +423,10 @@ def cmd_start(args: argparse.Namespace) -> int:
         return 2
 
     try:
-        wf_db.set_scope_baseline(run_db_id, project_id, "requirements", goal)
+        # operator_goal only — do NOT seed "requirements" with the free-text goal.
+        # gate_scope compares the macro/micro JSON plan against the requirements
+        # baseline; seeding it with the goal string caused permanent false drift
+        # (AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE / Context Engine first run).
         wf_db.set_scope_baseline(run_db_id, project_id, "operator_goal", goal)
     except Exception as exc:
         print(f"WARN: could not record goal scope baseline: {exc}", file=sys.stderr)

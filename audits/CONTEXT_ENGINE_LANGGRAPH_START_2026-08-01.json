@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-08-01T21:38:14.397248+00:00",
+  "ok": true,
+  "project_id": "aa337324-a9ad-4bc5-bf23-82b0ecbe61bf",
+  "project_key": "agentcore-context-engine",
+  "milestone": "M1",
+  "thread_uuid": "a3d6b349-4c19-4002-8b02-4869cda4cbd1",
+  "run_db_id": "fd02bb33-4e4e-4565-adf3-2667f7c0b945",
+  "completed": true,
+  "judge_verdict": "",
+  "score": 0.0,
+  "evidence_count": 0,
+  "errors": [
+    "Gate failure: scope, arch"
+  ],
+  "checkpoint": {
+    "thread_id": "a3d6b349-4c19-4002-8b02-4869cda4cbd1",
+    "checkpoint_count": 5,
+    "latest_checkpoint_id": "1f18df14-d043-6ee6-8003-af2599d8a840",
+    "latest_checkpoint_ns": "",
+    "latest_type": null,
+    "latest_node": null
+  }
+}

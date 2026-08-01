@@ -135,6 +135,24 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
     except Exception:
         pass
 
+    # Context Engine bridge (fail-open): reinforce project/session identity via gateway.
+    try:
+        from agentcore_cursor.context_engine_bridge import (  # noqa: WPS433
+            open_context_session,
+            retrieve_startup_packet,
+        )
+
+        ws_path = Path(workspace) if workspace else Path.cwd()
+        ce = open_context_session(ws_path, agent_key=DEFAULT_AGENT_KEY)
+        if ce.get("ok") and ce.get("project_key"):
+            env["AGENTCORE_CONTEXT_ENGINE"] = "1"
+            env.setdefault("AGENTCORE_PROJECT_KEY", str(ce.get("project_key") or ""))
+            packet = retrieve_startup_packet(str(ce["project_key"]))
+            if packet.get("ok") and packet.get("packet") and not additional:
+                additional = json.dumps(packet["packet"], indent=2)[:120000]
+    except Exception:
+        pass
+
     out: dict[str, Any] = {"env": env}
     if additional:
         out["additional_context"] = additional[:120000]

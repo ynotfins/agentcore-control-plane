@@ -25,11 +25,12 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 
 **Hard rules**
 
-- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
-- Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
-- No canonical resource may be jointly owned.
+- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm **runtime** (SwarmClaw execution, SwarmVault, Swarm schedules/agents), Swarm credentials as AgentCore baseline credentials, or Swarm backup roots as AgentCore backups.
+- **Neutral shared SwarmRecall exception (AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE):** one machine-level SwarmRecall + PG16/pgvector + Meilisearch plane is **neutral infrastructure** (not AgentCore-owned runtime, not Swarm-owned runtime). AgentCore may use it **only** through the server-side `agentcore-memory` adapter. Ordinary IDEs must never embed raw SwarmRecall MCP tools or Recall API keys.
+- Swarm must not reach AgentCore runtime, Bifrost, `agentcore-gateway`, AgentCore PG18 databases, repositories, IDE profiles, credentials, staging, or AgentCore backups. SwarmClaw may call the **neutral** Recall API through its own bounded adapter without calling Bifrost.
+- No **AgentCore-canonical** resource (PG18 evidence/checkpoints, Bifrost, Cognee DB, IDE gateway contracts) may be jointly owned with Swarm. The neutral Recall plane is the deliberate shared exception.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
-- Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
+- Historical documents that described AgentCore-**owned** SwarmRecall under `F:\AgentCore\agentmemory\...` remain **historical evidence only**. The approved model is the **neutral shared** plane (see `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md`).
 
 ---
 
@@ -160,9 +161,11 @@ No SQL, DDL, database-admin, backup-admin, or Bifrost-admin tools are exposed to
 
 ## 6. Memory System Roles
 
-- `agentcore-memory` = stable AgentCore IDE memory identity (via Bifrost).
-- `agent_core` = governed canonical AgentCore PostgreSQL/pgvector DB (ops/gateway internals; not direct IDE SQL).
-- SwarmRecall / SwarmVault / SwarmClaw / SwarmDock / SwarmFeed / SwarmRelay / OpenClaw / ClawX = **separate Swarm ecosystem** — not part of the AgentCore IDE mandatory baseline and not AgentCore subsystems.
+- `agentcore-memory` = stable AgentCore IDE memory identity (via Bifrost); may project curated semantic rows into the **neutral shared SwarmRecall** plane server-side.
+- `agent_core` = governed canonical AgentCore PostgreSQL/pgvector DB for exact evidence, identity, provenance, leases, and LangGraph checkpoints (not direct IDE SQL).
+- Portable Context Engine = `D:\github\agentcore-context-engine` — session/context orchestration above `agentcore-memory` and neutral Recall; does not replace Cognee or PG18 evidence.
+- Neutral shared SwarmRecall (API + PG16/pgvector + Meilisearch) = machine-level semantic-memory data plane (AUTH-2026-08-01).
+- SwarmVault / SwarmClaw / SwarmDock / SwarmFeed / SwarmRelay / OpenClaw / ClawX = **Swarm-owned** — not part of the AgentCore IDE mandatory MCP baseline.
 
 ---
 
@@ -200,8 +203,9 @@ raw mem0
 direct composio
 Hostinger
 hosted SwarmRecall / hosted SwarmVault as IDE defaults
+raw SwarmRecall MCP or Recall API keys in ordinary IDE configs
 direct SQL as a normal-memory route
-:65432 active AgentCore runtime route
+:65432 as an AgentCore **evidence/checkpoint** runtime route (neutral Recall PG16 on :65432 is permitted only as the shared semantic plane, never for LangGraph checkpoints)
 D:\MCP-Control-Plane as design authority
 whole-drive filesystem MCP roots
 Postgres credentials in IDE MCP configs

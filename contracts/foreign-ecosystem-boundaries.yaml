@@ -4,32 +4,61 @@ capsules:
   - foreign_ecosystem: Swarm
     canonical_control_plane_path: D:\github\swarm-ecosystem-control
     canonical_repository_url: https://github.com/ynotfins/swarm-ecosystem.git
-    source_commit: e6f0c2c01006796cbde8a328fdee570434478838
+    source_commit: e6f0c2c01006796cbde8a328fdee570434478808
     authority_pointer:
       - D:\github\swarm-ecosystem-control\SWARM_PROJECT_ANCHOR.md
       - D:\github\swarm-ecosystem-control\SWARM_DOC_AUTHORITY.md
       - D:\github\swarm-ecosystem-control\SWARM_BLUEPRINT.md
       - D:\github\swarm-ecosystem-control\contracts\runtime-ports.yaml
       - D:\github\swarm-ecosystem-control\contracts\storage-layout.yaml
+      - D:\github\swarm-ecosystem-control\contracts\memory-ownership.yaml
+    approval_id: AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE
+    adr: docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md
     stable_forbidden_dependencies:
-      - AgentCore must not consume SwarmRecall memory as AgentCore memory.
       - AgentCore must not consume SwarmVault graph/wiki/state as AgentCore memory.
-      - AgentCore must not consume SwarmClaw sessions, tasks, prompts, skills, or runtime state.
-      - AgentCore must not use Swarm credentials, Swarm databases, Swarm backup roots, or Swarm MCP entries as an AgentCore / enrolled non-Swarm baseline.
-      - No normal AgentCore IDE continuity on Swarm projects; selected Swarm-owned paths stop with swarm_project_refused.
+      - AgentCore must not consume SwarmClaw sessions, tasks, prompts, skills, or runtime SQLite as AgentCore continuity.
+      - AgentCore must not use Swarm credentials, SwarmVault backup roots, or Swarm MCP entries as an AgentCore / enrolled non-Swarm IDE baseline.
+      - Ordinary IDEs must not install raw SwarmRecall MCP tools or SwarmRecall API keys.
+      - No normal AgentCore IDE continuity on Swarm product projects; selected Swarm-owned paths stop with swarm_project_refused.
+      - Dual-Recall (second AgentCore-owned SwarmRecall instance) is rejected.
+    neutral_shared_swarmrecall:
+      classification: machine_level_neutral_semantic_memory_plane
+      not_owner: [agentcore_runtime, swarm_runtime]
+      clients:
+        - agentcore_memory_server_side_adapter_only
+        - swarmclaw_bounded_rest_sdk_adapter
+      owns:
+        - curated_global_pool
+        - isolated_project_pools
+        - summaries_decisions_learnings_skills_relations_source_refs
+        - postgresql16_pgvector_canonical_semantic_rows
+        - meilisearch_rebuildable_lexical_projection
+      must_not_store:
+        - langgraph_checkpoints
+        - agentcore_raw_transcripts_as_canonical_evidence
+        - swarmclaw_sqlite_operational_state
+        - swarmvault_corpus
+      loopback_only: true
+      cross_device_sync: deferred
     swarm_memory_pointer:
-      - SwarmRecall is the Swarm ecosystem required memory/context layer.
-      - Do not claim SwarmRecall replaces SwarmClaw native application databases (including SQLite) unless proven under Swarm authority.
+      - Neutral shared SwarmRecall is the cross-client semantic memory plane.
+      - SwarmClaw native SQLite remains authority for transcripts, tasks, schedules, approvals, and working turn state.
+      - SwarmVault remains Swarm-owned corpus/wiki/RAG.
+    portable_context_engine:
+      path: D:\github\agentcore-context-engine
+      role: session_context_orchestration_above_agentcore_memory_and_neutral_recall
+      does_not_replace: [cognee, pg18_evidence, langgraph_checkpoints, swarmclaw_sqlite, swarmrecall]
     permitted_developer_relationship:
       - A neutral dual workspace may be used for read-only collision and boundary audits only.
       - Read-only boundary-audit evidence may point to Swarm authority but must not become Swarm runtime input.
       - Former AgentCore IDE development-continuity-on-Swarm-projects language is historical and revoked (2026-07-31).
     shared_machine_collision_constraints:
-      - AgentCore and Swarm must keep distinct ports, databases, credentials, process supervisors, prompts, tools, projections, and backup roots.
-      - No canonical resource may be jointly owned.
-      - Mutable Swarm runtime facts are owned by Swarm authority, not this repository.
-      - Exclusive Swarm hot ownership of H: is the target after Milestone M9 acceptance; AgentCore hot namespace remains F:\AgentCore\...
-    last_verification_timestamp: '2026-07-31T17:30:00Z'
+      - AgentCore PG18, Bifrost, Cognee, and IDE gateway contracts remain AgentCore-exclusive.
+      - SwarmClaw operational data and SwarmVault remain Swarm-exclusive.
+      - Neutral Recall/PG16/Meili may be used by both clients with separately issued API keys.
+      - Mutable Swarm runtime facts (except reclassified neutral Recall ownership) are owned by Swarm authority.
+      - AgentCore hot namespace remains F:\AgentCore\...; Swarm hot operational data remains on H:; cold backups under E:\ with non-overlapping namespaces.
+    last_verification_timestamp: '2026-08-01T21:21:18Z'
 validation:
   deterministic_pointer_check:
     require_foreign_files_exist: true
