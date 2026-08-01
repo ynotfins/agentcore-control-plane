@@ -3,7 +3,7 @@ document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
 authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
-verified_at: 2026-07-25
+verified_at: 2026-08-01
 canonical_repository: D:\github\agentcore-control-plane
 locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
@@ -33,7 +33,16 @@ Mutable live facts that supersede older “future migration / degraded memory / 
 | OpenRouter MCP | Registry `dormant` + lifecycle `authenticated_dormant`; gateway-only; no direct IDE MCP. Runbook: `docs/operations/OPENROUTER_MCP.md`. |
 | IDE clients | Single `agentcore-gateway` at `http://127.0.0.1:8080/mcp`. Cherry Studio Phase 4C (2026-07-25) reconciled DRIFT-01 (`audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md`): target `agentcore-workspace-agent` present with `deepseek:deepseek-v4-pro` + active `agentcore-gateway`; Global Memory off; session schema proven (3 sessions including `agentcore-phase4c-session-proof`); prior “Create a session did nothing” coincided with Bifrost CONNECTION_REFUSED — **native UI 14-step still operator-gated / not full live_validated**. Prior enrollment evidence: `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`. Continual-learning auto user-prompt injection disabled (`docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`). Cursor Stage B integrity harness **live** 2026-07-24/25: hooks `sessionStart`, `beforeSubmitPrompt`, `preToolUse`, `beforeShellExecution`, `afterFileEdit`, `postToolUse`, `stop` registered; Continue. exact-once capture proven; 26/26 suite PASS (`audits/cursor-context/CURSOR_STAGE_B_INTEGRITY_HARNESS_ACCEPTANCE_2026-07-24.md`, `audits/cursor-context/CURSOR_CONTINUE_HARD_GATE_AND_STAGE_B_REGISTRATION_2026-07-24.md`). CLIENT-LOCAL enrollment scope: `MASTER_CONFIG_AND_PROMPT.md` §10 / `audits/IDE_SELF_ENROLLMENT_SCOPE_VALIDATION_2026-07-21.md`. |
 | LangGraph MCP | Shared `scripts/agentcore_workflow/mcp_client.py` → localhost gateway — `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`. |
-| Swarm | Separate ecosystem; not part of non-Swarm IDE baselines (BLUEPRINT § Swarm boundary). |
+| Swarm | SwarmClaw/SwarmVault remain separate; **neutral shared SwarmRecall** is machine-level semantic plane (AUTH-2026-08-01). |
+| Context Engine | Dedicated repo `D:\github\agentcore-context-engine`; first LangGraph M1 production run completed (`audits/NEUTRAL_MEMORY_CONTEXT_ENGINE_ACCEPTANCE_2026-08-01.md`). |
+
+### 0a.1 Neutral memory cutover (2026-08-01) — VERIFIED
+
+- Approval: `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`
+- ADR: `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md`
+- LangGraph run: `5ed18346-0727-4932-b6a5-3fbfb5c84d70` / thread `9d09cc48-3ef8-4f03-93be-772c59fe7d5a` / 13 checkpoints / score 1.0
+- SwarmRecall hardening: ynotfins fork `b272130` (idempotency, session validation, Meili outbox/rebuild)
+- Control-plane commit: `8906351`
 
 Historical Phase/Milestone checklists below remain planning evidence; do not treat incomplete Phase wording as a claim that PG18 or memory is still pre-landing.
 
