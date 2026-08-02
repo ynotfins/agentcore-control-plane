@@ -705,8 +705,22 @@ def session_open(
               SELECT %s, %s, wt.repository_id, wt.id, %s, COALESCE(%s, 'M0') FROM wt
               ON CONFLICT (project_key) DO UPDATE
                 SET project_name = EXCLUDED.project_name,
+                    repository_id = COALESCE(
+                      agentcore.projects.repository_id,
+                      EXCLUDED.repository_id
+                    ),
+                    primary_worktree_id = COALESCE(
+                      agentcore.projects.primary_worktree_id,
+                      EXCLUDED.primary_worktree_id
+                    ),
+                    root_path = CASE
+                      WHEN agentcore.projects.repository_id IS NULL
+                      THEN EXCLUDED.root_path
+                      ELSE agentcore.projects.root_path
+                    END,
                     current_milestone = COALESCE(%s, agentcore.projects.current_milestone)
-                WHERE agentcore.projects.repository_id = EXCLUDED.repository_id
+                WHERE agentcore.projects.repository_id IS NULL
+                   OR agentcore.projects.repository_id = EXCLUDED.repository_id
               RETURNING id, repository_id, primary_worktree_id
             ),
             pwt AS (
