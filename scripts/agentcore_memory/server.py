@@ -29,6 +29,13 @@ from uuid import UUID
 import psycopg
 from psycopg.rows import dict_row
 
+from device_identity import (
+    DeviceIdentityError,
+    VerifiedIdentity,
+    device_identity_status,
+    resolve_legacy_identity,
+    verify_tool_identity,
+)
 from knowledge_memory import get_knowledge_memory_port
 from neutral_recall import project_curated_fact, recall_configured, recall_health, search_semantic
 from recovery import (
@@ -45,7 +52,7 @@ from recovery import (
 _RECALL_PROJECT_KINDS = frozenset({"decision", "accepted_evidence", "output"})
 
 SERVER_NAME = "agentcore-memory"
-SERVER_VERSION = "0.6.0"
+SERVER_VERSION = "0.7.0"
 # Bifrost currently initializes with 2025-06-18; accept and echo it.
 SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
 DEFAULT_PROTOCOL_VERSION = "2025-06-18"
@@ -128,7 +135,40 @@ def tool_defs() -> list[dict[str, Any]]:
         "include_quarantined": {"type": "boolean"},
         "record_recovery": {"type": "boolean"},
     }
-    return [
+    device_assertion_schema = {
+        "type": "object",
+        "properties": {
+            "schema": text_schema,
+            "device_id": text_schema,
+            "key_id": text_schema,
+            "issued_at": text_schema,
+            "expires_at": text_schema,
+            "nonce": text_schema,
+            "target_tool": text_schema,
+            "project_key": {"type": ["string", "null"]},
+            "session_id": {"type": ["string", "null"]},
+            "request_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$",
+            },
+            "signature": text_schema,
+        },
+        "required": [
+            "schema",
+            "device_id",
+            "key_id",
+            "issued_at",
+            "expires_at",
+            "nonce",
+            "target_tool",
+            "project_key",
+            "session_id",
+            "request_sha256",
+            "signature",
+        ],
+        "additionalProperties": False,
+    }
+    tools = [
         {
             "name": "memory_status",
             "title": "Memory Status",
@@ -454,6 +494,15 @@ def tool_defs() -> list[dict[str, Any]]:
             },
         },
     ]
+    for tool in tools:
+        if tool["name"] == "memory_status":
+            continue
+        properties = tool["inputSchema"].setdefault("properties", {})
+        properties["device_assertion"] = device_assertion_schema
+        if tool["name"] == "session_open":
+            properties["device_id"] = text_schema
+            properties["user_key"] = text_schema
+    return tools
 
 def db() -> psycopg.Connection[Any]:
     password = os.environ.get(PG_PASSWORD_ENV)
@@ -579,7 +628,10 @@ def set_project(conn: psycopg.Connection[Any], project_id: str) -> None:
         )
 
 
-def session_open(args: dict[str, Any]) -> dict[str, Any]:
+def session_open(
+    args: dict[str, Any],
+    verified_identity: VerifiedIdentity | None = None,
+) -> dict[str, Any]:
     project_key = args["project_key"]
     project_name = args.get("project_name") or project_key
     client_key = args.get("client_key") or "unknown-client"
@@ -611,6 +663,7 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
     context_profile = args.get("context_profile") or "standard-context"
 
     with db() as conn, conn.cursor() as cur:
+        identity = verified_identity or resolve_legacy_identity(conn)
         cur.execute(
             """
             SELECT EXISTS (
@@ -703,14 +756,16 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
             ),
             machine AS (
               INSERT INTO agentcore.machines (machine_name, hardware_ref)
-              VALUES ('CHAOSCENTRAL', 'D:\\ChaosCentral-Current-Build\\DOC_AUTHORITY.md')
-              ON CONFLICT (machine_name) DO UPDATE SET hardware_ref = EXCLUDED.hardware_ref
+              VALUES (%s, NULL)
+              ON CONFLICT (machine_name) DO UPDATE
+                SET hardware_ref = COALESCE(agentcore.machines.hardware_ref, EXCLUDED.hardware_ref)
               RETURNING id
             ),
             usr AS (
               INSERT INTO agentcore.users (username, display_name)
-              VALUES ('ynotf', 'Tony Valentine')
-              ON CONFLICT (username) DO UPDATE SET display_name = EXCLUDED.display_name
+              VALUES (%s, NULL)
+              ON CONFLICT (username) DO UPDATE
+                SET display_name = COALESCE(agentcore.users.display_name, EXCLUDED.display_name)
               RETURNING id
             ),
             source AS (
@@ -750,6 +805,8 @@ def session_open(args: dict[str, Any]) -> dict[str, Any]:
                     f"{session_key}:run",
                     f"{project_key}:workflow",
                     f"{session_key}:thread",
+                    identity.device_id,
+                    identity.user_key,
                     f"{session_key}:source",
                 ]
             ),
@@ -793,6 +850,14 @@ def memory_status() -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001
         migrations = [f"degraded:{exc.__class__.__name__}"]
     knowledge_status = get_knowledge_memory_port().status().as_dict()
+    try:
+        with db() as conn:
+            identity_status = device_identity_status(conn)
+    except Exception as exc:  # noqa: BLE001
+        identity_status = {
+            "enforcement_mode": "degraded",
+            "error": type(exc).__name__,
+        }
     return {
         "ok": True,
         "server": SERVER_NAME,
@@ -809,6 +874,7 @@ def memory_status() -> dict[str, Any]:
             "gateway_write_path": {
                 "note": "Normal durable memory writes are governed through compact tools only; no raw SQL/admin tools exposed.",
             },
+            "device_identity": identity_status,
             "cognee": knowledge_status,
             "neutral_shared_swarmrecall": {
                 "classification": "machine_level_neutral_semantic_plane",
@@ -1879,11 +1945,34 @@ def docs_search(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
-    arguments = arguments or {}
+    arguments = dict(arguments or {})
     if name == "memory_status":
         return memory_status()
+    try:
+        with db() as identity_conn:
+            verified_identity = verify_tool_identity(
+                identity_conn,
+                tool_name=name,
+                arguments=arguments,
+            )
+            identity_conn.commit()
+    except DeviceIdentityError as exc:
+        return {
+            "ok": False,
+            "error": exc.code,
+            "identity_verified": False,
+        }
+    arguments.pop("device_assertion", None)
     if name == "session_open":
-        return session_open(arguments)
+        result = session_open(arguments, verified_identity)
+        if verified_identity is not None:
+            result["identity"] = {
+                "device_id": verified_identity.device_id,
+                "user_key": verified_identity.user_key,
+                "key_id": verified_identity.key_id,
+                "legacy_compat": verified_identity.legacy_compat,
+            }
+        return result
     if name == "session_close":
         return session_close(arguments)
     if name == "append_event":
