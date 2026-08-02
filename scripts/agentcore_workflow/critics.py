@@ -94,7 +94,7 @@ def det_check_memory_surface_intact(state: dict) -> dict:
         actual_tools = {t["name"] for t in mem_server.tool_defs()}
         missing = expected_tools - actual_tools
         extra = actual_tools - expected_tools
-        passed = not missing  # extra tools are acceptable; missing is a failure
+        passed = not missing and not extra
         return {
             "check": "memory_surface_intact",
             "passed": passed,

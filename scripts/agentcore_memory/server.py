@@ -499,6 +499,7 @@ def tool_defs() -> list[dict[str, Any]]:
             continue
         properties = tool["inputSchema"].setdefault("properties", {})
         properties["device_assertion"] = device_assertion_schema
+        properties.setdefault("session_id", text_schema)
         if tool["name"] == "session_open":
             properties["device_id"] = text_schema
             properties["user_key"] = text_schema
