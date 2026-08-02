@@ -16,6 +16,7 @@ Responsibility boundary (from ADR-DEEP-AGENTS-WORKER-HARNESS.md):
     - MemoryMiddleware  (would create a competing AGENTS.md source of truth)
     - SummarizationMiddleware durable offload into the worktree (second SoT)
     - LangSmith tracing (external data egress without operator approval)
+    - Langfuse tracing/prompts unless operator enables AGENTCORE_LANGFUSE_*
     - .env file loading (violates AgentCore secret handling policy)
     - Overriding M6 checkpoints (M6 PostgresSaver remains canonical)
     - Writing outside the assigned worktree
@@ -220,6 +221,21 @@ def _acquire_vram_slot(*, heavy_gpu: bool, timeout_sec: float = 2.0) -> Iterator
 
 
 OPENROUTER_API_V1 = "https://openrouter.ai/api/v1"
+DEFAULT_WORKER_MODEL_SPEC = "gemini:gemini-3.6-flash"
+
+
+def _chat_openrouter(model_id: str):
+    """Construct ChatOpenRouter with explicit /api/v1 base URL."""
+    from langchain_openrouter import ChatOpenRouter
+
+    # Explicit connect/read timeouts prevent indefinite hangs on free/slow models.
+    timeout_sec = float(os.environ.get("AGENTCORE_OPENROUTER_TIMEOUT_SEC", "60"))
+    return ChatOpenRouter(
+        model=model_id,
+        base_url=OPENROUTER_API_V1,
+        timeout=timeout_sec,
+        max_retries=1,
+    )
 
 
 def _resolve_model(model: str):
@@ -229,21 +245,20 @@ def _resolve_model(model: str):
     /api/v1 base URL: the machine-level OPENROUTER_API_BASE env var points at the
     site root (HTML), which langchain_openrouter would otherwise inherit.
     openrouter/auto is rejected — explicit model IDs only.
+
+    For 'gemini:<model-name>' specs, route through OpenRouter as google/<model-name>
+    (e.g. gemini:gemini-3.6-flash -> google/gemini-3.6-flash).
     """
     if isinstance(model, str) and model.startswith("openrouter:"):
         model_id = model.split(":", 1)[1]
         if not model_id or model_id == "openrouter/auto":
             raise ValueError("openrouter requires an explicit model ID (openrouter/auto is not permitted)")
-        from langchain_openrouter import ChatOpenRouter
-
-        # Explicit connect/read timeouts prevent indefinite hangs on free/slow models.
-        timeout_sec = float(os.environ.get("AGENTCORE_OPENROUTER_TIMEOUT_SEC", "60"))
-        return ChatOpenRouter(
-            model=model_id,
-            base_url=OPENROUTER_API_V1,
-            timeout=timeout_sec,
-            max_retries=1,
-        )
+        return _chat_openrouter(model_id)
+    if isinstance(model, str) and model.startswith("gemini:"):
+        model_name = model.split(":", 1)[1]
+        if not model_name:
+            raise ValueError("gemini requires an explicit model name")
+        return _chat_openrouter(f"google/{model_name}")
     return model
 
 
@@ -548,7 +563,7 @@ def run_builder_worker(
     task: str,
     worktree_path: str,
     agentcore_context: str,
-    model: str = "openai:gpt-4o-mini",
+    model: str = DEFAULT_WORKER_MODEL_SPEC,
     max_iterations: int | None = None,
     allowed_tools: list[str] | None = None,
     project_id: str = "",
@@ -628,28 +643,17 @@ def run_builder_worker(
             },
         )
 
-    # System prompt: inject AgentCore context and strict boundaries
-    system_prompt = f"""You are a focused builder agent. You have been delegated ONE micro-step.
-Work only within your assigned worktree: {root}
+    from .langfuse_integration import (
+        compile_builder_system_prompt,
+        merge_invoke_config,
+        worker_prompt_context,
+    )
 
-## AgentCore Project Context (read-only; do not modify this context)
-{agentcore_context[:4000]}
-
-## Your task
-{task}
-
-## Strict rules
-- Work ONLY within the assigned worktree above.
-- Do NOT read or write files outside that path.
-- Do NOT call any network API, send emails, push to git, or deploy.
-- Do NOT output credentials, secrets, or environment variable values.
-- Do NOT install new packages or modify lock files.
-- Do NOT create AGENTS.md, .env, or conversation_history archives.
-- Write clear, testable code. Run tests if they exist.
-- Stop after completing the task; do not over-engineer.
-- Your output will be captured by the AgentCore platform; do not create
-  separate memory files or AGENTS.md files.
-"""
+    system_prompt, langfuse_prompt = compile_builder_system_prompt(
+        worktree=str(root),
+        agentcore_context=agentcore_context,
+        task=task,
+    )
 
     # Filesystem access restricted to worktree — read+write allowed.
     # deepagents 0.6.x: create_deep_agent installs FilesystemMiddleware itself;
@@ -674,18 +678,25 @@ Work only within your assigned worktree: {root}
                 permissions=[fs_permission],
             )
 
-            invoke_config = {
-                "configurable": {
-                    "thread_id": f"builder-{thread_uuid or 'local'}",
-                    "max_iterations": max_iterations,
+            invoke_config = merge_invoke_config(
+                {
+                    "configurable": {
+                        "thread_id": f"builder-{thread_uuid or 'local'}",
+                        "max_iterations": max_iterations,
+                    },
+                    "run_name": "agentcore-da-builder",
                 }
-            }
+            )
+
+            def _invoke_builder() -> dict[str, Any]:
+                with worker_prompt_context(langfuse_prompt):
+                    return agent.invoke(
+                        {"messages": [HumanMessage(content=task)]},
+                        config=invoke_config,
+                    )
 
             result = _run_with_timeout(
-                lambda: agent.invoke(
-                    {"messages": [HumanMessage(content=task)]},
-                    config=invoke_config,
-                ),
+                _invoke_builder,
                 timeout_sec=timeout_sec,
                 on_timeout={
                     "status": "failed",
@@ -758,7 +769,7 @@ def run_critic_worker(
     worktree_path: str,
     agentcore_context: str,
     rubric: str = "",
-    model: str = "openai:gpt-4o-mini",
+    model: str = DEFAULT_WORKER_MODEL_SPEC,
     max_iterations: int | None = None,
     project_id: str = "",
     thread_uuid: str = "",
@@ -821,23 +832,18 @@ def run_critic_worker(
             },
         )
 
-    rubric_section = f"\n## Rubric\n{rubric}" if rubric else ""
-    system_prompt = f"""You are a focused code reviewer. You may only READ files.
-Assigned worktree: {root}
+    from .langfuse_integration import (
+        compile_critic_system_prompt,
+        merge_invoke_config,
+        worker_prompt_context,
+    )
 
-## AgentCore Project Context
-{agentcore_context[:2000]}
-
-## Review task
-{task}{rubric_section}
-
-## Strict rules
-- Read ONLY. You may NOT write, edit, delete, or execute anything.
-- Produce a structured critique with: PASSED (yes/no), SCORE (0.0-1.0),
-  and FINDINGS (list of specific issues or confirmations).
-- Format your final response as JSON:
-  {{"passed": true/false, "score": 0.0-1.0, "findings": ["..."]}}
-"""
+    system_prompt, langfuse_prompt = compile_critic_system_prompt(
+        worktree=str(root),
+        agentcore_context=agentcore_context,
+        task=task,
+        rubric=rubric,
+    )
 
     # Critic: strictly read-only filesystem.
     fs_permission = FilesystemPermission(
@@ -855,16 +861,25 @@ Assigned worktree: {root}
                 permissions=[fs_permission],
             )
 
-            result = _run_with_timeout(
-                lambda: agent.invoke(
-                    {"messages": [HumanMessage(content=f"Please review: {task}")]},
-                    config={
-                        "configurable": {
-                            "thread_id": f"critic-{thread_uuid or 'local'}",
-                            "max_iterations": max_iterations,
-                        }
+            invoke_config = merge_invoke_config(
+                {
+                    "configurable": {
+                        "thread_id": f"critic-{thread_uuid or 'local'}",
+                        "max_iterations": max_iterations,
                     },
-                ),
+                    "run_name": "agentcore-da-critic",
+                }
+            )
+
+            def _invoke_critic() -> dict[str, Any]:
+                with worker_prompt_context(langfuse_prompt):
+                    return agent.invoke(
+                        {"messages": [HumanMessage(content=f"Please review: {task}")]},
+                        config=invoke_config,
+                    )
+
+            result = _run_with_timeout(
+                _invoke_critic,
                 timeout_sec=timeout_sec,
                 on_timeout={
                     "status": "failed",

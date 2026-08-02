@@ -28,6 +28,8 @@ prompt receipt inside the model.
 """
 from __future__ import annotations
 
+import functools
+import inspect
 import json
 import os
 import sys
@@ -84,11 +86,12 @@ def _db_ok() -> bool:
 
 
 def db_available(f):
+    @functools.wraps(f)
     def wrapper(*args, **kwargs):
         if not _db_ok():
             pytest.skip("PostgreSQL 18 not reachable — skipping live DB test")
         return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
+    wrapper.__signature__ = inspect.signature(f)
     return wrapper
 
 

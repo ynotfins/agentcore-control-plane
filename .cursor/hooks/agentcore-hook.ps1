@@ -13,18 +13,30 @@ if (-not (Test-Path -LiteralPath $dispatcher)) {
     exit 2
 }
 
-$python = Get-Command python -ErrorAction SilentlyContinue
-if (-not $python) {
-    $python = Get-Command py -ErrorAction SilentlyContinue
-    if (-not $python) {
-        [Console]::Out.Write('{"error":"missing_python"}')
-        exit 2
-    }
-    $exe = $python.Source
-    $argList = @("-3", "-u", $dispatcher, $Event)
-} else {
-    $exe = $python.Source
+# Prefer explicit Python 3.13 install (agent shells often lack bare `python` on PATH).
+$preferred = @(
+    $env:AGENTCORE_PYTHON,
+    (Join-Path $env:LOCALAPPDATA "Programs\Python\Python313\python.exe"),
+    (Join-Path $env:LOCALAPPDATA "Programs\Python\Python312\python.exe")
+) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+
+if ($preferred) {
+    $exe = $preferred
     $argList = @("-u", $dispatcher, $Event)
+} else {
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $python) {
+        $python = Get-Command py -ErrorAction SilentlyContinue
+        if (-not $python) {
+            [Console]::Out.Write('{"error":"missing_python"}')
+            exit 2
+        }
+        $exe = $python.Source
+        $argList = @("-3", "-u", $dispatcher, $Event)
+    } else {
+        $exe = $python.Source
+        $argList = @("-u", $dispatcher, $Event)
+    }
 }
 
 $raw = [Console]::In.ReadToEnd()

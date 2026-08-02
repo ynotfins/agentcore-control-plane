@@ -17,6 +17,8 @@ database is unreachable so CI on machines without the database does not fail.
 """
 from __future__ import annotations
 
+import functools
+import inspect
 import json
 import os
 import sys
@@ -77,11 +79,12 @@ def _conn() -> "psycopg.Connection[Any]":
 
 def db_available(f):
     """Decorator that skips the test when the database is unreachable."""
+    @functools.wraps(f)
     def wrapper(*args, **kwargs):
         if not _check_db_reachable():
             pytest.skip("PostgreSQL 18 not reachable — skipping live DB test")
         return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
+    wrapper.__signature__ = inspect.signature(f)
     return wrapper
 
 

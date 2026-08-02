@@ -53,6 +53,14 @@ def test_builder_receives_only_current_jit_tools():
     assert set(profile.tools) == {"depwire-verify_change", "filesystem-edit_file"}
 
 
+def test_gemini_provider_resolves_to_provider_model_spec():
+    state = _state()
+    state["provider"] = "gemini"
+    state["model"] = "gemini-3.6-flash"
+    profile = resolve_execution_profile(state, "da_builder")
+    assert profile.model_id == "gemini:gemini-3.6-flash"
+
+
 def test_wrapper_persists_resolution_evidence_without_changing_route():
     def node(state):
         assert state["resolved_execution_profile"]["roles"]

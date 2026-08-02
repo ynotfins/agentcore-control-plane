@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-08-02T05:48:43.793617+00:00",
+  "ok": true,
+  "project_id": "aa337324-a9ad-4bc5-bf23-82b0ecbe61bf",
+  "project_key": "agentcore-context-engine",
+  "milestone": "M1",
+  "thread_uuid": "d8f58880-d486-41af-9599-a2c3c7a9b654",
+  "run_db_id": "3c3dfced-bc21-4338-972b-8fdf3d3675fb",
+  "completed": true,
+  "judge_verdict": "proceed",
+  "score": 1.0,
+  "evidence_count": 0,
+  "errors": [
+    "No execution path for micro step 'M1.1.1': da_enabled=False and this is not a known M6 bootstrap key.  Ensure a valid worktree_path exists so risk_assess can enable the DA builder."
+  ],
+  "checkpoint": {
+    "thread_id": "d8f58880-d486-41af-9599-a2c3c7a9b654",
+    "checkpoint_count": 10,
+    "latest_checkpoint_id": "1f18e35d-24da-679b-8008-89063ac3e87d",
+    "latest_checkpoint_ns": "",
+    "latest_type": null,
+    "latest_node": null
+  }
+}

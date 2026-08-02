@@ -374,8 +374,8 @@ def cmd_start(args: argparse.Namespace) -> int:
     )
     budget_profile = getattr(args, "budget_profile", None) or ""
 
-    if args.provider == "openrouter" and not args.model:
-        print("ERROR: --provider openrouter requires an explicit --model.", file=sys.stderr)
+    if args.provider in ("openrouter", "gemini") and not args.model:
+        print(f"ERROR: --provider {args.provider} requires an explicit --model.", file=sys.stderr)
         return 2
 
     if args.model in FORBIDDEN_OPENROUTER_MODELS or (
@@ -390,6 +390,18 @@ def cmd_start(args: argparse.Namespace) -> int:
     if args.provider == "openrouter" and args.model and args.model not in APPROVED_OPENROUTER_MODELS:
         print(
             f"ERROR: model {args.model!r} is not in the approved OpenRouter workflow set.",
+            file=sys.stderr,
+        )
+        return 2
+    if args.provider == "gemini" and args.model and args.model not in APPROVED_GEMINI_MODELS:
+        print(
+            f"ERROR: model {args.model!r} is not in the approved Gemini workflow set.",
+            file=sys.stderr,
+        )
+        return 2
+    if args.provider and args.provider not in ("openrouter", "gemini"):
+        print(
+            f"ERROR: --provider {args.provider!r} is not supported. Use 'openrouter' or 'gemini'.",
             file=sys.stderr,
         )
         return 2
@@ -927,6 +939,7 @@ def cmd_studio(args: argparse.Namespace) -> int:
 # Operator-approved OpenRouter workflow model set. openrouter/auto is
 # deliberately excluded: explicit model IDs only.
 APPROVED_OPENROUTER_MODELS = [
+    "google/gemini-3.6-flash",
     "minimax/minimax-m3",
     "deepseek/deepseek-v4-pro",
     "deepseek/deepseek-v4-flash",
@@ -934,6 +947,21 @@ APPROVED_OPENROUTER_MODELS = [
     "minimax/minimax-m2.7",
     "tencent/hy3:free",
 ]
+
+# Gemini provider uses provider:model specs (gemini:gemini-3.6-flash) with
+# OpenRouter transport (google/gemini-3.6-flash).
+APPROVED_GEMINI_MODELS = [
+    "gemini-3.6-flash",
+]
+
+GEMINI_OPENROUTER_MODEL_IDS = {
+    "gemini-3.6-flash": "google/gemini-3.6-flash",
+}
+
+
+def gemini_openrouter_model_id(gemini_model: str) -> str:
+    """Map a Gemini short model id to the OpenRouter transport model id."""
+    return GEMINI_OPENROUTER_MODEL_IDS.get(gemini_model, f"google/{gemini_model}")
 
 FORBIDDEN_OPENROUTER_MODELS = {
     "openrouter/auto",
@@ -1063,7 +1091,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_start.add_argument("--budget-profile", default=None,
                          help="Budget profile alias (also accepted as risk/budget hint)")
     p_start.add_argument("--milestone", default="M6")
-    p_start.add_argument("--provider", default=None, help="LLM provider (e.g., 'openrouter')")
+    p_start.add_argument("--provider", default=None, help="LLM provider (e.g., 'openrouter', 'gemini')")
     p_start.add_argument("--model", default=None, help="Selected model ID")
     p_start.add_argument("--json", action="store_true")
     p_start.set_defaults(func=cmd_start)

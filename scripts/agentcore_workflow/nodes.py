@@ -924,12 +924,16 @@ def node_da_builder(state: WorkflowState) -> dict:
         return {"next_action": "micro_execute", "da_builder_result": {"status": "skipped_no_da"},
                 "gate_evidence": {}}
 
-    # Resolve model spec for the worker (default to openai:gpt-4o-mini if not specified)
-    model_spec = "openai:gpt-4o-mini"
+    # Resolve model spec for the worker (default to gemini:gemini-3.6-flash if not specified)
+    from .deepagents_worker import DEFAULT_WORKER_MODEL_SPEC
+
+    model_spec = DEFAULT_WORKER_MODEL_SPEC
     if execution_profile.get("model_id"):
         model_spec = str(execution_profile["model_id"])
     elif state.get("provider") == "openrouter" and state.get("model"):
         model_spec = f"openrouter:{state['model']}"
+    elif state.get("provider") == "gemini" and state.get("model"):
+        model_spec = f"gemini:{state['model']}"
     elif state.get("model"):
         model_spec = state["model"]
 
@@ -1069,12 +1073,16 @@ def node_da_critic(state: WorkflowState) -> dict:
             "next_action": "post_exec_judge",
         }
 
-    # Resolve model spec for the worker (default to openai:gpt-4o-mini if not specified)
-    model_spec = "openai:gpt-4o-mini"
+    # Resolve model spec for the worker (default to gemini:gemini-3.6-flash if not specified)
+    from .deepagents_worker import DEFAULT_WORKER_MODEL_SPEC
+
+    model_spec = DEFAULT_WORKER_MODEL_SPEC
     if execution_profile.get("model_id"):
         model_spec = str(execution_profile["model_id"])
     elif state.get("provider") == "openrouter" and state.get("model"):
         model_spec = f"openrouter:{state['model']}"
+    elif state.get("provider") == "gemini" and state.get("model"):
+        model_spec = f"gemini:{state['model']}"
     elif state.get("model"):
         model_spec = state["model"]
 
@@ -1319,10 +1327,17 @@ def node_ab_alternate(state: WorkflowState) -> dict:
         worktree_path, branch_label = create_ab_worktree(run_id=run_db_id)
         ab_alt_worktree_path = worktree_path
 
-        # Resolve model spec for the worker (default to openai:gpt-4o-mini if not specified)
-        model_spec = "openai:gpt-4o-mini"
-        if state.get("provider") == "openrouter" and state.get("model"):
+        # Resolve model spec for the worker (default to gemini:gemini-3.6-flash if not specified)
+        from .deepagents_worker import DEFAULT_WORKER_MODEL_SPEC
+
+        model_spec = DEFAULT_WORKER_MODEL_SPEC
+        execution_profile = state.get("resolved_execution_profile") or {}
+        if execution_profile.get("model_id"):
+            model_spec = str(execution_profile["model_id"])
+        elif state.get("provider") == "openrouter" and state.get("model"):
             model_spec = f"openrouter:{state['model']}"
+        elif state.get("provider") == "gemini" and state.get("model"):
+            model_spec = f"gemini:{state['model']}"
         elif state.get("model"):
             model_spec = state["model"]
 

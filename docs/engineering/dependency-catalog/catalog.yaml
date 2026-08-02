@@ -325,7 +325,35 @@ dependencies:
     rollback: >
       pip uninstall deepagents; remove from requirements.txt;
       remove drift gate from gates.py; delete deepagents_worker.py.
+    review_notes: >
+      Default worker model spec is gemini:gemini-3.6-flash (OpenRouter transport:
+      google/gemini-3.6-flash). Override via workflow start --provider/--model or
+      AGENTCORE_MODEL_FAST / AGENTCORE_MODEL_CAPABLE env vars.
     last_review: "2026-07-16"
+
+  - package: langfuse
+    ecosystem: python
+    status: approved
+    purpose: >
+      Optional LLM observability (LangGraph/LangChain CallbackHandler) and prompt
+      management for M6 workflow and Deep Agents workers. Operator opt-in via
+      AGENTCORE_LANGFUSE_TRACING / AGENTCORE_LANGFUSE_PROMPTS.
+    version_policy: "==4.14.2"
+    tested_version: "4.14.2"
+    source: https://pypi.org/project/langfuse/
+    repository: https://github.com/langfuse/langfuse-python
+    documentation: https://langfuse.com/docs
+    license: MIT
+    provenance: Langfuse GmbH; MIT license; official Python SDK v4
+    security_notes: >
+      Traces export to operator-configured Langfuse project only when explicitly
+      enabled. Credentials via Windows User env vars; no .env files. Separate from
+      LangSmith (still disabled by default in Studio).
+    alternatives_considered: LangSmith (disabled by policy), OpenTelemetry-only (more setup)
+    approval_reason: >
+      Operator-requested integration; LangGraph CallbackHandler pattern; prompt
+      management for da-builder/da-critic; docs/operations/LANGFUSE_TRACING_AND_PROMPTS.md
+    last_review: "2026-08-01"
 
   - package: langchain-mcp-adapters
     ecosystem: python

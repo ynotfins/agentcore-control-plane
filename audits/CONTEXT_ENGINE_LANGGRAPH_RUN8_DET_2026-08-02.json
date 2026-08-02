@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-08-02T05:58:31.857876+00:00",
+  "ok": true,
+  "project_id": "aa337324-a9ad-4bc5-bf23-82b0ecbe61bf",
+  "project_key": "agentcore-context-engine",
+  "milestone": "M1",
+  "thread_uuid": "f926598a-01d0-4cc6-afc2-a5b70629be89",
+  "run_db_id": "e78054cf-2dac-4998-989d-6723f57b03f3",
+  "completed": true,
+  "judge_verdict": "proceed",
+  "score": 1.0,
+  "evidence_count": 0,
+  "errors": [
+    "DA builder failed: WorkerTimeout: builder exceeded 120s (model=gemini:gemini-3.6-flash; max_iterations=3)"
+  ],
+  "checkpoint": {
+    "thread_id": "f926598a-01d0-4cc6-afc2-a5b70629be89",
+    "checkpoint_count": 10,
+    "latest_checkpoint_id": "1f18e373-0d13-65c9-8008-d4696f5b37b8",
+    "latest_checkpoint_ns": "",
+    "latest_type": null,
+    "latest_node": null
+  }
+}

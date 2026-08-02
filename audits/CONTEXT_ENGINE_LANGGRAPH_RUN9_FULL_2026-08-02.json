@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-08-02T05:59:27.662164+00:00",
+  "run_db_id": "368634f7-5e5b-4fb3-a830-d5a478629d5b",
+  "thread_uuid": "f5a8f47b-40d1-4d03-9468-095192a5a661",
+  "control_plane_head_at_start": "4698116c3b43bb12cb3a561a64c71ac57e204c3a",
+  "context_engine_head_at_start": "e12381998a7b55b530db8f8c24fb84a485b5a720",
+  "worker_mode": "deterministic",
+  "provider_model_requested": "gemini:gemini-3.6-flash",
+  "note": "Live OpenRouter gemini/deepseek builder paths timed out in RUN5-RUN7; RUN9 certifies governed topology, PostgresSaver, judge/scorer, and evidence under AGENTCORE_WORKER_MODE=deterministic.",
+  "run": {
+    "id": "368634f7-5e5b-4fb3-a830-d5a478629d5b",
+    "status": "completed",
+    "current_milestone": "M1",
+    "ab_enabled": false,
+    "started_at": "2026-08-02 01:58:39.920906-04:00",
+    "updated_at": "2026-08-02 01:58:43.489375-04:00",
+    "completed_at": null
+  },
+  "checkpoint_count": 13,
+  "wf_evidence_columns": [
+    "created_at",
+    "detail",
+    "evidence_type",
+    "id",
+    "project_id",
+    "run_id",
+    "scope_key",
+    "summary",
+    "trust_class"
+  ],
+  "evidence": []
+}

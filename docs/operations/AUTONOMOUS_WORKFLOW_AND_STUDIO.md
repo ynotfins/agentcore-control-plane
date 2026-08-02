@@ -1,6 +1,6 @@
 # AgentCore Autonomous Workflow & LangGraph Studio Runbook
 
-**Status:** READY — `python -m agentcore workflow {init,start,status,pause,approve,reject,resume,cancel,logs,evidence,topology,studio}` from `D:\github\agentcore-control-plane`. Fixture E2E **17/17 PASS**. Topology fingerprint `a86e40e8ddd0a370…`. Production and Studio persistence are isolated.
+**Status:** READY — `python -m agentcore workflow {init,start,status,pause,approve,reject,resume,cancel,logs,evidence,topology,studio}` from **`D:\github\agentcore-control-plane\scripts`** (operator cwd). Fixture E2E **17/17 PASS**. Topology fingerprint `a86e40e8ddd0a370…`. Production and Studio persistence are isolated.
 
 **Authority:** `BLUEPRINT.md` M6 + `MEMORY_PLATFORM_EXECUTION_PLAN.md` M6 + `AGENTS.md`.
 
@@ -13,7 +13,8 @@
 
 | Role | Path |
 |---|---|
-| Control plane (canonical; run all commands here) | `D:\github\agentcore-control-plane` |
+| Control plane (canonical Git repo) | `D:\github\agentcore-control-plane` |
+| **Operator cwd** (run all `python -m agentcore` commands here) | `D:\github\agentcore-control-plane\scripts` |
 | Operator CLI | `scripts\agentcore\workflow_cli.py` |
 | Studio adapter | `scripts\agentcore\studio.py` + `scripts\agentcore_workflow\studio\` |
 | Workflow engine | `scripts\agentcore_workflow\` |
@@ -23,6 +24,20 @@
 | Evidence | `audits\M6\` |
 
 Do **not** run production workflow commands from `D:\github\deepagents`. Deep Agents is a PyPI worker pin only (`deepagents==0.6.12`).
+
+### Operator shell (verified 2026-08-02)
+
+| Launch context | Result |
+|---|---|
+| `cd D:\github\agentcore-control-plane` then `python -m agentcore …` | **FAIL** — `ModuleNotFoundError: No module named 'agentcore'` |
+| `cd D:\github\agentcore-control-plane\scripts` then `python -m agentcore …` | **PASS** — topology + health succeed |
+| Repo root with `$env:PYTHONPATH = "D:\github\agentcore-control-plane\scripts"` | **PASS** — equivalent; prefer `scripts` cwd for simplicity |
+
+On some shells bare `python` is not on PATH. Use the full executable when needed:
+
+```text
+C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe
+```
 
 ---
 
@@ -40,17 +55,25 @@ Do **not** run production workflow commands from `D:\github\deepagents`. Deep Ag
 | `LANGGRAPH_HOST` | Studio | forced `127.0.0.1` |
 | `LANGGRAPH_PORT` | Studio | `2024` (abort on collision) |
 | `LANGSMITH_API_KEY` | Hosted Studio browser auth only | optional; missing ≠ stop |
+| `LANGFUSE_PUBLIC_KEY` | Langfuse tracing/prompts | User env only; see `LANGFUSE_TRACING_AND_PROMPTS.md` |
+| `LANGFUSE_SECRET_KEY` | Langfuse tracing/prompts | User env only |
+| `LANGFUSE_BASE_URL` | Langfuse region/host | e.g. `https://cloud.langfuse.com` |
+| `AGENTCORE_LANGFUSE_TRACING` | M6 Langfuse export | default off; set `true` to enable |
+| `AGENTCORE_LANGFUSE_PROMPTS` | Remote Deep Agent prompts | default off; set `true` to enable |
 
-No committed `.env`. Never print secret values. Never paste `LANGSMITH_API_KEY` into chat.
+No committed `.env`. Never print secret values. Never paste `LANGSMITH_API_KEY` or Langfuse keys into chat.
 
 ---
 
 ## 3. Production launcher
 
-From `D:\github\agentcore-control-plane` (via `python -m agentcore`):
+From **`D:\github\agentcore-control-plane\scripts`**:
 
 ```powershell
-cd D:\github\agentcore-control-plane
+cd D:\github\agentcore-control-plane\scripts
+
+# If bare `python` is missing from PATH, set:
+# $py = "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe"
 
 python -m agentcore workflow init `
   --project-key fixture-project-a `
@@ -73,6 +96,8 @@ python -m agentcore workflow logs     --project-key fixture-project-a --tail 50
 python -m agentcore workflow evidence --project-key fixture-project-a --run <run_db_id>
 python -m agentcore workflow topology
 ```
+
+**Alternative (repo root):** set `$env:PYTHONPATH = "D:\github\agentcore-control-plane\scripts"` before the same `python -m agentcore workflow …` invocations. Prefer the `scripts` cwd above.
 
 Exit codes: `0` ok · `2` pre-flight · `3` runtime · `4` pause conflict · `5` internal.
 
@@ -104,6 +129,8 @@ Exit codes: `0` ok · `2` pre-flight · `3` runtime · `4` pause conflict · `5`
 ## 6. Restart recovery
 
 ```powershell
+cd D:\github\agentcore-control-plane\scripts
+
 python -m agentcore workflow status --project-key <project_key>
 python -m agentcore workflow resume  --project-key <project_key>
 ```
@@ -124,15 +151,62 @@ Covered by fixture scenarios `03-kill_resume_partial` and `03-kill_resume` (17/1
 
 ---
 
-## 8. PostgreSQL vs Studio checkpointers
+## 8. Production evidence inspection vs Studio dev
 
-| Surface | Persistence |
+Use the right surface for the question. Production runs and Studio dev runs are **not interchangeable**.
+
+### Production evidence inspection
+
+Inspect live or completed **production** runs with the CLI from `scripts\`. These commands read `agentcore.wf_*` registry rows and production `PostgresSaver` state on PG18.
+
+```powershell
+cd D:\github\agentcore-control-plane\scripts
+
+# Run registry: status, milestone, node, blockers, checkpoint summary
+python -m agentcore workflow status --project-key <project_key>
+python -m agentcore workflow status --project-key <project_key> --thread <thread_uuid>
+python -m agentcore workflow status --project-key <project_key> --run <run_db_id>
+
+# Operator log tail
+python -m agentcore workflow logs --project-key <project_key> --tail 50
+
+# Evidence artefact for a specific run
+python -m agentcore workflow evidence --project-key <project_key> --run <run_db_id>
+
+# Graph parity fingerprint (production topology)
+python -m agentcore workflow topology
+```
+
+`workflow status` includes a checkpoint summary from PG18 `public.checkpoints` for the production thread. Direct SQL (trusted admin only) can audit the same tables:
+
+| Table | Role |
 |---|---|
-| **Production** | PG18 `127.0.0.1:55433` / `agent_core` / `public.checkpoints` (+ blobs/writes) via `PostgresSaver` |
-| **Studio** | Agent Server **dev** checkpointer (sqlite/in-memory). **Not** production PostgresSaver |
-| Registry / evidence | `agentcore.wf_*`, leases, pauses — production only |
+| `public.checkpoints` | LangGraph checkpoint metadata |
+| `public.checkpoint_blobs` | Serialized checkpoint payloads |
+| `public.checkpoint_writes` | Pending writes per checkpoint |
+| `agentcore.wf_runs` | Run registry (links `langgraph_thread`) |
+| `agentcore.wf_evidence` | Evidence rows |
 
-Production and Studio **never share thread IDs**. Isolation proven (`studio_sees_production_thread_status = 404`).
+Database: PG18 `127.0.0.1:55433` / `agent_core`.
+
+### Studio dev inspection
+
+Studio is for **local topology parity and disposable dev runs** only. It uses the Agent Server **dev** checkpointer (sqlite/in-memory), **not** production `PostgresSaver`.
+
+```powershell
+cd D:\github\agentcore-control-plane\scripts
+
+python -m agentcore workflow studio --port 2024 --no-browser
+# Ctrl+C to stop
+```
+
+| Studio can | Studio cannot |
+|---|---|
+| Serve the same graph topology (`build_topology()` fingerprint must match) | Open, resume, or inspect **production** thread IDs |
+| Run disposable dev threads in the Agent Server dev checkpointer | Read PG18 `public.checkpoints` for production threads |
+| Local API at `http://127.0.0.1:2024` | Share thread IDs with production (`studio_sees_production_thread_status = 404`) |
+
+**Do not paste a production `thread_uuid` into Studio expecting to debug a live run.** Use `workflow status` / `workflow logs` / `workflow evidence` (and PG18 checkpoint tables for admin audit) for production forensics. Use Studio only with the disposable fixture for destructive graph experiments.
 
 Topology fingerprint (prod = studio):
 
@@ -142,7 +216,19 @@ a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32
 
 ---
 
-## 9. LangGraph Studio (Option A)
+## 9. PostgreSQL vs Studio checkpointers
+
+| Surface | Persistence |
+|---|---|
+| **Production** | PG18 `127.0.0.1:55433` / `agent_core` / `public.checkpoints` (+ blobs/writes) via `PostgresSaver` |
+| **Studio** | Agent Server **dev** checkpointer (sqlite/in-memory). **Not** production PostgresSaver |
+| Registry / evidence | `agentcore.wf_*`, leases, pauses — production only |
+
+Production and Studio **never share thread IDs**. Studio **cannot** inspect production PostgresSaver threads or checkpoints. Isolation proven (`studio_sees_production_thread_status = 404`).
+
+---
+
+## 10. LangGraph Studio (Option A)
 
 ### Posture
 
@@ -156,7 +242,7 @@ a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32
 ### Start / stop
 
 ```powershell
-cd D:\github\agentcore-control-plane
+cd D:\github\agentcore-control-plane\scripts
 python -m agentcore workflow studio --port 2024 --no-browser
 # Ctrl+C to stop
 ```
@@ -177,11 +263,13 @@ See `audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md`: local `/docs` 200, 
 
 ---
 
-## 10. Studio vs production
+## 11. Studio vs production
 
 | Aspect | Production | Studio |
 |---|---|---|
 | Checkpointer | `PostgresSaver` → `public.checkpoints` | Agent Server dev (sqlite/memory) |
+| Thread IDs | PG18-backed production UUIDs | Dev-only UUIDs; **never** production |
+| Inspect production threads | `workflow status` / `logs` / `evidence` + PG18 tables | **Cannot** — 404 / not visible |
 | Bind | N/A (CLI) | `127.0.0.1:2024` |
 | Topology module | `build_topology()` | same |
 | Fingerprint | `a86e40e8…` | must match (parity abort) |
@@ -192,10 +280,12 @@ Use the disposable fixture for Studio destructive tests — not a live operator 
 
 ---
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 | Symptom | Fix |
 |---|---|
+| `ModuleNotFoundError: No module named 'agentcore'` | `cd D:\github\agentcore-control-plane\scripts` (or set `PYTHONPATH` to that path) |
+| `python` not found | Use full path: `C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe` |
 | `ModuleNotFoundError: agentcore_workflow` | `pip install -e D:\github\agentcore-control-plane\scripts` |
 | Missing `langgraph-api` | `pip install -U "langgraph-cli[inmem]==0.4.29"` |
 | Port 2024 in use | Stop the other listener or choose another free port explicitly |
@@ -203,10 +293,11 @@ Use the disposable fixture for Studio destructive tests — not a live operator 
 | Browser asks for LangSmith auth | Gate `LANGSMITH_STUDIO_BROWSER_CREDENTIAL_REQUIRED` — set User env name `LANGSMITH_API_KEY` (value never in chat) |
 | Exit 4 on approve | Pause already resolved; re-check `status` |
 | Studio thread invisible to production | Intentional namespace isolation |
+| Production thread invisible in Studio | **Expected** — Studio cannot open production PostgresSaver threads |
 
 ---
 
-## 12. Rollback
+## 13. Rollback
 
 | Surface | Action |
 |---|---|
@@ -216,7 +307,7 @@ Use the disposable fixture for Studio destructive tests — not a live operator 
 
 ---
 
-## 13. Security / Swarm
+## 14. Security / Swarm
 
 - No `.env`; no Postgres credentials in docs/args/logs.
 - No AgentCore data to LangSmith by default (`LANGSMITH_TRACING=false`).
@@ -225,9 +316,9 @@ Use the disposable fixture for Studio destructive tests — not a live operator 
 
 ---
 
-## 14. Cross-references
+## 15. Cross-references
 
 - Quickstart: `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`
 - ADR: `docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md`
-- Audits: `audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md`, `audits/LANGGRAPH_END_TO_END_RECOVERY_2026-07-21.json`, `audits/DEEP_AGENTS_WORKER_ACCEPTANCE_2026-07-21.md`, `audits/MEMORY_GATEWAY_HEALTH_2026-07-22.md`
+- Audits: `audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md`, `audits/LANGGRAPH_END_TO_END_RECOVERY_2026-07-21.json`, `audits/DEEP_AGENTS_WORKER_ACCEPTANCE_2026-07-21.md`, `audits/MEMORY_GATEWAY_HEALTH_2026-07-22.md`, `audits/M6/WORKFLOW_OPERATOR_LAUNCH_ACCEPTANCE_2026-08-02.md`
 - Memory health: `audits/MEMORY_GATEWAY_HEALTH_2026-07-22.md`
