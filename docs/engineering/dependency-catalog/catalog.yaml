@@ -101,18 +101,43 @@ dependencies:
     ecosystem: python
     status: approved
     purpose: Official MCP Python SDK for building MCP servers (stdio and Streamable HTTP)
-    version_policy: ">=1.28.1,<2.0"
-    tested_version: "1.28.1"
+    version_policy: ">=1.28.1,<3.0; component lockfiles must pin one major exactly"
+    tested_version: "1.28.1 (control plane); 2.0.0 (portable Context Engine venv)"
     source: https://pypi.org/project/mcp/
     repository: https://github.com/modelcontextprotocol/python-sdk
     documentation: https://modelcontextprotocol.io/docs/
     license: MIT
     provenance: Anthropic/MCP consortium; official SDK
     security_notes: >
-      Pin to <2.0 until v2 is stable. Do not use pre-release v2 builds in production.
+      v2.0.0 is the current stable line (2026-07-28) and supports earlier protocol
+      revisions. Do not mix v1 and v2 in one interpreter; Context Engine uses an
+      isolated versioned environment and the control-plane interpreter remains v1.
     alternatives_considered: Custom NDJSON framing (used by agentcore-memory for Bifrost compatibility)
-    approval_reason: "Official SDK; stable v1 line; MIT license; Bifrost compatibility verified"
-    last_review: "2026-07-16"
+    approval_reason: "Official SDK; stable v1/v2 component isolation; MIT license; live Bifrost compatibility verified"
+    last_review: "2026-08-01"
+
+  - package: cryptography
+    ecosystem: python
+    status: approved
+    purpose: Ed25519 device enrollment and per-request assertion verification
+    version_policy: ">=49.0.0,<51.0.0"
+    tested_version: "49.0.0 (agentcore-memory); 50.0.0 (portable Context Engine)"
+    source: https://pypi.org/project/cryptography/
+    repository: https://github.com/pyca/cryptography
+    documentation: https://cryptography.io/en/latest/
+    license: Apache-2.0 OR BSD-3-Clause
+    provenance: Python Cryptographic Authority; official stable wheels for Python 3.13
+    security_notes: >
+      Ed25519 private keys stay in approved OS credential storage; agentcore-memory
+      receives public keys and short-lived signed assertions only. Never serialize
+      private keys into Git, manifests, logs, or MCP payload evidence.
+    alternatives_considered: >
+      Caller identifiers without signatures (rejected: impersonation); custom
+      cryptography (rejected); gateway identity injection (not required by approved boundary).
+    approval_reason: >
+      Standard audited primitive implementation required for device proof while
+      preserving the existing Bifrost and ten-tool contracts.
+    last_review: "2026-08-01"
 
   - package: cognee
     ecosystem: python
