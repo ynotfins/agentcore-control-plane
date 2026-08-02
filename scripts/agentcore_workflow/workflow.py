@@ -287,6 +287,7 @@ def run_workflow(
     context_profile: str = "standard-context",
     risk_profile: str = "medium",
     budget_profile: str = "",
+    run_db_id: str | None = None,
 ) -> dict:
     """Start or resume a workflow run against the production PostgresSaver.
 
@@ -312,34 +313,48 @@ def run_workflow(
     if thread_uuid is None:
         thread_uuid = str(_uuid.uuid4())
 
+    from .langfuse_integration import (
+        flush_langfuse,
+        merge_invoke_config,
+        workflow_trace_context,
+    )
+
     graph, ctx = build_graph(conninfo)
-    config = {"configurable": {"thread_id": thread_uuid}}
+    base_config = {"configurable": {"thread_id": thread_uuid}}
 
     try:
-        if resume_from is not None:
-            # Resume after human pause — pass operator decision as Command input
-            from langgraph.types import Command
-            result = graph.invoke(Command(resume=resume_from), config=config)
-        else:
-            # If the thread already has a checkpoint, resume with None input so
-            # the checkpointed state (including provider/model selection) is
-            # preserved instead of being overwritten by a fresh initial_state.
-            existing = graph.get_state(config)
-            if existing is not None and existing.values:
-                result = graph.invoke(None, config=config)
+        with workflow_trace_context(
+            project_id=project_id,
+            project_key=project_key,
+            thread_uuid=thread_uuid,
+            milestone_key=milestone_key,
+        ):
+            config = merge_invoke_config(base_config)
+            if resume_from is not None:
+                # Resume after human pause — pass operator decision as Command input
+                from langgraph.types import Command
+                result = graph.invoke(Command(resume=resume_from), config=config)
             else:
-                state = initial_state(
-                    project_id, project_key, thread_uuid, milestone_key,
-                    provider=provider or "", model=model or "",
-                    goal=goal or "",
-                    acceptance_criteria=acceptance_criteria,
-                    charter_override=charter_override,
-                    autonomous=autonomous,
-                    context_profile=context_profile or "standard-context",
-                    risk_profile=risk_profile or "medium",
-                    budget_profile=budget_profile or "",
-                )
-                result = graph.invoke(state, config=config)
+                # If the thread already has a checkpoint, resume with None input so
+                # the checkpointed state (including provider/model selection) is
+                # preserved instead of being overwritten by a fresh initial_state.
+                existing = graph.get_state(config)
+                if existing is not None and existing.values:
+                    result = graph.invoke(None, config=config)
+                else:
+                    state = initial_state(
+                        project_id, project_key, thread_uuid, milestone_key,
+                        provider=provider or "", model=model or "",
+                        run_db_id=run_db_id or "",
+                        goal=goal or "",
+                        acceptance_criteria=acceptance_criteria,
+                        charter_override=charter_override,
+                        autonomous=autonomous,
+                        context_profile=context_profile or "standard-context",
+                        risk_profile=risk_profile or "medium",
+                        budget_profile=budget_profile or "",
+                    )
+                    result = graph.invoke(state, config=config)
 
         return {
             "thread_uuid": thread_uuid,
@@ -352,4 +367,5 @@ def run_workflow(
             "run_db_id": result.get("run_db_id", ""),
         }
     finally:
+        flush_langfuse()
         ctx.__exit__(None, None, None)

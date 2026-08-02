@@ -636,6 +636,17 @@ def record_ab_decision(
 # Evidence
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _json_safe(value: Any) -> Any:
+    """Coerce detail payloads to JSON-serializable structures for wf_evidence."""
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(v) for v in value]
+    return str(value)
+
+
 def record_evidence(
     run_db_id: str,
     project_id: str,
@@ -645,6 +656,11 @@ def record_evidence(
     detail: dict,
     trust_class: str = "system_verified",
 ) -> str:
+    if not run_db_id:
+        raise ValueError("record_evidence requires run_db_id")
+    if not scope_key:
+        scope_key = "unknown"
+    safe_detail = _json_safe(detail)
     with conn(admin=True) as c:
         row = c.execute(
             """
@@ -653,6 +669,14 @@ def record_evidence(
             VALUES (%s, %s, %s, %s, %s, %s, %s::agentcore.trust_class)
             RETURNING id
             """,
-            (run_db_id, project_id, scope_key, evidence_type, summary, json.dumps(detail), trust_class),
+            (
+                run_db_id,
+                project_id,
+                scope_key,
+                evidence_type,
+                summary,
+                json.dumps(safe_detail, default=str),
+                trust_class,
+            ),
         ).fetchone()
         return str(row["id"])

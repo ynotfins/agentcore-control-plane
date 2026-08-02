@@ -1,0 +1,132 @@
+{
+  "timestamp": "2026-08-02T07:48:17.083683+00:00",
+  "certification_type": "live_cloud_model_attempt",
+  "run_label": "RUN11",
+  "live_builder_succeeded": true,
+  "m1_live_builder_criterion": "met",
+  "option_b_device_identity": {
+    "enforcement": "write_tools_require_device_assertion_always",
+    "unsigned_read_tools": [
+      "memory_status",
+      "startup_context",
+      "retrieve_context",
+      "expand_source",
+      "docs_search"
+    ],
+    "write_tools": [
+      "session_open",
+      "session_close",
+      "append_event",
+      "propose_fact",
+      "build_handoff"
+    ],
+    "langgraph_signing": "memory_gateway._sign_memory_arguments via DeviceIdentityManager + KeyringCredentialStore"
+  },
+  "control_plane_commit": "ece8fd2832203ac0766f150b7bc1465cdd78ad24",
+  "context_engine_commit": "57c32fe79a6bd20d45b535f00f101a8540603f9f",
+  "worker_mode": "llm",
+  "timeouts_configured": {
+    "AGENTCORE_WORKER_TIMEOUT_SEC": 900,
+    "AGENTCORE_OPENROUTER_TIMEOUT_SEC": 600
+  },
+  "openrouter_timeout_fix": {
+    "default_sec": 300,
+    "chat_openrouter_timeout_ms": true,
+    "request_timeout_ms": true,
+    "note": "ChatOpenRouter expects timeout in milliseconds; prior httpx.Timeout object was ignored (~201s ReadTimeout)"
+  },
+  "goal": "In the isolated worktree only, create CERTIFICATION_NOTE.md with Context Engine v0.2 certification timestamp and topology fingerprint a86e40e8. Do not modify src/ or tests/.",
+  "primary_attempt": {
+    "provider": "gemini",
+    "model": "gemini-3.6-flash",
+    "model_spec_used": "gemini:gemini-3.6-flash",
+    "run_db_id": "c376e23d-a2c5-4844-b8a9-f02cd905f690",
+    "thread_uuid": "034a28db-a7b4-4c9f-a967-a3ea00091130",
+    "ok": true,
+    "completed": true,
+    "status": "completed",
+    "judge_verdict": "proceed",
+    "score": 1.0,
+    "checkpoint_count": 23,
+    "completed_at": "2026-08-02 03:48:03.656763-04:00",
+    "started_at": "2026-08-02 03:43:32.781538-04:00",
+    "elapsed_ms_total": 270875,
+    "errors": [],
+    "evidence_count": 6,
+    "evidence": [
+      {
+        "scope_key": "M1.1.1",
+        "evidence_type": "da_builder_result",
+        "summary": "DA builder M1.1.1: completed",
+        "detail": {
+          "status": "completed",
+          "model": "gemini:gemini-3.6-flash",
+          "elapsed_ms": 89789,
+          "worktree": "D:\\github\\agentcore-context-engine",
+          "files_changed": ["CERTIFICATION_NOTE.md"],
+          "output": "Created CERTIFICATION_NOTE.md in the isolated worktree root with Context Engine v0.2 certification details, certification timestamp (2026-08-02T07:22:54Z), and topology fingerprint a86e40e8."
+        },
+        "trust_class": "system_verified",
+        "created_at": "2026-08-02 03:45:06.769073-04:00"
+      },
+      {
+        "scope_key": "M1.1.1",
+        "evidence_type": "da_critic_result",
+        "summary": "DA critic M1.1.1: passed=True score=1.00",
+        "detail": {
+          "status": "completed",
+          "passed": true,
+          "score": 1.0,
+          "elapsed_ms": 55202
+        },
+        "trust_class": "system_verified",
+        "created_at": "2026-08-02 03:46:02.037060-04:00"
+      },
+      {
+        "scope_key": "M1.1.1",
+        "evidence_type": "micro_step_completion",
+        "summary": "Completed M1.1.1: completed",
+        "trust_class": "system_verified",
+        "created_at": "2026-08-02 03:46:02.308905-04:00"
+      },
+      {
+        "scope_key": "M1.2.1",
+        "evidence_type": "da_builder_result",
+        "summary": "DA builder M1.2.1: completed",
+        "detail": {
+          "status": "completed",
+          "model": "gemini:gemini-3.6-flash",
+          "elapsed_ms": 60404,
+          "files_changed": []
+        },
+        "trust_class": "system_verified",
+        "created_at": "2026-08-02 03:47:05.117104-04:00"
+      },
+      {
+        "scope_key": "M1.2.1",
+        "evidence_type": "da_critic_result",
+        "summary": "DA critic M1.2.1: passed=True score=1.00",
+        "detail": {
+          "status": "completed",
+          "passed": true,
+          "score": 1.0,
+          "elapsed_ms": 58088
+        },
+        "trust_class": "system_verified",
+        "created_at": "2026-08-02 03:48:03.393332-04:00"
+      },
+      {
+        "scope_key": "M1.2.1",
+        "evidence_type": "micro_step_completion",
+        "summary": "Completed M1.2.1: completed",
+        "trust_class": "system_verified",
+        "created_at": "2026-08-02 03:48:03.588607-04:00"
+      }
+    ],
+    "memory_gateway_bootstrap": "ok_no_degraded_errors",
+    "topology_fingerprint": "a86e40e8"
+  },
+  "alternate_attempt": null,
+  "files_changed_in_worktree": ["CERTIFICATION_NOTE.md"],
+  "prior_run_reference": "audits/CONTEXT_ENGINE_LANGGRAPH_RUN10_LIVE_2026-08-02.json"
+}

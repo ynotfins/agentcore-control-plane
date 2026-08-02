@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-08-02T07:37:42.761973+00:00",
+  "ok": true,
+  "project_id": "aa337324-a9ad-4bc5-bf23-82b0ecbe61bf",
+  "project_key": "agentcore-context-engine",
+  "milestone": "M1",
+  "thread_uuid": "0753e194-75fe-4fca-b735-7479c118d2bb",
+  "run_db_id": "0cadc66e-de1e-4526-9ecc-c5fc7e9ab96f",
+  "completed": true,
+  "judge_verdict": "proceed",
+  "score": 1.0,
+  "evidence_count": 0,
+  "errors": [
+    "DA builder failed: ReadTimeout: The read operation timed out"
+  ],
+  "checkpoint": {
+    "thread_id": "0753e194-75fe-4fca-b735-7479c118d2bb",
+    "checkpoint_count": 10,
+    "latest_checkpoint_id": "1f18e450-bd52-64c6-8008-81056804e2be",
+    "latest_checkpoint_ns": "",
+    "latest_type": null,
+    "latest_node": null
+  }
+}

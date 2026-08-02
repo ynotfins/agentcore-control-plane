@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-08-02T07:49:51.273272+00:00",
+  "ok": true,
+  "run": {
+    "run_db_id": "c376e23d-a2c5-4844-b8a9-f02cd905f690",
+    "thread_uuid": "034a28db-a7b4-4c9f-a967-a3ea00091130",
+    "project_id": "aa337324-a9ad-4bc5-bf23-82b0ecbe61bf",
+    "status": "completed",
+    "current_milestone": "M1",
+    "current_macro": null,
+    "current_micro": null,
+    "ab_enabled": false,
+    "started_at": "2026-08-02 03:43:32.781538-04:00",
+    "updated_at": "2026-08-02 03:48:03.656763-04:00",
+    "completed_at": null
+  },
+  "checkpoint": {
+    "thread_id": "034a28db-a7b4-4c9f-a967-a3ea00091130",
+    "checkpoint_count": 23,
+    "latest_checkpoint_id": "1f18e467-deaf-6a46-8015-aad0568d0e3d",
+    "latest_checkpoint_ns": "",
+    "latest_type": null,
+    "latest_node": null
+  },
+  "human_pause": null,
+  "blockers": []
+}

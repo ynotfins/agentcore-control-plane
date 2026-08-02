@@ -18,6 +18,63 @@ from .mcp_client import GATEWAY_URL, GATEWAY_TIMEOUT_SECONDS, resolve_workflow_v
 
 logger = logging.getLogger(__name__)
 
+MEMORY_TOOL_PREFIXES = ("agentcore_memory-", "agentcore-memory-")
+
+
+def _device_identity_manager():
+    try:
+        from agentcore_context_engine.config import EnginePaths
+        from agentcore_context_engine.security import (
+            DeviceIdentityManager,
+            KeyringCredentialStore,
+        )
+    except ImportError as exc:
+        raise RuntimeError(
+            "agentcore-context-engine[security] is required for signed memory calls"
+        ) from exc
+    paths = EnginePaths.discover()
+    return DeviceIdentityManager(
+        paths.data / "device.json",
+        KeyringCredentialStore(),
+    )
+
+
+def _bare_memory_tool(name: str) -> str | None:
+    for prefix in MEMORY_TOOL_PREFIXES:
+        if name.startswith(prefix):
+            return name[len(prefix) :]
+    if name in MEMORY_TOOL_CANDIDATES:
+        return name
+    return None
+
+
+def _sign_memory_arguments(tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    signed_arguments = dict(arguments)
+    bare_tool = _bare_memory_tool(tool_name)
+    if not bare_tool or bare_tool == "memory_status":
+        return signed_arguments
+    identity = _device_identity_manager()
+    enrollment = identity.initialize()
+    if bare_tool == "session_open":
+        signed_arguments.setdefault("device_id", enrollment.device_id)
+    assertion = identity.sign_tool_call(
+        target_tool=bare_tool,
+        arguments=signed_arguments,
+        project_key=(
+            str(signed_arguments["project_key"])
+            if signed_arguments.get("project_key")
+            else None
+        ),
+        session_id=(
+            str(signed_arguments["session_id"])
+            if signed_arguments.get("session_id")
+            else None
+        ),
+    )
+    signed_arguments["device_assertion"] = assertion.as_dict()
+    return signed_arguments
+
+
 MEMORY_TOOL_CANDIDATES = {
     "session_open": ("agentcore_memory-session_open", "session_open"),
     "session_close": ("agentcore_memory-session_close", "session_close"),
@@ -58,11 +115,12 @@ def _parse_mcp_response(raw: str) -> dict[str, Any]:
 def call_gateway_tool(tool_name: str, arguments: dict[str, Any], *, url: str = GATEWAY_URL) -> dict[str, Any]:
     if not url.startswith("http://127.0.0.1") and not url.startswith("http://localhost"):
         raise RuntimeError("gateway URL must be localhost")
+    signed_arguments = _sign_memory_arguments(tool_name, arguments)
     body = {
         "jsonrpc": "2.0",
         "id": 1,
         "method": "tools/call",
-        "params": {"name": tool_name, "arguments": arguments},
+        "params": {"name": tool_name, "arguments": signed_arguments},
     }
     req = urllib.request.Request(
         url,

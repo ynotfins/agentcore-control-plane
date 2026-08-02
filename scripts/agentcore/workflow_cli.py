@@ -459,6 +459,7 @@ def cmd_start(args: argparse.Namespace) -> int:
             project_key=project_key,
             milestone_key=milestone,
             thread_uuid=thread_uuid,
+            run_db_id=run_db_id,
             conninfo=_pg_conninfo(),
             provider=args.provider,
             model=args.model,

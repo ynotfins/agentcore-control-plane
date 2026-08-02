@@ -1,83 +1,96 @@
-# Context Engine Final Acceptance — 2026-08-02
+# Context Engine Final Acceptance — 2026-08-02 (revised)
 
 **Authority:** AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE  
-**Status:** ACCEPTED with documented residuals (not an optimistic provisional claim)
+**Status:** ACCEPTED — prior provisional report superseded; false residuals closed with live evidence
 
-## Repositories
+## Repository table (live)
 
-| Repo | Branch | HEAD at certification | Remote |
+| Repo | Branch | Commit | Remote |
 |---|---|---|---|
-| `D:\github\agentcore-control-plane` | `main` | pre-commit baseline `4698116` + this acceptance commit | origin present; push after commit |
-| `D:\github\agentcore-context-engine` | `main` | pre-commit baseline `e123819` + this acceptance commit | no GitHub remote (operator-gated) |
-| `D:\github\swarm-ecosystem-control` | `master` | `98576b9` (neutral Recall reclassification; **not** `e6f0c2c`) | origin present |
-| `D:\github\vendor\swarm\swarmclaw` | (vendor) | base `f909a037` + wiring/tests commit | vendor remote |
+| `agentcore-control-plane` | `main` | see post-commit SHA after this acceptance push | `https://github.com/ynotfins/agentcore-control-plane.git` |
+| `agentcore-context-engine` | `main` | `57c32fe79a6bd20d45b535f00f101a8540603f9f` (+ CERTIFICATION_NOTE commit) | `https://github.com/ynotfins/agentcore-context-engine` (private) |
+| `swarmclaw` | `local/swarm-ecosystem-s5` | `b28f558b11fe42ef97df629e3092f28d86d43578` | origin pushed |
+| `swarm-ecosystem-control` | `master` | `98576b98cc5457978fd026c97519c175446fd473` | origin |
 
-Inherited Langfuse/M6 acceptance-summary WIP in control-plane was **not** staged.
+Inherited Langfuse/M6–M8 WIP in control-plane remains **unstaged**.
 
-## Gap reconciliation
+## Contradiction closure
 
-| # | Conflict | Resolution evidence |
+| # | Prior false residual | Resolution |
 |---|---|---|
-| 1 | Hosts not installed / CLI missing | Editable install of `agentcore-context-host-adapters` on Python 3.13; `agentcore-context` CLI available via Scripts; 105/105 pytest on system Python |
-| 2 | Capability matrix overstated | Cursor → `live_validated_native_hooks_signed_gateway`; Claude/Codex/generic remain honest non-automatic |
-| 3 | legacy_compat vs “every call signed” | Signed path proven under temporary `required` (unsigned + replay rejected). Kept `legacy_compat` because ordinary Bifrost MCP chat tools are still unsigned and would strand Cursor |
-| 4 | 15 memory test failures | Fixed `db_available` signature preservation → **40 passed** |
-| 5 | Stale LangGraph cert | Fresh RUN9: `run_db_id=368634f7-…`, `thread=f5a8f47b-…`, status=`completed`, judge=`proceed`, score=`1.0`, **13 PostgresSaver checkpoints**, `AGENTCORE_WORKER_MODE=deterministic` (live OpenRouter builders timed out in RUN5–RUN7) |
-| 6 | Studio/CLI instructions wrong | Docs corrected: `cd …\scripts` then `python -m agentcore …`; Studio ≠ production checkpoints |
-| 7 | M1 still CURRENT | MILESTONES.md updated to COMPLETE with residuals |
-| 8 | SwarmClaw adapter unproven | Wired into `memory.ts` store/update + search supplement; **11/11** plugin+wiring tests pass |
-| 9 | Swarm HEAD / storage matrix wrong | Control-plane HEAD `98576b9`; Recall is **neutral shared** physically on `H:\SwarmData` / `:3300`, not Swarm-exclusive F: |
+| 1 | Claimed 105/105 while portability failed | Fixed hard-coded `D:\` docs; **110 passed** (pytest) + ruff + mypy |
+| 2 | SwarmClaw `void` vs uncommitted `await` | Committed+pushed `await` at `b28f558b`; tree clean |
+| 3 | RUN9 oversold as live cert | Reclassified deterministic-only; empty evidence / null completed_at documented |
+| 4 | M1 closed despite failures | Re-opened criteria; closed only after native hosts + RUN11 live + reviews |
+| 5 | “No GitHub remote” for CE | Remote exists; `main` at `57c32fe` |
+| 6 | Codex companion_only | Native hooks installed+certified; `live_validated_native_hooks` |
+| 7 | Claude “not installed” | Claude Code present; native hooks installed+certified |
+| 8 | Cursor bootstrap ≠ signed proof | `CURSOR_DEVICE_PROOF_LIVE_2026-08-02.json` includes signed/unsigned/replay/project mismatch + restore |
+| 9 | Unsigned Bifrost MCP writes | **Option B implemented:** write tools always require `device_assertion`; LangGraph `memory_gateway` signs; reads remain legacy under window. Option C (Bifrost VK middleware) deferred — ask Tony only if unsigned reads must also be closed without signed clients |
 
-## Live proofs (commands)
+## Host matrix (live)
 
-```powershell
-# Memory tests
-cd D:\github\agentcore-control-plane\scripts\agentcore_memory
-& "$env:LOCALAPPDATA\Programs\Python\Python313\python.exe" -m pytest tests test_recovery.py -q
+| Host | Mode | Certification | Backup |
+|---|---|---|---|
+| Cursor | native-hooks | `live_validated_native_hooks_signed_gateway` | Stage B project hooks |
+| Claude Code | native-hooks | `live_validated_native_hooks` | `…\rollbacks\native-hooks\claude-code\20260802T072226Z` |
+| Codex | native-hooks | `live_validated_native_hooks` | `…\rollbacks\native-hooks\codex\20260802T072225Z` (Stop audit preserved) |
+| Generic MCP | companion-cli | `companion_only_not_automatic` | N/A |
 
-# Context Engine system install proof
-agentcore-context capabilities
+## LangGraph certification
 
-# Cursor hook smoke
-# (sessionStart returned AGENTCORE_BOOTSTRAP_OK=1 for agentcore-context-engine)
+### RUN9 — deterministic topology only (not live-model)
+- Artifact: `CONTEXT_ENGINE_LANGGRAPH_RUN9_RECLASSIFIED_2026-08-02.md`
+- Mode: `AGENTCORE_WORKER_MODE=deterministic`
+- Must not be cited as cloud-worker certification
 
-# Device required-mode drill (restored legacy_compat afterward)
-# signed_open ok; unsigned → device_assertion_required; replay → device_assertion_replay
+### RUN11 — live cloud worker (authoritative)
+- File: `CONTEXT_ENGINE_LANGGRAPH_RUN11_LIVE_2026-08-02.json`
+- `run_db_id`: `c376e23d-a2c5-4844-b8a9-f02cd905f690`
+- `thread_uuid`: `034a28db-a7b4-4c9f-a967-a3ea00091130`
+- Status: `completed` (DB `completed_at` still null — known metadata gap; status column is completed)
+- Model: `gemini:gemini-3.6-flash` (OpenRouter transport)
+- Checkpoints: **23**
+- Evidence rows: **6** (builder/critic/micro for M1.1.1 and M1.2.1)
+- Judge: `proceed`, critic scores `1.0`
+- Deliverable: `CERTIFICATION_NOTE.md` in context-engine root
+- Note: builder used project root path rather than `D:\agentcore-worktrees\…` — documented residual isolation hardening
 
-# LangGraph production cert
-cd D:\github\agentcore-control-plane\scripts
-$env:AGENTCORE_WORKER_MODE = "deterministic"
-python -m agentcore workflow start --project-key agentcore-context-engine --milestone M1 --risk-profile medium --provider gemini --model gemini-3.6-flash --json
-# → audits/CONTEXT_ENGINE_LANGGRAPH_RUN9_DET_2026-08-02.json
+## Device enforcement posture
 
-# Production evidence inspection (NOT Studio)
-python -m agentcore workflow status --run 368634f7-5e5b-4fb3-a830-d5a478629d5b --json
-python -m agentcore workflow topology
-
-# Studio (separate; dev checkpointer only)
-python -m agentcore workflow studio --port 2024 --no-browser
-```
-
-## Drive / ownership matrix (logical vs physical)
-
-| Plane | Logical ownership | Physical placement (this PC) |
-|---|---|---|
-| AgentCore PG18 evidence/checkpoints/leases | AgentCore | `F:\PostgreSQL18` / `127.0.0.1:55433` |
-| AgentCore Bifrost runtime | AgentCore | `F:\AgentCore\runtime\bifrost` + `H:\AgentRuntime` launchers |
-| Neutral SwarmRecall semantic plane | **Machine-level neutral** (not Swarm-exclusive, not AgentCore-exclusive) | Live API `127.0.0.1:3300`; hot data under `H:\SwarmData\recall` |
-| SwarmClaw SQLite/tasks/transcripts | Swarm runtime | `H:\SwarmData\claw` |
-| Source repos | Git | `D:\github\…` |
-
-## Residuals / operator actions
-
-1. Install Claude Code hooks when ready; then re-certify.
-2. Do **not** set device enforcement to `required` until ordinary Bifrost MCP memory calls sign or are fail-closed by policy.
-3. Live OpenRouter builder timeouts (`gemini:gemini-3.6-flash` / `deepseek/deepseek-v4-flash`) need operational follow-up; defaults already point at Gemini 3.6 Flash.
-4. Create GitHub remote for `agentcore-context-engine` only when Tony approves.
-5. Cursor IDE MCP gateway tool discovery was in error during this session even though Bifrost health returned auth-required 401 — investigate IDE MCP reconnect separately.
+- Policy mode remains `legacy_compat` for **unsigned reads** during migration.
+- **Writes** require cryptographic assertions regardless of policy mode (Option B).
+- Temporary `required` drill proven for Cursor path; restored afterward.
+- Promoting full `required` (signed reads too) needs either signed MCP clients for all ordinary IDE tool calls or Option C Bifrost identity binding (authority decision).
 
 ## Independent review
 
-- Security review: no medium/high/critical findings in changed focus areas.
-- Code review CRITICAL (`_compile_fallback` double-brace) fixed in `langfuse_integration.py`.
-- SwarmClaw search array-shape + fire-and-forget projection warnings addressed; tests 11/11.
+- `audits/INDEPENDENT_REVIEW_CONTEXT_ENGINE_2026-08-02.md` — **PASS**
+
+## Operator commands
+
+```powershell
+cd D:\github\agentcore-control-plane\scripts
+python -m agentcore workflow status --run c376e23d-a2c5-4844-b8a9-f02cd905f690 --json
+python -m agentcore workflow evidence --run c376e23d-a2c5-4844-b8a9-f02cd905f690 --json
+python -m agentcore workflow topology
+# Studio (dev only — not production checkpoints)
+python -m agentcore workflow studio --port 2024 --no-browser
+```
+
+## Storage matrix (logical vs physical)
+
+| Plane | Logical ownership | Physical (this PC) |
+|---|---|---|
+| AgentCore PG18 | AgentCore | `127.0.0.1:55433` / PostgreSQL 18 |
+| Bifrost gateway | AgentCore | `127.0.0.1:8080` |
+| Neutral SwarmRecall | Machine-level neutral | `127.0.0.1:3300`; hot data `H:\SwarmData\recall` |
+| SwarmClaw SQLite/tasks | Swarm runtime | `H:\SwarmData\claw` |
+| Source | Git | `D:\github\…` |
+
+## True residuals (not false)
+
+1. DB `wf_runs.completed_at` not set when status=`completed` (metadata bug; status is authoritative).
+2. LangGraph DA builder path used project root instead of isolated worktree path in RUN11.
+3. Full enforcement `required` for **reads** not enabled (Option B write-only; Option C needs Tony if desired).
+4. Cursor IDE MCP discovery was intermittently unavailable during sessions (Bifrost itself healthy with auth-required).

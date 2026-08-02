@@ -1,0 +1,131 @@
+{
+  "audit_id": "CURSOR_DEVICE_PROOF_LIVE_2026-08-02",
+  "generated_at": "2026-08-02T07:30:00+00:00",
+  "repo_commits": {
+    "agentcore-control-plane": "dbc32f1d4a1c8fd239a93db6632eb4ecc7edc3b9",
+    "agentcore-context-engine": "57c32fe79a6bd20d45b535f00f101a8540603f9f"
+  },
+  "hooks": {
+    "config_path": "D:\\github\\agentcore-control-plane\\.cursor\\hooks.json",
+    "registered_events": [
+      "sessionStart",
+      "beforeSubmitPrompt",
+      "preToolUse",
+      "beforeShellExecution",
+      "afterFileEdit",
+      "postToolUse",
+      "stop"
+    ],
+    "wrapper": ".cursor/hooks/agentcore-hook.ps1",
+    "dispatcher": "scripts/agentcore_cursor/hook_dispatcher.py"
+  },
+  "session_start_smoke": {
+    "event": "sessionStart",
+    "workspace_root": "D:\\github\\agentcore-context-engine",
+    "session_id": "cursor-device-proof-2026-08-02",
+    "exit_code": 0,
+    "sanitized_output": {
+      "env": {
+        "AGENTCORE_BOOTSTRAP_OK": "1",
+        "AGENTCORE_PROJECT_KEY": "agentcore-context-engine",
+        "AGENTCORE_SESSION_KEY": "agentcore-context-engine:cursor:cursor-composer:task:active",
+        "AGENTCORE_SESSION_ID": "adf011ef-00e6-40b0-80b1-ca2224e93f59",
+        "AGENTCORE_BOOTSTRAP_PATH": "D:\\github\\agentcore-context-engine\\.agentcore\\runtime\\cursor-bootstrap.json",
+        "AGENTCORE_CONTEXT_ENGINE": "1"
+      },
+      "additional_context_excerpt": {
+        "packet_type": "ephemeral sessionStart",
+        "continuity_status": "open_no_events",
+        "project_key": "agentcore-context-engine",
+        "branch_head": "main / 57c32fe79a6b"
+      }
+    }
+  },
+  "device_identity_live_proof": {
+    "pythonpath": "scripts;scripts/agentcore_memory;agentcore-context-engine/src",
+    "device_paths": {
+      "engine_paths_data": "C:\\Users\\ynotf\\AppData\\Local\\AgentCore\\AgentCoreContextEngine",
+      "manifest": "C:\\Users\\ynotf\\AppData\\Local\\AgentCore\\AgentCoreContextEngine\\device.json"
+    },
+    "enrollment_public": {
+      "device_id": "device-7ae069c5-c24d-4c23-b136-9cb51184b49e",
+      "key_id": "ed25519-ee879fc4d425c737f9cee8b0",
+      "algorithm": "Ed25519"
+    },
+    "enforcement_before": {
+      "mode": "legacy_compat",
+      "migration_window_ends_at": "2026-08-09T03:28:51.313771-04:00"
+    },
+    "steps": [
+      {
+        "action": "set_enforcement_required",
+        "result": {
+          "ok": true,
+          "mode": "required"
+        }
+      },
+      {
+        "action": "signed_session_open",
+        "ok": true,
+        "identity": {
+          "device_id": "device-7ae069c5-c24d-4c23-b136-9cb51184b49e",
+          "user_key": "ynotf",
+          "key_id": "ed25519-ee879fc4d425c737f9cee8b0",
+          "legacy_compat": false
+        },
+        "session_id": "51f474b1-2e5d-4cf0-a737-994722993b80"
+      },
+      {
+        "action": "unsigned_session_open",
+        "ok": false,
+        "error": "device_assertion_required",
+        "identity_verified": false
+      },
+      {
+        "action": "replay_same_assertion_exact_arguments",
+        "note": "Second call_tool with identical signed arguments (same nonce + request hash)",
+        "first": {
+          "ok": true,
+          "session_id": "3311b0c7-9b18-4633-a381-30ce12d4e3de"
+        },
+        "second": {
+          "ok": false,
+          "error": "device_assertion_replay",
+          "identity_verified": false
+        }
+      },
+      {
+        "action": "assertion_project_mismatch",
+        "ok": false,
+        "error": "device_assertion_project_mismatch",
+        "identity_verified": false
+      },
+      {
+        "action": "restore_legacy_compat",
+        "result": {
+          "ok": true,
+          "mode": "legacy_compat",
+          "migration_window_ends_at": "2026-08-09T03:28:58.979919-04:00",
+          "window_hours": 168
+        }
+      }
+    ],
+    "enforcement_after": {
+      "mode": "legacy_compat",
+      "migration_window_ends_at": "2026-08-09T03:28:58.979919-04:00",
+      "restored": true
+    }
+  },
+  "sanitization": {
+    "excluded_fields": [
+      "password",
+      "secret",
+      "token",
+      "vk",
+      "bearer",
+      "authorization",
+      "BIFROST_MCP_VIRTUAL_KEY"
+    ],
+    "no_secrets_emitted": true
+  }
+}

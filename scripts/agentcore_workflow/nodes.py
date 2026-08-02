@@ -660,8 +660,12 @@ def node_evidence_record(state: WorkflowState) -> dict:
                 f"Completed {micro_key}: {result.get('status', 'ok')}",
                 evidence_entry,
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            return {
+                "evidence": [evidence_entry],
+                "next_action": "next_step",
+                "errors": [f"evidence_persist_failed: {type(exc).__name__}: {exc}"],
+            }
 
     return {
         "evidence": [evidence_entry],
@@ -986,6 +990,7 @@ def node_da_builder(state: WorkflowState) -> dict:
     gate_ev = dict(worker_result.get("gate_evidence") or {})
 
     # Record durable evidence through agentcore-memory path (not DA's MemorySaver).
+    evidence_errors: list[str] = []
     if run_db_id:
         try:
             db.record_evidence(
@@ -994,10 +999,14 @@ def node_da_builder(state: WorkflowState) -> dict:
                 f"DA builder {micro_key}: {worker_result.get('status', 'unknown')}",
                 worker_result,
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            evidence_errors.append(
+                f"da_builder_evidence_persist_failed: {type(exc).__name__}: {exc}"
+            )
 
     next_action = "da_critic" if worker_result.get("status") == "completed" else "workflow_fail"
+    builder_errors = ([f"DA builder failed: {worker_result.get('error')}"]
+                      if worker_result.get("status") != "completed" else [])
     return {
         "da_builder_result": worker_result,
         "execution_result": worker_result,
@@ -1005,8 +1014,7 @@ def node_da_builder(state: WorkflowState) -> dict:
         "da_rework_count": rework_count,
         "da_budget": da_budget,
         "next_action": next_action,
-        "errors": ([f"DA builder failed: {worker_result.get('error')}"]
-                   if worker_result.get("status") != "completed" else []),
+        "errors": builder_errors + evidence_errors,
     }
 
 

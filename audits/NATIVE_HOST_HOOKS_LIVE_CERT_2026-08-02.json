@@ -1,0 +1,46 @@
+{
+  "certified_at": "2026-08-02T07:22:54.634348+00:00",
+  "contains_secrets": false,
+  "hosts": {
+    "claude-code": {
+      "backup_dir": "EnginePaths.state/rollbacks/native-hooks/claude-code/20260802T072226Z",
+      "bridge_path": "EnginePaths.data/native-hooks/claude-code/bridge.py",
+      "events_proved": [
+        "SessionStart",
+        "UserPromptSubmit"
+      ],
+      "session_id_prefix": "ce-native-cert",
+      "session_start": {
+        "has_additionalContext": true,
+        "has_hookSpecificOutput": true,
+        "ok": true
+      },
+      "theme_preserved": true,
+      "user_prompt_submit": {
+        "continue": true,
+        "ok": true
+      }
+    },
+    "codex": {
+      "autonomy_stop_preserved": true,
+      "backup_dir": "EnginePaths.state/rollbacks/native-hooks/codex/20260802T072225Z",
+      "bridge_path": "EnginePaths.data/native-hooks/codex/bridge.py",
+      "events_proved": [
+        "SessionStart",
+        "UserPromptSubmit"
+      ],
+      "session_id_prefix": "ce-native-cert",
+      "session_start": {
+        "has_additionalContext": true,
+        "has_hookSpecificOutput": true,
+        "ok": true
+      },
+      "user_prompt_submit": {
+        "continue": true,
+        "ok": true
+      }
+    }
+  },
+  "project_key": "agentcore-context-engine",
+  "schema_version": 1
+}

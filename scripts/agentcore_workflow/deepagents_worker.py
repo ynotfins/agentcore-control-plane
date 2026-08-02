@@ -228,13 +228,16 @@ def _chat_openrouter(model_id: str):
     """Construct ChatOpenRouter with explicit /api/v1 base URL."""
     from langchain_openrouter import ChatOpenRouter
 
-    # Explicit connect/read timeouts prevent indefinite hangs on free/slow models.
-    timeout_sec = float(os.environ.get("AGENTCORE_OPENROUTER_TIMEOUT_SEC", "60"))
+    # ChatOpenRouter maps ``timeout`` / ``request_timeout`` to SDK timeout_ms
+    # (milliseconds). Passing httpx.Timeout objects is ignored by the SDK path.
+    timeout_sec = float(os.environ.get("AGENTCORE_OPENROUTER_TIMEOUT_SEC", "300"))
+    timeout_ms = int(timeout_sec * 1000)
     return ChatOpenRouter(
         model=model_id,
         base_url=OPENROUTER_API_V1,
-        timeout=timeout_sec,
-        max_retries=1,
+        timeout=timeout_ms,
+        request_timeout=timeout_ms,
+        max_retries=0,
     )
 
 

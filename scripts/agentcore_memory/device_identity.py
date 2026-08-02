@@ -17,6 +17,24 @@ ASSERTION_SCHEMA = "agentcore-device-assertion/v1"
 MAX_ASSERTION_LIFETIME = timedelta(seconds=300)
 CLOCK_SKEW = timedelta(seconds=5)
 UNPROTECTED_TOOLS = frozenset({"memory_status"})
+UNSIGNED_READ_TOOLS = frozenset(
+    {
+        "memory_status",
+        "startup_context",
+        "retrieve_context",
+        "expand_source",
+        "docs_search",
+    }
+)
+WRITE_TOOLS = frozenset(
+    {
+        "session_open",
+        "session_close",
+        "append_event",
+        "propose_fact",
+        "build_handoff",
+    }
+)
 
 
 class DeviceIdentityError(ValueError):
@@ -61,6 +79,8 @@ def verify_tool_identity(
     checked_at = (now or datetime.now(UTC)).astimezone(UTC)
     assertion = arguments.get("device_assertion")
     if not isinstance(assertion, dict):
+        if tool_name in WRITE_TOOLS:
+            raise DeviceIdentityError("device_assertion_required")
         return _legacy_identity(conn, checked_at)
 
     required = {

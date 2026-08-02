@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-08-02T07:38:30.000000+00:00",
+  "certification_type": "live_cloud_model_attempt",
+  "live_builder_succeeded": false,
+  "m1_live_builder_criterion": "incomplete",
+  "blocker_artifact": "audits/CONTEXT_ENGINE_LANGGRAPH_LIVE_BLOCKER_2026-08-02.md",
+  "control_plane_commit": "dbc32f1d4a1c8fd239a93db6632eb4ecc7edc3b9",
+  "context_engine_commit": "57c32fe79a6bd20d45b535f00f101a8540603f9f",
+  "worker_mode": "llm",
+  "timeouts_configured": {
+    "AGENTCORE_WORKER_TIMEOUT_SEC": 900,
+    "AGENTCORE_OPENROUTER_TIMEOUT_SEC": 300
+  },
+  "goal": "Create CERTIFICATION_NOTE.md in the isolated worktree only. Single file with one paragraph stating this is a live LangGraph RUN10 certification artifact. Do not modify any other files.",
+  "primary_attempt": {
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-v4-flash",
+    "model_spec_used": "openrouter:deepseek/deepseek-v4-flash",
+    "run_db_id": "0cadc66e-de1e-4526-9ecc-c5fc7e9ab96f",
+    "thread_uuid": "0753e194-75fe-4fca-b735-7479c118d2bb",
+    "ok": false,
+    "completed": true,
+    "status": "failed",
+    "judge_verdict": "proceed",
+    "score": 1.0,
+    "checkpoint_count": 10,
+    "completed_at": null,
+    "elapsed_ms_builder": 201536,
+    "errors": [
+      "DA builder failed: ReadTimeout: The read operation timed out"
+    ],
+    "evidence_count": 1,
+    "evidence": [
+      {
+        "scope_key": "M1.1.1",
+        "evidence_type": "da_builder_result",
+        "summary": "DA builder M1.1.1: failed",
+        "detail": {
+          "status": "failed",
+          "error": "ReadTimeout: The read operation timed out",
+          "model": "openrouter:deepseek/deepseek-v4-flash",
+          "elapsed_ms": 201536,
+          "worktree": "D:\\github\\agentcore-context-engine",
+          "files_changed": [],
+          "gate_evidence": {}
+        },
+        "trust_class": "system_verified",
+        "created_at": "2026-08-02 03:37:42.578831-04:00"
+      }
+    ]
+  },
+  "alternate_attempt": {
+    "provider": "gemini",
+    "model": "gemini-3.6-flash",
+    "model_spec_used": "gemini:gemini-3.6-flash",
+    "run_db_id": "d1e246ae-9ad1-4dec-9003-f7695fc75300",
+    "thread_uuid": "95164566-26eb-4e65-a7a5-ebad20c948af",
+    "ok": false,
+    "completed": true,
+    "status": "failed",
+    "judge_verdict": "proceed",
+    "score": 1.0,
+    "checkpoint_count": 10,
+    "completed_at": null,
+    "errors": [
+      "memory_gateway_bootstrap_degraded: URLError",
+      "DA builder failed: ReadTimeout: The read operation timed out"
+    ],
+    "evidence_count": 0,
+    "evidence": [],
+    "note": "Gemini attempt predates evidence-persistence fix; no wf_evidence rows from workflow (manual diagnostic insert excluded)."
+  },
+  "evidence_persistence_fix": {
+    "applied": true,
+    "files": [
+      "scripts/agentcore_workflow/db.py",
+      "scripts/agentcore_workflow/state.py",
+      "scripts/agentcore_workflow/workflow.py",
+      "scripts/agentcore/workflow_cli.py",
+      "scripts/agentcore_workflow/nodes.py"
+    ],
+    "root_cause": "run_db_id not seeded in initial_state from CLI pre-registration; silent except in evidence nodes masked DB insert failures",
+    "verified_on": "0cadc66e-de1e-4526-9ecc-c5fc7e9ab96f"
+  },
+  "run9_reclassification": "audits/CONTEXT_ENGINE_LANGGRAPH_RUN9_RECLASSIFIED_2026-08-02.md"
+}
