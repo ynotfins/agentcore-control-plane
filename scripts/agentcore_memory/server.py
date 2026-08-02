@@ -2061,6 +2061,11 @@ def handle_request(msg: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def main() -> int:
+    for stream in (sys.stdin, sys.stdout):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="strict")
+        except (AttributeError, ValueError):
+            pass
     _log("starting stdio NDJSON server")
     for line in sys.stdin:
         line = line.strip()

@@ -177,5 +177,11 @@ class GatewayClient:
                 try:
                     return json.loads(joined)
                 except json.JSONDecodeError:
+                    if joined.lstrip().lower().startswith("tool execution failed:"):
+                        return {
+                            "ok": False,
+                            "error": "gateway_tool_error",
+                            "detail": joined,
+                        }
                     return {"ok": True, "text": joined}
         return result
