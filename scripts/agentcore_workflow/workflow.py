@@ -44,6 +44,7 @@ from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.postgres import PostgresSaver
 
 from .state import WorkflowState
+from .execution_resolver import governed_node
 from .nodes import (
     node_start,
     node_gate_check,
@@ -123,24 +124,48 @@ class TopologyBuilder:
 
     def _build_nodes(self) -> None:
         # M6 core graph — unchanged. DA nodes are additive extensions.
-        self.builder.add_node("start", node_start)
-        self.builder.add_node("gate_check", node_gate_check)
-        self.builder.add_node("deterministic_checks", node_deterministic_checks)
-        self.builder.add_node("risk_assess", node_risk_assess)
-        self.builder.add_node("critics_and_score", node_critics_and_score)
-        self.builder.add_node("judge_node", node_judge)
-        self.builder.add_node("micro_execute", node_micro_execute)
+        self.builder.add_node("start", governed_node("start", node_start))
+        self.builder.add_node("gate_check", governed_node("gate_check", node_gate_check))
+        self.builder.add_node(
+            "deterministic_checks",
+            governed_node("deterministic_checks", node_deterministic_checks),
+        )
+        self.builder.add_node("risk_assess", governed_node("risk_assess", node_risk_assess))
+        self.builder.add_node(
+            "critics_and_score",
+            governed_node("critics_and_score", node_critics_and_score),
+        )
+        self.builder.add_node("judge_node", governed_node("judge_node", node_judge))
+        self.builder.add_node(
+            "micro_execute",
+            governed_node("micro_execute", node_micro_execute),
+        )
         # DA worker nodes (bounded harness; see ADR-DEEP-AGENTS-WORKER-HARNESS.md)
-        self.builder.add_node("da_builder", node_da_builder)
-        self.builder.add_node("da_critic", node_da_critic)
+        self.builder.add_node("da_builder", governed_node("da_builder", node_da_builder))
+        self.builder.add_node("da_critic", governed_node("da_critic", node_da_critic))
         # A/B alternate (high-risk only)
-        self.builder.add_node("ab_alternate", node_ab_alternate)
+        self.builder.add_node(
+            "ab_alternate",
+            governed_node("ab_alternate", node_ab_alternate),
+        )
         # Independent post-execution judge (M8 invariant)
-        self.builder.add_node("post_exec_judge", node_post_exec_judge)
-        self.builder.add_node("evidence_record", node_evidence_record)
-        self.builder.add_node("next_step", node_next_step)
-        self.builder.add_node("human_pause", node_human_pause)
-        self.builder.add_node("workflow_fail", node_workflow_fail)
+        self.builder.add_node(
+            "post_exec_judge",
+            governed_node("post_exec_judge", node_post_exec_judge),
+        )
+        self.builder.add_node(
+            "evidence_record",
+            governed_node("evidence_record", node_evidence_record),
+        )
+        self.builder.add_node("next_step", governed_node("next_step", node_next_step))
+        self.builder.add_node(
+            "human_pause",
+            governed_node("human_pause", node_human_pause),
+        )
+        self.builder.add_node(
+            "workflow_fail",
+            governed_node("workflow_fail", node_workflow_fail),
+        )
 
     def _build_edges(self) -> None:
         b = self.builder

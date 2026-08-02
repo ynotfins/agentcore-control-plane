@@ -46,7 +46,6 @@ import json
 import time
 import uuid as _uuid_module
 from datetime import datetime, timezone
-from typing import Any
 
 from langgraph.types import interrupt
 
@@ -596,7 +595,7 @@ def node_micro_execute(state: WorkflowState) -> dict:
             with db.conn() as c:
                 # Use a known second project if it exists, else skip
                 other = c.execute(
-                    f"SELECT id FROM agentcore.projects WHERE project_key != %s LIMIT 1",
+                    "SELECT id FROM agentcore.projects WHERE project_key != %s LIMIT 1",
                     (state["project_key"],),
                 ).fetchone()
             if other:
@@ -899,11 +898,9 @@ def node_da_builder(state: WorkflowState) -> dict:
 
     # Build the AgentCore context packet injected into the DA system prompt.
     # This is read-only context from the M6 state — the agent cannot modify it.
-    active_tools = []
-    try:
-        active_tools = [t["tool_name"] for t in db.get_project_tools(project_id)]
-    except Exception:
-        pass
+    execution_profile = dict(state.get("resolved_execution_profile") or {})
+    active_tools = list(execution_profile.get("tools") or [])
+    skill_capsules = list(execution_profile.get("skill_capsules") or [])
 
     agentcore_context = (
         f"Project: {state.get('project_key', project_id)}\n"
@@ -914,6 +911,8 @@ def node_da_builder(state: WorkflowState) -> dict:
         f"Active tools (capability profile): {active_tools}\n"
         f"Judge verdict: {state.get('judge_verdict', 'proceed')}\n"
         f"Score: {state.get('score', 0.0):.4f}\n"
+        f"Governed roles: {execution_profile.get('roles', [])}\n"
+        f"JIT skill capsules: {skill_capsules}\n"
     )
 
     task = f"Execute micro step {micro_key}: {_micro_label(state, micro_key)}"
@@ -927,7 +926,9 @@ def node_da_builder(state: WorkflowState) -> dict:
 
     # Resolve model spec for the worker (default to openai:gpt-4o-mini if not specified)
     model_spec = "openai:gpt-4o-mini"
-    if state.get("provider") == "openrouter" and state.get("model"):
+    if execution_profile.get("model_id"):
+        model_spec = str(execution_profile["model_id"])
+    elif state.get("provider") == "openrouter" and state.get("model"):
         model_spec = f"openrouter:{state['model']}"
     elif state.get("model"):
         model_spec = state["model"]
@@ -1040,12 +1041,16 @@ def node_da_critic(state: WorkflowState) -> dict:
     micro_key = state.get("current_micro_key", "unknown")
     worktree_path = state.get("worktree_path", "")
     builder_result = state.get("da_builder_result", {})
+    execution_profile = dict(state.get("resolved_execution_profile") or {})
+    skill_capsules = list(execution_profile.get("skill_capsules") or [])
 
     agentcore_context = (
         f"Project: {state.get('project_key', project_id)}\n"
         f"Micro step: {micro_key}\n"
         f"Builder output summary: {str(builder_result.get('output', ''))[:500]}\n"
         f"Builder status: {builder_result.get('status', 'unknown')}\n"
+        f"Governed roles: {execution_profile.get('roles', [])}\n"
+        f"JIT skill capsules: {skill_capsules}\n"
     )
 
     rubric = (
@@ -1066,7 +1071,9 @@ def node_da_critic(state: WorkflowState) -> dict:
 
     # Resolve model spec for the worker (default to openai:gpt-4o-mini if not specified)
     model_spec = "openai:gpt-4o-mini"
-    if state.get("provider") == "openrouter" and state.get("model"):
+    if execution_profile.get("model_id"):
+        model_spec = str(execution_profile["model_id"])
+    elif state.get("provider") == "openrouter" and state.get("model"):
         model_spec = f"openrouter:{state['model']}"
     elif state.get("model"):
         model_spec = state["model"]
