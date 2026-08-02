@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """AgentCore project router MCP server (stdio JSON-RPC).
 
-Tools: project_list, project_activate, project_status, project_clear
-State: H:\\AgentRuntime\\bifrost\\state\\active-project.json
+Tools: project_list, project_activate, project_status, project_clear.
+Roots and runtime state are installation-relative or environment-configured.
 """
 
 from __future__ import annotations
@@ -20,11 +20,19 @@ SERVER_VERSION = "0.1.0"
 PROTOCOL_VERSION = "2025-06-18"
 SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
 
-STATE_PATH = Path(r"H:\AgentRuntime\bifrost\state\active-project.json")
-GITHUB_ROOT = Path(r"D:\github")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+PROJECTS_ROOT = Path(os.environ.get("AGENTCORE_PROJECTS_ROOT", str(REPO_ROOT.parent)))
+RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
+STATE_PATH = Path(
+    os.environ.get(
+        "AGENTCORE_PROJECT_ROUTER_STATE",
+        str(RUNTIME_ROOT / "bifrost" / "state" / "active-project.json"),
+    )
+)
+GITHUB_ROOT = PROJECTS_ROOT
 ALWAYS_ALLOW = [
-    Path(r"D:\github\agentcore-control-plane"),
-    Path(r"D:\github\memory-context-database"),
+    REPO_ROOT,
+    PROJECTS_ROOT / "memory-context-database",
 ]
 REJECT_MARKERS = (
     "swarmrecall",
@@ -32,8 +40,14 @@ REJECT_MARKERS = (
     "agentswarm",
     "swarmclaw",
 )
-REJECT_PREFIXES = (
-    Path(r"F:\AgentCore\agentmemory"),
+_reject_roots = os.environ.get(
+    "AGENTCORE_PROJECT_REJECT_ROOTS",
+    str(RUNTIME_ROOT.parent / "agentmemory"),
+)
+REJECT_PREFIXES = tuple(
+    Path(item)
+    for item in _reject_roots.split(os.pathsep)
+    if item.strip()
 )
 
 

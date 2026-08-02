@@ -8,14 +8,31 @@
  */
 const { spawn } = require("child_process");
 const fs = require("fs");
+const path = require("path");
 
-const SERENA_EXE = "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe";
-const ACTIVE_PROJECT_STATE = "H:\\AgentRuntime\\bifrost\\state\\active-project.json";
-const ALLOWED_PROJECTS = [
-  "D:\\github\\agentcore-control-plane",
-  "D:\\github\\swarm-ecosystem-control",
+const CONTROL_PLANE_ROOT = path.resolve(__dirname, "..", "..", "..");
+const DEFAULT_PROJECT = CONTROL_PLANE_ROOT;
+const PROJECTS_ROOT = path.resolve(
+  process.env.AGENTCORE_PROJECTS_ROOT || path.dirname(CONTROL_PLANE_ROOT),
+);
+const RUNTIME_ROOT = path.resolve(
+  process.env.AGENTCORE_RUNTIME_ROOT || "F:\\AgentCore\\runtime",
+);
+const ACTIVE_PROJECT_STATE = path.resolve(
+  process.env.AGENTCORE_PROJECT_ROUTER_STATE
+    || path.join(RUNTIME_ROOT, "bifrost", "state", "active-project.json"),
+);
+const SERENA_EXE = process.env.SERENA_EXE || (
+  process.platform === "win32" && process.env.APPDATA
+    ? path.join(process.env.APPDATA, "uv", "tools", "serena-agent", "Scripts", "serena.exe")
+    : "serena"
+);
+const REJECT_MARKERS = [
+  "swarmrecall",
+  "swarmvault",
+  "swarmclaw",
+  "agentswarm",
 ];
-const DEFAULT_PROJECT = ALLOWED_PROJECTS[0];
 const SERENA_ARGS_PREFIX = ["start-mcp-server","--transport","stdio","--context","ide"];
 const READY_SIGNAL = "MCP server lifetime setup complete";
 const STARTUP_TIMEOUT_MS = 10000;
@@ -41,14 +58,24 @@ function toSerena(line) {
   if (serenaProc && !serenaProc.killed) serenaProc.stdin.write(line + "\n");
 }
 
+function normalizeProject(candidate) {
+  const resolved = path.resolve(candidate);
+  const relative = path.relative(PROJECTS_ROOT, resolved);
+  const insideProjectsRoot = relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+  const lower = resolved.toLowerCase();
+  const rejected = REJECT_MARKERS.some((marker) => lower.includes(marker));
+  const serenaConfig = path.join(resolved, ".serena", "project.yml");
+  if (!insideProjectsRoot || rejected || !fs.existsSync(serenaConfig)) {
+    return null;
+  }
+  return resolved;
+}
+
 function readActiveProject() {
   try {
     const state = JSON.parse(fs.readFileSync(ACTIVE_PROJECT_STATE, "utf8"));
-    const candidate = String(state.path || "").replace(/\//g, "\\").replace(/[\\]+$/, "");
-    const match = ALLOWED_PROJECTS.find(
-      (project) => project.toLowerCase() === candidate.toLowerCase(),
-    );
-    return match || DEFAULT_PROJECT;
+    const candidate = normalizeProject(String(state.path || ""));
+    return candidate || DEFAULT_PROJECT;
   } catch (_) {
     return DEFAULT_PROJECT;
   }
