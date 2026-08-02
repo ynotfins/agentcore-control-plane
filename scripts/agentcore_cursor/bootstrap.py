@@ -18,7 +18,6 @@ from pathlib import Path
 from typing import Any
 
 from .gateway import GatewayClient, read_user_env
-from .spool import spool_exists, spool_write
 
 CLIENT_KEY = "cursor"
 DEFAULT_AGENT_KEY = "cursor-composer"
@@ -639,8 +638,8 @@ def append_prompt(
     project_key: str,
     agent_key: str = DEFAULT_AGENT_KEY,
 ) -> dict[str, Any]:
+    digest = hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:24]
     redacted = _redact(prompt)
-    digest = hashlib.sha256(redacted.encode("utf-8")).hexdigest()[:24]
     conv = conversation_id or "no-conversation"
     idem = f"{project_key}:{CLIENT_KEY}:{agent_key}:{conv}:prompt:{digest}"
     payload = {
@@ -661,17 +660,12 @@ def append_prompt(
         gw = GatewayClient()
         return gw.call_tool("agentcore_memory-append_event", payload)
     except Exception as exc:  # noqa: BLE001
-        if spool_exists(idem):
-            return {"ok": True, "spooled": True, "idempotency_key": idem}
-        spool_write(
-            idem,
-            {
-                "tool": "agentcore_memory-append_event",
-                "arguments": payload,
-                "error": f"{type(exc).__name__}: {exc}",
-            },
-        )
-        return {"ok": True, "spooled": True, "idempotency_key": idem}
+        return {
+            "ok": False,
+            "error": "canonical_write_unavailable",
+            "failure_class": type(exc).__name__,
+            "idempotency_key": idem,
+        }
 
 
 def load_bootstrap_json(root: Path | None = None) -> dict[str, Any] | None:

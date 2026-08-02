@@ -1,23 +1,25 @@
-from __future__ import annotations
-def _normalize_workspace_path(path_str: str | None) -> Path:
-    if not path_str:
-        return Path.cwd().resolve()
-    m = re.match(r"^([a-zA-Z]):([^\\/].*)$", str(path_str))
-    if m:
-        path_str = f"{m.group(1)}:\\{m.group(2)}"
-    return Path(path_str).resolve()
-
 """Cursor hook entrypoints — invoked by hook_dispatcher.py only."""
 
+from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
-import sys
 import subprocess
+import sys
 import urllib.request
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
+
+
+def _normalize_workspace_path(path_str: str | None) -> Path:
+    if not path_str:
+        return Path.cwd().resolve()
+    match = re.match(r"^([a-zA-Z]):([^\\/].*)$", str(path_str))
+    if match:
+        path_str = f"{match.group(1)}:\\{match.group(2)}"
+    return Path(path_str).resolve()
 
 def _ensure_bifrost_gateway_running() -> None:
     """Smoke-check http://127.0.0.1:8080/health; auto-start Bifrost Gateway if down."""
@@ -51,6 +53,7 @@ from agentcore_cursor.bootstrap import (  # noqa: E402
     load_bootstrap_json,
     run_bootstrap,
 )
+from agentcore_cursor.gateway import GatewayClient  # noqa: E402
 from agentcore_cursor.session_scope import SessionScope  # noqa: E402
 
 
@@ -86,6 +89,51 @@ AUTHORITY_SHELL_PROTECTED_PATTERN = re.compile(
 
 def os_environ_get(name: str) -> str | None:
     return os.environ.get(name)
+
+
+def _append_durable_hook_event(
+    root_path: Path,
+    *,
+    event_kind: str,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    bootstrap = load_bootstrap_json(root_path) or {}
+    result = bootstrap.get("result") if isinstance(bootstrap, dict) else {}
+    if not isinstance(result, dict):
+        return {"ok": False, "error": "bootstrap_missing"}
+    session_id = str(result.get("session_id") or "")
+    project_key = str(result.get("project_key") or "")
+    if not session_id or not project_key:
+        return {"ok": False, "error": "session_identity_missing"}
+    serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    idempotency_key = hashlib.sha256(
+        f"{project_key}|{session_id}|{event_kind}|{serialized}".encode("utf-8")
+    ).hexdigest()
+    return GatewayClient().call_tool(
+        "agentcore_memory-append_event",
+        {
+            "session_id": session_id,
+            "event_kind": event_kind,
+            "idempotency_key": idempotency_key,
+            "payload": payload,
+            "trust_class": "system_verified",
+        },
+    )
+
+
+def _build_durable_handoff(root_path: Path) -> dict[str, Any]:
+    bootstrap = load_bootstrap_json(root_path) or {}
+    result = bootstrap.get("result") if isinstance(bootstrap, dict) else {}
+    if not isinstance(result, dict):
+        return {"ok": False, "error": "bootstrap_missing"}
+    project_key = str(result.get("project_key") or "")
+    session_id = str(result.get("session_id") or "")
+    if not project_key or not session_id:
+        return {"ok": False, "error": "session_identity_missing"}
+    return GatewayClient().call_tool(
+        "agentcore_memory-build_handoff",
+        {"project_key": project_key, "session_id": session_id},
+    )
 
 
 def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
@@ -135,23 +183,9 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
     except Exception:
         pass
 
-    # Context Engine bridge (fail-open): reinforce project/session identity via gateway.
-    try:
-        from agentcore_cursor.context_engine_bridge import (  # noqa: WPS433
-            open_context_session,
-            retrieve_startup_packet,
-        )
-
-        ws_path = Path(workspace) if workspace else Path.cwd()
-        ce = open_context_session(ws_path, agent_key=DEFAULT_AGENT_KEY)
-        if ce.get("ok") and ce.get("project_key"):
-            env["AGENTCORE_CONTEXT_ENGINE"] = "1"
-            env.setdefault("AGENTCORE_PROJECT_KEY", str(ce.get("project_key") or ""))
-            packet = retrieve_startup_packet(str(ce["project_key"]))
-            if packet.get("ok") and packet.get("packet") and not additional:
-                additional = json.dumps(packet["packet"], indent=2)[:120000]
-    except Exception:
-        pass
+    # run_bootstrap uses the signed GatewayClient path; do not open a duplicate
+    # Context Engine session from a second bridge.
+    env["AGENTCORE_CONTEXT_ENGINE"] = "1" if result.ok else "0"
 
     out: dict[str, Any] = {"env": env}
     if additional:
@@ -205,15 +239,13 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
             conversation_id=str(conversation_id) if conversation_id else None,
             project_key=str(project_key),
         )
-        accepted = isinstance(append_result, dict) and (
-            append_result.get("ok") or append_result.get("spooled")
-        )
+        accepted = isinstance(append_result, dict) and append_result.get("ok")
         if not accepted:
             return {
                 "continue": False,
                 "user_message": (
                     "AgentCore failed to durably capture the operator prompt. "
-                    "Fix gateway/memory health or inspect the local spool, then resubmit."
+                    "Fix gateway/memory health, then resubmit."
                 ),
             }
         root = Path(workspace) if workspace else Path.cwd()
@@ -556,6 +588,25 @@ def handle_post_tool(payload: dict[str, Any]) -> dict[str, Any]:
         })
 
         scope.save_atomic()
+        durable = _append_durable_hook_event(
+            root_path,
+            event_kind="tool_event",
+            payload={
+                "hook_event": str(
+                    payload.get("hook_event_name") or "postToolUse"
+                ),
+                "tool_name": tool_name,
+                "file_path": str(file_path or ""),
+                "status": str(payload.get("status") or "completed"),
+            },
+        )
+        if not durable.get("ok"):
+            return {
+                "agent_message": (
+                    "AgentCore durable tool-event capture degraded: "
+                    f"{durable.get('error', 'unknown')}"
+                )
+            }
         return {}
 
     except Exception:  # noqa: BLE001
@@ -589,7 +640,22 @@ def handle_stop(payload: dict[str, Any]) -> dict[str, Any]:
 
         scope.final_review = review
         scope.save_atomic()
-
+        durable = _append_durable_hook_event(
+            root_path,
+            event_kind="accepted_evidence",
+            payload={
+                "source": "cursor.stop",
+                "final_review": review,
+            },
+        )
+        handoff = _build_durable_handoff(root_path) if durable.get("ok") else {}
+        if not durable.get("ok") or not handoff.get("ok"):
+            return {
+                "agent_message": (
+                    "AgentCore handoff checkpoint degraded; canonical session "
+                    "remains open for recovery."
+                )
+            }
         return {}
 
     except Exception:  # noqa: BLE001
