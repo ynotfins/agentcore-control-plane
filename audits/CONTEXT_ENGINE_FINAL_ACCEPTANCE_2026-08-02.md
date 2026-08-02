@@ -7,8 +7,8 @@
 
 | Repo | Branch | Commit | Remote |
 |---|---|---|---|
-| `agentcore-control-plane` | `main` | see post-commit SHA after this acceptance push | `https://github.com/ynotfins/agentcore-control-plane.git` |
-| `agentcore-context-engine` | `main` | `57c32fe79a6bd20d45b535f00f101a8540603f9f` (+ CERTIFICATION_NOTE commit) | `https://github.com/ynotfins/agentcore-context-engine` (private) |
+| `agentcore-control-plane` | `main` | `e67c669f0490ab8208fa4a74852b7c9ac1f23486` | `https://github.com/ynotfins/agentcore-control-plane.git` |
+| `agentcore-context-engine` | `main` | `b7fa0a4285a93d36bf12f36bb27a5b3c38d4e835` | `https://github.com/ynotfins/agentcore-context-engine` (private) |
 | `swarmclaw` | `local/swarm-ecosystem-s5` | `b28f558b11fe42ef97df629e3092f28d86d43578` | origin pushed |
 | `swarm-ecosystem-control` | `master` | `98576b98cc5457978fd026c97519c175446fd473` | origin |
 
