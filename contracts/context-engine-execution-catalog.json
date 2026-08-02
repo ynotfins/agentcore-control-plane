@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "catalog_version": "2026-08-01.1",
+  "portable_catalog": {
+    "package": "agentcore-context-engine",
+    "version": "0.2.0",
+    "source": "D:\\github\\agentcore-context-engine",
+    "catalog_sha256": "748c3497e6034016a7ff4c306402184f54d0c8ffb1035b8cf1924708e3138aa8"
+  },
+  "risk_order": ["low", "medium", "high", "critical"],
+  "node_roles": {
+    "start": ["operator-composer"],
+    "gate_check": ["requirements-scope-engineer", "deterministic-gate-runner"],
+    "deterministic_checks": ["deterministic-gate-runner"],
+    "risk_assess": ["requirements-scope-engineer", "architect-planner"],
+    "critics_and_score": [
+      "code-quality-critic",
+      "architecture-critic",
+      "security-critic",
+      "testing-reliability-critic",
+      "dependency-best-practice-critic",
+      "refactor-drift-critic",
+      "deterministic-scorer"
+    ],
+    "judge_node": ["pre-execution-judge"],
+    "micro_execute": ["implementation-builder"],
+    "da_builder": ["implementation-builder"],
+    "da_critic": [
+      "code-quality-critic",
+      "architecture-critic",
+      "security-critic",
+      "testing-reliability-critic"
+    ],
+    "ab_alternate": ["candidate-builder"],
+    "post_exec_judge": ["post-execution-judge"],
+    "evidence_record": ["context-steward"],
+    "next_step": ["context-steward"],
+    "human_pause": ["operator-composer", "human-approval-boundary"],
+    "workflow_fail": ["context-steward"]
+  },
+  "role_minimum_risk": {
+    "operator-composer": "low",
+    "requirements-scope-engineer": "low",
+    "architect-planner": "medium",
+    "implementation-builder": "low",
+    "deterministic-gate-runner": "low",
+    "code-quality-critic": "medium",
+    "architecture-critic": "medium",
+    "security-critic": "high",
+    "testing-reliability-critic": "medium",
+    "dependency-best-practice-critic": "medium",
+    "refactor-drift-critic": "medium",
+    "deterministic-scorer": "low",
+    "pre-execution-judge": "low",
+    "post-execution-judge": "low",
+    "candidate-builder": "high",
+    "context-steward": "low",
+    "human-approval-boundary": "low"
+  },
+  "role_model_class": {
+    "operator-composer": "capable",
+    "requirements-scope-engineer": "fast",
+    "architect-planner": "capable",
+    "implementation-builder": "capable",
+    "deterministic-gate-runner": "deterministic",
+    "code-quality-critic": "fast",
+    "architecture-critic": "capable",
+    "security-critic": "frontier",
+    "testing-reliability-critic": "fast",
+    "dependency-best-practice-critic": "fast",
+    "refactor-drift-critic": "capable",
+    "deterministic-scorer": "deterministic",
+    "pre-execution-judge": "independent",
+    "post-execution-judge": "independent",
+    "candidate-builder": "frontier",
+    "context-steward": "deterministic",
+    "human-approval-boundary": "deterministic"
+  },
+  "role_skills": {
+    "operator-composer": ["agentcore-project-lifecycle"],
+    "requirements-scope-engineer": ["agentcore-project-lifecycle", "current-documentation"],
+    "architect-planner": ["serena-semantic-code", "depwire-structural-verification", "engineering-constitution"],
+    "implementation-builder": ["serena-semantic-code", "engineering-constitution"],
+    "code-quality-critic": ["bugbot-review", "engineering-constitution"],
+    "architecture-critic": ["serena-semantic-code", "depwire-structural-verification"],
+    "security-critic": ["security-review"],
+    "testing-reliability-critic": ["playwright", "bugbot-review"],
+    "dependency-best-practice-critic": ["current-documentation", "engineering-constitution"],
+    "refactor-drift-critic": ["serena-semantic-code", "depwire-structural-verification"],
+    "pre-execution-judge": ["engineering-constitution"],
+    "post-execution-judge": ["bugbot-review", "engineering-constitution"],
+    "candidate-builder": ["serena-semantic-code", "engineering-constitution"],
+    "context-steward": ["agentcore-project-lifecycle"]
+  },
+  "skill_capsules": {
+    "agentcore-project-lifecycle": {
+      "sha256": "7c97b389a4123aa0a3e4301bd9ce05f52110c58a210ea324c06074b7f4209b68",
+      "instructions": "Use Milestone entry/exit gates, evidence-backed Micro steps, canonical memory, and deterministic handoffs."
+    },
+    "serena-semantic-code": {
+      "sha256": "4a6d4822f5a64a326f65d3fef2ce77f31ae092b0ab9456724a4d0dfe5a3ba761",
+      "instructions": "Use project-routed semantic symbols and references before structural edits; do not substitute broad text search."
+    },
+    "depwire-structural-verification": {
+      "sha256": "bf4d63c3c4121e2b78836accf7ae4fc7a31f89344ff9df1b65ffc050642a6ad3",
+      "instructions": "Assess dependency impact before structural changes and verify the resulting graph afterward."
+    },
+    "engineering-constitution": {
+      "sha256": "917c62fb5f1452a5ee83870b1ccee3770abe3980b104c6d5fdf2c683a1d5abe2",
+      "instructions": "Use approved dependencies, modular boundaries, deterministic validation, rollback, and source provenance."
+    },
+    "bugbot-review": {
+      "sha256": "24bb0b36844583c5a1ffe2dc11f861c85d68a281cc61ceda35966bbf60c08e7a",
+      "instructions": "Review the actual diff defect-first and report only actionable findings with evidence."
+    },
+    "security-review": {
+      "sha256": "d007ec5a617e9caeef03055cd9c5dad762d80acb4ae1b20377bde4b3b41c46fd",
+      "instructions": "Inspect trust boundaries, authentication, authorization, secret handling, replay, injection, and fail-closed behavior."
+    },
+    "playwright": {
+      "sha256": "e14ade3d6ab58b2bf56b438d04334462e7413427c615b05a7c1b562577cb52bd",
+      "instructions": "Use bounded browser automation only when UI acceptance is required; capture deterministic evidence."
+    },
+    "current-documentation": {
+      "sha256": "6f07fd4d6cbf96c00c66ef859c2981efb0795315069f55af30c0ae4f28b77690",
+      "instructions": "Resolve exact current API and dependency behavior through Arabold first, then official primary documentation."
+    }
+  },
+  "model_policy": {
+    "deterministic": {"source": "none", "cost_class": "zero"},
+    "fast": {"source": "inherit_or_env", "env": "AGENTCORE_MODEL_FAST", "cost_class": "low"},
+    "capable": {"source": "inherit_or_env", "env": "AGENTCORE_MODEL_CAPABLE", "cost_class": "standard"},
+    "frontier": {"source": "explicit_env_only", "env": "AGENTCORE_MODEL_FRONTIER", "cost_class": "high"},
+    "independent": {"source": "explicit_env_or_deterministic", "env": "AGENTCORE_MODEL_INDEPENDENT", "cost_class": "standard"}
+  },
+  "limits": {
+    "max_roles_per_node": 7,
+    "max_skills_per_node": 4,
+    "inject_capsules_only": true,
+    "never_load_full_catalog_into_worker_prompt": true
+  }
+}

@@ -7,9 +7,8 @@ the agentcore schema tables via the workflow nodes.
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated
 from typing_extensions import TypedDict
-import operator
 
 
 def _merge_dict(a: dict, b: dict) -> dict:
@@ -82,6 +81,10 @@ class WorkflowState(TypedDict):
     # ── Tool leases ──────────────────────────────────────────────────────────
     active_lease_id: str     # current capability_leases.id
     active_lease_tool: str   # tool name under active JIT lease
+
+    # ── Just-in-time execution resolution ────────────────────────────────────
+    resolved_execution_profile: dict
+    resolved_execution_history: Annotated[list[dict], _merge_list]
 
     # ── AgentCore memory session (via agentcore-gateway MCP) ─────────────────
     memory_session_id: str   # agentcore-memory session_id opened through gateway
@@ -180,6 +183,8 @@ def initial_state(
         operator_decision="",
         active_lease_id="",
         active_lease_tool="",
+        resolved_execution_profile={},
+        resolved_execution_history=[],
         memory_session_id="",
         worktree_path="",
         da_enabled=False,
