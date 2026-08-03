@@ -647,16 +647,16 @@ def main() -> int:
             "no upstream will be wrapped"
         )
 
-    config = build_bifrost_config(registry, gateway_client, oauth_state, output_schema)
-    assert_no_secret_literals(config)
+    runtime_config = build_bifrost_config(registry, gateway_client, oauth_state, output_schema)
+    assert_no_secret_literals(runtime_config)
 
     if args.stdout:
-        json.dump(config, sys.stdout, indent=2)
+        json.dump(runtime_config, sys.stdout, indent=2)
         sys.stdout.write("\n")
         return 0
 
     out_path: Path = args.out
-    write_json(out_path, config)
+    write_json(out_path, runtime_config)
     print(f"Wrote {out_path}")
 
     if args.also_config_dir:
@@ -665,19 +665,21 @@ def main() -> int:
             alt = out_path.parent / "config" / "config.json"
         else:
             alt = DEFAULT_RUNTIME_ROOT / "config" / "config.json"
-        write_json(alt, config)
+        write_json(alt, runtime_config)
         print(f"Wrote {alt}")
 
     if not args.skip_renderer:
-        oauth_state_present = bool(oauth_state)
-        sanitized = build_sanitized_sidecar(registry, config, oauth_state_present, output_schema)
+        # Git renderers are a portable pre-enrollment projection. Runtime-only
+        # oauth_config_id values must never be copied back into source control.
+        source_config = build_bifrost_config(registry, gateway_client, {}, output_schema)
+        sanitized = build_sanitized_sidecar(registry, source_config, False, output_schema)
         assert_no_secret_literals(sanitized)
         write_json(SANITIZED_RENDERER, sanitized)
         write_json(SANITIZED_CONFIG_COPY, sanitized)
         print(f"Wrote {SANITIZED_RENDERER}")
         print(f"Wrote {SANITIZED_CONFIG_COPY}")
 
-    enabled = [c["name"] for c in config["mcp"]["client_configs"]]
+    enabled = [c["name"] for c in runtime_config["mcp"]["client_configs"]]
     print(f"Enabled Bifrost MCP clients ({len(enabled)}): {', '.join(enabled)}")
     wrapped = sorted(set(output_schema.wrapped))
     print(

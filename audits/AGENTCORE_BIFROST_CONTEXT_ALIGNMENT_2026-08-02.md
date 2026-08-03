@@ -2,9 +2,9 @@
 
 **Approval:** `AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`
 **Capability:** `authority_maintainer`
-**Status:** IN PROGRESS
+**Status:** REMEDIATED — FINAL INDEPENDENT REVIEW PENDING
 **Scope:** Authority/current-state reconciliation, Arabold official-doc indexing, Context Fabric committed-state baseline, and project-owned Cursor subagents
-**Explicit exclusions:** No OmniRoute, Hindsight, Graphify, CrewAI, new MCP-upstream, inference-route, Swarm-runtime, database, credential, or live IDE configuration change. The only live gateway mutation is the governed Context Fabric client rewire described below.
+**Explicit exclusions:** No OmniRoute, Hindsight, Graphify, CrewAI, new MCP-upstream, inference-route, Swarm-runtime, database, credential, or live IDE configuration change. Live gateway changes are limited to the governed project-isolation remediation and profile correction described below.
 
 ## Preflight
 
@@ -12,6 +12,7 @@
 - Branch: `main`
 - Before HEAD: `da9f6ccd4e4b9f646f213a4faecf95ba1586a75c`
 - Rollback root: `E:\AgentCore-Backups\agentcore-control-plane\context-alignment-20260802-232010`
+- Pre-remediation live Bifrost rollback root: `E:\AgentCore-Backups\agentcore-control-plane\project-isolation-20260803-003135`
 - Inherited dirty state was inventoried before editing and remains excluded from this task's stage set.
 - Protected-file attributes were writable before the pass; authority is enforced by approval identity, rollback, validation, review, and recorded hashes rather than an NTFS read-only bit.
 
@@ -35,14 +36,14 @@ Additional exact rollback copies were captured before mutation for the Bifrost u
 | --- | --- |
 | Bifrost scheduled owner | PASS — `\AgentCore\AgentCore-Bifrost-Gateway` running |
 | Bifrost HTTP health | PASS — `status=ok` |
-| Gateway discovery | PASS — 161 tools; 10 `agentcore_memory-*`; 4 `agentcore_project_router-*`; 3 `skills_hub-*` |
+| Original builder discovery | REJECTED — 161 tools exposed shared implicit-project upstreams and four machine-global router controls |
 | Forbidden gateway patterns | PASS — no Swarm, raw PostgreSQL/PSQL, whole-drive, or Bifrost-admin tools |
 | Cursor MCP baseline | PASS — one `agentcore-gateway`; no `MCP_DOCKER`; environment placeholder retained |
 | AgentCore memory | PASS — `agentcore-memory` `0.7.0`, PG18 reachable, neutral Recall health 200 |
 | Known memory degradation | Accurate — Cognee `degraded_unavailable` / `ModuleNotFoundError` |
 | Device identity | Accurate — `legacy_compat`; writes require signed assertion per final Context Engine acceptance |
 | Context Fabric initial gateway probe | FAIL — direct upstream was bound to Bifrost cwd (`project=bifrost`, `HEAD unknown`, zero components); service health alone was a false project-binding signal |
-| Context Fabric repaired binding | PASS — router wrapper uses `F:\AgentCore\runtime` active-project state; `project_activate` returned `reconnected` for `context_fabric`; `cf_query` identifies `agentcore-control-plane` |
+| Context Fabric first repair | REJECTED — the router wrapper corrected cwd but one machine-global active-project state still could not isolate concurrent IDE sessions |
 | Context Fabric local DB | PASS — schema 2, search index 2, integrity ok, hook installed/ready, latest successful capture `#122` at `da9f6ccd4e4b`; six historical failed-capture records retained |
 
 ## Inherited dirty state exclusion
@@ -64,15 +65,36 @@ The following pre-existing modified/untracked paths are not owned by this change
   - Codex/authority-maintainer ownership with Cursor as a bounded specialist/reviewer.
 - MCP and model-inference transport are explicitly separate. OmniRoute, Graphify, Hindsight, and CrewAI remain disabled, benchmark-gated candidates.
 
-### Context Fabric runtime repair
+### Independent review failure and verified remediation
 
-- Root cause: `context-fabric` was marked project-scoped but rendered as direct STDIO, so the child inherited Bifrost's runtime cwd and ignored project-router activation.
-- Contract fix: `connection_type=router` plus `scripts/project_router/wrappers/context-fabric.cmd`.
-- Launcher fix: stale `H:\AgentRuntime` state/process/Tentra defaults replaced by environment-governed `F:\AgentCore\runtime`; filesystem wrapper roots are reduced to the active project.
-- Activation fix: state writes are atomic and `project_activate` reconnects only enabled router-backed Bifrost clients through the documented management endpoint, returning explicit success/missing/failure evidence.
-- TDD evidence: six focused unit tests pass, including preservation of the previous active project on a failed state write and fail-closed router-client reconnect on project clear.
-- Framing evidence: wrapped Context Fabric `1.0.7` initialized, exposed exactly five tools, and all five had `outputSchema`.
-- Rollout: generated config deployed; one scheduled-task recycle completed; gateway health recovered; builder surface remained 161 tools with exact 10 memory, 4 router, and at least 3 skills-hub tools.
+The first scoped implementation commit was `97c872cd98e887292e47b2574fcf236e4872fdde`. A fresh Cursor GPT-5.6 Sol review (`bc-fb3fe422-8f8b-4544-aa27-66ff1a5acce8`) returned **FAIL**. Each material finding was reproduced against source before remediation:
+
+1. `project_activate` changed machine-global state before reconnect, while a failed reconnect could be nested under top-level success. The old shared STDIO child could remain bound to the previous project.
+2. `filesystem` was described as project-scoped but launched directly with write access rooted at `D:\github`.
+3. Non-operator profiles received machine-global project activation/clear controls.
+4. The memory plan retained one stale `H:` artifact-spool path.
+5. The child launcher rewrote shared process-registry JSON per byte without a cross-process lock.
+6. Source renderers could retain a runtime `oauth_config_id`; the recovery runbook still described Stage A.
+
+The corrected security model does not treat one Bifrost process-global project selection as a concurrent-session boundary:
+
+- `serena`, `depwire`, `tentra`, `filesystem`, and `context-fabric` are dormant in shared Bifrost profiles because their tool calls lack trustworthy explicit caller/project identity.
+- Context Fabric remains repo-local through its Git hook/CLI; filesystem/source work uses native IDE tools; Depwire/Tentra use explicit-cwd local launches; Serena remains catalogued for an explicit project-owned process.
+- `agentcore-project-router` is operator-only maintenance. Ordinary profiles expose zero router controls.
+- `project_activate` and `project_clear` now preserve/restore prior state and return top-level failure if required reconnect fails.
+- The child registry uses atomic replacement plus a cross-process lock and updates only at lifecycle boundaries, with 64 KiB proxy chunks rather than per-byte writes.
+- The stale spool path, committed runtime OAuth identifier, and Stage A runbook text were corrected.
+
+TDD red evidence preceded implementation. The corrected focused suite passes 10/10 router/security tests and the Bifrost contract/renderer suite passes 129 checks.
+
+### Corrected live rollout
+
+- The live Bifrost config and online SQLite database were backed up under `E:\AgentCore-Backups\agentcore-control-plane\project-isolation-20260803-003135`; `PRAGMA integrity_check=ok`.
+- The generated runtime configuration now enables eight upstream clients and keeps all five implicit-project clients dormant.
+- One governed scheduled-task recycle completed and `/health` recovered.
+- Authenticated builder proof: 57 total tools; exact 10 memory; zero router; at least 3 skills-hub.
+- Authenticated operator proof: 24 total tools; exact 10 memory; exact 4 router; zero skills-hub required.
+- No IDE MCP entry changed; `agentcore-gateway` remains the sole front door.
 
 ### Arabold and Cursor subagents
 
@@ -85,29 +107,49 @@ The following pre-existing modified/untracked paths are not owned by this change
 
 | Check | Result |
 | --- | --- |
-| Project-router unit tests | PASS — 6/6 |
+| Project-router unit tests | PASS — 10/10 |
 | Python compile | PASS |
 | Authority lock | PASS |
 | Cursor prompt format | PASS |
 | Ecosystem separation | PASS |
 | Bifrost contract validation | PASS |
-| Bifrost contract/renderer suite | PASS — 124 checks |
+| Bifrost contract/renderer suite | PASS — 129 checks |
 | IDE rules renderer check | PASS |
 | IDE enrollment scope | PASS |
-| Runtime Bifrost status | PASS — task running, health ok, 161 tools |
-| Context Fabric active-project reconnect | PASS |
+| Runtime Bifrost builder status | PASS — task running, health ok, 57 tools, memory 10, router 0, skills-hub >=3 |
+| Runtime Bifrost operator status | PASS — task running, health ok, 24 tools, memory 10, router 4 |
 | Exact staged secret/junk scan | PASS — 32 intended files, zero secret-pattern hits, zero junk/runtime artifact paths |
 
 Repository-wide reconciliation scanning also identified 12 unchanged secret-like credential-backup files under the inherited `langsmith-projects/alerts-sheets/global files` tree. They are outside this task's stage set and were neither printed nor modified. Their remediation requires a separate security-scoped decision; the finding does not weaken the exact staged-patch result.
 
+### Context Fabric Windows drift residual
+
+- Post-commit capture `#123` is healthy at `97c872cd98e8`, with DB integrity `ok`, no degraded mode, and zero pending captures.
+- The raw `cf_drift` result remains `HIGH` (`709/820`, 86.5%) and must not be treated as an accurate Windows change count.
+- Read-only hash classification proved that 683 of the 709 mismatches equal the stored Git-blob SHA-256 after CRLF-to-LF normalization. The remaining 26 are 15 inherited dirty task-external paths and 11 historical missing paths, an actionable upper bound of 3.2% before missing-path reconciliation.
+- Cause is confirmed in the installed and [current upstream Context Fabric `1.0.7` source](https://github.com/VIKAS9793/context-fabric/blob/main/src/engines/anchor.ts): capture hashes Git blob bytes while `anchor.ts` hashes raw working-tree bytes. This conflicts with this Windows checkout's documented `core.autocrlf=true` behavior.
+- Classification: `MEDIUM` dependency residual. Capture, query, decision logging, search, project identity, DB integrity, and hook readiness remain usable; the raw drift severity alone is not accepted as an operational gate on Windows.
+- Smallest safe follow-up: upstream or forked Context Fabric must compare working-tree content through Git clean filters/object identity and reconcile historical tombstones. Do not rewrite this repository or globally change line-ending policy merely to silence the metric.
+
 ### Pending closeout evidence
 
-- Independent fresh-context Cursor review after the scoped implementation commit.
-- Post-commit Context Fabric capture/decision/drift/query/health evidence.
+- Independent fresh-context Cursor review of the remediation commit.
+- Final accepted-HEAD repo-local Context Fabric capture/drift/query/health evidence.
 - Final scoped push and after-hash table.
+
+### Protected-file after hashes (pre-commit content)
+
+| File | SHA-256 after remediation |
+| --- | --- |
+| `BLUEPRINT.md` | `63A57B6FAFF4050528005A2DFEF6621925D553500A4FAB89519AAD7335AC69C0` |
+| `CONTEXT_BLOCK.md` | `2D12B792E72D97AD0F505ED97961F310FA01B825BCC48C6755F1D593451AEB68` |
+| `DOC_AUTHORITY.md` | `94C50E90DCF09EF10AE618448E4B60D0995DF1BC3BFE2CFF7924C96E6265A5EE` |
+| `MASTER_CONFIG_AND_PROMPT.md` | `B924C278397E98EA51D1AC01C9B87C14602F8B6083C8D30DA40DE6C13B76AD0E` |
+| `AGENTS.md` | `22CCEF76B879935D04DBB7E8BB9B5C6A607608ABCD3F86CC63975B484CDFC57D` |
+| `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` | `843FD76081120B3A297F519727F298E8FAF97E63E0DB8A7B14F7FDFBCF234BE8` |
 
 ## Rollback
 
 Restore only a changed protected file from the matching file under the rollback root, rerun the complete validator set, create a separate rollback commit, and push under explicit operator approval.
 
-For live rollback, restore `live-bifrost\config.json` and `live-bifrost\config-config.json` from the rollback root (or restore `live-bifrost\config.db` with Bifrost stopped), then restart only `\AgentCore\AgentCore-Bifrost-Gateway` through the governed scheduled task. Confirm `/health`, the 161-tool gateway baseline, and Context Fabric client state before reopening submissions. The database backup passed `PRAGMA integrity_check=ok`; no IDE config, database schema, credentials, or Swarm runtime require rollback.
+For live rollback, restore `config.json` and `config-config.json` from `E:\AgentCore-Backups\agentcore-control-plane\project-isolation-20260803-003135` (or restore `config.db` with Bifrost stopped), then restart only `\AgentCore\AgentCore-Bifrost-Gateway` through the governed scheduled task. Confirm `/health` and the intended authenticated profile counts before reopening submissions. The database backup passed `PRAGMA integrity_check=ok`; no IDE config, database schema, credentials, or Swarm runtime require rollback.

@@ -55,10 +55,10 @@
 - [ ] Patch `BLUEPRINT.md` to define the responsibility model, transport-plane separation, Context Fabric disposition, future extension gates, and Codex/Cursor execution split.
 - [ ] Patch `CONTEXT_BLOCK.md` to record current 2026-08-02/03 live facts, RUN11, Context Engine acceptance, neutral Recall, current drive paths, true residuals, and adopted Context Fabric role.
 - [ ] Patch `DOC_AUTHORITY.md` to classify the new ADR/spec/plan and the authoritative acceptance evidence.
-- [ ] Patch `MASTER_CONFIG_AND_PROMPT.md` so every IDE receives the neutral-memory exception, current Context Engine lifecycle, Arabold/Context Fabric drift rules, and the unchanged single-gateway contract.
-- [ ] Patch `MILESTONES.md` and `AGENTS.md` so execution ownership is AgentCore authority-maintainer-led and Cursor remains a bounded implementation/review surface without changing Milestone outcomes.
-- [ ] Add an ADR that records decision, alternatives, consequences, rollback, and benchmark gates.
-- [ ] Search current authority files for stale H-drive AgentCore ownership, obsolete SwarmRecall prohibition, Cursor-only ownership language, or experimental components presented as live.
+- [x] Patch `MASTER_CONFIG_AND_PROMPT.md` so every IDE receives the neutral-memory exception, current Context Engine lifecycle, Arabold/Context Fabric drift rules, and the unchanged single-gateway contract.
+- [x] Patch `MILESTONES.md` and `AGENTS.md` so execution ownership is AgentCore authority-maintainer-led and Cursor remains a bounded implementation/review surface without changing Milestone outcomes.
+- [x] Add an ADR that records decision, alternatives, consequences, rollback, and benchmark gates.
+- [x] Search current authority files for stale H-drive AgentCore ownership, obsolete SwarmRecall prohibition, Cursor-only ownership language, or experimental components presented as live.
 
 ### Task 3: Establish local official-document authority
 
@@ -87,8 +87,8 @@
 - Produces: committed-state capture, decision projection, drift report, and health proof
 
 - [ ] Prove `.context-fabric` is at the repository root and no invalid non-repo root exists in the approved scan set.
-- [ ] Run `cf_capture` after the authority commit so the capture is based on committed Git objects.
-- [ ] Record the approved responsibility-model decision through `cf_log_decision` as a convenience projection.
+- [x] Run `cf_capture` after the authority commit so the capture is based on committed Git objects.
+- [x] Record the approved responsibility-model decision through `cf_log_decision` as a convenience projection.
 - [ ] Run `cf_drift` and `cf_query` with drift enabled; classify any remaining drift as inherited dirty work or task error.
 - [ ] Run `cf_health`; record that its store is rebuildable and non-canonical.
 

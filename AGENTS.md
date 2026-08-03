@@ -27,12 +27,12 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 
 - **IDE MCP primary:** use the single Bifrost `agentcore-gateway` entry defined by `PROJECT_ANCHOR.md` and `contracts/agentcore-gateway-client.json`. Do not paste the full upstream registry into each IDE.
 - **Planning:** `sequential-thinking` (via gateway).
-- **Repo code work:** Serena via **project router** (`agentcore-project-router` activate → Serena wrapper); follow `SERENA.md` for the semantic workflow and failure boundaries. Prefer project-scoped cwd.
-- **Depwire:** Prefer Depwire **through agentcore-gateway** after cutover. Local Depwire CLI/MCP remains available for diagnostics and exact workspace graphs; Depwire Cloud stays deferred until enabled/healthy in the registry.
-- **Tentra:** Local mode only; launch via project-router wrapper and follow current classified evidence for mutable data paths.
+- **Repo code work:** use the IDE/host's project-local source tools. Shared Bifrost Serena is dormant until the gateway can inject a trustworthy per-session project identity; follow `SERENA.md`.
+- **Depwire:** use the local CLI with an explicit project cwd for diagnostics and exact workspace graphs. Shared Bifrost Depwire and Depwire Cloud remain dormant.
+- **Tentra:** local explicit-project mode only when a governed workflow launches it; the shared Bifrost upstream is dormant.
 - **Docs:** `arabold-docs` first for current library/SDK/docs answers. Keep Bifrost docs indexed (`bifrost` / `2.0.0-prerelease1`).
 - **Memory (non-Swarm):** `agentcore-memory` stable identity via gateway (ten-tool surface live; do not invent alternate memory MCP entries). Server-side projection to the **neutral shared SwarmRecall** plane is allowed; do not install raw SwarmRecall/SwarmVault MCP or Recall keys in IDE configs. Context Engine orchestrates above the facade (`D:\github\agentcore-context-engine`).
-- **Project continuity:** `context-fabric` only for approved Git-managed workspaces via project router; do not initialize under Swarm or runtime memory roots.
+- **Project continuity:** Context Fabric is repo-local through its Git hook/CLI only; its shared Bifrost upstream is dormant because Context Fabric tools do not carry caller/project identity. Do not initialize under Swarm or runtime memory roots.
 - **Architecture scans:** `artiforge` for high-leverage scans only.
 - **Connected app workflows:** keep Composio quarantined until explicitly re-enabled.
 
@@ -49,7 +49,7 @@ SwarmVault and SwarmClaw remain a **separate Swarm ecosystem** for execution. Or
 
 ## Stop Policy
 
-For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thinking`, and Depwire when structural verification is required: do not silently downgrade. If the primary fails and no high-quality fallback exists, stop and notify the user. Local Depwire CLI may be used as a diagnostic fallback when the gateway path is down — say so explicitly.
+For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, and `sequential-thinking`: do not silently downgrade. When structural verification is required, use project-local/native code tooling plus the local Depwire CLI with an explicit cwd; stop if the required evidence cannot be produced.
 
 ## Project Execution (all managed projects)
 

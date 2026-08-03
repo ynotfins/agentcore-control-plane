@@ -8,10 +8,12 @@ Roots and runtime state are installation-relative or environment-configured.
 from __future__ import annotations
 
 import json
+import ipaddress
 import os
 import sys
 import traceback
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -166,12 +168,27 @@ def _read_user_env(name: str) -> str:
         return ""
 
 
+def _validated_bifrost_base() -> str:
+    parsed = urllib.parse.urlparse(BIFROST_BASE)
+    host = parsed.hostname or ""
+    if parsed.scheme not in {"http", "https"} or parsed.username or parsed.password:
+        raise RuntimeError("Bifrost management base must be a loopback HTTP(S) URL")
+    try:
+        is_loopback = ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        is_loopback = host.lower() == "localhost"
+    if not is_loopback:
+        raise RuntimeError("Bifrost management base must remain loopback")
+    return BIFROST_BASE
+
+
 def _bifrost_admin_request(method: str, path: str) -> dict[str, Any]:
     admin_key = _read_user_env(ADMIN_KEY_ENV)
     if not admin_key:
         raise RuntimeError(f"{ADMIN_KEY_ENV} is unavailable")
+    base = _validated_bifrost_base()
     request = urllib.request.Request(
-        f"{BIFROST_BASE}{path}",
+        f"{base}{path}",
         data=b"" if method == "POST" else None,
         headers={
             "Authorization": f"Bearer {admin_key}",
@@ -288,6 +305,7 @@ def tool_defs() -> list[dict[str, Any]]:
                     "project": {"type": "object"},
                     "active": {"type": ["object", "null"]},
                     "project_scoped_reconnect": {"type": "object"},
+                    "rollback_reconnect": {"type": "object"},
                     "error": {"type": "string"},
                 },
                 "required": ["ok"],
@@ -336,6 +354,8 @@ def tool_defs() -> list[dict[str, Any]]:
                     "cleared": {"type": "string"},
                     "active": {"type": ["object", "null"]},
                     "project_scoped_reconnect": {"type": "object"},
+                    "rollback_reconnect": {"type": "object"},
+                    "error": {"type": "string"},
                 },
                 "required": ["ok"],
                 "additionalProperties": True,
@@ -384,12 +404,25 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
         return {"ok": True, "active": state}
 
     if name == "project_clear":
+        previous = load_state()
         save_state(None)
+        reconnect = reconnect_router_clients()
+        if not reconnect.get("ok"):
+            save_state(previous)
+            rollback_reconnect = reconnect_router_clients()
+            return {
+                "ok": False,
+                "error": "project_scoped_reconnect_failed",
+                "active": previous,
+                "cleared_at": _now(),
+                "project_scoped_reconnect": reconnect,
+                "rollback_reconnect": rollback_reconnect,
+            }
         return {
             "ok": True,
             "active": None,
             "cleared_at": _now(),
-            "project_scoped_reconnect": reconnect_router_clients(),
+            "project_scoped_reconnect": reconnect,
         }
 
     if name == "project_activate":
@@ -407,6 +440,7 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
         reason = _rejected_path(Path(match["path"]))
         if reason:
             return {"ok": False, "error": reason}
+        previous = load_state()
         state = {
             "id": match["id"],
             "name": match["name"],
@@ -415,10 +449,22 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
             "activated_by": SERVER_NAME,
         }
         save_state(state)
+        reconnect = reconnect_router_clients()
+        if not reconnect.get("ok"):
+            save_state(previous)
+            rollback_reconnect = reconnect_router_clients()
+            return {
+                "ok": False,
+                "error": "project_scoped_reconnect_failed",
+                "active": previous,
+                "requested": state,
+                "project_scoped_reconnect": reconnect,
+                "rollback_reconnect": rollback_reconnect,
+            }
         return {
             "ok": True,
             "active": state,
-            "project_scoped_reconnect": reconnect_router_clients(),
+            "project_scoped_reconnect": reconnect,
         }
 
     return {"ok": False, "error": f"Unknown tool: {name}"}

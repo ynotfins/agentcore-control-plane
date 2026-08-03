@@ -19,7 +19,7 @@ Establish one unambiguous operating model for the PC so every managed AgentCore 
 | Shared semantic projection | Neutral SwarmRecall | Machine-level global/per-project semantic projection, reached server-side through `agentcore-memory`; never canonical evidence or a raw IDE MCP |
 | Project commit context and drift | Context Fabric | Repo-local committed snapshot, decision log, query briefing, and drift warning; not global memory or an immutable ledger |
 | Current external documentation | Arabold Docs | Local, version-labelled index of official upstream documentation used before version-sensitive decisions |
-| Semantic code intelligence | Serena through project router | Active-project symbol navigation and safe refactor evidence; not durable memory |
+| Semantic code intelligence | Native IDE/project-local tools; Serena optional | Explicit-project symbol navigation and safe refactor evidence; shared Bifrost Serena is dormant |
 | Autonomous production workflow | LangGraph | Durable, checkpointed AgentCore workflow with bounded workers, critic, scorer, judge, and human gates |
 | Bounded implementation and review | Cursor subagents | Focused code review, runtime diagnosis, contract implementation, and verification; never architecture authority |
 
@@ -58,7 +58,7 @@ These candidates may be represented in the portable Context Engine as disabled a
 Adopt Context Fabric behind AgentCore as the project-local committed-state and drift plane.
 
 - Its root is exactly the Git repository root.
-- Its Bifrost client launches through `scripts/project_router/wrappers/context-fabric.cmd`; `project_activate` must report a successful router-client reconnect before its context is trusted.
+- Its shared Bifrost client is dormant. Use the repository-local hook/CLI so the Git root is explicit and concurrent IDE sessions cannot redirect one shared child.
 - It captures committed Git objects; uncommitted files are drift, not a new snapshot.
 - Its SQLite database and runtime remain under `.context-fabric/` and are non-canonical/rebuildable.
 - `cf_capture` and `cf_drift` run at Milestone entry/exit and after an accepted authority commit.
@@ -81,5 +81,5 @@ This alignment is accepted when:
 3. Arabold contains retrieval-proven official documentation for current production components and the four future candidates; any source without version metadata (currently Bifrost) is recorded as an explicit limitation rather than assigned a false documentation version.
 4. Context Fabric captures the accepted Git state after commit and reports a bounded, explainable drift status.
 5. Two or three focused Cursor subagents use the current official `.cursor/agents/*.md` schema and are discoverable from the project.
-6. Authority, Bifrost, prompt-format, ecosystem-separation, and narrow test validators pass.
+6. Authority, Bifrost, prompt-format, ecosystem-separation, and narrow test validators pass; ordinary profiles expose no machine-global project mutation, and operator exposes exactly four maintenance controls.
 7. Rollback files, before/after hashes, independent review, scoped commit, and push evidence exist.

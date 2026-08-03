@@ -8,6 +8,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import json
 import os
 import subprocess
@@ -33,6 +34,7 @@ PROCESS_REGISTRY = Path(
         str(RUNTIME_ROOT / "mcp-processes" / "registry.json"),
     )
 )
+PROCESS_REGISTRY_LOCK = PROCESS_REGISTRY.with_suffix(PROCESS_REGISTRY.suffix + ".lock")
 TENTRA_DATA = Path(
     os.environ.get("TENTRA_DATA_DIR", str(RUNTIME_ROOT / "tentra" / "data"))
 )
@@ -58,9 +60,47 @@ def load_json(path: Path) -> Any:
 
 def save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="\n") as fh:
-        json.dump(data, fh, indent=2)
-        fh.write("\n")
+    temp_path = path.with_name(
+        f"{path.name}.tmp.{os.getpid()}.{threading.get_ident()}"
+    )
+    try:
+        with temp_path.open("w", encoding="utf-8", newline="\n") as fh:
+            json.dump(data, fh, indent=2)
+            fh.write("\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(temp_path, path)
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
+
+
+@contextmanager
+def process_registry_lock():
+    PROCESS_REGISTRY_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    with PROCESS_REGISTRY_LOCK.open("a+b") as lock_file:
+        lock_file.seek(0, os.SEEK_END)
+        if lock_file.tell() == 0:
+            lock_file.write(b"0")
+            lock_file.flush()
+        lock_file.seek(0)
+        if os.name == "nt":
+            import msvcrt
+
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
+            try:
+                yield
+            finally:
+                lock_file.seek(0)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 def load_active_project() -> dict[str, Any]:
@@ -139,27 +179,18 @@ def load_process_registry() -> dict[str, Any]:
 
 
 def update_process_registry(server: str, pid: int, project_path: str, cmd: list[str]) -> None:
-    reg = load_process_registry()
-    processes = reg.setdefault("processes", {})
-    processes[f"{server}:{project_path}"] = {
-        "server": server,
-        "pid": pid,
-        "project_path": project_path,
-        "command": cmd,
-        "started_at": _now(),
-        "last_activity_at": _now(),
-    }
-    reg["updated_at"] = _now()
-    # Never store env/secrets
-    save_json(PROCESS_REGISTRY, reg)
-
-
-def touch_activity(server: str, project_path: str) -> None:
-    reg = load_process_registry()
-    key = f"{server}:{project_path}"
-    if key in reg.get("processes", {}):
-        reg["processes"][key]["last_activity_at"] = _now()
+    with process_registry_lock():
+        reg = load_process_registry()
+        processes = reg.setdefault("processes", {})
+        processes[f"{server}:{project_path}"] = {
+            "server": server,
+            "pid": pid,
+            "project_path": project_path,
+            "command": cmd,
+            "started_at": _now(),
+        }
         reg["updated_at"] = _now()
+        # Never store env/secrets.
         save_json(PROCESS_REGISTRY, reg)
 
 
@@ -173,13 +204,12 @@ def proxy_stdio(proc: subprocess.Popen[bytes], server: str, project_path: str) -
         assert proc.stdin is not None
         try:
             while not stop.is_set():
-                chunk = sys.stdin.buffer.read(1)
+                chunk = sys.stdin.buffer.read(64 * 1024)
                 if not chunk:
                     break
                 proc.stdin.write(chunk)
                 proc.stdin.flush()
                 last_activity = time.time()
-                touch_activity(server, project_path)
         except (BrokenPipeError, OSError):
             pass
         finally:
@@ -194,13 +224,12 @@ def proxy_stdio(proc: subprocess.Popen[bytes], server: str, project_path: str) -
         assert proc.stdout is not None
         try:
             while not stop.is_set():
-                chunk = proc.stdout.read(1)
+                chunk = proc.stdout.read(64 * 1024)
                 if not chunk:
                     break
                 sys.stdout.buffer.write(chunk)
                 sys.stdout.buffer.flush()
                 last_activity = time.time()
-                touch_activity(server, project_path)
         except (BrokenPipeError, OSError):
             pass
         finally:

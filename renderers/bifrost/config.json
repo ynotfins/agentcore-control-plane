@@ -140,35 +140,6 @@
         "is_ping_available": true
       },
       {
-        "name": "context_fabric",
-        "connection_type": "stdio",
-        "stdio_config": {
-          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
-          "args": [
-            "-u",
-            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
-            "--server",
-            "context-fabric",
-            "--contract",
-            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
-            "--",
-            "cmd.exe",
-            "/c",
-            "D:\\github\\agentcore-control-plane\\scripts\\project_router\\wrappers\\context-fabric.cmd"
-          ],
-          "envs": []
-        },
-        "tools_to_execute": [
-          "cf_capture",
-          "cf_drift",
-          "cf_health",
-          "cf_log_decision",
-          "cf_query"
-        ],
-        "auth_type": "none",
-        "is_ping_available": true
-      },
-      {
         "name": "cursor_agent_mcp",
         "connection_type": "stdio",
         "stdio_config": {
@@ -189,69 +160,6 @@
         },
         "tools_to_execute": [
           "*"
-        ],
-        "auth_type": "none",
-        "is_ping_available": true
-      },
-      {
-        "name": "depwire",
-        "connection_type": "stdio",
-        "stdio_config": {
-          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
-          "args": [
-            "-u",
-            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
-            "--server",
-            "depwire",
-            "--contract",
-            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
-            "--",
-            "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
-            "mcp"
-          ],
-          "envs": []
-        },
-        "tools_to_execute": [
-          "*"
-        ],
-        "auth_type": "none",
-        "is_ping_available": true
-      },
-      {
-        "name": "filesystem",
-        "connection_type": "stdio",
-        "stdio_config": {
-          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
-          "args": [
-            "-u",
-            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
-            "--server",
-            "filesystem",
-            "--contract",
-            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
-            "--",
-            "C:\\Program Files\\nodejs\\npx.cmd",
-            "-y",
-            "@modelcontextprotocol/server-filesystem@2026.7.10",
-            "D:\\github"
-          ],
-          "envs": []
-        },
-        "tools_to_execute": [
-          "read_file",
-          "read_text_file",
-          "read_media_file",
-          "read_multiple_files",
-          "write_file",
-          "edit_file",
-          "create_directory",
-          "list_directory",
-          "list_directory_with_sizes",
-          "directory_tree",
-          "move_file",
-          "search_files",
-          "get_file_info",
-          "list_allowed_directories"
         ],
         "auth_type": "none",
         "is_ping_available": true
@@ -281,7 +189,12 @@
           "transcribe-audio"
         ],
         "auth_type": "oauth",
-        "oauth_config_id": "aa25b02d-fc4c-4210-88c8-e355a2f8c109"
+        "oauth_config": {
+          "server_url": "https://openrouter.ai",
+          "scopes": [
+            "mcp"
+          ]
+        }
       },
       {
         "name": "playwright",
@@ -334,30 +247,6 @@
         "is_ping_available": true
       },
       {
-        "name": "serena",
-        "connection_type": "stdio",
-        "stdio_config": {
-          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
-          "args": [
-            "-u",
-            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
-            "--server",
-            "serena",
-            "--contract",
-            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
-            "--",
-            "C:\\Program Files\\nodejs\\node.EXE",
-            "D:\\github\\agentcore-control-plane\\ops\\bifrost\\wrappers\\serena-prewarm.js"
-          ],
-          "envs": []
-        },
-        "tools_to_execute": [
-          "*"
-        ],
-        "auth_type": "none",
-        "is_ping_available": true
-      },
-      {
         "name": "skills_hub",
         "connection_type": "stdio",
         "stdio_config": {
@@ -382,32 +271,6 @@
         ],
         "auth_type": "none",
         "is_ping_available": false
-      },
-      {
-        "name": "tentra",
-        "connection_type": "stdio",
-        "stdio_config": {
-          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
-          "args": [
-            "-u",
-            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
-            "--server",
-            "tentra",
-            "--contract",
-            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
-            "--",
-            "C:\\Program Files\\nodejs\\npx.cmd",
-            "-y",
-            "tentra-mcp@1.3.3",
-            "--local"
-          ],
-          "envs": []
-        },
-        "tools_to_execute": [
-          "*"
-        ],
-        "auth_type": "none",
-        "is_ping_available": true
       }
     ],
     "tool_manager_config": {
@@ -440,59 +303,15 @@
             ]
           },
           {
-            "mcp_client_name": "agentcore_project_router",
-            "tools_to_execute": [
-              "project_list",
-              "project_activate",
-              "project_status",
-              "project_clear"
-            ]
-          },
-          {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
               "*"
             ]
           },
           {
-            "mcp_client_name": "context_fabric",
-            "tools_to_execute": [
-              "cf_capture",
-              "cf_drift",
-              "cf_health",
-              "cf_log_decision",
-              "cf_query"
-            ]
-          },
-          {
             "mcp_client_name": "cursor_agent_mcp",
             "tools_to_execute": [
               "*"
-            ]
-          },
-          {
-            "mcp_client_name": "depwire",
-            "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
-            "mcp_client_name": "filesystem",
-            "tools_to_execute": [
-              "read_file",
-              "read_text_file",
-              "read_media_file",
-              "read_multiple_files",
-              "write_file",
-              "edit_file",
-              "create_directory",
-              "list_directory",
-              "list_directory_with_sizes",
-              "directory_tree",
-              "move_file",
-              "search_files",
-              "get_file_info",
-              "list_allowed_directories"
             ]
           },
           {
@@ -508,23 +327,11 @@
             ]
           },
           {
-            "mcp_client_name": "serena",
-            "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
             "mcp_client_name": "skills_hub",
             "tools_to_execute": [
               "search_skills",
               "get_skill_detail",
               "list_installed_skills"
-            ]
-          },
-          {
-            "mcp_client_name": "tentra",
-            "tools_to_execute": [
-              "*"
             ]
           }
         ],
@@ -563,63 +370,13 @@
             ]
           },
           {
-            "mcp_client_name": "agentcore_project_router",
-            "tools_to_execute": [
-              "project_list",
-              "project_activate",
-              "project_status",
-              "project_clear"
-            ]
-          },
-          {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
               "*"
             ]
           },
           {
-            "mcp_client_name": "context_fabric",
-            "tools_to_execute": [
-              "cf_capture",
-              "cf_drift",
-              "cf_health",
-              "cf_log_decision",
-              "cf_query"
-            ]
-          },
-          {
-            "mcp_client_name": "depwire",
-            "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
-            "mcp_client_name": "filesystem",
-            "tools_to_execute": [
-              "read_file",
-              "read_text_file",
-              "read_media_file",
-              "read_multiple_files",
-              "write_file",
-              "edit_file",
-              "create_directory",
-              "list_directory",
-              "list_directory_with_sizes",
-              "directory_tree",
-              "move_file",
-              "search_files",
-              "get_file_info",
-              "list_allowed_directories"
-            ]
-          },
-          {
             "mcp_client_name": "sequential_thinking",
-            "tools_to_execute": [
-              "*"
-            ]
-          },
-          {
-            "mcp_client_name": "serena",
             "tools_to_execute": [
               "*"
             ]
@@ -648,15 +405,6 @@
             ]
           },
           {
-            "mcp_client_name": "agentcore_project_router",
-            "tools_to_execute": [
-              "project_list",
-              "project_activate",
-              "project_status",
-              "project_clear"
-            ]
-          },
-          {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
               "*"
@@ -670,15 +418,6 @@
         "value": "env.BIFROST_MCP_VK_DOCS_KNOWLEDGE",
         "is_active": true,
         "mcp_configs": [
-          {
-            "mcp_client_name": "agentcore_project_router",
-            "tools_to_execute": [
-              "project_list",
-              "project_activate",
-              "project_status",
-              "project_clear"
-            ]
-          },
           {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
@@ -728,12 +467,6 @@
             "tools_to_execute": [
               "*"
             ]
-          },
-          {
-            "mcp_client_name": "depwire",
-            "tools_to_execute": [
-              "*"
-            ]
           }
         ]
       },
@@ -755,14 +488,6 @@
               "append_event",
               "build_handoff",
               "session_close"
-            ]
-          },
-          {
-            "mcp_client_name": "agentcore_project_router",
-            "tools_to_execute": [
-              "project_list",
-              "project_status",
-              "project_activate"
             ]
           },
           {
@@ -827,7 +552,7 @@
       "BIFROST_MCP_VK_OPERATOR",
       "BIFROST_MCP_VK_CHATGPT"
     ],
-    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) \u2014 present=True. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration.",
+    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) \u2014 present=False. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration.",
     "output_schema": {
       "configured": true,
       "enabled": true,
@@ -837,15 +562,10 @@
         "agentcore-memory",
         "agentcore-project-router",
         "arabold-docs",
-        "context-fabric",
         "cursor-agent-mcp",
-        "depwire",
-        "filesystem",
         "playwright",
         "sequential-thinking",
-        "serena",
-        "skills-hub",
-        "tentra"
+        "skills-hub"
       ],
       "note": "tool.outputSchema and CallToolResult.structuredContent are injected by scripts/bifrost/mcp_output_schema_adapter.py in front of each wrapped stdio upstream; human-readable content blocks are preserved."
     }

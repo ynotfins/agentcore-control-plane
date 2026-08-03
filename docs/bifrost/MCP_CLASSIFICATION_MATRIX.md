@@ -1,7 +1,7 @@
 # MCP Classification Matrix — Bifrost Upstream
 
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`
-**Updated:** 2026-07-25
+**Updated:** 2026-08-02
 **Scope:** Non-Swarm AgentCore gateway only. Swarm* excluded.
 **Dormant catalog:** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`
 **Architecture authority:** `BLUEPRINT.md` (this matrix must not invent alternate memory identities or Swarm wiring)
@@ -9,21 +9,21 @@
 | Canonical ID | Bifrost client name | Connection | Scope | Write class | Status | Profiles |
 | -- | -- | -- | -- | -- | -- | -- |
 | arabold-docs | arabold_docs | stdio | global | read_only | active | builder, reviewer, docs-knowledge, database-validator, operator |
-| serena | serena | router | project | bounded_write | active | builder, reviewer |
+| serena | serena | stdio | project | bounded_write | **dormant — explicit project router required** | none |
 | sequential-thinking | sequential_thinking | stdio | global | read_only | active | builder, reviewer, docs-knowledge |
 | cursor-agent-mcp | cursor_agent_mcp | stdio | global | write_capable | active | builder |
-| context-fabric | context_fabric | router | project | bounded_write | active | builder, reviewer |
+| context-fabric | context_fabric | router | project | bounded_write | **local project only; shared route dormant** | none |
 | mcp-debugger | mcp_debugger | stdio | project | admin | **disabled** | builder (when enabled; attach denied for reviewer) |
 | artiforge | artiforge | http | global | bounded_write | **disabled** | builder, operator (when enabled) |
-| depwire | depwire | router | project | write_capable | active | builder, reviewer, operator |
+| depwire | depwire | stdio | project | write_capable | **dormant — use explicit-cwd CLI** | none |
 | depwire-cloud | depwire_cloud | http | global | read_only | **disabled/deferred** | builder, operator (when enabled) |
-| tentra | tentra | router | project | bounded_write | active | builder |
+| tentra | tentra | stdio | project | bounded_write | **dormant — explicit project launch required** | none |
 | obsidian-vault | obsidian_vault | stdio | global | bounded_write | **disabled** (zero tools in default baseline) | preserved app/vault outside default MCP surface |
 | playwright | playwright | stdio | global | bounded_write | active | builder |
-| filesystem | filesystem | router | project | bounded_write | active | builder, reviewer |
+| filesystem | filesystem | router | project | bounded_write | **dormant — native IDE filesystem preferred** | none |
 | github-mcp | github_mcp | stdio | global | write_capable | **deferred/disabled** | builder, operator (when enabled) |
 | agentcore-memory | agentcore_memory | stdio | global | read_only | active (exact 10-tool surface live) | builder, reviewer, database-validator, operator |
-| agentcore-project-router | agentcore_project_router | stdio | global | bounded_write | active (exact 4-tool surface live) | all profiles |
+| agentcore-project-router | agentcore_project_router | stdio | global | bounded_write | active (exact 4-tool surface) | operator only |
 | skills-hub | skills_hub | stdio | global | read_only | active (exact 3-tool read surface live) | builder |
 
 ## OpenRouter MCP — registered dormant
@@ -59,7 +59,7 @@
 ## Notes
 
 - Bifrost MCP client names use underscores; AgentCore canonical IDs keep hyphens.
-- Project-scoped servers must launch through `scripts/project_router` wrappers after `project_activate`.
+- Implicit project-scoped servers stay dormant in shared Bifrost profiles until a trustworthy per-session project identity can be injected. Machine-global `project_activate` is operator maintenance, not a concurrent-session boundary.
 - Architectural exact tool counts: `agentcore-memory` = 10, `agentcore-project-router` = 4, `skills-hub` = 3 read-only tools (`install_skill` denied). Third-party counts (Arabold, OpenRouter) reflect point-in-time upstream discovery and evolve independently.
 - Output schema passthrough: stdio upstreams pass through or use the envelope adapter (`contracts/mcp-tool-output-schemas.json`); Bifrost does not synthesize proxy schemas.
 - OpenRouter is registered dormant: zero tools exposed without an active M6 capability lease + `scripts/bifrost/jit_vk_bridge.py`. See `docs/operations/OPENROUTER_MCP.md`. LangGraph clients use the same localhost gateway path (`docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`).

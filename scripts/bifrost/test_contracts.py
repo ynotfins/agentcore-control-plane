@@ -204,6 +204,53 @@ def main() -> int:
     check("registry:wildcards documented", not wildcards or "tool_lifecycle_note" in registry,
           f"undocumented wildcards: {wildcards}")
 
+    # Shared STDIO clients receive no trustworthy caller/project identity. Project-bound
+    # upstreams therefore stay dormant until an explicit per-session router exists.
+    implicit_project_servers = {"serena", "depwire", "tentra", "filesystem", "context-fabric"}
+    unsafe_enabled = sorted(
+        server_id for server_id in implicit_project_servers
+        if registry["servers"][server_id].get("enabled")
+        or registry["servers"][server_id].get("capability_profiles")
+    )
+    check(
+        "registry:implicit project upstreams dormant",
+        not unsafe_enabled,
+        f"unsafe enabled/profiled servers: {unsafe_enabled}",
+    )
+    router_profiles = sorted(
+        profile_id for profile_id, profile in registry["capability_profiles"].items()
+        if "agentcore-project-router" in (profile.get("allowed_server_ids") or [])
+    )
+    check(
+        "registry:global project mutation operator-only",
+        router_profiles == ["operator"],
+        f"router profiles: {router_profiles}",
+    )
+
+    source_renderer_paths = [
+        REPO / "renderers" / "bifrost" / "config.json",
+        REPO / "renderers" / "bifrost" / "config.sanitized.json",
+    ]
+    oauth_id_pattern = re.compile(r'"oauth_config_id"\s*:\s*"[A-Za-z0-9_-]{8,}"')
+    oauth_leaks = [
+        str(path.relative_to(REPO)) for path in source_renderer_paths
+        if oauth_id_pattern.search(path.read_text(encoding="utf-8", errors="replace"))
+    ]
+    check(
+        "renderer:no runtime OAuth metadata in Git",
+        not oauth_leaks,
+        f"oauth_config_id values: {oauth_leaks}",
+    )
+
+    recovery_runbook = read("docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md")
+    check(
+        "runbook:Cursor Stage B current",
+        "HARD GATE PENDING" not in recovery_runbook
+        and "Not registered in Stage A" not in recovery_runbook,
+    )
+    memory_plan = read("docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md")
+    check("memory-plan:no AgentCore H spool", "on H: spool" not in memory_plan)
+
     # --- MCP outputSchema coverage (MissingOutputSchema must be zero) ---
     # Full gate including the generated-artifact drift check: a contract or registry
     # change that has not been re-rendered leaves live tools/list without outputSchema.

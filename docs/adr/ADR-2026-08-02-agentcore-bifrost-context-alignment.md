@@ -28,8 +28,10 @@ OmniRoute, Graphify, Hindsight, and CrewAI remain disabled evaluation candidates
 ## Consequences
 
 - All managed IDEs keep exactly one MCP entry named `agentcore-gateway`.
-- Context Fabric launches through the existing project-router wrapper. `project_activate` atomically updates the active-project state and reconnects router-backed Bifrost upstreams without changing or restarting the IDE-facing MCP endpoint.
-- One governed Bifrost recycle was required to replace the previously direct Context Fabric STDIO launch command; no IDE configuration changed.
+- Context Fabric runs through its repository-local hook/CLI. Its shared Bifrost upstream is dormant because Bifrost does not forward trustworthy caller/project identity to a shared STDIO child.
+- Serena, Depwire, Tentra, filesystem, and Context Fabric remain dormant in shared profiles when their calls lack explicit project/worktree identity. Native IDE tools and explicit-cwd local processes are the safe interim route.
+- The four machine-global project-router controls are operator-only maintenance and are not a concurrent-session security boundary.
+- One governed Bifrost recycle applied the corrected profile and upstream disposition; no IDE configuration changed.
 - Context Fabric can expose stale committed context immediately without becoming a second memory authority.
 - Future inference compression, code-atlas, learning/reflection, and worker experiments can be evaluated independently and rolled back independently.
 - The portable Context Engine may later expose optional adapter manifests, but only accepted integrations ship enabled.
@@ -45,6 +47,6 @@ OmniRoute, Graphify, Hindsight, and CrewAI remain disabled evaluation candidates
 
 ## Validation and rollback
 
-Acceptance requires protected-file hashes, deterministic repository validators, successful Bifrost/memory health probes, Arabold retrieval proof, Context Fabric committed-state capture/drift proof, current-schema Cursor agents, independent review, and scoped Git push evidence.
+Acceptance requires protected-file hashes, deterministic repository validators, authenticated builder/operator Bifrost probes, successful memory health, Arabold retrieval proof, Context Fabric committed-state capture/drift proof, current-schema Cursor agents, independent review, and scoped Git push evidence.
 
-Rollback restores the protected/source files and Bifrost runtime config/database backup from `E:\AgentCore-Backups\agentcore-control-plane\context-alignment-20260802-232010`, rerenders, performs one governed scheduled-task recycle, reruns validators and live probes, and records a dedicated rollback commit.
+Rollback restores the protected/source files from `E:\AgentCore-Backups\agentcore-control-plane\context-alignment-20260802-232010` and the immediately pre-remediation Bifrost runtime config/database backup from `E:\AgentCore-Backups\agentcore-control-plane\project-isolation-20260803-003135`, rerenders, performs one governed scheduled-task recycle, reruns validators and live probes, and records a dedicated rollback commit.

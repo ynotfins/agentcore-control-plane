@@ -96,7 +96,7 @@ No other root or docs file may silently override this chain. If a document confl
 | `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md` | Neutral semantic-memory exception and portable Context Engine boundary |
 | `docs/adr/ADR-2026-08-02-agentcore-bifrost-context-alignment.md` | AgentCore/Bifrost/Context Engine/Recall/Context Fabric/Arabold responsibility model and benchmark-gated future extensions |
 | `docs/superpowers/specs/2026-08-02-agentcore-bifrost-context-alignment-design.md` | Approved design details subordinate to BLUEPRINT/ADR |
-| `SERENA.md` | Current Serena project configuration, Bifrost/project-router wiring, IDE usage, and recovery runbook |
+| `SERENA.md` | Current Serena project configuration, dormant shared-gateway disposition, safe host-local usage, and recovery boundary |
 | `docs/bifrost/*.md` | Classification, profiles, Tentra local mode, Depwire reconciliation, migration/rollback |
 | `SECURITY.md` | Secret and security policy |
 | `AGENTS.md` | Source-controlled agent operating contract |

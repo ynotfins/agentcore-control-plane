@@ -31,18 +31,12 @@
       "purpose": "Full AgentCore coding and planning surface for IDE builders.",
       "allowed_server_ids": [
         "arabold-docs",
-        "serena",
         "sequential-thinking",
         "cursor-agent-mcp",
-        "context-fabric",
         "mcp-debugger",
         "artiforge",
-        "depwire",
-        "tentra",
         "playwright",
-        "filesystem",
         "agentcore-memory",
-        "agentcore-project-router",
         "skills-hub"
       ],
       "default_tools_policy": "allow_permitted",
@@ -55,13 +49,8 @@
       "purpose": "Read-focused review surface; deny debugger attach and admin write tools.",
       "allowed_server_ids": [
         "arabold-docs",
-        "serena",
         "sequential-thinking",
-        "context-fabric",
-        "depwire",
-        "filesystem",
-        "agentcore-memory",
-        "agentcore-project-router"
+        "agentcore-memory"
       ],
       "default_tools_policy": "profile_override",
       "notes": [
@@ -74,8 +63,7 @@
       "purpose": "Health and status checks against AgentCore memory/database contracts without credential exposure.",
       "allowed_server_ids": [
         "agentcore-memory",
-        "arabold-docs",
-        "agentcore-project-router"
+        "arabold-docs"
       ],
       "default_tools_policy": "deny_by_default",
       "notes": [
@@ -87,8 +75,7 @@
       "purpose": "Documentation lookup and durable note retrieval.",
       "allowed_server_ids": [
         "arabold-docs",
-        "sequential-thinking",
-        "agentcore-project-router"
+        "sequential-thinking"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -117,7 +104,6 @@
         "arabold-docs",
         "sequential-thinking",
         "agentcore-memory",
-        "agentcore-project-router",
         "skills-hub"
       ],
       "default_tools_policy": "deny_by_default",
@@ -199,10 +185,7 @@
         "*"
       ],
       "denied_tools": [],
-      "capability_profiles": [
-        "builder",
-        "reviewer"
-      ],
+      "capability_profiles": [],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -216,9 +199,9 @@
         ]
       },
       "rollback_route": "Restore serena.exe direct launch args from git history; or disable serena client in Bifrost.",
-      "enabled": true,
+      "enabled": false,
       "bifrost_client_name": "serena",
-      "status": "active",
+      "status": "dormant_project_scoped",
       "notes": [
         "Phase 2 (2026-07-24): launched via ops/bifrost/wrappers/serena-prewarm.js to answer Bifrost initialize/tools/list/ping immediately while Serena finishes MCP lifetime setup (READY_SIGNAL).",
         "Prewarm spawns serena.exe start-mcp-server --transport stdio --context ide for the active allowlisted control-plane project.",
@@ -350,10 +333,7 @@
         "cf_query"
       ],
       "denied_tools": [],
-      "capability_profiles": [
-        "builder",
-        "reviewer"
-      ],
+      "capability_profiles": [],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -367,9 +347,9 @@
         ]
       },
       "rollback_route": "Disable context_fabric wrapper; do not initialize Context Fabric under F:\\AgentCore\\agentmemory.",
-      "enabled": true,
+      "enabled": false,
       "bifrost_client_name": "context_fabric",
-      "status": "active",
+      "status": "dormant_project_scoped",
       "notes": [
         "Project-scoped only via router; project_activate reconnects this upstream after atomically changing the active project; reject Swarm and agentmemory roots.",
         "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* → unprefixed)."
@@ -494,11 +474,7 @@
         "*"
       ],
       "denied_tools": [],
-      "capability_profiles": [
-        "builder",
-        "reviewer",
-        "operator"
-      ],
+      "capability_profiles": [],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -512,9 +488,9 @@
         ]
       },
       "rollback_route": "Disable depwire wrapper; connect_repo only against verified local roots.",
-      "enabled": true,
+      "enabled": false,
       "bifrost_client_name": "depwire",
-      "status": "active",
+      "status": "dormant_project_scoped",
       "notes": [
         "Direct depwire-cli MCP. connect_repo with verified local path before graph queries.",
         "Telemetry remains enabled; do not set DEPWIRE_NO_TELEMETRY."
@@ -594,9 +570,7 @@
         "*"
       ],
       "denied_tools": [],
-      "capability_profiles": [
-        "builder"
-      ],
+      "capability_profiles": [],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -610,9 +584,9 @@
         ]
       },
       "rollback_route": "Disable tentra wrapper; data remains at F:\\AgentCore\\runtime\\tentra\\data.",
-      "enabled": true,
+      "enabled": false,
       "bifrost_client_name": "tentra",
-      "status": "active",
+      "status": "dormant_project_scoped",
       "notes": [
         "Local mode only. Do not run tentra-mcp init or init --hook.",
         "Data path expected under F:\\AgentCore\\runtime\\tentra\\data via TENTRA_DATA_DIR."
@@ -718,13 +692,13 @@
       "purpose": "Project-scoped filesystem MCP limited to registered worktree roots.",
       "owner": "agentcore",
       "pinned_version": "router",
-      "connection_type": "stdio",
+      "connection_type": "router",
       "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
       "arguments": [
         "-y",
-        "@modelcontextprotocol/server-filesystem@2026.7.10",
-        "D:\\github"
+        "@modelcontextprotocol/server-filesystem@2026.7.10"
       ],
+      "wrapper_script": "scripts/project_router/wrappers/filesystem.cmd",
       "env_var_names": [],
       "timeout_seconds": 120,
       "health_check_type": "mcp_ping",
@@ -747,10 +721,7 @@
         "list_allowed_directories"
       ],
       "denied_tools": [],
-      "capability_profiles": [
-        "builder",
-        "reviewer"
-      ],
+      "capability_profiles": [],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -764,11 +735,11 @@
         ]
       },
       "rollback_route": "Disable filesystem wrapper; never restore home-directory-wide filesystem roots in gateway mode.",
-      "enabled": true,
+      "enabled": false,
       "bifrost_client_name": "filesystem",
-      "status": "active",
+      "status": "dormant_project_scoped",
       "notes": [
-        "Bounded to D:\\github only (no whole-drive roots).",
+        "Dormant until a per-session project identity can be injected; native IDE filesystem access remains project-local.",
         "Phase 7: permitted_tools named inventory from live tools/list (filesystem-* → unprefixed)."
       ]
     },
@@ -1086,12 +1057,7 @@
       ],
       "denied_tools": [],
       "capability_profiles": [
-        "builder",
-        "reviewer",
-        "database-validator",
-        "docs-knowledge",
-        "operator",
-        "chatgpt"
+        "operator"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -1111,7 +1077,8 @@
       "status": "active",
       "notes": [
         "State file: F:\\AgentCore\\runtime\\bifrost\\state\\active-project.json",
-        "Allowed roots scanned from D:\\github git repos with Swarm path rejection."
+        "Allowed roots scanned from D:\\github git repos with Swarm path rejection.",
+        "Global project mutation is operator-only. Shared IDE profiles must use project-explicit tools and may not depend on this machine-global state."
       ]
     },
     "skills-hub": {

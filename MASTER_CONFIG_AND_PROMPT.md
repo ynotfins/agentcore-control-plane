@@ -67,7 +67,7 @@ Supported AgentCore / enrolled non-Swarm IDE
   -> approved upstream MCP servers from contracts/bifrost-upstream-mcp-registry.json
 ```
 
-Never paste the full upstream registry into an IDE. Never add a second AgentCore MCP front door. Project-specific behavior is selected through `agentcore-project-router`, not duplicate gateway entries.
+Never paste the full upstream registry into an IDE. Never add a second AgentCore MCP front door. Shared gateway tools must be global/read-only or carry explicit project/session identity. Implicit project-bound upstreams remain dormant; native IDE tools and explicit-cwd local CLIs provide project-local execution.
 
 ### Responsibility model and separate transport planes
 
@@ -104,7 +104,7 @@ If a client cannot expand `${env:…}` (observed: MiniMax Code daemon → 401), 
 AgentCore-controlled IDE agents work **only** on:
 
 1. AgentCore repositories and worktrees under AgentCore authority, and
-2. explicitly enrolled non-Swarm projects registered through `agentcore-project-router`.
+2. explicitly enrolled non-Swarm projects whose canonical memory calls carry the correct project identity.
 
 **Correct boundary:**
 
@@ -144,7 +144,7 @@ The canonical AgentCore memory identity is `agentcore-memory` (Bifrost client na
 9. `build_handoff`
 10. `docs_search`
 
-Project-router surface (four tools): `project_list`, `project_activate`, `project_status`, `project_clear`.
+Project-router surface (four tools) is operator-only maintenance: `project_list`, `project_activate`, `project_status`, `project_clear`. Normal IDE profiles do not receive machine-global project mutation.
 
 No SQL, DDL, database-admin, backup-admin, or Bifrost-admin tools are exposed to normal agents. Normal agents have no direct database access; never put `AGENT_CORE_PG*` credentials in IDE configs. `Obsidian Vault` is preserved as an application and vault outside the default MCP surface; the default gateway baseline exposes zero Obsidian tools.
 
@@ -153,7 +153,7 @@ AgentCore durable memory is **effectively unbounded** by model-token limits. Mod
 Normal lifecycle at every new chat (AgentCore / enrolled non-Swarm projects only):
 
 1. Confirm the selected project is AgentCore or explicitly enrolled non-Swarm. If Swarm-owned, execute the HARD STOP above.
-2. Activate the project/worktree via `agentcore-project-router`.
+2. Resolve the project/worktree through the IDE host and pass its stable project identity to AgentCore memory calls; do not depend on machine-global router state.
 3. Read the generated project `@...\ .agentcore\STATE.md` (full absolute `@` path).
 4. `session_open` with a stable `session_key` (reuse for the same task; new key for a new task under the same project).
 5. `startup_context` with the selected model context profile.
@@ -163,9 +163,9 @@ Normal lifecycle at every new chat (AgentCore / enrolled non-Swarm projects only
 
 For architecture-sensitive, dependency-sensitive, or Milestone work:
 
-1. Run Context Fabric `cf_drift` and a bounded `cf_query` after project activation. Treat uncommitted changes as drift; do not capture them as accepted truth.
+1. Run the repository-local Context Fabric drift/query CLI after resolving the exact project. Treat uncommitted changes as drift; do not capture them as accepted truth.
 2. Resolve external behavior from the exact version in Arabold Docs. If the required official version is absent, index/refresh it or stop and report the documentation gap.
-3. After the accepted source commit, run `cf_capture`, rerun `cf_drift`, and record the decision/evidence through governed AgentCore memory. Context Fabric never overrides the authority chain or PG18.
+3. After the accepted source commit, run the repository-local Context Fabric capture/drift path and record the decision/evidence through governed AgentCore memory. Context Fabric never overrides the authority chain or PG18.
 
 Before asking the operator to repeat project history, query `agentcore-memory`. Never directly edit `GLOBAL_STATE.md`, project `STATE.md`, `DECISIONS.md`, or `CONTEXT_INDEX.md` — these are generated projections; PostgreSQL is canonical.
 
@@ -258,7 +258,7 @@ After any change:
 - Validate JSON/TOML syntax.
 - Restart/reload the IDE so environment references are visible.
 - Confirm the IDE shows `agentcore-gateway` connected/ready.
-- Confirm the ten-tool `agentcore-memory` surface and four project-router tools appear through the gateway.
+- Confirm the ten-tool `agentcore-memory` surface appears through normal IDE profiles; confirm four project-router tools appear only for the operator profile.
 - Confirm Swarm, raw database, whole-drive filesystem, and Bifrost admin tools are absent.
 
 ---
@@ -361,13 +361,13 @@ Step 7 — Validate syntax and discovery
 - Validate JSON/TOML syntax of the live config.
 - Confirm the IDE lists agentcore-gateway as connected/ready.
 - Confirm tools/list through the gateway includes exactly ten agentcore_memory-* tools: memory_status, startup_context, retrieve_context, append_event, propose_fact, expand_source, session_open, session_close, build_handoff, docs_search.
-- Confirm exactly four agentcore_project_router-* tools: project_list, project_activate, project_status, project_clear.
+- For ordinary IDE profiles, confirm zero agentcore_project_router-* tools. The operator maintenance profile alone may expose exactly four: project_list, project_activate, project_status, project_clear.
 - Confirm no Swarm, raw SQL/database, whole-drive filesystem, or Bifrost admin tools are exposed.
 
 Step 8 — Native memory lifecycle validation (do not skip)
 Use only an AgentCore / enrolled non-Swarm project. If the selected path is Swarm-owned, stop with swarm_project_refused.
-1. Activate the current project via agentcore_project_router-project_activate (e.g., agentcore-control-plane at @D:\github\agentcore-control-plane).
-2. session_open with a stable session_key that includes your IDE id and today's date.
+1. Resolve the current project from the IDE/workflow's exact workspace root; do not mutate machine-global project-router state from an ordinary IDE profile.
+2. session_open with the explicit project identity and a stable session_key that includes your IDE id and today's date.
 3. startup_context with the selected model context profile (use standard-context if your model is unknown; never lower the IDE's configured hard context window).
 4. append_event documenting this enrollment/validation run with a deterministic idempotency key.
 5. Repeat the same append_event and confirm idempotent_replay=true.
@@ -376,7 +376,7 @@ Use only an AgentCore / enrolled non-Swarm project. If the selected path is Swar
 8. build_handoff and verify projection revisions are present.
 9. session_close.
 10. Resume: session_open with the same session_key and confirm the same session_id is returned with prior events accessible.
-11. Project isolation: activate a different registered AgentCore / enrolled non-Swarm project, retrieve_context, and prove no cross-project leak.
+11. Project isolation: open a separate session with a different explicit AgentCore / enrolled non-Swarm project identity, retrieve_context, and prove no cross-project leak without changing shared router state.
 12. Re-confirm exactly ten agentcore-memory tools.
 All steps must pass before you mark the IDE live_validated.
 

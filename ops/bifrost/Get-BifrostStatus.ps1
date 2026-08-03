@@ -11,7 +11,11 @@
 param(
   [string]$GatewayUrl = 'http://127.0.0.1:8080',
   [string]$TaskPath = '\AgentCore\',
-  [string]$TaskName = 'AgentCore-Bifrost-Gateway'
+  [string]$TaskName = 'AgentCore-Bifrost-Gateway',
+  [string]$VirtualKeyEnvName = 'BIFROST_MCP_VIRTUAL_KEY',
+  [int]$ExpectedRouterTools = 0,
+  [int]$ExpectedMemoryTools = 10,
+  [int]$ExpectedSkillsHubMinimum = 3
 )
 
 $ErrorActionPreference = 'Stop'
@@ -40,11 +44,11 @@ try {
   Write-Check 'http_health' $false $_.Exception.Message
 }
 
-# Tool counts via tools/list (requires BIFROST_MCP_VIRTUAL_KEY in process/User env)
-$vk = [Environment]::GetEnvironmentVariable('BIFROST_MCP_VIRTUAL_KEY', 'Process')
-if (-not $vk) { $vk = [Environment]::GetEnvironmentVariable('BIFROST_MCP_VIRTUAL_KEY', 'User') }
+# Tool counts via tools/list (requires the selected virtual-key env in process/User scope)
+$vk = [Environment]::GetEnvironmentVariable($VirtualKeyEnvName, 'Process')
+if (-not $vk) { $vk = [Environment]::GetEnvironmentVariable($VirtualKeyEnvName, 'User') }
 if (-not $vk) {
-  Write-Check 'tools_list' $false 'BIFROST_MCP_VIRTUAL_KEY missing from process/User env'
+  Write-Check 'tools_list' $false "$VirtualKeyEnvName missing from process/User env"
 } else {
   try {
     $headers = @{
@@ -76,9 +80,9 @@ if (-not $vk) {
     $mem = @($tools | Where-Object { $_.name -like 'agentcore_memory-*' }).Count
     $router = @($tools | Where-Object { $_.name -like 'agentcore_project_router-*' }).Count
     $skills = @($tools | Where-Object { $_.name -like 'skills_hub-*' }).Count
-    Write-Check 'tools_memory_10' ($mem -eq 10) "agentcore_memory=$mem"
-    Write-Check 'tools_router_4' ($router -eq 4) "agentcore_project_router=$router"
-    Write-Check 'tools_skills_hub_3' ($skills -ge 3) "skills_hub=$skills (expect >=3)"
+    Write-Check 'tools_memory_expected' ($mem -eq $ExpectedMemoryTools) "agentcore_memory=$mem expected=$ExpectedMemoryTools profile_env=$VirtualKeyEnvName"
+    Write-Check 'tools_router_expected' ($router -eq $ExpectedRouterTools) "agentcore_project_router=$router expected=$ExpectedRouterTools profile_env=$VirtualKeyEnvName"
+    Write-Check 'tools_skills_hub_minimum' ($skills -ge $ExpectedSkillsHubMinimum) "skills_hub=$skills expected_min=$ExpectedSkillsHubMinimum profile_env=$VirtualKeyEnvName"
     Write-Host ("tool_total={0}" -f $tools.Count)
   } catch {
     Write-Check 'tools_list' $false $_.Exception.Message

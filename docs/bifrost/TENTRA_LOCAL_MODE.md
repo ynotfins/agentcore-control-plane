@@ -6,7 +6,7 @@
 
 ## Decision
 
-Tentra runs in **local mode only** for AgentCore non-Swarm work. Data stays on the AgentRuntime drive:
+Tentra runs in **local explicit-project mode only** for AgentCore non-Swarm work. Its shared Bifrost upstream is dormant. Data stays on the AgentCore runtime drive:
 
 ```text
 F:\AgentCore\runtime\tentra\data
@@ -25,9 +25,9 @@ IDE -> agentcore-gateway -> tentra (Bifrost)
 
 1. Always use `--local`.
 2. Always set data under `F:\AgentCore\runtime\tentra\data` (not C: user profile and never under neutral Recall or Swarm-owned roots).
-3. Activate a registered project via `agentcore-project-router` before Tentra project-scoped use.
-4. Reject Swarm / `F:\AgentCore\agentmemory` paths (enforced by project router exclusion list).
-5. Rollback: disable Tentra in Bifrost client_configs; leave data directory intact unless operator requests wipe.
+3. Launch Tentra only from a governed workflow/host with an explicit project cwd/root.
+4. Reject Swarm / `F:\AgentCore\agentmemory` paths before launch.
+5. Keep Tentra disabled in Bifrost client configs until per-session routing is accepted; leave data intact unless the operator requests removal.
 
 ## Ops
 

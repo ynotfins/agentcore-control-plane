@@ -22,15 +22,33 @@ def load_module(name: str, path: Path):
 
 
 class ProjectRouterRoutingTests(unittest.TestCase):
-    def test_context_fabric_is_rendered_through_project_router_wrapper(self) -> None:
+    def test_shared_gateway_keeps_implicit_project_servers_dormant(self) -> None:
         registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
-        context_fabric = registry["servers"]["context-fabric"]
+        implicit_project_servers = {
+            "serena",
+            "depwire",
+            "tentra",
+            "filesystem",
+            "context-fabric",
+        }
 
-        self.assertEqual(context_fabric["connection_type"], "router")
-        self.assertEqual(
-            context_fabric["wrapper_script"],
-            "scripts/project_router/wrappers/context-fabric.cmd",
-        )
+        for server_id in implicit_project_servers:
+            server = registry["servers"][server_id]
+            self.assertFalse(server["enabled"], server_id)
+            self.assertEqual(server["capability_profiles"], [], server_id)
+
+    def test_only_operator_profile_can_mutate_global_project_router(self) -> None:
+        registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+        profiles = registry["capability_profiles"]
+
+        self.assertIn("agentcore-project-router", profiles["operator"]["allowed_server_ids"])
+        for profile_id, profile in profiles.items():
+            if profile_id != "operator":
+                self.assertNotIn(
+                    "agentcore-project-router",
+                    profile["allowed_server_ids"],
+                    profile_id,
+                )
 
     def test_child_launcher_defaults_to_current_agentcore_runtime(self) -> None:
         launcher = load_module("agentcore_child_launcher_test", HERE / "child_launcher.py")
@@ -74,10 +92,10 @@ class ProjectRouterRoutingTests(unittest.TestCase):
         save_state.assert_called_once()
         reconnect_call.assert_called_once_with()
 
-    def test_router_client_inventory_comes_from_enabled_router_contracts(self) -> None:
+    def test_router_client_inventory_excludes_dormant_project_servers(self) -> None:
         server = load_module("agentcore_project_router_inventory_test", HERE / "server.py")
 
-        self.assertEqual(server._router_client_names(), ["context_fabric"])
+        self.assertEqual(server._router_client_names(), [])
 
     def test_failed_state_write_preserves_previous_active_project(self) -> None:
         server = load_module("agentcore_project_router_atomic_test", HERE / "server.py")
@@ -95,8 +113,13 @@ class ProjectRouterRoutingTests(unittest.TestCase):
 
             self.assertEqual(json.loads(state_path.read_text(encoding="utf-8")), original)
 
-    def test_project_clear_reconnects_router_clients_to_fail_closed_state(self) -> None:
+    def test_project_clear_fails_and_restores_state_when_reconnect_fails(self) -> None:
         server = load_module("agentcore_project_router_clear_test", HERE / "server.py")
+        previous = {
+            "id": "previous",
+            "path": r"D:\github\previous",
+            "name": "previous",
+        }
         reconnect = {
             "ok": False,
             "status": "unavailable",
@@ -106,15 +129,56 @@ class ProjectRouterRoutingTests(unittest.TestCase):
 
         with (
             patch.object(server, "scan_registered_projects", return_value=[]),
+            patch.object(server, "load_state", return_value=previous),
             patch.object(server, "save_state") as save_state,
-            patch.object(server, "reconnect_router_clients", return_value=reconnect) as reconnect_call,
+            patch.object(
+                server,
+                "reconnect_router_clients",
+                side_effect=[reconnect, {"ok": True, "status": "reconnected", "clients": []}],
+            ) as reconnect_call,
         ):
             result = server.call_tool("project_clear", {})
 
-        self.assertTrue(result["ok"])
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["active"], previous)
         self.assertEqual(result["project_scoped_reconnect"], reconnect)
-        save_state.assert_called_once_with(None)
-        reconnect_call.assert_called_once_with()
+        self.assertEqual(save_state.call_args_list[0].args, (None,))
+        self.assertEqual(save_state.call_args_list[1].args, (previous,))
+        self.assertEqual(reconnect_call.call_count, 2)
+
+    def test_project_activate_fails_and_restores_state_when_reconnect_fails(self) -> None:
+        server = load_module("agentcore_project_router_rollback_test", HERE / "server.py")
+        previous = {"id": "previous", "path": r"D:\github\previous", "name": "previous"}
+        project = {"id": "next", "path": str(REPO_ROOT), "name": "next"}
+        failed = {"ok": False, "status": "unavailable", "clients": []}
+        restored = {"ok": True, "status": "reconnected", "clients": []}
+
+        with (
+            patch.object(server, "scan_registered_projects", return_value=[project]),
+            patch.object(server, "load_state", return_value=previous),
+            patch.object(server, "save_state") as save_state,
+            patch.object(server, "reconnect_router_clients", side_effect=[failed, restored]),
+        ):
+            result = server.call_tool("project_activate", {"id": "next"})
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["active"], previous)
+        self.assertEqual(result["project_scoped_reconnect"], failed)
+        self.assertEqual(result["rollback_reconnect"], restored)
+        self.assertEqual(save_state.call_args_list[1].args, (previous,))
+
+    def test_bifrost_admin_base_must_be_loopback(self) -> None:
+        server = load_module("agentcore_project_router_loopback_test", HERE / "server.py")
+
+        with patch.object(server, "BIFROST_BASE", "https://example.com:8080"):
+            with self.assertRaisesRegex(RuntimeError, "loopback"):
+                server._validated_bifrost_base()
+
+    def test_child_proxy_does_not_rewrite_registry_per_byte(self) -> None:
+        source = (HERE / "child_launcher.py").read_text(encoding="utf-8")
+
+        self.assertNotIn("read(1)", source)
+        self.assertNotIn("touch_activity(server, project_path)", source)
 
 
 if __name__ == "__main__":

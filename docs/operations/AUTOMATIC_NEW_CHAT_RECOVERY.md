@@ -1,6 +1,6 @@
 # Automatic Cursor New-Chat Recovery
 
-**Status:** Stage A installed (sessionStart + beforeSubmitPrompt only) — **HARD GATE PENDING:** operator must type only `Continue.` in a new chat before Stage B (`preToolUse`) may register  
+**Status:** Stage B accepted — seven lifecycle hooks registered; `Continue.` gate and 26/26 integrity suite passed on 2026-07-24
 **Authority:** `PROJECT_ANCHOR.md` · `BLUEPRINT.md` · `docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`
 
 ## Goal
@@ -24,14 +24,17 @@ Cursor hook (project .cursor/hooks.json)
 `.cmd` wrappers. Stage A registers the PowerShell wrapper so stdin is read via
 `[Console]::In.ReadToEnd()` and forwarded to Python.
 
-## Hook events (Stage A)
+## Hook events (Stage B)
 
 | Event | Purpose | Fail mode |
 | --- | --- | --- |
 | `sessionStart` | Activate project, resume session_key, inject bounded `additional_context` | Fail open (env flags only) |
 | `beforeSubmitPrompt` | Redact secrets, append operator prompt with idempotency key | Allow after DB or local spool acceptance |
-
-**Not registered in Stage A:** `preToolUse` (offline-tested only; Stage B after acceptance).
+| `preToolUse` | Enforce deterministic pre-tool boundaries | Fail open on internal hook error; explicit policy denials remain authoritative |
+| `beforeShellExecution` | Block known destructive or secret-printing shell patterns | Deterministic deny for matched policy; otherwise allow |
+| `afterFileEdit` | Record bounded file-change evidence | Fail open on hook error |
+| `postToolUse` | Record bounded tool outcome evidence | Fail open on hook error |
+| `stop` | Persist the final-review envelope without resubmitting a prompt | Returns `{}`; never emits `followup_message` |
 
 ## Identities
 
@@ -60,7 +63,7 @@ When `agentcore-gateway` is temporarily unavailable:
 - Hook diagnostics log to `F:\AgentCore\runtime\clients\cursor\logs\hooks\`
 - Hooks never fabricate user-role messages or call continual-learning
 
-## Safe registration process
+## Safe registration or repair process
 
 1. Write `.cursor/hooks.json.new`
 2. Schema-check JSON
@@ -68,7 +71,7 @@ When `agentcore-gateway` is temporarily unavailable:
 4. Run `python scripts/agentcore_cursor/test_hook_protocol.py --iterations 100`
 5. Backup prior hooks.json to `E:\AgentCore-Backups\`
 6. Atomically rename `hooks.json.new` → `hooks.json`
-7. Restart Cursor and run the final `Continue.` hard gate (type only `Continue.` in a new chat; Stage B blocked until this passes)
+7. Restart Cursor and rerun the `Continue.` recovery proof only when hook registration or lifecycle behavior changed
 
 ## Rollback
 
@@ -81,9 +84,9 @@ Copy-Item E:\AgentCore-Backups\cursor-hook-lockout-20260720-223737\hooks.json.bl
 
 To disable hooks entirely: move `.cursor/hooks.json` to `E:\AgentCore-Backups\cursor-hook-lockout-<timestamp>\hooks.json.disabled`.
 
-## Acceptance — final `Continue.` hard gate
+## Acceptance — completed `Continue.` hard gate
 
-**Hard gate (still pending until operator completes it):** Stage A is installed, but operator new-chat acceptance is the final gate. Do not register `preToolUse` (Stage B) and do not claim automatic recovery “done” until this passes.
+The Stage B gate completed on 2026-07-24. All 26 integrity tests passed and the seven-hook registration in `.cursor/hooks.json` is the live project baseline.
 
 Operator opens a **new** Cursor Agent chat in this repo and types **only**:
 
@@ -91,10 +94,11 @@ Operator opens a **new** Cursor Agent chat in this repo and types **only**:
 Continue.
 ```
 
-Pass criteria: the agent reports project/worktree, resumed `session_key`, current task, blocker, and next action with AgentCore source IDs — without a pasted recap prompt. Fail / skip leaves the hard gate pending.
+Pass criteria for any future rerun: the agent reports project/worktree, resumed `session_key`, current task, blocker, and next action with AgentCore source IDs — without a pasted recap prompt.
 
 ## Related audits
 
 - `audits/CURSOR_HOOK_LOCKOUT_2026-07-20.md`
 - `audits/CURSOR_NEW_CHAT_RECOVERY_2026-07-20.md`
 - `audits/CURSOR_HOOK_SKILL_RULE_INVENTORY_2026-07-20.md`
+- `audits/cursor-context/CURSOR_STAGE_B_INTEGRITY_HARNESS_ACCEPTANCE_2026-07-24.md`

@@ -548,6 +548,9 @@ Context Fabric is adopted behind AgentCore as the project-local committed-state 
 - `cf_query` may create a bounded task briefing but cannot override the authority chain;
 - accepted ADRs and PG18 evidence remain authoritative over `cf_log_decision` convenience projections;
 - it is never initialized against a Swarm-owned or runtime-memory root through AgentCore.
+- it runs through the repository-local Git hook/CLI, not the shared Bifrost STDIO surface, until a trustworthy per-session project identity can be injected on every call.
+
+Shared Bifrost project-tool rule: any upstream whose tool schema lacks explicit project/worktree identity stays dormant in normal gateway profiles. Native IDE filesystem/source tools and explicit-cwd local CLIs remain the project-local execution path. A machine-global `active-project.json` is operator maintenance state, never a concurrent-session security boundary.
 
 ### Milestones versus steps
 
@@ -919,7 +922,7 @@ At the start of each Milestone:
 4. Run Context Fabric capture and drift check.
 5. Confirm machine facts and dependent services.
 6. Resolve exact dependency versions through Arabold Docs.
-7. Use Serena, Depwire, and Tentra to verify structural assumptions.
+7. Use project-local/native semantic tools and explicit-cwd Depwire/Tentra diagnostics where relevant; do not enable shared implicit-project upstreams.
 8. Refine only the current Milestone’s Macro and Micro steps.
 9. Record the entry evidence and rollback point.
 10. Begin implementation only after the entry gate passes.
@@ -928,7 +931,7 @@ At the end of each Milestone:
 
 1. Verify every exit criterion with evidence.
 2. Run tests, lint, type checks, security, secret, and dependency checks.
-3. Run Depwire verification and architecture/context drift checks.
+3. Run explicit-cwd Depwire verification and repo-local architecture/context drift checks.
 4. Regenerate project state and handoff.
 5. Audit and reduce active tools.
 6. Create the restore point.

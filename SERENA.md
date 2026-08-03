@@ -3,8 +3,8 @@
 **Authority:** `D:\github\agentcore-control-plane`
 **Scope:** AgentCore-managed developer tooling and the optional neutral dual-control-plane
 Cursor workspace for read-only collision/boundary audits only
-**Runtime:** Serena `1.5.4.dev0` through Bifrost `2.0.0-prerelease1`
-**Last verified:** 2026-07-31
+**Runtime:** Serena `1.5.4.dev0` catalogued; shared Bifrost upstream dormant pending explicit per-session project routing
+**Last verified:** 2026-08-02
 
 This document describes how Serena is configured, routed, isolated, validated,
 and used by supported IDEs. It is a developer-tooling contract. It does not
@@ -38,17 +38,17 @@ cache/memory. Serena does not own:
 - Bifrost policy or virtual keys;
 - Swarm runtime memory, databases, credentials, or processes.
 
-The AgentCore path is:
+The accepted concurrent-safe path is:
 
 ```text
 IDE
   -> one agentcore-gateway MCP entry
-  -> Bifrost at http://127.0.0.1:8080/mcp
-  -> agentcore-project-router selects one active project
-  -> Serena prewarm wrapper
-  -> one Serena child for the active allowlisted control plane
-  -> language servers and project-local .serena cache
+  -> Bifrost at http://127.0.0.1:8080/mcp for global/project-explicit tools
+IDE/host native project tools or explicit-cwd local diagnostics
+  -> language servers and project-local cache
 ```
+
+The prior shared Serena route used one machine-global `active-project.json` and cannot isolate simultaneous IDE sessions on different projects because Bifrost does not forward trusted caller/project identity to the shared STDIO process. Serena therefore remains dormant in normal gateway profiles. Do not re-enable it by profile alone.
 
 The memory path is separate:
 
@@ -114,7 +114,7 @@ The Swarm product repositories remain independent runtime projects under Swarm
 authority. Do not add Swarm product directories to the AgentCore global MCP
 baseline. Do not treat Swarm-owned paths as AgentCore-managed projects.
 
-## Bifrost and project switching
+## Dormant Bifrost route and project switching
 
 The source registry is:
 
@@ -131,7 +131,7 @@ The active project-router state (current Bifrost runtime root) is:
 Historical path `H:\AgentRuntime\bifrost\state\active-project.json` is not the
 final AgentCore home; remaining H: vacation is Milestone M9.
 
-The wrapper:
+The retained wrapper is rollback/future-router material. When explicitly tested by an operator it:
 
 1. starts Serena with a synthetic `initialize`, `tools/list`, and `ping` path
    so Bifrost can complete discovery quickly;
@@ -144,7 +144,7 @@ The wrapper:
    boundary-audit activation);
 6. never expands the allowlist to vendor roots or whole-drive paths.
 
-Project switching is not a shared semantic index. It is one active Serena child
+Project switching is not a concurrent-session security boundary. It is one active Serena child
 at a time, with separate language-server state and separate `.serena` caches.
 A combined Cursor workspace may show both control planes for read-only
 collision audits, but the active project and write boundary remain singular,
@@ -155,11 +155,10 @@ and normal AgentCore sessions must refuse Swarm-owned selection with
 
 Use this sequence for a nontrivial task:
 
-1. Activate the exact repository with
-   `agentcore_project_router-project_activate`.
-2. Resolve the project/worktree identity and read its authority files.
+1. Resolve the exact repository/worktree through the host and read its authority files.
+2. Use the IDE's native semantic/source tools or an explicit-cwd local Serena diagnostic only when the host owns that process.
 3. Complete AgentCore `session_open` and `startup_context` before tool work.
-4. Call Serena `initial_instructions` once for the new Serena process/session.
+4. If a host-local Serena process is explicitly available, call `initial_instructions` once for that process/session.
 5. Start with `get_symbols_overview` for the relevant source file.
 6. Use `find_symbol` to locate the precise symbol and, only when needed, read
    its body.
@@ -194,18 +193,14 @@ Use the tools by task class rather than loading every server on every turn:
 
 - **Sequential Thinking:** plan, critique, tradeoff, recovery, migration, and
   cross-system decisions.
-- **Serena:** symbols, references, language diagnostics, semantic refactors,
-  and project-scoped code understanding.
+- **Serena:** optional host-local symbols, references, diagnostics, and semantic refactors when an explicit project-owned process is available; not a shared gateway dependency.
 - **Arabold Docs:** exact current documentation and version-specific API/SDK
   behavior before external package or protocol work.
-- **Context Fabric:** project capture, drift, health, and decision checkpoints
-  at bootstrap and Milestone entry/exit.
-- **Depwire:** dependency context, impact analysis, safety simulation, and
-  post-change verification.
+- **Context Fabric:** repo-local capture, drift, health, and decision checkpoints at bootstrap and Milestone entry/exit.
+- **Depwire:** explicit-cwd local dependency context, impact analysis, safety simulation, and post-change verification.
 - **Artiforge:** high-leverage architecture scans and system-level hotspots;
   not routine single-file work.
-- **Tentra:** local architecture/code graph work only when the current
-  Milestone requires it.
+- **Tentra:** explicit-project local architecture/code graph work only when the current Milestone requires it.
 
 If a mandatory tool is unavailable, do not silently claim equivalent
 verification. Block high-risk structural edits and report the missing evidence.
@@ -216,8 +211,7 @@ All normal AgentCore / enrolled non-Swarm IDE clients use the same gateway contr
 
 `http://127.0.0.1:8080/mcp`
 
-They do not add a direct Serena entry. Serena is exposed through Bifrost under
-the active capability profile.
+They do not add a direct Serena entry. Shared Serena is not exposed through normal Bifrost profiles until a per-session project identity is part of the routing contract.
 
 | IDE/client | Gateway configuration | Serena usage |
 | --- | --- | --- |
@@ -282,7 +276,7 @@ The installer backs up the live file, derives content from
 the frontmatter and policy revision, and records a manifest. Fully restart
 Cursor after installation so the global rule is reloaded.
 
-### Bifrost or Serena disconnects
+### Serena diagnostics
 
 Run:
 
@@ -293,19 +287,17 @@ python D:\github\agentcore-control-plane\scripts\bifrost\validate_contracts.py
 
 Then verify:
 
-1. Bifrost `/health` is healthy.
-2. `tools/list` includes Serena through the gateway.
-3. A safe semantic query passes for AgentCore.
-4. Confirm Swarm-owned selection is refused for normal AgentCore continuity
-   (`swarm_project_refused`); read-only dual-workspace boundary-audit
-   activation is optional and must not persist Swarm work into AgentCore memory.
-5. Restore the intended AgentCore / enrolled non-Swarm active project.
-6. Check the latest Serena log for a clean startup and absence of
+1. Bifrost `/health` is healthy; normal gateway profiles must not list Serena.
+2. If Serena is explicitly launched by a governed project-local host, bind that
+   process directly to the exact repository root and run a safe semantic query.
+3. Reject Swarm-owned roots for normal AgentCore continuity; an optional
+   read-only boundary audit must not persist Swarm work into AgentCore memory.
+4. Check the project-local Serena log for a clean startup and absence of
    `KeyError: 'languages'`, fatal exceptions, and uncontrolled restart loops.
 
-If direct Serena works but Bifrost calls fail, investigate the Bifrost wrapper
-and project-router state. Do not increase timeouts indefinitely or silently
-replace Serena with grep.
+Do not use the machine-global project-router state as a concurrent-session
+boundary and do not re-enable the dormant shared Bifrost Serena client merely
+to satisfy a tool-discovery check.
 
 ## Validation and acceptance
 
@@ -330,16 +322,14 @@ Semantic acceptance requires:
 Native IDE acceptance additionally proves the IDE itself can:
 
 - see the gateway after restart;
-- activate only AgentCore / enrolled non-Swarm projects for normal work;
-- refuse Swarm-owned selection with `swarm_project_refused` (optional
-  read-only dual-workspace boundary audit must not open AgentCore memory
-  continuity);
-- use Serena without direct MCP entries;
+- keep machine-global project-router mutation absent from ordinary profiles;
+- refuse Swarm-owned selection in any governed project-local Serena launch;
+- use native semantic/source tooling by default and treat Serena as an optional
+  explicit-project local process, never a shared implicit-project dependency;
 - keep Git and writes scoped to the active AgentCore / enrolled non-Swarm
   repository;
 - preserve the AgentCore memory lifecycle on allowed projects only;
-- switch among allowed projects without cross-project semantic or memory
-  leakage.
+- switch among allowed projects without cross-project semantic or memory leakage.
 
 The current repair evidence is:
 
@@ -347,8 +337,9 @@ The current repair evidence is:
 
 ## Change-control rules
 
-- Do not add direct Serena MCP entries to IDE configuration.
-- Do not create a second global Serena process for unrelated projects.
+- Do not add a shared global Serena MCP entry to IDE configuration.
+- Do not create a machine-global Serena process for unrelated projects; any
+  accepted launch is project-owned and explicitly rooted.
 - Do not make the combined workspace a third authority.
 - Do not add Swarm runtime dependencies to AgentCore or AgentCore runtime
   dependencies to Swarm.

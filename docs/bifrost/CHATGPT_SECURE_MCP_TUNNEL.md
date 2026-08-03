@@ -6,7 +6,7 @@
 ## Architecture
 
 ```
-ChatGPT → Secure MCP Tunnel → compat proxy (18081) → Bifrost (8080) → agentcore_memory, router, arabold, skills_hub
+ChatGPT → Secure MCP Tunnel → compat proxy (18081) → Bifrost (8080) → agentcore_memory, arabold, skills_hub
 ```
 
 ## Components
@@ -32,10 +32,9 @@ ChatGPT → Secure MCP Tunnel → compat proxy (18081) → Bifrost (8080) → ag
 - **Environment Variable:** `BIFROST_MCP_VK_CHATGPT` is set in Windows User scope (operator confirmed 2026-07-25).
 - **Targeted Profile Scope:** Narrow read-focused surface:
   - `agentcore_memory`: memory_status, startup_context, retrieve_context, expand_source, docs_search, build_handoff, session_open, append_event, session_close
-  - `agentcore_project_router`: project_list, project_status, project_activate
   - `arabold_docs`: search_docs, fetch_url, list_libraries, find_version, get_job_info
   - `skills_hub`: search_skills, get_skill_detail
-- **Excluded:** project_clear, filesystem, shell, database admin, Bifrost admin, Firebase, Sheets, Swarm
+- **Excluded:** all machine-global project-router mutation, filesystem, shell, database admin, Bifrost admin, Firebase, Sheets, Swarm
 - **Status Notice:** Full source/runtime/DB/dashboard parity and narrow-profile enforcement remain subject to targeted independent verification remediation (`audits/bifrost/BIFROST_INDEPENDENT_VERIFICATION_REMEDIATION_2026-07-25.md` pending execution). Do not claim independent verification or narrow profile parity is complete until the remediation audit passes and is committed.
 
 ## Operator Runbook
