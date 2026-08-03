@@ -24,7 +24,7 @@ if str(SCRIPTS_ROOT) not in sys.path:
 
 from agentcore_project_boundary import ProjectBoundaryError, require_enrolled_path
 
-from .gateway import GatewayClient, read_user_env
+from .gateway import GatewayClient
 
 CLIENT_KEY = "cursor"
 DEFAULT_AGENT_KEY = "cursor-composer"
@@ -33,7 +33,6 @@ RUNTIME_DIRNAME = ".agentcore/runtime"
 BOOTSTRAP_JSON = "cursor-bootstrap.json"
 BOOTSTRAP_MD = "cursor-bootstrap.md"
 RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
-POINTER_REL = RUNTIME_ROOT / "clients" / "cursor" / "active_task.json"
 SECRET_PATTERNS = [
     re.compile(r"(?i)(api[_-]?key|token|password|secret|bearer)\s*[:=]\s*\S+"),
     re.compile(r"(?i)Authorization:\s*Bearer\s+\S+"),
@@ -183,172 +182,6 @@ def read_projections(root: Path) -> dict[str, str]:
     return out
 
 
-def load_pointer() -> dict[str, Any]:
-    path = POINTER_REL
-    if not path.is_file():
-        return {}
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {}
-
-
-def save_pointer(payload: dict[str, Any]) -> None:
-    path = POINTER_REL
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-
-
-def query_continuity(
-    project_key: str, client_key: str, agent_key: str
-) -> list[dict[str, Any]]:
-    """Read continuity rows via direct SQL (trusted local operator path)."""
-    import psycopg
-    from psycopg.rows import dict_row
-
-    pw = read_user_env("AGENT_CORE_POSTGRES_PASSWORD")
-    if not pw:
-        return []
-    conn = psycopg.connect(
-        host="127.0.0.1",
-        port=55433,
-        dbname="agent_core",
-        user="postgres",
-        password=pw,
-        row_factory=dict_row,
-    )
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT client_key, agent_key, project_key, session_key,
-                       continuity_status,
-                       last_session_open::text AS last_session_open,
-                       last_append::text AS last_append,
-                       last_close::text AS last_close,
-                       last_handoff::text AS last_handoff,
-                       last_projection::text AS last_projection,
-                       projection_revision
-                FROM agentcore.v_client_memory_continuity
-                WHERE project_key = %s AND client_key = %s
-                ORDER BY last_session_open DESC NULLS LAST
-                """,
-                (project_key, client_key),
-            )
-            rows = list(cur.fetchall())
-            # Prefer exact agent match ordering
-            rows.sort(
-                key=lambda r: (
-                    0 if r.get("agent_key") == agent_key else 1,
-                    r.get("last_session_open") or "",
-                ),
-                reverse=False,
-            )
-            # Re-sort open ones first
-            rows.sort(
-                key=lambda r: (
-                    0 if not r.get("last_close") else 1,
-                    0 if r.get("agent_key") == agent_key else 1,
-                )
-            )
-            return rows
-    finally:
-        conn.close()
-
-
-def list_open_sessions(
-    project_key: str, client_key: str, agent_key: str
-) -> list[dict[str, Any]]:
-    import psycopg
-    from psycopg.rows import dict_row
-
-    pw = read_user_env("AGENT_CORE_POSTGRES_PASSWORD")
-    if not pw:
-        return []
-    conn = psycopg.connect(
-        host="127.0.0.1",
-        port=55433,
-        dbname="agent_core",
-        user="postgres",
-        password=pw,
-        row_factory=dict_row,
-    )
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT s.id::text AS session_id, s.session_key,
-                       s.started_at::text AS started_at, s.ended_at::text AS ended_at,
-                       a.agent_key, c.client_key, p.project_key
-                FROM agentcore.sessions s
-                JOIN agentcore.agents a ON a.id = s.agent_id
-                JOIN agentcore.ide_clients c ON c.id = s.client_id
-                JOIN agentcore.projects p ON p.id = s.project_id
-                WHERE p.project_key = %s
-                  AND c.client_key = %s
-                  AND a.agent_key = %s
-                  AND s.ended_at IS NULL
-                ORDER BY s.started_at DESC
-                """,
-                (project_key, client_key, agent_key),
-            )
-            return list(cur.fetchall())
-    finally:
-        conn.close()
-
-
-def select_session(
-    project_key: str,
-    client_key: str,
-    agent_key: str,
-    *,
-    force_new_task: bool = False,
-    task_slug: str | None = None,
-) -> tuple[str, str, list[SessionChoice]]:
-    """Return (session_key, selection_mode, ambiguity_choices)."""
-    if force_new_task:
-        slug = task_slug or uuid.uuid4().hex[:12]
-        return (
-            f"{project_key}:{client_key}:{agent_key}:task:{slug}",
-            "explicit_new_task",
-            [],
-        )
-
-    pointer = load_pointer()
-    ptr = pointer.get(project_key) if isinstance(pointer.get(project_key), dict) else None
-    if isinstance(ptr, dict):
-        sk = ptr.get("session_key")
-        if sk and ptr.get("agent_key") == agent_key:
-            open_rows = list_open_sessions(project_key, client_key, agent_key)
-            for row in open_rows:
-                if row.get("session_key") == sk:
-                    return str(sk), "resume_pointer", []
-            # pointer closed or missing → fall through
-
-    open_rows = list_open_sessions(project_key, client_key, agent_key)
-    if len(open_rows) == 1:
-        return str(open_rows[0]["session_key"]), "resume_single_open", []
-    if len(open_rows) > 1:
-        choices = [
-            SessionChoice(
-                session_key=str(r["session_key"]),
-                session_id=str(r.get("session_id") or ""),
-                continuity_status="open",
-                started_at=r.get("started_at"),
-                last_append=None,
-            )
-            for r in open_rows
-        ]
-        return "", "ambiguity", choices
-
-    # No open session for this agent — create durable task session key
-    return (
-        f"{project_key}:{client_key}:{agent_key}:task:active",
-        "create_active_task",
-        [],
-    )
-
-
 def compact_startup(
     startup: dict[str, Any],
     projections: dict[str, str],
@@ -496,13 +329,11 @@ def run_bootstrap(
         result.project_key = project_key
         result.status_flags["project_automatically_resolved"] = True
 
-        session_key, mode, choices = select_session(
-            project_key,
-            CLIENT_KEY,
-            agent_key,
-            force_new_task=force_new_task,
-            task_slug=task_slug,
-        )
+        identity_hint = task_slug or cursor_conversation_id or "default"
+        if force_new_task:
+            identity_hint = f"{identity_hint}:{uuid.uuid4().hex}"
+        session_key = f"{project_key}:{CLIENT_KEY}:{agent_key}:task:{identity_hint}"
+        mode, choices = ("new" if force_new_task else "resume_or_create"), []
         result.selection_mode = mode
         result.choices = choices
         if mode == "ambiguity":
@@ -542,32 +373,11 @@ def run_bootstrap(
         result.session_id = str(opened.get("session_id"))
         result.status_flags["session_automatically_resumed"] = mode.startswith("resume")
 
-        save_pointer(
-            {
-                **load_pointer(),
-                project_key: {
-                    "session_key": result.session_key,
-                    "session_id": result.session_id,
-                    "agent_key": agent_key,
-                    "client_key": CLIENT_KEY,
-                    "updated_at": _now(),
-                    "cursor_conversation_id": cursor_conversation_id,
-                },
-            }
-        )
-
-        continuity_rows = query_continuity(project_key, CLIENT_KEY, agent_key)
-        for row in continuity_rows:
-            if row.get("session_key") == result.session_key:
-                result.continuity_status = row.get("continuity_status")
-                break
-        if result.continuity_status is None and continuity_rows:
-            result.continuity_status = continuity_rows[0].get("continuity_status")
-
         startup = gw.call_tool(
             "agentcore_memory-startup_context",
             {
                 "project_key": project_key,
+                "project_root": str(root),
                 "session_id": result.session_id,
                 "context_profile": CONTEXT_PROFILE,
                 "recovery_mode": "current_state",
@@ -576,6 +386,7 @@ def run_bootstrap(
         )
         if not isinstance(startup, dict):
             startup = {"ok": False, "raw": startup}
+        result.continuity_status = str(startup.get("continuity_status") or "unknown")
 
         projections = read_projections(root)
         generated_at = _now()
@@ -637,6 +448,7 @@ def append_prompt(
     prompt: str,
     conversation_id: str | None,
     project_key: str,
+    project_root: str,
     agent_key: str = DEFAULT_AGENT_KEY,
 ) -> dict[str, Any]:
     digest = hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:24]
@@ -644,6 +456,8 @@ def append_prompt(
     conv = conversation_id or "no-conversation"
     idem = f"{project_key}:{CLIENT_KEY}:{agent_key}:{conv}:prompt:{digest}"
     payload = {
+        "project_key": project_key,
+        "project_root": project_root,
         "session_id": session_id,
         "event_kind": "prompt",
         "idempotency_key": idem,

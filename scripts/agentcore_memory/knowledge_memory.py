@@ -17,7 +17,7 @@ from importlib import metadata
 from pathlib import Path
 from typing import Any
 
-DEFAULT_COGNEE_ROOT = Path(r"H:\AgentRuntime\agentcore-memory\cognee")
+DEFAULT_COGNEE_ROOT = Path(r"F:\AgentCore\runtime\agentcore-memory\cognee")
 DEFAULT_COGNEE_VENV = DEFAULT_COGNEE_ROOT / ".venv"
 DEFAULT_COGNEE_VENV311 = DEFAULT_COGNEE_ROOT / ".venv311"
 DISABLE_FLAG = "COGNEE_DISABLED.flag"

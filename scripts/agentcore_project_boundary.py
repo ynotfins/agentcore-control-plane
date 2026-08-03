@@ -101,11 +101,7 @@ def validate_project_identity(args: dict[str, Any]) -> dict[str, Any]:
         if args.get(field)
     ]
     if not supplied_paths:
-        key = str(args.get("project_key") or "")
-        for project in contract["projects"]:
-            if key == project.get("project_key"):
-                return project
-        raise ProjectBoundaryError("project_not_enrolled")
+        raise ProjectBoundaryError("project_path_required")
 
     for path in supplied_paths:
         reason = _foreign_reason(path, contract)

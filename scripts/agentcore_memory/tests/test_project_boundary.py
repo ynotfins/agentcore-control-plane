@@ -59,11 +59,23 @@ def test_memory_rejects_alias_key_on_enrolled_path() -> None:
 
 def test_project_scoped_tools_require_enrolled_key() -> None:
     server.validate_tool_project_boundary(
-        "retrieve_context", {"project_key": "agentcore-control-plane"}
+        "retrieve_context",
+        {
+            "project_key": "agentcore-control-plane",
+            "project_root": r"D:\github\agentcore-control-plane",
+        },
     )
+    with pytest.raises(ValueError, match="project_path_required"):
+        server.validate_tool_project_boundary(
+            "retrieve_context", {"project_key": "agentcore-control-plane"}
+        )
     with pytest.raises(ValueError, match="project_not_enrolled"):
         server.validate_tool_project_boundary(
-            "retrieve_context", {"project_key": "renamed-project"}
+            "retrieve_context",
+            {
+                "project_key": "renamed-project",
+                "project_root": r"D:\github\renamed-project",
+            },
         )
     with pytest.raises(ValueError, match="project_scope_required"):
         server.validate_tool_project_boundary("docs_search", {"query": "test"})
@@ -89,4 +101,36 @@ def test_memory_rejects_mixed_enrolled_project_identity() -> None:
                 "project_root": r"D:\github\agentcore-control-plane",
                 "canonical_repo_path": r"D:\github\agentcore-context-engine",
             }
+        )
+
+
+def test_session_key_reuse_cannot_change_identity() -> None:
+    existing = {
+        "project_key": "agentcore-control-plane",
+        "client_key": "cursor",
+        "agent_key": "cursor-composer",
+    }
+    server._require_session_identity(
+        existing,
+        project_key="agentcore-control-plane",
+        client_key="cursor",
+        agent_key="cursor-composer",
+    )
+    with pytest.raises(ValueError, match="session_identity_mismatch"):
+        server._require_session_identity(
+            existing,
+            project_key="agentcore-context-engine",
+            client_key="cursor",
+            agent_key="cursor-composer",
+        )
+
+
+def test_opaque_reference_must_match_requested_project() -> None:
+    server._require_reference_project_identity(
+        {"agentcore-control-plane"}, "agentcore-control-plane"
+    )
+    with pytest.raises(ValueError, match="project_identity_mismatch"):
+        server._require_reference_project_identity(
+            {"agentcore-control-plane", "agentcore-context-engine"},
+            "agentcore-control-plane",
         )

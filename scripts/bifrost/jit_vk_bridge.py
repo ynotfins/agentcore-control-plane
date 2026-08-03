@@ -131,7 +131,7 @@ def resolve_openrouter_client_id() -> int:
             if client.get("name") == OPENROUTER_CLIENT_NAME:
                 return int(mc["mcp_client_id"])
     # Fallback: known live id from config_mcp_clients (openrouter=15). Prefer live DB when available.
-    db_path = Path(r"H:\AgentRuntime\bifrost\data\config.db")
+    db_path = Path(r"F:\AgentCore\runtime\bifrost\data\config.db")
     if db_path.is_file():
         import sqlite3
 

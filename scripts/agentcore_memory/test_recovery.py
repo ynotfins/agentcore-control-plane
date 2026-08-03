@@ -313,7 +313,15 @@ def test_existing_ten_tool_surface_gains_recovery_without_new_server() -> None:
         "page_size",
     } <= set(retrieve_properties)
     assert "project_key" in tools["expand_source"]["inputSchema"]["properties"]
-    assert "required" not in tools["expand_source"]["inputSchema"]
+    assert tools["expand_source"]["inputSchema"]["required"] == [
+        "project_key",
+        "project_root",
+    ]
+    for name, tool in tools.items():
+        if name == "memory_status":
+            continue
+        required = set(tool["inputSchema"].get("required", []))
+        assert {"project_key", "project_root"} <= required, name
 
 
 def test_session_open_self_enrolls_model_and_git_identity() -> None:

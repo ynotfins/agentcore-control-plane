@@ -11,10 +11,10 @@
  * Windows env var reads by node:os.homedir() (in priority order):
  *   USERPROFILE → HOMEDRIVE + HOMEPATH → os.tmpdir()
  *
- * Isolation root: H:\AgentRuntime\skills-hub\home
+ * Isolation root: F:\AgentCore\runtime\skills-hub\home
  * Scanned dirs:
- *   H:\AgentRuntime\skills-hub\home\.claude\skills
- *   H:\AgentRuntime\skills-hub\home\.cursor\skills
+ *   F:\AgentCore\runtime\skills-hub\home\.claude\skills
+ *   F:\AgentCore\runtime\skills-hub\home\.cursor\skills
  *
  * NEVER write skills into C:\Users\ynotf\.cursor\skills or
  * C:\Users\ynotf\.claude\skills from Bifrost context.

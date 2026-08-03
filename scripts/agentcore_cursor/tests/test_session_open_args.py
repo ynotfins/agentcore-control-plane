@@ -1,4 +1,4 @@
-"""Regression test: session_open requires 'project_key', not 'project_id'.
+"""Regression test: session_open requires exact project_key plus project_root.
 
 Root cause (2026-07-23): Phase 1 baseline audit called session_open with wrong
 argument names (project_id, client_id, agent_role).  The server raises
@@ -30,9 +30,9 @@ def _pw_available() -> bool:
 
 class TestSessionOpenArgNames(unittest.TestCase):
     @unittest.skipUnless(_pw_available(), "AGENT_CORE_POSTGRES_PASSWORD not set")
-    def test_wrong_arg_name_raises_key_error(self) -> None:
-        """Wrong arg 'project_id' raises KeyError before any DB call."""
-        with self.assertRaises(KeyError) as ctx:
+    def test_wrong_arg_name_is_rejected_before_db(self) -> None:
+        """Wrong/pathless identity is rejected before any DB call."""
+        with self.assertRaisesRegex(ValueError, "project_path_required"):
             server.session_open(
                 {
                     "project_id": "agentcore-control-plane",  # WRONG — should be project_key
@@ -40,7 +40,6 @@ class TestSessionOpenArgNames(unittest.TestCase):
                     "agent_role": "cursor-composer",          # WRONG — should be agent_key
                 }
             )
-        self.assertEqual(ctx.exception.args[0], "project_key")
 
     @unittest.skipUnless(_pw_available(), "AGENT_CORE_POSTGRES_PASSWORD not set")
     def test_correct_arg_name_succeeds(self) -> None:
@@ -57,6 +56,7 @@ class TestSessionOpenArgNames(unittest.TestCase):
         result = server.session_open(
             {
                 "project_key": "agentcore-control-plane",
+                "project_root": r"D:\github\agentcore-control-plane",
                 "client_key": "cursor-regression-test",
                 "agent_key": "phase1b-regression-tester",
                 "branch_name": "main",

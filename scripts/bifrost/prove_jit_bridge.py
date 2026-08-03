@@ -47,7 +47,7 @@ def tools_list() -> list[str]:
 
 
 def main() -> int:
-    con = sqlite3.connect(r"file:H:\AgentRuntime\bifrost\data\config.db?mode=ro", uri=True)
+    con = sqlite3.connect(r"file:F:\AgentCore\runtime\bifrost\data\config.db?mode=ro", uri=True)
     row = con.execute(
         "SELECT discovered_tools_json FROM config_mcp_clients WHERE name = ?",
         ("openrouter",),

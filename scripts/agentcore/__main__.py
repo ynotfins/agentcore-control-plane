@@ -386,7 +386,7 @@ def cmd_diagnose(as_json: bool) -> int:
     diag["memory_service"] = check_memory_service()
 
     # Log files (tail)
-    log_dir = Path(r"H:\AgentRuntime\service-logs")
+    log_dir = Path(r"F:\AgentCore\runtime\service-logs")
     log_tails: dict[str, list[str]] = {}
     if log_dir.exists():
         for lf in sorted(log_dir.glob("*.log"))[-3:]:

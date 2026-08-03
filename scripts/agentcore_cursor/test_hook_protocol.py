@@ -241,7 +241,12 @@ def test_idempotency() -> None:
         raise RuntimeError("idempotency run failed exit codes")
     d1 = _parse_stdout(out1)
     d2 = _parse_stdout(out2)
+    e1 = d1.get("agentcore_prompt_capture") or {}
+    e2 = d2.get("agentcore_prompt_capture") or {}
     assert d1.get("continue") is True and d2.get("continue") is True
+    assert e1.get("event_id"), "first prompt capture did not return durable event_id"
+    assert e2.get("event_id") == e1.get("event_id"), "duplicate prompt created a second event"
+    assert e2.get("idempotent_replay") is True, "duplicate prompt was not reported as replay"
 
 
 def test_no_orphan_processes() -> None:

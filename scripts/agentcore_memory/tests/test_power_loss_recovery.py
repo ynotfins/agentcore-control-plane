@@ -40,12 +40,6 @@ from typing import Any
 import pytest
 
 
-@pytest.fixture(autouse=True)
-def _use_dedicated_boundary_tests(monkeypatch):
-    from agentcore_memory import server
-
-    monkeypatch.setattr(server, "validate_project_boundary", lambda _args: None)
-
 # ---------------------------------------------------------------------------
 # Re-use shared helpers from test_resume_semantics
 # ---------------------------------------------------------------------------
@@ -114,16 +108,22 @@ def run_id() -> str:
 
 @pytest.fixture()
 def project_key(run_id: str) -> str:
-    return f"test-powerloss-{run_id}"
+    return "agentcore-control-plane"
 
 
 def _open(project_key: str, client: str, agent: str, sk: str) -> dict:
     s = _server()
+    project_root = (
+        "D:\\github\\agentcore-context-engine"
+        if project_key == "agentcore-context-engine"
+        else "D:\\github\\agentcore-control-plane"
+    )
     return s.session_open({
         "project_key": project_key, "project_name": project_key,
         "client_key": client, "agent_key": agent, "session_key": sk,
-        "canonical_repo_path": "D:\\github\\agentcore-control-plane",
-        "worktree_path": "D:\\github\\agentcore-control-plane",
+        "project_root": project_root,
+        "canonical_repo_path": project_root,
+        "worktree_path": project_root,
         "repo_key": "agentcore-control-plane", "branch_name": "main",
         "context_profile": "standard-context",
     })
@@ -385,7 +385,7 @@ def test_cross_ide_no_session_merge(project_key: str, run_id: str):
 @db_available
 def test_cross_project_isolation_structural(project_key: str, run_id: str):
     """Querying project A with a project_key returns only project A events."""
-    project_b = f"test-powerloss-{run_id}-b"
+    project_b = "agentcore-context-engine"
     sk_a = f"{project_key}:cursor-{run_id}:agent-{run_id}:isolation"
     sk_b = f"{project_b}:cursor-{run_id}:agent-{run_id}:isolation"
 

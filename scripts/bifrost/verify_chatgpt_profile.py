@@ -23,7 +23,7 @@ from typing import Any
 
 BIFROST_URL = "http://127.0.0.1:8080"
 PROXY_URL = "http://127.0.0.1:18081"
-RUNTIME_CONFIG = Path(r"H:\AgentRuntime\bifrost\config.json")
+RUNTIME_CONFIG = Path(r"F:\AgentCore\runtime\bifrost\config.json")
 
 EXPECTED_APPROVED_TOOLS = {
     # agentcore_memory (9)

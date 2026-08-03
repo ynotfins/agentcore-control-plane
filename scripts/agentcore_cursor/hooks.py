@@ -8,7 +8,6 @@ import os
 import re
 import subprocess
 import sys
-import urllib.request
 from pathlib import Path
 from typing import Any, Optional
 
@@ -20,27 +19,6 @@ def _normalize_workspace_path(path_str: str | None) -> Path:
     if match:
         path_str = f"{match.group(1)}:\\{match.group(2)}"
     return Path(path_str).resolve()
-
-def _ensure_bifrost_gateway_running() -> None:
-    """Smoke-check http://127.0.0.1:8080/health; auto-start Bifrost Gateway if down."""
-    try:
-        req = urllib.request.Request("http://127.0.0.1:8080/health", method="GET")
-        with urllib.request.urlopen(req, timeout=1.0) as resp:
-            if resp.status == 200:
-                return
-    except Exception:
-        pass
-    start_script = Path(r"D:\github\agentcore-control-plane\ops\bifrost\Start-AgentCoreBifrostGateway.ps1")
-    if start_script.is_file():
-        try:
-            subprocess.Popen(
-                ["pwsh", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(start_script)],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-            )
-        except Exception:
-            pass
 
 # Ensure scripts/ is importable when launched from repo hooks.
 _SCRIPTS = Path(__file__).resolve().parents[1]
@@ -112,6 +90,8 @@ def _append_durable_hook_event(
     return GatewayClient().call_tool(
         "agentcore_memory-append_event",
         {
+            "project_key": project_key,
+            "project_root": str(root_path.resolve()),
             "session_id": session_id,
             "event_kind": event_kind,
             "idempotency_key": idempotency_key,
@@ -132,12 +112,11 @@ def _build_durable_handoff(root_path: Path) -> dict[str, Any]:
         return {"ok": False, "error": "session_identity_missing"}
     return GatewayClient().call_tool(
         "agentcore_memory-build_handoff",
-        {"project_key": project_key, "session_id": session_id},
+        {"project_key": project_key, "project_root": str(root_path.resolve()), "session_id": session_id},
     )
 
 
 def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
-    _ensure_bifrost_gateway_running()
     conversation_id = (
         payload.get("session_id")
         or payload.get("conversation_id")
@@ -172,13 +151,12 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
             md_path = Path(result.bootstrap_path).with_name("cursor-bootstrap.md")
             if md_path.is_file():
                 additional = md_path.read_text(encoding="utf-8", errors="replace")[:120000]
-    # Ensure status_flags mark startup context completed
+    # Never mutate a rejected workspace or claim prompt capture at session start.
     try:
         boot_p = (Path(workspace) if workspace else Path.cwd()) / ".agentcore" / "runtime" / "cursor-bootstrap.json"
-        if boot_p.is_file():
+        if result.ok and boot_p.is_file():
             bdata = json.loads(boot_p.read_text(encoding="utf-8"))
             bdata.setdefault("result", {}).setdefault("status_flags", {})["startup_context_completed"] = True
-            bdata["result"]["status_flags"]["current_prompt_captured_before_tools"] = True
             boot_p.write_text(json.dumps(bdata, indent=2) + "\n", encoding="utf-8")
     except Exception:
         pass
@@ -194,7 +172,6 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
-    _ensure_bifrost_gateway_running()
     prompt = str(
         payload.get("prompt")
         or payload.get("text")
@@ -232,12 +209,14 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
 
     session_id = (result_block or {}).get("session_id") if isinstance(result_block, dict) else None
     project_key = (result_block or {}).get("project_key") if isinstance(result_block, dict) else None
+    prompt_evidence: dict[str, Any] = {}
     if session_id and prompt and project_key:
         append_result = append_prompt(
             session_id=str(session_id),
             prompt=prompt,
             conversation_id=str(conversation_id) if conversation_id else None,
             project_key=str(project_key),
+            project_root=str(Path(workspace).resolve() if workspace else Path.cwd().resolve()),
         )
         accepted = isinstance(append_result, dict) and append_result.get("ok")
         if not accepted:
@@ -248,6 +227,10 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
                     "Fix gateway/memory health, then resubmit."
                 ),
             }
+        prompt_evidence = {
+            "event_id": append_result.get("event_id"),
+            "idempotent_replay": bool(append_result.get("idempotent_replay")),
+        }
         root = Path(workspace) if workspace else Path.cwd()
         boot_path = root / ".agentcore" / "runtime" / "cursor-bootstrap.json"
         if boot_path.is_file():
@@ -263,7 +246,7 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
             except Exception:
                 pass
 
-    return {"continue": True}
+    return {"continue": True, "agentcore_prompt_capture": prompt_evidence}
 
 
 def _is_write_operation(tool_name: str, tool_input: dict[str, Any]) -> bool:
@@ -367,10 +350,15 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
 
             # 3. Startup context completed
             flags = result_block.get("status_flags") or {}
-            if not flags.get("startup_context_completed") and not flags.get("current_prompt_captured_before_tools"):
+            if not flags.get("startup_context_completed"):
                 return {
                     "permission": "deny",
                     "user_message": "AgentCore Stage B Deny: startup_context not completed"
+                }
+            if not flags.get("current_prompt_captured_before_tools"):
+                return {
+                    "permission": "deny",
+                    "user_message": "AgentCore Stage B Deny: current operator prompt is not durably captured",
                 }
 
             # 4. Projection missing / stale
@@ -382,16 +370,7 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
                 }
 
             # Load SessionScope for remaining checks
-            scope_file = root_path / ".agentcore" / "runtime" / "session-scope.json"
-            scope_existed = scope_file.is_file()
             scope = SessionScope.load_or_create(root_path)
-
-            # Auto-populate Step 0 scope if active bootstrap session exists
-            if not scope_existed and not scope.intent and result_block.get("session_id"):
-                scope.intent = "AgentCore Stage B Active Task Session"
-                scope.acceptance = ["All Stage B gates verified and test suite passes"]
-                scope.declared_files = [str(root_path)]
-                scope.save_atomic()
 
             # 5. Step 0 intent empty
             if not scope.intent or not scope.intent.strip():
@@ -626,16 +605,19 @@ def handle_stop(payload: dict[str, Any]) -> dict[str, Any]:
 
         scope = SessionScope.load_or_create(root_path)
 
-        # Build 8-axis final review object
+        undeclared = list(scope.required_tool_evidence.get("undeclared_files", []))
+        # Record only mechanically observed facts. A hook cannot truthfully claim
+        # that tests, correctness, coverage, or wiring passed.
         review = {
-            "1_intent_trace": "PASS: session intent traced to Step 0 declaration",
-            "2_correctness": "PASS: all deterministic test and contract validators executed",
-            "3_reliability": "PASS: fail-open hook handlers and error bounds verified",
-            "4_coverage": "PASS: verification suite covers modified hook/scope paths",
-            "5_anti_slop_minimality": "PASS: edits contain no redundant narrations or boilerplate comments",
-            "6_wiring": "PASS: contracts, renderers, dispatchers and policy aligned",
-            "7_mechanics": "PASS: atomic writes and SHA-256 revision links verified",
-            "8_scope_role_trace": "PASS: all file operations stayed strictly within assigned worktree",
+            "intent_declared": bool(scope.intent.strip()),
+            "acceptance_declared": bool(scope.acceptance),
+            "file_scope_declared": bool(scope.declared_files),
+            "observed_file_count": len(scope.observed_files),
+            "undeclared_files": undeclared,
+            "scope_conformance_observed": not undeclared,
+            "correctness": "not_proven_by_hook",
+            "tests": "not_proven_by_hook",
+            "independent_review": "not_proven_by_hook",
             "review_timestamp": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
         }
 
@@ -643,7 +625,7 @@ def handle_stop(payload: dict[str, Any]) -> dict[str, Any]:
         scope.save_atomic()
         durable = _append_durable_hook_event(
             root_path,
-            event_kind="accepted_evidence",
+            event_kind="handoff",
             payload={
                 "source": "cursor.stop",
                 "final_review": review,

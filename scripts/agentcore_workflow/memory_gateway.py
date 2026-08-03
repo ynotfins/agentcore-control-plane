@@ -164,21 +164,22 @@ def resolve_memory_tool_name(bare: str, available: Optional[list[str]] = None) -
     raise RuntimeError(f"memory tool not visible via gateway: {bare}")
 
 
-def open_memory_session(project_key: str, **kwargs: Any) -> dict[str, Any]:
+def open_memory_session(project_key: str, project_root: str, **kwargs: Any) -> dict[str, Any]:
     name = resolve_memory_tool_name("session_open")
-    args: dict[str, Any] = {"project_key": project_key, "client_key": "langgraph", "agent_key": "langgraph-workflow"}
+    args: dict[str, Any] = {"project_key": project_key, "project_root": project_root, "client_key": "langgraph", "agent_key": "langgraph-workflow"}
     args.update({k: v for k, v in kwargs.items() if v is not None})
     return call_gateway_tool(name, args)
 
 
 def startup_context(
     project_key: str,
+    project_root: str,
     session_id: Optional[str] = None,
     budget_name: str = "small",
     context_profile: Optional[str] = None,
 ) -> dict[str, Any]:
     name = resolve_memory_tool_name("startup_context")
-    args: dict[str, Any] = {"project_key": project_key, "budget_name": budget_name}
+    args: dict[str, Any] = {"project_key": project_key, "project_root": project_root, "budget_name": budget_name}
     if session_id:
         args["session_id"] = session_id
     if context_profile:
@@ -187,6 +188,8 @@ def startup_context(
 
 
 def append_event(
+    project_key: str,
+    project_root: str,
     session_id: str,
     event_kind: str,
     payload: dict[str, Any],
@@ -196,6 +199,8 @@ def append_event(
 ) -> dict[str, Any]:
     name = resolve_memory_tool_name("append_event")
     args = {
+        "project_key": project_key,
+        "project_root": project_root,
         "session_id": session_id,
         "event_kind": event_kind,
         "idempotency_key": idempotency_key or str(uuid.uuid4()),
@@ -205,9 +210,9 @@ def append_event(
     return call_gateway_tool(name, args)
 
 
-def close_memory_session(session_id: str) -> dict[str, Any]:
+def close_memory_session(project_key: str, project_root: str, session_id: str) -> dict[str, Any]:
     name = resolve_memory_tool_name("session_close")
-    return call_gateway_tool(name, {"session_id": session_id})
+    return call_gateway_tool(name, {"project_key": project_key, "project_root": project_root, "session_id": session_id})
 
 
 def assert_ten_memory_tools() -> list[str]:

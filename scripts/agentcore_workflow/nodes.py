@@ -200,6 +200,7 @@ def node_start(state: WorkflowState) -> dict:
             memory_gateway.assert_ten_memory_tools()
             opened = memory_gateway.open_memory_session(
                 state["project_key"],
+                str(updates.get("worktree_path") or state.get("worktree_path") or ""),
                 session_key=f"wf-{state.get('thread_uuid', '')}",
                 milestone=state.get("milestone_key"),
                 model_provider=state.get("provider") or None,
@@ -225,6 +226,7 @@ def node_start(state: WorkflowState) -> dict:
                 updates["memory_session_id"] = sid
                 memory_gateway.startup_context(
                     state["project_key"],
+                    str(updates.get("worktree_path") or state.get("worktree_path") or ""),
                     session_id=sid,
                     context_profile=state.get("context_profile") or "standard-context",
                 )
@@ -242,6 +244,8 @@ def node_start(state: WorkflowState) -> dict:
                     "risk_profile": state.get("risk_profile") or "medium",
                 }
                 memory_gateway.append_event(
+                    state["project_key"],
+                    str(updates.get("worktree_path") or state.get("worktree_path") or ""),
                     sid,
                     "prompt",
                     prompt_payload,
@@ -770,6 +774,8 @@ def node_next_step(state: WorkflowState) -> dict:
             from . import memory_gateway
 
             memory_gateway.append_event(
+                str(state.get("project_key") or ""),
+                str(state.get("worktree_path") or ""),
                 sid,
                 "handoff",
                 {
@@ -779,7 +785,11 @@ def node_next_step(state: WorkflowState) -> dict:
                     "milestone_key": state.get("milestone_key"),
                 },
             )
-            memory_gateway.close_memory_session(sid)
+            memory_gateway.close_memory_session(
+                str(state.get("project_key") or ""),
+                str(state.get("worktree_path") or ""),
+                sid,
+            )
         except Exception:
             pass
     return {"completed": True, "next_action": "__end__", "memory_session_id": ""}
@@ -865,7 +875,11 @@ def _close_memory_session(state: WorkflowState) -> None:
     try:
         from . import memory_gateway
 
-        memory_gateway.close_memory_session(sid)
+        memory_gateway.close_memory_session(
+            str(state.get("project_key") or ""),
+            str(state.get("worktree_path") or ""),
+            sid,
+        )
     except Exception:
         pass
 

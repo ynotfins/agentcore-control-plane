@@ -189,7 +189,7 @@ agentcore-gateway   # sole IDE MCP entry
                     # upstream registry lives behind Bifrost
 ```
 
-Canonical upstream set (behind the gateway, not pasted into each IDE) is defined in `contracts/bifrost-upstream-mcp-registry.json`. Builder profile typically includes arabold-docs, serena (via project router), sequential-thinking, cursor-agent-mcp, context-fabric, mcp-debugger, artiforge, depwire, tentra, playwright, filesystem (project-scoped), agentcore-memory, agentcore-project-router. Deferred/disabled until healthy: `depwire-cloud`, `github-mcp`.
+Canonical upstream set (behind the gateway, not pasted into each IDE) is defined in `contracts/bifrost-upstream-mcp-registry.json`. The ordinary builder profile exposes shared identity-safe services only and includes zero project-router controls. `agentcore-project-router` is operator-only. Implicit-project Serena, Depwire, Tentra, filesystem, and Context Fabric upstreams remain dormant in shared profiles; agents invoke their repo-local explicit-cwd paths after exact enrollment validation. Deferred/disabled until healthy: `depwire-cloud`, `github-mcp`.
 
 Ollama remains optional — not a mandatory MCP baseline server. Swarm MCP servers must never appear in this baseline.
 

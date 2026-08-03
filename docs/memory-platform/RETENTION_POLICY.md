@@ -45,7 +45,7 @@ Short-lived artifacts on the H: runtime drive (Bifrost outputs, agent working ar
 
 | Property | Value |
 |----------|-------|
-| **Primary storage** | `H:\AgentRuntime\` (Crucial P5+ NVMe, hot path) |
+| **Primary storage** | `F:\AgentCore\runtime\` (governed hot runtime path) |
 | **Archive location** | E: cold archive → `E:\AgentArtifacts\` |
 | **Retention duration** | 7 days on H: |
 | **Deletion policy** | Move to E: after 7 days. Delete from H: only after move is verified (checksum). |
@@ -101,7 +101,7 @@ Runtime logs from Bifrost, PostgreSQL, and AgentCore services.
 
 | Property | Value |
 |----------|-------|
-| **Primary storage** | `H:\AgentRuntime\service-logs\` |
+| **Primary storage** | `F:\AgentCore\runtime\service-logs\` |
 | **Archive location** | E: `E:\ServiceLogs\` |
 | **Retention duration** | 30 days rolling on H: |
 | **Deletion policy** | Logs older than 30 days moved to E: monthly. Archived logs compressed. |

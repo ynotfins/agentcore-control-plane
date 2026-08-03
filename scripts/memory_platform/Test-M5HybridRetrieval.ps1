@@ -5,7 +5,7 @@ param(
   [int]   $PgPort           = 55433,
   [string]$EvidenceDir      = "audits\M5",
   [string]$OfficialDocRoot  = "E:\AgentCoreArchive\agentcore-memory\official-docs",
-  [string]$CogneeRuntimeRoot = "H:\AgentRuntime\agentcore-memory\cognee"
+  [string]$CogneeRuntimeRoot = "F:\AgentCore\runtime\agentcore-memory\cognee"
 )
 
 $ErrorActionPreference = "Stop"

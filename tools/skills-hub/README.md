@@ -1,7 +1,7 @@
 # Skills-Hub — AgentCore Package Authority
 
 Source-controlled package manifest and STDIO launcher for the Skills-Hub MCP.
-Runtime is deployed to `H:\AgentRuntime\skills-hub\` — **node_modules not committed**.
+Runtime is deployed to `F:\AgentCore\runtime\skills-hub\` — **node_modules not committed**.
 
 ## Pinned versions (2026-07-24 Phase 4B)
 
@@ -19,24 +19,24 @@ installable version.
 
 ## Process-local home isolation
 
-Launcher: `start.mjs` (also at `H:\AgentRuntime\skills-hub\start.mjs`).
+Launcher: `start.mjs` (also at `F:\AgentCore\runtime\skills-hub\start.mjs`).
 
 Before importing `@skills-hub-ai/mcp`, the launcher sets **process-local** only:
 
 ```
-HOME=H:\AgentRuntime\skills-hub\home
-USERPROFILE=H:\AgentRuntime\skills-hub\home
+HOME=F:\AgentCore\runtime\skills-hub\home
+USERPROFILE=F:\AgentCore\runtime\skills-hub\home
 HOMEDRIVE=H:
 HOMEPATH=\AgentRuntime\skills-hub\home
 ```
 
 Do not set these at Windows User or Machine scope. Bifrost must launch
-`node.exe H:\AgentRuntime\skills-hub\start.mjs` — never the bare package bin.
+`node.exe F:\AgentCore\runtime\skills-hub\start.mjs` — never the bare package bin.
 
 Scanned skill roots under isolation (from `discover.js`):
 
-- `H:\AgentRuntime\skills-hub\home\.claude\skills`
-- `H:\AgentRuntime\skills-hub\home\.cursor\skills`
+- `F:\AgentCore\runtime\skills-hub\home\.claude\skills`
+- `F:\AgentCore\runtime\skills-hub\home\.cursor\skills`
 
 ## GHSA-frvp-7c67-39w9 disposition
 
@@ -63,11 +63,11 @@ Phase 4B resolution:
 ## Deploy runtime
 
 ```powershell
-New-Item -ItemType Directory -Force -Path H:\AgentRuntime\skills-hub\home | Out-Null
-Copy-Item D:\github\agentcore-control-plane\tools\skills-hub\package.json H:\AgentRuntime\skills-hub\ -Force
-Copy-Item D:\github\agentcore-control-plane\tools\skills-hub\package-lock.json H:\AgentRuntime\skills-hub\ -Force
-Copy-Item D:\github\agentcore-control-plane\tools\skills-hub\start.mjs H:\AgentRuntime\skills-hub\ -Force
-npm ci --prefix H:\AgentRuntime\skills-hub
+New-Item -ItemType Directory -Force -Path F:\AgentCore\runtime\skills-hub\home | Out-Null
+Copy-Item D:\github\agentcore-control-plane\tools\skills-hub\package.json F:\AgentCore\runtime\skills-hub\ -Force
+Copy-Item D:\github\agentcore-control-plane\tools\skills-hub\package-lock.json F:\AgentCore\runtime\skills-hub\ -Force
+Copy-Item D:\github\agentcore-control-plane\tools\skills-hub\start.mjs F:\AgentCore\runtime\skills-hub\ -Force
+npm ci --prefix F:\AgentCore\runtime\skills-hub
 ```
 
 ## Security notes

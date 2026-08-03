@@ -113,9 +113,11 @@ def load_active_project() -> dict[str, Any]:
     if not path.exists():
         raise SystemExit(f"Active project path missing: {path}")
     try:
-        require_enrolled_path(path)
+        enrolled = require_enrolled_path(path)
     except ProjectBoundaryError as exc:
         raise SystemExit(f"Active project rejected: {exc}") from exc
+    if str(state.get("id") or "") != str(enrolled["project_key"]):
+        raise SystemExit("Active project rejected: project_identity_mismatch")
     return state
 
 

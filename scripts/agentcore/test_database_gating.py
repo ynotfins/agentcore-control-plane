@@ -107,7 +107,7 @@ with psycopg.connect(admin_dsn) as conn:
 
         # ── Section 5: Ten-tool memory surface ───────────────────────────────
         print("\n5. Ten-tool memory surface (Bifrost config)...")
-        cfg_path = Path(r"H:\AgentRuntime\bifrost\config.json")
+        cfg_path = Path(r"F:\AgentCore\runtime\bifrost\config.json")
         if cfg_path.exists():
             cfg = json.loads(cfg_path.read_text())
             mem_server = next(

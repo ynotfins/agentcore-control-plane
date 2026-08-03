@@ -104,6 +104,28 @@ class ProjectRouterRoutingTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 launcher.load_active_project()
 
+    def test_child_rejects_wrong_id_on_enrolled_path(self) -> None:
+        launcher = load_module("agentcore_child_launcher_identity_test", HERE / "child_launcher.py")
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            patch.object(launcher, "STATE_PATH", Path(temp_dir) / "active-project.json"),
+            patch.object(Path, "exists", return_value=True),
+        ):
+            launcher.STATE_PATH.write_text(
+                json.dumps({"id": "wrong-project", "path": str(REPO_ROOT)}),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(SystemExit, "project_identity_mismatch"):
+                launcher.load_active_project()
+
+    def test_project_list_uses_enrollment_contract_policy(self) -> None:
+        server = load_module("agentcore_project_router_list_test", HERE / "server.py")
+        result = server.call_tool("project_list", {})
+        self.assertTrue(result["ok"])
+        self.assertTrue(
+            any("swarm" in marker for marker in result["rejected_policy"]["markers"])
+        )
+
     def test_proxy_reads_small_message_without_waiting_for_chunk_fill(self) -> None:
         launcher = load_module("agentcore_child_launcher_proxy_test", HERE / "child_launcher.py")
         read_fd, write_fd = os.pipe()
@@ -138,7 +160,7 @@ class ProjectRouterRoutingTests(unittest.TestCase):
 
         with (
             patch.object(server, "scan_registered_projects", return_value=[project]),
-            patch.object(server, "save_state") as save_state,
+            patch.object(server, "_save_state_unlocked") as save_state,
             patch.object(server, "reconnect_router_clients", return_value=reconnect) as reconnect_call,
         ):
             result = server.call_tool("project_activate", {"id": project["id"]})
@@ -209,8 +231,8 @@ class ProjectRouterRoutingTests(unittest.TestCase):
 
         with (
             patch.object(server, "scan_registered_projects", return_value=[]),
-            patch.object(server, "load_state", return_value=previous),
-            patch.object(server, "save_state") as save_state,
+            patch.object(server, "_load_state_unlocked", return_value=previous),
+            patch.object(server, "_save_state_unlocked") as save_state,
             patch.object(
                 server,
                 "reconnect_router_clients",
@@ -235,8 +257,8 @@ class ProjectRouterRoutingTests(unittest.TestCase):
 
         with (
             patch.object(server, "scan_registered_projects", return_value=[project]),
-            patch.object(server, "load_state", return_value=previous),
-            patch.object(server, "save_state") as save_state,
+            patch.object(server, "_load_state_unlocked", return_value=previous),
+            patch.object(server, "_save_state_unlocked") as save_state,
             patch.object(server, "reconnect_router_clients", side_effect=[failed, restored]),
         ):
             result = server.call_tool("project_activate", {"id": "next"})

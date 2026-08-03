@@ -149,7 +149,7 @@ dependencies:
     repository: https://github.com/topoteretes/cognee
     documentation: https://cognee.ai/docs
     license: Apache-2.0
-    provenance: topoteretes; Apache-2.0 license; installation on H:\AgentRuntime\agentcore-memory\cognee\
+    provenance: topoteretes; Apache-2.0 license; installation on F:\AgentCore\runtime\agentcore-memory\cognee\
     security_notes: Uses dedicated cognee_core database; no secrets in configuration files.
     alternatives_considered: "Mem0 (rejected — see below), Graphiti/Zep (more complex), Neo4j (separate service)"
     approval_reason: "Selected for v1 as curated semantic graph; PostgreSQL-native; no Docker dependency"

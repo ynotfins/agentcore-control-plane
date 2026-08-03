@@ -29,12 +29,6 @@ from typing import Any, Generator
 import pytest
 
 
-@pytest.fixture(autouse=True)
-def _use_dedicated_boundary_tests(monkeypatch):
-    from agentcore_memory import server
-
-    monkeypatch.setattr(server, "validate_project_boundary", lambda _args: None)
-
 # ---------------------------------------------------------------------------
 # Database helper (minimal, no ORM dependency)
 # ---------------------------------------------------------------------------
@@ -118,12 +112,15 @@ def _open_session(
 ) -> dict[str, Any]:
     """Call session_open through the server module."""
     from agentcore_memory import server  # noqa: PLC0415
+    if project_key == "agentcore-context-engine":
+        repo_path = r"D:\github\agentcore-context-engine"
     return server.session_open({
         "project_key": project_key,
         "project_name": project_name or project_key,
         "client_key": client_key,
         "agent_key": agent_key,
         "session_key": session_key,
+        "project_root": repo_path,
         "canonical_repo_path": repo_path,
         "worktree_path": repo_path,
         "repo_key": "agentcore-control-plane",
@@ -168,12 +165,12 @@ def run_id() -> str:
 
 @pytest.fixture()
 def project_a(run_id: str) -> str:
-    return f"test-resume-{run_id}-project-a"
+    return "agentcore-control-plane"
 
 
 @pytest.fixture()
 def project_b(run_id: str) -> str:
-    return f"test-resume-{run_id}-project-b"
+    return "agentcore-context-engine"
 
 
 # ---------------------------------------------------------------------------
@@ -265,8 +262,8 @@ def test_cursor_codex_distinct_sessions(project_a: str, run_id: str):
 # ---------------------------------------------------------------------------
 
 @db_available
-def test_cross_ide_shared_project_chronology(project_a: str, run_id: str):
-    """Events from Cursor and Codex are both retrievable in the project chronology."""
+def test_cross_ide_shared_project_replay(project_a: str, run_id: str):
+    """Cursor and Codex events remain recoverable under one project without session merge."""
     sk_cursor = f"{project_a}:cursor-{run_id}:agent-{run_id}:multi-ide"
     sk_codex = f"{project_a}:codex-{run_id}:agent-{run_id}:multi-ide"
 
@@ -276,20 +273,19 @@ def test_cross_ide_shared_project_chronology(project_a: str, run_id: str):
     sid_cursor = str(rc["session_id"])
     sid_codex = str(rx["session_id"])
 
-    ev_c = _append(sid_cursor, f"{sk_cursor}:ev1", {"from": "cursor"})
-    ev_x = _append(sid_codex, f"{sk_codex}:ev1", {"from": "codex"})
+    ev_c = _append(sid_cursor, f"{sk_cursor}:ev1", {"from": "cursor", "marker": run_id})
+    ev_x = _append(sid_codex, f"{sk_codex}:ev1", {"from": "codex", "marker": run_id})
     assert ev_c["ok"] and ev_x["ok"]
 
     from agentcore_memory import server  # noqa: PLC0415
-    chrono = server.retrieve_context({
-        "project_key": project_a,
-        "recovery_mode": "complete_project_chronology",
-        "record_recovery": False,
-    })
-    assert chrono["ok"]
-    ids = {item["id"] for item in chrono.get("recovery", {}).get("items", [])}
-    assert ev_c["event_id"] in ids, "Cursor event missing from project chronology"
-    assert ev_x["event_id"] in ids, "Codex event missing from project chronology"
+    cursor_replay = _retrieve(project_a, sid_cursor)
+    codex_replay = _retrieve(project_a, sid_codex)
+    cursor_ids = {item["id"] for item in cursor_replay.get("recovery", {}).get("items", [])}
+    codex_ids = {item["id"] for item in codex_replay.get("recovery", {}).get("items", [])}
+    assert ev_c["event_id"] in cursor_ids
+    assert ev_x["event_id"] in codex_ids
+    assert ev_x["event_id"] not in cursor_ids
+    assert ev_c["event_id"] not in codex_ids
 
 
 # ---------------------------------------------------------------------------

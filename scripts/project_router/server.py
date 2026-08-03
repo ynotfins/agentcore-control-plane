@@ -28,6 +28,7 @@ if str(SCRIPTS_ROOT) not in sys.path:
 from agentcore_project_boundary import (
     ProjectBoundaryError,
     enrolled_projects,
+    load_enrollment_contract,
     require_enrolled_path,
 )
 
@@ -118,7 +119,7 @@ def state_file_lock():
                     fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
-def load_state() -> dict[str, Any] | None:
+def _load_state_unlocked() -> dict[str, Any] | None:
     if not STATE_PATH.exists():
         return None
     try:
@@ -131,26 +132,35 @@ def load_state() -> dict[str, Any] | None:
         return None
 
 
-def save_state(data: dict[str, Any] | None) -> None:
+def load_state() -> dict[str, Any] | None:
+    with state_file_lock():
+        return _load_state_unlocked()
+
+
+def _save_state_unlocked(data: dict[str, Any] | None) -> None:
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     temp_path = STATE_PATH.with_name(
         f"{STATE_PATH.name}.tmp.{os.getpid()}.{id(data)}"
     )
+    if data is None:
+        if STATE_PATH.exists():
+            STATE_PATH.unlink()
+        return
+    try:
+        with temp_path.open("w", encoding="utf-8", newline="\n") as fh:
+            json.dump(data, fh, indent=2)
+            fh.write("\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(temp_path, STATE_PATH)
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
+
+
+def save_state(data: dict[str, Any] | None) -> None:
     with state_file_lock():
-        if data is None:
-            if STATE_PATH.exists():
-                STATE_PATH.unlink()
-            return
-        try:
-            with temp_path.open("w", encoding="utf-8", newline="\n") as fh:
-                json.dump(data, fh, indent=2)
-                fh.write("\n")
-                fh.flush()
-                os.fsync(fh.fileno())
-            os.replace(temp_path, STATE_PATH)
-        finally:
-            if temp_path.exists():
-                temp_path.unlink()
+        _save_state_unlocked(data)
 
 
 def _read_user_env(name: str) -> str:
@@ -388,13 +398,14 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     projects = scan_registered_projects()
 
     if name == "project_list":
+        contract = load_enrollment_contract()
         return {
             "ok": True,
             "count": len(projects),
             "projects": projects,
             "rejected_policy": {
-                "markers": list(REJECT_MARKERS),
-                "prefixes": [str(p) for p in REJECT_PREFIXES],
+                "markers": list(contract.get("foreign_markers", [])),
+                "prefixes": list(contract.get("foreign_roots", [])),
             },
         }
 
@@ -403,20 +414,21 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
         return {"ok": True, "active": state}
 
     if name == "project_clear":
-        previous = load_state()
-        save_state(None)
-        reconnect = reconnect_router_clients()
-        if not reconnect.get("ok"):
-            save_state(previous)
-            rollback_reconnect = reconnect_router_clients()
-            return {
+        with state_file_lock():
+            previous = _load_state_unlocked()
+            _save_state_unlocked(None)
+            reconnect = reconnect_router_clients()
+            if not reconnect.get("ok"):
+                _save_state_unlocked(previous)
+                rollback_reconnect = reconnect_router_clients()
+                return {
                 "ok": False,
                 "error": "project_scoped_reconnect_failed",
                 "active": previous,
                 "cleared_at": _now(),
                 "project_scoped_reconnect": reconnect,
                 "rollback_reconnect": rollback_reconnect,
-            }
+                }
         return {
             "ok": True,
             "active": None,
@@ -439,7 +451,6 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
         reason = _rejected_path(Path(match["path"]))
         if reason:
             return {"ok": False, "error": reason}
-        previous = load_state()
         state = {
             "id": match["id"],
             "name": match["name"],
@@ -447,19 +458,21 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
             "activated_at": _now(),
             "activated_by": SERVER_NAME,
         }
-        save_state(state)
-        reconnect = reconnect_router_clients()
-        if not reconnect.get("ok"):
-            save_state(previous)
-            rollback_reconnect = reconnect_router_clients()
-            return {
+        with state_file_lock():
+            previous = _load_state_unlocked()
+            _save_state_unlocked(state)
+            reconnect = reconnect_router_clients()
+            if not reconnect.get("ok"):
+                _save_state_unlocked(previous)
+                rollback_reconnect = reconnect_router_clients()
+                return {
                 "ok": False,
                 "error": "project_scoped_reconnect_failed",
                 "active": previous,
                 "requested": state,
                 "project_scoped_reconnect": reconnect,
                 "rollback_reconnect": rollback_reconnect,
-            }
+                }
         return {
             "ok": True,
             "active": state,

@@ -4,7 +4,7 @@ param(
   [int]$Port = 55433,
   [string]$Database = "agent_core",
   [string]$AdminUser = "postgres",
-  [string]$HotArtifactRoot = "H:\AgentRuntime\agentcore-memory\artifacts",
+  [string]$HotArtifactRoot = "F:\AgentCore\runtime\agentcore-memory\artifacts",
   [string]$ColdArtifactRoot = "E:\AgentCoreArchive\agentcore-memory\artifacts",
   [string]$ProjectRoot = "D:\github\agentcore-control-plane",
   [string]$EvidenceDir = "audits\M3"

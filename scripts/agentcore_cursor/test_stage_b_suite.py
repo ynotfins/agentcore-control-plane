@@ -61,7 +61,8 @@ def main():
         timeout=420,
         cwd=str(REPO_ROOT)
     )
-    protocol_pass = proc.returncode == 0
+    protocol_pass = proc.returncode == 0 and "ALL PASS" in proc.stdout
+    idempotency_pass = protocol_pass and "special: idempotency" in proc.stdout
     log_test(1, "100_hook_protocol_iterations", protocol_pass, f"rc={proc.returncode}")
 
     # Prepare disposable test fixture
@@ -99,6 +100,18 @@ def main():
         # Test 03: Step 0 blocks edits until complete
         scope_empty = SessionScope(project_root=FIXTURE_DIR, intent="", acceptance=[], declared_files=[])
         scope_empty.save_atomic()
+        prompt_flag_backup = boot_data["result"]["status_flags"]["current_prompt_captured_before_tools"]
+        boot_data["result"]["status_flags"]["current_prompt_captured_before_tools"] = False
+        boot_fixture.write_text(json.dumps(boot_data, indent=2) + "\n", encoding="utf-8")
+        res_uncaptured = handle_pre_tool({
+            "workspace_roots": [str(FIXTURE_DIR)],
+            "tool_name": "filesystem-write_file",
+            "tool_input": {"path": str(FIXTURE_DIR / "test.txt")},
+        })
+        if res_uncaptured.get("permission") != "deny":
+            raise RuntimeError(f"uncaptured prompt did not block write: {res_uncaptured}")
+        boot_data["result"]["status_flags"]["current_prompt_captured_before_tools"] = prompt_flag_backup
+        boot_fixture.write_text(json.dumps(boot_data, indent=2) + "\n", encoding="utf-8")
         res_deny = handle_pre_tool({
             "workspace_roots": [str(FIXTURE_DIR)],
             "tool_name": "filesystem-write_file",
@@ -177,10 +190,10 @@ def main():
         log_test(8, "hook_crash_fails_open", res_crash.get("permission") == "allow", f"res={res_crash}")
 
         # Test 09: No hook lockout
-        log_test(9, "no_hook_lockout", protocol_pass, "verified in 100 protocol iterations")
+        log_test(9, "hook_protocol_response_shape", protocol_pass, "100 iterations for each registered event")
 
         # Test 10: Protocol harness exercises duplicate prompt idempotency
-        log_test(10, "prompt_capture_idempotency", protocol_pass, "duplicate hook call verified by protocol harness")
+        log_test(10, "prompt_capture_idempotency", idempotency_pass, "duplicate durable event_id and replay flag verified")
 
         # Test 11: File footprint recorded
         handle_post_tool({
@@ -242,7 +255,7 @@ def main():
         # Test 15: One final review occurs
         res_stop = handle_stop({"workspace_roots": [str(FIXTURE_DIR)]})
         s_stop = SessionScope.load_or_create(FIXTURE_DIR)
-        has_review = bool(s_stop.final_review) and "1_intent_trace" in s_stop.final_review
+        has_review = bool(s_stop.final_review) and s_stop.final_review.get("correctness") == "not_proven_by_hook"
         log_test(15, "one_final_review_occurs", has_review and res_stop == {}, f"res={res_stop}")
 
         # Test 16: No fabricated operator prompt

@@ -62,7 +62,7 @@ from recovery import (
 _RECALL_PROJECT_KINDS = frozenset({"decision", "accepted_evidence", "output"})
 
 SERVER_NAME = "agentcore-memory"
-SERVER_VERSION = "0.8.0"
+SERVER_VERSION = "0.9.0"
 # Bifrost currently initializes with 2025-06-18; accept and echo it.
 SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
 DEFAULT_PROTOCOL_VERSION = "2025-06-18"
@@ -88,21 +88,26 @@ def validate_project_boundary(args: dict[str, Any]) -> None:
     validate_project_identity(args)
 
 
+def _require_reference_project_identity(project_keys: set[str], requested: str) -> None:
+    if len(project_keys) > 1 or project_keys != {requested}:
+        raise ProjectBoundaryError("project_identity_mismatch")
+
+
 def validate_tool_project_boundary(name: str, args: dict[str, Any]) -> None:
     """Authorize project-scoped reads/writes, including opaque references."""
-    if name == "docs_search" and not args.get("project_key"):
+    if not args.get("project_key"):
         raise ProjectBoundaryError("project_scope_required")
+    requested_project = validate_project_identity(args)
     project_keys: set[str] = set()
-    if args.get("project_key"):
-        key = str(args["project_key"])
-        require_enrolled_project_key(key)
-        project_keys.add(key)
+    key = str(args["project_key"])
+    project_keys.add(key)
 
     reference_columns = {
         "session_id": ("agentcore.sessions", "id"),
         "event_id": ("agentcore.evidence_events", "id"),
         "artifact_id": ("agentcore.artifact_objects", "id"),
         "summary_id": ("agentcore.context_summaries", "id"),
+        "contradicts_event_id": ("agentcore.evidence_events", "id"),
     }
     selected = [field for field in reference_columns if args.get(field)]
     if not selected:
@@ -124,8 +129,9 @@ def validate_tool_project_boundary(name: str, args: dict[str, Any]) -> None:
                 key = str(row["project_key"])
                 require_enrolled_project_key(key)
                 project_keys.add(key)
-    if len(project_keys) > 1:
-        raise ProjectBoundaryError("project_identity_mismatch")
+    _require_reference_project_identity(
+        project_keys, str(requested_project["project_key"])
+    )
 
 
 def _now() -> str:
@@ -143,6 +149,21 @@ def postgres_reachable(timeout: float = 1.5) -> tuple[bool, str]:
             return True, "tcp_ok"
     except OSError as exc:
         return False, exc.__class__.__name__
+
+
+def _require_session_identity(
+    existing: dict[str, Any] | None,
+    *,
+    project_key: str,
+    client_key: str,
+    agent_key: str,
+) -> None:
+    if existing and (
+        str(existing["project_key"]) != project_key
+        or str(existing["client_key"]) != client_key
+        or str(existing["agent_key"]) != agent_key
+    ):
+        raise ProjectBoundaryError("session_identity_mismatch")
 
 
 def _ok_response_schema(extra_props: dict | None = None) -> dict:
@@ -270,7 +291,7 @@ def tool_defs() -> list[dict[str, Any]]:
                     "model_id": text_schema,
                     "context_profile": text_schema,
                 },
-                "required": ["project_key"],
+                "required": ["project_key", "project_root"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -295,8 +316,12 @@ def tool_defs() -> list[dict[str, Any]]:
             "description": "Close a governed AgentCore memory session.",
             "inputSchema": {
                 "type": "object",
-                "properties": {"session_id": text_schema},
-                "required": ["session_id"],
+                "properties": {
+                    "project_key": text_schema,
+                    "project_root": text_schema,
+                    "session_id": text_schema,
+                },
+                "required": ["project_key", "project_root", "session_id"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -322,6 +347,8 @@ def tool_defs() -> list[dict[str, Any]]:
             "inputSchema": {
                 "type": "object",
                 "properties": {
+                    "project_key": text_schema,
+                    "project_root": text_schema,
                     "session_id": text_schema,
                     "event_kind": {
                         "type": "string",
@@ -342,7 +369,7 @@ def tool_defs() -> list[dict[str, Any]]:
                     "trust_class": text_schema,
                     "large_text": text_schema,
                 },
-                "required": ["session_id", "event_kind", "idempotency_key", "payload"],
+                "required": ["project_key", "project_root", "session_id", "event_kind", "idempotency_key", "payload"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -366,6 +393,7 @@ def tool_defs() -> list[dict[str, Any]]:
                 "type": "object",
                 "properties": {
                     "project_key": text_schema,
+                    "project_root": text_schema,
                     "budget_name": text_schema,
                     "query": text_schema,
                     "limit": {"type": "integer"},
@@ -374,7 +402,7 @@ def tool_defs() -> list[dict[str, Any]]:
                     "trust_classes": text_array_schema,
                     **recovery_properties,
                 },
-                "required": ["project_key"],
+                "required": ["project_key", "project_root"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -400,10 +428,11 @@ def tool_defs() -> list[dict[str, Any]]:
                 "type": "object",
                 "properties": {
                     "project_key": text_schema,
+                    "project_root": text_schema,
                     "budget_name": text_schema,
                     **recovery_properties,
                 },
-                "required": ["project_key"],
+                "required": ["project_key", "project_root"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -430,6 +459,7 @@ def tool_defs() -> list[dict[str, Any]]:
                 "type": "object",
                 "properties": {
                     "project_key": text_schema,
+                    "project_root": text_schema,
                     "summary_id": text_schema,
                     "event_id": text_schema,
                     "artifact_id": text_schema,
@@ -443,6 +473,7 @@ def tool_defs() -> list[dict[str, Any]]:
                     {"required": ["event_id"]},
                     {"required": ["artifact_id"]},
                 ],
+                "required": ["project_key", "project_root"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -470,12 +501,13 @@ def tool_defs() -> list[dict[str, Any]]:
                 "type": "object",
                 "properties": {
                     "project_key": text_schema,
+                    "project_root": text_schema,
                     "fact_key": text_schema,
                     "proposed_value": {"type": "object"},
                     "contradicts_event_id": text_schema,
                     "trust_class": text_schema,
                 },
-                "required": ["project_key", "fact_key", "proposed_value"],
+                "required": ["project_key", "project_root", "fact_key", "proposed_value"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -498,8 +530,8 @@ def tool_defs() -> list[dict[str, Any]]:
             "description": "Build a compact project handoff packet from canonical memory state.",
             "inputSchema": {
                 "type": "object",
-                "properties": {"project_key": text_schema, **recovery_properties},
-                "required": ["project_key"],
+                "properties": {"project_key": text_schema, "project_root": text_schema, **recovery_properties},
+                "required": ["project_key", "project_root"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -525,13 +557,14 @@ def tool_defs() -> list[dict[str, Any]]:
                 "type": "object",
                 "properties": {
                     "project_key": text_schema,
+                    "project_root": text_schema,
                     "query": text_schema,
                     "limit": {"type": "integer"},
                     "query_embedding": embedding_schema,
                     "retrieval_methods": text_array_schema,
                     "trust_classes": text_array_schema,
                 },
-                "required": ["project_key", "query"],
+                "required": ["project_key", "project_root", "query"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -719,6 +752,27 @@ def session_open(
 
     with db() as conn, conn.cursor() as cur:
         identity = verified_identity or resolve_legacy_identity(conn)
+        # Serialize create/reopen by caller-controlled session_key and reject any
+        # attempt to reuse it under a different project, client, or agent.
+        cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (session_key,))
+        cur.execute(
+            """
+            SELECT p.project_key, c.client_key, a.agent_key
+            FROM agentcore.sessions s
+            JOIN agentcore.projects p ON p.id = s.project_id
+            JOIN agentcore.ide_clients c ON c.id = s.client_id
+            JOIN agentcore.agents a ON a.id = s.agent_id
+            WHERE s.session_key = %s
+            """,
+            (session_key,),
+        )
+        existing_session = cur.fetchone()
+        _require_session_identity(
+            existing_session,
+            project_key=str(project_key),
+            client_key=str(client_key),
+            agent_key=str(agent_key),
+        )
         cur.execute(
             """
             SELECT EXISTS (

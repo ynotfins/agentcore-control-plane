@@ -69,7 +69,7 @@ Step 7 — Validate syntax and discovery
 
 Step 8 — Native memory lifecycle validation (do not skip)
 1. Confirm the exact repository/worktree path appears in `@D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json`. Stop with `project_not_enrolled` when absent or `swarm_project_refused` for Swarm ownership; do not broaden the contract from the IDE.
-2. Call session_open with the exact enrolled project/worktree path and a stable session_key that includes your IDE id and today's date.
+2. Call session_open with the exact enrolled project_key + project_root and a stable session_key that includes your IDE id and today's date. Supply the same exact project_key + project_root on every subsequent project-scoped memory call.
 3. startup_context with the selected model context profile (use standard-context if your model is unknown; never lower the IDE's configured hard context window).
 4. append_event documenting this enrollment/validation run with a deterministic idempotency key.
 5. Repeat the same append_event and confirm idempotent_replay=true.

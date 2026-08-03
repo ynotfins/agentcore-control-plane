@@ -157,11 +157,11 @@ flowchart TD
 - Existing memory and database contracts in this repo still reference the currently active PostgreSQL runtime paths under `F:\AgentCore\database_cluster` and `F:\AgentCore\postgres_runtime_engine` (PG16, preserved; the PG18 platform arrives per `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` M1).
 - This layout pass created the new standardized directories but did not migrate the live database or rewrite service configs.
 - **Canonical archive root (2026-07-14): `E:\AgentCoreArchive`.** The live E: drive also carries `E:\AgentCore-Backups` and other archive folders; new archival writes standardize on `E:\AgentCoreArchive`.
-- The Bifrost gateway runtime lives at `H:\AgentRuntime\bifrost` (never format H:); Tentra data at `H:\AgentRuntime\tentra\data`; `I:` is disposable scratch; `J:` is portable media. Full drive roles: `PROJECT_ANCHOR.md` §2.
+- The Bifrost gateway runtime lives at `F:\AgentCore\runtime\bifrost`; Tentra data at `F:\AgentCore\runtime\tentra\data`; `I:` is disposable scratch; `J:` is portable media. Full drive roles: `PROJECT_ANCHOR.md` §2.
 
 ## Default Agent Guidance
 
 1. Read and edit source in `D:\github`.
-2. Write active runtime state only to `F:\AgentCore` (via wrappers) or `H:\AgentRuntime` (approved ops).
+2. Write active AgentCore runtime state only to `F:\AgentCore\runtime` through governed wrappers.
 3. Write cold backups only to `E:\AgentCoreArchive`.
 4. Keep private-response data local-only unless a future approved design says otherwise.

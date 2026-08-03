@@ -37,15 +37,10 @@ def open_context_session(workspace: Path, *, agent_key: str = "cursor") -> dict[
             "agentcore_memory-session_open",
             {
                 "project_key": project_key,
+                "project_root": str(workspace.resolve()),
                 "client_key": "cursor",
                 "agent_key": agent_key,
-                "device_id": _device_id(),
-                "metadata": {
-                    "workspace": str(workspace),
-                    "context_engine": True,
-                    "session_hint": session_hint,
-                    "approval_id": "AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE",
-                },
+                "session_key": f"cursor-context-engine:{project_key}:{session_hint}",
             },
         )
         return {
@@ -58,14 +53,14 @@ def open_context_session(workspace: Path, *, agent_key: str = "cursor") -> dict[
         return {"ok": False, "degraded": True, "error": type(exc).__name__, "project_key": project_key}
 
 
-def retrieve_startup_packet(project_key: str) -> dict[str, Any]:
+def retrieve_startup_packet(project_key: str, project_root: str) -> dict[str, Any]:
     try:
         client = GatewayClient()
         return {
             "ok": True,
             "packet": client.call_tool(
                 "agentcore_memory-startup_context",
-                {"project_key": project_key, "context_profile": "standard-context"},
+                {"project_key": project_key, "project_root": project_root, "context_profile": "standard-context"},
             ),
         }
     except Exception as exc:  # noqa: BLE001
@@ -76,6 +71,7 @@ def append_accepted_summary(
     *,
     session_id: str,
     project_key: str,
+    project_root: str,
     summary: str,
     idempotency_key: str | None = None,
 ) -> dict[str, Any]:
@@ -89,6 +85,8 @@ def append_accepted_summary(
             "result": client.call_tool(
                 "agentcore_memory-append_event",
                 {
+                    "project_key": project_key,
+                    "project_root": project_root,
                     "session_id": session_id,
                     "event_kind": "decision",
                     "idempotency_key": key,

@@ -161,7 +161,7 @@ Normal lifecycle at every new chat (AgentCore / enrolled non-Swarm projects only
 1. Confirm the selected project is AgentCore or explicitly enrolled non-Swarm. If Swarm-owned, execute the HARD STOP above.
 2. Resolve the project/worktree through the IDE host and pass its stable project identity to AgentCore memory calls; do not depend on machine-global router state.
 3. Read the generated project `@...\ .agentcore\STATE.md` (full absolute `@` path).
-4. `session_open` with a stable `session_key` (reuse for the same task; new key for a new task under the same project).
+4. Every project-scoped memory call supplies the exact enrolled `project_key` and exact `project_root`; `session_open` also uses a stable `session_key` (reuse for the same task; new key for a new task under the same project).
 5. `startup_context` with the selected model context profile.
 6. `append_event` before meaningful tool execution (operator prompt verbatim after secret redaction, deterministic idempotency key).
 7. `retrieve_context` for missing chronology; `expand_source` for exact originals; `build_handoff` for current reconstruction.
@@ -279,7 +279,7 @@ After any change:
 
 **Native validation** requires the IDE's own agent to complete the full memory lifecycle through its own tool surface on an **AgentCore / enrolled non-Swarm** project:
 
-1. `session_open` — stable session_key and project/client/agent identity
+1. `session_open` — exact enrolled project_key + project_root, stable session_key, and project/client/agent identity
 2. `startup_context` — profile reported; hard limit not lowered
 3. `append_event` — idempotency key; prompt committed before tool execution
 4. `retrieve_context` — recovery pagination; continuation cursor stable
@@ -287,7 +287,7 @@ After any change:
 6. `build_handoff` — handoff packet; projection revisions present
 7. `session_close` — ended_at set; handoff appended
 8. Resume — same session_key reopens; original events accessible
-9. Project isolation — project_key boundary enforced
+9. Project isolation — exact project_key + project_root boundary enforced on every call and opaque reference
 10. Tool surface — exactly ten `agentcore-memory` tools; none added or removed
 
 Do not mark live_validated from config inspection alone. Configuration presence is not native validation. Do not use raw HTTP and call it native. Do not run native validation against a Swarm-owned repository.
@@ -374,7 +374,7 @@ Step 7 — Validate syntax and discovery
 Step 8 — Native memory lifecycle validation (do not skip)
 Use only an AgentCore / enrolled non-Swarm project. If the selected path is Swarm-owned, stop with swarm_project_refused.
 1. Resolve the current project from the IDE/workflow's exact workspace root; do not mutate machine-global project-router state from an ordinary IDE profile.
-2. session_open with the explicit project identity and a stable session_key that includes your IDE id and today's date.
+2. session_open with the exact enrolled project_key + project_root and a stable session_key that includes your IDE id and today's date. Supply that same exact project_key + project_root on every subsequent project-scoped memory call.
 3. startup_context with the selected model context profile (use standard-context if your model is unknown; never lower the IDE's configured hard context window).
 4. append_event documenting this enrollment/validation run with a deterministic idempotency key.
 5. Repeat the same append_event and confirm idempotent_replay=true.
