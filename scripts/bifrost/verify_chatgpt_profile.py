@@ -9,7 +9,7 @@ Tests:
 5. Environment variable inheritance (BIFROST_MCP_VK_CHATGPT)
 6. MCP authentication with actual ChatGPT key
 7. tools/list filtering (no builder/operator fallback)
-8. Exact surface validation (21 approved tools)
+8. Exact surface validation (18 approved tools)
 9. Output-schema status at Layer A, Layer B, Layer C
 """
 
@@ -36,10 +36,6 @@ EXPECTED_APPROVED_TOOLS = {
     "agentcore_memory-append_event",
     "agentcore_memory-build_handoff",
     "agentcore_memory-session_close",
-    # agentcore_project_router (3)
-    "agentcore_project_router-project_list",
-    "agentcore_project_router-project_status",
-    "agentcore_project_router-project_activate",
     # skills_hub (3)
     "skills_hub-search_skills",
     "skills_hub-get_skill_detail",
@@ -56,6 +52,9 @@ EXPECTED_APPROVED_TOOLS = {
 
 EXCLUDED_PROHIBITED_TOOLS = {
     "agentcore_project_router-project_clear",
+    "agentcore_project_router-project_list",
+    "agentcore_project_router-project_status",
+    "agentcore_project_router-project_activate",
     "agentcore_memory-propose_fact",
     "filesystem-read_file",
     "filesystem-write_file",
@@ -97,7 +96,7 @@ def check_health(url: str, path: str = "/health") -> tuple[bool, str]:
 def check_profile_config() -> tuple[bool, dict[str, Any], list[str]]:
     errors = []
     if not RUNTIME_CONFIG.exists():
-        return False, {}, ["Runtime config missing at H:\\AgentRuntime\\bifrost\\config.json"]
+        return False, {}, [f"Runtime config missing at {RUNTIME_CONFIG}"]
 
     data = json.loads(RUNTIME_CONFIG.read_text(encoding="utf-8"))
     vks = data.get("governance", {}).get("virtual_keys") or []
@@ -108,7 +107,7 @@ def check_profile_config() -> tuple[bool, dict[str, Any], list[str]]:
             break
 
     if not chatgpt_vk:
-        return False, {}, ["vk-agentcore-chatgpt not found in H:\\AgentRuntime\\bifrost\\config.json"]
+        return False, {}, [f"vk-agentcore-chatgpt not found in {RUNTIME_CONFIG}"]
 
     mcp_configs = chatgpt_vk.get("mcp_configs") or []
     found_clients = {}
@@ -120,7 +119,6 @@ def check_profile_config() -> tuple[bool, dict[str, Any], list[str]]:
             errors.append(f"Wildcard '*' found in chatgpt profile for client {cname}")
 
     expected_mem = {"memory_status", "startup_context", "retrieve_context", "expand_source", "docs_search", "session_open", "append_event", "build_handoff", "session_close"}
-    expected_router = {"project_list", "project_status", "project_activate"}
     expected_skills = {"search_skills", "get_skill_detail", "list_installed_skills"}
     expected_arabold = {"search_docs", "fetch_url", "list_libraries", "find_version", "get_job_info"}
     expected_seq = {"sequentialthinking"}
@@ -128,8 +126,11 @@ def check_profile_config() -> tuple[bool, dict[str, Any], list[str]]:
     if set(found_clients.get("agentcore_memory", [])) != expected_mem:
         errors.append(f"agentcore_memory tool mismatch: got {found_clients.get('agentcore_memory')}")
 
-    if set(found_clients.get("agentcore_project_router", [])) != expected_router:
-        errors.append(f"agentcore_project_router tool mismatch: got {found_clients.get('agentcore_project_router')}")
+    if found_clients.get("agentcore_project_router"):
+        errors.append(
+            "agentcore_project_router must be absent from the ordinary ChatGPT profile: "
+            f"got {found_clients.get('agentcore_project_router')}"
+        )
 
     if set(found_clients.get("skills_hub", [])) != expected_skills:
         errors.append(f"skills_hub tool mismatch: got {found_clients.get('skills_hub')}")
@@ -266,12 +267,12 @@ def test_proxy_deny_paths() -> tuple[bool, list[str]]:
     return len(errors) == 0, errors
 
 
-def main() -> None:
+def main() -> int:
     vk = get_chatgpt_vk()
     print(f"ChatGPT Virtual Key retrieved from User env: {'PRESENT (len=' + str(len(vk)) + ')' if vk else 'MISSING'}")
     if not vk:
         print("FAIL: BIFROST_MCP_VK_CHATGPT is missing in User environment variables.")
-        return
+        return 1
 
     # 1. Health check
     ok, body = check_health(BIFROST_URL, "/health")
@@ -316,6 +317,7 @@ def main() -> None:
             has_output_schema = "outputSchema" in t and bool(t["outputSchema"])
             has_annotations = "annotations" in t and bool(t["annotations"])
             print(f"  - {t['name']:<42} inputSchema={has_input_schema:<5} outputSchema={has_output_schema:<5} annotations={has_annotations}")
+    return 0 if all((ok, ok_proxy, ok_cfg, ok_direct, ok_proxy_mcp, ok_deny)) else 1
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -77,6 +77,14 @@ python scripts/cherry/validate_cherry_memory_lifecycle.py
 python scripts/bifrost/validate_contracts.py
 ```
 
+`validate_cherry_memory_lifecycle.py` is the signed Context Engine companion
+proof for Cherry. It authenticates with the Cherry virtual-key profile, adds
+the enrolled device assertion to each memory call, supplies exact project
+key/root identity, and verifies isolation using `agentcore-control-plane` and
+`agentcore-context-engine`. Cherry chat has no native lifecycle hook API and
+must not claim transparent canonical write capture when this companion
+boundary is absent.
+
 Lifecycle evidence: `audits/CHERRY_MEMORY_LIFECYCLE_2026-07-20.json`  
 Enrollment evidence: `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`
 

@@ -55,6 +55,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from agentcore_project_boundary import ProjectBoundaryError, validate_project_identity
 from agentcore_workflow import db as wf_db
 from agentcore_workflow.workflow import (
     build_topology,
@@ -249,27 +250,33 @@ def cmd_init(args: argparse.Namespace) -> int:
     if not target.exists():
         print(f"ERROR: target path does not exist: {target}", file=sys.stderr)
         return 2
-    if not str(target).startswith(("D:\\", "D:/", "E:\\", "E:/", "F:\\", "F:/", "H:\\", "H:/")):
-        # Only D: (canonical_d) is the normal project source root per BLUEPRINT.
-        # Allow E:/F:/H: for archive/runtime scopes if operator passes them.
-        pass
 
     project_name = args.project_name or project_key
     target_str = str(target)
-
-    project_id = _ensure_project(project_key, project_name, target_str)
-
     # Worktree selection
     worktree = args.worktree
     if worktree:
         worktree_path = Path(worktree).resolve()
-        worktree_path.mkdir(parents=True, exist_ok=True)
-        worktree_str = str(worktree_path)
     else:
         # Default isolated worktree under D:\agentcore-worktrees\<project_key>
-        wt_root = Path(r"D:\agentcore-worktrees") / project_key
-        wt_root.mkdir(parents=True, exist_ok=True)
-        worktree_str = str(wt_root)
+        worktree_path = Path(r"D:\agentcore-worktrees") / project_key
+    worktree_str = str(worktree_path)
+
+    try:
+        validate_project_identity(
+            {
+                "project_key": project_key,
+                "project_root": target_str,
+                "canonical_repo_path": target_str,
+                "worktree_path": worktree_str,
+            }
+        )
+    except ProjectBoundaryError as exc:
+        print(f"ERROR: workflow project boundary rejected identity: {exc}", file=sys.stderr)
+        return 2
+
+    project_id = _ensure_project(project_key, project_name, target_str)
+    worktree_path.mkdir(parents=True, exist_ok=True)
 
     # Optional git remote capture (no fetching, no push)
     remote = args.git_remote or ""

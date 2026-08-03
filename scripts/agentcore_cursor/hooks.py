@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -153,8 +154,8 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
                 additional = md_path.read_text(encoding="utf-8", errors="replace")[:120000]
     # Never mutate a rejected workspace or claim prompt capture at session start.
     try:
-        boot_p = (Path(workspace) if workspace else Path.cwd()) / ".agentcore" / "runtime" / "cursor-bootstrap.json"
-        if result.ok and boot_p.is_file():
+        boot_p = Path(result.bootstrap_path) if result.bootstrap_path else None
+        if result.ok and boot_p is not None and boot_p.is_file():
             bdata = json.loads(boot_p.read_text(encoding="utf-8"))
             bdata.setdefault("result", {}).setdefault("status_flags", {})["startup_context_completed"] = True
             boot_p.write_text(json.dumps(bdata, indent=2) + "\n", encoding="utf-8")
@@ -207,8 +208,25 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
             ),
         }
 
+    if prompt and (not isinstance(result_block, dict) or not result_block.get("ok")):
+        return {
+            "continue": False,
+            "user_message": (
+                "AgentCore could not establish a healthy durable project session. "
+                "Fix gateway/memory health, then resubmit."
+            ),
+        }
+
     session_id = (result_block or {}).get("session_id") if isinstance(result_block, dict) else None
     project_key = (result_block or {}).get("project_key") if isinstance(result_block, dict) else None
+    if prompt and (not session_id or not project_key):
+        return {
+            "continue": False,
+            "user_message": (
+                "AgentCore durable session identity is incomplete. "
+                "Recover the session, then resubmit."
+            ),
+        }
     prompt_evidence: dict[str, Any] = {}
     if session_id and prompt and project_key:
         append_result = append_prompt(
@@ -232,19 +250,14 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
             "idempotent_replay": bool(append_result.get("idempotent_replay")),
         }
         root = Path(workspace) if workspace else Path.cwd()
-        boot_path = root / ".agentcore" / "runtime" / "cursor-bootstrap.json"
-        if boot_path.is_file():
-            try:
-                blob = json.loads(boot_path.read_text(encoding="utf-8"))
-                blob.setdefault("result", {}).setdefault("status_flags", {})[
-                    "current_prompt_captured_before_tools"
-                ] = True
-                blob["last_prompt_capture_at"] = __import__(
-                    "datetime"
-                ).datetime.now(__import__("datetime").timezone.utc).isoformat()
-                boot_path.write_text(json.dumps(blob, indent=2) + "\n", encoding="utf-8")
-            except Exception:
-                pass
+        if not _set_prompt_capture_flag(root, captured=True):
+            return {
+                "continue": False,
+                "user_message": (
+                    "AgentCore captured the prompt but could not arm the local tool gate. "
+                    "Recover the Cursor session, then resubmit safely."
+                ),
+            }
 
     return {"continue": True, "agentcore_prompt_capture": prompt_evidence}
 
@@ -503,6 +516,82 @@ def _is_serena_maintenance_invocation(command: str) -> bool:
     ) is not None
 
 
+SHELL_FILE_MUTATORS = {
+    "set-content",
+    "add-content",
+    "clear-content",
+    "out-file",
+    "new-item",
+    "remove-item",
+    "move-item",
+    "copy-item",
+    "rename-item",
+}
+
+
+def _set_prompt_capture_flag(root_path: Path, *, captured: bool) -> bool:
+    boot_path = root_path / ".agentcore" / "runtime" / "cursor-bootstrap.json"
+    if not boot_path.is_file():
+        return False
+    try:
+        blob = json.loads(boot_path.read_text(encoding="utf-8"))
+        blob.setdefault("result", {}).setdefault("status_flags", {})[
+            "current_prompt_captured_before_tools"
+        ] = captured
+        timestamp_key = "last_prompt_capture_at" if captured else "prompt_capture_reset_at"
+        blob[timestamp_key] = __import__("datetime").datetime.now(
+            __import__("datetime").timezone.utc
+        ).isoformat()
+        boot_path.write_text(json.dumps(blob, indent=2) + "\n", encoding="utf-8")
+        return True
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+
+
+def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
+    """Return whether a command mutates files and its safely resolved target."""
+    mutator_pattern = r"(?i)\b(?:" + "|".join(SHELL_FILE_MUTATORS) + r")\b"
+    if re.search(mutator_pattern, command) and re.search(r";|&&|\|\|", command):
+        return True, None
+    redirect = re.search(
+        r"(?<!>)>{1,2}\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|]+))",
+        command,
+    )
+    if redirect:
+        return True, next((value for value in redirect.groups() if value), None)
+
+    try:
+        tokens = shlex.split(command, posix=False)
+    except ValueError:
+        return bool(re.search(mutator_pattern, command)), None
+    command_index = next(
+        (index for index, token in enumerate(tokens) if token.strip("'\"").lower() in SHELL_FILE_MUTATORS),
+        None,
+    )
+    if command_index is None:
+        return False, None
+    if any(token in {";", "&&", "||"} for token in tokens):
+        return True, None
+
+    mutator = tokens[command_index].strip("'\"").lower()
+    tail = tokens[command_index + 1 :]
+    explicit_names = (
+        {"-destination", "-newname"}
+        if mutator in {"move-item", "copy-item", "rename-item"}
+        else {"-literalpath", "-path", "-filepath"}
+    )
+    for index, token in enumerate(tail[:-1]):
+        if token.lower() in explicit_names:
+            return True, tail[index + 1].strip("'\"")
+
+    positional = [token.strip("'\"") for token in tail if token and not token.startswith("-")]
+    if not positional:
+        return True, None
+    if mutator in {"move-item", "copy-item", "rename-item"}:
+        return (True, positional[1]) if len(positional) >= 2 else (True, None)
+    return True, positional[0]
+
+
 def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
     """Stage B beforeShellExecution deterministic gating."""
     try:
@@ -527,6 +616,26 @@ def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
                     "permission": "deny",
                     "user_message": f"AgentCore Stage B Shell Deny: {reason} matched in command: {command[:100]}"
                 }
+
+        is_mutation, target = _shell_file_mutation_target(command)
+        if is_mutation:
+            if not target:
+                return {
+                    "permission": "deny",
+                    "user_message": "AgentCore Stage B Shell Deny: file mutation target is not safely resolvable",
+                }
+            roots = payload.get("workspace_roots") or []
+            workspace = str(_normalize_workspace_path(str(roots[0]))) if isinstance(roots, list) and roots else str(Path.cwd())
+            target_path = Path(target)
+            if not target_path.is_absolute():
+                target_path = Path(workspace) / target_path
+            return handle_pre_tool(
+                {
+                    "workspace_roots": [workspace],
+                    "tool_name": "write_file",
+                    "tool_input": {"path": str(target_path)},
+                }
+            )
 
         return {"permission": "allow"}
 
@@ -637,6 +746,13 @@ def handle_stop(payload: dict[str, Any]) -> dict[str, Any]:
                 "agent_message": (
                     "AgentCore handoff checkpoint degraded; canonical session "
                     "remains open for recovery."
+                )
+            }
+        if not _set_prompt_capture_flag(root_path, captured=False):
+            return {
+                "agent_message": (
+                    "AgentCore handoff captured, but the prompt gate could not be reset; "
+                    "restart the Cursor session before further tool use."
                 )
             }
         return {}

@@ -21,10 +21,10 @@
  */
 
 // Set process-local isolation vars BEFORE any module that calls homedir()
-process.env.USERPROFILE = 'H:\\AgentRuntime\\skills-hub\\home';
-process.env.HOME        = 'H:\\AgentRuntime\\skills-hub\\home';
-process.env.HOMEDRIVE   = 'H:';
-process.env.HOMEPATH    = '\\AgentRuntime\\skills-hub\\home';
+process.env.USERPROFILE = 'F:\\AgentCore\\runtime\\skills-hub\\home';
+process.env.HOME        = 'F:\\AgentCore\\runtime\\skills-hub\\home';
+process.env.HOMEDRIVE   = 'F:';
+process.env.HOMEPATH    = '\\AgentCore\\runtime\\skills-hub\\home';
 
 // Dynamic import ensures env mutation precedes module-level side-effects
 // in @skills-hub-ai/mcp that could call homedir() at import time.

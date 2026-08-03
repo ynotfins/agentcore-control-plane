@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from contextlib import nullcontext
 from pathlib import Path
 
 import pytest
@@ -109,12 +110,20 @@ def test_session_key_reuse_cannot_change_identity() -> None:
         "project_key": "agentcore-control-plane",
         "client_key": "cursor",
         "agent_key": "cursor-composer",
+        "device_id": "CHAOSCENTRAL",
+        "user_key": "ynotf",
+        "canonical_path": r"D:\github\agentcore-control-plane",
+        "worktree_path": r"D:\github\agentcore-control-plane",
     }
     server._require_session_identity(
         existing,
         project_key="agentcore-control-plane",
         client_key="cursor",
         agent_key="cursor-composer",
+        device_id="CHAOSCENTRAL",
+        user_key="ynotf",
+        canonical_path=r"D:\github\agentcore-control-plane",
+        worktree_path=r"D:\github\agentcore-control-plane",
     )
     with pytest.raises(ValueError, match="session_identity_mismatch"):
         server._require_session_identity(
@@ -122,7 +131,36 @@ def test_session_key_reuse_cannot_change_identity() -> None:
             project_key="agentcore-context-engine",
             client_key="cursor",
             agent_key="cursor-composer",
+            device_id="CHAOSCENTRAL",
+            user_key="ynotf",
+            canonical_path=r"D:\github\agentcore-control-plane",
+            worktree_path=r"D:\github\agentcore-control-plane",
         )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("device_id", "OTHER-PC"),
+        ("user_key", "other-user"),
+        ("worktree_path", r"D:\agentcore-worktrees\other"),
+    ],
+)
+def test_session_key_reuse_cannot_change_bound_source_identity(field: str, value: str) -> None:
+    existing = {
+        "project_key": "agentcore-control-plane",
+        "client_key": "cursor",
+        "agent_key": "cursor-composer",
+        "device_id": "CHAOSCENTRAL",
+        "user_key": "ynotf",
+        "canonical_path": r"D:\github\agentcore-control-plane",
+        "worktree_path": r"D:\github\agentcore-control-plane",
+    }
+    requested = dict(existing)
+    requested[field] = value
+
+    with pytest.raises(ValueError, match="session_identity_mismatch"):
+        server._require_session_identity(existing, **requested)
 
 
 def test_opaque_reference_must_match_requested_project() -> None:
@@ -134,3 +172,41 @@ def test_opaque_reference_must_match_requested_project() -> None:
             {"agentcore-control-plane", "agentcore-context-engine"},
             "agentcore-control-plane",
         )
+
+
+class _IdentityConnection:
+    def commit(self) -> None:
+        return None
+
+
+def test_unsigned_recovery_read_cannot_record_recovery_operation(monkeypatch) -> None:
+    captured: dict = {}
+    legacy = server.VerifiedIdentity(
+        machine_id="machine",
+        user_id="user",
+        device_id="CHAOSCENTRAL",
+        user_key="ynotf",
+        key_id=None,
+        legacy_compat=True,
+    )
+    monkeypatch.setattr(server, "db", lambda: nullcontext(_IdentityConnection()))
+    monkeypatch.setattr(server, "verify_tool_identity", lambda *_args, **_kwargs: legacy)
+    monkeypatch.setattr(server, "validate_tool_project_boundary", lambda *_args, **_kwargs: None)
+
+    def fake_retrieve(args: dict) -> dict:
+        captured.update(args)
+        return {"ok": True}
+
+    monkeypatch.setattr(server, "retrieve_context", fake_retrieve)
+    result = server.call_tool(
+        "retrieve_context",
+        {
+            "project_key": "agentcore-control-plane",
+            "project_root": r"D:\github\agentcore-control-plane",
+            "recovery_mode": "current_state",
+            "record_recovery": True,
+        },
+    )
+
+    assert result["ok"] is True
+    assert captured["record_recovery"] is False

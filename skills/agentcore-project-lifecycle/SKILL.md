@@ -1,7 +1,7 @@
 ---
 name: agentcore-project-lifecycle
-description: "Governed AgentCore project lifecycle orchestrator for new project bootstrap (Milestone 0) and milestone entry/exit boundaries. Integrates AgentCore memory, router, governance templates, Arabold docs, and Context Fabric through Bifrost."
-version: 1.0.0
+description: "Governed AgentCore project lifecycle orchestrator for new project bootstrap (Milestone 0) and milestone entry/exit boundaries. Integrates AgentCore memory, governance templates, Arabold docs, and project-scoped continuity without machine-global router mutation."
+version: 1.1.0
 category: meta
 provenance:
   decision: MINIMAL_WRAPPER
@@ -23,10 +23,10 @@ AUTHORITY & PRECONDITIONS
 ============================================================
 
 1. **Routing**: Route all tools strictly through Bifrost `agentcore-gateway` (`http://127.0.0.1:8080/mcp`).
-   - Router: `agentcore_project_router` (`project_activate`, `project_status`, `project_list`)
    - Memory: `agentcore_memory` (`session_open`, `startup_context`, `append_event`, `retrieve_context`, `expand_source`, `build_handoff`, `session_close`)
    - Docs: `arabold_docs` (`search_docs`, `fetch_url`)
-   - Continuity (optional / capability-gated): `context_fabric` (`cf_capture`, `cf_drift`, `cf_health` when available)
+   - Machine-global `agentcore_project_router` tools are operator-maintenance only and are never required or invoked by this skill.
+   - Continuity and semantic code tools are invoked only through their approved project-scoped host adapter or repo-local command with the exact repository cwd; never by mutating shared router state.
 2. **Templates Source**: `@D:\github\agentcore-control-plane\templates\project-governance\.agentcore`
 3. **Hard Boundaries**:
    - Never write `.env` files (use Windows User environment variables only).
@@ -41,16 +41,16 @@ OPERATION 1: NEW PROJECT BOOTSTRAP (MILESTONE 0)
 
 Use when initializing a new project or onboarding an un-governed repository.
 
-### Step 1.1: Worktree & Router Activation
+### Step 1.1: Exact Project Enrollment
 1. Verify repository root and git status (`git status`).
-2. Activate the project in `agentcore_project_router`:
-   `agentcore_project_router-project_activate(path="<absolute_project_root>")`
+2. Verify that `<project_key>` and `<absolute_project_root>` are an exact pair in `@D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json`.
+3. If the pair is absent or mismatched, halt before memory/database writes and request governed enrollment. Do not auto-enroll or select a similarly named repository.
 
 ### Step 1.2: Durable Session & Startup Context
 1. Open a durable memory session:
-   `agentcore_memory-session_open(project_key="<project_key>", client_key="cursor", agent_key="project-lifecycle")`
+   `agentcore_memory-session_open(project_key="<project_key>", project_root="<absolute_project_root>", client_key="<host-client-key>", agent_key="project-lifecycle", session_key="<stable-task-key>")`
 2. Retrieve startup context:
-   `agentcore_memory-startup_context(project_key="<project_key>")`
+   `agentcore_memory-startup_context(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`
 
 ### Step 1.3: Governance Files Scaffolding
 Create missing `.agentcore/` files from `@D:\github\agentcore-control-plane\templates\project-governance\.agentcore`:
@@ -74,12 +74,12 @@ Verify the codebase against critical architectural foundations (adapted from `bo
 Flag any missing items as `TODO` in `PROJECT_CHARTER.md` and `state.json`.
 
 ### Step 1.5: Continuity & Documentation Registration
-1. Capture workspace baseline in Context Fabric: `context_fabric-cf_capture()`.
+1. Capture the workspace baseline through the approved project-scoped Context Fabric adapter or repo-local command with `cwd=<absolute_project_root>`. Context Fabric is optional and never changes AgentCore project identity.
 2. Query/index project dependencies in Arabold Docs: `arabold_docs-search_docs(query="...")`.
 
 ### Step 1.6: Record Bootstrap Evidence
 Append bootstrap completion event:
-`agentcore_memory-append_event(session_id="<session_id>", event_kind="accepted_evidence", idempotency_key="m0-bootstrap-<timestamp>", payload={...})`
+`agentcore_memory-append_event(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>", event_kind="accepted_evidence", idempotency_key="m0-bootstrap-<deterministic-key>", payload={...})`
 
 ============================================================
 OPERATION 2: MILESTONE BOUNDARY (ENTRY GATE)
@@ -90,8 +90,8 @@ Use before commencing work on any project Milestone.
 1. **Read Authority & State**: Read `PROJECT_ANCHOR.md`, `DOC_AUTHORITY.md`, project `AGENTS.md`, and generated `.agentcore/STATE.md`.
 2. **Verify Repository State**: Confirm clean worktree and active branch (`git status`, `git log -1`).
 3. **Check Previous Gate**: Confirm previous Milestone is `passed` in `.agentcore/checklists/state.json`.
-4. **Retrieve Chronology**: Retrieve recent events via `agentcore_memory-retrieve_context(project_key="<project_key>")`.
-5. **Expand Evidence**: Expand key artifact/decision references via `agentcore_memory-expand_source(...)`.
+4. **Retrieve Chronology**: Retrieve recent events via `agentcore_memory-retrieve_context(project_key="<project_key>", project_root="<absolute_project_root>")`.
+5. **Expand Evidence**: Expand key artifact/decision references with the same exact `project_key` + `project_root` via `agentcore_memory-expand_source(...)`.
 6. **Query Docs**: Resolve exact dependency/framework versions with `arabold_docs`.
 7. **Audit Tool Leases**: Inspect `.agentcore/TOOL_MANIFEST.yaml` and verify active tool leases for the Milestone.
 8. **Refine Checklists**: Refine Macro and Micro steps for the current Milestone in `.agentcore/checklists/state.json`.
@@ -104,12 +104,12 @@ OPERATION 3: MILESTONE BOUNDARY (EXIT GATE)
 Use upon completing all Micro steps in a Milestone.
 
 1. **Run Deterministic Tests**: Run test suite, project validators (`validate_contracts.py`), `ReadLints`, and secret scan.
-2. **Run Structural Verification**: Run Depwire (`depwire-verify_change`), Serena symbol checks, and Context Fabric drift check (`context_fabric-cf_drift`).
+2. **Run Structural Verification**: Run Depwire, Serena symbol checks, and optional Context Fabric drift through approved project-scoped adapters or repo-local commands with `cwd=<absolute_project_root>`; never activate the machine-global router from this skill.
 3. **Verify Micro Step Evidence**: Ensure every Micro step in `.agentcore/checklists/state.json` has `status: "passed"` and a valid `evidence_ref` (file path, commit hash, test transcript).
 4. **Record Decisions**: Document architectural decisions in `.agentcore/DECISIONS.md`.
 5. **Update Projections**: Execute `Invoke-M3ProjectionWorker.ps1` to update `.agentcore/STATE.md`.
-6. **Build Handoff**: Construct project handoff packet via `agentcore_memory-build_handoff(project_key="<project_key>")`.
-7. **Close Session**: Close memory session: `agentcore_memory-session_close(session_id="<session_id>")`.
+6. **Build Handoff**: Construct the handoff via `agentcore_memory-build_handoff(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`.
+7. **Close Session**: Close via `agentcore_memory-session_close(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`.
 8. **Audit & Release Leases**: Update `.agentcore/TOOL_MANIFEST.yaml` tool lifecycle audit.
 9. **Git Commit & Push**: Stage source-controlled files, commit with concise message, and push to remote (`docs/GIT_PUSH_ONLY_POLICY.md`).
 
@@ -119,4 +119,5 @@ SELF-HEALING & IDEMPOTENCY
 
 - Re-running M0 Bootstrap on an already governed project is idempotent: existing governance files are preserved; missing files are scaffolded.
 - If a memory call fails, verify gateway status via `agentcore_memory-memory_status` before retrying.
+- Every project-scoped memory call supplies the exact enrolled `project_key` and `project_root`; signed host adapters supply device identity assertions.
 - All actions produce verifiable evidence references recorded in `.agentcore/checklists/state.json` and `agentcore_memory`.

@@ -109,6 +109,7 @@ def _open_session(
     project_name: str | None = None,
     repo_path: str = "D:\\github\\agentcore-control-plane",
     branch_name: str = "main",
+    verified_identity: Any = None,
 ) -> dict[str, Any]:
     """Call session_open through the server module."""
     from agentcore_memory import server  # noqa: PLC0415
@@ -126,7 +127,7 @@ def _open_session(
         "repo_key": "agentcore-control-plane",
         "branch_name": branch_name,
         "context_profile": "standard-context",
-    })
+    }, verified_identity=verified_identity)
 
 
 def _append(session_id: str, idem_key: str, payload: dict) -> dict[str, Any]:
@@ -210,6 +211,67 @@ def test_same_task_resume(project_a: str, run_id: str):
     assert ctx["ok"]
     ids = [item["id"] for item in ctx.get("recovery", {}).get("items", [])]
     assert event_id in ids, f"event {event_id} not found in resumed session chronology"
+
+
+@db_available
+def test_same_session_reopen_reuses_source_identity_and_idempotency(project_a: str, run_id: str):
+    from agentcore_memory.device_identity import VerifiedIdentity
+
+    identity = VerifiedIdentity(
+        machine_id="test-machine",
+        user_id="test-user",
+        device_id=f"device-{run_id}",
+        user_key=f"user-{run_id}",
+        key_id=f"key-{run_id}",
+    )
+    session_key = f"{project_a}:cursor:agent:source-reuse-{run_id}"
+    idem = f"source-reuse-idem-{run_id}"
+    client = f"cursor-{run_id}"
+    agent = f"agent-{run_id}"
+
+    first_open = _open_session(
+        project_a, client, agent, session_key, verified_identity=identity
+    )
+    first_event = _append(str(first_open["session_id"]), idem, {"attempt": 1})
+    reopened = _open_session(
+        project_a, client, agent, session_key, verified_identity=identity
+    )
+    replay = _append(str(reopened["session_id"]), idem, {"attempt": 1})
+
+    assert reopened["source_identity_id"] == first_open["source_identity_id"]
+    assert replay["event_id"] == first_event["event_id"]
+    assert replay["idempotent_replay"] is True
+
+
+@db_available
+def test_same_session_key_rejects_different_device_identity(project_a: str, run_id: str):
+    from agentcore_memory.device_identity import VerifiedIdentity
+
+    original = VerifiedIdentity(
+        machine_id="machine-a",
+        user_id="user-a",
+        device_id=f"device-a-{run_id}",
+        user_key=f"user-a-{run_id}",
+        key_id=f"key-a-{run_id}",
+    )
+    attacker = VerifiedIdentity(
+        machine_id="machine-b",
+        user_id="user-b",
+        device_id=f"device-b-{run_id}",
+        user_key=f"user-b-{run_id}",
+        key_id=f"key-b-{run_id}",
+    )
+    session_key = f"{project_a}:cursor:agent:device-bound-{run_id}"
+    client = f"cursor-{run_id}"
+    agent = f"agent-{run_id}"
+
+    _open_session(
+        project_a, client, agent, session_key, verified_identity=original
+    )
+    with pytest.raises(ValueError, match="session_identity_mismatch"):
+        _open_session(
+            project_a, client, agent, session_key, verified_identity=attacker
+        )
 
 
 # ---------------------------------------------------------------------------

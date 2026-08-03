@@ -72,6 +72,29 @@ class BootstrapProjectBoundaryTests(unittest.TestCase):
 
             self.assertEqual(json.loads(artifact.read_text(encoding="utf-8")), original)
 
+    def test_session_start_marks_the_exact_bootstrap_artifact_reported_by_bootstrap(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            reported = root / "custom-runtime" / "cursor-bootstrap.json"
+            reported.parent.mkdir(parents=True)
+            original = {"result": {"status_flags": {"prompt_captured": False}}}
+            reported.write_text(json.dumps(original), encoding="utf-8")
+            accepted = bootstrap.BootstrapResult(
+                ok=True,
+                project_key="agentcore-control-plane",
+                project_root=str(root),
+                bootstrap_path=str(reported),
+            )
+            with (
+                patch.object(hooks, "_normalize_workspace_path", return_value=root),
+                patch.object(hooks, "run_bootstrap", return_value=accepted),
+            ):
+                hooks.handle_session_start({"workspace_roots": [str(root)]})
+
+            data = json.loads(reported.read_text(encoding="utf-8"))
+            self.assertTrue(data["result"]["status_flags"]["startup_context_completed"])
+            self.assertFalse(data["result"]["status_flags"]["prompt_captured"])
+
 
 if __name__ == "__main__":
     unittest.main()

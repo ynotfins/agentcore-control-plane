@@ -114,8 +114,14 @@ class SerenaMaintenanceTests(unittest.TestCase):
 
     def test_cursor_rule_derives_from_current_rendering(self) -> None:
         content = _cursor_global_rule_content()
+        policy_text = (REPO_ROOT / "contracts" / "global-agent-policy.yaml").read_text(encoding="utf-8")
+        revision = next(
+            line.split(":", 1)[1].strip().strip('"')
+            for line in policy_text.splitlines()
+            if line.startswith("policy_revision:")
+        )
         self.assertIn("alwaysApply: true", content)
-        self.assertIn("policy_revision 2026-07-26", content)
+        self.assertIn(f"policy_revision {revision}", content)
         self.assertIn("Serena-centered powerhouse toolchain", content)
         self.assertNotIn("STAGING ONLY", content)
         self.assertTrue(str(CURSOR_GLOBAL_RULE).endswith("agentcore-foundation.mdc"))

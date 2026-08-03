@@ -16,6 +16,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import ntpath
 import os
 import socket
 import sys
@@ -62,7 +63,7 @@ from recovery import (
 _RECALL_PROJECT_KINDS = frozenset({"decision", "accepted_evidence", "output"})
 
 SERVER_NAME = "agentcore-memory"
-SERVER_VERSION = "0.9.0"
+SERVER_VERSION = "0.9.1"
 # Bifrost currently initializes with 2025-06-18; accept and echo it.
 SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
 DEFAULT_PROTOCOL_VERSION = "2025-06-18"
@@ -157,13 +158,34 @@ def _require_session_identity(
     project_key: str,
     client_key: str,
     agent_key: str,
+    device_id: str,
+    user_key: str,
+    canonical_path: str,
+    worktree_path: str,
 ) -> None:
-    if existing and (
-        str(existing["project_key"]) != project_key
-        or str(existing["client_key"]) != client_key
-        or str(existing["agent_key"]) != agent_key
+    if not existing:
+        return
+    requested = {
+        "project_key": project_key,
+        "client_key": client_key,
+        "agent_key": agent_key,
+        "device_id": device_id,
+        "user_key": user_key,
+    }
+    if any(
+        existing.get(field) is not None
+        and str(existing[field]) != str(value)
+        for field, value in requested.items()
     ):
         raise ProjectBoundaryError("session_identity_mismatch")
+    for field, value in (
+        ("canonical_path", canonical_path),
+        ("worktree_path", worktree_path),
+    ):
+        if existing.get(field) is not None and ntpath.normcase(
+            ntpath.normpath(str(existing[field]))
+        ) != ntpath.normcase(ntpath.normpath(str(value))):
+            raise ProjectBoundaryError("session_identity_mismatch")
 
 
 def _ok_response_schema(extra_props: dict | None = None) -> dict:
@@ -757,11 +779,28 @@ def session_open(
         cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (session_key,))
         cur.execute(
             """
-            SELECT p.project_key, c.client_key, a.agent_key
+            SELECT p.project_key, c.client_key, a.agent_key,
+                   bound.device_id, bound.user_key, bound.canonical_path,
+                   bound.worktree_path, bound.source_identity_id
             FROM agentcore.sessions s
             JOIN agentcore.projects p ON p.id = s.project_id
             JOIN agentcore.ide_clients c ON c.id = s.client_id
             JOIN agentcore.agents a ON a.id = s.agent_id
+            LEFT JOIN LATERAL (
+                SELECT m.machine_name AS device_id,
+                       u.username AS user_key,
+                       r.canonical_path,
+                       w.worktree_path,
+                       si.id AS source_identity_id
+                FROM agentcore.source_identities si
+                JOIN agentcore.machines m ON m.id = si.machine_id
+                JOIN agentcore.users u ON u.id = si.user_id
+                JOIN agentcore.repositories r ON r.id = si.repository_id
+                JOIN agentcore.worktrees w ON w.id = si.worktree_id
+                WHERE si.session_id = s.id
+                ORDER BY si.created_at, si.id
+                LIMIT 1
+            ) bound ON true
             WHERE s.session_key = %s
             """,
             (session_key,),
@@ -772,6 +811,10 @@ def session_open(
             project_key=str(project_key),
             client_key=str(client_key),
             agent_key=str(agent_key),
+            device_id=identity.device_id,
+            user_key=identity.user_key,
+            canonical_path=repo_path,
+            worktree_path=worktree_path,
         )
         cur.execute(
             """
@@ -891,7 +934,14 @@ def session_open(
                 SET display_name = COALESCE(agentcore.users.display_name, EXCLUDED.display_name)
               RETURNING id
             ),
-            source AS (
+            existing_source AS (
+              SELECT si.id
+              FROM agentcore.source_identities si, session
+              WHERE si.session_id = session.id
+              ORDER BY si.created_at, si.id
+              LIMIT 1
+            ),
+            source_insert AS (
               INSERT INTO agentcore.source_identities (
                 machine_id, user_id, project_id, repository_id, worktree_id, client_id, agent_id,
                 session_id, run_id, workflow_thread_id, source_label, trust_class
@@ -900,7 +950,13 @@ def session_open(
                      session.client_id, session.agent_id, session.id, run.id, thread.id,
                      %s, 'project_verified'
               FROM machine, usr, project, wt, session, run, thread
+              WHERE NOT EXISTS (SELECT 1 FROM existing_source)
               RETURNING id
+            ),
+            source AS (
+              SELECT id FROM existing_source
+              UNION ALL
+              SELECT id FROM source_insert
             )
             SELECT session.id AS session_id, session.project_id, source.id AS source_identity_id, run.id AS run_id
             FROM session, source, run
@@ -2091,6 +2147,12 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
             validate_tool_project_boundary(name, arguments)
     except ProjectBoundaryError as exc:
         return {"ok": False, "error": str(exc)}
+    if (
+        verified_identity is not None
+        and verified_identity.legacy_compat
+        and name in {"retrieve_context", "startup_context"}
+    ):
+        arguments["record_recovery"] = False
     if name == "session_open":
         try:
             result = session_open(arguments, verified_identity)

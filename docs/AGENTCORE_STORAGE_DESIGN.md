@@ -50,20 +50,19 @@ E:\AgentCoreArchive\
 
 ## Database
 
-Active PostgreSQL runtime:
+Current canonical PostgreSQL runtime (supersedes the June layout below):
 
-- Engine: `F:\AgentCore\postgres_runtime_engine\pgsql`
-- Data cluster: `F:\AgentCore\database_cluster`
+- Engine root: `F:\PostgreSQL18`
+- Data cluster: `F:\PostgreSQL18\data`
 - Host: `127.0.0.1`
-- Port: `55432`
+- Port: `55433`
 - Database: `agent_core`
-- Vector table: `global_vector_memory_store`
-- Telemetry table: `agent_cross_project_telemetry`
-- pgvector: `0.8.2`
+- Vector/search authority: versioned AgentCore migrations in PostgreSQL 18; do not depend on the removed PG16-era `global_vector_memory_store` name.
+- pgvector: installed in PostgreSQL 18; verify the live extension version at execution time rather than treating this historical document as version authority.
 
 Legacy rollback copy:
 
-- `E:\database_cluster`
+- PostgreSQL 16 at `127.0.0.1:55432` / `F:\AgentCore\database_cluster` is rollback evidence only.
 
 Do not use the legacy copy as active storage unless explicitly rolling back.
 

@@ -27,16 +27,16 @@ Memory rules:
 
 At the beginning of project work:
 
-1. Identify the intended repository or worktree.
-2. Activate it through agentcore-project-router.
-3. Verify the returned project/repository/worktree identity.
+1. Identify the exact enrolled `project_key` and absolute repository/worktree root.
+2. Verify that exact pair against the AgentCore enrollment contract; do not mutate machine-global project-router state.
+3. Supply the same exact `project_key` and `project_root` on every project-scoped memory call.
 4. Read the generated project .agentcore/STATE.md when available.
 5. Open or resume an AgentCore session using:
        client_key = cherry-studio
        agent_key  = cherry-studio-assistant
 6. Use a stable session_key for continuation of the same task and a new
    session_key for a new task.
-7. Call startup_context with the correct model context profile.
+7. Call startup_context with the exact project key/root and correct model context profile.
 8. Use retrieve_context for missing chronology.
 9. Use expand_source to verify exact original evidence before asking the
    operator to repeat project history.
@@ -45,17 +45,22 @@ For general non-project conversation, use only a currently registered global
 or general scope supported by AgentCore. Do not invent a repository,
 worktree, project path, or project identity.
 
-Before meaningful tool execution:
+Before meaningful tool execution, when the signed Context Engine companion is available:
 
-- preserve the visible operator request through append_event using a
+- preserve the visible operator request through a signed append_event using a
   deterministic idempotency key after secret redaction
 - preserve requirements, constraints, assumptions, acceptance criteria,
   and unresolved questions
 - do not claim durable capture until append_event succeeds
 
+Cherry Studio does not provide native lifecycle hooks. If the signed companion is not
+running or a write assertion is rejected, fail closed for canonical memory writes,
+report the missing companion boundary, and do not claim automatic capture. Unsigned
+legacy-compatible reads are not proof of a durable write.
+
 During project work:
 
-- remain inside the activated worktree
+- remain inside the exact enrolled project root/worktree
 - use Arabold for exact-version official documentation
 - use Serena for semantic code navigation
 - use Depwire before risky structural changes
@@ -87,8 +92,6 @@ At clean completion:
 When AgentCore, Cognee, or an optional upstream is degraded, report the exact
 degraded component and continue only within the documented fallback policy.
 
-Tool prefixes observed through Bifrost tools/list (builder profile) include:
-agentcore_memory-*, agentcore_project_router-*, arabold_docs-*,
-context_fabric-*, depwire-*, tentra-*, sequential_thinking-*,
-playwright-*, filesystem-*, and other profile-permitted upstreams.
-Always call them via agentcore-gateway only.
+Use only tool names returned by the current `agentcore-gateway` tools/list for the
+Cherry profile. Machine-global `agentcore_project_router-*` tools are not part of the
+ordinary Cherry surface. Never infer dormant or operator-only tools from documentation.

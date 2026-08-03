@@ -53,6 +53,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]  # .../tests/fixture_e2e.py -> 
 _FIXTURE_ROOT = Path(r"D:\agentcore-fixture\fixture-project")
 _FIXTURE_REMOTE = Path(r"D:\agentcore-fixture\fixture-remote.git")
 _FIXTURE_WT = Path(r"D:\agentcore-worktrees\m6_fixture")
+_FIXTURE_CONTRACT = Path(r"D:\agentcore-fixture\project-enrollment.json")
 _TESTS_DIR = _REPO_ROOT / "scripts" / "agentcore_workflow" / "tests"
 _SCRIPTS_DIR = _REPO_ROOT / "scripts"
 
@@ -119,6 +120,26 @@ def _ensure_fixture() -> None:
         _block("00", "fixture_remote_present",
                f"missing remote at {_FIXTURE_REMOTE}")
         raise SystemExit(2)
+    _FIXTURE_CONTRACT.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "default_policy": "deny",
+                "projects": [
+                    {
+                        "project_key": "fixture_e2e_run",
+                        "name": "M6 disposable fixture",
+                        "paths": [str(_FIXTURE_ROOT), str(_FIXTURE_WT)],
+                    }
+                ],
+                "foreign_markers": ["swarm", "openclaw", "clawx"],
+                "foreign_roots": [r"D:\github\swarm-ecosystem-control", r"H:\SwarmData"],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def _register_project(project_key: str) -> str:
@@ -166,8 +187,15 @@ def _run_cli(*args: str, json_out: bool = True) -> tuple[int, str]:
     cmd = ["python", "-m", "agentcore", *args]
     if json_out and "--json" not in args:
         cmd.append("--json")
+    env = dict(os.environ)
+    env["AGENTCORE_PROJECT_ENROLLMENT_CONTRACT"] = str(_FIXTURE_CONTRACT)
     proc = subprocess.run(
-        cmd, cwd=os.fspath(_SCRIPTS_DIR), capture_output=True, text=True, timeout=120
+        cmd,
+        cwd=os.fspath(_SCRIPTS_DIR),
+        capture_output=True,
+        text=True,
+        timeout=120,
+        env=env,
     )
     return proc.returncode, (proc.stdout if json_out else proc.stdout + proc.stderr)
 

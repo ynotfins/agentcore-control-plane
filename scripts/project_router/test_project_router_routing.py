@@ -269,6 +269,51 @@ class ProjectRouterRoutingTests(unittest.TestCase):
         self.assertEqual(result["rollback_reconnect"], restored)
         self.assertEqual(save_state.call_args_list[1].args, (previous,))
 
+    def test_project_activate_restores_state_when_reconnect_raises(self) -> None:
+        server = load_module("agentcore_project_router_exception_rollback_test", HERE / "server.py")
+        previous = {"id": "previous", "path": r"D:\github\previous", "name": "previous"}
+        project = {"id": "next", "path": str(REPO_ROOT), "name": "next"}
+
+        with (
+            patch.object(server, "scan_registered_projects", return_value=[project]),
+            patch.object(server, "_load_state_unlocked", return_value=previous),
+            patch.object(server, "_save_state_unlocked") as save_state,
+            patch.object(
+                server,
+                "reconnect_router_clients",
+                side_effect=[RuntimeError("inventory unavailable"), {"ok": True, "status": "reconnected"}],
+            ),
+        ):
+            result = server.call_tool("project_activate", {"id": "next"})
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["active"], previous)
+        self.assertEqual(result["error"], "project_scoped_reconnect_exception")
+        self.assertEqual(save_state.call_args_list[0].args, (project | {"activated_at": result["requested"]["activated_at"], "activated_by": server.SERVER_NAME},))
+        self.assertEqual(save_state.call_args_list[1].args, (previous,))
+
+    def test_project_clear_restores_state_when_reconnect_raises(self) -> None:
+        server = load_module("agentcore_project_router_clear_exception_test", HERE / "server.py")
+        previous = {"id": "previous", "path": r"D:\github\previous", "name": "previous"}
+
+        with (
+            patch.object(server, "scan_registered_projects", return_value=[]),
+            patch.object(server, "_load_state_unlocked", return_value=previous),
+            patch.object(server, "_save_state_unlocked") as save_state,
+            patch.object(
+                server,
+                "reconnect_router_clients",
+                side_effect=[RuntimeError("inventory unavailable"), {"ok": True, "status": "reconnected"}],
+            ),
+        ):
+            result = server.call_tool("project_clear", {})
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["active"], previous)
+        self.assertEqual(result["error"], "project_scoped_reconnect_exception")
+        self.assertEqual(save_state.call_args_list[0].args, (None,))
+        self.assertEqual(save_state.call_args_list[1].args, (previous,))
+
     def test_bifrost_admin_base_must_be_loopback(self) -> None:
         server = load_module("agentcore_project_router_loopback_test", HERE / "server.py")
 

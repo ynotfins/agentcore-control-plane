@@ -800,7 +800,7 @@
       "display_name": "AgentCore Memory Gateway",
       "purpose": "Model-aware active context over effectively-unbounded durable local project history; no raw DB/admin tools exposed.",
       "owner": "agentcore",
-      "pinned_version": "0.9.0",
+      "pinned_version": "0.9.1",
       "connection_type": "stdio",
       "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
       "arguments": [
@@ -853,7 +853,8 @@
         "Stable 10-tool surface; bounded active packets and recovery pages never cap or delete durable project history.",
         "v0.7.0 added backward-compatible cryptographic device assertions to existing tool schemas.",
         "v0.9.0 requires an exact enrolled project_key plus project_root on every project-scoped call, identity-binds session_key reuse, and validates all opaque references including contradicts_event_id. Tool names/count and database ownership remain unchanged.",
-        "retrieve_context supports stable chronological pagination and recovery modes; expand_source resolves exact originals and H:/E: artifacts; build_handoff reconstructs current project state.",
+        "v0.9.1 binds resumed sessions to device, user, canonical repository, and worktree identity; preserves source identity across reopen; and prevents unsigned legacy-compatible recovery reads from recording recovery writes.",
+        "retrieve_context supports stable chronological pagination and recovery modes; expand_source resolves exact originals and governed F:/E: AgentCore artifacts; build_handoff reconstructs current project state.",
         "Model context profiles are governed by contracts/model-context-profiles.json; 4096 is legacy/acceptance-only and one million is not a durable-memory cap.",
         "PostgreSQL reachability remains implemented internally and is reported through memory_status, not exposed as a separate normal-agent tool.",
         "Uses PostgreSQL 18 agent_core on 127.0.0.1:55433 internally via Windows env var credentials; IDE agents receive no DB credentials.",

@@ -22,8 +22,8 @@ AGENT_KEY = "cherry-studio-assistant"
 TEST_LABEL = "cherry-alignment-lifecycle-2026-07-20"
 PROJECT_A = "agentcore-control-plane"
 PROJECT_A_ROOT = r"D:\github\agentcore-control-plane"
-PROJECT_B = "nfa-alerts-enterprise"
-PROJECT_B_ROOT = r"D:\github\nfa-alerts-enterprise"
+PROJECT_B = "agentcore-context-engine"
+PROJECT_B_ROOT = r"D:\github\agentcore-context-engine"
 
 MEMORY_TOOLS = {
     "agentcore_memory-memory_status",
@@ -55,6 +55,37 @@ class McpClient:
             raise SystemExit("missing BIFROST_MCP_VIRTUAL_KEY")
         self.session: str | None = None
         self._id = 0
+
+    @staticmethod
+    def _device_identity_manager():
+        from agentcore_context_engine.config import EnginePaths
+        from agentcore_context_engine.security import DeviceIdentityManager, KeyringCredentialStore
+
+        paths = EnginePaths.discover()
+        return DeviceIdentityManager(paths.data / "device.json", KeyringCredentialStore())
+
+    @staticmethod
+    def _bare_memory_tool(name: str) -> str | None:
+        prefix = "agentcore_memory-"
+        return name[len(prefix) :] if name.startswith(prefix) else None
+
+    def _signed_tool_arguments(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        signed = dict(arguments)
+        bare_tool = self._bare_memory_tool(name)
+        if not bare_tool or bare_tool == "memory_status":
+            return signed
+        identity = self._device_identity_manager()
+        enrollment = identity.initialize()
+        if bare_tool == "session_open":
+            signed.setdefault("device_id", enrollment.device_id)
+        assertion = identity.sign_tool_call(
+            target_tool=bare_tool,
+            arguments=signed,
+            project_key=str(signed["project_key"]) if signed.get("project_key") else None,
+            session_id=str(signed["session_id"]) if signed.get("session_id") else None,
+        )
+        signed["device_assertion"] = assertion.as_dict()
+        return signed
 
     def _post(self, payload: dict) -> tuple[int, Any, dict]:
         body = json.dumps(payload).encode("utf-8")
@@ -106,7 +137,10 @@ class McpClient:
         return data.get("result") if isinstance(data, dict) else data
 
     def tool(self, name: str, arguments: dict) -> Any:
-        result = self.call("tools/call", {"name": name, "arguments": arguments})
+        result = self.call(
+            "tools/call",
+            {"name": name, "arguments": self._signed_tool_arguments(name, arguments)},
+        )
         if isinstance(result, dict) and result.get("isError"):
             texts = [
                 c.get("text")
@@ -158,13 +192,6 @@ def main() -> int:
         raise SystemExit(f"sql admin tools visible: {sqlish}")
     results["steps"]["tools_surface"] = "PASS"
 
-    # Activate project A
-    act_a = c.tool(
-        "agentcore_project_router-project_activate",
-        {"id": PROJECT_A},
-    )
-    results["steps"]["project_activate_a"] = {"ok": True, "summary": str(act_a)[:300]}
-
     session_key = f"{TEST_LABEL}-{uuid.uuid4().hex[:8]}"
     opened = c.tool(
         "agentcore_memory-session_open",
@@ -195,6 +222,7 @@ def main() -> int:
         "agentcore_memory-startup_context",
         {
             "project_key": PROJECT_A,
+            "project_root": PROJECT_A_ROOT,
             "session_id": session_id,
             "context_profile": "standard-context",
         },
@@ -210,6 +238,8 @@ def main() -> int:
     first = c.tool(
         "agentcore_memory-append_event",
         {
+            "project_key": PROJECT_A,
+            "project_root": PROJECT_A_ROOT,
             "session_id": session_id,
             "event_kind": "test_result",
             "idempotency_key": idem,
@@ -223,6 +253,8 @@ def main() -> int:
     dup = c.tool(
         "agentcore_memory-append_event",
         {
+            "project_key": PROJECT_A,
+            "project_root": PROJECT_A_ROOT,
             "session_id": session_id,
             "event_kind": "test_result",
             "idempotency_key": idem,
@@ -240,6 +272,7 @@ def main() -> int:
         "agentcore_memory-retrieve_context",
         {
             "project_key": PROJECT_A,
+            "project_root": PROJECT_A_ROOT,
             "session_id": session_id,
             "query": TEST_LABEL,
             "page_size": 5,
@@ -254,7 +287,7 @@ def main() -> int:
     if event_id:
         expanded = c.tool(
             "agentcore_memory-expand_source",
-            {"project_key": PROJECT_A, "event_id": event_id, "max_bytes": 4096},
+            {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "event_id": event_id, "max_bytes": 4096},
         )
         blob = json.dumps(expanded)
         if TEST_LABEL not in blob and "cherry_studio_alignment_validation" not in blob:
@@ -267,6 +300,7 @@ def main() -> int:
         "agentcore_memory-build_handoff",
         {
             "project_key": PROJECT_A,
+            "project_root": PROJECT_A_ROOT,
             "session_id": session_id,
             "context_profile": "standard-context",
         },
@@ -278,7 +312,10 @@ def main() -> int:
             raise SystemExit("build_handoff unexpected shape")
     results["steps"]["build_handoff"] = {"ok": True, "keys": list(handoff.keys())[:30] if isinstance(handoff, dict) else None}
 
-    closed = c.tool("agentcore_memory-session_close", {"session_id": session_id})
+    closed = c.tool(
+        "agentcore_memory-session_close",
+        {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "session_id": session_id},
+    )
     results["steps"]["session_close"] = {"ok": True, "summary": str(closed)[:200]}
 
     # Resume same session_key
@@ -305,20 +342,19 @@ def main() -> int:
     if event_id:
         expanded2 = c.tool(
             "agentcore_memory-expand_source",
-            {"project_key": PROJECT_A, "event_id": event_id, "max_bytes": 4096},
+            {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "event_id": event_id, "max_bytes": 4096},
         )
         if TEST_LABEL not in json.dumps(expanded2) and "cherry_studio_alignment_validation" not in json.dumps(expanded2):
             raise SystemExit("event not accessible after resume")
         results["steps"]["post_resume_expand"] = "PASS"
 
-    # Project isolation: switch to B, confirm A event not attributed to B; switch back
-    act_b = c.tool("agentcore_project_router-project_activate", {"id": PROJECT_B})
-    results["steps"]["project_activate_b"] = {"ok": True, "summary": str(act_b)[:200]}
+    # Project isolation: open enrolled B directly; no machine-global router mutation.
     opened_b = c.tool(
         "agentcore_memory-session_open",
         {
             "project_key": PROJECT_B,
             "project_name": PROJECT_B,
+            "project_root": PROJECT_B_ROOT,
             "canonical_repo_path": PROJECT_B_ROOT,
             "worktree_path": PROJECT_B_ROOT,
             "repo_key": PROJECT_B,
@@ -332,7 +368,7 @@ def main() -> int:
     results["steps"]["session_open_b"] = {"ok": True, "session_id": opened_b.get("session_id")}
     b_ret = c.tool(
         "agentcore_memory-retrieve_context",
-        {"project_key": PROJECT_B, "page_size": 5},
+        {"project_key": PROJECT_B, "project_root": PROJECT_B_ROOT, "page_size": 5},
     )
     b_blob = json.dumps(b_ret)
     # Isolation: B packet must not claim A's project_key
@@ -347,17 +383,16 @@ def main() -> int:
     else:
         results["steps"]["isolation_b_retrieve"] = {"ok": True, "project_key": b_ret.get("project_key") if isinstance(b_ret, dict) else None}
 
-    act_a2 = c.tool("agentcore_project_router-project_activate", {"id": PROJECT_A})
     a_ret = c.tool(
         "agentcore_memory-retrieve_context",
-        {"project_key": PROJECT_A, "query": TEST_LABEL, "page_size": 5},
+        {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "query": TEST_LABEL, "page_size": 5},
     )
     if isinstance(a_ret, dict) and a_ret.get("project_key") not in (None, PROJECT_A):
         raise SystemExit("isolation failed returning to A")
     if event_id:
         expanded_back = c.tool(
             "agentcore_memory-expand_source",
-            {"project_key": PROJECT_A, "event_id": event_id, "max_bytes": 4096},
+            {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "event_id": event_id, "max_bytes": 4096},
         )
         if TEST_LABEL not in json.dumps(expanded_back) and "cherry_studio_alignment_validation" not in json.dumps(expanded_back):
             raise SystemExit("A event lost after project switch")

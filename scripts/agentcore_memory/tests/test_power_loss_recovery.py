@@ -124,7 +124,7 @@ def _open(project_key: str, client: str, agent: str, sk: str) -> dict:
         "project_root": project_root,
         "canonical_repo_path": project_root,
         "worktree_path": project_root,
-        "repo_key": "agentcore-control-plane", "branch_name": "main",
+        "repo_key": project_key, "branch_name": "main",
         "context_profile": "standard-context",
     })
 

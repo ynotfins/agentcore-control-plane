@@ -265,7 +265,7 @@ def cmd_status(as_json: bool) -> int:
             print(json.dumps(msg))
         else:
             print(f"ERROR: {exc}")
-            print("  Log: H:\\AgentRuntime\\service-logs\\")
+            print("  Log: F:\\AgentCore\\runtime\\service-logs\\")
         return 2
 
 

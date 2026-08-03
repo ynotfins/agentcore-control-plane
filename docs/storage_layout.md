@@ -122,7 +122,7 @@ E:\
 ```mermaid
 flowchart TD
     vendorSource[D:\\github\\vendor] --> controlPlane[D:\\github\\agentcore-control-plane]
-    controlPlane --> bifrostRuntime[H:\\AgentRuntime\\bifrost]
+    controlPlane --> bifrostRuntime[F:\\AgentCore\\runtime\\bifrost]
     controlPlane --> runtimeRoot[F:\\AgentCore]
     runtimeRoot --> localRuntime[Local Memory And Search Services]
     localRuntime --> backupRoot[E:\\AgentCoreArchive]

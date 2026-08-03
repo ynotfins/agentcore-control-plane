@@ -3,11 +3,11 @@ document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
 authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
-verified_at: 2026-08-02
+verified_at: 2026-08-03
 canonical_repository: D:\github\agentcore-control-plane
 locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
-current_acceptance: audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md
+current_acceptance: audits/AGENTCORE_BIFROST_CONTEXT_ALIGNMENT_2026-08-03.md
 current_alignment_approval: AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT
 ---
 
@@ -15,20 +15,20 @@ current_alignment_approval: AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT
 
 Read `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` before this file. `BLUEPRINT.md` owns stable architecture and locked outcomes. This file owns mutable current posture. Generated `.agentcore/STATE.md`, `.agentcore/DECISIONS.md`, and `.agentcore/CONTEXT_INDEX.md` are subordinate projections and must not be edited directly.
 
-## 0. Current platform posture — VERIFIED 2026-08-02
+## 0. Current platform posture — VERIFIED 2026-08-03
 
 | Area | Current fact | Evidence/status |
 | --- | --- | --- |
-| Repository | `D:\github\agentcore-control-plane`, branch `main`; fourth-review remediation `205e2dc0beb70246899bbd242719fd3b393d65f7` | Git; inherited Langfuse/M6-M8 WIP remains unstaged; fifth review and final acceptance record pending |
+| Repository | `D:\github\agentcore-control-plane`, branch `main`; v0.9.1 release candidate live-proven on 2026-08-03 | Git; inherited Langfuse/M6-M8 WIP remains unstaged; exact final commit and independent review are recorded in the current acceptance audit |
 | Bifrost | Native `2.0.0-prerelease1` under `F:\AgentCore\runtime\bifrost`; scheduled owner `\AgentCore\AgentCore-Bifrost-Gateway`; `127.0.0.1:8080/health` healthy | Live status and gateway acceptance pass |
 | IDE MCP front door | Exactly one `agentcore-gateway` at `http://127.0.0.1:8080/mcp` | Cursor live config: one entry, environment-backed bearer, no MCP_DOCKER |
 | Gateway surface | Builder profile: 57 tools, exact 10 memory, zero router, at least 3 skills-hub. Operator profile: 24 tools, exact 10 memory and 4 router controls | Live authenticated `Get-BifrostStatus.ps1` probes after governed rollout; implicit-project Serena/Depwire/Tentra/filesystem/Context-Fabric upstreams dormant |
-| AgentCore memory | source `agentcore-memory` `0.9.0`; PG18 reachable at `127.0.0.1:55433`; governed live promotion pending | Every scoped call requires exact enrolled `project_key` + `project_root`; session keys and all opaque references are identity-bound; ten-tool identity unchanged |
+| AgentCore memory | source and live `agentcore-memory` `0.9.1`; PG18 reachable at `127.0.0.1:55433` | Every scoped call requires exact enrolled `project_key` + `project_root`; task sessions are also bound to client, agent, device, user, canonical repository, and worktree; ten-tool identity unchanged |
 | Project enrollment | `contracts/agentcore-project-enrollment.json`; default deny; exact key + exact repository/worktree path | Shared by Cursor bootstrap, memory facade, operator router, and child launcher; ordinary IDEs cannot mutate enrollment/router state |
 | Device identity | `legacy_compat`; writes require signed device assertion; unsigned reads remain temporarily permitted | `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md`; migration window ends 2026-08-09 |
-| Cognee | `degraded_unavailable` / `ModuleNotFoundError` | Truthful degradation; canonical evidence/recovery remains healthy |
+| Cognee | `available`, version `1.3.0`, isolated native Windows venv under `F:\AgentCore\runtime\agentcore-memory\cognee` | Live `memory_status` after governed v0.9.1 promotion; canonical retrieval remains PostgreSQL-backed |
 | Neutral Recall | Machine-level neutral semantic plane healthy at `127.0.0.1:3300`; hot data under `H:\SwarmData\recall` | `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`; server-side AgentCore adapter only |
-| Context Engine | Portable repo `D:\github\agentcore-context-engine`, path-bound adapter HEAD `82450b8c3b3884d12e2e1eece22b5771484e8686` | 110/110 tests; fifth cross-repository acceptance review pending |
+| Context Engine | Portable repo `D:\github\agentcore-context-engine`, path-bound adapter HEAD `82450b8c3b3884d12e2e1eece22b5771484e8686` | 110/110 tests; exact-SHA cross-repository review recorded in the current acceptance audit |
 | LangGraph production | PG18 PostgresSaver; RUN11 live cloud worker completed with 23 checkpoints, 6 evidence rows, judge `proceed`, critic `1.0` | Run `c376e23d-a2c5-4844-b8a9-f02cd905f690`; thread `034a28db-a7b4-4c9f-a967-a3ea00091130` |
 | LangGraph Studio | Dev-only `127.0.0.1:2024`; Agent Server dev checkpointer; never production thread IDs | `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` |
 | Context Fabric | Repo-local hook/CLI; DB schema/search-index 2, integrity ok, hook installed/ready, capture `#123` at `97c872cd98e8`; shared Bifrost upstream is dormant because caller/project identity is not forwarded | Raw Windows drift is falsely HIGH under `core.autocrlf=true`; 683/709 mismatches are CRLF-only; final accepted-HEAD capture pending |
@@ -117,7 +117,7 @@ The single `agentcore-gateway` MCP entry does not make Cursor model prompts trav
 2. RUN11's builder used the project root rather than its intended isolated worktree path.
 3. Full `required` device enforcement for reads is deferred; signed writes are enforced.
 4. Cursor IDE MCP discovery has been intermittent even while direct Bifrost health and authenticated tools/list pass.
-5. Cognee import is degraded; canonical memory, exact recovery, checkpoints, and neutral Recall remain usable.
+5. The ChatGPT compatibility proxy expected on `127.0.0.1:18081` has no governed lifecycle owner and is currently down. Direct Bifrost health and the exact 18-tool ChatGPT virtual-key profile on `127.0.0.1:8080/mcp` pass.
 6. Context Fabric retains six historical failed-capture records. Its Windows drift metric is unusable under `core.autocrlf=true` until upstream/fork comparison uses Git clean-filter/object semantics; repo-local capture/query/health remain usable.
 7. Shared Bifrost project-bound developer upstreams are dormant until a per-session project identity can be injected. Native IDE tools and explicit-cwd local CLIs are the safe interim path.
 

@@ -302,7 +302,7 @@ SELECT agentcore.append_evidence_event(
 "@
   Add-Check "cross-project write rejected" "PASS" "security-definer function enforces current project boundary"
 
-  # 6. Content-addressed large payload externalization on H:.
+  # 6. Content-addressed large payload externalization under the configured F: runtime root.
   $payload = ("M2 large payload {0} " -f $runId) * 4096
   $payloadBytes = [Text.Encoding]::UTF8.GetBytes($payload)
   $sha = [System.BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash($payloadBytes)).Replace("-", "").ToLowerInvariant()

@@ -292,6 +292,13 @@ After any change:
 
 Do not mark live_validated from config inspection alone. Configuration presence is not native validation. Do not use raw HTTP and call it native. Do not run native validation against a Swarm-owned repository.
 
+Automatic lifecycle certification is separate from MCP connectivity. A host with
+native hooks may capture through its signed host adapter. A generic MCP-only host
+needs the signed Context Engine companion for canonical writes and is certified
+`companion_only_not_automatic`; unsigned legacy-compatible reads do not prove
+automatic capture. Never weaken device enforcement or expose the operator router
+to make an unsupported host appear automatic.
+
 ---
 
 ## 11. Manual, UI-only, and unsupported stopping states
@@ -374,9 +381,9 @@ Step 7 — Validate syntax and discovery
 Step 8 — Native memory lifecycle validation (do not skip)
 Use only an AgentCore / enrolled non-Swarm project. If the selected path is Swarm-owned, stop with swarm_project_refused.
 1. Resolve the current project from the IDE/workflow's exact workspace root; do not mutate machine-global project-router state from an ordinary IDE profile.
-2. session_open with the exact enrolled project_key + project_root and a stable session_key that includes your IDE id and today's date. Supply that same exact project_key + project_root on every subsequent project-scoped memory call.
+2. session_open through the signed host adapter/companion with the exact enrolled project_key + project_root and a stable task session_key. The key must be independent of chat/conversation ID and date, must be reused across new chats for the same task, and must change only for an explicitly new task. Supply that same exact project_key + project_root on every subsequent project-scoped memory call.
 3. startup_context with the selected model context profile (use standard-context if your model is unknown; never lower the IDE's configured hard context window).
-4. append_event documenting this enrollment/validation run with a deterministic idempotency key.
+4. signed append_event documenting this enrollment/validation run with a deterministic idempotency key.
 5. Repeat the same append_event and confirm idempotent_replay=true.
 6. retrieve_context with a recovery mode and stable pagination.
 7. expand_source on the event_id from step 4 to recover the exact original payload.
@@ -385,7 +392,10 @@ Use only an AgentCore / enrolled non-Swarm project. If the selected path is Swar
 10. Resume: session_open with the same session_key and confirm the same session_id is returned with prior events accessible.
 11. Project isolation: open a separate session with a different explicit AgentCore / enrolled non-Swarm project identity, retrieve_context, and prove no cross-project leak without changing shared router state.
 12. Re-confirm exactly ten agentcore-memory tools.
-All steps must pass before you mark the IDE live_validated.
+All steps must pass before you mark a hook-capable IDE `live_validated` for
+automatic lifecycle. A generic MCP-only client must instead be recorded as
+`companion_only_not_automatic` unless current native middleware evidence proves
+transparent signed lifecycle behavior.
 
 Step 9 — Record sanitized evidence
 Record: IDE name, version, config path, backup path, SHA-256 hashes, tool count, context profile, recovery result, resume result, isolation result, blockers, rollback path. Do not print or commit secret values.

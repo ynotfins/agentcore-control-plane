@@ -329,10 +329,27 @@ def run_bootstrap(
         result.project_key = project_key
         result.status_flags["project_automatically_resolved"] = True
 
-        identity_hint = task_slug or cursor_conversation_id or "default"
+        identity_hint = task_slug or "default"
         if force_new_task:
             identity_hint = f"{identity_hint}:{uuid.uuid4().hex}"
         session_key = f"{project_key}:{CLIENT_KEY}:{agent_key}:task:{identity_hint}"
+        if not force_new_task and not task_slug:
+            artifact = root / RUNTIME_DIRNAME / BOOTSTRAP_JSON
+            try:
+                existing = json.loads(artifact.read_text(encoding="utf-8"))
+                existing_result = existing.get("result") if isinstance(existing, dict) else None
+                if (
+                    isinstance(existing_result, dict)
+                    and existing_result.get("ok")
+                    and existing_result.get("project_key") == project_key
+                    and existing_result.get("client_key") == CLIENT_KEY
+                    and existing_result.get("agent_key") == agent_key
+                    and Path(str(existing_result.get("project_root"))).resolve() == root
+                    and existing_result.get("session_key")
+                ):
+                    session_key = str(existing_result["session_key"])
+            except (OSError, ValueError, TypeError, json.JSONDecodeError):
+                pass
         mode, choices = ("new" if force_new_task else "resume_or_create"), []
         result.selection_mode = mode
         result.choices = choices
@@ -386,6 +403,8 @@ def run_bootstrap(
         )
         if not isinstance(startup, dict):
             startup = {"ok": False, "raw": startup}
+        if not startup.get("ok"):
+            raise RuntimeError("startup_context failed")
         result.continuity_status = str(startup.get("continuity_status") or "unknown")
 
         projections = read_projections(root)

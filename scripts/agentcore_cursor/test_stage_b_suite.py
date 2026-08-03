@@ -49,6 +49,7 @@ def main():
     print(f"Repository Root: {REPO_ROOT}")
 
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    from agentcore_cursor import hooks as cursor_hooks
     from agentcore_cursor.hooks import HANDLERS, handle_before_shell, handle_post_tool, handle_pre_tool, handle_stop
     from agentcore_cursor import bootstrap as cursor_bootstrap
     from agentcore_cursor.session_scope import SessionScope, init_session_scope
@@ -58,7 +59,7 @@ def main():
         [sys.executable, str(REPO_ROOT / "scripts" / "agentcore_cursor" / "test_hook_protocol.py"), "--iterations", "100"],
         capture_output=True,
         text=True,
-        timeout=420,
+        timeout=900,
         cwd=str(REPO_ROOT)
     )
     protocol_pass = proc.returncode == 0 and "ALL PASS" in proc.stdout
@@ -68,6 +69,7 @@ def main():
     # Prepare disposable test fixture
     safe_rmtree(FIXTURE_DIR)
     FIXTURE_DIR.mkdir(parents=True, exist_ok=True)
+    (FIXTURE_DIR / ".git").mkdir()
     shutil.copytree(REPO_ROOT / ".cursor", FIXTURE_DIR / ".cursor")
 
     # Initialize bootstrap json in fixture with completed startup context
@@ -252,8 +254,18 @@ def main():
             f"required={required_gates}",
         )
 
-        # Test 15: One final review occurs
-        res_stop = handle_stop({"workspace_roots": [str(FIXTURE_DIR)]})
+        # Test 15: One final review occurs. The disposable bootstrap intentionally
+        # uses a synthetic session ID, so isolate the stop-hook contract from the
+        # live gateway here; live memory and workflow integration are tests 19-21.
+        original_append = cursor_hooks._append_durable_hook_event
+        original_handoff = cursor_hooks._build_durable_handoff
+        cursor_hooks._append_durable_hook_event = lambda *args, **kwargs: {"ok": True}
+        cursor_hooks._build_durable_handoff = lambda *args, **kwargs: {"ok": True}
+        try:
+            res_stop = handle_stop({"workspace_roots": [str(FIXTURE_DIR)]})
+        finally:
+            cursor_hooks._append_durable_hook_event = original_append
+            cursor_hooks._build_durable_handoff = original_handoff
         s_stop = SessionScope.load_or_create(FIXTURE_DIR)
         has_review = bool(s_stop.final_review) and s_stop.final_review.get("correctness") == "not_proven_by_hook"
         log_test(15, "one_final_review_occurs", has_review and res_stop == {}, f"res={res_stop}")

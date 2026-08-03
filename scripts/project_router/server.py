@@ -393,6 +393,37 @@ def _match_project(projects: list[dict[str, str]], path: str | None, pid: str | 
     return None
 
 
+def _rollback_router_transition(previous: dict[str, Any] | None) -> dict[str, Any]:
+    """Restore the prior state and reconnect without exposing exception text."""
+    _save_state_unlocked(previous)
+    try:
+        return reconnect_router_clients()
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "ok": False,
+            "error": "project_scoped_rollback_reconnect_exception",
+            "failure_class": type(exc).__name__,
+        }
+
+
+def _reconnect_router_transition(
+    previous: dict[str, Any] | None,
+) -> tuple[dict[str, Any], dict[str, Any] | None, str | None]:
+    """Reconnect after a state transition, rolling back on failure or exception."""
+    try:
+        reconnect = reconnect_router_clients()
+    except Exception as exc:  # noqa: BLE001
+        reconnect = {
+            "ok": False,
+            "error": "project_scoped_reconnect_exception",
+            "failure_class": type(exc).__name__,
+        }
+        return reconnect, _rollback_router_transition(previous), "project_scoped_reconnect_exception"
+    if not reconnect.get("ok"):
+        return reconnect, _rollback_router_transition(previous), "project_scoped_reconnect_failed"
+    return reconnect, None, None
+
+
 def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     arguments = arguments or {}
     projects = scan_registered_projects()
@@ -417,13 +448,11 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
         with state_file_lock():
             previous = _load_state_unlocked()
             _save_state_unlocked(None)
-            reconnect = reconnect_router_clients()
-            if not reconnect.get("ok"):
-                _save_state_unlocked(previous)
-                rollback_reconnect = reconnect_router_clients()
+            reconnect, rollback_reconnect, transition_error = _reconnect_router_transition(previous)
+            if transition_error:
                 return {
                 "ok": False,
-                "error": "project_scoped_reconnect_failed",
+                "error": transition_error,
                 "active": previous,
                 "cleared_at": _now(),
                 "project_scoped_reconnect": reconnect,
@@ -461,13 +490,11 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
         with state_file_lock():
             previous = _load_state_unlocked()
             _save_state_unlocked(state)
-            reconnect = reconnect_router_clients()
-            if not reconnect.get("ok"):
-                _save_state_unlocked(previous)
-                rollback_reconnect = reconnect_router_clients()
+            reconnect, rollback_reconnect, transition_error = _reconnect_router_transition(previous)
+            if transition_error:
                 return {
                 "ok": False,
-                "error": "project_scoped_reconnect_failed",
+                "error": transition_error,
                 "active": previous,
                 "requested": state,
                 "project_scoped_reconnect": reconnect,
