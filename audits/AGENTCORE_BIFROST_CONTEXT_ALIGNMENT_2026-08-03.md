@@ -65,7 +65,7 @@ Swarm MCP route, second IDE gateway, or model-inference reroute was introduced.
 | Gate | Result |
 | --- | --- |
 | AgentCore memory tests | PASS — 61 |
-| Cursor lifecycle and Serena-policy tests | PASS — 27 |
+| Cursor lifecycle and Serena-policy tests | PASS — 31 plus 11 alias subtests |
 | Workflow and project-boundary tests | PASS — 78 |
 | Router, Bifrost, and Cherry tests | PASS — 32 |
 | Portable Context Engine | PASS — 110 at `82450b8c3b3884d12e2e1eece22b5771484e8686` |
@@ -92,7 +92,11 @@ and Serena wrapper calls were unavailable in this session.
   routing wording, Cherry enrollment stop, and pending-evidence wording. A
   fresh review of `544f520` found one additional critical single-pipe shell
   composition gap; it was reproduced and closed with fail-closed parsing and a
-  regression test. A final clean review remains required.
+  regression test. The next review found two additional affected-path gaps:
+  common PowerShell/cmd aliases and source/wildcard authority classification.
+  Both were reproduced and closed by returning every affected path, expanding
+  globs before classification, and fail-closing incomplete path sets. A final
+  clean review remains required.
 - Cursor GPT-5.6 Sol exact-SHA control-plane review: **PENDING FINAL COMMIT**.
 - Cursor GPT-5.6 Sol exact-SHA portable Context Engine review: **PENDING**.
 

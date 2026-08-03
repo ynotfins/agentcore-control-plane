@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import glob
 import json
 import os
 import re
@@ -516,6 +517,19 @@ def _is_serena_maintenance_invocation(command: str) -> bool:
     ) is not None
 
 
+SHELL_FILE_MUTATOR_ALIASES = {
+    "rm": "remove-item",
+    "del": "remove-item",
+    "erase": "remove-item",
+    "ri": "remove-item",
+    "mv": "move-item",
+    "move": "move-item",
+    "cp": "copy-item",
+    "copy": "copy-item",
+    "ren": "rename-item",
+    "ni": "new-item",
+    "sc": "set-content",
+}
 SHELL_FILE_MUTATORS = {
     "set-content",
     "add-content",
@@ -526,7 +540,7 @@ SHELL_FILE_MUTATORS = {
     "move-item",
     "copy-item",
     "rename-item",
-}
+} | set(SHELL_FILE_MUTATOR_ALIASES)
 
 
 def _set_prompt_capture_flag(root_path: Path, *, captured: bool) -> bool:
@@ -548,8 +562,8 @@ def _set_prompt_capture_flag(root_path: Path, *, captured: bool) -> bool:
         return False
 
 
-def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
-    """Return whether a command mutates files and its safely resolved target."""
+def _shell_file_mutation_targets(command: str) -> tuple[bool, list[str] | None]:
+    """Return every affected path, or None when the complete set is ambiguous."""
     mutator_pattern = r"(?i)\b(?:" + "|".join(SHELL_FILE_MUTATORS) + r")\b"
     redirect = re.search(
         r"(?<!>)>{1,2}\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|]+))",
@@ -560,7 +574,8 @@ def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
     ):
         return True, None
     if redirect:
-        return True, next((value for value in redirect.groups() if value), None)
+        target = next((value for value in redirect.groups() if value), None)
+        return True, [target] if target else None
 
     try:
         tokens = shlex.split(command, posix=False)
@@ -575,7 +590,8 @@ def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
     if any(token in {";", "&&", "|", "||"} for token in tokens):
         return True, None
 
-    mutator = tokens[command_index].strip("'\"").lower()
+    invoked_mutator = tokens[command_index].strip("'\"").lower()
+    mutator = SHELL_FILE_MUTATOR_ALIASES.get(invoked_mutator, invoked_mutator)
     tail = tokens[command_index + 1 :]
     target_value_names = (
         {"-destination", "-newname"}
@@ -606,7 +622,8 @@ def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
         "-recurse",
     }
     positional: list[str] = []
-    explicit_target: str | None = None
+    explicit_sources: list[str] = []
+    explicit_targets: list[str] = []
     index = 0
     while index < len(tail):
         token = tail[index]
@@ -618,7 +635,12 @@ def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
                     return True, None
                 value = tail[index + 1].strip("'\"")
                 if option in target_value_names:
-                    explicit_target = value
+                    explicit_targets.append(value)
+                elif (
+                    mutator in {"move-item", "copy-item", "rename-item"}
+                    and option in {"-literalpath", "-path"}
+                ):
+                    explicit_sources.append(value)
                 index += 2
                 continue
             if option in flag_names:
@@ -628,13 +650,26 @@ def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
         positional.append(normalized)
         index += 1
 
-    if explicit_target:
-        return True, explicit_target
+    if explicit_sources or explicit_targets:
+        affected = explicit_sources + explicit_targets
+        return (True, affected) if affected else (True, None)
     if not positional:
         return True, None
     if mutator in {"move-item", "copy-item", "rename-item"}:
-        return (True, positional[1]) if len(positional) >= 2 else (True, None)
-    return True, positional[0]
+        return (True, positional[:2]) if len(positional) >= 2 else (True, None)
+    return True, [positional[0]]
+
+
+def _expand_shell_mutation_paths(target: str, workspace: Path) -> list[Path] | None:
+    """Resolve one target and fail closed when a wildcard matches nothing."""
+    target_path = Path(target)
+    if not target_path.is_absolute():
+        target_path = workspace / target_path
+    target_text = str(target_path)
+    if not glob.has_magic(target_text):
+        return [target_path.resolve()]
+    matches = [Path(match).resolve() for match in glob.glob(target_text)]
+    return sorted(set(matches), key=lambda path: str(path).lower()) or None
 
 
 def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
@@ -662,25 +697,35 @@ def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
                     "user_message": f"AgentCore Stage B Shell Deny: {reason} matched in command: {command[:100]}"
                 }
 
-        is_mutation, target = _shell_file_mutation_target(command)
+        is_mutation, targets = _shell_file_mutation_targets(command)
         if is_mutation:
-            if not target:
+            if not targets:
                 return {
                     "permission": "deny",
                     "user_message": "AgentCore Stage B Shell Deny: file mutation target is not safely resolvable",
                 }
             roots = payload.get("workspace_roots") or []
             workspace = str(_normalize_workspace_path(str(roots[0]))) if isinstance(roots, list) and roots else str(Path.cwd())
-            target_path = Path(target)
-            if not target_path.is_absolute():
-                target_path = Path(workspace) / target_path
-            return handle_pre_tool(
-                {
-                    "workspace_roots": [workspace],
-                    "tool_name": "write_file",
-                    "tool_input": {"path": str(target_path)},
-                }
-            )
+            resolved_targets: list[Path] = []
+            for target in targets:
+                expanded = _expand_shell_mutation_paths(target, Path(workspace))
+                if not expanded:
+                    return {
+                        "permission": "deny",
+                        "user_message": "AgentCore Stage B Shell Deny: file mutation target is not safely resolvable",
+                    }
+                resolved_targets.extend(expanded)
+            for target_path in dict.fromkeys(resolved_targets):
+                decision = handle_pre_tool(
+                    {
+                        "workspace_roots": [workspace],
+                        "tool_name": "write_file",
+                        "tool_input": {"path": str(target_path)},
+                    }
+                )
+                if decision.get("permission") != "allow":
+                    return decision
+            return {"permission": "allow"}
 
         return {"permission": "allow"}
 

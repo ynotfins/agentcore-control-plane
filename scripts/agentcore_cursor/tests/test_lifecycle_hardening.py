@@ -204,36 +204,98 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         self.assertIn("not safely resolvable", result["user_message"])
 
     def test_shell_mutation_parser_skips_known_option_values(self) -> None:
-        is_mutation, target = hooks._shell_file_mutation_target(
+        is_mutation, targets = hooks._shell_file_mutation_targets(
             "Set-Content -Encoding utf8 out.txt data"
         )
 
         self.assertTrue(is_mutation)
-        self.assertEqual(target, "out.txt")
+        self.assertEqual(targets, ["out.txt"])
 
     def test_shell_mutation_parser_denies_unknown_switch(self) -> None:
-        is_mutation, target = hooks._shell_file_mutation_target(
+        is_mutation, targets = hooks._shell_file_mutation_targets(
             "Set-Content -Unknown value out.txt data"
         )
 
         self.assertTrue(is_mutation)
-        self.assertIsNone(target)
+        self.assertIsNone(targets)
 
     def test_compound_redirect_is_not_treated_as_one_safe_target(self) -> None:
-        is_mutation, target = hooks._shell_file_mutation_target(
+        is_mutation, targets = hooks._shell_file_mutation_targets(
             "echo first > first.txt; echo second > second.txt"
         )
 
         self.assertTrue(is_mutation)
-        self.assertIsNone(target)
+        self.assertIsNone(targets)
 
     def test_piped_file_mutation_is_not_treated_as_one_safe_target(self) -> None:
-        is_mutation, target = hooks._shell_file_mutation_target(
+        is_mutation, targets = hooks._shell_file_mutation_targets(
             "Get-Content source.txt | Set-Content destination.txt"
         )
 
         self.assertTrue(is_mutation)
-        self.assertIsNone(target)
+        self.assertIsNone(targets)
+
+    def test_common_shell_aliases_are_file_mutators(self) -> None:
+        for command in ("rm file.txt", "del file.txt", "erase file.txt", "ri file.txt", "ni file.txt", "sc file.txt data"):
+            with self.subTest(command=command):
+                is_mutation, targets = hooks._shell_file_mutation_targets(command)
+                self.assertTrue(is_mutation)
+                self.assertEqual(targets, ["file.txt"])
+
+    def test_move_copy_and_rename_preserve_source_and_destination(self) -> None:
+        for command in (
+            "mv source.txt destination.txt",
+            "move source.txt destination.txt",
+            "cp source.txt destination.txt",
+            "copy source.txt destination.txt",
+            "ren source.txt destination.txt",
+        ):
+            with self.subTest(command=command):
+                is_mutation, targets = hooks._shell_file_mutation_targets(command)
+                self.assertTrue(is_mutation)
+                self.assertEqual(targets, ["source.txt", "destination.txt"])
+
+    def test_move_checks_protected_source_before_safe_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            protected = root / "PROJECT_ANCHOR.md"
+            protected.write_text("locked", encoding="utf-8")
+
+            def gate(payload):
+                path = Path(payload["tool_input"]["path"])
+                if hooks._authority_path_class(root, path) == "operator_locked":
+                    return {"permission": "deny", "user_message": "operator locked"}
+                return {"permission": "allow"}
+
+            with patch.object(hooks, "handle_pre_tool", side_effect=gate) as pre_tool:
+                result = hooks.handle_before_shell(
+                    {
+                        "workspace_roots": [str(root)],
+                        "command": "mv PROJECT_ANCHOR.md safe.txt",
+                    }
+                )
+
+        self.assertEqual(result["permission"], "deny")
+        self.assertEqual(pre_tool.call_count, 1)
+
+    def test_wildcard_delete_expands_before_authority_classification(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "PROJECT_ANCHOR.md").write_text("locked", encoding="utf-8")
+            (root / "ordinary.md").write_text("ordinary", encoding="utf-8")
+
+            def gate(payload):
+                path = Path(payload["tool_input"]["path"])
+                if hooks._authority_path_class(root, path) == "operator_locked":
+                    return {"permission": "deny", "user_message": "operator locked"}
+                return {"permission": "allow"}
+
+            with patch.object(hooks, "handle_pre_tool", side_effect=gate):
+                result = hooks.handle_before_shell(
+                    {"workspace_roots": [str(root)], "command": "rm *.md"}
+                )
+
+        self.assertEqual(result["permission"], "deny")
 
 
 if __name__ == "__main__":
