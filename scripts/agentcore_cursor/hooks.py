@@ -565,17 +565,24 @@ def _set_prompt_capture_flag(root_path: Path, *, captured: bool) -> bool:
 def _shell_file_mutation_targets(command: str) -> tuple[bool, list[str] | None]:
     """Return every affected path, or None when the complete set is ambiguous."""
     mutator_pattern = r"(?i)\b(?:" + "|".join(SHELL_FILE_MUTATORS) + r")\b"
-    redirect = re.search(
-        r"(?<!>)>{1,2}\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|]+))",
-        command,
+    redirect_matches = list(
+        re.finditer(
+            r"(?<!>)>{1,2}\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|]+))",
+            command,
+        )
     )
     if re.search(r";|&&|\|\|?", command) and (
-        re.search(mutator_pattern, command) or redirect
+        re.search(mutator_pattern, command) or redirect_matches
     ):
         return True, None
-    if redirect:
-        target = next((value for value in redirect.groups() if value), None)
-        return True, [target] if target else None
+    if redirect_matches:
+        targets = [
+            target
+            for match in redirect_matches
+            for target in [next((value for value in match.groups() if value), None)]
+            if target
+        ]
+        return (True, targets) if targets else (True, None)
 
     try:
         tokens = shlex.split(command, posix=False)

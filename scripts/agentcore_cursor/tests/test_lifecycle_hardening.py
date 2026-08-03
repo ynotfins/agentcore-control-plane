@@ -227,6 +227,14 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         self.assertTrue(is_mutation)
         self.assertIsNone(targets)
 
+    def test_multiple_redirects_return_every_file_target(self) -> None:
+        is_mutation, targets = hooks._shell_file_mutation_targets(
+            "echo first > first.txt 2> errors.txt"
+        )
+
+        self.assertTrue(is_mutation)
+        self.assertEqual(targets, ["first.txt", "errors.txt"])
+
     def test_piped_file_mutation_is_not_treated_as_one_safe_target(self) -> None:
         is_mutation, targets = hooks._shell_file_mutation_targets(
             "Get-Content source.txt | Set-Content destination.txt"
