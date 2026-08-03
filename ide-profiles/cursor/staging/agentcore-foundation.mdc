@@ -42,8 +42,8 @@ This is the only MCP entry for Cursor. Never paste upstream servers or direct pe
 
 Before acting on project work:
 
-1. **Activate project:** `project_activate` with the repository path.
-2. **Open or resume session:** `session_open` — use `project_key`, `client_key`, `agent_key`, `session_key`. Reuse the same `session_key` when continuing a task; create a new one for a new task under the same project.
+1. **Resolve project:** use Cursor's exact workspace root and pass its stable explicit identity to memory calls; do not mutate machine-global project-router state.
+2. **Open or resume session:** `session_open` — use `project_key`, `project_root`, `worktree_path`, `client_key`, `agent_key`, `session_key`. Reuse the same `session_key` when continuing a task; create a new one for a new task under the same project.
 3. **Retrieve startup context:** `startup_context` with `project_key` and `context_profile`.
 4. **Append the operator prompt:** `append_event` with `event_kind: prompt` and a deterministic `idempotency_key` before executing any tools.
 5. **During work:** `append_event` for accepted evidence, decisions, test results, blockers, and state transitions after each durable Micro step.
@@ -55,8 +55,8 @@ Tool name reference (`agentcore_memory-*`):
 `memory_status` · `session_open` · `session_close` · `startup_context` · `retrieve_context`
 `append_event` · `expand_source` · `propose_fact` · `build_handoff` · `docs_search`
 
-Project router (`agentcore_project_router-*`):
-`project_list` · `project_activate` · `project_status` · `project_clear`
+Project-router controls are absent from the normal Cursor profile. They are
+operator-only maintenance and are not a concurrent-session security boundary.
 
 ## 5. Recovery
 

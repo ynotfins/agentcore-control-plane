@@ -25,7 +25,8 @@ CONTEXT_PROFILE = "standard-context"
 RUNTIME_DIRNAME = ".agentcore/runtime"
 BOOTSTRAP_JSON = "cursor-bootstrap.json"
 BOOTSTRAP_MD = "cursor-bootstrap.md"
-POINTER_REL = Path("H:/AgentRuntime/clients/cursor/active_task.json")
+RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
+POINTER_REL = RUNTIME_ROOT / "clients" / "cursor" / "active_task.json"
 SECRET_PATTERNS = [
     re.compile(r"(?i)(api[_-]?key|token|password|secret|bearer)\s*[:=]\s*\S+"),
     re.compile(r"(?i)Authorization:\s*Bearer\s+\S+"),
@@ -35,7 +36,7 @@ SECRET_PATTERNS = [
 LOG_ROOT = Path(
     os.environ.get(
         "AGENTCORE_CURSOR_BOOTSTRAP_LOG_ROOT",
-        r"H:\AgentRuntime\clients\cursor\logs",
+        str(RUNTIME_ROOT / "clients" / "cursor" / "logs"),
     )
 )
 
@@ -149,20 +150,14 @@ def resolve_workspace(explicit: str | None = None) -> Path:
     return cwd
 
 
-def resolve_project_key(root: Path, gw: GatewayClient | None = None) -> str:
-    listed = None
-    if gw is not None:
-        try:
-            listed = gw.call_tool("agentcore_project_router-project_list", {})
-        except Exception:  # noqa: BLE001
-            listed = None
-    projects = (listed or {}).get("projects") if isinstance(listed, dict) else None
-    if isinstance(projects, list):
-        root_s = str(root).replace("/", "\\").lower()
-        for item in projects:
-            path = str(item.get("path") or "").replace("/", "\\").lower()
-            if path == root_s:
-                return str(item.get("id") or item.get("name") or root.name)
+def resolve_project_key(root: Path) -> str:
+    """Derive the explicit memory identity from the validated workspace root.
+
+    Cursor lifecycle hooks must not read or mutate the machine-global project
+    router. Session-open also sends the canonical path/worktree, so the memory
+    service receives the full explicit identity tuple rather than an implicit
+    shared-process selection.
+    """
     return root.name
 
 
@@ -480,20 +475,9 @@ def run_bootstrap(
             isinstance(status, dict) and status.get("ok")
         )
 
-        project_key = resolve_project_key(root, gw)
+        project_key = resolve_project_key(root)
         result.project_key = project_key
         result.status_flags["project_automatically_resolved"] = True
-
-        try:
-            gw.call_tool(
-                "agentcore_project_router-project_activate",
-                {"path": str(root)},
-            )
-        except Exception:  # noqa: BLE001
-            gw.call_tool(
-                "agentcore_project_router-project_activate",
-                {"id": project_key},
-            )
 
         session_key, mode, choices = select_session(
             project_key,

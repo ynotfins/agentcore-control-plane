@@ -1,6 +1,6 @@
 """Deterministic Cursor hook dispatcher — JSON stdin, exactly one JSON stdout document.
 
-Diagnostics go to stderr and bounded log files under H:\\AgentRuntime\\clients\\cursor\\logs\\hooks\\
+Diagnostics go to stderr and bounded log files under the AgentCore runtime root.
 Never emits followup_message or fabricates operator prompts.
 """
 
@@ -20,10 +20,11 @@ if str(_SCRIPTS) not in sys.path:
 
 from agentcore_cursor.hooks import HANDLERS  # noqa: E402
 
+RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
 LOG_ROOT = Path(
     os.environ.get(
         "AGENTCORE_CURSOR_HOOK_LOG_ROOT",
-        r"H:\AgentRuntime\clients\cursor\logs\hooks",
+        str(RUNTIME_ROOT / "clients" / "cursor" / "logs" / "hooks"),
     )
 )
 MAX_STDOUT_BYTES = 512_000

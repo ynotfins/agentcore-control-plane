@@ -46,6 +46,7 @@ REJECT_MARKERS = (
     "swarmvault",
     "agentswarm",
     "swarmclaw",
+    "swarm-ecosystem-control",
 )
 _reject_roots = os.environ.get(
     "AGENTCORE_PROJECT_REJECT_ROOTS",

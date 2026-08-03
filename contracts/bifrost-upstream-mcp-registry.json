@@ -351,7 +351,7 @@
       "bifrost_client_name": "context_fabric",
       "status": "dormant_project_scoped",
       "notes": [
-        "Project-scoped only via router; project_activate reconnects this upstream after atomically changing the active project; reject Swarm and agentmemory roots.",
+        "Dormant in shared Bifrost profiles because calls lack trustworthy per-session project identity. Use the repository-local hook/CLI; reject Swarm and agentmemory roots.",
         "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* → unprefixed)."
       ]
     },

@@ -13,6 +13,7 @@
 - Before HEAD: `da9f6ccd4e4b9f646f213a4faecf95ba1586a75c`
 - Rollback root: `E:\AgentCore-Backups\agentcore-control-plane\context-alignment-20260802-232010`
 - Pre-remediation live Bifrost rollback root: `E:\AgentCore-Backups\agentcore-control-plane\project-isolation-20260803-003135`
+- Cursor/runtime-path remediation rollback root: `E:\AgentCore-Backups\agentcore-control-plane\cursor-runtime-path-20260803-0045`
 - Inherited dirty state was inventoried before editing and remains excluded from this task's stage set.
 - Protected-file attributes were writable before the pass; authority is enforced by approval identity, rollback, validation, review, and recorded hashes rather than an NTFS read-only bit.
 
@@ -87,6 +88,24 @@ The corrected security model does not treat one Bifrost process-global project s
 
 TDD red evidence preceded implementation. The corrected focused suite passes 10/10 router/security tests and the Bifrost contract/renderer suite passes 129 checks.
 
+A second fresh review of `01434d8f61dae057053e6198fa3baa68873108c9` (`bc-dcd759ab-79c7-4b91-bf9e-f0a04a5087dd`) also returned **FAIL** and exposed five additional end-to-end inconsistencies:
+
+1. `swarm-ecosystem-control` was not an explicit rejection marker in the operator router/child launcher.
+2. Cursor Stage B still called `project_list`/`project_activate` while the builder profile correctly exposed zero router tools.
+3. Active Cursor spool/log/pointer defaults and the write allowlist still referenced `H:\AgentRuntime`.
+4. `BufferedReader.read(64 KiB)` could wait for a full buffer or EOF and stall small MCP frames.
+5. `contracts/global-agent-policy.yaml`, generated IDE rules, the new-project bootstrap, and Cursor staging policy still mandated the rejected shared-project model.
+
+All five were reproduced before repair. The follow-up implementation:
+
+- rejects `swarm-ecosystem-control` in both router layers;
+- derives Cursor memory identity from the validated workspace root and sends the explicit project/root/worktree tuple without router calls;
+- moves active Cursor defaults and runtime write allowance to environment-governed `F:\AgentCore\runtime`;
+- uses `os.read(..., 64 KiB)` so a small available MCP message returns immediately, with a real open-pipe regression test;
+- updates the canonical policy/new-project bootstrap/Cursor staging rule and regenerates all 27 IDE rule artifacts.
+
+TDD proof now passes 12/12 router/security tests and 133 Bifrost contract/renderer checks. The complete Stage B suite passes 26/26 with `AGENTCORE_WORKER_MODE=deterministic`; without that explicit fixture setting, the embedded live LangGraph worker exceeded its independent 120-second test timeout. The hook protocol harness passes all event fixtures and special cases.
+
 ### Corrected live rollout
 
 - The live Bifrost config and online SQLite database were backed up under `E:\AgentCore-Backups\agentcore-control-plane\project-isolation-20260803-003135`; `PRAGMA integrity_check=ok`.
@@ -107,13 +126,15 @@ TDD red evidence preceded implementation. The corrected focused suite passes 10/
 
 | Check | Result |
 | --- | --- |
-| Project-router unit tests | PASS — 10/10 |
+| Project-router unit tests | PASS — 12/12, including Swarm-control-plane refusal, cross-platform paths, and small open-pipe proxy delivery |
 | Python compile | PASS |
 | Authority lock | PASS |
 | Cursor prompt format | PASS |
 | Ecosystem separation | PASS |
 | Bifrost contract validation | PASS |
-| Bifrost contract/renderer suite | PASS — 129 checks |
+| Bifrost contract/renderer suite | PASS — 133 checks |
+| Cursor Stage B comprehensive suite | PASS — 26/26 with deterministic LangGraph fixture |
+| Cursor hook protocol harness | PASS — all seven event fixtures plus special cases |
 | IDE rules renderer check | PASS |
 | IDE enrollment scope | PASS |
 | Runtime Bifrost builder status | PASS — task running, health ok, 57 tools, memory 10, router 0, skills-hub >=3 |
@@ -130,10 +151,12 @@ Repository-wide reconciliation scanning also identified 12 unchanged secret-like
 - Cause is confirmed in the installed and [current upstream Context Fabric `1.0.7` source](https://github.com/VIKAS9793/context-fabric/blob/main/src/engines/anchor.ts): capture hashes Git blob bytes while `anchor.ts` hashes raw working-tree bytes. This conflicts with this Windows checkout's documented `core.autocrlf=true` behavior.
 - Classification: `MEDIUM` dependency residual. Capture, query, decision logging, search, project identity, DB integrity, and hook readiness remain usable; the raw drift severity alone is not accepted as an operational gate on Windows.
 - Smallest safe follow-up: upstream or forked Context Fabric must compare working-tree content through Git clean filters/object identity and reconcile historical tombstones. Do not rewrite this repository or globally change line-ending policy merely to silence the metric.
+- Repo-local capture `#124` records remediation commit `01434d8f61dae057053e6198fa3baa68873108c9`; doctor reports schema/search-index 2, database integrity `ok`, hook installed/ready, zero pending captures, and six retained historical failures.
+- A repo-local `cf_log_decision` call appended **Keep implicit-project tools out of shared Bifrost profiles**, explicitly superseding the earlier project-router decision. A bounded local query returns the superseding decision first and identifies `01434d8` as latest captured Git state.
 
 ### Pending closeout evidence
 
-- Independent fresh-context Cursor review of the remediation commit.
+- Independent fresh-context Cursor review of the final remediation commit (the `01434d8` review correctly failed and its findings are repaired locally).
 - Final accepted-HEAD repo-local Context Fabric capture/drift/query/health evidence.
 - Final scoped push and after-hash table.
 

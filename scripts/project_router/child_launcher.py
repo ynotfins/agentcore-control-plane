@@ -40,7 +40,13 @@ TENTRA_DATA = Path(
 )
 IDLE_TIMEOUT_SECONDS = 30 * 60
 
-REJECT_MARKERS = ("swarmrecall", "swarmvault", "agentswarm", "swarmclaw")
+REJECT_MARKERS = (
+    "swarmrecall",
+    "swarmvault",
+    "agentswarm",
+    "swarmclaw",
+    "swarm-ecosystem-control",
+)
 REJECT_PREFIXES = (Path(r"F:\AgentCore\agentmemory"),)
 
 
@@ -194,6 +200,11 @@ def update_process_registry(server: str, pid: int, project_path: str, cmd: list[
         save_json(PROCESS_REGISTRY, reg)
 
 
+def read_stream_chunk(stream) -> bytes:
+    """Read bytes available from a pipe without waiting to fill the chunk."""
+    return os.read(stream.fileno(), 64 * 1024)
+
+
 def proxy_stdio(proc: subprocess.Popen[bytes], server: str, project_path: str) -> int:
     """Bidirectional byte proxy between this process stdio and child stdio."""
     last_activity = time.time()
@@ -204,7 +215,7 @@ def proxy_stdio(proc: subprocess.Popen[bytes], server: str, project_path: str) -
         assert proc.stdin is not None
         try:
             while not stop.is_set():
-                chunk = sys.stdin.buffer.read(64 * 1024)
+                chunk = read_stream_chunk(sys.stdin.buffer)
                 if not chunk:
                     break
                 proc.stdin.write(chunk)
@@ -224,7 +235,7 @@ def proxy_stdio(proc: subprocess.Popen[bytes], server: str, project_path: str) -
         assert proc.stdout is not None
         try:
             while not stop.is_set():
-                chunk = proc.stdout.read(64 * 1024)
+                chunk = read_stream_chunk(proc.stdout)
                 if not chunk:
                     break
                 sys.stdout.buffer.write(chunk)

@@ -251,6 +251,45 @@ def main() -> int:
     memory_plan = read("docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md")
     check("memory-plan:no AgentCore H spool", "on H: spool" not in memory_plan)
 
+    cursor_runtime_sources = [
+        "scripts/agentcore_cursor/bootstrap.py",
+        "scripts/agentcore_cursor/hook_dispatcher.py",
+        "scripts/agentcore_cursor/spool.py",
+        "scripts/agentcore_cursor/hooks.py",
+    ]
+    stale_cursor_runtime_paths = [
+        path for path in cursor_runtime_sources if r"H:\AgentRuntime" in read(path)
+    ]
+    check(
+        "cursor-runtime:no stale H AgentRuntime defaults",
+        not stale_cursor_runtime_paths,
+        f"stale runtime paths: {stale_cursor_runtime_paths}",
+    )
+    cursor_bootstrap = read("scripts/agentcore_cursor/bootstrap.py")
+    check(
+        "cursor-runtime:bootstrap has no machine-global router dependency",
+        "agentcore_project_router-" not in cursor_bootstrap,
+    )
+    global_agent_policy = read("contracts/global-agent-policy.yaml")
+    stale_shared_project_policy = [
+        phrase for phrase in (
+            "activate the project through agentcore-project-router",
+            "Use Serena through agentcore-gateway",
+        )
+        if phrase in global_agent_policy
+    ]
+    check(
+        "policy:no shared implicit-project tool mandate",
+        not stale_shared_project_policy,
+        f"stale policy phrases: {stale_shared_project_policy}",
+    )
+    bootstrap_policy = read("docs/agent-policy/NEW_PROJECT_BOOTSTRAP.md")
+    check(
+        "policy:new-project bootstrap uses explicit local project identity",
+        "Activate/register" not in bootstrap_policy
+        and "Project-scoped filesystem operations" not in bootstrap_policy,
+    )
+
     # --- MCP outputSchema coverage (MissingOutputSchema must be zero) ---
     # Full gate including the generated-artifact drift check: a contract or registry
     # change that has not been re-rendered leaves live tools/list without outputSchema.

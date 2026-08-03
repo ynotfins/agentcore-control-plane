@@ -9,13 +9,13 @@ Every managed project starts from one governed Bootstrap Milestone (M0) that est
 
 ## M0 sequence
 
-1. **Activate/register** the repository and worktree through `agentcore-project-router` (`project_activate`).
+1. **Resolve/register identity** from the host's exact repository/worktree root and pass that explicit identity to `agentcore-memory`; ordinary IDE profiles do not mutate machine-global project-router state.
 2. **Load global context** through `agentcore-memory` (startup context; degraded-mode tolerated until the memory platform lands).
 3. **Read in order** (see `DOCUMENTATION_READ_ORDER.md`): global `PROJECT_ANCHOR.md` + `DOC_AUTHORITY.md`, global agent policy (`docs/agent-policy/`), project `AGENTS.md`/`CLAUDE.md`, existing project docs.
 4. **Preserve the operator's original project prompt** verbatim in `PROJECT_CHARTER.md` (or reference it through an immutable evidence identifier once the memory platform provides one).
 5. **Inspect** manifests, lockfiles, repository state, and Git history.
-6. **Run Context Fabric** capture and drift/reality check for the project workspace.
-7. **Discover architecture** with Serena (symbols/structure), Depwire (dependency graph/impact), and Tentra local (architecture graph).
+6. **Run Context Fabric locally** through the repository hook/CLI for capture and drift/reality checks.
+7. **Discover architecture** with native IDE semantic/source tools; use an explicit project-owned Serena process only when needed, and run Depwire/Tentra diagnostics with an explicit cwd.
 8. **Resolve exact dependency versions** and index/query documentation through Arabold Docs.
 9. **Create from templates** (`templates/project-governance/.agentcore/`):
    - `PROJECT_CHARTER.md`
@@ -35,15 +35,19 @@ Every managed project starts from one governed Bootstrap Milestone (M0) that est
 
 The Bootstrap profile provides discovery and bounded project setup only:
 
-- `agentcore-project-router` (activate/status)
 - `agentcore-memory` (context retrieval/health)
 - `arabold-docs` (exact-version documentation)
-- `context-fabric` (capture/drift/health)
-- Serena (navigation/read + bounded project edits)
-- Depwire (read/impact/verify)
-- Tentra local (read/index)
+- repository-local Context Fabric (capture/drift/health)
+- native IDE semantic/source tools; optional project-owned Serena
+- explicit-cwd Depwire (read/impact/verify)
+- explicit-project Tentra local (read/index)
 - `sequential-thinking`
-- Project-scoped filesystem operations (bounded writes inside the assigned worktree)
+- Native IDE filesystem operations bounded to the assigned worktree
+
+The four `agentcore-project-router` controls are operator-only maintenance and
+must not be treated as a concurrent-session boundary. Serena, Depwire, Tentra,
+filesystem, and Context Fabric stay dormant in shared Bifrost profiles while
+their calls lack trustworthy explicit per-session project identity.
 
 It must **not** automatically include: Bifrost administration, raw PostgreSQL, whole-drive filesystem access, destructive GitHub operations, unrestricted browser code execution, process attachment, hosted Tentra upload, direct secret access, live IDE configuration writes, or Swarm tools.
 

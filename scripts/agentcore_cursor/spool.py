@@ -8,10 +8,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
 SPOOL_ROOT = Path(
     os.environ.get(
         "AGENTCORE_CURSOR_SPOOL_ROOT",
-        r"H:\AgentRuntime\clients\cursor\spool\pending",
+        str(RUNTIME_ROOT / "clients" / "cursor" / "spool" / "pending"),
     )
 )
 

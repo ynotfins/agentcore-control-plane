@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -53,19 +55,56 @@ class ProjectRouterRoutingTests(unittest.TestCase):
     def test_child_launcher_defaults_to_current_agentcore_runtime(self) -> None:
         launcher = load_module("agentcore_child_launcher_test", HERE / "child_launcher.py")
 
-        self.assertEqual(launcher.RUNTIME_ROOT, Path(r"F:\AgentCore\runtime"))
+        normal = lambda path: str(path).replace("\\", "/")  # noqa: E731
+        self.assertEqual(normal(launcher.RUNTIME_ROOT), "F:/AgentCore/runtime")
         self.assertEqual(
-            launcher.STATE_PATH,
-            Path(r"F:\AgentCore\runtime\bifrost\state\active-project.json"),
+            normal(launcher.STATE_PATH),
+            "F:/AgentCore/runtime/bifrost/state/active-project.json",
         )
         self.assertEqual(
-            launcher.PROCESS_REGISTRY,
-            Path(r"F:\AgentCore\runtime\mcp-processes\registry.json"),
+            normal(launcher.PROCESS_REGISTRY),
+            "F:/AgentCore/runtime/mcp-processes/registry.json",
         )
         self.assertEqual(
-            launcher.TENTRA_DATA,
-            Path(r"F:\AgentCore\runtime\tentra\data"),
+            normal(launcher.TENTRA_DATA),
+            "F:/AgentCore/runtime/tentra/data",
         )
+
+    def test_swarm_control_plane_is_rejected_by_router_and_child(self) -> None:
+        server = load_module("agentcore_project_router_swarm_test", HERE / "server.py")
+        launcher = load_module("agentcore_child_launcher_swarm_test", HERE / "child_launcher.py")
+        swarm_path = Path(r"D:\github\swarm-ecosystem-control")
+
+        self.assertIsNotNone(server._rejected_path(swarm_path))
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            patch.object(launcher, "STATE_PATH", Path(temp_dir) / "active-project.json"),
+        ):
+            launcher.STATE_PATH.write_text(
+                json.dumps({"id": "swarm-ecosystem-control", "path": str(swarm_path)}),
+                encoding="utf-8",
+            )
+            with self.assertRaises(SystemExit):
+                launcher.load_active_project()
+
+    def test_proxy_reads_small_message_without_waiting_for_chunk_fill(self) -> None:
+        launcher = load_module("agentcore_child_launcher_proxy_test", HERE / "child_launcher.py")
+        read_fd, write_fd = os.pipe()
+        received: list[bytes] = []
+        reader = os.fdopen(read_fd, "rb", buffering=0)
+        try:
+            thread = threading.Thread(
+                target=lambda: received.append(launcher.read_stream_chunk(reader)),
+                daemon=True,
+            )
+            thread.start()
+            os.write(write_fd, b'{"jsonrpc":"2.0"}\n')
+            thread.join(timeout=1)
+            self.assertFalse(thread.is_alive(), "small MCP message stalled waiting for 64 KiB")
+            self.assertEqual(received, [b'{"jsonrpc":"2.0"}\n'])
+        finally:
+            os.close(write_fd)
+            reader.close()
 
     def test_project_activation_reports_router_client_reconnect(self) -> None:
         server = load_module("agentcore_project_router_test", HERE / "server.py")

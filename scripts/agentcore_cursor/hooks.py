@@ -445,9 +445,10 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
                     pass
                 
                 # Allow runtime/agentcore internal dirs
+                runtime_root = os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime")
                 is_allowed_runtime = any(
                     str(target_p).lower().startswith(p.lower())
-                    for p in (r"C:\Users\ynotf\.agentcore", r"H:\AgentRuntime")
+                    for p in (r"C:\Users\ynotf\.agentcore", runtime_root)
                 )
                 
                 if not is_under_root and not is_allowed_runtime:
