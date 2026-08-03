@@ -273,7 +273,7 @@ forbidden_routes:
   - Swarm MCP in AgentCore / enrolled non-Swarm IDE baselines
   - AgentCore IDE continuity / memory sessions on Swarm-owned projects
   - 'treating H:\AgentRuntime or any H: path as AgentCore final runtime home'
-  - port 65432 as an active route
+  - port 65432 as a direct AgentCore or IDE route; the neutral Recall service may own that backend only behind agentcore-memory
 
 task_class_gates:
   - tool_name: "arabold-docs"

@@ -25,8 +25,9 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
 - Drives: `C:` OS/config, `D:` repos/projects/worktrees, `E:` archive/cold, `F:` AgentCore hot DB/RAG/search/runtime,
   `G:` backup, `H:` reserved for Swarm hot runtime/data, `I:` disposable scratch,
   `J:` portable media. PostgreSQL 18 `agent_core` / `cognee_core` uses `127.0.0.1:55433`;
-  PostgreSQL 16 at `127.0.0.1:55432` is preserved only for rollback/legacy evidence and Swarm-owned
-  databases. `:65432` is forbidden.
+  PostgreSQL 16 at `127.0.0.1:55432` is preserved only as offline rollback/legacy evidence.
+  Neutral SwarmRecall owns its native PostgreSQL 16 backend at `127.0.0.1:65432`; AgentCore and
+  IDE clients must never connect to it directly and may reach Recall only through `agentcore-memory`.
 - Renderers under `renderers/` are marked read-only by convention; clear the attribute only for an
   approved edit and restore it afterward.
 - DepWire: the shared implicit-project Bifrost upstream is dormant. Use a host-owned explicit-cwd
@@ -44,7 +45,8 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
 ```text
 Bifrost gateway: http://127.0.0.1:8080/mcp   (F:\AgentCore\runtime\bifrost; scheduled task \AgentCore\AgentCore-Bifrost-Gateway)
 PostgreSQL 18:   127.0.0.1:55433   (F:\PostgreSQL18\data; canonical AgentCore agent_core + cognee_core)
-PostgreSQL 16:   127.0.0.1:55432   (F:\AgentCore\database_cluster; rollback/legacy evidence and Swarm-owned DBs only)
+PostgreSQL 16:   127.0.0.1:55432   (offline rollback/legacy evidence; never an active route)
+Neutral Recall: 127.0.0.1:65432   (service-owned backend; no direct AgentCore or IDE SQL route)
 
 Neutral semantic exception: SwarmRecall is reached server-side through agentcore-memory only.
 All Swarm runtime paths, launchers, credentials, and mutable facts remain under swarm-ecosystem-control authority.

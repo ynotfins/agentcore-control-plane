@@ -71,8 +71,10 @@ def stdio_rpc(cmd: list[str], requests: list[dict[str, Any]]) -> list[dict[str, 
         proc.stdin.flush()
 
     responses = []
-    # Read output lines
-    for _ in range(len(requests)):
+    # MCP notifications intentionally have no response. Wait only for requests
+    # that carry an id, otherwise the diagnostic blocks forever after tools/list.
+    expected_responses = sum(1 for request in requests if "id" in request)
+    for _ in range(expected_responses):
         line = proc.stdout.readline()
         if not line:
             break
@@ -146,43 +148,49 @@ def get_layer_a_tools() -> dict[str, dict[str, Any]]:
 
 
 def http_mcp_tools_list(url: str, vk: str) -> dict[str, dict[str, Any]]:
+    def post(payload: dict[str, Any], headers: dict[str, str]) -> tuple[dict[str, Any], dict[str, str]]:
+        req = urllib.request.Request(
+            f"{url}/mcp",
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            raw = resp.read().decode("utf-8", errors="replace")
+            response_headers = {key.lower(): value for key, value in resp.headers.items()}
+        if "text/event-stream" in response_headers.get("content-type", ""):
+            for line in raw.splitlines():
+                if line.startswith("data:") and line[5:].strip():
+                    return json.loads(line[5:].strip()), response_headers
+            return {}, response_headers
+        return (json.loads(raw) if raw.strip() else {}), response_headers
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+        "MCP-Protocol-Version": "2025-06-18",
+        "Authorization": f"Bearer {vk}",
+    }
     init_req = {
         "jsonrpc": "2.0",
         "id": 1,
         "method": "initialize",
         "params": {
-            "protocolVersion": "2024-11-05",
+            "protocolVersion": "2025-06-18",
             "capabilities": {},
             "clientInfo": {"name": "test-layer-http", "version": "1.0"},
         },
     }
-    req = urllib.request.Request(
-        f"{url}/mcp",
-        data=json.dumps(init_req).encode("utf-8"),
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {vk}"},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        session_id = resp.headers.get("Mcp-Session-Id") or resp.headers.get("mcp-session-id")
+    _, response_headers = post(init_req, headers)
+    session_id = response_headers.get("mcp-session-id")
+    if session_id:
+        headers["Mcp-Session-Id"] = session_id
 
     notif_req = {"jsonrpc": "2.0", "method": "notifications/initialized"}
-    req_notif = urllib.request.Request(
-        f"{url}/mcp",
-        data=json.dumps(notif_req).encode("utf-8"),
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {vk}", "Mcp-Session-Id": session_id},
-        method="POST",
-    )
-    urllib.request.urlopen(req_notif, timeout=5)
+    post(notif_req, headers)
 
     list_req = {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
-    req_list = urllib.request.Request(
-        f"{url}/mcp",
-        data=json.dumps(list_req).encode("utf-8"),
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {vk}", "Mcp-Session-Id": session_id},
-        method="POST",
-    )
-    with urllib.request.urlopen(req_list, timeout=5) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
+    data, _ = post(list_req, headers)
 
     tool_map = {}
     for t in data.get("result", {}).get("tools") or []:
@@ -229,7 +237,11 @@ def main() -> None:
     layer_b = http_mcp_tools_list("http://127.0.0.1:8080", builder_vk)
 
     print("Fetching Layer C: Bifrost ChatGPT Profile via Proxy (18081)...")
-    layer_c = http_mcp_tools_list("http://127.0.0.1:18081", chatgpt_vk)
+    try:
+        layer_c = http_mcp_tools_list("http://127.0.0.1:18081", chatgpt_vk)
+    except OSError as exc:
+        print(f"Layer C unavailable (optional compatibility proxy): {exc.__class__.__name__}")
+        layer_c = {}
 
     all_target_tools = [
         ("agentcore-memory", TARGET_MEMORY_TOOLS, "agentcore_memory"),

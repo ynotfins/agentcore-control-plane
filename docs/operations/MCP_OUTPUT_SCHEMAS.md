@@ -1,6 +1,6 @@
 # MCP Output Schemas — agentcore-gateway
 
-**Status:** implemented in source; requires one operator render + Bifrost restart to go live.
+**Status:** implemented and proven at the native STDIO adapter boundary; **not preserved by the pinned Bifrost `v2.0.0-prerelease1` gateway build**. A render/restart alone does not make `outputSchema` visible to IDE clients.
 **Authority:** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `contracts/bifrost-upstream-mcp-registry.json`
 **Spec:** MCP 2025-06-18+ — `tool.outputSchema` describes `CallToolResult.structuredContent`. It does **not** describe the human-readable `content[]` blocks, which are always preserved.
 
@@ -9,12 +9,15 @@
 ## 1. Why this exists
 
 ChatGPT (and other MCP clients) report `OUTPUT SCHEMA RECOMMENDED` for every tool whose
-definition has no `outputSchema`. Bifrost is a **passthrough** gateway: it forwards each
-upstream's `tools/list` verbatim and does not synthesize schemas. Most approved upstreams
-predate MCP structured output, so nothing in the surface advertised one.
+definition has no `outputSchema`. Most approved upstreams predate MCP structured output, so
+the AgentCore adapter adds it before Bifrost. Direct layer proof shows the adapters advertise
+valid `outputSchema`; the pinned Bifrost prerelease then drops that field while preserving
+input schemas and annotations. This is a gateway-version limitation, not an upstream or
+renderer failure.
 
-The only architecture-preserving injection point is the upstream **stdio launch** itself.
-No new MCP route, no second gateway front door, no new tool.
+The upstream **stdio launch** remains the architecture-preserving preparation point. It adds
+no route, gateway front door, or tool, but the prepared field will not reach IDE clients until
+a vetted Bifrost build preserves MCP `outputSchema` end to end.
 
 ```text
 IDE / ChatGPT
@@ -66,7 +69,7 @@ conforming upstream payload can never fail validation against the advertised sch
 
 ---
 
-## 3. Runtime behaviour
+## 3. Adapter and pinned-gateway behaviour
 
 `scripts/bifrost/mcp_output_schema_adapter.py` is a byte-faithful JSON-RPC relay with two
 additive transforms:
@@ -87,6 +90,12 @@ Direct-stdio consumers (acceptance scripts, `probes/probe_stdio.py`, PowerShell 
 tests) are unaffected: the AgentCore memory and project-router servers were **not** modified,
 so their native `structuredContent` shape is unchanged when invoked outside the gateway.
 
+`scripts/bifrost/test_layers_output_schema.py` proves the boundary explicitly:
+
+- Layer A (adapter-wrapped native STDIO): `inputSchema=true`, `outputSchema=true`, annotations present.
+- Layer B (pinned Bifrost builder profile): `inputSchema=true`, `outputSchema=false`, annotations present.
+- Layer C is conditional on the optional ChatGPT compatibility proxy being live.
+
 ---
 
 ## 4. Operator procedure (must be run on the Bifrost host)
@@ -106,15 +115,17 @@ python scripts\bifrost\validate_output_schemas.py
 python scripts\bifrost\validate_contracts.py
 python scripts\bifrost\test_contracts.py
 
-# 4. Restart Bifrost, then prove it live
+# 4. Restart Bifrost, then measure the pinned-build limitation
 #    (BIFROST_MCP_VIRTUAL_KEY must be resolvable in the shell environment)
 python scripts\bifrost\validate_output_schemas.py --probe-gateway
+python scripts\bifrost\test_layers_output_schema.py
 ```
 
-Step 4 is the only step that proves `MissingOutputSchema == 0` on the **live** surface: it
-performs MCP `initialize` + `tools/list` against `http://127.0.0.1:8080/mcp` and counts tools
-whose definition has no `outputSchema`. Steps 1–3 prove the contract, the emitted schemas, and
-the rendered launch commands only.
+The live probe intentionally remains fail-closed. On the pinned prerelease, it reports
+`MissingOutputSchema` for the live surface; the layer diagnostic simultaneously proves the
+field exists before Bifrost. Do not waive or convert that failure into a pass. Re-run both
+after a separately approved Bifrost upgrade, and claim end-to-end support only when Layer B
+and the live probe both pass.
 
 Expected render output includes a line like:
 
@@ -164,6 +175,10 @@ human-readable `content[]` block to remain alongside `structuredContent`.
 
 ## 7. Known gaps
 
+* **Pinned Bifrost strips `outputSchema`.** `v2.0.0-prerelease1` does not preserve the field
+  from upstream `tools/list` responses. Keep the single gateway boundary; do not add a second
+  IDE endpoint or fabricate schemas in the ChatGPT proxy. Resolve through a separately
+  backed-up, version-pinned Bifrost upgrade with rollback and layer-by-layer acceptance.
 * **http/sse upstreams cannot be wrapped.** `artiforge`, `depwire-cloud`, `openrouter`, and
   `google-sheets-mcp` are `adapter: unsupported`. None is currently enabled *and* present in a
   capability profile, so none contributes to `MissingOutputSchema`. If one is ever activated

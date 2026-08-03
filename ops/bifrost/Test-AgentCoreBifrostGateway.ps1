@@ -115,8 +115,24 @@ if (-not [string]::IsNullOrWhiteSpace($vk)) {
     $toolNames = @($tools.result.tools | ForEach-Object { $_.name })
     Assert-True ($toolNames.Count -gt 0) "authenticated MCP tools/list returned $($toolNames.Count) tools"
 
-    foreach ($prefix in @('arabold_docs', 'depwire', 'tentra', 'sequential_thinking', 'context_fabric', 'filesystem', 'playwright', 'cursor_agent_mcp', 'agentcore_memory', 'agentcore_project_router')) {
-      Assert-True (@($toolNames | Where-Object { $_ -like "$prefix*" }).Count -gt 0) "expected MCP tool prefix present: $prefix"
+    $registryPath = Join-Path $RepoRoot 'contracts\bifrost-upstream-mcp-registry.json'
+    if (-not (Test-Path -LiteralPath $registryPath)) {
+      throw "Missing MCP registry: $registryPath"
+    }
+    $registry = Get-Content -LiteralPath $registryPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 100
+    $builderServerIds = @($registry.capability_profiles.builder.allowed_server_ids)
+    $expectedPrefixes = @(
+      $registry.servers.PSObject.Properties |
+        Where-Object {
+          $_.Name -in $builderServerIds -and
+          $_.Value.enabled -eq $true -and
+          $_.Value.status -eq 'active'
+        } |
+        ForEach-Object { ([string]$_.Value.bifrost_client_name) + '-' }
+    )
+    Assert-True ($expectedPrefixes.Count -gt 0) 'builder profile resolves at least one active MCP server'
+    foreach ($prefix in $expectedPrefixes) {
+      Assert-True (@($toolNames | Where-Object { $_ -like "$prefix*" }).Count -gt 0) "contract-active builder MCP tool prefix present: $prefix"
     }
     foreach ($pattern in @('swarm', 'postgres', 'psql', 'whole_drive', 'bifrost_admin')) {
       Assert-True (@($toolNames | Where-Object { $_ -match $pattern }).Count -eq 0) "forbidden MCP tool pattern absent: $pattern"

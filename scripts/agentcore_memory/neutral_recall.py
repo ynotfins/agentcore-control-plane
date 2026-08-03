@@ -45,7 +45,23 @@ def recall_health(timeout: float = 3.0) -> dict[str, Any]:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             body = resp.read().decode("utf-8", errors="replace")
             data = json.loads(body) if body else {}
-            return {"ok": resp.status == 200, "degraded": False, "status": resp.status, "body": data}
+            reported_status = str(data.get("status") or "").strip().lower()
+            services = data.get("services") if isinstance(data, dict) else None
+            failed_services = sorted(
+                str(name)
+                for name, value in (services.items() if isinstance(services, dict) else [])
+                if value is False
+                or (isinstance(value, dict) and value.get("ok") is False)
+            )
+            body_degraded = reported_status in {"degraded", "error", "failed", "unhealthy"}
+            ok = resp.status == 200 and not body_degraded and not failed_services
+            return {
+                "ok": ok,
+                "degraded": not ok,
+                "status": resp.status,
+                "body": data,
+                "failed_services": failed_services,
+            }
     except Exception as exc:  # noqa: BLE001 — degraded boundary
         return {"ok": False, "degraded": True, "error": type(exc).__name__}
 

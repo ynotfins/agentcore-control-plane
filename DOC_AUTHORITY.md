@@ -220,7 +220,7 @@ All historical docs must not be run as instructions without current operator app
 - Treating `database-plan.md` or `AGENT_DATABASE_BOOTSTRAP.md` as current database instructions
 - Direct writes to `F:\AgentCore\database_cluster`, `F:\AgentCore\agentmemory`, or the active Obsidian vault
 - Direct edits to live IDE configs under `C:\Users\ynotf\.*` without backup + approved prompt/ops
-- `:65432` as an active runtime route
+- `:65432` as a direct AgentCore or IDE runtime route (the neutral Recall service-owned backend is allowed only behind `agentcore-memory`)
 - Whole-drive filesystem MCP roots or Postgres credentials in IDE configs
 
 ---

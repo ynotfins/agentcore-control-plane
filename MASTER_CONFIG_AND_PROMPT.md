@@ -101,7 +101,7 @@ Only the authority-maintainer path may add a project/worktree entry.
 - Secrets live only in Windows User-scope environment variables. No `.env` files.
 - Never print, store, or commit resolved bearer tokens, virtual keys, API keys, PATs, DB passwords, or live secret-bearing IDE configs.
 - Live IDE configs are app-owned; changes flow through the approved self-enrollment prompt/ops with backup first.
-- Forbidden active routes: Context7, raw Mem0, direct Composio, Hostinger, `:65432`, whole-drive filesystem MCP roots, Postgres credentials in IDE configs, `global-memory-gateway` as a default route.
+- Forbidden active routes: Context7, raw Mem0, direct Composio, Hostinger, direct AgentCore/IDE SQL to neutral Recall at `:65432`, whole-drive filesystem MCP roots, Postgres credentials in IDE configs, `global-memory-gateway` as a default route. The service-owned `:65432` backend is permitted only behind the bounded `agentcore-memory` projection adapter.
 - OpenClaw/ClawX are Swarm-managed and outside AgentCore Bifrost IDE enrollment.
 - Do **not** place Swarm MCP servers or Swarm component configuration in this file, in IDE profiles, or in AgentCore gateway client renderers.
 
