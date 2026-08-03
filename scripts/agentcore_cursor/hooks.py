@@ -555,7 +555,7 @@ def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
         r"(?<!>)>{1,2}\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|]+))",
         command,
     )
-    if re.search(r";|&&|\|\|", command) and (
+    if re.search(r";|&&|\|\|?", command) and (
         re.search(mutator_pattern, command) or redirect
     ):
         return True, None
@@ -572,7 +572,7 @@ def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
     )
     if command_index is None:
         return False, None
-    if any(token in {";", "&&", "||"} for token in tokens):
+    if any(token in {";", "&&", "|", "||"} for token in tokens):
         return True, None
 
     mutator = tokens[command_index].strip("'\"").lower()

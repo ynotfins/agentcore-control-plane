@@ -227,6 +227,14 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         self.assertTrue(is_mutation)
         self.assertIsNone(target)
 
+    def test_piped_file_mutation_is_not_treated_as_one_safe_target(self) -> None:
+        is_mutation, target = hooks._shell_file_mutation_target(
+            "Get-Content source.txt | Set-Content destination.txt"
+        )
+
+        self.assertTrue(is_mutation)
+        self.assertIsNone(target)
+
 
 if __name__ == "__main__":
     unittest.main()
