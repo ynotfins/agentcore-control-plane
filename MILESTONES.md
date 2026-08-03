@@ -2,11 +2,11 @@
 
 > **Status:** Locked Milestone outcomes and exit criteria for the AgentCore platform.
 > Operator-authored core Milestones M0–M8 preserved; Macro/Micro steps remain adaptable from repository and machine evidence.
-> **Updated:** 2026-07-31 — added bounded M9 AgentCore relocation / ecosystem-separation milestone; clarified status labels; removed any implication that AgentCore builds or operates Swarm.
+> **Updated:** 2026-08-02 — execution ownership and neutral semantic-memory exception reconciled under `AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`; Milestone outcomes/order unchanged.
 
 ## Ecosystem and Drive Separation — Read First
 
-AgentCore and Swarm are **independent control planes**. They share a machine, not authority, runtime, memory, credentials, or backups.
+AgentCore and Swarm are **independent execution control planes**. They share a machine and one explicitly neutral semantic projection service, not authority, canonical evidence, runtime ownership, credentials, or backups.
 
 | Domain | Ownership |
 | --- | --- |
@@ -19,8 +19,9 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 
 **Hard rules**
 
-- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
+- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm-owned runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
 - Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
+- Neutral shared SwarmRecall is the sole bounded exception under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`; AgentCore reaches it only through the server-side `agentcore-memory` adapter, and it owns no canonical evidence/checkpoint state.
 - No canonical resource may be jointly owned.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
 - Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
@@ -29,9 +30,9 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 
 ## Lock rules
 
-These Milestones are locked. Cursor may freely optimize, add, remove, reorder, or split the Macro and Micro steps inside them based on repository and machine evidence.
+These Milestones are locked. The authorized AgentCore execution lead may optimize, add, remove, reorder, or split the Macro and Micro steps inside them based on repository and machine evidence. Bounded IDE specialists, including Cursor subagents, may do so only inside delegated scope.
 
-Cursor may **not** change without explicit operator approval:
+No execution lead or specialist may change without explicit operator approval:
 
 - Milestone purpose
 - Milestone exit criteria

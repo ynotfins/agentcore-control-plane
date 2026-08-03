@@ -11,6 +11,8 @@ import json
 import os
 import sys
 import traceback
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -21,8 +23,11 @@ PROTOCOL_VERSION = "2025-06-18"
 SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+REGISTRY_PATH = REPO_ROOT / "contracts" / "bifrost-upstream-mcp-registry.json"
 PROJECTS_ROOT = Path(os.environ.get("AGENTCORE_PROJECTS_ROOT", str(REPO_ROOT.parent)))
 RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
+BIFROST_BASE = os.environ.get("AGENTCORE_BIFROST_BASE", "http://127.0.0.1:8080").rstrip("/")
+ADMIN_KEY_ENV = "BIFROST_ADMIN_KEY"
 STATE_PATH = Path(
     os.environ.get(
         "AGENTCORE_PROJECT_ROUTER_STATE",
@@ -134,9 +139,108 @@ def save_state(data: dict[str, Any] | None) -> None:
         if STATE_PATH.exists():
             STATE_PATH.unlink()
         return
-    with STATE_PATH.open("w", encoding="utf-8", newline="\n") as fh:
-        json.dump(data, fh, indent=2)
-        fh.write("\n")
+    temp_path = STATE_PATH.with_suffix(STATE_PATH.suffix + ".tmp")
+    try:
+        with temp_path.open("w", encoding="utf-8", newline="\n") as fh:
+            json.dump(data, fh, indent=2)
+            fh.write("\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(temp_path, STATE_PATH)
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
+
+
+def _read_user_env(name: str) -> str:
+    value = os.environ.get(name, "")
+    if value or os.name != "nt":
+        return value
+    try:
+        import winreg
+
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Environment") as key:
+            value, _ = winreg.QueryValueEx(key, name)
+            return str(value or "")
+    except OSError:
+        return ""
+
+
+def _bifrost_admin_request(method: str, path: str) -> dict[str, Any]:
+    admin_key = _read_user_env(ADMIN_KEY_ENV)
+    if not admin_key:
+        raise RuntimeError(f"{ADMIN_KEY_ENV} is unavailable")
+    request = urllib.request.Request(
+        f"{BIFROST_BASE}{path}",
+        data=b"" if method == "POST" else None,
+        headers={
+            "Authorization": f"Bearer {admin_key}",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        },
+        method=method,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            raw = response.read().decode("utf-8")
+            return json.loads(raw) if raw else {}
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f"Bifrost {method} {path} failed: HTTP {exc.code}") from None
+
+
+def _router_client_names() -> list[str]:
+    registry = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    return sorted(
+        spec["bifrost_client_name"]
+        for spec in (registry.get("servers") or {}).values()
+        if spec.get("enabled") and spec.get("connection_type") == "router"
+    )
+
+
+def reconnect_router_clients() -> dict[str, Any]:
+    """Reconnect only router-backed Bifrost upstreams after active-project change."""
+    target_names = _router_client_names()
+    if not target_names:
+        return {"ok": True, "status": "not_required", "clients": []}
+    try:
+        payload = _bifrost_admin_request("GET", "/api/mcp/clients?limit=100")
+        live_ids: dict[str, str] = {}
+        for item in payload.get("clients") or []:
+            config = item.get("config") or {}
+            name = config.get("name")
+            client_id = config.get("client_id")
+            if name and client_id:
+                live_ids[str(name)] = str(client_id)
+
+        missing = [name for name in target_names if name not in live_ids]
+        reconnected: list[str] = []
+        failures: list[dict[str, str]] = []
+        for name in target_names:
+            client_id = live_ids.get(name)
+            if not client_id:
+                continue
+            try:
+                _bifrost_admin_request("POST", f"/api/mcp/client/{client_id}/reconnect")
+                reconnected.append(name)
+            except Exception as exc:  # noqa: BLE001
+                failures.append({"client": name, "error": type(exc).__name__})
+
+        ok = not missing and not failures
+        return {
+            "ok": ok,
+            "status": "reconnected" if ok else "incomplete",
+            "clients": reconnected,
+            "missing": missing,
+            "failures": failures,
+        }
+    except Exception as exc:  # noqa: BLE001
+        _log(f"router-client reconnect unavailable: {type(exc).__name__}")
+        return {
+            "ok": False,
+            "status": "unavailable",
+            "clients": [],
+            "error": type(exc).__name__,
+        }
 
 
 def tool_defs() -> list[dict[str, Any]]:
@@ -182,6 +286,8 @@ def tool_defs() -> list[dict[str, Any]]:
                     "ok": {"type": "boolean"},
                     "activated": {"type": "string"},
                     "project": {"type": "object"},
+                    "active": {"type": ["object", "null"]},
+                    "project_scoped_reconnect": {"type": "object"},
                     "error": {"type": "string"},
                 },
                 "required": ["ok"],
@@ -228,6 +334,8 @@ def tool_defs() -> list[dict[str, Any]]:
                 "properties": {
                     "ok": {"type": "boolean"},
                     "cleared": {"type": "string"},
+                    "active": {"type": ["object", "null"]},
+                    "project_scoped_reconnect": {"type": "object"},
                 },
                 "required": ["ok"],
                 "additionalProperties": True,
@@ -277,7 +385,12 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
 
     if name == "project_clear":
         save_state(None)
-        return {"ok": True, "active": None, "cleared_at": _now()}
+        return {
+            "ok": True,
+            "active": None,
+            "cleared_at": _now(),
+            "project_scoped_reconnect": reconnect_router_clients(),
+        }
 
     if name == "project_activate":
         path = arguments.get("path")
@@ -302,7 +415,11 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
             "activated_by": SERVER_NAME,
         }
         save_state(state)
-        return {"ok": True, "active": state}
+        return {
+            "ok": True,
+            "active": state,
+            "project_scoped_reconnect": reconnect_router_clients(),
+        }
 
     return {"ok": False, "error": f"Unknown tool: {name}"}
 

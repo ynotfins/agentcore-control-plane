@@ -1,6 +1,7 @@
 ---
 name: optimizer
 description: Passive observer that monitors IDE usage, audits .cursor/rules and AGENTS.md for deprecated patterns, and suggests workflow improvements based on current Cursor docs.
+model: inherit
 readonly: true
 is_background: true
 ---

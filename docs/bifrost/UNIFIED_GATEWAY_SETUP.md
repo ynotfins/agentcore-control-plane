@@ -49,7 +49,7 @@ gateway entries.
 IDE / agent host
   └─ ONE MCP entry: agentcore-gateway
        └─ http://127.0.0.1:8080/mcp + Bearer BIFROST_MCP_VIRTUAL_KEY
-            └─ Bifrost (H:\AgentRuntime\bifrost)
+            └─ Bifrost (F:\AgentCore\runtime\bifrost)
                  └─ upstream STDIO/HTTP MCP clients from
                     contracts/bifrost-upstream-mcp-registry.json
 ```
@@ -111,9 +111,9 @@ pwsh -NoProfile -File D:\github\agentcore-control-plane\ops\bifrost\Test-AgentCo
 Runtime logs:
 
 ```text
-H:\AgentRuntime\bifrost\logs\bifrost-gateway.stdout.log
-H:\AgentRuntime\bifrost\logs\bifrost-gateway.stderr.log
-H:\AgentRuntime\bifrost\logs\logs.db
+F:\AgentCore\runtime\bifrost\logs\bifrost-gateway.stdout.log
+F:\AgentCore\runtime\bifrost\logs\bifrost-gateway.stderr.log
+F:\AgentCore\runtime\bifrost\logs\logs.db
 ```
 
 ### Claude Desktop — `%APPDATA%\Claude\claude_desktop_config.json`
@@ -302,7 +302,7 @@ Gateway config keeps `mcp_disable_auto_tool_inject: true` so Bifrost does not in
 2. **Activate project** via `agentcore_project_router` / `project_activate` before Serena/Depwire/Tentra/filesystem work.
 3. **Builder VK** for daily Cursor/Claude/Codex; use reviewer/docs VKs for constrained agents.
 4. **Arabold first** for library docs (`arabold_docs-search_docs` with pinned versions in `.agentcore/docs/DOCS_INDEX.md`).
-5. **Keep Bifrost on H:** (`H:\AgentRuntime\bifrost`); start via Scheduled Task `\AgentCore\AgentCore-Bifrost-Gateway` or `ops/bifrost/Launch-AgentCoreBifrostGateway.ps1`.
+5. **Keep Bifrost under the approved AgentCore runtime:** (`F:\AgentCore\runtime\bifrost`); start via Scheduled Task `\AgentCore\AgentCore-Bifrost-Gateway` or `ops/bifrost/Launch-AgentCoreBifrostGateway.ps1`.
 6. After changing User env vars, **fully restart** every IDE that expands `${env:…}`.
 
 ---

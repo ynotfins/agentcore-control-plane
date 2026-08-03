@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md — AgentCore Universal IDE Self-Enrollment Package
 
-**Updated:** 2026-07-31 — ecosystem separation reconciliation; remove AgentCore IDE continuity on Swarm projects; Bifrost runtime path corrected to `F:\AgentCore\runtime\bifrost`; preserve Phase 4 IDE enrollment architecture and `@` + absolute-path rule.
+**Updated:** 2026-08-02 — neutral shared Recall, portable Context Engine, Arabold/Context Fabric drift controls, and Codex/Cursor execution ownership reconciled under `AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`; single-gateway contract unchanged.
 **Repository:** `@D:\github\agentcore-control-plane`
 **Authority:** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → current contracts/runbooks
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`, `contracts/global-agent-policy.yaml`, `contracts/model-context-profiles.json`
@@ -13,7 +13,7 @@ This file is the thin, self-sufficient root setup guide for every supported Agen
 
 ## Ecosystem and Drive Separation — Read First
 
-AgentCore and Swarm are **independent control planes**. They share a machine, not authority, runtime, memory, credentials, or backups.
+AgentCore and Swarm are **independent execution control planes**. They share a machine and one explicitly neutral semantic projection service, not authority, canonical evidence, runtime ownership, credentials, or backups.
 
 | Domain | Ownership |
 | --- | --- |
@@ -26,8 +26,9 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 
 **Hard rules**
 
-- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
+- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm-owned runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
 - Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
+- Neutral shared SwarmRecall is the sole bounded exception under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own adapter. It is a semantic projection, never canonical evidence, checkpoints, policy, or execution state.
 - No canonical resource may be jointly owned.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
 - Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
@@ -68,6 +69,21 @@ Supported AgentCore / enrolled non-Swarm IDE
 
 Never paste the full upstream registry into an IDE. Never add a second AgentCore MCP front door. Project-specific behavior is selected through `agentcore-project-router`, not duplicate gateway entries.
 
+### Responsibility model and separate transport planes
+
+- **AgentCore:** canonical PG18 evidence, exact recovery, workflow/policy state, and generated projections.
+- **Bifrost:** sole normal IDE MCP front door, MCP aggregation, authentication, capability profiles, leases, audit, and upstream lifecycle.
+- **Portable Context Engine:** host lifecycle adapters and rolling-context orchestration above `agentcore-memory`.
+- **Neutral SwarmRecall:** machine-level semantic projections reached through bounded server-side adapters; never a raw IDE MCP.
+- **Context Fabric:** project-local committed snapshot, decision projection, bounded briefing, and drift warning; rebuildable and non-canonical.
+- **Arabold Docs:** local, version-labelled official-document corpus used before version-sensitive implementation.
+
+MCP tool traffic is `IDE -> agentcore-gateway/Bifrost -> approved MCP upstreams`. Model inference is a separate path. Do not claim an IDE prompt receives OmniRoute compression merely because the IDE uses Bifrost for MCP. OmniRoute, Graphify, Hindsight, and CrewAI remain disabled, benchmark-gated candidates until an approved ADR and acceptance suite promotes one.
+
+### Execution ownership
+
+The AgentCore authority-maintainer owns architecture, protected contracts, live runtime wiring, security boundaries, final validation, and Git integration. Cursor is used for bounded implementation and independent review through focused project subagents. Cursor does not receive authority to redesign the stack or activate future candidates from this enrollment package.
+
 If a client cannot expand `${env:…}` (observed: MiniMax Code daemon → 401), materialize the User-scope `BIFROST_MCP_VIRTUAL_KEY` into the **live** config only — never commit the resolved value.
 
 `agentcore-gateway` is for AgentCore and explicitly enrolled non-Swarm work only. It is not a Swarm IDE front door and must not be used to persist Swarm project history.
@@ -100,14 +116,14 @@ AgentCore-controlled IDE agents work **only** on:
 
 ### HARD STOP — Swarm-owned selection
 
-If the selected repository, worktree, product, or runtime is Swarm-owned (including SwarmClaw, SwarmRecall, SwarmVault, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, ClawX, `@D:\github\swarm-ecosystem-control`, `@D:\github\vendor\swarm\*`, or Swarm data under `H:` / `E:\Swarm\...`):
+If the selected repository, worktree, product, or runtime is Swarm-owned (including SwarmClaw, SwarmVault, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, ClawX, the Swarm-owned Recall source/runtime repository, `@D:\github\swarm-ecosystem-control`, `@D:\github\vendor\swarm\*`, or Swarm data under `H:` / `E:\Swarm\...`):
 
 1. **Refuse** AgentCore project activation for that path.
 2. **Do not** call `project_activate`, `session_open`, `append_event`, or other AgentCore memory writes for Swarm work.
 3. **Stop** and report that Swarm work belongs to the Swarm control plane.
 4. Read-only dual-workspace boundary audit is allowed only when the operator explicitly requests a collision/boundary audit and write targets remain inside AgentCore authority docs if any writes are authorized.
 
-Swarm runtime processes and Swarm-owned agents do NOT use AgentCore memory, Bifrost/`agentcore-gateway`, AgentCore projections, or AgentCore virtual keys / capability leases. That separation is absolute in both directions.
+Swarm runtime processes and Swarm-owned agents do NOT use AgentCore memory, Bifrost/`agentcore-gateway`, AgentCore projections, or AgentCore virtual keys / capability leases. Neutral Recall is the sole semantic exception and does not weaken that execution/control-plane separation.
 
 Mutable Swarm runtime facts are owned by `@D:\github\swarm-ecosystem-control` only. AgentCore agents must not prescribe Swarm native internal setup from this enrollment package.
 
@@ -145,6 +161,12 @@ Normal lifecycle at every new chat (AgentCore / enrolled non-Swarm projects only
 7. `retrieve_context` for missing chronology; `expand_source` for exact originals; `build_handoff` for current reconstruction.
 8. `session_close` at clean task end.
 
+For architecture-sensitive, dependency-sensitive, or Milestone work:
+
+1. Run Context Fabric `cf_drift` and a bounded `cf_query` after project activation. Treat uncommitted changes as drift; do not capture them as accepted truth.
+2. Resolve external behavior from the exact version in Arabold Docs. If the required official version is absent, index/refresh it or stop and report the documentation gap.
+3. After the accepted source commit, run `cf_capture`, rerun `cf_drift`, and record the decision/evidence through governed AgentCore memory. Context Fabric never overrides the authority chain or PG18.
+
 Before asking the operator to repeat project history, query `agentcore-memory`. Never directly edit `GLOBAL_STATE.md`, project `STATE.md`, `DECISIONS.md`, or `CONTEXT_INDEX.md` — these are generated projections; PostgreSQL is canonical.
 
 ---
@@ -179,13 +201,13 @@ Preserve client-native safety, sandbox, approval, account, and UI settings. Do n
 
 ## 7. Client identification and profile selection
 
-Supported AgentCore / enrolled non-Swarm clients (current as of 2026-07-25 Phase 4 reconciliation; statuses unchanged by the 2026-07-31 separation rewrite):
+Supported AgentCore / enrolled non-Swarm clients (current authority reconciliation 2026-08-02; context-hook certification does not by itself prove an IDE's live MCP discovery UI):
 
 | Client | Profile directory | Configuration mode | Native validation status |
 | --- | --- | --- | --- |
-| Cursor | `ide-profiles/cursor/` | generated_prompt | **live_validated** — Stage B hooks live; Continue. hard gate proven (`audits/cursor-context/CURSOR_CONTINUE_HARD_GATE_AND_STAGE_B_REGISTRATION_2026-07-24.md`) |
-| Codex (OpenAI Codex / ChatGPT desktop Codex view) | `ide-profiles/codex/` | generated_prompt | configured_restart_required — desktop packages healthy + gateway configured; UI 14-step still operator-gated (`audits/CODEX_DESKTOP_REPAIR_2026-07-24.md`) |
-| Claude Code | `ide-profiles/claude-code/` | generated_prompt | awaiting_operator_import |
+| Cursor | `ide-profiles/cursor/` | generated_prompt | `live_validated_native_hooks_signed_gateway`; Stage B and signed write path proven. IDE MCP discovery can still require a client reconnect while Bifrost remains healthy. |
+| Codex (OpenAI Codex / ChatGPT desktop Codex view) | `ide-profiles/codex/` | generated_prompt | `live_validated_native_hooks`; MCP UI enrollment/discovery remains a separate client-specific proof. |
+| Claude Code | `ide-profiles/claude-code/` | generated_prompt | `live_validated_native_hooks`; MCP enrollment/discovery remains a separate client-specific proof. |
 | Claude Desktop | `ide-profiles/claude-desktop/` | generated_prompt | configured_restart_required |
 | MiniMax Code | `ide-profiles/minimax/` | generated_prompt | configured_restart_required — in-app MCP supported (VK materialize + streamable-http); **CLI wrappers unsupported** (`daemon\cli.js` missing); native chat lifecycle operator-gated (`audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md`) |
 | MiniMax Agent Classic | `ide-profiles/minimax-classic/` | UI_only | awaiting_operator_cloud_mcp_enrollment — Matrix custom-MCP UI only; **no public tunnel** (`audits/MINIMAX_CLASSIC_ENROLLMENT_2026-07-24.md`) |
@@ -302,6 +324,7 @@ Read these files using @ + full absolute Windows paths:
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\INSTALL_OR_UPDATE.md
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\VALIDATION.md
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\MCP_CONFIG_TEMPLATE.*
+- @D:\github\agentcore-control-plane\docs\adr\ADR-2026-08-02-agentcore-bifrost-context-alignment.md
 If your IDE is UI_only, also read @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\MCP_ENROLLMENT_UI.md.
 Also read the ecosystem separation section at the top of @D:\github\agentcore-control-plane\MASTER_CONFIG_AND_PROMPT.md and the HARD STOP for Swarm-owned selection.
 
@@ -314,6 +337,8 @@ Step 3 — Prove Bifrost is healthy before touching the IDE
 - Confirm GET http://127.0.0.1:8080/health returns 200.
 - Confirm direct MCP initialize + notifications/initialized + tools/list succeed through the gateway.
 If any check fails, stop and report the exact failure. Do not edit the IDE config while Bifrost is down.
+
+Also distinguish gateway health from IDE discovery. A healthy direct gateway plus a disconnected IDE MCP session is a client discovery/reconnect issue; do not restart or redesign Bifrost until the gateway/upstream probes fail.
 
 Step 4 — Install global rules per your IDE's editability
 Read IDE_PROFILE.yaml editability and installation_mode, then:

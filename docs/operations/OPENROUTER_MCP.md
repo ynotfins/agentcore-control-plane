@@ -106,7 +106,7 @@ the **pre-enrollment state**. After enrollment:
 
 - Bifrost returns `oauth_config_id` in the management API response.
 - The operator stores `oauth_config_id` in a **runtime-only state file**:  
-  `H:\AgentRuntime\bifrost\state\oauth-clients.json` (never committed to Git).
+  `F:\AgentCore\runtime\bifrost\state\oauth-clients.json` (never committed to Git).
 - On the next render, the renderer reads this state file and substitutes `oauth_config_id`
   for `oauth_config` in the rendered config, preserving the enrolled binding.
 - Re-rendering without the state file reverts to pre-enrollment `oauth_config` (creates a new
@@ -150,7 +150,7 @@ Document the reconciliation behavior before enabling production OAuth.
    # Expected: resp.status = "pending_oauth"
    # Save runtime state (no token values in this call):
    $state = @{ openrouter = @{ oauth_config_id = $resp.oauth_config_id; mcp_client_id = $resp.mcp_client_id } }
-   $stateDir = "H:\AgentRuntime\bifrost\state"
+   $stateDir = "F:\AgentCore\runtime\bifrost\state"
    New-Item -ItemType Directory -Force -Path $stateDir | Out-Null
    $state | ConvertTo-Json | Set-Content "$stateDir\oauth-clients.json" -Encoding UTF8
    Write-Host "authorize_url (open in browser): $($resp.authorize_url)"
@@ -163,14 +163,14 @@ Document the reconciliation behavior before enabling production OAuth.
 8. Re-render config.json to embed `oauth_config_id`:
    ```powershell
    python D:\github\agentcore-control-plane\scripts\bifrost\render_bifrost_config.py
-   # Renderer reads H:\AgentRuntime\bifrost\state\oauth-clients.json
+   # Renderer reads F:\AgentCore\runtime\bifrost\state\oauth-clients.json
    # Emits oauth_config_id for openrouter (not oauth_config)
    ```
 
 **Post-enrollment confirmations (no token values printed):**
 - `GET /api/mcp/clients` → openrouter status = `connected` or `active`
 - `config.db` file size increases (token stored and encrypted)
-- `H:\AgentRuntime\bifrost\state\oauth-clients.json` contains `oauth_config_id` (not token values)
+- `F:\AgentCore\runtime\bifrost\state\oauth-clients.json` contains `oauth_config_id` (not token values)
 - Token absent from `config.json`, source renderers, logs, IDE configs, Git
 - Revocation possible at any time: see **Revocation** section
 
@@ -178,10 +178,10 @@ Document the reconciliation behavior before enabling production OAuth.
 
 | Location | Content | Classification |
 |---|---|---|
-| `H:\AgentRuntime\bifrost\data\config.db` | OAuth token (encrypted — requires BIFROST_ENCRYPTION_KEY) | **SECRET-BEARING — restricted ACLs required** |
-| `H:\AgentRuntime\bifrost\state\oauth-clients.json` | `oauth_config_id` and `mcp_client_id` only (no token values) | Runtime only — never committed to Git |
+| `F:\AgentCore\runtime\bifrost\data\config.db` | OAuth token (encrypted — requires BIFROST_ENCRYPTION_KEY) | **SECRET-BEARING — restricted ACLs required** |
+| `F:\AgentCore\runtime\bifrost\state\oauth-clients.json` | `oauth_config_id` and `mcp_client_id` only (no token values) | Runtime only — never committed to Git |
 | `renderers/bifrost/config.json` | `oauth_config` public params pre-enrollment; `oauth_config_id` post-enrollment | Post-enrollment: no secret content |
-| `H:\AgentRuntime\bifrost\config.json` | Rendered from above; `oauth_config_id` after enrollment | Runtime only — never commit |
+| `F:\AgentCore\runtime\bifrost\config.json` | Rendered from above; `oauth_config_id` after enrollment | Runtime only — never commit |
 | Windows env, IDE configs, Git | Nothing | Enforced |
 
 > **Security note:** `config.db` encryption requires `BIFROST_ENCRYPTION_KEY` to be set before
@@ -379,7 +379,7 @@ Start-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway
 
 # 4. Revoke OAuth token (required — removes Bifrost OAuth record AND OpenRouter dashboard key)
 # openrouter.ai/keys -> find and revoke the Bifrost key
-# If state file exists: remove H:\AgentRuntime\bifrost\state\oauth-clients.json
+# If state file exists: remove F:\AgentCore\runtime\bifrost\state\oauth-clients.json
 
 # 5. Validate gateway healthy + openrouter tools absent
 ```

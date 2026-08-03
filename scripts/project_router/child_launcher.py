@@ -20,9 +20,22 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_PATH = REPO_ROOT / "contracts" / "bifrost-upstream-mcp-registry.json"
-STATE_PATH = Path(r"H:\AgentRuntime\bifrost\state\active-project.json")
-PROCESS_REGISTRY = Path(r"H:\AgentRuntime\mcp-processes\registry.json")
-TENTRA_DATA = Path(r"H:\AgentRuntime\tentra\data")
+RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
+STATE_PATH = Path(
+    os.environ.get(
+        "AGENTCORE_PROJECT_ROUTER_STATE",
+        str(RUNTIME_ROOT / "bifrost" / "state" / "active-project.json"),
+    )
+)
+PROCESS_REGISTRY = Path(
+    os.environ.get(
+        "AGENTCORE_PROJECT_PROCESS_REGISTRY",
+        str(RUNTIME_ROOT / "mcp-processes" / "registry.json"),
+    )
+)
+TENTRA_DATA = Path(
+    os.environ.get("TENTRA_DATA_DIR", str(RUNTIME_ROOT / "tentra" / "data"))
+)
 IDLE_TIMEOUT_SECONDS = 30 * 60
 
 REJECT_MARKERS = ("swarmrecall", "swarmvault", "agentswarm", "swarmclaw")
@@ -92,8 +105,9 @@ def build_command(spec: dict[str, Any], project: dict[str, Any]) -> tuple[list[s
     canonical = spec["canonical_id"]
 
     if canonical == "filesystem":
-        # Limit roots to the active project worktree only
-        args = list(args) + [str(cwd)]
+        # Limit roots to the active project worktree only.
+        package_args = args[:2] if len(args) >= 2 and args[0] == "-y" else []
+        args = package_args + [str(cwd)]
     if canonical == "tentra":
         TENTRA_DATA.mkdir(parents=True, exist_ok=True)
         env["TENTRA_DATA_DIR"] = str(TENTRA_DATA)

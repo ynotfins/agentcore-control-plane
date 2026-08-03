@@ -8,6 +8,7 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 
 ## Operating Rules
 
+- **Execution ownership:** The AgentCore authority-maintainer (Codex for the 2026-08-02 alignment and production-hardening work) owns architecture, protected authority/contracts, renderer-to-runtime wiring, security boundaries, live rollout, final validation, and Git integration. Cursor is a bounded implementation and independent-review surface, not the default owner of the full build. Give Cursor the final goal, exact authority paths, scope, acceptance contract, and stop gates; let it choose implementation details only inside that boundary.
 - Work primarily in this repository unless the user explicitly authorizes live rollout.
 - Do not edit live client configs during repo-only phases.
 - Create a timestamped rollback copy before editing existing managed files.
@@ -38,6 +39,13 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 ## Swarm / neutral-memory boundary
 
 SwarmVault and SwarmClaw remain a **separate Swarm ecosystem** for execution. Ordinary IDE baselines must not require Swarm MCP entries. Neutral shared SwarmRecall may be used only through `agentcore-memory` (server-side). Do not paste raw SwarmRecall MCP into Cursor/Codex/Claude/MiniMax/Mavis/Antigravity/Open Interpreter. OpenClaw/ClawX are outside Bifrost IDE cutover scope; SwarmClaw uses its own Recall adapter.
+
+## Current architecture and future-extension boundary
+
+- Bifrost owns MCP aggregation/governance; AgentCore owns canonical truth/recovery; the portable Context Engine owns rolling-context orchestration; neutral Recall owns semantic projections; Context Fabric owns project-local committed-state/drift evidence; Arabold owns the local official-doc cache.
+- MCP and inference are separate planes. An IDE's `agentcore-gateway` MCP entry does not prove its model requests traverse Bifrost. Do not claim OmniRoute compression applies unless the model request is explicitly routed through a validated Bifrost inference path and OmniRoute.
+- OmniRoute, Graphify, Hindsight, and CrewAI are disabled, benchmark-gated evaluation candidates. Do not install, register, start, or make them Context Engine dependencies without an approved ADR, official pin, isolation/fidelity/quality tests, and rollback.
+- Cursor project subagents live under `.cursor/agents/`, stay focused, default to `model: inherit`, and cannot create architecture authority. Read-only reviewers must not modify files or certify their own implementation.
 
 ## Stop Policy
 
@@ -85,5 +93,5 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, `sequential-thin
 - Cursor continual-learning plugin must not auto-inject user-role prompts or auto-edit `AGENTS.md`. Auto-trigger disabled; AgentCore boundary in `docs/operations/AGENTCORE_CONTINUAL_LEARNING.md` and `audits/CONTINUAL_LEARNING_AUTOMATION_2026-07-20.md`.
 - Cursor Stage B integrity harness (2026-07-24): project hooks (`sessionStart`, `beforeSubmitPrompt`, `preToolUse`, `beforeShellExecution`, `afterFileEdit`, `postToolUse`, `stop`) registered via `scripts/agentcore_cursor/hook_dispatcher.py`; `Continue.` hard gate and 26/26 acceptance suite PASS (`audits/cursor-context/CURSOR_STAGE_B_INTEGRITY_HARNESS_ACCEPTANCE_2026-07-24.md`). Hooks fail open on internal errors and never emit followup_message or continual-learning prompts. Runbook: `docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md`.
 - LangGraph production and Studio share `scripts/agentcore_workflow/mcp_client.py` → localhost gateway only (`docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`).
-- LLM client configurations (Cursor, Cherry Studio, agent-orchestrator, Pinokio) must avoid direct upstream/OpenRouter MCP entries and route all tools/models through `agentcore-gateway`.
+- LLM client configurations (Cursor, Cherry Studio, agent-orchestrator, Pinokio) must avoid direct upstream/OpenRouter **MCP** entries and route tools through `agentcore-gateway`. Model inference is a separate provider path until an explicit, validated Bifrost inference contract is adopted.
 - Cursor prompts that instruct the agent to read files/folders must use `@` + full absolute Windows paths (for example `@D:\github\agentcore-control-plane\BLUEPRINT.md`, `@C:\Users\ynotf\.cursor\plans\...`). Never use shortened repo-relative paths or `C:\Users\...\` ellipsis forms. Completed tasks that need more Cursor work must include a ready-to-paste `CURSOR CONTINUATION PROMPT` section. Validate with `python scripts/validate_cursor_prompt_format.py`.

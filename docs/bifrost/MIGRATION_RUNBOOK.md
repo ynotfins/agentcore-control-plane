@@ -9,7 +9,7 @@
 1. Repo contracts present:
    - `contracts/bifrost-upstream-mcp-registry.json`
    - `contracts/agentcore-gateway-client.json`
-2. Binary present: `H:\AgentRuntime\bifrost\bin\bifrost-http.exe` (v2.0.0-prerelease1 native Windows)
+2. Binary present: `F:\AgentCore\runtime\bifrost\bin\bifrost-http.exe` (v2.0.0-prerelease1 native Windows)
 3. Windows User env `BIFROST_MCP_VIRTUAL_KEY` set (do not print)
 4. Backup root available on E: (cold/backup tier)
 

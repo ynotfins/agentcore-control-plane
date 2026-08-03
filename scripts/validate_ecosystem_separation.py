@@ -19,11 +19,11 @@ FILES = [
 ]
 HEADER = "## Ecosystem and Drive Separation — Read First"
 REQUIRED_PHRASES = [
-    "independent control planes",
+    r"independent (?:execution )?control planes",
     r"F:\\AgentCore",
     r"E:\\AgentCore",
     r"E:\\Swarm",
-    "No canonical resource may be jointly owned",
+    r"No\s+(?:\*\*)?(?:AgentCore-)?canonical(?:\*\*)?\s+resource(?:\s*\([^)]*\))?\s+may be jointly owned",
     "historical evidence only",
 ]
 # Allowed only when clearly revoking / forbidding the old continuity model.

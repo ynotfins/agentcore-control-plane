@@ -1,7 +1,7 @@
 ---
 name: reflective-optimizer
 description: Proposal-only optimizer subagent for Milestone exit and deep reflection audits
-mode: subagent
+model: inherit
 readonly: true
 ---
 

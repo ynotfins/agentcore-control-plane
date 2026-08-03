@@ -5,12 +5,12 @@
 > **Machine:** `CHAOSCENTRAL`
 > **Operator:** Tony Valentine (`ynotf`)
 > **Scope:** Non-Swarm AgentCore platform only
-> **Last updated:** 2026-07-31 (ecosystem/drive separation reconciliation; architecture otherwise preserved)
+> **Last updated:** 2026-08-02 (`AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`; neutral-memory, drift-control, and execution-role reconciliation)
 >
 > This file is the stable blueprint for the memory/context/database build.
 > It defines the goal, architecture, storage roles, immutable guarantees, and Milestone exit criteria.
 >
-> Cursor may optimize Macro and Micro steps from repository and machine evidence. Cursor may not change the architecture, Milestone outcomes, Milestone ordering, storage authority, lossless guarantees, Cognee decision, Bifrost identities, or Swarm boundary without explicit operator approval.
+> The authorized AgentCore execution lead may optimize Macro and Micro steps from repository and machine evidence. Bounded IDE specialists, including Cursor subagents, may implement or review only the scope delegated to them. No agent may change the architecture, Milestone outcomes, Milestone ordering, storage authority, lossless guarantees, Cognee decision, Bifrost identities, neutral-memory boundary, or Swarm boundary without explicit operator approval.
 >
 > **Operational runbooks (do not override this architecture):**
 > `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`,
@@ -21,7 +21,7 @@
 
 ## Ecosystem and Drive Separation — Read First
 
-AgentCore and Swarm are **independent control planes**. They share a machine, not authority, runtime, memory, credentials, or backups.
+AgentCore and Swarm are **independent execution control planes**. They share a machine and one explicitly neutral semantic projection service, not authority, canonical evidence, runtime ownership, credentials, or backups.
 
 | Domain | Ownership |
 | --- | --- |
@@ -34,9 +34,10 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 
 **Hard rules**
 
-- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
+- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm-owned runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
 - Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
-- No canonical resource may be jointly owned.
+- The sole shared exception is neutral SwarmRecall under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own bounded adapter. It owns semantic projections only, never AgentCore evidence/checkpoints or Swarm execution state.
+- No canonical resource may be jointly owned. Neutral Recall is non-canonical and independently recoverable from its own governed source rows.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
 - Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
 
@@ -59,8 +60,10 @@ flowchart LR
   Hot --> GW --> Mem --> PG
   Hot --> Cold
   Hot --> Stage
-  AC -.->|no connectivity| SW
-  SW -.->|no connectivity| AC
+  NSR["Neutral SwarmRecall<br/>semantic projection only"]
+  Mem -->|server-side adapter| NSR
+  AC -.->|no direct control-plane connectivity| SW
+  SW -.->|no direct control-plane connectivity| AC
 ```
 
 ---
@@ -101,6 +104,8 @@ The platform must:
 - Use LangGraph for durable autonomous workflows and checkpoints.
 - Expose memory through the existing Bifrost gateway (`agentcore-gateway`).
 - Keep SwarmVault, SwarmClaw, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, and ClawX as Swarm-owned execution surfaces. Use one **neutral shared SwarmRecall** semantic plane (AUTH-2026-08-01) via `agentcore-memory` server-side only; portable Context Engine at `D:\github\agentcore-context-engine`.
+- Use Arabold Docs as the local, version-labelled cache of official upstream documentation before version-sensitive implementation decisions.
+- Use Context Fabric as a project-local committed-state and drift-warning plane; it is rebuildable and subordinate to this authority chain and PostgreSQL.
 - Deep Agents (`deepagents==0.6.12`, MIT) may be used as an optional worker harness inside LangGraph nodes; it is not a canonical memory, workflow, policy, or tool authority. See `docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md`.
 - Operate only on AgentCore and explicitly enrolled non-Swarm projects. Never treat Swarm repositories as AgentCore projects.
 
@@ -118,6 +123,12 @@ Bifrost: agentcore-gateway  (http://127.0.0.1:8080/mcp)
         |
         v
 Bifrost upstream: agentcore-memory
+        |
+        +-- Portable Context Engine
+        |     - host lifecycle adapters
+        |     - rolling context orchestration
+        |     - model-budgeted assembly and handoff
+        |     - no canonical database ownership
         |
         +-- PostgreSQL 18 + pgvector on F:
         |     - identity
@@ -152,6 +163,11 @@ Bifrost upstream: agentcore-memory
         |     - reusable patterns
         |     - curated knowledge relationships
         |
+        +-- Neutral shared SwarmRecall (server-side adapter only)
+        |     - global and per-project semantic projections
+        |     - no raw transcripts as canonical evidence
+        |     - no LangGraph checkpoints or AgentCore policy state
+        |
         +-- Generated projections
               - C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
               - <project>\.agentcore\STATE.md
@@ -159,7 +175,8 @@ Bifrost upstream: agentcore-memory
               - <project>\.agentcore\CONTEXT_INDEX.md
 
 External boundary (not AgentCore):
-  Swarm: independently owned; H: reserved; E:\Swarm\... cold/backup; no connectivity.
+  Swarm: independently owned; H: reserved; E:\Swarm\... cold/backup;
+  no direct control-plane connectivity. Neutral Recall is the bounded shared exception.
 ```
 
 ```mermaid
@@ -173,16 +190,18 @@ flowchart TB
   COLD["E:\\AgentCore cold / backups"]
   LG["LangGraph production + Studio"]
   DA["Deep Agents worker harness"]
-  SWARM["Swarm independently owned<br/>H: reserved — no connectivity"]
+  RECALL["Neutral SwarmRecall<br/>semantic projection"]
+  SWARM["Swarm independently owned<br/>H: reserved"]
 
   IDE --> GW --> MEM --> PG
+  MEM --> RECALL
   GW --- BF
   MEM --> ART
   ART --> COLD
   LG --> PG
   LG --> GW
   LG --> DA
-  IDE -.->|forbidden| SWARM
+  IDE -.->|no raw Recall or Swarm route| SWARM
   MEM -.->|forbidden| SWARM
   GW -.->|forbidden| SWARM
   PG -.->|forbidden| SWARM
@@ -206,6 +225,41 @@ flowchart TB
 - Cognee is not canonical.
 - No IDE receives raw database credentials.
 - No normal agent receives SQL, DDL, database-admin, or Bifrost-admin tools.
+
+### Responsibility and transport separation
+
+| Plane | Owner | Boundary |
+| --- | --- | --- |
+| Canonical truth and recovery | AgentCore | PG18 evidence, exact expansion, policy/workflow state, and governed projections |
+| MCP aggregation and governance | Bifrost | Sole normal IDE MCP front door, authentication, capability profiles, leases, audit, and upstream lifecycle |
+| Rolling context | Portable Context Engine | Orchestration above `agentcore-memory`; no raw database or second gateway |
+| Shared semantic projection | Neutral SwarmRecall | Server-side projection only; never an IDE MCP or canonical evidence store |
+| Project commit context and drift | Context Fabric | Repo-local committed snapshots, decisions, bounded briefings, and drift warnings |
+| Current external documentation | Arabold Docs | Local version-labelled official-doc corpus; not architecture authority |
+| Autonomous workflow | LangGraph | Durable checkpoints, gates, bounded workers, critic, scorer, and judge |
+
+MCP tool traffic and model inference traffic are separate:
+
+```text
+MCP: IDE -> agentcore-gateway/Bifrost -> approved MCP upstreams
+Inference today: host/application -> its approved model-provider path
+Future experiment only: host/application -> Bifrost inference governance -> OmniRoute -> OpenRouter
+```
+
+Using `agentcore-gateway` does not prove that an IDE's model prompts pass through Bifrost or OmniRoute. Any inference-route change requires an explicit client/provider contract, fidelity and failure tests, and rollback.
+
+### Benchmark-gated intelligence extensions
+
+These are disabled candidates, not current platform dependencies:
+
+| Candidate | Future bounded role | Required admission proof |
+| --- | --- | --- |
+| OmniRoute | RTK + Caveman inference compression and provider routing behind Bifrost governance | Official pin; prompt/tool fidelity; quality, token, latency, cost, failure-bypass, and rollback benchmarks |
+| Graphify | Project-local structural code atlas exposed through Bifrost | Freshness, exact-source fallback, token benefit, project isolation, and no authority promotion |
+| Hindsight | Derived learning/reflection with isolated per-project/per-agent banks | Provenance, poisoning isolation, async lifecycle, quality gain, and no canonical/raw-evidence ownership |
+| CrewAI | Bounded worker inside selected LangGraph nodes | A/B improvement, checkpoint compatibility, deterministic evidence, and no top-level orchestration authority |
+
+The portable Context Engine may carry optional adapter contracts only after each candidate passes its gate. It must not bundle unaccepted runtimes or make them required on another PC or network.
 
 ### Memory technology decision
 
@@ -241,7 +295,7 @@ GLOBAL_STATE.md
 <project>\.agentcore\patterns\
 ```
 
-Cursor may adapt filenames to the validated repository convention, but it must preserve the static/dynamic separation, concise hot context, archives, provenance, and cross-IDE readability.
+The authorized implementation worker may adapt filenames to the validated repository convention, but it must preserve the static/dynamic separation, concise hot context, archives, provenance, and cross-IDE readability.
 
 #### Distill
 
@@ -255,8 +309,8 @@ Cursor may adapt filenames to the validated repository convention, but it must p
   - deterministic operation where practical;
   - explicit session boundaries;
   - bounded retrieval and compaction overhead.
-- Cursor must identify and validate the exact upstream Distill repository, current version, license, Windows behavior, and API before using code from it.
-- Cursor may implement these behaviors natively inside AgentCore or use Distill as a hidden sidecar only when measured evidence shows that the sidecar reduces code, risk, or operational burden.
+- The authorized implementation worker must identify and validate the exact upstream Distill repository, current version, license, Windows behavior, and API before using code from it.
+- The authorized implementation worker may implement these behaviors natively inside AgentCore or use Distill as a hidden sidecar only when measured evidence shows that the sidecar reduces code, risk, or operational burden.
 - A Distill sidecar must remain behind `agentcore-memory`; it may not become a second IDE MCP entry or a second canonical store.
 
 #### Lossless Claw
@@ -357,7 +411,7 @@ Rules:
 
 ### Storage preparation authorization
 
-Before durable platform installation, Cursor may inspect and correct E:, F:, and I: when their live allocation-unit size does not match the target. H: correction for Swarm is outside AgentCore implementation authority after separation lock; AgentCore must not format H: as part of ordinary AgentCore work.
+Before durable platform installation, the authorized AgentCore execution lead may inspect and correct E:, F:, and I: when their live allocation-unit size does not match the target. H: correction for Swarm is outside AgentCore implementation authority after separation lock; AgentCore must not format H: as part of ordinary AgentCore work.
 
 For any AgentCore-authorized drive requiring correction:
 
@@ -384,13 +438,13 @@ Those contents must be backed up and restored or reinstalled deliberately before
 ### Swarm external-boundary box (pointer only)
 
 ```text
-Swarm: independently owned; H: reserved; E:\Swarm\... cold/backup; no connectivity.
+Swarm: independently owned; H: reserved; E:\Swarm\... cold/backup; no direct control-plane connectivity. Neutral shared Recall is the sole bounded semantic exception.
 ```
 
 AgentCore may know only minimum collision-avoidance facts (see `PROJECT_ANCHOR.md` §7). Do not embed Swarm blueprints, ports, credentials, installers, or native setup procedures in this file. Official Swarm product docs (retrieved 2026-07-31) distinguish:
 
 - SwarmClaw native memory uses SQLite (`data/memory.db`) per current SwarmClaw docs — **do not claim** SwarmRecall replaces that native backend unless separately proven.
-- SwarmRecall is a first-class intended Swarm ecosystem component (operator intent + separate product), not an AgentCore optional add-on.
+- SwarmRecall source/runtime implementation remains governed outside AgentCore, while the accepted deployed Recall data plane is machine-level neutral infrastructure. AgentCore uses only the server-side `agentcore-memory` projection adapter; it does not install raw Recall MCP or keys in IDEs.
 - SwarmVault integrates with SwarmClaw as a scoped MCP knowledge backend with an explicit vault working directory.
 - SwarmFeed has documented native SwarmClaw integration and is also self-hostable; any self-hosted local DB/search/event/cache/RAG state must remain Swarm-owned on H:.
 - SwarmDock is a documented connector/MCP marketplace (hosted mode does not invent a local SwarmDock DB requirement); any local adapter/cache/credential/self-hosted state must remain Swarm-owned on H:.
@@ -476,11 +530,30 @@ Every AgentCore-managed project uses:
 
 Swarm repositories are not AgentCore-managed projects. Dual-workspace visibility is read-only for collision/boundary audits unless the operator expands write scope explicitly inside AgentCore authority.
 
+### Execution ownership
+
+- The AgentCore authority-maintainer owns architecture, protected authority/contracts, renderer-to-runtime wiring, security boundaries, live rollout, final acceptance, and Git integration. Codex is the authority-maintainer lead for the 2026-08-02 alignment pass.
+- Cursor remains a high-value bounded implementation and independent-review surface. It receives the final goal, authority paths, scope, acceptance contract, and stop gates; it does not receive unbounded ownership of the platform.
+- Project Cursor subagents are focused and version-controlled under `.cursor/agents/`. Read-only reviewers cannot certify work they implemented. Model selection defaults to `inherit` so the operator controls cost from the parent task.
+- Built-in or custom subagents do not create authority. Their output is evidence that the execution lead reconciles against Git, validators, runtime probes, Arabold, and this blueprint.
+
+### Context Fabric disposition
+
+Context Fabric is adopted behind AgentCore as the project-local committed-state and drift-warning plane:
+
+- one `.context-fabric` root at the Git repository root;
+- captures are based on committed Git objects; uncommitted changes remain reported as drift;
+- the local SQLite/runtime state is rebuildable and non-canonical;
+- `cf_capture` and `cf_drift` run at Milestone entry/exit and after accepted authority commits;
+- `cf_query` may create a bounded task briefing but cannot override the authority chain;
+- accepted ADRs and PG18 evidence remain authoritative over `cf_log_decision` convenience projections;
+- it is never initialized against a Swarm-owned or runtime-memory root through AgentCore.
+
 ### Milestones versus steps
 
 Milestones are fixed outcome and acceptance boundaries.
 
-Cursor may optimize Macro and Micro steps using current repository and machine evidence. Cursor may:
+The authorized AgentCore execution lead may optimize Macro and Micro steps using current repository and machine evidence. Bounded specialists may do so only inside their delegated scope. The execution lead may:
 
 - add steps
 - remove unnecessary steps
@@ -491,7 +564,7 @@ Cursor may optimize Macro and Micro steps using current repository and machine e
 - add required tests
 - adapt implementation details
 
-Cursor may not change a Milestone’s purpose, exit criteria, ordering, architecture, or irreversible boundary without explicit operator approval.
+No execution lead or specialist may change a Milestone’s purpose, exit criteria, ordering, architecture, or irreversible boundary without explicit operator approval.
 
 Do not pre-plan hundreds of speculative Micro steps. Refine the current Milestone immediately before execution.
 
@@ -832,7 +905,7 @@ Changes requiring explicit operator approval:
 - Introducing Docker or WSL as a core dependency
 - Placing AgentCore canonical runtime/data back onto H:
 
-Cursor must stop and ask before making one of these changes.
+The active execution lead must stop and ask before making one of these changes.
 
 ---
 
@@ -887,7 +960,7 @@ The platform is complete only when:
 
 ## 15. Final Context-Source Audit and Immediate Next Action
 
-Before executing relocation/separation work (M9) or any storage-authority change, Cursor performs a context-source audit. This is an architecture-alignment pass, not another redesign cycle.
+Before executing relocation/separation work (M9) or any storage-authority change, the AgentCore execution lead performs a context-source audit. This is an architecture-alignment pass, not another redesign cycle.
 
 Audit every source that can influence Cursor or another managed agent, including:
 
@@ -905,9 +978,9 @@ Audit every source that can influence Cursor or another managed agent, including
 - project Charter, Milestones, Tool Manifest, and STATE projections;
 - current Git branch/worktree state;
 - `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` and its classified machine facts;
-- any global Cursor rule or configuration source outside the repository that is actually loaded.
+- any loaded global IDE rule or configuration source outside the repository, including Cursor.
 
-Cursor must produce one concise mental model covering:
+The execution lead must produce one concise mental model covering:
 
 - current machine and drive roles (F: AgentCore hot; H: Swarm reserved);
 - current gateway and tool topology;
@@ -919,12 +992,12 @@ Cursor must produce one concise mental model covering:
 - LangGraph’s role and Studio isolation;
 - STATE projection behavior;
 - trust and promotion flow;
-- Swarm isolation / no connectivity;
+- Swarm execution isolation / no direct control-plane connectivity, with neutral Recall as the sole bounded semantic exception;
 - current Milestone and rollback point.
 
-If a live context source contradicts this blueprint, Cursor makes the smallest justified correction **inside authorized write scope**, reruns validators, records the correction, and proceeds. Files outside the authorized task write set require operator confirmation before edit.
+If a live context source contradicts this blueprint, the execution lead makes the smallest justified correction **inside authorized write scope**, reruns validators, records the correction, and proceeds. Files outside the authorized task write set require operator confirmation before edit.
 
-Cursor must not create another competing plan or authority layer.
+No agent may create another competing plan or authority layer.
 
 After the audit:
 

@@ -56,8 +56,8 @@ python -m agentcore cursor new-task --slug <slug>
 
 When `agentcore-gateway` is temporarily unavailable:
 
-- Prompt capture spools to `H:\AgentRuntime\clients\cursor\spool\pending\`
-- Hook diagnostics log to `H:\AgentRuntime\clients\cursor\logs\hooks\`
+- Prompt capture spools to `F:\AgentCore\runtime\clients\cursor\spool\pending\`
+- Hook diagnostics log to `F:\AgentCore\runtime\clients\cursor\logs\hooks\`
 - Hooks never fabricate user-role messages or call continual-learning
 
 ## Safe registration process

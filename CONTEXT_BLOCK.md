@@ -3,1064 +3,229 @@ document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
 authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
-verified_at: 2026-08-01
+verified_at: 2026-08-02
 canonical_repository: D:\github\agentcore-control-plane
 locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
-ops_runbooks:
-  - docs/operations/OPENROUTER_MCP.md
-  - docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md
-  - docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md
-  - docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md
+current_acceptance: audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md
+current_alignment_approval: AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT
 ---
 
 # AgentCore Canonical Context Block
 
-Read `BLUEPRINT.md` before this file. BLUEPRINT.md is the locked implementation authority (architecture, storage roles, lossless guarantees, Milestone exit criteria). This file records current mutable state and implementation progress. Where this file's decisions conflict with BLUEPRINT.md, BLUEPRINT.md wins.
+Read `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` before this file. `BLUEPRINT.md` owns stable architecture and locked outcomes. This file owns mutable current posture. Generated `.agentcore/STATE.md`, `.agentcore/DECISIONS.md`, and `.agentcore/CONTEXT_INDEX.md` are subordinate projections and must not be edited directly.
 
-Older plans, reports, prompts, rules, and generated renderers are evidence only until they have been reconciled against BLUEPRINT.md and the live machine.
+## 0. Current platform posture — VERIFIED 2026-08-02
 
-## 0a. Current platform posture (2026-07-20) — VERIFIED FACT
+| Area | Current fact | Evidence/status |
+| --- | --- | --- |
+| Repository | `D:\github\agentcore-control-plane`, branch `main`, pre-alignment HEAD `da9f6ccd4e4b9f646f213a4faecf95ba1586a75c` | Git; inherited Langfuse/M6-M8 WIP remains unstaged and outside this alignment |
+| Bifrost | Native `2.0.0-prerelease1` under `F:\AgentCore\runtime\bifrost`; scheduled owner `\AgentCore\AgentCore-Bifrost-Gateway`; `127.0.0.1:8080/health` healthy | Live status and gateway acceptance pass |
+| IDE MCP front door | Exactly one `agentcore-gateway` at `http://127.0.0.1:8080/mcp` | Cursor live config: one entry, environment-backed bearer, no MCP_DOCKER |
+| Gateway surface | 161 discovered tools in the builder profile; exact 10 memory tools, 4 project-router tools, and at least 3 skills-hub tools | Live authenticated `tools/list`; no Swarm/raw SQL/whole-drive/Bifrost-admin tools |
+| AgentCore memory | `agentcore-memory` `0.7.0`; PG18 reachable at `127.0.0.1:55433` | `memory_status: healthy` |
+| Device identity | `legacy_compat`; writes require signed device assertion; unsigned reads remain temporarily permitted | `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md`; migration window ends 2026-08-09 |
+| Cognee | `degraded_unavailable` / `ModuleNotFoundError` | Truthful degradation; canonical evidence/recovery remains healthy |
+| Neutral Recall | Machine-level neutral semantic plane healthy at `127.0.0.1:3300`; hot data under `H:\SwarmData\recall` | `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`; server-side AgentCore adapter only |
+| Context Engine | Portable repo `D:\github\agentcore-context-engine`, accepted HEAD `b7fa0a4285a93d36bf12f36bb27a5b3c38d4e835` | Final acceptance report; native host adapters certified |
+| LangGraph production | PG18 PostgresSaver; RUN11 live cloud worker completed with 23 checkpoints, 6 evidence rows, judge `proceed`, critic `1.0` | Run `c376e23d-a2c5-4844-b8a9-f02cd905f690`; thread `034a28db-a7b4-4c9f-a967-a3ea00091130` |
+| LangGraph Studio | Dev-only `127.0.0.1:2024`; Agent Server dev checkpointer; never production thread IDs | `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` |
+| Context Fabric | Correctly rebound through the project router to `agentcore-control-plane`; DB schema/search-index 2, integrity ok, hook installed/ready, latest successful capture `#122` at `da9f6ccd4e4b`; six historical failed-capture records remain | Live `project_activate` returned `project_scoped_reconnect.status=reconnected`; `cf_query` identifies the correct project; post-alignment capture pending |
+| Arabold Docs | Required corpus indexed and retrieval-proven for Context Fabric, Cursor, Hindsight/cookbook, OmniRoute compression, Graphify, and CrewAI; Bifrost official corpus refreshed but remains unversioned in Arabold metadata | Live `list_libraries`, `find_version`, and targeted `search_docs`; installed Bifrost binary remains `2.0.0-prerelease1` |
 
-Mutable live facts that supersede older “future migration / degraded memory / leases not built” framing elsewhere in this file when they conflict:
+The Bifrost process is healthy now. Prior Cursor “Not connected” incidents with a healthy direct gateway are classified as intermittent IDE MCP discovery/session state, not evidence that the Bifrost server was down. Do not restart or redesign Bifrost until gateway and upstream probes fail.
 
-| Area | Live posture |
+## 1. Accepted architecture
+
+```text
+AgentCore / enrolled non-Swarm IDE or workflow
+  |
+  +-- MCP tools --> agentcore-gateway / Bifrost :8080
+  |                  +-- agentcore-memory (10-tool facade)
+  |                  +-- project router -> project-scoped developer tools
+  |                  +-- other governed upstreams by profile/lease
+  |
+  +-- host lifecycle adapter --> portable Context Engine
+                                 +-- rolling context / handoff orchestration
+                                 +-- agentcore-memory facade
+                                 +-- no canonical database ownership
+
+agentcore-memory
+  +-- PG18 agent_core: canonical identity, evidence, summaries, policy, workflow metadata
+  +-- PG18 LangGraph checkpoint tables: canonical production checkpoints
+  +-- Cognee adapter: optional curated graph processing, currently degraded
+  +-- neutral Recall adapter: semantic projection only
+  +-- generated read-only STATE/DECISIONS/CONTEXT_INDEX projections
+```
+
+### Responsibility model
+
+| Plane | Owner | Current state |
+| --- | --- | --- |
+| Canonical truth and recovery | AgentCore | Live |
+| MCP aggregation and governance | Bifrost | Live |
+| Rolling context and host portability | Context Engine | Accepted/current |
+| Shared semantic projection | Neutral SwarmRecall | Live/healthy |
+| Project committed context and drift | Context Fabric | Adopted and live project-bound; final post-commit capture pending this pass |
+| Current upstream documentation | Arabold Docs | Required candidate corpus indexed and retrieval-proven; Bifrost corpus has an explicit metadata limitation |
+| Semantic code intelligence | Serena through project router | Live project-scoped tool |
+| Production autonomy | LangGraph | RUN11 live accepted |
+| Bounded implementation/review | Cursor project subagents | Seven project roles present with current frontmatter, including authority-drift, Bifrost diagnosis, and MCP-contract roles |
+
+### Separate MCP and inference planes
+
+```text
+MCP tools:
+IDE -> Bifrost -> approved MCP upstreams
+
+Model inference today:
+host/application -> approved model provider path
+
+Future experiment only:
+host/application -> Bifrost inference governance -> OmniRoute -> OpenRouter -> model
+```
+
+The single `agentcore-gateway` MCP entry does not make Cursor model prompts traverse Bifrost or OmniRoute. RTK/Caveman savings apply only after an explicit model inference route is implemented and fidelity-tested.
+
+## 2. Memory, context, and project isolation
+
+- PG18 is the canonical exact-evidence and workflow authority.
+- The Context Engine orchestrates rolling context above the stable `agentcore-memory` surface; it does not expose a second IDE gateway.
+- Neutral Recall holds global/per-project semantic projections. It does not hold the only copy of raw prompts, LangGraph checkpoints, policy, or workflow state.
+- SwarmClaw and LangGraph may use the same neutral Recall service through different bounded adapters, while execution state, databases, drives, credentials, and control planes remain separate.
+- Every memory/session write includes project and session identity, idempotency, trust, and provenance. Cross-project writes and foreign-session writes are rejected.
+- Originals remain recoverable through `retrieve_context` and `expand_source`; compaction never deletes canonical evidence.
+- Multiple IDEs may work concurrently, including multiple projects. Each active session remains bound to one project/worktree identity; that does not prevent separate simultaneous sessions for other projects.
+- If two IDEs work in one project, separate session identities share project-level accepted memory while preserving event ordering, idempotency, and provenance.
+
+## 3. Host acceptance and true residuals
+
+### Host certification
+
+| Host | Context lifecycle certification | Important boundary |
+| --- | --- | --- |
+| Cursor | `live_validated_native_hooks_signed_gateway` | IDE MCP discovery can still require reconnect independently of Bifrost health |
+| Claude Code | `live_validated_native_hooks` | MCP enrollment/discovery is a separate client proof |
+| Codex | `live_validated_native_hooks` | MCP enrollment/discovery is a separate client proof |
+| Generic MCP client | `companion_only_not_automatic` | No transparent lifecycle without a compatible hook/plugin/bridge |
+
+### True residuals
+
+1. `agentcore.wf_runs.completed_at` can remain null when `status=completed`; status is authoritative until the metadata bug is fixed.
+2. RUN11's builder used the project root rather than its intended isolated worktree path.
+3. Full `required` device enforcement for reads is deferred; signed writes are enforced.
+4. Cursor IDE MCP discovery has been intermittent even while direct Bifrost health and authenticated tools/list pass.
+5. Cognee import is degraded; canonical memory, exact recovery, checkpoints, and neutral Recall remain usable.
+6. Context Fabric retains six historical failed-capture records. The current hook is installed/ready and the latest successful capture is healthy; this alignment still requires its own post-commit capture.
+
+## 4. Context Fabric disposition — ADOPTED
+
+Context Fabric is the project-local committed-state/drift plane, not memory authority.
+
+- One `.context-fabric` root exists at the Git repository root.
+- Captures represent committed Git objects. Uncommitted files are reported as drift and never promoted as the accepted snapshot.
+- Its SQLite/runtime state is rebuildable and subordinate to PG18, protected authority documents, Git, and accepted audits.
+- Run `cf_drift` and bounded `cf_query` at architecture-sensitive task/Milestone entry.
+- Run `cf_capture` after accepted commits and rerun `cf_drift` at exit.
+- `cf_log_decision` is a convenience projection; approved ADRs and AgentCore evidence remain authoritative.
+- Do not initialize or capture Swarm-owned repositories through AgentCore continuity.
+
+Current alignment acceptance requires: post-commit `cf_capture`, decision log, `cf_drift`, `cf_query(include_drift=true)`, and `cf_health` evidence.
+
+## 5. Arabold documentation posture
+
+Arabold is the first source for version-sensitive external behavior. If the required official version is not indexed, refresh/index it or stop and record the documentation gap; do not answer from model memory.
+
+Required alignment corpus:
+
+| Library | Required version/status | Role |
+| --- | --- | --- |
+| Bifrost | installed `2.0.0-prerelease1`; official corpus unversioned | Current production gateway contract |
+| Cursor | `3.14.7` | Subagents, hooks, rules, MCP lifecycle |
+| Context Fabric | `1.0.7` | Capture/drift behavior |
+| Hindsight | `0.7.0` | Future learning/reflection evaluation only |
+| OmniRoute | `3.8.49` | Future inference compression/routing evaluation only |
+| Graphify | `0.9.22` | Future structural code-atlas evaluation only |
+| CrewAI | `1.15.10` | Future bounded LangGraph worker evaluation only |
+
+Only successfully indexed official sources may be marked current in `DOC_AUTHORITY.md`.
+
+## 6. Future intelligence extensions — DISABLED / BENCHMARK-GATED
+
+| Candidate | Permitted future role | Forbidden assumption |
+| --- | --- | --- |
+| OmniRoute | Inference-path RTK + Caveman compression/provider routing behind Bifrost governance | It is not the current MCP aggregator and does not automatically see Cursor model prompts |
+| Graphify | Project-local structural code atlas via a governed Bifrost upstream | It cannot replace exact source reads, Serena, or Git freshness checks |
+| Hindsight | Derived learning/reflection using isolated project/agent banks | It cannot become canonical/lossless memory or silently retain untrusted raw data |
+| CrewAI | A/B-tested bounded worker inside selected LangGraph nodes | It cannot become a second top-level workflow/checkpoint authority |
+
+No component above is installed, started, enrolled, or added to the Context Engine by this alignment. OmniRoute `3.8.49` is present as a global npm package but is not accepted as a production runtime route. Graphify and Hindsight commands were not found at preflight.
+
+## 7. Execution ownership
+
+- The AgentCore authority-maintainer owns architecture, protected contracts, Bifrost/runtime integration, security, acceptance, and Git. Codex is the execution lead for this alignment and Bifrost production hardening.
+- Cursor receives bounded tasks where full repository context or a fresh independent context is the advantage: contract implementation, targeted code changes, tests, and independent review.
+- Cursor subagents do not determine architecture. They follow `PROJECT_ANCHOR.md`, `DOC_AUTHORITY.md`, `BLUEPRINT.md`, this file, and current acceptance evidence.
+- The parent task controls model/cost. Custom project subagents default to `model: inherit`; use high-cost models only where task complexity justifies them.
+
+## 8. Storage and ecosystem boundaries
+
+| Drive/path | Current role |
 | --- | --- |
-| PostgreSQL | PG18 `127.0.0.1:55433` is canonical for `agent_core` / `cognee_core`. PG16 `:55432` is rollback/legacy/Swarm-owned evidence only. |
-| `agentcore-memory` | Ten-tool surface live via Bifrost; not “degraded until platform lands”. |
-| M6 workflow | Productized CLI + PostgresSaver from control-plane only; Studio `127.0.0.1:2024` (dev checkpointer ≠ PostgresSaver). Runbook: `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`; quickstart: `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`. |
-| Capability leases | PostgreSQL leases + `scripts/bifrost/jit_vk_bridge.py` grant/revoke exact OpenRouter tool groups. |
-| OpenRouter MCP | Registry `dormant` + lifecycle `authenticated_dormant`; gateway-only; no direct IDE MCP. Runbook: `docs/operations/OPENROUTER_MCP.md`. |
-| IDE clients | Single `agentcore-gateway` at `http://127.0.0.1:8080/mcp`. Cherry Studio Phase 4C (2026-07-25) reconciled DRIFT-01 (`audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md`): target `agentcore-workspace-agent` present with `deepseek:deepseek-v4-pro` + active `agentcore-gateway`; Global Memory off; session schema proven (3 sessions including `agentcore-phase4c-session-proof`); prior “Create a session did nothing” coincided with Bifrost CONNECTION_REFUSED — **native UI 14-step still operator-gated / not full live_validated**. Prior enrollment evidence: `audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`. Continual-learning auto user-prompt injection disabled (`docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`). Cursor Stage B integrity harness **live** 2026-07-24/25: hooks `sessionStart`, `beforeSubmitPrompt`, `preToolUse`, `beforeShellExecution`, `afterFileEdit`, `postToolUse`, `stop` registered; Continue. exact-once capture proven; 26/26 suite PASS (`audits/cursor-context/CURSOR_STAGE_B_INTEGRITY_HARNESS_ACCEPTANCE_2026-07-24.md`, `audits/cursor-context/CURSOR_CONTINUE_HARD_GATE_AND_STAGE_B_REGISTRATION_2026-07-24.md`). CLIENT-LOCAL enrollment scope: `MASTER_CONFIG_AND_PROMPT.md` §10 / `audits/IDE_SELF_ENROLLMENT_SCOPE_VALIDATION_2026-07-21.md`. |
-| LangGraph MCP | Shared `scripts/agentcore_workflow/mcp_client.py` → localhost gateway — `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md`. |
-| Swarm | SwarmClaw/SwarmVault remain separate; **neutral shared SwarmRecall** is machine-level semantic plane (AUTH-2026-08-01). |
-| Context Engine | Dedicated repo `D:\github\agentcore-context-engine`; first LangGraph M1 production run completed (`audits/NEUTRAL_MEMORY_CONTEXT_ENGINE_ACCEPTANCE_2026-08-01.md`). |
-
-### 0a.1 Neutral memory cutover (2026-08-01) — VERIFIED
-
-- Approval: `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`
-- ADR: `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md`
-- LangGraph run: `5ed18346-0727-4932-b6a5-3fbfb5c84d70` / thread `9d09cc48-3ef8-4f03-93be-772c59fe7d5a` / 13 checkpoints / score 1.0
-- SwarmRecall hardening: ynotfins fork `b272130` (idempotency, session validation, Meili outbox/rebuild)
-- Control-plane commit: `8906351`
-
-Historical Phase/Milestone checklists below remain planning evidence; do not treat incomplete Phase wording as a claim that PG18 or memory is still pre-landing.
-
-## 0. Status language
-
-This document uses four labels:
-
-- **VERIFIED FACT** — established from the live-machine evidence, repository evidence, or an authoritative upstream source.
-- **ADOPTED DECISION** — the selected architecture for this build.
-- **GATED DECISION** — direction is selected, but execution requires a fresh live check or benchmark.
-- **OUT OF SCOPE** — do not integrate, migrate, or redesign during this project.
-
-Do not convert a gated decision into a fact.
-
----
-
-## 1. Repository and path identity
-
-### VERIFIED FACT
-
-The canonical source repository is:
-
-```text
-D:\github\agentcore-control-plane
-```
-
-The path:
-
-```text
-D:\AgentSwarm\runs\agentcore-memory-v1\worktree
-```
-
-is an additional Git worktree/check-out of the same `agentcore-control-plane` repository on branch:
-
-```text
-ai/global-memory-platform-v1
-```
-
-`D:\AgentSwarm` is a run/worktree storage root. It is not the name of this product, not a separate AgentCore repository, and not related to SwarmClaw.
-
-### ADOPTED DECISION
-
-All implementation must remain in `agentcore-control-plane`.
-
-Use an isolated worktree for feature-branch implementation unless the operator explicitly changes the active checkout. Do not independently edit both the main checkout and a feature worktree.
-
-The authority reconciliation (2026-07-14) was performed on branch `task/authority-reconciliation` in the main checkout. The memory-platform build follows `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` and the handoff in `docs/handoffs/MEMORY_PLATFORM_IMPLEMENTATION_HANDOFF_2026-07-14.md`; the pre-existing `ai/global-memory-platform-v1` worktree at `D:\AgentSwarm\runs\agentcore-memory-v1\worktree` predates the locked Milestones and must be reconciled against them before reuse.
-
-The prior plans below are not authoritative because they contain stale drive facts and/or incorrectly make Swarm components part of AgentCore:
-
-```text
-agentcore_global_memory_platform_d69b09fd.plan.md
-agentcore_memory_platform_4476bf06.plan.md
-```
-
-The previous content of `CONTEXT_BLOCK.md` is superseded by this file.
-
----
-
-## 2. Product objective
-
-### ADOPTED DECISION
-
-Build one local-first AgentCore platform that gives normal IDE agents and LangGraph workflows:
-
-1. Persistent global, user, machine, project, workflow, and session memory.
-2. An immutable, recoverable event ledger.
-3. A rolling context compiler with a recent raw tail, hierarchical summaries, exact source expansion, and model-specific token budgets.
-4. Governed semantic and graph memory through Cognee.
-5. Durable LangGraph checkpoints and workflow metadata.
-6. Generated read-only state projections.
-7. A governed engineering knowledge and template library.
-8. One default AgentCore memory/context contract for all supported non-Swarm IDEs and agents.
-9. Hard write boundaries, provenance, auditing, backup, restore, degraded mode, and actionable diagnostics.
-
-The system must reduce prompt bloat by retrieving and assembling only the context needed for the current task. Fast storage accelerates persistence, search, indexing, context assembly, and compaction; it does not enlarge a model's native context window.
-
----
-
-## 3. Canonical architecture
-
-```text
-Cursor / Codex / MiniMax / Antigravity / Open Interpreter /
-Claude Code / approved MCP clients / LangGraph workflows
-                           |
-          native lifecycle adapter where available
-                or thin MCP stdio bridge
-                           |
-                           v
-                AgentCore persistent daemon
-        identity | policy | sessions | event ingestion
-        retrieval | context assembly | durable writes
-                           |
-          +----------------+----------------+
-          |                                 |
-          v                                 v
- PostgreSQL 18 + pgvector              Cognee API
- canonical state/evidence              semantic/graph memory
-          |                                 |
-          +----------------+----------------+
-                           |
-                           v
-                  AgentCore worker
-       compaction | promotion | projection | archival
-                           |
-             +-------------+-------------+
-             |                           |
-             v                           v
-     F:\AgentCore\runtime         E:\AgentCore\...
-     hot spool/scratch            cold immutable/archive
-     (incl. bifrost)
-```
-
-### ADOPTED DECISION — Bifrost composition (completed cutover)
-
-The Bifrost MCP Gateway cutover is **complete and live**. The stable IDE-facing MCP path for every non-Swarm IDE is:
-
-```text
-IDE agent
-  -> agentcore-gateway (Bifrost, http://127.0.0.1:8080/mcp, Bearer ${env:BIFROST_MCP_VIRTUAL_KEY})
-  -> agentcore-memory  (stable Bifrost upstream identity)
-```
-
-The AgentCore memory system is exposed to IDEs **through** the existing `agentcore-memory` Bifrost upstream. The "thin MCP stdio bridge" in the diagram above is the `agentcore-memory` stdio server registered behind Bifrost — it is not a new per-IDE MCP entry. IDEs keep exactly one `agentcore-gateway` entry; no IDE configuration change is required when the memory platform lands (Milestone M4 exit criterion).
-
-### ADOPTED DECISION
-
-Normal IDEs do not connect directly to PostgreSQL or Cognee.
-
-Normal IDEs use one AgentCore-owned contract exposed through:
-
-- the `agentcore-memory` upstream behind `agentcore-gateway` (the normal IDE path);
-- a local AgentCore client/SDK;
-- a localhost API for LangGraph, Cognigent, diagnostics, and administration.
-
-MCP is a transport, not the source of truth.
-
-A persistent AgentCore daemon owns business logic and the governed write path. Per-IDE transport processes contain transport logic only.
-
-A durable AgentCore worker owns background jobs. It does not replace the synchronous hard-threshold context path.
-
----
-
-## 4. Selected upstream components
-
-The following are the selected components for AgentCore.
-
-### 4.1 PostgreSQL
-
-**VERIFIED FACT — 2026-07-12**
-
-The current PostgreSQL 18 minor release is PostgreSQL 18.4.
-
-Authoritative source:
-
-```text
-https://www.postgresql.org/docs/current/release.html
-```
-
-### ADOPTED DECISION
-
-PostgreSQL 18 is the canonical AgentCore database platform.
-
-The existing PostgreSQL 16 cluster must be backed up, restore-tested, and migrated side-by-side. PostgreSQL 18 must use a new data directory. Never point PostgreSQL 18 directly at the PostgreSQL 16 data directory.
-
-PostgreSQL owns:
-
-- immutable event envelopes and provenance;
-- context sessions and summary graph metadata;
-- global/project/session state;
-- project, agent, client, and machine identity;
-- policies, capabilities, approvals, and audit records;
-- durable background jobs, attempts, outbox, and dead-letter records;
-- LangGraph checkpoint persistence;
-- engineering-library catalog and retrieval audit;
-- artifact metadata, hashes, references, and lifecycle state.
-
-### 4.2 pgvector
-
-**VERIFIED FACT — 2026-07-12**
-
-The current official pgvector repository instructions use pgvector `v0.8.5` and include Windows/PostgreSQL 18 build instructions.
-
-Authoritative source:
-
-```text
-https://github.com/pgvector/pgvector
-```
-
-### ADOPTED DECISION
-
-Use pgvector in PostgreSQL 18. Do not add Qdrant, Weaviate, LanceDB, Chroma, Neo4j, Redis, or another AgentCore database by default.
-
-A separate engine requires a benchmark proving a distinct requirement that PostgreSQL full-text search, pgvector, and Cognee cannot satisfy.
-
-### 4.3 Cognee
-
-**VERIFIED FACT — 2026-07-12**
-
-Cognee is an open-source persistent AI memory platform that builds a self-hosted knowledge graph. Its official repository documents a single-PostgreSQL deployment using:
-
-```text
-DB_PROVIDER=postgres
-VECTOR_DB_PROVIDER=pgvector
-GRAPH_DATABASE_PROVIDER=postgres
-CACHE_BACKEND=postgres
-```
-
-The upstream release list marks `v1.2.2` as a stable release and newer `v1.2.2.dev*` builds as development releases.
-
-Authoritative sources:
-
-```text
-https://github.com/topoteretes/cognee
-https://github.com/topoteretes/cognee/releases
-```
-
-### ADOPTED DECISION
-
-Use Cognee `v1.2.2` as the initial pinned stable candidate, subject to one final release/security compatibility check immediately before installation.
-
-Cognee is the semantic and graph-memory engine. It is not the immutable raw transcript ledger, not the policy engine, and not the public IDE interface.
-
-Cognee runs behind an AgentCore-owned adapter. No AgentCore package outside that adapter imports Cognee-specific APIs.
-
-Cognee receives curated or high-confidence promoted knowledge. Do not send every terminal line, file read, tool result, or raw transcript event directly to Cognee.
-
-Use a separate PostgreSQL database and role:
-
-```text
-database: cognee_core
-owner/role: agentcore_cognee
-```
-
-AgentCore must not write Cognee-owned tables directly.
-
-### 4.4 LangGraph PostgreSQL checkpointer
-
-**VERIFIED FACT — 2026-07-12**
-
-`langgraph-checkpoint-postgres` 3.1.0 is the current stable package listed on PyPI. It provides `PostgresSaver` and `AsyncPostgresSaver`.
-
-Authoritative sources:
-
-```text
-https://pypi.org/project/langgraph-checkpoint-postgres/
-https://docs.langchain.com/oss/python/langgraph/persistence
-```
-
-### ADOPTED DECISION
-
-Use the official PostgreSQL checkpointer. Do not implement a custom checkpoint serializer unless a tested requirement cannot be met by the official package.
-
-Required hardening:
-
-```text
-LANGGRAPH_STRICT_MSGPACK=true
-```
-
-Use UUID-based `thread_id` values and keep them under 255 characters.
-
-LangGraph checkpoints are thread-scoped workflow state. They do not replace AgentCore semantic memory, the immutable event ledger, or project state.
-
-### 4.5 Model Context Protocol SDK
-
-**VERIFIED FACT — 2026-07-12**
-
-The official MCP Python SDK identifies v1.x as the stable production line. The repository lists `v1.28.1` as the latest stable release and warns that v2 is still pre-release.
-
-Authoritative source:
-
-```text
-https://github.com/modelcontextprotocol/python-sdk
-```
-
-### ADOPTED DECISION
-
-Initially pin the stable MCP Python SDK line:
-
-```text
-mcp>=1.28.1,<2
-```
-
-Re-evaluate only after stable v2 is released and migration tests pass. Do not build production AgentCore against a pre-release MCP SDK.
-
-### 4.6 COMB
-
-**VERIFIED FACT**
-
-`mehmetdemirci/comb-ai` is an MIT-licensed documentation methodology. It separates static from dynamic knowledge, uses hierarchical task-specific loading, favors cache-aware reading order, and archives stale active context.
-
-Authoritative source:
-
-```text
-https://github.com/mehmetdemirci/comb-ai
-```
-
-### ADOPTED DECISION
-
-Use COMB concepts and selected templates as an AgentCore documentation/projection convention.
-
-COMB is not a daemon, database, queue, memory engine, or separate service.
-
-AgentCore remains the authority. COMB-derived files are generated or curated views.
-
-### 4.7 Internal AgentCore code
-
-The following are AgentCore-owned implementations, not external memory products:
-
-- immutable event ledger contracts;
-- context compiler;
-- hierarchical compaction and exact expansion;
-- artifact tier;
-- project/client/agent identity;
-- policy and capability engine;
-- memory promotion pipeline;
-- AgentCore daemon;
-- thin MCP bridge;
-- background worker;
-- state projection;
-- IDE lifecycle adapters;
-- engineering-library governance and indexing.
-
-### 4.8 Reference-only projects
-
-The following may provide concepts or test cases but are not runtime dependencies:
-
-```text
-lossless-claw
-lossless-memory4agent
-Distill
-Hindsight
-Graphiti / Zep
-Mem0
-agentmemory
-OpenMemory
-claude-changeling-agent
-```
-
-Do not copy runtime architecture from these projects without an explicit ADR, license/provenance record, tests, and a clear reduction in complexity.
-
----
-
-## 5. Explicit exclusions
-
-### OUT OF SCOPE
-
-The vendor repositories under:
-
-```text
-D:\github\vendor\swarm\
-```
-
-and the SwarmVault Desktop data under:
-
-```text
-C:\Users\ynotf\AppData\Roaming\swarmvault-desktop
-```
-
-are not part of this AgentCore memory-platform build.
-
-Do not route AgentCore memory through SwarmRecall or SwarmVault.
-
-Do not remove, migrate, reconfigure, or redesign Swarm projects during this build.
-
-The word `AgentSwarm` in the worktree path does not refer to the vendor Swarm ecosystem.
-
----
-
-## 6. Data planes and source-of-truth boundaries
-
-### 6.1 Immutable evidence plane
-
-**Canonical authority:** PostgreSQL 18 plus content-addressed artifact objects.
-
-Every meaningful session event receives an append-only envelope with at least:
-
-```text
-event_id
-client_event_id / idempotency_key
-session_id
-project_id
-agent_identity_id
-client_id / IDE
-machine_id
-sequence_number
-parent_event_id
-correlation_id
-tool_call_id
-role
-event_type
-model_id
-tokenizer_id
-token_count
-inline_content or artifact reference
-content_sha256
-occurred_at
-ingested_at
-trust_zone
-metadata
-```
-
-Normal roles cannot update or delete raw events.
-
-Large bodies are externalized by hash; PostgreSQL keeps the authoritative metadata and reference.
-
-### 6.2 Rolling context plane
-
-AgentCore assembles context from:
-
-1. global invariant state;
-2. current-project state;
-3. current LangGraph workflow/thread state;
-4. current task and constraints;
-5. recent raw event tail;
-6. relevant summary nodes;
-7. curated Cognee recall;
-8. targeted project/code/document retrieval.
-
-Compaction is evaluated after each appended event and before model calls.
-
-```text
-below soft threshold:
-    continue normally
-
-above soft threshold:
-    enqueue durable compaction job
-
-above hard threshold:
-    synchronously compact enough context
-    or return a deterministic reduced context with exact source references
-```
-
-Summary hierarchy:
-
-```text
-L0 raw immutable events
-L1 coherent event-span summaries
-L2 session summaries
-L3 project chronology and decision summaries
-```
-
-Every summary must retain source edges and support exact expansion.
-
-Project summaries never become global memory automatically.
-
-### 6.3 Semantic and graph memory plane
-
-Cognee stores:
-
-- approved user preferences;
-- stable machine/workflow facts;
-- project architecture and decisions;
-- verified fixes and failure patterns;
-- accepted lessons;
-- governed engineering-library concepts and relations.
-
-Cognee does not store the only copy of evidence.
-
-### 6.4 Workflow plane
-
-LangGraph owns:
-
-- graph execution state;
-- checkpoints;
-- resumability;
-- human-review pauses;
-- workflow metadata references.
-
-Cognigent is treated as an AgentCore product layer/name for operator experience, routing, approvals, and governance. It is not assumed to be a verified third-party runtime. The AgentCore API must support it without making the core depend on an unverified external package.
-
-### 6.5 Projection plane
-
-PostgreSQL is canonical.
-
-Generated files may include:
-
-```text
-GLOBAL_STATE.md
-<repo>\.agentcore\STATE.md
-INDEX.md
-active-context.md
-architecture/decision projections
-```
-
-Generated projections are:
-
-- read-only to ordinary agents;
-- bounded;
-- atomically written;
-- revisioned;
-- content-hashed;
-- traceable to source event/state IDs;
-- reproducible from PostgreSQL.
-
-### 6.6 Engineering knowledge plane
-
-Canonical source material and cold history live on E:.
-
-Hot metadata, full-text indexes, embeddings, graph relationships, version filters, provenance, and retrieval audit live on F:.
-
-Initial library categories:
-
-```text
-official documentation snapshots
-approved project templates
-focused reference implementations
-engineering recipes
-dependency catalog
-agent skills
-agent benchmarks
-security and architecture standards
-```
-
-Use Copier for updateable governed templates. Do not build a giant uncurated code dump.
-
----
-
-## 7. Drive assignments
-
-The following role map is the target. Destructive operations still require a fresh physical-disk identity check by model, serial, UniqueId, disk number, capacity, bus type, filesystem, allocation unit, health, BitLocker state, and current dependencies.
-
-### C: — system tier
-
-**VERIFIED FACT**
-
-Approximately 2 TB internal NVMe containing Windows, installed applications, user profile, IDE configuration, and the current Docker Desktop disk image.
-
-### ADOPTED DECISION
-
-- Keep Windows and installed applications.
-- Protect from AgentCore data growth.
-- Move Docker/WSL runtime data and large active caches away.
-- Never reformat as part of this project.
-
-### D: — active development tier
-
-**VERIFIED FACT**
-
-Approximately 2 TB internal NVMe containing active repositories and development data.
-
-### ADOPTED DECISION
-
-Use for:
-
-```text
-D:\github\
-D:\github_2\
-active repositories
-Git worktrees
-build/test activity
-AgentCore source code
-template and reference development
-```
-
-Do not place canonical databases, long-term backups, model archives, or cold corpora here.
-
-### E: — cold archive and knowledge-source tier
-
-**VERIFIED FACT**
-
-E: is the internal approximately 10 TB, 7200 RPM HGST-class SATA HDD now visible as `Archive_Cold`.
-
-It is not the obsolete 932 GB external-device assumption from an earlier plan.
-
-### ADOPTED DECISION
-
-Use E: for:
-
-```text
-E:\AgentCoreArchive\
-E:\DatabaseBackups\
-E:\ProjectArchives\
-E:\KnowledgeCorpus\
-E:\TemplateLibrary\
-E:\ReferenceImplementations\
-E:\EngineeringRecipes\
-E:\DependencyCatalog\
-E:\ModelArchive\
-E:\SystemImages\
-```
-
-NTFS 64 KB is appropriate for this large sequential/archive workload and should be retained unless a fresh live scan contradicts the current format.
-
-Do not place active PostgreSQL data, pgvector indexes, LangGraph checkpoints, node_modules, virtual environments, active worktrees, or hot context scratch on E:.
-
-Pack small cold objects into larger compressed segments rather than creating millions of tiny files.
-
-### F: — canonical hot database and index tier
-
-**VERIFIED FACT**
-
-F: is the 4 TB Samsung 990 PRO Gen4 NVMe and already hosts the AgentCore PostgreSQL runtime/data.
-
-### ADOPTED DECISION
-
-F: is the canonical hot data tier for:
-
-```text
-PostgreSQL 18 cluster
-pgvector indexes
-agent_core database
-cognee_core database
-LangGraph checkpointer tables
-global/project/session state
-event and summary metadata
-durable job/outbox tables
-hot engineering-library indexes
-retrieval metadata and audit
-```
-
-Do not reformat F: during the initial build.
-
-Build PostgreSQL 18 side-by-side in a new F: path, migrate through a tested backup/upgrade procedure, and retain the PostgreSQL 16 cluster during the rollback window.
-
-Keep PostgreSQL WAL with the F: cluster initially. Archive completed WAL copies to E:. Move WAL to another device only after benchmark and recovery evidence proves a net benefit.
-
-No normal IDE or filesystem MCP may access raw F: database directories.
-
-### G: — external backup tier
-
-**VERIFIED FACT**
-
-G: is an external approximately 4 TB Seagate backup drive.
-
-### ADOPTED DECISION
-
-Use only for independent backup copies and restore testing.
-
-G: is not a live database, vector index, context store, or runtime tier.
-
-### F: — AgentCore dedicated hot runtime and database tier
-
-**VERIFIED FACT — 2026-07-31 (supersedes H: Bifrost runtime placement)**
-
-AgentCore Bifrost MCP Gateway and hot AgentRuntime leaves live under `F:\AgentCore\runtime` (including `bifrost`, `agentcore-memory`, `skills-hub`, `tentra`, `clients`, `mcp-processes`, `service-logs`). PostgreSQL 18 remains at `F:\PostgreSQL18\data`. Durable AgentCore rollback copies for this relocation live under `E:\AgentCore-Backups` only.
-
-### H: — Swarm ecosystem dedicated hot tier (not AgentCore)
-
-**VERIFIED FACT — 2026-07-31**
-
-H: is reserved for the Swarm ecosystem high-performance runtime/data root. AgentCore must not place canonical runtime, Bifrost state, or durable rollback material on H: after the dual-ecosystem cutover gate. Historical `H:\AgentRuntime` was AgentCore-owned prior to relocation and must not be treated as current AgentCore authority.
-
-### I: — AgentCore developer cache and staging tier
-
-**VERIFIED FACT**
-
-I: is the internal 1 TB Crucial BX500 SATA SSD.
-
-### GATED DECISION
-
-The role is fixed:
-
-```text
-package caches
-build intermediates
-ingestion staging
-temporary exports
-compiler caches
-non-canonical scratch
-```
-
-**BLUEPRINT.md §4 supersedes the ReFS evaluation above.** The target for I: is NTFS with 64 KB allocation units. Live evidence (2026-07-14): I: is currently NTFS with 512-byte allocation units and is empty — correction is authorized by BLUEPRINT.md §4. ReFS Dev Drive evaluation is deferred; the M1 storage step corrects I: to NTFS/64KB.
-
-Do not put PostgreSQL, Cognee canonical data, WAL, LangGraph checkpoints, or the only copy of any artifact on I:.
-
-### J: — personal external device
-
-If J: is present, it is outside AgentCore scope. Provisioning scripts must block it.
-
----
-
-## 8. PostgreSQL database and role boundaries
-
-### ADOPTED DECISION
-
-Use one PostgreSQL 18 cluster on F: with explicit database ownership boundaries:
-
-```text
-agent_core
-    AgentCore-owned canonical state, evidence, jobs, governance,
-    context metadata, library catalog, and LangGraph persistence
-
-cognee_core
-    Cognee-owned graph/vector/session/metadata data
-```
-
-Do not place vendor Swarm databases inside the AgentCore logical architecture.
-
-Minimum role separation:
-
-```text
-agentcore_read
-agentcore_ingest
-agentcore_worker
-agentcore_admin
-agentcore_backup
-agentcore_cognee
-```
-
-Ordinary IDE agents never receive database credentials.
-
-`LISTEN/NOTIFY` may wake workers, but it is not the durable queue. Durable job rows must exist in PostgreSQL and be claimed transactionally.
-
----
-
-## 9. AgentCore services
-
-### ADOPTED DECISION
-
-Keep the core topology small:
-
-```text
-1. PostgreSQL 18
-2. Cognee API/service
-3. AgentCore daemon
-4. AgentCore worker
-5. thin per-IDE MCP stdio bridge processes
-```
-
-The daemon owns:
-
-- project/client/agent identity;
-- sessions;
-- policy;
-- event ingestion;
-- retrieval;
-- context assembly;
-- durable write validation;
-- health and admin endpoints.
-
-The worker owns:
-
-- summary compaction;
-- Cognee promotion;
-- generated projections;
-- archival;
-- maintenance;
-- durable retries and dead letters.
-
-The MCP bridge owns only transport and authentication handoff.
-
-Do not start one full database writer or memory service per IDE.
-
----
-
-## 10. Unified AgentCore contract
-
-The final names may be optimized by Cursor, but the contract must cover:
-
-```text
-session.open
-session.append_event
-session.close
-
-context.get
-context.search
-context.expand
-
-memory.search
-memory.propose
-memory.promote        operator/governed
-memory.forget         operator/governed soft-delete
-
-state.read
-state.propose_change
-
-project.register
-project.resolve
-project.list
-
-agent.whoami
-health.get
-```
-
-Normal agents cannot:
-
-- run raw SQL;
-- call Cognee directly;
-- mutate generated STATE files;
-- promote untrusted content to global memory;
-- write another project's files;
-- delete immutable evidence;
-- write raw F: or E: storage paths.
-
-MCP registration does not guarantee event capture. Each IDE requires measured lifecycle hooks, wrappers, extensions, or direct SDK instrumentation.
-
-LangGraph/Cognigent must use direct AgentCore client instrumentation.
-
----
-
-## 11. Identity and permissions
-
-### ADOPTED DECISION
-
-Every registered repository receives a stable UUID in:
-
-```text
-<repo>\.agentcore\project.yaml
-```
-
-Git remotes, local paths, Git common directories, worktrees, and archive locations are aliases. A Git remote URL alone is not canonical project identity.
-
-Agents may read approved global knowledge and registered project metadata.
-
-Source-code writes are limited to the assigned active repository/worktree.
-
-Hard enforcement must occur at the tool/process/OS boundary where possible:
-
-- narrow filesystem roots;
-- Serena launched against the active project;
-- isolated Git worktrees;
-- protected database/archive paths;
-- sandboxed Open Interpreter;
-- dedicated low-privilege autonomous worker identity;
-- audited escalation.
-
-A memory policy check alone cannot prevent an IDE terminal or filesystem tool from writing elsewhere.
-
----
-
-## 12. `context-fabric`
-
-### VERIFIED FACT
-
-`context-fabric` is an existing AgentCore-side project-local context component. It is not part of the vendor Swarm ecosystem.
-
-### GATED DECISION
-
-Inspect and benchmark it before final integration.
-
-It may remain only if it provides a distinct project-local capability such as deterministic repository context, local indexing, or cache management.
-
-It must not become:
-
-- a second global memory authority;
-- a duplicate immutable ledger;
-- a duplicate semantic database;
-- an uncontrolled durable writer.
-
-Choose one disposition through an ADR:
-
-```text
-keep behind AgentCore
-integrate useful code into AgentCore
-retire as superseded
-```
-
----
-
-## 13. Engineering knowledge and template platform
-
-### ADOPTED DECISION
-
-Create a governed library because no existing project is trusted as a house-style authority.
-
-Use:
-
-```text
-E: canonical source snapshots and approved template/reference history
-F: searchable catalog, embeddings, graph relationships, and retrieval audit
-D: active template/reference development and tests
-H: active models and runtime cache
-I: package/build cache and ingestion staging
-```
-
-Start with a small set of high-value approved templates and focused references. Every approved item requires:
-
-- source and license provenance;
-- pinned dependencies and lockfiles;
-- current stable-version review;
-- clean generation/build;
-- tests, lint, and type checking;
-- secret, dependency, and static-analysis scans;
-- architecture, security, operations, and rollback documentation;
-- benchmark evidence;
-- lifecycle status: candidate, approved, deprecated, or retired.
-
-Use Copier for updateable templates.
-
-Do not add LanceDB or another library database initially.
-
----
-
-## 14. Implementation order
-
-### ADOPTED DECISION
-
-```text
-Phase 0 — repository alignment
-    replace stale context
-    audit accessible rules, prompts, docs, renderers, MCP descriptions
-    classify authority and deprecate contradictions
-
-Phase 1 — live machine and storage baseline
-    rescan disks, services, tasks, Docker, WSL, ports, dependencies
-    protect active data
-    clean abandoned Docker/WSL/software through approved manifests
-
-Phase 2 — storage foundation
-    provision H after verification
-    test and provision I
-    organize E
-    relocate Docker Desktop disk image to H
-    validate reboot and recovery
-
-Phase 3 — PostgreSQL 18 foundation
-    stabilize PostgreSQL 16
-    complete backup and restore rehearsal
-    install PostgreSQL 18.4 side-by-side
-    install pgvector 0.8.5
-    test migration/cutover/rollback
-    make PostgreSQL 18 canonical
-
-Phase 4 — AgentCore contracts and storage
-    identities and project registry
-    immutable event ledger
-    artifact metadata/tiering
-    durable jobs/outbox
-    policy and audit
-
-Phase 5 — rolling context
-    context compiler
-    soft/hard thresholds
-    summary DAG
-    exact expansion
-    replay and recovery tests
-
-Phase 6 — Cognee
-    pinned stable deployment
-    dedicated database/role
-    AgentCore adapter
-    governed promotion pipeline
-    degraded-mode tests
-
-Phase 7 — LangGraph and Cognigent interface
-    official Postgres checkpointer
-    workflow metadata and AgentCore context nodes
-    operator/governance API
-
-Phase 8 — unified gateway and client capture
-    persistent daemon
-    thin MCP bridges
-    per-IDE lifecycle adapters
-    measured capture and context-injection tests
-
-Phase 9 — state projections and engineering library
-    generated state
-    COMB-derived conventions
-    approved templates/references/recipes/dependencies
-    AgentBench
-
-Phase 10 — rollout
-    shadow mode
-    per-project activation
-    backup/restore/degraded-mode testing
-    retire only proven duplicate AgentCore components
-```
-
-Do not apply production AgentCore schemas to PostgreSQL 16 and then immediately migrate them to PostgreSQL 18.
-
----
-
-## 15. Acceptance criteria
-
-The platform is not complete until all of the following pass:
-
-1. A long synthetic session is compacted repeatedly and an exact early event is recoverable by hash/source ID.
-2. AgentCore continues in degraded mode when Cognee is unavailable.
-3. LangGraph resumes a workflow after process and PostgreSQL restart.
-4. Duplicate client events are rejected idempotently.
-5. Cursor and another IDE can work concurrently without cross-project memory leakage.
-6. A source write outside the assigned worktree is blocked by the actual tool/process boundary.
-7. `GLOBAL_STATE.md` and project `STATE.md` can be deleted and reproduced from PostgreSQL.
-8. PostgreSQL 18 backup, point-in-time recovery, and clean restore are demonstrated.
-9. Hot artifacts tier from H: to E: without losing hashes or exact expansion.
-10. No normal IDE receives direct PostgreSQL or Cognee credentials.
-11. Every retrieval item carries source, scope, trust, timestamp, and provenance.
-12. Per-IDE capture behavior is measured rather than assumed.
-13. The engineering library improves deterministic AgentBench results.
-14. One health command and one diagnostic bundle identify failures and corrective actions.
-15. The main checkout and worktree cannot silently diverge in architectural authority.
-
----
-
-## 16. Hard stops
-
-Stop and request operator review if:
-
-- the active checkout/branch is ambiguous;
-- a stale plan is being treated as authority;
-- live drive identity conflicts with this role map;
-- a destructive command identifies a drive only by letter;
-- PostgreSQL backup or restore rehearsal fails;
-- the implementation uses a development Cognee release;
-- MCP SDK v2 pre-release is selected for production;
-- a custom LangGraph checkpointer is proposed without a proven gap;
-- a second AgentCore vector/database engine is proposed without benchmark evidence;
-- project context is promoted globally without approval;
-- event capture is claimed without a client-specific integration test;
-- AgentCore is coupled to vendor Swarm memory;
-- normal agents can reach raw F: database paths or write E: archive paths;
-- recovery depends on the operator manually repairing code or data.
-
----
-
-## 17. Open facts that must be verified, not guessed
-
-- The exact current filesystem, allocation unit, free space, BitLocker state, and health of every drive.
-- The exact active PostgreSQL 16 state and cause of prior process termination.
-- I: allocation-unit correction (512B → 64KB) is authorized by BLUEPRINT.md §4; I: is confirmed empty (2026-07-14 live check); execution is part of M1.
-- H: is live with Bifrost runtime and must never be formatted; its allocation unit is already 64KB (verified 2026-07-14).
-- The distinct value and final disposition of `context-fabric`.
-- The lifecycle hooks available in each IDE and the measured capture percentage.
-- The final localhost port allocation from the existing port registry.
-- The final Cognee image/package digest and full transitive compatibility lock.
-- Whether Cognigent already exists as local code or remains an AgentCore product-layer name.
-- The off-machine/cloud backup target beyond E: and G:.
-
-These are explicit work items. They must not be filled with assumptions.
-
+| `C:` | Windows, installed applications, user/IDE configuration |
+| `D:\github\...` | Canonical source repositories and active development |
+| `E:\AgentCore\...` | AgentCore cold/archive/backup target; transitional `E:\AgentCore-Backups` still exists |
+| `F:\AgentCore\...` | AgentCore hot runtime including Bifrost; PG18 at `F:\PostgreSQL18\data` |
+| `G:` | Independent backup copy |
+| `H:\SwarmData\recall` | Neutral Recall hot physical data |
+| `H:\SwarmData\claw` and other Swarm-owned H: roots | Swarm execution/runtime data; forbidden to AgentCore normal ops |
+| `I:` | AgentCore disposable staging/cache only |
+| `J:` | Portable transfer; outside normal AgentCore writes |
+
+The neutral Recall physical placement on H: does not authorize AgentCore filesystem access to H:. AgentCore reaches it only over the bounded localhost service adapter.
+AgentCore must never format H: or treat any H: path as an AgentCore canonical or rollback target.
+
+## 9. Current autonomous workflow
+
+- Production commands run from `D:\github\agentcore-control-plane` using `python -m agentcore workflow ...`; if `python` is not on PATH, use the verified installed Python executable rather than changing architecture.
+- Production uses PG18 PostgresSaver and durable `agentcore.wf_*` metadata.
+- Studio is interactive development only. It binds to loopback, uses the dev checkpointer, and cannot open production threads.
+- Deep Agents remains a bounded LangGraph worker harness.
+- CrewAI is not present in the production topology. Any future CrewAI node is an A/B-tested bounded worker.
+- Critic, deterministic scorer, judge, drift gates, human pause/resume, and JIT capability leases remain governed by LangGraph/AgentCore.
+
+## 10. Active alignment workstream
+
+Approval: `AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`.
+
+1. Reconcile `BLUEPRINT.md`, this file, `DOC_AUTHORITY.md`, `MASTER_CONFIG_AND_PROMPT.md`, `MILESTONES.md`, and `AGENTS.md`.
+2. Index/refresh the required official Arabold corpus and prove retrieval.
+3. Add three focused Cursor project subagents using the current official schema.
+4. Run protected-file, Bifrost, prompt, rule-render, IDE-scope, ecosystem-separation, secret/junk, and diff validators.
+5. Obtain a fresh-context independent review.
+6. Commit the authority/subagent change, capture the committed state in Context Fabric, record acceptance, create the final acceptance commit, push, and capture the final HEAD.
+
+## 11. Hard stops
+
+Stop and request operator review for:
+
+- a change to the single `agentcore-gateway` MCP identity or endpoint;
+- a new canonical database, vector store, graph store, workflow authority, or raw IDE memory route;
+- any OmniRoute/Hindsight/Graphify/CrewAI runtime activation;
+- any client model-inference reroute;
+- a live IDE configuration write outside a separately approved enrollment task;
+- a Swarm repository/runtime/database/credential/backup mutation;
+- direct edits to generated AgentCore projections;
+- failed rollback hash, authority validator, independent review, or secret scan;
+- a conflict between protected authority and verified live evidence that cannot be reconciled inside the approval.
+
+## 12. Primary evidence
+
+- `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md`
+- `audits/CONTEXT_ENGINE_LANGGRAPH_RUN11_LIVE_2026-08-02.json`
+- `audits/INDEPENDENT_REVIEW_CONTEXT_ENGINE_2026-08-02.md`
+- `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md`
+- `docs/adr/ADR-2026-08-02-agentcore-bifrost-context-alignment.md`
+- `audits/AGENTCORE_BIFROST_CONTEXT_ALIGNMENT_2026-08-02.md`
+- `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`
+- `docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md`

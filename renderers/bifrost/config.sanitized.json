@@ -152,8 +152,9 @@
             "--contract",
             "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
             "--",
-            "C:\\Program Files\\nodejs\\node.EXE",
-            "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+            "cmd.exe",
+            "/c",
+            "D:\\github\\agentcore-control-plane\\scripts\\project_router\\wrappers\\context-fabric.cmd"
           ],
           "envs": []
         },

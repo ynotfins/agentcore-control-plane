@@ -1,7 +1,7 @@
 # Bifrost Operator Runbook
 
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`  
-**Runtime:** `H:\AgentRuntime\bifrost`  
+**Runtime:** `F:\AgentCore\runtime\bifrost`
 **Scheduled Task:** `\AgentCore\AgentCore-Bifrost-Gateway`  
 **Updated:** 2026-07-24  
 
@@ -32,11 +32,11 @@ Get-ScheduledTask -TaskPath "\AgentCore\" -TaskName "AgentCore-Bifrost-Gateway" 
 
 ## Config Change Workflow
 
-1. Edit source renderer: `renderers/bifrost/config.json`
-2. Validate: `python scripts/bifrost/validate_contracts.py`
-3. Copy to runtime: `Copy-Item renderers/bifrost/config.json H:\AgentRuntime\bifrost\config.json`
-4. Restart: use stop/start scripts above
-5. Verify: health check + tools/list
+1. Edit the owning contracts and `scripts/bifrost/render_bifrost_config.py`; never hand-edit generated renderer output.
+2. Validate: `python scripts/bifrost/validate_contracts.py` and `python scripts/bifrost/test_contracts.py`.
+3. Render source and runtime: `python scripts/bifrost/render_bifrost_config.py`.
+4. Prefer the documented upstream-client reconnect API for a connection-only recycle. Use the scheduled-task stop/start owner when launch-command/config persistence requires a full recycle.
+5. Verify: health check, authenticated tools/list, and a representative safe tool call from each changed upstream.
 
 ## Virtual Key Management
 

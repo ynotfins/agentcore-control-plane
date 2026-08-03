@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime (current):** `F:\AgentCore\runtime\bifrost` (not design authority; historical `H:\AgentRuntime\bifrost` is vacated for Bifrost — remaining H: vacation is Milestone M9)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-07-31 (align Bifrost runtime path and Swarm foreign-boundary posture with ecosystem separation reconciliation)
+**Updated:** 2026-08-02 (`AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`; current Context Engine acceptance, neutral-memory boundary, Arabold/Context Fabric drift controls, and execution ownership)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -42,10 +42,12 @@ No other root or docs file may silently override this chain. If a document confl
 
 - `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` — effectively-unbounded durable-memory and bounded recovery source handoff
-- `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` — live rollout evidence: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated
+- `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` — point-in-time M3.002 rollout evidence (`agentcore-memory` v0.6.0); current version/status comes from `CONTEXT_BLOCK.md` and `memory_status`
 - `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` — M6 LangGraph production + Studio runbook
 - `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md` — exact `python -m agentcore workflow …` commands from control-plane
 - `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` — final release acceptance report with validator matrix and HEAD reference
+- `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` — current Context Engine, native-host, neutral Recall, and RUN11 acceptance with true residuals
+- `docs/adr/ADR-2026-08-02-agentcore-bifrost-context-alignment.md` — current responsibility model, transport-plane separation, and future-extension gates
 
 **Add as needed:**
 
@@ -81,7 +83,7 @@ No other root or docs file may silently override this chain. If a document confl
 | File | Purpose |
 | -- | -- |
 | `PROJECT_ANCHOR.md` | Immutable constitution: Bifrost gateway override, drives (incl. H/I/J), endpoints, memory path, baseline, forbidden routes |
-| `BLUEPRINT.md` | **Locked implementation blueprint** — final goal, architecture, drive roles, allocation-unit targets, lossless guarantees, STATE model, Milestone exit criteria (M0–M8), tool policy, security boundaries, change-control list. Operator-approved; Cursor may not change locked items without explicit approval. |
+| `BLUEPRINT.md` | **Locked implementation blueprint** — final goal, architecture, responsibility model, drive roles, lossless guarantees, STATE model, Milestone exit criteria (M0–M9), tool policy, security boundaries, change-control list. Operator-approved; no execution lead or specialist may change locked items without explicit approval. |
 | `AUTHORITY_LOCK.md` / `contracts/authority-lock.yaml` | Authority-lock classification and enforcement manifest for operator-locked, governed mutable, generated read-only, and normal workstream files. |
 | `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` | Detailed Milestone execution guidance; derives from BLUEPRINT.md; BLUEPRINT wins on conflicts |
 | `docs/agent-policy/*.md` | Global New Project Bootstrap, Milestone execution, checklist, tool-lifecycle, and read-order policy |
@@ -91,6 +93,9 @@ No other root or docs file may silently override this chain. If a document confl
 | `contracts/agentcore-gateway-client.json` | Single `agentcore-gateway` client connection contract |
 | `docs/adr/ADR-2026-07-12-bifrost-mcp-gateway.md` | Why native Windows Bifrost Gateway, auth, pin (original H: placement is historical evidence; current runtime is `F:\AgentCore\runtime\bifrost`) |
 | `docs/adr/ADR-2026-07-12-configuration-source-of-truth.md` | Contracts → renderer → live Bifrost config; IDEs get gateway entry only (current live root `F:\AgentCore\runtime\bifrost`) |
+| `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md` | Neutral semantic-memory exception and portable Context Engine boundary |
+| `docs/adr/ADR-2026-08-02-agentcore-bifrost-context-alignment.md` | AgentCore/Bifrost/Context Engine/Recall/Context Fabric/Arabold responsibility model and benchmark-gated future extensions |
+| `docs/superpowers/specs/2026-08-02-agentcore-bifrost-context-alignment-design.md` | Approved design details subordinate to BLUEPRINT/ADR |
 | `SERENA.md` | Current Serena project configuration, Bifrost/project-router wiring, IDE usage, and recovery runbook |
 | `docs/bifrost/*.md` | Classification, profiles, Tentra local mode, Depwire reconciliation, migration/rollback |
 | `SECURITY.md` | Secret and security policy |
@@ -100,10 +105,12 @@ No other root or docs file may silently override this chain. If a document confl
 
 | File | Purpose |
 | -- | -- |
-| `CONTEXT_BLOCK.md` | Current mutable system state and memory-platform target architecture (rewritten 2026-07-12; PG18 + pgvector + Cognee behind AgentCore adapter). **§0a is the live posture override.** |
+| `CONTEXT_BLOCK.md` | Current mutable system state: Bifrost/memory health, Context Engine/RUN11 acceptance, neutral Recall, Context Fabric/Arabold posture, true residuals, and active alignment workstream. |
+| `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` | Authoritative current Context Engine acceptance; supersedes provisional/final reports that predate RUN11/native-host proof |
+| `audits/AGENTCORE_BIFROST_CONTEXT_ALIGNMENT_2026-08-02.md` | Current protected-change, indexing, drift, review, validator, hash, rollback, and push evidence |
 | `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md` | Long-form current-state evidence synthesis (not architecture authority; does not replace CONTEXT_BLOCK) |
 | `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` | Source-only handoff for model-aware active context, full-history recovery, and M3.002 validation |
-| `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` | Live rollout handoff: M3.002 applied, agentcore-memory v0.6.0, Cursor live-validated |
+| `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` | Point-in-time M3.002 rollout evidence; current memory/host status is superseded by 2026-08-02 acceptance and live probes |
 | `docs/handoffs/AGENTCORE_AUTONOMOUS_WORKFLOW_STUDIO_HANDOFF_2026-07-17.md` | Workflow + Studio productization handoff (prefer `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` for commands) |
 | `docs/handoffs/OPENROUTER_MCP_OAUTH_BIND_HANDOFF_2026-07-20.md` | OpenRouter MCP OAuth bind + JIT availability claim |
 | `docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md` | Previous full-chat handoff snapshot — operator-supplied status snapshot (superseded for dual-ecosystem state by July 25 handoff) |
@@ -138,12 +145,19 @@ Call arabold-docs **through** `agentcore-gateway` (no direct `user-arabold-docs`
 | `modelcontextprotocol` | `2025.6.18` | <https://modelcontextprotocol.io/specification/2025-06-18> |
 | `playwright-mcp` | `0.0.78` | <https://github.com/microsoft/playwright-mcp> |
 | `context-fabric` | `1.0.7` | <https://github.com/VIKAS9793/context-fabric> |
+| `cursor` / `cursor-subagents` | `3.14.7` | <https://cursor.com/docs/subagents> |
+| `hindsight` / `hindsight-cookbook` | `0.7.0` | <https://hindsight.vectorize.io/best-practices>, <https://hindsight.vectorize.io/cookbook/applications/crewai-memory> |
+| `omniroute` / `omniroute-rtk` / `omniroute-compression` | `3.8.49` | release-pinned upstream README and compression guides |
+| `graphify` | `0.9.22` | release-pinned upstream README / MCP guidance |
+| `crewai` | `1.15.10` | <https://docs.crewai.com/en/concepts/memory> |
 | `sequential-thinking` | `2026.7.4` | npm `@modelcontextprotocol/server-sequential-thinking` |
 | `mcp-filesystem` | `2026.7.10` | npm `@modelcontextprotocol/server-filesystem` |
 | `cursor-agent-mcp` | `1.0.5` | npm `cursor-agent-mcp@1.0.5` |
 
 Canonical matrix + drift notes: `.agentcore/docs/DOCS_INDEX.md`
 Evidence: `artifacts/bifrost-gateway-cutover-2026-07-12/ARABOLD_DOCS_CROSSREF_2026-07-12.md`
+
+The refreshed Bifrost corpus is still reported as unversioned by Arabold. Treat `2.0.0-prerelease1` as the installed-binary pin, not as documentation-server version metadata.
 
 ## Unified IDE gateway install
 

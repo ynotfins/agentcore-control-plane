@@ -41,7 +41,7 @@ ChatGPT → Secure MCP Tunnel → compat proxy (18081) → Bifrost (8080) → ag
 ## Operator Runbook
 
 1. User env var `BIFROST_MCP_VK_CHATGPT`: created (verified present).
-2. Apply narrow VK profile to `renderers/bifrost/config.json` and runtime `H:\AgentRuntime\bifrost\config.json`.
+2. Apply the narrow VK profile in the owning contracts, render it with `scripts/bifrost/render_bifrost_config.py`, and verify the runtime projection at `F:\AgentCore\runtime\bifrost\config.json`.
 3. Restart Bifrost.
 4. Start compat proxy (18081).
 5. Verify tunnel client connects.

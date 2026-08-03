@@ -1,7 +1,7 @@
 ---
 name: test-writer
 description: Test authoring specialist subagent for high-value test suites
-mode: subagent
+model: inherit
 ---
 
 # Test Writer Subagent

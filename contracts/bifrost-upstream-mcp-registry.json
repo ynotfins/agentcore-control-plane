@@ -331,11 +331,12 @@
       "purpose": "Git-backed project continuity, drift checks, and post-commit context capture.",
       "owner": "agentcore",
       "pinned_version": "1.0.7",
-      "connection_type": "stdio",
+      "connection_type": "router",
       "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
       "arguments": [
         "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
       ],
+      "wrapper_script": "scripts/project_router/wrappers/context-fabric.cmd",
       "env_var_names": [],
       "timeout_seconds": 120,
       "health_check_type": "mcp_ping",
@@ -370,7 +371,7 @@
       "bifrost_client_name": "context_fabric",
       "status": "active",
       "notes": [
-        "Project-scoped only via router; reject Swarm and agentmemory roots.",
+        "Project-scoped only via router; project_activate reconnects this upstream after atomically changing the active project; reject Swarm and agentmemory roots.",
         "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* → unprefixed)."
       ]
     },

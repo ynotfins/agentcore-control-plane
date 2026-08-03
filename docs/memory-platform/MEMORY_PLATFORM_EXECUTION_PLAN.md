@@ -18,7 +18,7 @@ These decisions are operator-approved and may not be changed without explicit op
 - **Portable Context Engine** repository: `D:\github\agentcore-context-engine` — orchestration above `agentcore-memory` and neutral Recall; does not replace Cognee or PG18.
 - **Bifrost** retains the stable IDE-facing `agentcore-gateway` (`http://127.0.0.1:8080/mcp`).
 - The memory subsystem retains the stable Bifrost upstream identity **`agentcore-memory`**. No IDE configuration change is required at any Milestone.
-- **Swarm remains independent.** SwarmRecall/SwarmVault/SwarmClaw are never a dependency of this platform.
+- **The Swarm execution control plane remains independent.** SwarmVault, SwarmClaw, and Swarm-owned runtime state are never dependencies of this platform. The machine-level neutral shared SwarmRecall service is the single explicit exception: AgentCore may use it only as a non-canonical semantic projection through `agentcore-memory`, under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`.
 - **No Docker or WSL dependency** for the core platform.
 - **No Redis, Memurai, Qdrant, LanceDB, Neo4j, or any second canonical exact-evidence store.** Neutral shared SwarmRecall is an operator-approved cross-client semantic projection (not a second evidence ledger). Additional engines still require a benchmark + operator approval.
 - `database-plan.md` and `AGENT_DATABASE_BOOTSTRAP.md` are historical evidence; do not implement their schemas, tool names, or Swarm memory planes.
@@ -32,7 +32,7 @@ These decisions are operator-approved and may not be changed without explicit op
 2. Originals are never replaced by summaries.
 3. Hierarchical summaries retain exact source edges.
 4. Any summary or fact can expand back to exact original evidence.
-5. Old payloads may move from H: to E: without breaking retrieval.
+5. Payloads may move between approved AgentCore storage tiers without breaking retrieval. `H:` is not an AgentCore storage tier; it is reserved for neutral Recall and Swarm-owned roots classified in `CONTEXT_BLOCK.md`.
 6. Active model context is token-budgeted; durable virtual context is effectively unbounded.
 7. Compaction is deterministic, versioned, idempotent, and restart-safe.
 8. Secrets are redacted before durable storage.
