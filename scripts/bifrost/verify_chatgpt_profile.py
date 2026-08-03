@@ -119,13 +119,16 @@ def check_profile_config() -> tuple[bool, dict[str, Any], list[str]]:
 
     data = json.loads(RUNTIME_CONFIG.read_text(encoding="utf-8"))
     vks = data.get("governance", {}).get("virtual_keys") or []
-    chatgpt_vk = None
-    for vk in vks:
-        if vk.get("name") == "chatgpt" or vk.get("id") == "vk-agentcore-chatgpt":
-            chatgpt_vk = vk
-            break
-
-    if not chatgpt_vk:
+    matching_profiles = [
+        vk for vk in vks
+        if vk.get("name") == "chatgpt" or vk.get("id") == "vk-agentcore-chatgpt"
+    ]
+    if len(matching_profiles) != 1:
+        return False, {}, [
+            f"Expected exactly one ChatGPT virtual-key profile, found {len(matching_profiles)}"
+        ]
+    chatgpt_vk = matching_profiles[0]
+    if chatgpt_vk.get("id") != "vk-agentcore-chatgpt" or chatgpt_vk.get("name") != "chatgpt":
         return False, {}, [f"vk-agentcore-chatgpt not found in {RUNTIME_CONFIG}"]
 
     mcp_configs = chatgpt_vk.get("mcp_configs") or []
@@ -133,6 +136,8 @@ def check_profile_config() -> tuple[bool, dict[str, Any], list[str]]:
     for mc in mcp_configs:
         cname = mc.get("mcp_client_name")
         tools = mc.get("tools_to_execute") or []
+        if cname in found_clients:
+            errors.append(f"Duplicate MCP client entry in ChatGPT profile: {cname}")
         found_clients[cname] = tools
         if "*" in tools:
             errors.append(f"Wildcard '*' found in chatgpt profile for client {cname}")
@@ -141,6 +146,16 @@ def check_profile_config() -> tuple[bool, dict[str, Any], list[str]]:
     expected_skills = {"search_skills", "get_skill_detail", "list_installed_skills"}
     expected_arabold = {"search_docs", "fetch_url", "list_libraries", "find_version", "get_job_info"}
     expected_seq = {"sequentialthinking"}
+    expected_clients = {
+        "agentcore_memory", "skills_hub", "arabold_docs", "sequential_thinking"
+    }
+    actual_clients = set(found_clients)
+    if actual_clients != expected_clients:
+        errors.append(
+            "ChatGPT MCP client set mismatch: "
+            f"missing={sorted(expected_clients - actual_clients)} "
+            f"extra={sorted(actual_clients - expected_clients)}"
+        )
 
     if set(found_clients.get("agentcore_memory", [])) != expected_mem:
         errors.append(f"agentcore_memory tool mismatch: got {found_clients.get('agentcore_memory')}")

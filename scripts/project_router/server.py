@@ -457,13 +457,21 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
             _save_state_unlocked(None)
             reconnect, rollback_reconnect, transition_error = _reconnect_router_transition(previous)
             if transition_error:
+                try:
+                    actual_active = _load_state_unlocked()
+                    active_state_verified = True
+                except Exception:  # noqa: BLE001
+                    actual_active = None
+                    active_state_verified = False
                 return {
-                "ok": False,
-                "error": transition_error,
-                "active": previous,
-                "cleared_at": _now(),
-                "project_scoped_reconnect": reconnect,
-                "rollback_reconnect": rollback_reconnect,
+                    "ok": False,
+                    "error": transition_error,
+                    "active": actual_active,
+                    "active_state_verified": active_state_verified,
+                    "rollback_expected": previous,
+                    "cleared_at": _now(),
+                    "project_scoped_reconnect": reconnect,
+                    "rollback_reconnect": rollback_reconnect,
                 }
         return {
             "ok": True,
@@ -499,13 +507,21 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
             _save_state_unlocked(state)
             reconnect, rollback_reconnect, transition_error = _reconnect_router_transition(previous)
             if transition_error:
+                try:
+                    actual_active = _load_state_unlocked()
+                    active_state_verified = True
+                except Exception:  # noqa: BLE001
+                    actual_active = None
+                    active_state_verified = False
                 return {
-                "ok": False,
-                "error": transition_error,
-                "active": previous,
-                "requested": state,
-                "project_scoped_reconnect": reconnect,
-                "rollback_reconnect": rollback_reconnect,
+                    "ok": False,
+                    "error": transition_error,
+                    "active": actual_active,
+                    "active_state_verified": active_state_verified,
+                    "rollback_expected": previous,
+                    "requested": state,
+                    "project_scoped_reconnect": reconnect,
+                    "rollback_reconnect": rollback_reconnect,
                 }
         return {
             "ok": True,

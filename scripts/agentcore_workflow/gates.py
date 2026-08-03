@@ -27,7 +27,9 @@ from typing import Any, Callable
 REPO_ROOT = Path(r"D:\github\agentcore-control-plane")
 ALLOWED_WORKTREE_ROOTS = (
     Path(r"D:\github"),
+    Path(r"D:\agentcore-worktrees"),
     Path(r"D:\agentcore-fixture"),
+    Path(r"D:\test"),
     Path(r"I:\AgentCoreScratch"),
 )
 SECRET_PATTERNS = (
@@ -494,4 +496,3 @@ def run_all_gates(state: dict, gates: list[str] | None = None) -> dict[str, tupl
             except Exception as exc:
                 results[gate_name] = ("warn", {"gate": gate_name, "error": str(exc)})
     return results
-

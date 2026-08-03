@@ -114,6 +114,7 @@ def test_session_key_reuse_cannot_change_identity() -> None:
         "user_key": "ynotf",
         "canonical_path": r"D:\github\agentcore-control-plane",
         "worktree_path": r"D:\github\agentcore-control-plane",
+        "source_identity_id": "source-identity",
     }
     server._require_session_identity(
         existing,
@@ -155,8 +156,9 @@ def test_session_key_reuse_cannot_change_bound_source_identity(field: str, value
         "user_key": "ynotf",
         "canonical_path": r"D:\github\agentcore-control-plane",
         "worktree_path": r"D:\github\agentcore-control-plane",
+        "source_identity_id": "source-identity",
     }
-    requested = dict(existing)
+    requested = {key: value for key, value in existing.items() if key != "source_identity_id"}
     requested[field] = value
 
     with pytest.raises(ValueError, match="session_identity_mismatch"):
@@ -210,3 +212,61 @@ def test_unsigned_recovery_read_cannot_record_recovery_operation(monkeypatch) ->
 
     assert result["ok"] is True
     assert captured["record_recovery"] is False
+
+
+def test_reused_session_without_source_identity_is_rejected() -> None:
+    existing = {
+        "project_key": "agentcore-control-plane",
+        "client_key": "cursor",
+        "agent_key": "cursor-composer",
+        "device_id": None,
+        "user_key": None,
+        "canonical_path": None,
+        "worktree_path": None,
+        "source_identity_id": None,
+    }
+    with pytest.raises(ValueError, match="session_identity_incomplete"):
+        server._require_session_identity(
+            existing,
+            project_key="agentcore-control-plane",
+            client_key="cursor",
+            agent_key="cursor-composer",
+            device_id="CHAOSCENTRAL",
+            user_key="ynotf",
+            canonical_path=r"D:\github\agentcore-control-plane",
+            worktree_path=r"D:\github\agentcore-control-plane",
+        )
+
+
+def test_unsigned_startup_context_cannot_expire_leases(monkeypatch) -> None:
+    captured: dict = {}
+    legacy = server.VerifiedIdentity(
+        machine_id="machine",
+        user_id="user",
+        device_id="CHAOSCENTRAL",
+        user_key="ynotf",
+        key_id=None,
+        legacy_compat=True,
+    )
+    monkeypatch.setattr(server, "db", lambda: nullcontext(_IdentityConnection()))
+    monkeypatch.setattr(server, "verify_tool_identity", lambda *_args, **_kwargs: legacy)
+    monkeypatch.setattr(server, "validate_tool_project_boundary", lambda *_args, **_kwargs: None)
+
+    def fake_startup(args: dict, *, expire_leases: bool = True) -> dict:
+        captured.update(args)
+        captured["expire_leases"] = expire_leases
+        return {"ok": True}
+
+    monkeypatch.setattr(server, "startup_context", fake_startup)
+    result = server.call_tool(
+        "startup_context",
+        {
+            "project_key": "agentcore-control-plane",
+            "project_root": r"D:\github\agentcore-control-plane",
+            "record_recovery": True,
+        },
+    )
+
+    assert result["ok"] is True
+    assert captured["record_recovery"] is False
+    assert captured["expire_leases"] is False

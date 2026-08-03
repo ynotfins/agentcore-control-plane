@@ -89,6 +89,9 @@ function stripHopByHopHeaders(headers) {
   ]) {
     delete clean[key];
   }
+  // Caller credentials are never eligible for forwarding. The proxy has one
+  // dedicated least-privilege identity and fails closed if it is unavailable.
+  delete clean.authorization;
   clean.host = targetBase.host;
 
   // STRICT ENFORCEMENT: Always use BIFROST_MCP_VK_CHATGPT.
@@ -98,6 +101,7 @@ function stripHopByHopHeaders(headers) {
     clean.authorization = `Bearer ${vkChatGPT}`;
   } else {
     console.error(JSON.stringify({ level: "error", message: "CRITICAL: BIFROST_MCP_VK_CHATGPT missing from environment!" }));
+    return null;
   }
 
   return clean;
@@ -131,7 +135,9 @@ const server = http.createServer((req, res) => {
     return sendText(res, 200, "ok");
   }
   if (req.method === "GET" && pathname === "/readyz") {
-    return sendText(res, 200, "ok");
+    return process.env.BIFROST_MCP_VK_CHATGPT
+      ? sendText(res, 200, "ok")
+      : sendText(res, 503, "not ready");
   }
 
   // Enforce path allowlist
@@ -142,6 +148,10 @@ const server = http.createServer((req, res) => {
 
   // Forward allowed paths to Bifrost
   const targetUrl = new URL(req.url || "/", targetBase);
+  const upstreamHeaders = stripHopByHopHeaders(req.headers);
+  if (!upstreamHeaders) {
+    return sendText(res, 503, "ChatGPT gateway identity is unavailable.");
+  }
   const proxyRequest = http.request(
     {
       protocol: targetUrl.protocol,
@@ -149,7 +159,7 @@ const server = http.createServer((req, res) => {
       port: targetUrl.port || 80,
       method: req.method,
       path: targetUrl.pathname,
-      headers: stripHopByHopHeaders(req.headers),
+      headers: upstreamHeaders,
     },
     (proxyResponse) => {
       res.writeHead(proxyResponse.statusCode || 502, proxyResponse.headers);

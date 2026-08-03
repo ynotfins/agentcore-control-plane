@@ -78,6 +78,10 @@ def get_run_model_selection(run_db_id: str) -> Optional[dict]:
 def update_run_status(run_db_id: str, status: str, **kwargs: Any) -> None:
     set_clauses = ["status = %s", "updated_at = now()"]
     params: list = [status]
+    if status in ("completed", "failed", "aborted"):
+        set_clauses.append("completed_at = COALESCE(completed_at, now())")
+    elif status == "running":
+        set_clauses.append("completed_at = NULL")
     for k, v in kwargs.items():
         if k in ("current_milestone", "current_macro", "current_micro"):
             set_clauses.append(f"{k} = %s")

@@ -36,15 +36,17 @@ mandatory_rules:
   - id: swarm-isolation
     title: Swarm isolation
     rule: >-
-      SwarmRecall, SwarmVault, and SwarmClaw are a separate ecosystem. Never require Swarm MCP
-      servers, Swarm databases, or Swarm file roots for AgentCore / enrolled non-Swarm work.
+      SwarmVault and SwarmClaw are a separate execution ecosystem. Neutral shared SwarmRecall is
+      machine-level semantic-memory infrastructure and may be used by AgentCore only through the
+      server-side agentcore-memory projection; ordinary IDEs must never receive raw SwarmRecall
+      MCP tools, database credentials, or Recall API keys. Never require SwarmVault, SwarmClaw,
+      or Swarm-owned file roots for AgentCore / enrolled non-Swarm work.
       Never modify Swarm product installs. OpenClaw/ClawX are Swarm-managed and outside the
       AgentCore baseline. No normal AgentCore IDE continuity on Swarm projects: if the selected
       path is Swarm-owned, HARD STOP with swarm_project_refused. Do not persist Swarm work
       through AgentCore memory, project router, or IDE profiles. A neutral dual workspace may
-      be used only for read-only collision and boundary audits. SwarmRecall is Swarm’s required
-      memory/context layer; do not claim it replaces SwarmClaw native application databases
-      unless proven under Swarm authority.
+      be used only for read-only collision and boundary audits. SwarmClaw uses its own Recall
+      adapter and native application databases; shared Recall does not merge execution authority.
 
   - id: new-project-bootstrap
     title: New Project Bootstrap (Milestone 0)

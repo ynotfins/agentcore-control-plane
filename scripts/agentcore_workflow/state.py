@@ -7,6 +7,7 @@ the agentcore schema tables via the workflow nodes.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated
 from typing_extensions import TypedDict
 
@@ -141,6 +142,7 @@ def initial_state(
     context_profile: str = "standard-context",
     risk_profile: str = "medium",
     budget_profile: str = "",
+    worktree_path: str = "",
 ) -> WorkflowState:
     """Return a fresh workflow state for a new run."""
     return WorkflowState(
@@ -187,7 +189,7 @@ def initial_state(
         resolved_execution_profile={},
         resolved_execution_history=[],
         memory_session_id="",
-        worktree_path="",
+        worktree_path=str(Path(worktree_path).resolve()) if worktree_path else "",
         da_enabled=False,
         da_builder_result={},
         da_critic_result={},

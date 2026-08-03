@@ -7,7 +7,9 @@ param(
 
   [string]$ArchiveRoot = "E:\AgentCoreArchive\agentcore-memory\wal\pg18",
   [string]$SecondaryArchiveRoot = "G:\AgentCoreArchive\agentcore-memory\wal\pg18",
-  [int]$RetentionDays = 30,
+  # Disabled by default. WAL removal must be recovery-chain aware and is not
+  # safe as an age-only operation.
+  [int]$RetentionDays = 0,
   [string]$LogRoot = "E:\AgentCoreArchive\agentcore-memory\wal\pg18\logs"
 )
 
@@ -57,10 +59,7 @@ function Copy-WalUnique {
 function Invoke-Retention {
   param([string]$DestinationRoot)
   if ($RetentionDays -le 0 -or -not (Test-Path -LiteralPath $DestinationRoot)) { return }
-  $cutoff = (Get-Date).AddDays(-1 * $RetentionDays)
-  Get-ChildItem -LiteralPath $DestinationRoot -File -ErrorAction SilentlyContinue |
-    Where-Object { $_.LastWriteTime -lt $cutoff -and $_.Name -match '^[0-9A-F]{24}(\.[0-9A-F]{8}\.backup)?$' } |
-    Remove-Item -Force -ErrorAction Stop
+  throw "Age-only WAL deletion is forbidden. Use an accepted recovery-chain-aware retention runner."
 }
 
 try {

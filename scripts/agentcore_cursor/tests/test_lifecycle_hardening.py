@@ -99,7 +99,7 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
 
         self.assertFalse(result["continue"])
 
-    def test_new_cursor_chat_reuses_project_task_session_key(self) -> None:
+    def test_new_cursor_chat_gets_distinct_task_session_key(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             gateway = _Gateway({"ok": True, "continuity_status": "current"})
@@ -114,8 +114,8 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
 
         self.assertTrue(first.ok)
         self.assertTrue(second.ok)
-        self.assertEqual(first.session_key, second.session_key)
-        self.assertEqual(
+        self.assertNotEqual(first.session_key, second.session_key)
+        self.assertNotEqual(
             gateway.session_open_calls[0]["session_key"],
             gateway.session_open_calls[1]["session_key"],
         )

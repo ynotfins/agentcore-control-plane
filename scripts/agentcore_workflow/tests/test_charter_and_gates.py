@@ -26,6 +26,7 @@ from agentcore_workflow.gates import (  # noqa: E402
     run_all_gates,
 )
 from agentcore_workflow.workflow import build_topology, topology_fingerprint  # noqa: E402
+from agentcore_workflow import nodes  # noqa: E402
 
 
 FINGERPRINT_LOCKED = "a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32"
@@ -109,6 +110,22 @@ def test_filesystem_boundary_allows_github():
         "worktree_path": str(REPO),
     })
     assert verdict == "pass"
+
+
+def test_filesystem_boundary_allows_registered_isolated_worktree():
+    verdict, _ = gate_filesystem_boundary({
+        "worktree_path": r"D:\agentcore-worktrees\agentcore-context-engine",
+    })
+    assert verdict == "pass"
+
+
+def test_workflow_fail_never_reports_completed(monkeypatch):
+    monkeypatch.setattr(nodes.db, "update_run_status", lambda *_args: None)
+    monkeypatch.setattr(nodes, "_close_memory_session", lambda *_args: None)
+
+    result = nodes.node_workflow_fail({"run_db_id": "run-id"})
+
+    assert result["completed"] is False
 
 
 def test_expanded_gates_in_registry():

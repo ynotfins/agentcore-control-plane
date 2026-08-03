@@ -183,5 +183,9 @@ class GatewayClient:
                             "error": "gateway_tool_error",
                             "detail": joined,
                         }
-                    return {"ok": True, "text": joined}
+                    return {
+                        "ok": False,
+                        "error": "unstructured_gateway_result",
+                        "detail": joined,
+                    }
         return result

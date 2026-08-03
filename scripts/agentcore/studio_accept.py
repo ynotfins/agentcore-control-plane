@@ -223,6 +223,7 @@ def main() -> int:
             milestone_key="M6",
             thread_uuid=None,
             conninfo=None,
+            worktree_path=r"D:\agentcore-fixture\fixture-project",
         )
         evidence["probe_thread_uuid"] = run.get("thread_uuid")
         evidence["probe_run_db_id"] = str(run.get("run_db_id"))

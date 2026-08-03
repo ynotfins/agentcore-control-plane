@@ -31,7 +31,7 @@ Evidence that has been written and sealed — it can never be deleted automatica
 | Property | Value |
 |----------|-------|
 | **Primary storage** | PostgreSQL 18 `agent_core` — `agentcore.evidence_events`, `agentcore.wf_evidence` (F: NVMe) |
-| **Archive location** | `E:\AgentCore\archive\raw_exports\evidence\` (lossless governed export) |
+| **Archive location** | `E:\AgentCoreArchive\agentcore-memory\raw_exports\evidence\` (lossless governed export) |
 | **Retention duration** | Permanent — never deleted |
 | **Deletion policy** | NO automatic deletion. Manual operator deletion requires explicit approval AND audit log entry. |
 | **Archive trigger** | Scale-driven, governed export to E: (compressed/content-addressed). Searchable PostgreSQL metadata and exact object locations remain. |
@@ -46,7 +46,7 @@ Short-lived artifacts on the F: AgentCore runtime drive (Bifrost outputs, agent 
 | Property | Value |
 |----------|-------|
 | **Primary storage** | `F:\AgentCore\runtime\` (governed hot runtime path) |
-| **Archive location** | `E:\AgentCore\archive\artifacts\` |
+| **Archive location** | `E:\AgentCoreArchive\agentcore-memory\artifacts\` |
 | **Retention duration** | Policy target: 7 days on F: after a governed archive worker is implemented and accepted |
 | **Deletion policy** | No automatic move or deletion is currently authorized. A future worker must checksum, restore-test, and audit before source removal. |
 | **Archive trigger** | Not yet automated; operator-governed until an accepted maintenance workflow exists. |
@@ -59,7 +59,7 @@ Long-term artifacts already on E: cold archive.
 
 | Property | Value |
 |----------|-------|
-| **Primary storage** | `E:\AgentCore\archive\artifacts\` |
+| **Primary storage** | `E:\AgentCoreArchive\agentcore-memory\artifacts\` |
 | **Archive location** | E: (canonical cold archive) |
 | **Retention duration** | Indefinite |
 | **Deletion policy** | No automatic deletion. Manual operator decision only. |
@@ -88,9 +88,9 @@ STATE.md and related projection outputs (point-in-time snapshots of durable stat
 | Property | Value |
 |----------|-------|
 | **Primary storage** | Repository (`D:\github\agentcore-control-plane`) + F: AgentCore runtime cache |
-| **Archive location** | `E:\AgentCore\archive\projections\` |
-| **Retention duration** | Current + 10 previous revisions in-repo or on F: after an accepted projection archive worker exists |
-| **Deletion policy** | Older than current + 10 revisions moved to E:. No deletion from E:. |
+| **Archive location** | `E:\AgentCoreArchive\agentcore-memory\projections\` |
+| **Retention duration** | Policy target: current + 10 previous revisions in-repo or on F: after an accepted projection archive worker exists |
+| **Deletion policy** | No automatic move or deletion is currently authorized. A future worker may move older revisions to E: after verification; nothing is deleted from E:. |
 | **Note** | Git history preserves projection diffs automatically. |
 
 ---
@@ -102,7 +102,7 @@ Runtime logs from Bifrost, PostgreSQL, and AgentCore services.
 | Property | Value |
 |----------|-------|
 | **Primary storage** | `F:\AgentCore\runtime\service-logs\` |
-| **Archive location** | `E:\AgentCore\archive\service-logs\` |
+| **Archive location** | `E:\AgentCoreArchive\agentcore-memory\service-logs\` |
 | **Retention duration** | Policy target: 30 days rolling on F: after an accepted log archive worker exists |
 | **Deletion policy** | No automatic move or deletion is currently authorized; preserve until an audited archive workflow is accepted. |
 | **Archive trigger** | Not yet automated. |
@@ -130,9 +130,9 @@ Temporary git worktrees created by DA worker harness or operator for isolated wo
 | Property | Value |
 |----------|-------|
 | **Primary storage** | PostgreSQL 18 `agent_core` — `agentcore.wf_evidence` (F: NVMe) |
-| **Archive location** | `E:\AgentCore\archive\raw_exports\wf_evidence\` (lossless governed export per project) |
-| **Retention duration** | 180 days in PostgreSQL; then exported to E: and original rows archived (soft-delete or partition swap) |
-| **Deletion policy** | No hard deletion without operator approval. Archived rows can be restored from E: JSON. |
+| **Archive location** | `E:\AgentCoreArchive\agentcore-memory\raw_exports\wf_evidence\` (lossless governed export per project) |
+| **Retention duration** | Policy target: 180 days in PostgreSQL before governed export and archival |
+| **Deletion policy** | No automated archival or hard deletion is currently authorized. A future worker must verify a lossless E: export and restore before any soft-archive or partition swap. |
 | **Note** | Evidence with `trust_class = 'quarantine'` follows `quarantined_data` policy below. |
 
 ---
@@ -143,10 +143,10 @@ PostgreSQL logical and physical backups.
 
 | Property | Value |
 |----------|-------|
-| **Primary storage** | `E:\AgentCore\backups\postgresql\` (logical pg_dump + physical pg_basebackup) |
+| **Primary storage** | `E:\AgentCoreArchive\agentcore-memory\backups\pg18\` (logical pg_dump + physical pg_basebackup) |
 | **DR copy** | G: second-copy target (exact layout is backup-runner owned) |
-| **Retention duration** | 7 daily backups + 4 weekly backups + 12 monthly backups |
-| **Deletion policy** | Automated rotation: oldest daily removed when 8th daily arrives; oldest weekly removed when 5th weekly arrives; oldest monthly removed when 13th monthly arrives. |
+| **Retention duration** | Target: 7 daily backups + 4 weekly backups + 12 monthly backups |
+| **Deletion policy** | No automatic deletion is currently authorized. `ops/Backup-AgentCorePostgres.ps1` creates and verifies backups but does not rotate them. A future rotation runner must prove daily/weekly/monthly classification, both E:/G: copies, and restore-chain safety before deletion. |
 | **Script** | `ops/Backup-AgentCorePostgres.ps1` |
 
 ---
@@ -157,10 +157,10 @@ PostgreSQL Write-Ahead Log segments (PITR enablement).
 
 | Property | Value |
 |----------|-------|
-| **Primary storage** | `E:\AgentCore\backups\wal\` |
+| **Primary storage** | `E:\AgentCoreArchive\agentcore-memory\wal\pg18\` |
 | **DR copy** | G: second-copy target (exact layout is WAL-runner owned) |
-| **Retention duration** | 30 days continuous + first-of-month kept for 12 months |
-| **Deletion policy** | Automated: segments older than 30 days purged unless they are a first-of-month anchor. First-of-month anchors kept for 12 months. |
+| **Retention duration** | Preserve continuously until a recovery-chain-aware retention runner is implemented and accepted. The design target is a validated PITR window backed by retained base backups, not an age-only WAL cutoff. |
+| **Deletion policy** | No automatic deletion is currently authorized. `ops/Archive-AgentCoreWal.ps1` defaults `RetentionDays=0` and rejects age-only deletion because it can break the WAL chain. |
 | **Script** | `ops/Archive-AgentCoreWal.ps1` |
 | **Note** | WAL archiving must be active before any physical backup for PITR to function. |
 
@@ -173,7 +173,7 @@ Data flagged for operator review (trust_class = 'quarantine', `agentcore.quarant
 | Property | Value |
 |----------|-------|
 | **Primary storage** | PostgreSQL 18 `agent_core` — `agentcore.quarantine_events` or `wf_evidence` with `trust_class='quarantine'` |
-| **Archive location** | `E:\AgentCore\archive\quarantine\` (on manual operator export) |
+| **Archive location** | `E:\AgentCoreArchive\agentcore-memory\quarantine\` (on manual operator export) |
 | **Retention duration** | Indefinite — NO automatic expiry |
 | **Deletion policy** | Operator review required before any deletion. Deletion must be logged with justification. |
 | **Note** | Quarantine rows must never be auto-deleted by batch jobs or retention sweeps. |
@@ -205,6 +205,6 @@ This guarantee cannot be waived without a recorded architecture decision (ADR).
 | service_logs | F: | E: policy target | 30d target | Not currently |
 | temp_worktrees | I: | None | Task lifetime | On task complete |
 | workflow_evidence | PG F: | E: after 180d | 180d in PG | Never (soft) |
-| backups | E: | G: | 7d/4w/12m | Rotation only |
-| wal_archive | E: | G: | 30d + anchors | Rotation only |
+| backups | E: | G: | 7d/4w/12m target | Not currently |
+| wal_archive | E: | G: | Recovery-chain governed | Never by age alone |
 | quarantined_data | PG F: | E: manual | Indefinite | Never |

@@ -334,6 +334,32 @@ class ProjectRouterRoutingTests(unittest.TestCase):
         self.assertNotIn("sensitive", json.dumps(result))
         reconnect.assert_not_called()
 
+    def test_transition_failure_reports_actual_state_when_rollback_write_fails(self) -> None:
+        server = load_module("agentcore_project_router_actual_state_test", HERE / "server.py")
+        previous = {"id": "previous", "path": r"D:\github\previous", "name": "previous"}
+        project = {"id": "next", "path": str(REPO_ROOT), "name": "next"}
+        current = project | {"activated_at": "current", "activated_by": server.SERVER_NAME}
+        writes = 0
+
+        def save_state(_state):
+            nonlocal writes
+            writes += 1
+            if writes == 2:
+                raise OSError("rollback failed")
+
+        with (
+            patch.object(server, "scan_registered_projects", return_value=[project]),
+            patch.object(server, "_load_state_unlocked", side_effect=[previous, current]),
+            patch.object(server, "_save_state_unlocked", side_effect=save_state),
+            patch.object(server, "reconnect_router_clients", return_value={"ok": False}),
+        ):
+            result = server.call_tool("project_activate", {"id": "next"})
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["active"], current)
+        self.assertTrue(result["active_state_verified"])
+        self.assertEqual(result["rollback_expected"], previous)
+
     def test_bifrost_admin_base_must_be_loopback(self) -> None:
         server = load_module("agentcore_project_router_loopback_test", HERE / "server.py")
 

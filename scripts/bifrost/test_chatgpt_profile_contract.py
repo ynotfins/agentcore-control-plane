@@ -41,9 +41,10 @@ def test_profile_rejects_router_client_even_when_tool_list_is_empty(tmp_path, mo
     config = {
         "governance": {
             "virtual_keys": [
-                {
-                    "id": "vk-agentcore-chatgpt",
-                    "mcp_configs": [
+                    {
+                        "id": "vk-agentcore-chatgpt",
+                        "name": "chatgpt",
+                        "mcp_configs": [
                         {"mcp_client_name": "agentcore_memory", "tools_to_execute": sorted(name.split("-", 1)[1] for name in verifier.EXPECTED_APPROVED_TOOLS if name.startswith("agentcore_memory-"))},
                         {"mcp_client_name": "agentcore_project_router", "tools_to_execute": []},
                         {"mcp_client_name": "skills_hub", "tools_to_execute": sorted(name.split("-", 1)[1] for name in verifier.EXPECTED_APPROVED_TOOLS if name.startswith("skills_hub-"))},
@@ -62,3 +63,49 @@ def test_profile_rejects_router_client_even_when_tool_list_is_empty(tmp_path, mo
 
     assert not ok
     assert any("agentcore_project_router must be absent" in error for error in errors)
+
+
+def test_proxy_never_forwards_incoming_bearer_as_fallback() -> None:
+    path = Path(__file__).with_name("update_compat_proxy.py")
+    spec = importlib.util.spec_from_file_location("update_compat_proxy_contract", path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    code = module.PROXY_CODE
+    assert "delete clean.authorization;" in code
+    assert "return null;" in code
+    assert 'sendText(res, 503, "ChatGPT gateway identity is unavailable.")' in code
+
+
+def test_profile_rejects_duplicate_and_extra_clients(tmp_path, monkeypatch) -> None:
+    verifier = _load_verifier()
+    memory_tools = sorted(
+        name.split("-", 1)[1]
+        for name in verifier.EXPECTED_APPROVED_TOOLS
+        if name.startswith("agentcore_memory-")
+    )
+    config = {
+        "governance": {
+            "virtual_keys": [
+                {
+                    "id": "vk-agentcore-chatgpt",
+                    "name": "chatgpt",
+                    "mcp_configs": [
+                        {"mcp_client_name": "agentcore_memory", "tools_to_execute": memory_tools},
+                        {"mcp_client_name": "agentcore_memory", "tools_to_execute": memory_tools},
+                        {"mcp_client_name": "unexpected", "tools_to_execute": []},
+                    ],
+                }
+            ]
+        }
+    }
+    runtime_config = tmp_path / "config.json"
+    runtime_config.write_text(json.dumps(config), encoding="utf-8")
+    monkeypatch.setattr(verifier, "RUNTIME_CONFIG", runtime_config)
+
+    ok, _profile, errors = verifier.check_profile_config()
+
+    assert not ok
+    assert any("Duplicate MCP client" in error for error in errors)
+    assert any("extra=['unexpected']" in error for error in errors)

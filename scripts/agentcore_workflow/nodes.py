@@ -76,7 +76,15 @@ def node_start(state: WorkflowState) -> dict:
         use_m6_hardcoded_catalogue,
     )
 
+    worktree_path = str(state.get("worktree_path") or "").strip()
+    if not worktree_path:
+        raise ValueError("assigned_worktree_required")
+    from .deepagents_worker import _validate_worktree
+
+    verified_worktree = str(_validate_worktree(worktree_path))
     updates: dict = {}
+    if verified_worktree != worktree_path:
+        updates["worktree_path"] = verified_worktree
 
     # Register run in agentcore (idempotent)
     if not state.get("run_db_id"):
@@ -175,19 +183,6 @@ def node_start(state: WorkflowState) -> dict:
         micro_key = first_micro_key(macros, micros, macro_key)
         if micro_key:
             updates["current_micro_key"] = micro_key
-
-    # Resolve worktree_path from the project's root_path (DA worker boundary)
-    if not state.get("worktree_path"):
-        try:
-            with db.conn(admin=True) as c:
-                row = c.execute(
-                    "SELECT root_path FROM agentcore.projects WHERE id = %s",
-                    (state["project_id"],),
-                ).fetchone()
-            if row and row["root_path"]:
-                updates["worktree_path"] = str(row["root_path"])
-        except Exception:
-            pass  # worktree_path stays empty; da_enabled will be False
 
     # Open governed AgentCore memory session via agentcore-gateway (shared MCP path).
     # Always append the goal once. Degrade gracefully if memory unavailable.
@@ -889,7 +884,7 @@ def node_workflow_fail(state: WorkflowState) -> dict:
     if run_db_id:
         db.update_run_status(run_db_id, "failed")
     _close_memory_session(state)
-    return {"completed": True, "next_action": "__end__", "memory_session_id": ""}
+    return {"completed": False, "next_action": "__end__", "memory_session_id": ""}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

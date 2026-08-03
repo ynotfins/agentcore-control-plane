@@ -147,13 +147,22 @@ def resolve_workspace(explicit: str | None = None) -> Path:
         # Windows drive-relative paths like 'd:github\...' are not absolute.
         if not path.is_absolute():
             _log("resolve_workspace", f"rejected non-absolute workspace root: {raw!r}")
+            if explicit:
+                raise ProjectBoundaryError("workspace_root_not_absolute")
             continue
         resolved = path.resolve()
-        # Must be a git repo root or match the hook cwd to avoid phantom trees.
-        if (resolved / ".git").is_dir() or resolved == cwd:
-            return resolved
-        _log("resolve_workspace", f"rejected root lacking .git and not matching cwd: {resolved}")
-    return cwd
+        top = _git(resolved, "rev-parse", "--show-toplevel") if resolved.is_dir() else ""
+        if top:
+            git_root = Path(top).resolve()
+            if (git_root / ".git").exists():
+                return git_root
+        _log("resolve_workspace", f"rejected root lacking verified Git identity: {resolved}")
+        if explicit:
+            raise ProjectBoundaryError("workspace_root_not_git")
+    top = _git(cwd, "rev-parse", "--show-toplevel")
+    if top and (Path(top).resolve() / ".git").exists():
+        return Path(top).resolve()
+    raise ProjectBoundaryError("workspace_root_required")
 
 
 def resolve_project_key(root: Path) -> str:
@@ -329,27 +338,10 @@ def run_bootstrap(
         result.project_key = project_key
         result.status_flags["project_automatically_resolved"] = True
 
-        identity_hint = task_slug or "default"
+        identity_hint = task_slug or cursor_conversation_id or uuid.uuid4().hex
         if force_new_task:
             identity_hint = f"{identity_hint}:{uuid.uuid4().hex}"
         session_key = f"{project_key}:{CLIENT_KEY}:{agent_key}:task:{identity_hint}"
-        if not force_new_task and not task_slug:
-            artifact = root / RUNTIME_DIRNAME / BOOTSTRAP_JSON
-            try:
-                existing = json.loads(artifact.read_text(encoding="utf-8"))
-                existing_result = existing.get("result") if isinstance(existing, dict) else None
-                if (
-                    isinstance(existing_result, dict)
-                    and existing_result.get("ok")
-                    and existing_result.get("project_key") == project_key
-                    and existing_result.get("client_key") == CLIENT_KEY
-                    and existing_result.get("agent_key") == agent_key
-                    and Path(str(existing_result.get("project_root"))).resolve() == root
-                    and existing_result.get("session_key")
-                ):
-                    session_key = str(existing_result["session_key"])
-            except (OSError, ValueError, TypeError, json.JSONDecodeError):
-                pass
         mode, choices = ("new" if force_new_task else "resume_or_create"), []
         result.selection_mode = mode
         result.choices = choices

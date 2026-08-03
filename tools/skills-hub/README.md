@@ -26,7 +26,7 @@ Before importing `@skills-hub-ai/mcp`, the launcher sets **process-local** only:
 ```
 HOME=F:\AgentCore\runtime\skills-hub\home
 USERPROFILE=F:\AgentCore\runtime\skills-hub\home
-HOMEDRIVE=H:
+HOMEDRIVE=F:
 HOMEPATH=\AgentRuntime\skills-hub\home
 ```
 

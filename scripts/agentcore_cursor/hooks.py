@@ -3,24 +3,29 @@
 from __future__ import annotations
 
 import hashlib
+import fnmatch
 import glob
 import json
 import os
 import re
 import shlex
-import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+import yaml
 
 
 def _normalize_workspace_path(path_str: str | None) -> Path:
     if not path_str:
-        return Path.cwd().resolve()
+        raise ValueError("workspace root is required")
     match = re.match(r"^([a-zA-Z]):([^\\/].*)$", str(path_str))
     if match:
         path_str = f"{match.group(1)}:\\{match.group(2)}"
-    return Path(path_str).resolve()
+    path = Path(path_str)
+    if not path.is_absolute():
+        raise ValueError("workspace root must be absolute")
+    return path.resolve()
 
 # Ensure scripts/ is importable when launched from repo hooks.
 _SCRIPTS = Path(__file__).resolve().parents[1]
@@ -42,6 +47,8 @@ SERENA_MAINTENANCE_SCRIPT = Path(
 )
 SERENA_MAINTENANCE_APPROVAL_PATTERN = r"AUTH-[0-9]{4}-[0-9]{2}-[0-9]{2}-[A-Z0-9_-]+"
 AUTHORITY_APPROVAL_PATTERN = SERENA_MAINTENANCE_APPROVAL_PATTERN
+AUTHORITY_LOCK_MANIFEST = Path(__file__).resolve().parents[2] / "contracts" / "authority-lock.yaml"
+GLOBAL_STATE_FILE = Path(r"C:\Users\ynotf\.agentcore\GLOBAL_STATE.md")
 AUTHORITY_OPERATOR_LOCKED = {
     "PROJECT_ANCHOR.md",
     "BLUEPRINT.md",
@@ -148,11 +155,9 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
             if len(parts) >= 3:
                 additional = parts[2].strip()
     if not additional and result.bootstrap_path:
-        cached = load_bootstrap_json(Path(workspace) if workspace else None)
-        if isinstance(cached, dict):
-            md_path = Path(result.bootstrap_path).with_name("cursor-bootstrap.md")
-            if md_path.is_file():
-                additional = md_path.read_text(encoding="utf-8", errors="replace")[:120000]
+        md_path = Path(result.bootstrap_path).with_name("cursor-bootstrap.md")
+        if md_path.is_file():
+            additional = md_path.read_text(encoding="utf-8", errors="replace")[:120000]
     # Never mutate a rejected workspace or claim prompt capture at session start.
     try:
         boot_p = Path(result.bootstrap_path) if result.bootstrap_path else None
@@ -188,9 +193,33 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
         or os_environ_get("AGENTCORE_CURSOR_CONVERSATION_ID")
     )
     roots = payload.get("workspace_roots") or []
-    workspace = str(_normalize_workspace_path(str(roots[0]))) if isinstance(roots, list) and roots else None
+    if not isinstance(roots, list) or not roots:
+        return {
+            "continue": False,
+            "user_message": "AgentCore cannot bind this prompt without an explicit workspace root.",
+        }
+    try:
+        root_path = _normalize_workspace_path(str(roots[0]))
+    except (OSError, ValueError) as exc:
+        return {
+            "continue": False,
+            "user_message": f"AgentCore rejected the workspace root: {exc}",
+        }
+    workspace = str(root_path)
 
-    data = load_bootstrap_json(Path(workspace) if workspace else None)
+    # A previous turn must never authorize tools for this prompt. Disarm before
+    # bootstrap, network I/O, parsing, or any other fallible operation.
+    boot_path = root_path / ".agentcore" / "runtime" / "cursor-bootstrap.json"
+    if boot_path.exists() and not _set_prompt_capture_flag(root_path, captured=False):
+        return {
+            "continue": False,
+            "user_message": (
+                "AgentCore could not disarm the prior prompt gate. "
+                "Recover the Cursor session, then resubmit safely."
+            ),
+        }
+
+    data = load_bootstrap_json(root_path)
     result_block = (data or {}).get("result") if isinstance(data, dict) else None
     needs_bootstrap = not isinstance(result_block, dict) or not result_block.get("ok")
     if needs_bootstrap:
@@ -235,9 +264,16 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
             prompt=prompt,
             conversation_id=str(conversation_id) if conversation_id else None,
             project_key=str(project_key),
-            project_root=str(Path(workspace).resolve() if workspace else Path.cwd().resolve()),
+            project_root=str(root_path),
         )
-        accepted = isinstance(append_result, dict) and append_result.get("ok")
+        event_id = (
+            str(append_result.get("event_id") or "").strip()
+            if isinstance(append_result, dict)
+            else ""
+        )
+        accepted = bool(
+            isinstance(append_result, dict) and append_result.get("ok") is True and event_id
+        )
         if not accepted:
             return {
                 "continue": False,
@@ -247,11 +283,17 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
                 ),
             }
         prompt_evidence = {
-            "event_id": append_result.get("event_id"),
+            "event_id": event_id,
             "idempotent_replay": bool(append_result.get("idempotent_replay")),
         }
-        root = Path(workspace) if workspace else Path.cwd()
-        if not _set_prompt_capture_flag(root, captured=True):
+        if not _set_prompt_capture_flag(
+            root_path,
+            captured=True,
+            event_id=event_id,
+            prompt_sha256=hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+            session_id=str(session_id),
+            conversation_id=str(conversation_id or ""),
+        ):
             return {
                 "continue": False,
                 "user_message": (
@@ -264,11 +306,12 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def _is_write_operation(tool_name: str, tool_input: dict[str, Any]) -> bool:
-    name = (tool_name or "").lower()
+    name = re.sub(r"[^a-z0-9]+", "", (tool_name or "").lower())
     write_tools = {
-        "filesystem-write_file", "filesystem-edit_file", "filesystem-move_file",
-        "filesystem-create_directory", "filesystem-delete_file", "write_file",
-        "edit_file", "strreplace", "write", "delete"
+        "filesystemwritefile", "filesystemeditfile", "filesystemmovefile",
+        "filesystemcreatedirectory", "filesystemdeletefile", "writefile",
+        "editfile", "strreplace", "write", "delete", "applypatch",
+        "movefile", "renamefile", "copyfile", "createfile",
     }
     if name in write_tools:
         return True
@@ -277,12 +320,52 @@ def _is_write_operation(tool_name: str, tool_input: dict[str, Any]) -> bool:
     return False
 
 
-def _get_target_path(tool_input: dict[str, Any]) -> Optional[str]:
-    for key in ("path", "target_path", "filepath", "file_path", "destination", "dest"):
-        val = tool_input.get(key)
-        if isinstance(val, str) and val.strip():
-            return val.strip()
-    return None
+def _tool_mutation_targets(tool_name: str, tool_input: dict[str, Any]) -> list[str] | None:
+    """Return the complete affected path set, or None if it is not provable."""
+    name = re.sub(r"[^a-z0-9]+", "", (tool_name or "").lower())
+    if name == "applypatch":
+        patch_text = tool_input.get("patch") or tool_input.get("input")
+        if not isinstance(patch_text, str) or not patch_text.strip():
+            return None
+        paths = [
+            match.group(1).strip()
+            for match in re.finditer(
+                r"(?m)^\*\*\* (?:Add|Update|Delete) File:\s*(.+?)\s*$", patch_text
+            )
+        ]
+        paths.extend(
+            match.group(1).strip()
+            for match in re.finditer(r"(?m)^\*\*\* Move to:\s*(.+?)\s*$", patch_text)
+        )
+        return list(dict.fromkeys(paths)) or None
+
+    keys = (
+        "path", "target_path", "filepath", "file_path", "destination", "dest",
+        "source", "src", "source_path", "old_path", "new_path",
+    )
+    paths: list[str] = []
+    for key in keys:
+        value = tool_input.get(key)
+        if isinstance(value, str) and value.strip():
+            paths.append(value.strip())
+        elif isinstance(value, list):
+            paths.extend(str(item).strip() for item in value if str(item).strip())
+    edits = tool_input.get("edits")
+    if isinstance(edits, list):
+        for edit in edits:
+            if isinstance(edit, dict):
+                for key in keys:
+                    value = edit.get(key)
+                    if isinstance(value, str) and value.strip():
+                        paths.append(value.strip())
+    return list(dict.fromkeys(paths)) or None
+
+
+def _resolve_mutation_target(root_path: Path, raw_target: str) -> Path:
+    target = Path(raw_target)
+    if not target.is_absolute():
+        target = root_path / target
+    return target.resolve()
 
 
 def _authority_relative_path(root_path: Path, target_p: Path) -> str | None:
@@ -295,10 +378,28 @@ def _authority_relative_path(root_path: Path, target_p: Path) -> str | None:
 
 def _authority_path_class(root_path: Path, target_p: Path) -> str | None:
     rel = _authority_relative_path(root_path, target_p)
-    if rel in AUTHORITY_OPERATOR_LOCKED:
-        return "operator_locked"
-    if rel in AUTHORITY_GENERATED_READ_ONLY:
-        return "generated_read_only"
+    if rel is not None:
+        try:
+            manifest = yaml.safe_load(AUTHORITY_LOCK_MANIFEST.read_text(encoding="utf-8"))
+            classes = manifest.get("classes") if isinstance(manifest, dict) else None
+            if not isinstance(classes, dict):
+                raise ValueError("authority classes missing")
+            for class_name in ("operator_locked", "governed_mutable", "generated_read_only"):
+                block = classes.get(class_name)
+                paths = block.get("paths") if isinstance(block, dict) else None
+                if isinstance(paths, list) and any(
+                    fnmatch.fnmatchcase(rel.lower(), str(pattern).replace("\\", "/").lower())
+                    for pattern in paths
+                ):
+                    return class_name
+        except (OSError, TypeError, ValueError, yaml.YAMLError):
+            # Protected baseline paths remain classified even if the manifest
+            # cannot be parsed; the caller will deny unresolved classifications.
+            if rel in AUTHORITY_OPERATOR_LOCKED:
+                return "operator_locked"
+            if rel in AUTHORITY_GENERATED_READ_ONLY:
+                return "generated_read_only"
+            return "authority_manifest_unavailable"
     if str(target_p).lower() in GLOBAL_GENERATED_READ_ONLY:
         return "generated_read_only"
     return None
@@ -324,23 +425,26 @@ def _has_projection_worker_provenance() -> bool:
 def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
     """Stage B preToolUse deterministic gating.
     
-    Fail open for unexpected hook errors, but enforce deterministic deny for
-    unauthorized or incomplete write/edit operations.
+    Mutation paths fail closed. Read-only tool calls remain available when the
+    mutation classifier proves they cannot change state.
     """
+    tool_name = str(payload.get("tool_name") or payload.get("name") or "")
+    raw_tool_input = payload.get("tool_input") or payload.get("parameters") or {}
+    tool_input = raw_tool_input if isinstance(raw_tool_input, dict) else {}
+    is_write = _is_write_operation(tool_name, tool_input)
     try:
         roots = payload.get("workspace_roots") or []
-        workspace = str(_normalize_workspace_path(str(roots[0]))) if isinstance(roots, list) and roots else None
-        root_path = _normalize_workspace_path(workspace)
+        if not isinstance(roots, list) or not roots:
+            if is_write:
+                return {
+                    "permission": "deny",
+                    "user_message": "AgentCore Stage B Deny: explicit workspace root is required",
+                }
+            return {"permission": "allow"}
+        root_path = _normalize_workspace_path(str(roots[0]))
 
         data = load_bootstrap_json(root_path)
         result_block = (data or {}).get("result") if isinstance(data, dict) else None
-        
-        tool_name = str(payload.get("tool_name") or payload.get("name") or "")
-        tool_input = payload.get("tool_input") or payload.get("parameters") or {}
-        if not isinstance(tool_input, dict):
-            tool_input = {}
-
-        is_write = _is_write_operation(tool_name, tool_input)
 
         if is_write:
             # 1. Project activated
@@ -374,10 +478,28 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
                     "permission": "deny",
                     "user_message": "AgentCore Stage B Deny: current operator prompt is not durably captured",
                 }
+            capture = data.get("current_prompt_capture") if isinstance(data, dict) else None
+            current_session_id = str(result_block.get("session_id") or "")
+            current_conversation_id = str(
+                payload.get("conversation_id") or payload.get("composer_id") or ""
+            )
+            if (
+                not isinstance(capture, dict)
+                or not str(capture.get("event_id") or "").strip()
+                or not re.fullmatch(r"[0-9a-f]{64}", str(capture.get("prompt_sha256") or ""))
+                or str(capture.get("session_id") or "") != current_session_id
+                or (
+                    current_conversation_id
+                    and str(capture.get("conversation_id") or "") != current_conversation_id
+                )
+            ):
+                return {
+                    "permission": "deny",
+                    "user_message": "AgentCore Stage B Deny: prompt capture is not bound to this session/turn",
+                }
 
             # 4. Projection missing / stale
-            global_state_file = Path(r"C:\Users\ynotf\.agentcore\GLOBAL_STATE.md")
-            if not global_state_file.is_file():
+            if not GLOBAL_STATE_FILE.is_file():
                 return {
                     "permission": "deny",
                     "user_message": "AgentCore Stage B Deny: GLOBAL_STATE.md projection missing"
@@ -408,19 +530,33 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
                 }
 
             # 8. Target path outside assigned worktree
-            target = _get_target_path(tool_input)
-            if target:
-                target_p = _normalize_workspace_path(target)
-                root_p = _normalize_workspace_path(str(root_path))
+            targets = _tool_mutation_targets(tool_name, tool_input)
+            if not targets:
+                return {
+                    "permission": "deny",
+                    "user_message": "AgentCore Stage B Deny: mutation path set is not completely resolvable",
+                }
+            declared = {
+                str(_resolve_mutation_target(root_path, declared_path)).lower()
+                for declared_path in scope.declared_files
+            }
+            for target in targets:
+                target_p = _resolve_mutation_target(root_path, target)
+                root_p = root_path
                 authority_class = _authority_path_class(root_p, target_p)
-                if authority_class == "operator_locked" and not _has_authority_approval():
+                if authority_class in {"operator_locked", "governed_mutable"} and not _has_authority_approval():
                     return {
                         "permission": "deny",
                         "user_message": (
-                            "AgentCore Stage B Deny: operator_locked authority file requires "
+                            f"AgentCore Stage B Deny: {authority_class} authority file requires "
                             "AGENTCORE_AUTHORITY_CAPABILITY=authority_maintainer and a valid "
                             "AGENTCORE_AUTHORITY_APPROVAL_ID"
                         ),
+                    }
+                if authority_class == "authority_manifest_unavailable":
+                    return {
+                        "permission": "deny",
+                        "user_message": "AgentCore Stage B Deny: authority manifest is unavailable",
                     }
                 if authority_class == "generated_read_only" and not _has_projection_worker_provenance():
                     return {
@@ -449,14 +585,27 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
                         "permission": "deny",
                         "user_message": f"AgentCore Stage B Deny: requested path '{target}' is outside assigned worktree {root_path}"
                     }
+                if is_under_root and str(target_p).lower() not in declared:
+                    return {
+                        "permission": "deny",
+                        "user_message": (
+                            "AgentCore Stage B Deny: target not declared in session-scope.json: "
+                            f"{target_p}"
+                        ),
+                    }
 
         return {"permission": "allow"}
 
     except Exception as exc:  # noqa: BLE001
-        return {
-            "permission": "allow",
-            "agent_message": f"AgentCore preToolUse degraded: {type(exc).__name__}: {str(exc)[:150]}"
-        }
+        if is_write:
+            return {
+                "permission": "deny",
+                "user_message": (
+                    "AgentCore Stage B Deny: mutation authorization failed closed: "
+                    f"{type(exc).__name__}: {str(exc)[:120]}"
+                ),
+            }
+        return {"permission": "allow"}
 
 
 DENY_SHELL_PATTERNS = [
@@ -529,6 +678,7 @@ SHELL_FILE_MUTATOR_ALIASES = {
     "ren": "rename-item",
     "ni": "new-item",
     "sc": "set-content",
+    "tee": "tee-object",
 }
 SHELL_FILE_MUTATORS = {
     "set-content",
@@ -540,10 +690,19 @@ SHELL_FILE_MUTATORS = {
     "move-item",
     "copy-item",
     "rename-item",
+    "tee-object",
 } | set(SHELL_FILE_MUTATOR_ALIASES)
 
 
-def _set_prompt_capture_flag(root_path: Path, *, captured: bool) -> bool:
+def _set_prompt_capture_flag(
+    root_path: Path,
+    *,
+    captured: bool,
+    event_id: str = "",
+    prompt_sha256: str = "",
+    session_id: str = "",
+    conversation_id: str = "",
+) -> bool:
     boot_path = root_path / ".agentcore" / "runtime" / "cursor-bootstrap.json"
     if not boot_path.is_file():
         return False
@@ -552,6 +711,21 @@ def _set_prompt_capture_flag(root_path: Path, *, captured: bool) -> bool:
         blob.setdefault("result", {}).setdefault("status_flags", {})[
             "current_prompt_captured_before_tools"
         ] = captured
+        if captured:
+            if (
+                not event_id.strip()
+                or not re.fullmatch(r"[0-9a-f]{64}", prompt_sha256)
+                or not session_id.strip()
+            ):
+                return False
+            blob["current_prompt_capture"] = {
+                "event_id": event_id.strip(),
+                "prompt_sha256": prompt_sha256,
+                "session_id": session_id.strip(),
+                "conversation_id": conversation_id.strip(),
+            }
+        else:
+            blob.pop("current_prompt_capture", None)
         timestamp_key = "last_prompt_capture_at" if captured else "prompt_capture_reset_at"
         blob[timestamp_key] = __import__("datetime").datetime.now(
             __import__("datetime").timezone.utc
@@ -565,13 +739,26 @@ def _set_prompt_capture_flag(root_path: Path, *, captured: bool) -> bool:
 def _shell_file_mutation_targets(command: str) -> tuple[bool, list[str] | None]:
     """Return every affected path, or None when the complete set is ambiguous."""
     mutator_pattern = r"(?i)\b(?:" + "|".join(SHELL_FILE_MUTATORS) + r")\b"
+    ambiguous_mutation_patterns = (
+        r"(?i)\bsed\s+[^\r\n]*-[a-z]*i[a-z]*\b",
+        r"(?i)\b(?:python|python\.exe|py|py\.exe|node|node\.exe|ruby|perl)\s+-[a-z]*c\b",
+        r"(?i)\b(?:powershell|pwsh)(?:\.exe)?\s+-(?:command|encodedcommand)\b",
+        r"(?i)\bcmd(?:\.exe)?\s+/c\b",
+        r"(?i)\b(?:bash|sh)\s+-c\b",
+    )
+    if any(re.search(pattern, command) for pattern in ambiguous_mutation_patterns):
+        return True, None
+    if re.search(mutator_pattern, command) and re.search(
+        r"\$\(|`|\$[A-Za-z_{]|%[A-Za-z_][A-Za-z0-9_]*%", command
+    ):
+        return True, None
     redirect_matches = list(
         re.finditer(
             r"(?<!>)>{1,2}\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|]+))",
             command,
         )
     )
-    if re.search(r";|&&|\|\|?", command) and (
+    if re.search(r";|&&|\|\|?|<", command) and (
         re.search(mutator_pattern, command) or redirect_matches
     ):
         return True, None
@@ -663,7 +850,9 @@ def _shell_file_mutation_targets(command: str) -> tuple[bool, list[str] | None]:
     if not positional:
         return True, None
     if mutator in {"move-item", "copy-item", "rename-item"}:
-        return (True, positional[:2]) if len(positional) >= 2 else (True, None)
+        return (True, positional) if len(positional) == 2 else (True, None)
+    if mutator in {"remove-item", "clear-content"}:
+        return True, positional
     return True, [positional[0]]
 
 
@@ -712,7 +901,12 @@ def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
                     "user_message": "AgentCore Stage B Shell Deny: file mutation target is not safely resolvable",
                 }
             roots = payload.get("workspace_roots") or []
-            workspace = str(_normalize_workspace_path(str(roots[0]))) if isinstance(roots, list) and roots else str(Path.cwd())
+            if not isinstance(roots, list) or not roots:
+                return {
+                    "permission": "deny",
+                    "user_message": "AgentCore Stage B Shell Deny: explicit workspace root is required",
+                }
+            workspace = str(_normalize_workspace_path(str(roots[0])))
             resolved_targets: list[Path] = []
             for target in targets:
                 expanded = _expand_shell_mutation_paths(target, Path(workspace))
@@ -738,8 +932,8 @@ def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
 
     except Exception as exc:  # noqa: BLE001
         return {
-            "permission": "allow",
-            "agent_message": f"AgentCore beforeShellExecution degraded: {exc}"
+            "permission": "deny",
+            "user_message": f"AgentCore Stage B Shell Deny: authorization failed closed: {exc}"
         }
 
 

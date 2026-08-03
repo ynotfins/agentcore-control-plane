@@ -144,7 +144,7 @@ def _emit(payload: dict[str, Any]) -> None:
 
 
 def _controlled_error(event: str, exc: BaseException) -> dict[str, Any]:
-    """Return a safe response that must not brick Cursor tools."""
+    """Return a safe response; lifecycle and mutation gates fail closed."""
     msg = f"{type(exc).__name__}: {str(exc)[:180]}"
     if event == "sessionStart":
         return {
@@ -154,11 +154,9 @@ def _controlled_error(event: str, exc: BaseException) -> dict[str, Any]:
             }
         }
     if event == "beforeSubmitPrompt":
-        # Fail open: allow operator submission; spool/bootstrap may catch up later.
-        return {"continue": True, "agent_message": f"AgentCore hook degraded: {msg}"}
+        return {"continue": False, "user_message": f"AgentCore hook blocked: {msg}"}
     if event in ("preToolUse", "beforeShellExecution"):
-        # Fail open: never block tools or shell because the dispatcher crashed.
-        return {"permission": "allow", "agent_message": f"AgentCore hook degraded: {msg}"}
+        return {"permission": "deny", "user_message": f"AgentCore hook blocked: {msg}"}
     if event in ("sessionEnd", "stop", "afterFileEdit", "postToolUse"):
         return {}
     return {}
@@ -171,9 +169,9 @@ def _dispatch(event: str, payload: dict[str, Any]) -> dict[str, Any]:
         if event == "sessionStart":
             return {"env": {"AGENTCORE_BOOTSTRAP_OK": "0"}}
         if event == "beforeSubmitPrompt":
-            return {"continue": True}
+            return {"continue": False, "user_message": "AgentCore hook received malformed input"}
         if event in ("preToolUse", "beforeShellExecution"):
-            return {"permission": "allow"}
+            return {"permission": "deny", "user_message": "AgentCore hook received malformed input"}
         return {}
 
     # Some Cursor builds include hook_event_name inside the JSON; prefer argv event.

@@ -50,6 +50,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -60,7 +61,6 @@ from agentcore_workflow import db as wf_db
 from agentcore_workflow.workflow import (
     build_topology,
     topology_fingerprint,
-    build_graph,
     run_workflow,
 )
 
@@ -81,6 +81,15 @@ PG_USER = "postgres"
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _workflow_result_ok(result: dict[str, Any]) -> bool:
+    errors = list(result.get("errors") or [])
+    completed = bool(result.get("completed", False))
+    judge_verdict = str(result.get("judge_verdict") or "")
+    return not errors and (
+        completed or judge_verdict in ("proceed", "needs_operator")
+    )
 
 
 def _pg_conninfo() -> str:
@@ -121,9 +130,11 @@ def _ensure_project(
     project_key: str,
     project_name: str,
     root_path: str,
+    worktree_path: str,
+    remote_url: str = "",
     trust_class: str = "project_verified",
 ) -> str:
-    """Register or update the project in agentcore.projects (admin=True).
+    """Atomically persist repository, primary worktree, and project identity.
 
     Returns the project UUID.
     """
@@ -132,20 +143,95 @@ def _ensure_project(
         raise RuntimeError("psycopg not installed (pip install 'psycopg[binary]')")
     ci = _pg_conninfo()
     with psycopg.connect(ci, row_factory=dict_row) as c:
+        repo_key = f"{project_key}-repo"
+        repo = c.execute(
+            """
+            INSERT INTO agentcore.repositories (repo_key, canonical_path, remote_url)
+            VALUES (%s, %s, NULLIF(%s, ''))
+            ON CONFLICT (canonical_path) DO UPDATE
+                SET remote_url = COALESCE(EXCLUDED.remote_url, agentcore.repositories.remote_url)
+            RETURNING id
+            """,
+            (repo_key, root_path, remote_url),
+        ).fetchone()
+        worktree = c.execute(
+            """
+            INSERT INTO agentcore.worktrees
+                (repository_id, worktree_path, branch_name, head_commit)
+            VALUES (%s, %s, NULLIF(%s, ''), NULLIF(%s, ''))
+            ON CONFLICT (worktree_path) DO UPDATE
+                SET repository_id = EXCLUDED.repository_id,
+                    branch_name = EXCLUDED.branch_name,
+                    head_commit = EXCLUDED.head_commit
+            RETURNING id
+            """,
+            (
+                repo["id"],
+                worktree_path,
+                _git_value(Path(worktree_path), "rev-parse", "--abbrev-ref", "HEAD"),
+                _git_value(Path(worktree_path), "rev-parse", "HEAD"),
+            ),
+        ).fetchone()
         row = c.execute(
             """
             INSERT INTO agentcore.projects
-                (project_key, project_name, root_path, trust_class)
-            VALUES (%s, %s, %s, %s::agentcore.trust_class)
+                (project_key, project_name, repository_id, primary_worktree_id,
+                 root_path, trust_class)
+            VALUES (%s, %s, %s, %s, %s, %s::agentcore.trust_class)
             ON CONFLICT (project_key) DO UPDATE
                 SET project_name = EXCLUDED.project_name,
+                    repository_id = EXCLUDED.repository_id,
+                    primary_worktree_id = EXCLUDED.primary_worktree_id,
                     root_path = EXCLUDED.root_path,
                     trust_class = EXCLUDED.trust_class
             RETURNING id
             """,
-            (project_key, project_name, root_path, trust_class),
+            (project_key, project_name, repo["id"], worktree["id"], root_path, trust_class),
         ).fetchone()
+        c.execute(
+            "UPDATE agentcore.project_worktrees SET is_primary = false "
+            "WHERE project_id = %s AND worktree_id <> %s",
+            (row["id"], worktree["id"]),
+        )
+        c.execute(
+            """
+            INSERT INTO agentcore.project_worktrees (project_id, worktree_id, is_primary)
+            VALUES (%s, %s, true)
+            ON CONFLICT (project_id, worktree_id) DO UPDATE SET is_primary = true
+            """,
+            (row["id"], worktree["id"]),
+        )
         return str(row["id"])
+
+
+def _git_value(cwd: Path, *args: str) -> str:
+    try:
+        proc = subprocess.run(
+            ["git", *args], cwd=str(cwd), capture_output=True, text=True,
+            timeout=30, check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return (proc.stdout or "").strip() if proc.returncode == 0 else ""
+
+
+def _git_common_dir(cwd: Path) -> Path | None:
+    raw = _git_value(cwd, "rev-parse", "--git-common-dir")
+    if not raw:
+        return None
+    path = Path(raw)
+    if not path.is_absolute():
+        path = cwd / path
+    return path.resolve()
+
+
+def _require_same_repository(canonical_repo: Path, worktree: Path) -> None:
+    canonical_common = _git_common_dir(canonical_repo)
+    worktree_common = _git_common_dir(worktree)
+    if canonical_common is None or worktree_common is None:
+        raise ValueError("repository_identity_unavailable")
+    if canonical_common != worktree_common:
+        raise ValueError("selected_worktree_belongs_to_different_repository")
 
 
 def _resolve_project(project_key: str) -> dict | None:
@@ -153,11 +239,91 @@ def _resolve_project(project_key: str) -> dict | None:
     ci = _pg_conninfo()
     with psycopg.connect(ci, row_factory=dict_row) as c:
         row = c.execute(
-            "SELECT id, project_key, project_name, root_path, current_milestone, trust_class "
-            "FROM agentcore.projects WHERE project_key = %s",
+            """
+            SELECT p.id, p.project_key, p.project_name, p.root_path,
+                   p.current_milestone, p.trust_class,
+                   w.worktree_path, r.canonical_path AS canonical_repo_path
+            FROM agentcore.projects p
+            LEFT JOIN agentcore.worktrees w ON w.id = p.primary_worktree_id
+            LEFT JOIN agentcore.repositories r ON r.id = p.repository_id
+            WHERE p.project_key = %s
+            """,
             (project_key,),
         ).fetchone()
         return dict(row) if row else None
+
+
+def _authorized_workflow_input(raw_path: str, worktree_path: Path) -> Path:
+    """Resolve an operator input only after the assigned worktree is authorized."""
+    worktree = worktree_path.resolve()
+    candidate = Path(raw_path)
+    if not candidate.is_absolute():
+        candidate = worktree / candidate
+    resolved = candidate.resolve()
+    try:
+        resolved.relative_to(worktree)
+    except ValueError as exc:
+        raise ValueError("workflow_input_outside_assigned_worktree") from exc
+    if not resolved.is_file():
+        raise ValueError("workflow_input_not_a_file")
+    return resolved
+
+
+def _validated_assigned_worktree(project: dict[str, Any]) -> Path:
+    raw = str(project.get("worktree_path") or "").strip()
+    canonical = str(project.get("canonical_repo_path") or project.get("root_path") or "").strip()
+    if not raw or not canonical:
+        raise ProjectBoundaryError("primary_worktree_not_registered")
+    worktree = Path(raw).resolve()
+    if not worktree.is_dir():
+        raise ProjectBoundaryError("primary_worktree_unavailable")
+    validate_project_identity(
+        {
+            "project_key": str(project.get("project_key") or ""),
+            "project_root": canonical,
+            "canonical_repo_path": canonical,
+            "worktree_path": str(worktree),
+        }
+    )
+    if not _git_value(worktree, "rev-parse", "--show-toplevel"):
+        raise ProjectBoundaryError("primary_worktree_not_git")
+    try:
+        _require_same_repository(Path(canonical).resolve(), worktree)
+    except ValueError as exc:
+        raise ProjectBoundaryError(str(exc)) from exc
+    return worktree
+
+
+def _ensure_git_worktree(canonical_repo: Path, selected_worktree: Path) -> None:
+    """Create or verify the exact Git worktree selected by the operator."""
+    repo = canonical_repo.resolve()
+    worktree = selected_worktree.resolve()
+    if not _git_value(repo, "rev-parse", "--show-toplevel"):
+        raise ValueError("target_not_git_repository")
+    if worktree == repo:
+        return
+    if worktree.exists():
+        top = _git_value(worktree, "rev-parse", "--show-toplevel")
+        if top and Path(top).resolve() == worktree:
+            _require_same_repository(repo, worktree)
+            return
+        try:
+            next(worktree.iterdir())
+        except StopIteration:
+            worktree.rmdir()
+        else:
+            raise ValueError("selected_worktree_exists_but_is_not_git")
+    worktree.parent.mkdir(parents=True, exist_ok=True)
+    proc = subprocess.run(
+        ["git", "worktree", "add", "--detach", str(worktree), "HEAD"],
+        cwd=str(repo), capture_output=True, text=True, timeout=120, check=False,
+    )
+    if proc.returncode != 0:
+        raise ValueError(f"git_worktree_add_failed: {(proc.stderr or proc.stdout).strip()[:240]}")
+    top = _git_value(worktree, "rev-parse", "--show-toplevel")
+    if not top or Path(top).resolve() != worktree:
+        raise ValueError("created_worktree_failed_verification")
+    _require_same_repository(repo, worktree)
 
 
 def _find_run(thread_uuid: str | None, run_db_id: str | None) -> dict | None:
@@ -180,6 +346,64 @@ def _find_run(thread_uuid: str | None, run_db_id: str | None) -> dict | None:
     with psycopg.connect(ci, row_factory=dict_row) as c:
         row = c.execute(sql, params).fetchone()
         return dict(row) if row else None
+
+
+def _claim_authorized_run(
+    snapshot: dict[str, Any],
+    *,
+    expected_project_key: str = "",
+    allowed_statuses: set[str],
+    new_status: str,
+) -> dict[str, Any]:
+    """Revalidate enrollment and atomically claim a workflow mutation."""
+    psycopg, dict_row = _import_psycopg()
+    if psycopg is None:
+        raise RuntimeError("psycopg not installed")
+    with psycopg.connect(_pg_conninfo(), row_factory=dict_row) as c:
+        current = c.execute(
+            """
+            SELECT wr.id, wr.langgraph_thread, wr.project_id, wr.status,
+                   wr.current_milestone, wr.current_macro, wr.current_micro,
+                   wr.ab_enabled, wr.started_at, wr.updated_at, wr.completed_at,
+                   p.project_key, p.root_path, r.canonical_path AS canonical_repo_path,
+                   w.worktree_path
+            FROM agentcore.wf_runs wr
+            JOIN agentcore.projects p ON p.id = wr.project_id
+            LEFT JOIN agentcore.repositories r ON r.id = p.repository_id
+            LEFT JOIN agentcore.worktrees w ON w.id = p.primary_worktree_id
+            WHERE wr.id = %s
+            FOR UPDATE OF wr
+            """,
+            (snapshot["id"],),
+        ).fetchone()
+        if not current:
+            raise RuntimeError("run_not_found_during_authorization")
+        if (
+            str(current["updated_at"]) != str(snapshot.get("updated_at"))
+            or str(current["status"]) != str(snapshot.get("status"))
+        ):
+            raise RuntimeError("stale_run_snapshot")
+        if expected_project_key and current["project_key"] != expected_project_key:
+            raise RuntimeError("run_project_key_mismatch")
+        if str(current["status"]) not in allowed_statuses:
+            raise RuntimeError(f"run_status_not_mutable:{current['status']}")
+        _validated_assigned_worktree(dict(current))
+        claimed = c.execute(
+            """
+            UPDATE agentcore.wf_runs
+            SET status = %s::agentcore.wf_run_status, updated_at = now()
+            WHERE id = %s AND updated_at = %s AND status::text = %s
+            RETURNING updated_at
+            """,
+            (new_status, current["id"], current["updated_at"], str(current["status"])),
+        ).fetchone()
+        if not claimed:
+            raise RuntimeError("concurrent_run_mutation")
+        out = dict(current)
+        out["claimed_from_status"] = str(current["status"])
+        out["status"] = new_status
+        out["updated_at"] = claimed["updated_at"]
+        return out
 
 
 def _checkpoint_summary(thread_uuid: str) -> dict:
@@ -276,29 +500,15 @@ def cmd_init(args: argparse.Namespace) -> int:
         return 2
 
     try:
-        worktree_path.mkdir(parents=True, exist_ok=True)
-    except OSError:
-        print("ERROR: workflow worktree could not be created", file=sys.stderr)
+        _ensure_git_worktree(target, worktree_path)
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        print(f"ERROR: workflow worktree could not be prepared: {exc}", file=sys.stderr)
         return 2
 
-    project_id = _ensure_project(project_key, project_name, target_str)
-
-    # Optional git remote capture (no fetching, no push)
     remote = args.git_remote or ""
-    if remote:
-        psycopg, dict_row = _import_psycopg()
-        ci = _pg_conninfo()
-        with psycopg.connect(ci, row_factory=dict_row) as c:
-            # Insert a repositories row keyed by canonical_path; ignore if already there.
-            repo_key = f"{project_key}-repo"
-            c.execute(
-                """
-                INSERT INTO agentcore.repositories (repo_key, canonical_path, remote_url)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (canonical_path) DO UPDATE SET remote_url = EXCLUDED.remote_url
-                """,
-                (repo_key, target_str, remote),
-            )
+    project_id = _ensure_project(
+        project_key, project_name, target_str, worktree_str, remote_url=remote
+    )
 
     payload = {
         "timestamp": _now_iso(),
@@ -351,32 +561,6 @@ def cmd_start(args: argparse.Namespace) -> int:
         print("ERROR: Either --project-key or --project must be specified.", file=sys.stderr)
         return 2
 
-    goal = args.goal
-    if not goal and args.goal_file:
-        goal_path = Path(args.goal_file).resolve()
-        if goal_path.exists():
-            goal = goal_path.read_text(encoding="utf-8")
-        else:
-            print(f"ERROR: goal file does not exist: {goal_path}", file=sys.stderr)
-            return 2
-
-    if not goal:
-        print("ERROR: Either --goal or --goal-file must be specified.", file=sys.stderr)
-        return 2
-
-    acceptance: list[str] = []
-    acceptance_file = getattr(args, "acceptance_file", None)
-    if acceptance_file:
-        acc_path = Path(acceptance_file).resolve()
-        if not acc_path.exists():
-            print(f"ERROR: acceptance file does not exist: {acc_path}", file=sys.stderr)
-            return 2
-        acceptance = [
-            ln.strip(" -*\t")
-            for ln in acc_path.read_text(encoding="utf-8").splitlines()
-            if ln.strip()
-        ]
-
     autonomous = bool(getattr(args, "autonomous", False))
     context_profile = getattr(args, "context_profile", None) or "standard-context"
     risk_profile = (
@@ -423,6 +607,41 @@ def cmd_start(args: argparse.Namespace) -> int:
         print(f"ERROR: project_key not registered: {project_key}. Run 'init' first.",
               file=sys.stderr)
         return 2
+
+    # Resolve and authorize the persisted primary worktree before reading any
+    # operator-supplied path. The selected worktree then travels unchanged in
+    # LangGraph state to every builder and memory call.
+    try:
+        assigned_worktree = _validated_assigned_worktree(proj)
+    except ProjectBoundaryError as exc:
+        print(f"ERROR: workflow assigned worktree rejected: {exc}", file=sys.stderr)
+        return 2
+
+    goal = args.goal
+    if not goal and args.goal_file:
+        try:
+            goal_path = _authorized_workflow_input(args.goal_file, assigned_worktree)
+            goal = goal_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError, ValueError) as exc:
+            print(f"ERROR: goal file rejected: {exc}", file=sys.stderr)
+            return 2
+    if not goal:
+        print("ERROR: Either --goal or --goal-file must be specified.", file=sys.stderr)
+        return 2
+
+    acceptance: list[str] = []
+    acceptance_file = getattr(args, "acceptance_file", None)
+    if acceptance_file:
+        try:
+            acc_path = _authorized_workflow_input(acceptance_file, assigned_worktree)
+            acceptance = [
+                ln.strip(" -*\t")
+                for ln in acc_path.read_text(encoding="utf-8").splitlines()
+                if ln.strip()
+            ]
+        except (OSError, UnicodeError, ValueError) as exc:
+            print(f"ERROR: acceptance file rejected: {exc}", file=sys.stderr)
+            return 2
 
     # Goal is recorded as a milestone scope-baseline (requirement aspect) so the
     # scope-drift gate has a baseline against the operator's stated intent.
@@ -481,25 +700,30 @@ def cmd_start(args: argparse.Namespace) -> int:
             context_profile=context_profile,
             risk_profile=risk_profile,
             budget_profile=budget_profile,
+            worktree_path=str(assigned_worktree),
         )
     except Exception as exc:
         wf_db.update_run_status(run_db_id, "failed")
         print(f"ERROR: workflow run failed: {exc}", file=sys.stderr)
         return 2
 
+    errors = list(result.get("errors", []))
+    completed = bool(result.get("completed", False))
+    judge_verdict = str(result.get("judge_verdict", ""))
+    run_ok = _workflow_result_ok(result)
     payload = {
         "timestamp": _now_iso(),
-        "ok": True,
+        "ok": run_ok,
         "project_id": project_id,
         "project_key": project_key,
         "milestone": milestone,
         "thread_uuid": thread_uuid,
         "run_db_id": run_db_id,
-        "completed": result.get("completed", False),
-        "judge_verdict": result.get("judge_verdict", ""),
+        "completed": completed,
+        "judge_verdict": judge_verdict,
         "score": result.get("score", 0.0),
         "evidence_count": result.get("evidence_count", 0),
-        "errors": result.get("errors", []),
+        "errors": errors,
         "checkpoint": _checkpoint_summary(thread_uuid),
     }
     _print_json_or_text(
@@ -518,9 +742,7 @@ def cmd_start(args: argparse.Namespace) -> int:
             f"  checkpoints:    {p['checkpoint'].get('checkpoint_count', 'n/a')}\n"
         ),
     )
-    return 0 if result.get("completed") or result.get("judge_verdict") in (
-        "proceed", "needs_operator"
-    ) else 1
+    return 0 if run_ok else 1
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -660,17 +882,27 @@ def _resolve_pause_and_resume(args: argparse.Namespace, resolution: str, decisio
         return 2
 
     notes = args.notes or ""
-    wf_db.resolve_pause(pause["id"], run["project_id"], resolution, decision_word, notes)
-    wf_db.update_run_status(run["id"], "running")
+    try:
+        run = _claim_authorized_run(
+            run,
+            expected_project_key=getattr(args, "project_key", None) or "",
+            allowed_statuses={"paused_human", "paused_gate", "running"},
+            new_status="running",
+        )
+        wf_db.resolve_pause(pause["id"], run["project_id"], resolution, decision_word, notes)
+    except Exception as exc:
+        print(f"ERROR: run mutation authorization failed: {exc}", file=sys.stderr)
+        return 2
 
     try:
         result = run_workflow(
             project_id=run["project_id"],
-            project_key=args.project_key or "",
+            project_key=str(run["project_key"]),
             milestone_key=run["current_milestone"] or "M6",
             thread_uuid=run["langgraph_thread"],
             resume_from={"decision": decision_word, "resolution": resolution, "notes": notes},
             conninfo=_pg_conninfo(),
+            worktree_path=str(run["worktree_path"]),
         )
         resumed_ok = True
     except Exception as exc:
@@ -754,13 +986,24 @@ def cmd_resume(args: argparse.Namespace) -> int:
         _print_json_or_text(payload, args.json)
         return 1
     try:
+        run = _claim_authorized_run(
+            run,
+            expected_project_key=args.project_key or "",
+            allowed_statuses={"running", "paused_gate"},
+            new_status="running",
+        )
+    except Exception as exc:
+        print(f"ERROR: run mutation authorization failed: {exc}", file=sys.stderr)
+        return 2
+    try:
         result = run_workflow(
             project_id=run["project_id"],
-            project_key=args.project_key or "",
+            project_key=str(run["project_key"]),
             milestone_key=run["current_milestone"] or "M6",
             thread_uuid=run["langgraph_thread"],
             resume_from=None,
             conninfo=_pg_conninfo(),
+            worktree_path=str(run["worktree_path"]),
         )
     except Exception as exc:
         wf_db.update_run_status(run["id"], "failed")
@@ -807,19 +1050,28 @@ def cmd_cancel(args: argparse.Namespace) -> int:
                    "note": "already aborted", "run_db_id": run["id"]}
         _print_json_or_text(payload, args.json)
         return 0
+    try:
+        run = _claim_authorized_run(
+            run,
+            expected_project_key=getattr(args, "project_key", None) or "",
+            allowed_statuses={"running", "paused_human", "paused_gate", "failed"},
+            new_status="aborted",
+        )
+    except Exception as exc:
+        print(f"ERROR: run mutation authorization failed: {exc}", file=sys.stderr)
+        return 2
     # Resolve any pending pause with operator-overridden decision so the graph
     # can unwind cleanly without losing evidence.
     pause = _pending_pause(run["id"])
     if pause:
         wf_db.resolve_pause(pause["id"], run["project_id"], "overridden",
                             "cancelled_by_operator", args.reason or "")
-    wf_db.update_run_status(run["id"], "aborted")
     payload = {
         "timestamp": _now_iso(),
         "ok": True,
         "run_db_id": run["id"],
         "thread_uuid": run["langgraph_thread"],
-        "previous_status": run["status"],
+        "previous_status": str(run.get("claimed_from_status") or "authorized_active"),
         "new_status": "aborted",
         "evidence_preserved": True,
         "reason": args.reason or "",

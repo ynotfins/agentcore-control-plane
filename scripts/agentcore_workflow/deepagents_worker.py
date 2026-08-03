@@ -278,20 +278,26 @@ def _validate_worktree(worktree_path: str) -> Path:
     root = Path(worktree_path).resolve()
     if not root.exists() or not root.is_dir():
         raise ValueError(f"Worktree path does not exist or is not a directory: {root}")
-    # Block filesystem roots and paths outside D: project tier
-    forbidden_prefixes = (
-        Path("C:\\"),
-        Path("E:\\"),
-        Path("F:\\"),
-        Path("G:\\"),
-        Path("H:\\"),
+    allowed_roots = (
+        Path(r"D:\github"),
+        Path(r"D:\agentcore-worktrees"),
+        Path(r"D:\agentcore-fixture"),
+        Path(r"D:\test"),
+        Path(r"I:\AgentCoreScratch"),
     )
-    for fp in forbidden_prefixes:
-        if str(root).startswith(str(fp)):
-            raise PermissionError(
-                f"Builder worker may not access {root}. "
-                f"Allowed: D:\\github\\ and D:\\test\\ only."
-            )
+    allowed = False
+    for allowed_root in allowed_roots:
+        try:
+            root.relative_to(allowed_root.resolve())
+            allowed = True
+            break
+        except ValueError:
+            continue
+    if not allowed:
+        raise PermissionError(
+            f"Builder worker may not access {root}. "
+            "The path is outside the governed worktree roots."
+        )
     return root
 
 

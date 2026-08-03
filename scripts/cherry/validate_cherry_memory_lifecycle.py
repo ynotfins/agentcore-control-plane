@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 import urllib.error
 import urllib.request
 import uuid
@@ -179,17 +178,21 @@ def main() -> int:
     mem = {n for n in tools if n.startswith("agentcore_memory-")}
     swarm = [n for n in tools if "swarm" in n.lower()]
     sqlish = [n for n in tools if any(x in n.lower() for x in ("postgres", "psql", "sql_admin", "raw_sql"))]
+    router = [n for n in tools if n.startswith("agentcore_project_router-")]
     results["tool_total"] = len(tools)
     results["memory_tools"] = sorted(mem)
     results["prefixes"] = sorted({n.split("-", 1)[0] for n in tools})
     results["swarm_tools"] = swarm
     results["sql_admin_tools"] = sqlish
+    results["router_tools"] = router
     if mem != MEMORY_TOOLS:
         raise SystemExit(f"memory tool set mismatch: {sorted(mem)}")
     if swarm:
         raise SystemExit(f"swarm tools visible: {swarm}")
     if sqlish:
         raise SystemExit(f"sql admin tools visible: {sqlish}")
+    if router:
+        raise SystemExit(f"project router tools visible in Cherry ordinary profile: {router}")
     results["steps"]["tools_surface"] = "PASS"
 
     session_key = f"{TEST_LABEL}-{uuid.uuid4().hex[:8]}"
@@ -217,6 +220,32 @@ def main() -> int:
     results["session_id"] = session_id
     results["session_key"] = session_key
     results["steps"]["session_open"] = "PASS"
+
+    # Reuse of this session key under any different host identity must fail.
+    for field, wrong_value in (
+        ("client_key", "wrong-cherry-client"),
+        ("agent_key", "wrong-cherry-agent"),
+    ):
+        wrong_args = {
+            "project_key": PROJECT_A,
+            "project_name": PROJECT_A,
+            "project_root": PROJECT_A_ROOT,
+            "canonical_repo_path": PROJECT_A_ROOT,
+            "worktree_path": PROJECT_A_ROOT,
+            "repo_key": PROJECT_A,
+            "branch_name": "main",
+            "client_key": CLIENT_KEY,
+            "agent_key": AGENT_KEY,
+            "session_key": session_key,
+            "context_profile": "standard-context",
+        }
+        wrong_args[field] = wrong_value
+        try:
+            c.tool("agentcore_memory-session_open", wrong_args)
+        except RuntimeError:
+            continue
+        raise SystemExit(f"session identity mismatch was accepted for {field}")
+    results["steps"]["session_identity_binding"] = "PASS"
 
     startup = c.tool(
         "agentcore_memory-startup_context",
@@ -247,6 +276,8 @@ def main() -> int:
         },
     )
     event_id = first.get("event_id") or first.get("id") or (first.get("event") or {}).get("id")
+    if not event_id:
+        raise SystemExit(f"append_event missing event_id: {json.dumps(first)[:500]}")
     results["event_id"] = event_id
     results["steps"]["append_event"] = "PASS"
 
@@ -284,17 +315,14 @@ def main() -> int:
     results["steps"]["retrieve_context"] = {"ok": True, "has_cursor_field": "continuation_cursor" in (retrieved or {}) or "next_cursor" in (retrieved or {})}
     results["continuation_cursor_present"] = bool(cursor) or isinstance(retrieved, dict)
 
-    if event_id:
-        expanded = c.tool(
-            "agentcore_memory-expand_source",
-            {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "event_id": event_id, "max_bytes": 4096},
-        )
-        blob = json.dumps(expanded)
-        if TEST_LABEL not in blob and "cherry_studio_alignment_validation" not in blob:
-            raise SystemExit(f"expand_source missing original payload markers: {blob[:500]}")
-        results["steps"]["expand_source"] = "PASS"
-    else:
-        results["steps"]["expand_source"] = "SKIP_NO_EVENT_ID"
+    expanded = c.tool(
+        "agentcore_memory-expand_source",
+        {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "event_id": event_id, "max_bytes": 4096},
+    )
+    blob = json.dumps(expanded)
+    if TEST_LABEL not in blob and "cherry_studio_alignment_validation" not in blob:
+        raise SystemExit(f"expand_source missing original payload markers: {blob[:500]}")
+    results["steps"]["expand_source"] = "PASS"
 
     handoff = c.tool(
         "agentcore_memory-build_handoff",
@@ -336,17 +364,18 @@ def main() -> int:
         },
     )
     resumed_id = resumed.get("session_id") or resumed.get("id") or (resumed.get("session") or {}).get("id")
+    if not resumed_id or str(resumed_id) != str(session_id):
+        raise SystemExit(f"session resume identity mismatch: first={session_id} resumed={resumed_id}")
     results["resumed_session_id"] = resumed_id
     results["steps"]["session_resume"] = "PASS"
 
-    if event_id:
-        expanded2 = c.tool(
-            "agentcore_memory-expand_source",
-            {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "event_id": event_id, "max_bytes": 4096},
-        )
-        if TEST_LABEL not in json.dumps(expanded2) and "cherry_studio_alignment_validation" not in json.dumps(expanded2):
-            raise SystemExit("event not accessible after resume")
-        results["steps"]["post_resume_expand"] = "PASS"
+    expanded2 = c.tool(
+        "agentcore_memory-expand_source",
+        {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "event_id": event_id, "max_bytes": 4096},
+    )
+    if TEST_LABEL not in json.dumps(expanded2) and "cherry_studio_alignment_validation" not in json.dumps(expanded2):
+        raise SystemExit("event not accessible after resume")
+    results["steps"]["post_resume_expand"] = "PASS"
 
     # Project isolation: open enrolled B directly; no machine-global router mutation.
     opened_b = c.tool(
@@ -365,6 +394,8 @@ def main() -> int:
             "context_profile": "standard-context",
         },
     )
+    if not opened_b.get("session_id"):
+        raise SystemExit("project B session_open missing session_id")
     results["steps"]["session_open_b"] = {"ok": True, "session_id": opened_b.get("session_id")}
     b_ret = c.tool(
         "agentcore_memory-retrieve_context",
@@ -374,14 +405,12 @@ def main() -> int:
     # Isolation: B packet must not claim A's project_key
     if isinstance(b_ret, dict) and b_ret.get("project_key") not in (None, PROJECT_B):
         raise SystemExit(f"isolation failed: B retrieve project_key={b_ret.get('project_key')}")
-    if event_id and event_id in b_blob and PROJECT_A in b_blob:
-        # soft: presence of A name in unrelated text is ok; event id should not appear
-        if b_ret.get("project_key") == PROJECT_B:
-            results["steps"]["isolation_b_retrieve"] = "PASS_EVENT_ID_ABSENT_OR_SOFT"
-        else:
-            raise SystemExit("isolation failed: A event leaked into B retrieve")
-    else:
-        results["steps"]["isolation_b_retrieve"] = {"ok": True, "project_key": b_ret.get("project_key") if isinstance(b_ret, dict) else None}
+    if event_id in b_blob:
+        raise SystemExit("isolation failed: A event id leaked into B retrieve")
+    results["steps"]["isolation_b_retrieve"] = {
+        "ok": True,
+        "project_key": b_ret.get("project_key") if isinstance(b_ret, dict) else None,
+    }
 
     a_ret = c.tool(
         "agentcore_memory-retrieve_context",
@@ -389,16 +418,13 @@ def main() -> int:
     )
     if isinstance(a_ret, dict) and a_ret.get("project_key") not in (None, PROJECT_A):
         raise SystemExit("isolation failed returning to A")
-    if event_id:
-        expanded_back = c.tool(
-            "agentcore_memory-expand_source",
-            {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "event_id": event_id, "max_bytes": 4096},
-        )
-        if TEST_LABEL not in json.dumps(expanded_back) and "cherry_studio_alignment_validation" not in json.dumps(expanded_back):
-            raise SystemExit("A event lost after project switch")
-        results["steps"]["isolation_back_a"] = "PASS"
-    else:
-        results["steps"]["isolation_back_a"] = "PASS_SOFT"
+    expanded_back = c.tool(
+        "agentcore_memory-expand_source",
+        {"project_key": PROJECT_A, "project_root": PROJECT_A_ROOT, "event_id": event_id, "max_bytes": 4096},
+    )
+    if TEST_LABEL not in json.dumps(expanded_back) and "cherry_studio_alignment_validation" not in json.dumps(expanded_back):
+        raise SystemExit("A event lost after project switch")
+    results["steps"]["isolation_back_a"] = "PASS"
 
     results["capability_profile"] = "builder"
     results["status"] = "PASS"

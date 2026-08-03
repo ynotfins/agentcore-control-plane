@@ -165,6 +165,12 @@ def _require_session_identity(
 ) -> None:
     if not existing:
         return
+    required_existing = (
+        "project_key", "client_key", "agent_key", "device_id", "user_key",
+        "canonical_path", "worktree_path", "source_identity_id",
+    )
+    if any(existing.get(field) is None for field in required_existing):
+        raise ProjectBoundaryError("session_identity_incomplete")
     requested = {
         "project_key": project_key,
         "client_key": client_key,
@@ -798,7 +804,7 @@ def session_open(
                 JOIN agentcore.repositories r ON r.id = si.repository_id
                 JOIN agentcore.worktrees w ON w.id = si.worktree_id
                 WHERE si.session_id = s.id
-                ORDER BY si.created_at, si.id
+                ORDER BY si.created_at DESC, si.id DESC
                 LIMIT 1
             ) bound ON true
             WHERE s.session_key = %s
@@ -938,7 +944,7 @@ def session_open(
               SELECT si.id
               FROM agentcore.source_identities si, session
               WHERE si.session_id = session.id
-              ORDER BY si.created_at, si.id
+              ORDER BY si.created_at DESC, si.id DESC
               LIMIT 1
             ),
             source_insert AS (
@@ -1698,7 +1704,9 @@ def retrieve_context(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def get_project_capability_profile(project_id: str) -> dict[str, Any]:
+def get_project_capability_profile(
+    project_id: str, *, expire_leases: bool = True
+) -> dict[str, Any]:
     """Return the active capability profile for a project from PostgreSQL (M6 wiring).
 
     The profile reflects which tools are active, JIT-leased, or operator-only for
@@ -1708,12 +1716,12 @@ def get_project_capability_profile(project_id: str) -> dict[str, Any]:
     """
     try:
         with db() as conn, conn.cursor() as cur:
-            # Expire any timed-out JIT leases first
-            cur.execute(
-                "SELECT agentcore.expire_wf_jit_leases(%s::uuid) AS expired",
-                (project_id,),
-            )
-            conn.commit()
+            if expire_leases:
+                cur.execute(
+                    "SELECT agentcore.expire_wf_jit_leases(%s::uuid) AS expired",
+                    (project_id,),
+                )
+                conn.commit()
             cur.execute(
                 """
                 SELECT tool_name, tool_state::text, requires_operator_approval
@@ -1747,7 +1755,9 @@ def get_project_capability_profile(project_id: str) -> dict[str, Any]:
     }
 
 
-def startup_context(args: dict[str, Any]) -> dict[str, Any]:
+def startup_context(
+    args: dict[str, Any], *, expire_leases: bool = True
+) -> dict[str, Any]:
     context = retrieve_context(args)
     # M6: include capability profile so the gateway path reflects effective tool availability
     capability_profile: dict[str, Any] = {
@@ -1757,7 +1767,9 @@ def startup_context(args: dict[str, Any]) -> dict[str, Any]:
     try:
         with db() as conn:
             project = get_project(conn, args["project_key"])
-            capability_profile = get_project_capability_profile(str(project["id"]))
+            capability_profile = get_project_capability_profile(
+                str(project["id"]), expire_leases=expire_leases
+            )
     except Exception:
         pass
     return {
@@ -2173,7 +2185,12 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     if name == "retrieve_context":
         return retrieve_context(arguments)
     if name == "startup_context":
-        return startup_context(arguments)
+        return startup_context(
+            arguments,
+            expire_leases=not bool(
+                verified_identity is not None and verified_identity.legacy_compat
+            ),
+        )
     if name == "expand_source":
         return expand_source(arguments)
     if name == "propose_fact":

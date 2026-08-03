@@ -93,6 +93,16 @@ def test_git_files_changed_detects_new_file(git_worktree):
     assert "new_module.py" in changed
 
 
+def test_worktree_validator_rejects_unapproved_d_drive_path(tmp_path):
+    root = Path(r"D:\unapproved-agentcore-worker-test")
+    root.mkdir(parents=True, exist_ok=True)
+    try:
+        with pytest.raises(PermissionError, match="outside the governed worktree roots"):
+            _validate_worktree(str(root))
+    finally:
+        root.rmdir()
+
+
 def test_deterministic_builder_populates_files_changed(git_worktree):
     prev = os.environ.get("AGENTCORE_WORKER_MODE")
     os.environ["AGENTCORE_WORKER_MODE"] = "deterministic"

@@ -216,7 +216,8 @@ def test_malformed_input() -> None:
         cwd=str(REPO),
     )
     doc = _parse_stdout(proc.stdout)
-    assert doc.get("continue") is True, "beforeSubmitPrompt with braces must fail open"
+    assert doc.get("continue") is False, "beforeSubmitPrompt without workspace must fail closed"
+    assert "workspace root" in str(doc.get("user_message") or "")
 
 
 def test_missing_gateway_degraded() -> None:

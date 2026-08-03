@@ -213,6 +213,7 @@ def _run_graph_once(project_id: str, project_key: str, milestone: str,
         thread_uuid=thread_uuid,
         resume_from=resume_from,
         conninfo=_conninfo(),
+        worktree_path=str(_FIXTURE_WT),
     )
     return thread_uuid, result
 

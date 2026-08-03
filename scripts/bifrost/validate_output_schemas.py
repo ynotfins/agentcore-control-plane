@@ -13,9 +13,10 @@ Gates (all deterministic and offline unless --probe-gateway is passed):
                    under the contract byte ceiling, and actually validates the envelopes
                    the normalizer produces (schema/handler agreement, MCP 2025-06-18).
   4. wiring        the registry output_schema_adapter block points at files that exist.
-  5. rendered      renderers/bifrost/config.sanitized.json stdio launches match what the
-                   renderer produces today (detects a stale generated artifact after a
-                   contract or registry change).  Skip with --skip-rendered.
+  5. rendered      renderers/bifrost/config.sanitized.json exactly matches the complete
+                   non-secret configuration the renderer produces today (detects stale
+                   clients, policies, providers, governance, or launches).  Skip with
+                   --skip-rendered.
   6. gateway       optional live proof: MCP initialize + tools/list against the running
                    gateway, counting tools whose definition has no outputSchema.
                    Requires BIFROST_MCP_VIRTUAL_KEY in the environment.
@@ -280,34 +281,27 @@ def gate_rendered(registry: dict[str, Any], errors: list[str], warnings: list[st
     if not target.exists():
         warnings.append("rendered: no renderers/bifrost artifact present; nothing to compare")
         return
-    label = target.relative_to(REPO_ROOT).as_posix()
+    try:
+        label = target.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        label = str(target)
     import render_bifrost_config as rbc
 
     wiring = rbc.OutputSchemaWiring(registry)
-    expected = {
-        client["name"]: client
-        for client in rbc.build_mcp_client_configs(registry, None, wiring)
-        if client.get("connection_type") == "stdio"
-    }
-    rendered = {
-        client.get("name"): client
-        for client in (load(target).get("mcp") or {}).get("client_configs", [])
-        if isinstance(client, dict) and client.get("connection_type") == "stdio"
-    }
-    for name, want in expected.items():
-        have = rendered.get(name)
-        if have is None:
-            errors.append(f"rendered: stdio client {name!r} missing from {label}")
-            continue
-        want_stdio = want.get("stdio_config") or {}
-        have_stdio = have.get("stdio_config") or {}
-        if want_stdio.get("command") != have_stdio.get("command") or list(
-            want_stdio.get("args") or []
-        ) != list(have_stdio.get("args") or []):
-            errors.append(
-                f"rendered: stdio launch for {name!r} in {label} does not match the renderer "
-                "— re-run `python scripts/bifrost/render_bifrost_config.py`, then restart Bifrost"
-            )
+    gateway_client = load(GATEWAY_CLIENT)
+    expected_runtime = rbc.build_bifrost_config(registry, gateway_client, None, wiring)
+    expected = rbc.build_sanitized_sidecar(
+        registry,
+        expected_runtime,
+        oauth_state_present=False,
+        output_schema=wiring,
+    )
+    rendered = load(target)
+    if rendered != expected:
+        errors.append(
+            f"rendered: complete non-secret config in {label} does not match the renderer "
+            "— re-run `python scripts/bifrost/render_bifrost_config.py`, then restart Bifrost"
+        )
 
 
 # --------------------------------------------------------------------- live probe
