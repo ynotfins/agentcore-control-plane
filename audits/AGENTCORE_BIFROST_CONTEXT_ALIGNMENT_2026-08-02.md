@@ -2,7 +2,7 @@
 
 **Approval:** `AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`
 **Capability:** `authority_maintainer`
-**Status:** REMEDIATED — FINAL INDEPENDENT REVIEW PENDING
+**Status:** REMEDIATED — FIFTH INDEPENDENT REVIEW AND v0.9.0 LIVE PROMOTION PENDING
 **Scope:** Authority/current-state reconciliation, Arabold official-doc indexing, Context Fabric committed-state baseline, and project-owned Cursor subagents
 **Explicit exclusions:** No OmniRoute, Hindsight, Graphify, CrewAI, new MCP-upstream, inference-route, Swarm-runtime, database, credential, or live IDE configuration change. Live gateway changes are limited to the governed project-isolation remediation and profile correction described below.
 
@@ -134,6 +134,25 @@ this task; v0.8.0 makes it unreachable through every ordinary project/session/
 reference tool path. Destructive cleanup remains a separately approved database
 maintenance action and is not required to prove zero persisted Swarm context.
 
+A fourth fresh review of `2383da3effcb774e24944f96872aab1034f7b3b7`
+(`bc-b71d5c40-7f43-4851-a668-2ca8e278fdb5`) correctly returned **FAIL**. It
+proved that key-only calls could assert an enrolled identity without its exact
+path, a reused `session_key` could reopen a foreign identity, `contradicts_event_id`
+was not project-bound, router activation rollback was not one cross-process
+transaction, Stage B emitted unproven PASS claims, ordinary Cursor hooks retained
+machine-global mutations, and current authority/runtime paths still conflicted.
+
+Remediation commit `205e2dc0beb70246899bbd242719fd3b393d65f7`
+closes those findings: `agentcore-memory` v0.9.0 requires exact `project_key` plus
+`project_root` on every scoped call; session-key reuse is advisory-lock serialized
+and identity-bound; all opaque references including `contradicts_event_id` must
+match the caller project; router transition/reconnect/rollback holds one process
+and OS-file lock; the child validates id/path identity; Stage B records only
+mechanically observed facts and gates writes on both startup recovery and durable
+prompt capture; ordinary hooks no longer start Bifrost, read the PG superuser
+secret, or write a global active-task pointer. The portable Context Engine carries
+the same identity envelope at `82450b8c3b3884d12e2e1eece22b5771484e8686`.
+
 ### Corrected live rollout
 
 - The live Bifrost config and online SQLite database were backed up under `E:\AgentCore-Backups\agentcore-control-plane\project-isolation-20260803-003135`; `PRAGMA integrity_check=ok`.
@@ -154,8 +173,10 @@ maintenance action and is not required to prove zero persisted Swarm context.
 
 | Check | Result |
 | --- | --- |
-| Project-router unit tests | PASS — 14/14, including default-deny enrollment, concurrent state writes, cross-platform paths, and small open-pipe proxy delivery |
-| Project-boundary tests | PASS — Cursor 2/2; memory 30/30; renamed/unregistered paths and mismatched identities refused |
+| Project-router unit tests | PASS — 16/16, including contract-backed project_list, id/path matching, atomic writes, and small open-pipe proxy delivery |
+| Memory suite | PASS — 55/55, with active default-deny enrollment, session-key identity, opaque-reference isolation, resume, and power-loss coverage |
+| Cursor boundary tests | PASS — 7/7; rejected sessionStart cannot mutate an existing rejected-workspace artifact; ordinary hooks contain no gateway auto-start, PG superuser read, or global task pointer |
+| Portable Context Engine | PASS — 110/110 at `82450b8c3b3884d12e2e1eece22b5771484e8686` |
 | Python compile | PASS |
 | Authority lock | PASS |
 | Cursor prompt format | PASS |
@@ -185,9 +206,9 @@ Repository-wide reconciliation scanning also identified 12 unchanged secret-like
 
 ### Pending closeout evidence
 
-- Independent fresh-context Cursor review of the final remediation commit (the `01434d8` review correctly failed and its findings are repaired locally).
-- Final accepted-HEAD repo-local Context Fabric capture/drift/query/health evidence.
-- Final scoped push and after-hash table.
+- Governed promotion and signed live proofs for `agentcore-memory` v0.9.0.
+- Fifth independent fresh-context review of the final remediation/authority commit.
+- Final accepted-HEAD repo-local Context Fabric capture/query/health evidence and after-hash table.
 
 ### Protected-file after hashes (pre-commit content)
 
