@@ -50,17 +50,19 @@ def main():
 
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
     from agentcore_cursor.hooks import HANDLERS, handle_before_shell, handle_post_tool, handle_pre_tool, handle_stop
+    from agentcore_cursor import bootstrap as cursor_bootstrap
     from agentcore_cursor.session_scope import SessionScope, init_session_scope
 
     # Test 01: 100 hook-protocol iterations
     proc = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "scripts" / "agentcore_cursor" / "test_hook_protocol.py"), "--iterations", "10"],
+        [sys.executable, str(REPO_ROOT / "scripts" / "agentcore_cursor" / "test_hook_protocol.py"), "--iterations", "100"],
         capture_output=True,
         text=True,
-        timeout=180,
+        timeout=420,
         cwd=str(REPO_ROOT)
     )
-    log_test(1, "100_hook_protocol_iterations", proc.returncode == 0, f"rc={proc.returncode}")
+    protocol_pass = proc.returncode == 0
+    log_test(1, "100_hook_protocol_iterations", protocol_pass, f"rc={proc.returncode}")
 
     # Prepare disposable test fixture
     safe_rmtree(FIXTURE_DIR)
@@ -175,10 +177,10 @@ def main():
         log_test(8, "hook_crash_fails_open", res_crash.get("permission") == "allow", f"res={res_crash}")
 
         # Test 09: No hook lockout
-        log_test(9, "no_hook_lockout", True, "verified in 100 protocol iterations")
+        log_test(9, "no_hook_lockout", protocol_pass, "verified in 100 protocol iterations")
 
-        # Test 10: Prompt captured exactly once
-        log_test(10, "prompt_captured_exactly_once", True, "verified in database evidence_events")
+        # Test 10: Protocol harness exercises duplicate prompt idempotency
+        log_test(10, "prompt_capture_idempotency", protocol_pass, "duplicate hook call verified by protocol harness")
 
         # Test 11: File footprint recorded
         handle_post_tool({
@@ -218,7 +220,24 @@ def main():
                 shutil.move(temp_gs, backup_gs)
 
         # Test 14: Task-class gates
-        log_test(14, "task_class_gates_policy", True, "encoded in global-agent-policy.yaml & foundation.mdc")
+        import yaml
+
+        policy = yaml.safe_load(
+            (REPO_ROOT / "contracts" / "global-agent-policy.yaml").read_text(encoding="utf-8")
+        )
+        gates = {entry["tool_name"]: entry["gate_type"] for entry in policy["task_class_gates"]}
+        required_gates = {
+            "arabold-docs": "mandatory",
+            "sequential-thinking": "mandatory",
+            "depwire": "mandatory",
+            "playwright": "mandatory",
+        }
+        log_test(
+            14,
+            "task_class_gates_policy",
+            all(gates.get(tool) == gate for tool, gate in required_gates.items()),
+            f"required={required_gates}",
+        )
 
         # Test 15: One final review occurs
         res_stop = handle_stop({"workspace_roots": [str(FIXTURE_DIR)]})
@@ -291,8 +310,20 @@ def main():
         shared_cnt = len(list(shared_skills.glob("*"))) if shared_skills.exists() else 0
         log_test(25, "no_third_party_skill_noise", shared_cnt == 0, f"shared_skills_count={shared_cnt}")
 
-        # Test 26: Swarm untouched
-        log_test(26, "swarm_untouched", "swarm" not in "".join(mcp_servers).lower(), "0 Swarm MCP entries in Cursor")
+        # Test 26: Swarm workspace refused before AgentCore memory bootstrap
+        try:
+            cursor_bootstrap.validate_workspace_enrollment(
+                Path(r"D:\github\swarm-ecosystem-control")
+            )
+            swarm_refused = False
+        except ValueError as exc:
+            swarm_refused = str(exc) == "swarm_project_refused"
+        log_test(
+            26,
+            "swarm_workspace_refused",
+            swarm_refused and "swarm" not in "".join(mcp_servers).lower(),
+            "bootstrap refusal true; 0 Swarm MCP entries in Cursor",
+        )
 
     finally:
         safe_rmtree(FIXTURE_DIR)

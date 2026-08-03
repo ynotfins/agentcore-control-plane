@@ -204,9 +204,9 @@
       "status": "dormant_project_scoped",
       "notes": [
         "Phase 2 (2026-07-24): launched via ops/bifrost/wrappers/serena-prewarm.js to answer Bifrost initialize/tools/list/ping immediately while Serena finishes MCP lifetime setup (READY_SIGNAL).",
-        "Prewarm spawns serena.exe start-mcp-server --transport stdio --context ide for the active allowlisted control-plane project.",
-        "The wrapper monitors agentcore-project-router active-project state and restarts only the Serena child when switching between the AgentCore and Swarm control repositories.",
-        "Do not set enabled=false merely because status was previously stale-disabled; Serena is required for architecture-sensitive edits."
+        "Retained wrapper supports an explicit operator-only maintenance test for a path in contracts/agentcore-project-enrollment.json.",
+        "Ordinary profiles use native source tools or a host-owned explicit-cwd Serena process; they never mutate machine-global router state.",
+        "Keep this shared implicit-project client disabled. Serena remains conditionally required for architecture-sensitive edits only when a correctly scoped host-local process is available."
       ]
     },
     "sequential-thinking": {
@@ -800,7 +800,7 @@
       "display_name": "AgentCore Memory Gateway",
       "purpose": "Model-aware active context over effectively-unbounded durable local project history; no raw DB/admin tools exposed.",
       "owner": "agentcore",
-      "pinned_version": "0.7.0",
+      "pinned_version": "0.8.0",
       "connection_type": "stdio",
       "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
       "arguments": [
@@ -851,7 +851,8 @@
       "notes": [
         "Stable server identity: agentcore-memory",
         "Stable 10-tool surface; bounded active packets and recovery pages never cap or delete durable project history.",
-        "v0.7.0 adds backward-compatible cryptographic device assertions to existing tool schemas; tool names/count and database ownership remain unchanged.",
+        "v0.7.0 added backward-compatible cryptographic device assertions to existing tool schemas.",
+        "v0.8.0 applies the default-deny project enrollment boundary to every project-key and opaque-reference read/write; docs_search now requires project_key. Tool names/count and database ownership remain unchanged.",
         "retrieve_context supports stable chronological pagination and recovery modes; expand_source resolves exact originals and H:/E: artifacts; build_handoff reconstructs current project state.",
         "Model context profiles are governed by contracts/model-context-profiles.json; 4096 is legacy/acceptance-only and one million is not a durable-memory cap.",
         "PostgreSQL reachability remains implemented internally and is reported through memory_status, not exposed as a separate normal-agent tool.",

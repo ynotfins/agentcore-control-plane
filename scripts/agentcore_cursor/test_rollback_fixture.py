@@ -37,6 +37,10 @@ def main():
     # Copy .cursor and scripts/agentcore_cursor to fixture
     shutil.copytree(REPO_ROOT / ".cursor", FIXTURE_ROOT / ".cursor")
     shutil.copytree(REPO_ROOT / "scripts" / "agentcore_cursor", FIXTURE_ROOT / "scripts" / "agentcore_cursor")
+    shutil.copy2(
+        REPO_ROOT / "scripts" / "agentcore_project_boundary.py",
+        FIXTURE_ROOT / "scripts" / "agentcore_project_boundary.py",
+    )
 
     # 2. Write Stage B hooks.json to fixture
     stage_b_hooks = {

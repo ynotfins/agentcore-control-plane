@@ -59,6 +59,23 @@ def main() -> int:
         check("schema:contracts/global-agent-policy.yaml", False, str(exc)[:200])
 
     try:
+        enrollment = json.loads(read("contracts/agentcore-project-enrollment.json"))
+        enrolled_paths = [
+            path
+            for project in enrollment.get("projects", [])
+            for path in project.get("paths", [])
+        ]
+        check(
+            "project-enrollment:default deny with explicit paths",
+            enrollment.get("schema_version") == 1
+            and enrollment.get("default_policy") == "deny"
+            and bool(enrolled_paths)
+            and len(enrolled_paths) == len(set(path.lower() for path in enrolled_paths)),
+        )
+    except Exception as exc:  # noqa: BLE001
+        check("project-enrollment:default deny with explicit paths", False, str(exc)[:200])
+
+    try:
         model_profiles = json.loads(read("contracts/model-context-profiles.json"))
         by_name = {row["profile_name"]: row for row in model_profiles["profiles"]}
         check(
@@ -289,6 +306,28 @@ def main() -> int:
         "Activate/register" not in bootstrap_policy
         and "Project-scoped filesystem operations" not in bootstrap_policy,
     )
+
+    for name, command in (
+        (
+            "project-boundary:cursor bootstrap",
+            [sys.executable, "-m", "unittest", "scripts.agentcore_cursor.tests.test_bootstrap_project_boundary"],
+        ),
+        (
+            "project-boundary:memory facade",
+            [sys.executable, "-m", "pytest", "scripts/agentcore_memory/tests/test_project_boundary.py", "-q"],
+        ),
+    ):
+        boundary_result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            cwd=REPO,
+        )
+        check(
+            name,
+            boundary_result.returncode == 0,
+            (boundary_result.stdout or boundary_result.stderr).strip()[:400],
+        )
 
     # --- MCP outputSchema coverage (MissingOutputSchema must be zero) ---
     # Full gate including the generated-artifact drift check: a contract or registry

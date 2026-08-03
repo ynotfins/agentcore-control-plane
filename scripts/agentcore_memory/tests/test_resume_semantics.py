@@ -28,6 +28,13 @@ from typing import Any, Generator
 
 import pytest
 
+
+@pytest.fixture(autouse=True)
+def _use_dedicated_boundary_tests(monkeypatch):
+    from agentcore_memory import server
+
+    monkeypatch.setattr(server, "validate_project_boundary", lambda _args: None)
+
 # ---------------------------------------------------------------------------
 # Database helper (minimal, no ORM dependency)
 # ---------------------------------------------------------------------------

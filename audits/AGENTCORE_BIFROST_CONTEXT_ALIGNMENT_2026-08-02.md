@@ -14,6 +14,7 @@
 - Rollback root: `E:\AgentCore-Backups\agentcore-control-plane\context-alignment-20260802-232010`
 - Pre-remediation live Bifrost rollback root: `E:\AgentCore-Backups\agentcore-control-plane\project-isolation-20260803-003135`
 - Cursor/runtime-path remediation rollback root: `E:\AgentCore-Backups\agentcore-control-plane\cursor-runtime-path-20260803-0045`
+- Project-enrollment/final-review remediation rollback root: `E:\AgentCore-Backups\agentcore-control-plane\project-enrollment-review-20260803-0145`
 - Inherited dirty state was inventoried before editing and remains excluded from this task's stage set.
 - Protected-file attributes were writable before the pass; authority is enforced by approval identity, rollback, validation, review, and recorded hashes rather than an NTFS read-only bit.
 
@@ -106,6 +107,33 @@ All five were reproduced before repair. The follow-up implementation:
 
 TDD proof now passes 12/12 router/security tests and 133 Bifrost contract/renderer checks. The complete Stage B suite passes 26/26 with `AGENTCORE_WORKER_MODE=deterministic`; without that explicit fixture setting, the embedded live LangGraph worker exceeded its independent 120-second test timeout. The hook protocol harness passes all event fixtures and special cases.
 
+A third fresh review of `9ceab4e9aefe3a4785020e3bcd6d92264cc71dc5`
+(`bc-41bbc2cb-fab6-4cd9-ac44-0be69db8882f`) correctly returned **FAIL**.
+It proved that Cursor bootstrap and `agentcore-memory` could still create an
+arbitrary/Swarm project because the boundary was deny-by-name rather than
+positive enrollment. It also found incomplete renamed/relocated Swarm defense,
+cross-process-unsafe router state writes, misleading Stage B assertions, and
+current documentation conflicts around the dormant router/Tentra/Serena routes,
+Context Fabric CRLF drift, and the retired H: Bifrost path.
+
+The final remediation replaces directory discovery with one default-deny source
+contract, `contracts/agentcore-project-enrollment.json`. Cursor bootstrap,
+`agentcore-memory`, the operator router, and its child launcher all consume the
+same exact project-key/path enrollment. This enforcement covers every project-key
+read/write plus opaque session, event, artifact, and summary references—not only
+`session_open`. `docs_search` now requires a project key. Boundary refusal performs
+no write inside the rejected workspace. Router state writes use unique temporary
+files plus thread and cross-process locks. Current policies/runbooks and all nine
+generated IDE rule projections now agree that ordinary IDEs expose zero router
+controls and use exact enrolled identity.
+
+The live pre-rollout database contains one historical `swarm-ecosystem-control`
+project row and one empty session created while the prior defect existed: zero
+evidence events, artifacts, summaries, or fact proposals. It is not deleted in
+this task; v0.8.0 makes it unreachable through every ordinary project/session/
+reference tool path. Destructive cleanup remains a separately approved database
+maintenance action and is not required to prove zero persisted Swarm context.
+
 ### Corrected live rollout
 
 - The live Bifrost config and online SQLite database were backed up under `E:\AgentCore-Backups\agentcore-control-plane\project-isolation-20260803-003135`; `PRAGMA integrity_check=ok`.
@@ -126,20 +154,21 @@ TDD proof now passes 12/12 router/security tests and 133 Bifrost contract/render
 
 | Check | Result |
 | --- | --- |
-| Project-router unit tests | PASS — 12/12, including Swarm-control-plane refusal, cross-platform paths, and small open-pipe proxy delivery |
+| Project-router unit tests | PASS — 14/14, including default-deny enrollment, concurrent state writes, cross-platform paths, and small open-pipe proxy delivery |
+| Project-boundary tests | PASS — Cursor 2/2; memory 30/30; renamed/unregistered paths and mismatched identities refused |
 | Python compile | PASS |
 | Authority lock | PASS |
 | Cursor prompt format | PASS |
 | Ecosystem separation | PASS |
 | Bifrost contract validation | PASS |
-| Bifrost contract/renderer suite | PASS — 133 checks |
-| Cursor Stage B comprehensive suite | PASS — 26/26 with deterministic LangGraph fixture |
+| Bifrost contract/renderer suite | PASS — 136 checks |
+| Cursor Stage B comprehensive suite | PASS — 26/26 with deterministic LangGraph fixture and real 100-iteration hook run |
 | Cursor hook protocol harness | PASS — all seven event fixtures plus special cases |
 | IDE rules renderer check | PASS |
 | IDE enrollment scope | PASS |
 | Runtime Bifrost builder status | PASS — task running, health ok, 57 tools, memory 10, router 0, skills-hub >=3 |
 | Runtime Bifrost operator status | PASS — task running, health ok, 24 tools, memory 10, router 4 |
-| Exact staged secret/junk scan | PASS — 32 intended files, zero secret-pattern hits, zero junk/runtime artifact paths |
+| Exact staged secret/junk scan | PASS — 38 intended files, zero secret-pattern hits, zero junk/runtime artifact paths |
 
 Repository-wide reconciliation scanning also identified 12 unchanged secret-like credential-backup files under the inherited `langsmith-projects/alerts-sheets/global files` tree. They are outside this task's stage set and were neither printed nor modified. Their remediation requires a separate security-scoped decision; the finding does not weaken the exact staged-patch result.
 

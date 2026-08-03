@@ -88,6 +88,12 @@ If a client cannot expand `${env:…}` (observed: MiniMax Code daemon → 401), 
 
 `agentcore-gateway` is for AgentCore and explicitly enrolled non-Swarm work only. It is not a Swarm IDE front door and must not be used to persist Swarm project history.
 
+Enrollment is source-controlled and default-deny in
+`@D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json`.
+An IDE does not enroll a project merely by opening a Git repository. Missing exact-path
+enrollment returns `project_not_enrolled`; Swarm ownership returns `swarm_project_refused`.
+Only the authority-maintainer path may add a project/worktree entry.
+
 ---
 
 ## 3. Security and project-scope boundaries
@@ -297,6 +303,7 @@ Stop and report the accurate state when:
 - **unsupported_with_reason** — the product does not support the required MCP baseline or cannot be identified. State the reason (examples: MiniMax Code CLI `daemon\cli.js` missing; Open Interpreter GUI has no MCP schema).
 - **unverified** — the live config path or rule mechanism is not evidenced on this machine. Do not guess.
 - **awaiting_operator_import** / **awaiting_operator_cloud_mcp_enrollment** — configuration artifact is ready; operator action and a fresh IDE chat are required to promote to `live_validated`.
+- **project_not_enrolled** — the selected exact repository/worktree path is absent from the governed enrollment contract; request authority-maintainer enrollment before memory use.
 - **swarm_project_refused** — the selected project/path is Swarm-owned; AgentCore enrollment/continuity must not proceed.
 
 ---

@@ -94,7 +94,8 @@ C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
 **Purpose (locked):** Correct storage foundations and a recoverable PostgreSQL 18 + pgvector platform exist beside the preserved prior cluster. (Source: `BLUEPRINT.md` §8 M1)
 
 **Exit criteria (locked — from BLUEPRINT.md §8 M1):**
-- E:, F:, H:, and I: allocation units verified.
+- E:, F:, H:, and I: allocation units verified. H: verification is storage evidence only;
+  no AgentCore runtime workload is assigned there.
 - Any mismatched target is safely corrected with backup, hash verification, restore, and service validation.
 - Existing PostgreSQL cluster and roles inventoried.
 - Logical and physical backups created.
@@ -119,7 +120,7 @@ C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
 **Dependencies:** M0.
 
 **Macro guidance (refined from live evidence — see M1 execution plan below):**
-1. Verify and record allocation units for all four drives (E:, F:, H:, I:) — three already correct, I: needs correction
+1. Verify and record allocation units for all four drives (E:, F:, H:, I:) — three already correct, I: needs correction; retain H: for neutral/Swarm-owned data, never AgentCore runtime
 2. Quick-format I: to NTFS/64KB (I: confirmed empty; no data at risk; physical disk identity verified first per BLUEPRINT §4)
 3. Bring PG16 online and inventory databases/roles/schemas
 4. Logical backup (`pg_dump`) via existing `ops/Backup-AgentCorePostgres.ps1` to E: and G:

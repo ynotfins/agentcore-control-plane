@@ -87,6 +87,23 @@ class ProjectRouterRoutingTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 launcher.load_active_project()
 
+    def test_unregistered_or_renamed_repository_is_not_routable(self) -> None:
+        server = load_module("agentcore_project_router_enrollment_test", HERE / "server.py")
+        launcher = load_module("agentcore_child_launcher_enrollment_test", HERE / "child_launcher.py")
+        unregistered = Path(r"D:\github\renamed-foreign-repository")
+
+        self.assertEqual(server._rejected_path(unregistered), "project_not_enrolled")
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            patch.object(launcher, "STATE_PATH", Path(temp_dir) / "active-project.json"),
+        ):
+            launcher.STATE_PATH.write_text(
+                json.dumps({"id": "renamed-project", "path": str(unregistered)}),
+                encoding="utf-8",
+            )
+            with self.assertRaises(SystemExit):
+                launcher.load_active_project()
+
     def test_proxy_reads_small_message_without_waiting_for_chunk_fill(self) -> None:
         launcher = load_module("agentcore_child_launcher_proxy_test", HERE / "child_launcher.py")
         read_fd, write_fd = os.pipe()
@@ -145,12 +162,36 @@ class ProjectRouterRoutingTests(unittest.TestCase):
 
             with (
                 patch.object(server, "STATE_PATH", state_path),
+                patch.object(server, "STATE_LOCK_PATH", state_path.with_suffix(".lock")),
                 patch.object(server.json, "dump", side_effect=OSError("simulated write failure")),
             ):
                 with self.assertRaises(OSError):
                     server.save_state({"id": "next", "path": str(REPO_ROOT)})
 
             self.assertEqual(json.loads(state_path.read_text(encoding="utf-8")), original)
+
+    def test_concurrent_state_writes_remain_valid_json(self) -> None:
+        server = load_module("agentcore_project_router_concurrency_test", HERE / "server.py")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            state_path = Path(temp_dir) / "active-project.json"
+            with (
+                patch.object(server, "STATE_PATH", state_path),
+                patch.object(server, "STATE_LOCK_PATH", state_path.with_suffix(".lock")),
+            ):
+                threads = [
+                    threading.Thread(
+                        target=server.save_state,
+                        args=({"id": f"project-{index}", "path": str(REPO_ROOT)},),
+                    )
+                    for index in range(16)
+                ]
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join(timeout=3)
+                self.assertTrue(all(not thread.is_alive() for thread in threads))
+                state = json.loads(state_path.read_text(encoding="utf-8"))
+                self.assertRegex(state["id"], r"^project-\d+$")
 
     def test_project_clear_fails_and_restores_state_when_reconnect_fails(self) -> None:
         server = load_module("agentcore_project_router_clear_test", HERE / "server.py")

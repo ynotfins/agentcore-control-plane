@@ -19,6 +19,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from agentcore_project_boundary import ProjectBoundaryError, require_enrolled_path
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_PATH = REPO_ROOT / "contracts" / "bifrost-upstream-mcp-registry.json"
 RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
@@ -39,16 +45,6 @@ TENTRA_DATA = Path(
     os.environ.get("TENTRA_DATA_DIR", str(RUNTIME_ROOT / "tentra" / "data"))
 )
 IDLE_TIMEOUT_SECONDS = 30 * 60
-
-REJECT_MARKERS = (
-    "swarmrecall",
-    "swarmvault",
-    "agentswarm",
-    "swarmclaw",
-    "swarm-ecosystem-control",
-)
-REJECT_PREFIXES = (Path(r"F:\AgentCore\agentmemory"),)
-
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -116,18 +112,10 @@ def load_active_project() -> dict[str, Any]:
     path = Path(state["path"])
     if not path.exists():
         raise SystemExit(f"Active project path missing: {path}")
-    text = str(path.resolve()).lower()
-    for marker in REJECT_MARKERS:
-        if marker in text:
-            raise SystemExit(f"Active project rejected (Swarm marker): {marker}")
-    for prefix in REJECT_PREFIXES:
-        try:
-            path.resolve().relative_to(prefix.resolve())
-            raise SystemExit(f"Active project rejected under {prefix}")
-        except ValueError:
-            pass
-        except OSError:
-            pass
+    try:
+        require_enrolled_path(path)
+    except ProjectBoundaryError as exc:
+        raise SystemExit(f"Active project rejected: {exc}") from exc
     return state
 
 

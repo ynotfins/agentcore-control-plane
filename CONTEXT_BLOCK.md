@@ -19,11 +19,12 @@ Read `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` before this f
 
 | Area | Current fact | Evidence/status |
 | --- | --- | --- |
-| Repository | `D:\github\agentcore-control-plane`, branch `main`; initial alignment commit `97c872cd98e887292e47b2574fcf236e4872fdde` | Git; inherited Langfuse/M6-M8 WIP remains unstaged and outside this alignment; corrected acceptance commit pending |
+| Repository | `D:\github\agentcore-control-plane`, branch `main`; latest reviewed remediation base `9ceab4e9aefe3a4785020e3bcd6d92264cc71dc5` | Git; inherited Langfuse/M6-M8 WIP remains unstaged and outside this alignment; final default-deny enrollment commit/review pending |
 | Bifrost | Native `2.0.0-prerelease1` under `F:\AgentCore\runtime\bifrost`; scheduled owner `\AgentCore\AgentCore-Bifrost-Gateway`; `127.0.0.1:8080/health` healthy | Live status and gateway acceptance pass |
 | IDE MCP front door | Exactly one `agentcore-gateway` at `http://127.0.0.1:8080/mcp` | Cursor live config: one entry, environment-backed bearer, no MCP_DOCKER |
 | Gateway surface | Builder profile: 57 tools, exact 10 memory, zero router, at least 3 skills-hub. Operator profile: 24 tools, exact 10 memory and 4 router controls | Live authenticated `Get-BifrostStatus.ps1` probes after governed rollout; implicit-project Serena/Depwire/Tentra/filesystem/Context-Fabric upstreams dormant |
-| AgentCore memory | `agentcore-memory` `0.7.0`; PG18 reachable at `127.0.0.1:55433` | `memory_status: healthy` |
+| AgentCore memory | source `agentcore-memory` `0.8.0`; PG18 reachable at `127.0.0.1:55433`; live process promotion pending final commit/recycle | Default-deny exact project enrollment applies to every project/session/reference read/write; ten-tool identity unchanged |
+| Project enrollment | `contracts/agentcore-project-enrollment.json`; default deny; exact key + exact repository/worktree path | Shared by Cursor bootstrap, memory facade, operator router, and child launcher; ordinary IDEs cannot mutate enrollment/router state |
 | Device identity | `legacy_compat`; writes require signed device assertion; unsigned reads remain temporarily permitted | `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md`; migration window ends 2026-08-09 |
 | Cognee | `degraded_unavailable` / `ModuleNotFoundError` | Truthful degradation; canonical evidence/recovery remains healthy |
 | Neutral Recall | Machine-level neutral semantic plane healthy at `127.0.0.1:3300`; hot data under `H:\SwarmData\recall` | `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`; server-side AgentCore adapter only |

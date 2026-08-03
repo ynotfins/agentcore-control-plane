@@ -139,9 +139,8 @@ The retained wrapper is rollback/future-router material. When explicitly tested 
    stream;
 3. starts the child for the active project only;
 4. allows only the registered control-plane paths;
-5. restarts the Serena child when `agentcore-project-router` switches the
-   active AgentCore / enrolled non-Swarm project (or a read-only dual-workspace
-   boundary-audit activation);
+5. restarts the Serena child only during an explicit operator-only maintenance
+   test against a path in `contracts/agentcore-project-enrollment.json`;
 6. never expands the allowlist to vendor roots or whole-drive paths.
 
 Project switching is not a concurrent-session security boundary. It is one active Serena child
@@ -215,13 +214,13 @@ They do not add a direct Serena entry. Shared Serena is not exposed through norm
 
 | IDE/client | Gateway configuration | Serena usage |
 | --- | --- | --- |
-| Cursor | `C:\Users\ynotf\.cursor\mcp.json` | One `agentcore-gateway` entry; activate the project before semantic work. |
-| Codex | `C:\Users\ynotf\.codex\config.toml` | Use the gateway and named project router; do not add direct Serena. |
+| Cursor | `C:\Users\ynotf\.cursor\mcp.json` | One `agentcore-gateway` entry; use native source tools or an explicit host-local Serena process. |
+| Codex | `C:\Users\ynotf\.codex\config.toml` | Use the gateway plus native source tools; do not add direct Serena or depend on the operator router. |
 | Claude Code | `C:\Users\ynotf\.claude.json` | Use the gateway; preserve client-local scope. |
 | Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | Use the gateway; follow its env-header limitation. |
 | MiniMax Code / Mavis | `C:\Users\ynotf\.minimax\mcp\mcp.json` | Use the gateway; Mavis is the same data root, not a second baseline. |
 | MiniMax Agent Classic | Matrix custom-MCP UI | Enroll only `agentcore-gateway`; no local direct Serena entry. |
-| Antigravity / Gemini | `C:\Users\ynotf\.gemini\config\mcp_config.json` or its documented alternate | Use the gateway and project router. |
+| Antigravity / Gemini | `C:\Users\ynotf\.gemini\config\mcp_config.json` or its documented alternate | Use the gateway; do not depend on the operator router. |
 | Open Interpreter CLI | `%APPDATA%\interpreter\config.json` | Use the gateway; the GUI executable is unsupported for this MCP baseline. |
 | Cherry Studio | Governed local storage enrollment | Use only the AgentCore gateway record; never add direct upstream Serena. |
 | LangGraph production/Studio | `scripts\agentcore_workflow\mcp_client.py` | Use localhost gateway from the workflow capability profile; never direct Serena credentials. |

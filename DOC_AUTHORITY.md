@@ -130,7 +130,7 @@ No other root or docs file may silently override this chain. If a document confl
 | `renderers/bifrost/` | Sanitized Bifrost config render output |
 | `ide-profiles/` | Source-controlled per-IDE global-rule profiles and capability matrix |
 
-Supporting contracts/scripts: `contracts/schemas/*`, `scripts/bifrost/`, `scripts/project_router/`, `scripts/agentcore_memory/`, `docs/GIT_PUSH_ONLY_POLICY.md`, `validators/`, `templates/project-governance/`.
+Supporting contracts/scripts: `contracts/agentcore-project-enrollment.json` (default-deny exact project/worktree enrollment), `contracts/schemas/*`, `scripts/bifrost/`, `scripts/project_router/`, `scripts/agentcore_memory/`, `docs/GIT_PUSH_ONLY_POLICY.md`, `validators/`, `templates/project-governance/`.
 
 ## Bifrost / upstream docs (Arabold-indexed)
 

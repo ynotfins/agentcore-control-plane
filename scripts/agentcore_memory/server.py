@@ -29,6 +29,16 @@ from uuid import UUID
 import psycopg
 from psycopg.rows import dict_row
 
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from agentcore_project_boundary import (
+    ProjectBoundaryError,
+    require_enrolled_project_key,
+    validate_project_identity,
+)
+
 from device_identity import (
     DeviceIdentityError,
     VerifiedIdentity,
@@ -52,7 +62,7 @@ from recovery import (
 _RECALL_PROJECT_KINDS = frozenset({"decision", "accepted_evidence", "output"})
 
 SERVER_NAME = "agentcore-memory"
-SERVER_VERSION = "0.7.0"
+SERVER_VERSION = "0.8.0"
 # Bifrost currently initializes with 2025-06-18; accept and echo it.
 SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
 DEFAULT_PROTOCOL_VERSION = "2025-06-18"
@@ -73,6 +83,49 @@ DEFAULT_ACTIVE_CONTEXT_LIMIT = int(os.environ.get("AGENTCORE_MEMORY_DEFAULT_ACTI
 DEFAULT_RECOVERY_PAGE_SIZE = int(os.environ.get("AGENTCORE_MEMORY_DEFAULT_PAGE_SIZE", "25"))
 MAX_ACTIVE_CONTEXT_LIMIT = int(os.environ.get("AGENTCORE_MEMORY_MAX_ACTIVE_LIMIT", "200"))
 DEFAULT_RESPONSE_TEXT_LIMIT = int(os.environ.get("AGENTCORE_MEMORY_RESPONSE_TEXT_LIMIT", "4000"))
+def validate_project_boundary(args: dict[str, Any]) -> None:
+    """Require an explicitly enrolled project before any persistence occurs."""
+    validate_project_identity(args)
+
+
+def validate_tool_project_boundary(name: str, args: dict[str, Any]) -> None:
+    """Authorize project-scoped reads/writes, including opaque references."""
+    if name == "docs_search" and not args.get("project_key"):
+        raise ProjectBoundaryError("project_scope_required")
+    project_keys: set[str] = set()
+    if args.get("project_key"):
+        key = str(args["project_key"])
+        require_enrolled_project_key(key)
+        project_keys.add(key)
+
+    reference_columns = {
+        "session_id": ("agentcore.sessions", "id"),
+        "event_id": ("agentcore.evidence_events", "id"),
+        "artifact_id": ("agentcore.artifact_objects", "id"),
+        "summary_id": ("agentcore.context_summaries", "id"),
+    }
+    selected = [field for field in reference_columns if args.get(field)]
+    if not selected:
+        return
+    with db() as conn, conn.cursor() as cur:
+        for field in selected:
+            table, column = reference_columns[field]
+            cur.execute(
+                f"""
+                SELECT p.project_key
+                FROM {table} source
+                JOIN agentcore.projects p ON p.id = source.project_id
+                WHERE source.{column} = %s
+                """,
+                (args[field],),
+            )
+            row = cur.fetchone()
+            if row:
+                key = str(row["project_key"])
+                require_enrolled_project_key(key)
+                project_keys.add(key)
+    if len(project_keys) > 1:
+        raise ProjectBoundaryError("project_identity_mismatch")
 
 
 def _now() -> str:
@@ -478,7 +531,7 @@ def tool_defs() -> list[dict[str, Any]]:
                     "retrieval_methods": text_array_schema,
                     "trust_classes": text_array_schema,
                 },
-                "required": ["query"],
+                "required": ["project_key", "query"],
                 "additionalProperties": False,
             },
             "outputSchema": _ok_response_schema({
@@ -633,6 +686,7 @@ def session_open(
     args: dict[str, Any],
     verified_identity: VerifiedIdentity | None = None,
 ) -> dict[str, Any]:
+    validate_project_boundary(args)
     project_key = args["project_key"]
     project_name = args.get("project_name") or project_key
     client_key = args.get("client_key") or "unknown-client"
@@ -1978,8 +2032,16 @@ def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
             "identity_verified": False,
         }
     arguments.pop("device_assertion", None)
+    try:
+        if name != "session_open":
+            validate_tool_project_boundary(name, arguments)
+    except ProjectBoundaryError as exc:
+        return {"ok": False, "error": str(exc)}
     if name == "session_open":
-        result = session_open(arguments, verified_identity)
+        try:
+            result = session_open(arguments, verified_identity)
+        except ProjectBoundaryError as exc:
+            return {"ok": False, "error": str(exc)}
         if verified_identity is not None:
             result["identity"] = {
                 "device_id": verified_identity.device_id,

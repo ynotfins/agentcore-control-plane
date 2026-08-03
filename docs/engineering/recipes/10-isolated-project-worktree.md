@@ -66,13 +66,13 @@ def safe_write(target: Path, content: str) -> None:
     target.write_text(content, encoding="utf-8")
 ```
 
-## Serena Scoped to Worktree
+## Project tooling scoped to worktree
 
 ```python
-# When using Serena for code navigation, always activate the project router
-# with the current worktree path — not a global path.
-# From AGENTS.md tool routing:
-# agentcore_project_router-project_activate → Serena wrapper scoped to cwd
+# First enroll the exact worktree path through the authority-maintainer update to
+# contracts/agentcore-project-enrollment.json. Ordinary IDEs never mutate the
+# machine-global project router. Use native source tools or launch a host-owned
+# Serena diagnostic explicitly from the enrolled worktree cwd.
 ```
 
 ## Cleanup After Feature Work

@@ -25,6 +25,7 @@ Read these files using @ + full absolute Windows paths:
 - @D:\github\agentcore-control-plane\ide-profiles\IDE_CAPABILITY_MATRIX.yaml
 - @D:\github\agentcore-control-plane\contracts\global-agent-policy.yaml
 - @D:\github\agentcore-control-plane\contracts\agentcore-gateway-client.json
+- @D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json
 - @D:\github\agentcore-control-plane\contracts\bifrost-upstream-mcp-registry.json
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\GLOBAL_RULES.md
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\INSTALL_OR_UPDATE.md
@@ -37,7 +38,7 @@ The IDE running this prompt may inspect and modify only its own live configurati
 
 Step 3 — Prove Bifrost is healthy before touching the IDE
 - Confirm the scheduled task \AgentCore\AgentCore-Bifrost-Gateway exists.
-- Confirm Bifrost runtime is at H:\AgentRuntime\bifrost.
+- Confirm Bifrost runtime is at F:\AgentCore\runtime\bifrost.
 - Confirm GET http://127.0.0.1:8080/health returns 200.
 - Confirm direct MCP initialize + notifications/initialized + tools/list succeed through the gateway.
 If any check fails, stop and report the exact failure. Do not edit the IDE config while Bifrost is down.
@@ -63,12 +64,12 @@ Step 7 — Validate syntax and discovery
 - Validate JSON/TOML syntax of the live config.
 - Confirm the IDE lists agentcore-gateway as connected/ready.
 - Confirm tools/list through the gateway includes exactly ten agentcore_memory-* tools: memory_status, startup_context, retrieve_context, append_event, propose_fact, expand_source, session_open, session_close, build_handoff, docs_search.
-- Confirm exactly four agentcore_project_router-* tools: project_list, project_activate, project_status, project_clear.
+- Confirm an ordinary IDE profile exposes zero agentcore_project_router-* tools. The four router controls are operator-only maintenance tools.
 - Confirm no Swarm, raw SQL/database, whole-drive filesystem, or Bifrost admin tools are exposed.
 
 Step 8 — Native memory lifecycle validation (do not skip)
-1. Activate the current project via agentcore_project_router-project_activate (e.g., agentcore-control-plane at `@D:\github\agentcore-control-plane`).
-2. session_open with a stable session_key that includes your IDE id and today's date.
+1. Confirm the exact repository/worktree path appears in `@D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json`. Stop with `project_not_enrolled` when absent or `swarm_project_refused` for Swarm ownership; do not broaden the contract from the IDE.
+2. Call session_open with the exact enrolled project/worktree path and a stable session_key that includes your IDE id and today's date.
 3. startup_context with the selected model context profile (use standard-context if your model is unknown; never lower the IDE's configured hard context window).
 4. append_event documenting this enrollment/validation run with a deterministic idempotency key.
 5. Repeat the same append_event and confirm idempotent_replay=true.
@@ -77,7 +78,7 @@ Step 8 — Native memory lifecycle validation (do not skip)
 8. build_handoff and verify projection revisions are present.
 9. session_close.
 10. Resume: session_open with the same session_key and confirm the same session_id is returned with prior events accessible.
-11. Project isolation: activate a different registered project, retrieve_context, and prove no cross-project leak.
+11. Project isolation: open a separate session with a second exact enrolled non-Swarm project identity, retrieve_context, and prove no cross-project leak without changing shared router state.
 12. Re-confirm exactly ten agentcore-memory tools.
 All steps must pass before you mark the IDE live_validated.
 

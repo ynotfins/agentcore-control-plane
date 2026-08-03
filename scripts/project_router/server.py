@@ -11,13 +11,25 @@ import json
 import ipaddress
 import os
 import sys
+import threading
 import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from agentcore_project_boundary import (
+    ProjectBoundaryError,
+    enrolled_projects,
+    require_enrolled_path,
+)
 
 SERVER_NAME = "agentcore-project-router"
 SERVER_VERSION = "0.1.0"
@@ -26,7 +38,6 @@ SUPPORTED_PROTOCOL_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_PATH = REPO_ROOT / "contracts" / "bifrost-upstream-mcp-registry.json"
-PROJECTS_ROOT = Path(os.environ.get("AGENTCORE_PROJECTS_ROOT", str(REPO_ROOT.parent)))
 RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
 BIFROST_BASE = os.environ.get("AGENTCORE_BIFROST_BASE", "http://127.0.0.1:8080").rstrip("/")
 ADMIN_KEY_ENV = "BIFROST_ADMIN_KEY"
@@ -36,27 +47,8 @@ STATE_PATH = Path(
         str(RUNTIME_ROOT / "bifrost" / "state" / "active-project.json"),
     )
 )
-GITHUB_ROOT = PROJECTS_ROOT
-ALWAYS_ALLOW = [
-    REPO_ROOT,
-    PROJECTS_ROOT / "memory-context-database",
-]
-REJECT_MARKERS = (
-    "swarmrecall",
-    "swarmvault",
-    "agentswarm",
-    "swarmclaw",
-    "swarm-ecosystem-control",
-)
-_reject_roots = os.environ.get(
-    "AGENTCORE_PROJECT_REJECT_ROOTS",
-    str(RUNTIME_ROOT.parent / "agentmemory"),
-)
-REJECT_PREFIXES = tuple(
-    Path(item)
-    for item in _reject_roots.split(os.pathsep)
-    if item.strip()
-)
+STATE_LOCK_PATH = STATE_PATH.with_suffix(STATE_PATH.suffix + ".lock")
+_STATE_THREAD_LOCK = threading.RLock()
 
 
 def _log(msg: str) -> None:
@@ -73,54 +65,57 @@ def _is_git_repo(path: Path) -> bool:
 
 
 def _rejected_path(path: Path) -> str | None:
-    resolved = path.resolve()
-    text = str(resolved).lower().replace("/", "\\")
-    for marker in REJECT_MARKERS:
-        if marker in text:
-            return f"rejected Swarm-related path marker: {marker}"
-    for prefix in REJECT_PREFIXES:
-        try:
-            if resolved == prefix.resolve() or prefix.resolve() in resolved.parents or resolved in [prefix.resolve()]:
-                return f"rejected path under {prefix}"
-            # also reject if path is under prefix
-            resolved.relative_to(prefix.resolve())
-            return f"rejected path under {prefix}"
-        except ValueError:
-            continue
-        except OSError:
-            continue
-    return None
+    try:
+        require_enrolled_path(path)
+        return None
+    except ProjectBoundaryError as exc:
+        return str(exc)
 
 
 def scan_registered_projects() -> list[dict[str, str]]:
-    found: dict[str, Path] = {}
-    for p in ALWAYS_ALLOW:
-        if p.exists() and _is_git_repo(p) and not _rejected_path(p):
-            found[str(p.resolve())] = p.resolve()
+    projects: list[dict[str, str]] = []
+    for enrolled in enrolled_projects():
+        for raw_path in enrolled.get("paths", []):
+            path = Path(raw_path)
+            if not path.exists() or not _is_git_repo(path):
+                continue
+            projects.append(
+                {
+                    "id": str(enrolled["project_key"]),
+                    "path": str(path.resolve()),
+                    "name": str(enrolled.get("name") or enrolled["project_key"]),
+                }
+            )
+    return sorted(projects, key=lambda item: item["path"].lower())
 
-    if GITHUB_ROOT.exists():
-        for child in sorted(GITHUB_ROOT.iterdir()):
-            if not child.is_dir():
-                continue
-            if child.name.startswith("."):
-                continue
-            if not _is_git_repo(child):
-                continue
-            reason = _rejected_path(child)
-            if reason:
-                continue
-            found[str(child.resolve())] = child.resolve()
 
-    projects = []
-    for path in sorted(found.values(), key=lambda x: str(x).lower()):
-        projects.append(
-            {
-                "id": path.name,
-                "path": str(path),
-                "name": path.name,
-            }
-        )
-    return projects
+@contextmanager
+def state_file_lock():
+    with _STATE_THREAD_LOCK:
+        STATE_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with STATE_LOCK_PATH.open("a+b") as lock_file:
+            lock_file.seek(0, os.SEEK_END)
+            if lock_file.tell() == 0:
+                lock_file.write(b"0")
+                lock_file.flush()
+            lock_file.seek(0)
+            if os.name == "nt":
+                import msvcrt
+
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
+                try:
+                    yield
+                finally:
+                    lock_file.seek(0)
+                    msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+                try:
+                    yield
+                finally:
+                    fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 def load_state() -> dict[str, Any] | None:
@@ -138,21 +133,24 @@ def load_state() -> dict[str, Any] | None:
 
 def save_state(data: dict[str, Any] | None) -> None:
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if data is None:
-        if STATE_PATH.exists():
-            STATE_PATH.unlink()
-        return
-    temp_path = STATE_PATH.with_suffix(STATE_PATH.suffix + ".tmp")
-    try:
-        with temp_path.open("w", encoding="utf-8", newline="\n") as fh:
-            json.dump(data, fh, indent=2)
-            fh.write("\n")
-            fh.flush()
-            os.fsync(fh.fileno())
-        os.replace(temp_path, STATE_PATH)
-    finally:
-        if temp_path.exists():
-            temp_path.unlink()
+    temp_path = STATE_PATH.with_name(
+        f"{STATE_PATH.name}.tmp.{os.getpid()}.{id(data)}"
+    )
+    with state_file_lock():
+        if data is None:
+            if STATE_PATH.exists():
+                STATE_PATH.unlink()
+            return
+        try:
+            with temp_path.open("w", encoding="utf-8", newline="\n") as fh:
+                json.dump(data, fh, indent=2)
+                fh.write("\n")
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(temp_path, STATE_PATH)
+        finally:
+            if temp_path.exists():
+                temp_path.unlink()
 
 
 def _read_user_env(name: str) -> str:

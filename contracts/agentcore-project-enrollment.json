@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "default_policy": "deny",
+  "projects": [
+    {
+      "project_key": "agentcore-control-plane",
+      "name": "AgentCore Control Plane",
+      "paths": [
+        "D:\\github\\agentcore-control-plane"
+      ]
+    },
+    {
+      "project_key": "agentcore-context-engine",
+      "name": "AgentCore Context Engine",
+      "paths": [
+        "D:\\github\\agentcore-context-engine",
+        "D:\\agentcore-worktrees\\agentcore-context-engine"
+      ]
+    }
+  ],
+  "foreign_markers": [
+    "swarm-ecosystem-control",
+    "swarmrecall",
+    "swarmvault",
+    "swarmclaw",
+    "agentswarm",
+    "agent-swarm",
+    "swarm-agent",
+    "openclaw",
+    "open--claw",
+    "clawx"
+  ],
+  "foreign_roots": [
+    "D:\\github\\swarm-ecosystem-control",
+    "E:\\Swarm",
+    "F:\\AgentCore\\agentmemory",
+    "H:\\SwarmData"
+  ]
+}

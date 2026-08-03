@@ -1,6 +1,6 @@
 # Tentra Local Mode (AgentCore)
 
-**Updated:** 2026-07-12
+**Updated:** 2026-08-03
 **Registry id:** `tentra`
 **Pinned package:** `tentra-mcp@1.3.3` with `--local`
 
@@ -12,14 +12,18 @@ Tentra runs in **local explicit-project mode only** for AgentCore non-Swarm work
 F:\AgentCore\runtime\tentra\data
 ```
 
-Launch path:
+Approved ordinary-host launch path:
 
 ```text
-IDE -> agentcore-gateway -> tentra (Bifrost)
-      -> scripts/project_router/wrappers/tentra.cmd
-      -> child_launcher sets TENTRA_DATA_DIR + active project cwd
-      -> npx -y tentra-mcp@1.3.3 --local
+governed IDE/workflow host
+  -> explicit enrolled project cwd
+  -> TENTRA_DATA_DIR=F:\AgentCore\runtime\tentra\data
+  -> npx -y tentra-mcp@1.3.3 --local
 ```
+
+The retained project-router wrapper is operator-only maintenance/rollback
+material. It is not the ordinary IDE route while the shared Bifrost Tentra
+client is dormant.
 
 ## Rules
 

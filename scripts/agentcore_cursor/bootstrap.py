@@ -11,11 +11,18 @@ import json
 import os
 import re
 import subprocess
+import sys
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from agentcore_project_boundary import ProjectBoundaryError, require_enrolled_path
 
 from .gateway import GatewayClient, read_user_env
 
@@ -159,6 +166,10 @@ def resolve_project_key(root: Path) -> str:
     shared-process selection.
     """
     return root.name
+
+
+def validate_workspace_enrollment(root: Path) -> None:
+    require_enrolled_path(root)
 
 
 def read_projections(root: Path) -> dict[str, str]:
@@ -467,6 +478,12 @@ def run_bootstrap(
         "startup_context_automatically_injected": False,
         "current_prompt_captured_before_tools": False,
     }
+
+    try:
+        validate_workspace_enrollment(root)
+    except ProjectBoundaryError as exc:
+        result.error = str(exc)
+        return result
 
     try:
         gw = GatewayClient()

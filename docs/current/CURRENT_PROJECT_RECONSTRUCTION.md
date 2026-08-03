@@ -194,7 +194,7 @@ Exact ten `agentcore-memory` tools (`PROJECT_ANCHOR.md` §5):
 | E: | Cold archive / backups |
 | F: | PG18 hot data (`F:\PostgreSQL18\data`); PG16 path legacy |
 | G: | Backup target |
-| H: | Bifrost / AgentRuntime (`H:\AgentRuntime\bifrost`) |
+| H: | Neutral Recall / Swarm-owned hot data only; historical `H:\AgentRuntime` is not the AgentCore runtime home |
 | I: | Scratch |
 | J: | Portable |
 

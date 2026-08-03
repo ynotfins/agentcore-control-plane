@@ -156,7 +156,9 @@ mandatory_rules:
     title: Context Fabric checkpoints
     rule: >-
       Run Context Fabric capture and drift checks at every Milestone entry and exit, and at
-      project bootstrap. Unresolved drift blocks Milestone closure.
+      project bootstrap. A failed capture or confirmed semantic drift blocks Milestone closure.
+      Raw Windows drift counts affected by the Context Fabric 1.0.7 Git-blob/working-tree CRLF
+      defect are advisory until normalized against Git object identity.
 
   - id: arabold-docs
     title: Arabold exact-version documentation
@@ -298,6 +300,7 @@ task_class_gates:
     rule: "Mandatory for high-leverage architecture scans, system maps, or cross-service boundary reviews; do not invoke it for routine single-file edits. Keep it project-scoped and report the limitation if unavailable."
 
 references:
+  project_enrollment: contracts/agentcore-project-enrollment.json
   project_execution_policy: contracts/project-execution-policy.json
   tool_lifecycle_policy: contracts/project-tool-lifecycle.json
   bifrost_registry: contracts/bifrost-upstream-mcp-registry.json
