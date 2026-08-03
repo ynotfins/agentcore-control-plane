@@ -551,12 +551,14 @@ def _set_prompt_capture_flag(root_path: Path, *, captured: bool) -> bool:
 def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
     """Return whether a command mutates files and its safely resolved target."""
     mutator_pattern = r"(?i)\b(?:" + "|".join(SHELL_FILE_MUTATORS) + r")\b"
-    if re.search(mutator_pattern, command) and re.search(r";|&&|\|\|", command):
-        return True, None
     redirect = re.search(
         r"(?<!>)>{1,2}\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|]+))",
         command,
     )
+    if re.search(r";|&&|\|\|", command) and (
+        re.search(mutator_pattern, command) or redirect
+    ):
+        return True, None
     if redirect:
         return True, next((value for value in redirect.groups() if value), None)
 
@@ -575,16 +577,59 @@ def _shell_file_mutation_target(command: str) -> tuple[bool, str | None]:
 
     mutator = tokens[command_index].strip("'\"").lower()
     tail = tokens[command_index + 1 :]
-    explicit_names = (
+    target_value_names = (
         {"-destination", "-newname"}
         if mutator in {"move-item", "copy-item", "rename-item"}
         else {"-literalpath", "-path", "-filepath"}
     )
-    for index, token in enumerate(tail[:-1]):
-        if token.lower() in explicit_names:
-            return True, tail[index + 1].strip("'\"")
+    option_value_names = {
+        "-encoding",
+        "-value",
+        "-inputobject",
+        "-filter",
+        "-include",
+        "-exclude",
+        "-stream",
+        "-width",
+        "-itemtype",
+    }
+    if mutator in {"move-item", "copy-item", "rename-item"}:
+        option_value_names.update({"-literalpath", "-path"})
+    flag_names = {
+        "-force",
+        "-whatif",
+        "-confirm",
+        "-passthru",
+        "-nonewline",
+        "-append",
+        "-noclobber",
+        "-recurse",
+    }
+    positional: list[str] = []
+    explicit_target: str | None = None
+    index = 0
+    while index < len(tail):
+        token = tail[index]
+        normalized = token.strip("'\"")
+        if normalized.startswith("-"):
+            option = normalized.lower()
+            if option in target_value_names or option in option_value_names:
+                if index + 1 >= len(tail) or tail[index + 1].startswith("-"):
+                    return True, None
+                value = tail[index + 1].strip("'\"")
+                if option in target_value_names:
+                    explicit_target = value
+                index += 2
+                continue
+            if option in flag_names:
+                index += 1
+                continue
+            return True, None
+        positional.append(normalized)
+        index += 1
 
-    positional = [token.strip("'\"") for token in tail if token and not token.startswith("-")]
+    if explicit_target:
+        return True, explicit_target
     if not positional:
         return True, None
     if mutator in {"move-item", "copy-item", "rename-item"}:

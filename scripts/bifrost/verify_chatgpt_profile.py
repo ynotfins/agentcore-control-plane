@@ -15,6 +15,8 @@ Tests:
 
 import json
 import os
+import subprocess
+import sys
 import urllib.request
 import urllib.error
 import winreg
@@ -24,6 +26,7 @@ from typing import Any
 BIFROST_URL = "http://127.0.0.1:8080"
 PROXY_URL = "http://127.0.0.1:18081"
 RUNTIME_CONFIG = Path(r"F:\AgentCore\runtime\bifrost\config.json")
+CONTRACT_VALIDATOR = Path(__file__).with_name("validate_contracts.py")
 
 EXPECTED_APPROVED_TOOLS = {
     # agentcore_memory (9)
@@ -93,6 +96,22 @@ def check_health(url: str, path: str = "/health") -> tuple[bool, str]:
         return False, str(e)
 
 
+def run_contract_validator() -> tuple[bool, str]:
+    """Run the canonical contract gate without exposing configuration contents."""
+    try:
+        result = subprocess.run(
+            [sys.executable, str(CONTRACT_VALIDATOR)],
+            cwd=str(CONTRACT_VALIDATOR.parents[2]),
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return False, type(exc).__name__
+    return result.returncode == 0, f"exit={result.returncode}"
+
+
 def check_profile_config() -> tuple[bool, dict[str, Any], list[str]]:
     errors = []
     if not RUNTIME_CONFIG.exists():
@@ -126,7 +145,7 @@ def check_profile_config() -> tuple[bool, dict[str, Any], list[str]]:
     if set(found_clients.get("agentcore_memory", [])) != expected_mem:
         errors.append(f"agentcore_memory tool mismatch: got {found_clients.get('agentcore_memory')}")
 
-    if found_clients.get("agentcore_project_router"):
+    if "agentcore_project_router" in found_clients:
         errors.append(
             "agentcore_project_router must be absent from the ordinary ChatGPT profile: "
             f"got {found_clients.get('agentcore_project_router')}"
@@ -317,7 +336,9 @@ def main() -> int:
             has_output_schema = "outputSchema" in t and bool(t["outputSchema"])
             has_annotations = "annotations" in t and bool(t["annotations"])
             print(f"  - {t['name']:<42} inputSchema={has_input_schema:<5} outputSchema={has_output_schema:<5} annotations={has_annotations}")
-    return 0 if all((ok, ok_proxy, ok_cfg, ok_direct, ok_proxy_mcp, ok_deny)) else 1
+    ok_contracts, contract_detail = run_contract_validator()
+    print(f"Contract validator: {'PASS' if ok_contracts else 'FAIL'} -> {contract_detail}")
+    return 0 if all((ok, ok_proxy, ok_cfg, ok_direct, ok_proxy_mcp, ok_deny, ok_contracts)) else 1
 
 if __name__ == "__main__":
     raise SystemExit(main())

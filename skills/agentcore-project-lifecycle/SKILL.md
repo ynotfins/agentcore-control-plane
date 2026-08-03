@@ -22,7 +22,7 @@ Orchestrates governed project initialization (Milestone 0 Bootstrap) and Milesto
 AUTHORITY & PRECONDITIONS
 ============================================================
 
-1. **Routing**: Route all tools strictly through Bifrost `agentcore-gateway` (`http://127.0.0.1:8080/mcp`).
+1. **Routing**: Route every MCP integration strictly through Bifrost `agentcore-gateway` (`http://127.0.0.1:8080/mcp`). Execute approved repository-local commands locally with `cwd=<absolute_project_root>`. Project-scoped host adapters must follow their documented identity and path boundary.
    - Memory: `agentcore_memory` (`session_open`, `startup_context`, `append_event`, `retrieve_context`, `expand_source`, `build_handoff`, `session_close`)
    - Docs: `arabold_docs` (`search_docs`, `fetch_url`)
    - Machine-global `agentcore_project_router` tools are operator-maintenance only and are never required or invoked by this skill.
@@ -51,6 +51,9 @@ Use when initializing a new project or onboarding an un-governed repository.
    `agentcore_memory-session_open(project_key="<project_key>", project_root="<absolute_project_root>", client_key="<host-client-key>", agent_key="project-lifecycle", session_key="<stable-task-key>")`
 2. Retrieve startup context:
    `agentcore_memory-startup_context(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`
+3. Before any project-file write, append the redacted bootstrap request through the signed host adapter:
+   `agentcore_memory-append_event(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>", event_kind="prompt", idempotency_key="m0-bootstrap-request-<sha256(project_key|session_key|redacted-request)>", payload={"source":"project-lifecycle","request":"<redacted-operator-request>"})`
+   The payload must exclude secrets and volatile timestamps so replay produces the same deterministic key.
 
 ### Step 1.3: Governance Files Scaffolding
 Create missing `.agentcore/` files from `@D:\github\agentcore-control-plane\templates\project-governance\.agentcore`:
@@ -78,7 +81,7 @@ Flag any missing items as `TODO` in `PROJECT_CHARTER.md` and `state.json`.
 2. Query/index project dependencies in Arabold Docs: `arabold_docs-search_docs(query="...")`.
 
 ### Step 1.6: Record Bootstrap Evidence
-Append bootstrap completion event:
+Append the redacted bootstrap completion event through the same signed host adapter using a deterministic key:
 `agentcore_memory-append_event(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>", event_kind="accepted_evidence", idempotency_key="m0-bootstrap-<deterministic-key>", payload={...})`
 
 ============================================================
@@ -108,10 +111,11 @@ Use upon completing all Micro steps in a Milestone.
 3. **Verify Micro Step Evidence**: Ensure every Micro step in `.agentcore/checklists/state.json` has `status: "passed"` and a valid `evidence_ref` (file path, commit hash, test transcript).
 4. **Record Decisions**: Document architectural decisions in `.agentcore/DECISIONS.md`.
 5. **Update Projections**: Execute `Invoke-M3ProjectionWorker.ps1` to update `.agentcore/STATE.md`.
-6. **Build Handoff**: Construct the handoff via `agentcore_memory-build_handoff(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`.
-7. **Close Session**: Close via `agentcore_memory-session_close(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`.
-8. **Audit & Release Leases**: Update `.agentcore/TOOL_MANIFEST.yaml` tool lifecycle audit.
-9. **Git Commit & Push**: Stage source-controlled files, commit with concise message, and push to remote (`docs/GIT_PUSH_ONLY_POLICY.md`).
+6. **Record Completion**: Append a signed, redacted, deterministic `accepted_evidence` completion event before handoff.
+7. **Build Handoff**: Construct the handoff via `agentcore_memory-build_handoff(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`.
+8. **Close Session**: Close via `agentcore_memory-session_close(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`.
+9. **Audit & Release Leases**: Update `.agentcore/TOOL_MANIFEST.yaml` tool lifecycle audit.
+10. **Git Commit & Push**: Stage source-controlled files, commit with concise message, and push to remote (`docs/GIT_PUSH_ONLY_POLICY.md`).
 
 ============================================================
 SELF-HEALING & IDEMPOTENCY

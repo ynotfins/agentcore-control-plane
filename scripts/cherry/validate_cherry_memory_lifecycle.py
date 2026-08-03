@@ -77,7 +77,7 @@ class McpClient:
         identity = self._device_identity_manager()
         enrollment = identity.initialize()
         if bare_tool == "session_open":
-            signed.setdefault("device_id", enrollment.device_id)
+            signed["device_id"] = enrollment.device_id
         assertion = identity.sign_tool_call(
             target_tool=bare_tool,
             arguments=signed,

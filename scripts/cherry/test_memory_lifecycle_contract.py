@@ -27,7 +27,11 @@ def test_cherry_validator_signs_memory_calls_with_device_identity() -> None:
     with patch.object(client, "_device_identity_manager", return_value=identity):
         signed = client._signed_tool_arguments(
             "agentcore_memory-session_open",
-            {"project_key": "agentcore-control-plane", "project_root": r"D:\\github\\agentcore-control-plane"},
+            {
+                "project_key": "agentcore-control-plane",
+                "project_root": r"D:\github\agentcore-control-plane",
+                "device_id": "caller-controlled-device",
+            },
         )
 
     assert signed["device_id"] == "device-test"

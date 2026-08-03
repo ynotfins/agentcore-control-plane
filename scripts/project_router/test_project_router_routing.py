@@ -314,6 +314,26 @@ class ProjectRouterRoutingTests(unittest.TestCase):
         self.assertEqual(save_state.call_args_list[0].args, (None,))
         self.assertEqual(save_state.call_args_list[1].args, (previous,))
 
+    def test_rollback_state_write_failure_is_sanitized_and_does_not_reconnect(self) -> None:
+        server = load_module("agentcore_project_router_rollback_write_failure_test", HERE / "server.py")
+        previous = {"id": "previous", "path": r"D:\github\previous", "name": "previous"}
+
+        with (
+            patch.object(
+                server,
+                "_save_state_unlocked",
+                side_effect=OSError("sensitive state write detail"),
+            ),
+            patch.object(server, "reconnect_router_clients") as reconnect,
+        ):
+            result = server._rollback_router_transition(previous)
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["error"], "project_scoped_rollback_state_write_exception")
+        self.assertEqual(result["failure_class"], "OSError")
+        self.assertNotIn("sensitive", json.dumps(result))
+        reconnect.assert_not_called()
+
     def test_bifrost_admin_base_must_be_loopback(self) -> None:
         server = load_module("agentcore_project_router_loopback_test", HERE / "server.py")
 

@@ -65,9 +65,9 @@ Swarm MCP route, second IDE gateway, or model-inference reroute was introduced.
 | Gate | Result |
 | --- | --- |
 | AgentCore memory tests | PASS — 61 |
-| Cursor lifecycle and Serena-policy tests | PASS — 23 |
-| Workflow and project-boundary tests | PASS — 77 |
-| Router, Bifrost, and Cherry tests | PASS — 29 |
+| Cursor lifecycle and Serena-policy tests | PASS — 26 |
+| Workflow and project-boundary tests | PASS — 78 |
+| Router, Bifrost, and Cherry tests | PASS — 32 |
 | Portable Context Engine | PASS — 110 at `82450b8c3b3884d12e2e1eece22b5771484e8686` |
 | Bifrost contract unit suite | PASS — 136 |
 | Cursor Stage B comprehensive suite | PASS — 26/26, including 100 protocol iterations and deterministic LangGraph fixture |
@@ -84,7 +84,13 @@ and Serena wrapper calls were unavailable in this session.
 
 ## Independent review
 
-- CodeRabbit committed-diff review: **PENDING FINAL COMMIT**.
+- CodeRabbit committed-diff review of `663eb4f` completed with 12 findings. All
+  were reproduced and closed with focused regression tests: worktree creation
+  ordering, rollback state-write handling, exact Windows test paths, safe
+  PowerShell option/redirect parsing, contract-validator coupling, enrolled
+  device override, empty-router-profile rejection, signed bootstrap evidence,
+  routing wording, Cherry enrollment stop, and pending-evidence wording. A
+  fresh review of the remediation commit remains required.
 - Cursor GPT-5.6 Sol exact-SHA control-plane review: **PENDING FINAL COMMIT**.
 - Cursor GPT-5.6 Sol exact-SHA portable Context Engine review: **PENDING**.
 

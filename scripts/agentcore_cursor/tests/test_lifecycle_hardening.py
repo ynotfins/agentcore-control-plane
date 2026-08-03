@@ -61,7 +61,7 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         rejected = bootstrap.BootstrapResult(
             ok=False,
             project_key="agentcore-control-plane",
-            project_root=r"D:\\github\\agentcore-control-plane",
+            project_root=r"D:\github\agentcore-control-plane",
             error="startup_context failed",
         )
         with (
@@ -70,7 +70,7 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         ):
             result = hooks.handle_before_submit(
                 {
-                    "workspace_roots": [r"D:\\github\\agentcore-control-plane"],
+                    "workspace_roots": [r"D:\github\agentcore-control-plane"],
                     "prompt": "operator request",
                 }
             )
@@ -92,7 +92,7 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         ):
             result = hooks.handle_before_submit(
                 {
-                    "workspace_roots": [r"D:\\github\\agentcore-control-plane"],
+                    "workspace_roots": [r"D:\github\agentcore-control-plane"],
                     "prompt": "operator request",
                 }
             )
@@ -167,8 +167,8 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         with patch.object(hooks, "handle_pre_tool", return_value=denied) as pre_tool:
             result = hooks.handle_before_shell(
                 {
-                    "workspace_roots": [r"D:\\github\\agentcore-control-plane"],
-                    "command": r"Set-Content D:\\github\\agentcore-control-plane\\x.txt value",
+                    "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "command": r"Set-Content D:\github\agentcore-control-plane\x.txt value",
                 }
             )
 
@@ -183,8 +183,8 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         with patch.object(hooks, "handle_pre_tool", return_value=denied) as pre_tool:
             result = hooks.handle_before_shell(
                 {
-                    "workspace_roots": [r"D:\\github\\agentcore-control-plane"],
-                    "command": r"Set-Content D:\\github\\agentcore-control-plane\\undeclared.txt value",
+                    "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "command": r"Set-Content D:\github\agentcore-control-plane\undeclared.txt value",
                 }
             )
 
@@ -195,13 +195,37 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         with patch.object(hooks, "handle_pre_tool", return_value={"permission": "allow"}):
             result = hooks.handle_before_shell(
                 {
-                    "workspace_roots": [r"D:\\github\\agentcore-control-plane"],
+                    "workspace_roots": [r"D:\github\agentcore-control-plane"],
                     "command": "Set-Content first.txt one; Set-Content second.txt two",
                 }
             )
 
         self.assertEqual(result["permission"], "deny")
         self.assertIn("not safely resolvable", result["user_message"])
+
+    def test_shell_mutation_parser_skips_known_option_values(self) -> None:
+        is_mutation, target = hooks._shell_file_mutation_target(
+            "Set-Content -Encoding utf8 out.txt data"
+        )
+
+        self.assertTrue(is_mutation)
+        self.assertEqual(target, "out.txt")
+
+    def test_shell_mutation_parser_denies_unknown_switch(self) -> None:
+        is_mutation, target = hooks._shell_file_mutation_target(
+            "Set-Content -Unknown value out.txt data"
+        )
+
+        self.assertTrue(is_mutation)
+        self.assertIsNone(target)
+
+    def test_compound_redirect_is_not_treated_as_one_safe_target(self) -> None:
+        is_mutation, target = hooks._shell_file_mutation_target(
+            "echo first > first.txt; echo second > second.txt"
+        )
+
+        self.assertTrue(is_mutation)
+        self.assertIsNone(target)
 
 
 if __name__ == "__main__":

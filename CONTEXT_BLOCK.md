@@ -19,7 +19,7 @@ Read `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` before this f
 
 | Area | Current fact | Evidence/status |
 | --- | --- | --- |
-| Repository | `D:\github\agentcore-control-plane`, branch `main`; v0.9.1 release candidate live-proven on 2026-08-03 | Git; inherited Langfuse/M6-M8 WIP remains unstaged; exact final commit and independent review are recorded in the current acceptance audit |
+| Repository | `D:\github\agentcore-control-plane`, branch `main`; v0.9.1 live validation proven on 2026-08-03 | Git; inherited Langfuse/M6-M8 WIP remains unstaged; final commit, independent reviews, push, and final capture remain pending in the current acceptance audit |
 | Bifrost | Native `2.0.0-prerelease1` under `F:\AgentCore\runtime\bifrost`; scheduled owner `\AgentCore\AgentCore-Bifrost-Gateway`; `127.0.0.1:8080/health` healthy | Live status and gateway acceptance pass |
 | IDE MCP front door | Exactly one `agentcore-gateway` at `http://127.0.0.1:8080/mcp` | Cursor live config: one entry, environment-backed bearer, no MCP_DOCKER |
 | Gateway surface | Builder profile: 57 tools, exact 10 memory, zero router, at least 3 skills-hub. Operator profile: 24 tools, exact 10 memory and 4 router controls | Live authenticated `Get-BifrostStatus.ps1` probes after governed rollout; implicit-project Serena/Depwire/Tentra/filesystem/Context-Fabric upstreams dormant |

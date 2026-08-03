@@ -29,8 +29,9 @@ At the beginning of project work:
 
 1. Identify the exact enrolled `project_key` and absolute repository/worktree root.
 2. Verify that exact pair against the AgentCore enrollment contract; do not mutate machine-global project-router state.
+   If the pair is absent or mismatched, stop with `project_not_enrolled` before reading project state, opening a session, or performing any project-scoped work.
 3. Supply the same exact `project_key` and `project_root` on every project-scoped memory call.
-4. Read the generated project .agentcore/STATE.md when available.
+4. Read the generated project .agentcore/STATE.md when available only after enrollment succeeds.
 5. Open or resume an AgentCore session using:
        client_key = cherry-studio
        agent_key  = cherry-studio-assistant

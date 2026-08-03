@@ -275,8 +275,13 @@ def cmd_init(args: argparse.Namespace) -> int:
         print(f"ERROR: workflow project boundary rejected identity: {exc}", file=sys.stderr)
         return 2
 
+    try:
+        worktree_path.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        print("ERROR: workflow worktree could not be created", file=sys.stderr)
+        return 2
+
     project_id = _ensure_project(project_key, project_name, target_str)
-    worktree_path.mkdir(parents=True, exist_ok=True)
 
     # Optional git remote capture (no fetching, no push)
     remote = args.git_remote or ""

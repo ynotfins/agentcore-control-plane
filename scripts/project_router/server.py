@@ -395,7 +395,14 @@ def _match_project(projects: list[dict[str, str]], path: str | None, pid: str | 
 
 def _rollback_router_transition(previous: dict[str, Any] | None) -> dict[str, Any]:
     """Restore the prior state and reconnect without exposing exception text."""
-    _save_state_unlocked(previous)
+    try:
+        _save_state_unlocked(previous)
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "ok": False,
+            "error": "project_scoped_rollback_state_write_exception",
+            "failure_class": type(exc).__name__,
+        }
     try:
         return reconnect_router_clients()
     except Exception as exc:  # noqa: BLE001
