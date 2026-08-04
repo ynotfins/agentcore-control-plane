@@ -674,7 +674,7 @@ def run_builder_worker(
     )
 
     system_prompt, langfuse_prompt = compile_builder_system_prompt(
-        worktree=str(root),
+        worktree="/",
         agentcore_context=agentcore_context,
         task=task,
     )
@@ -861,7 +861,7 @@ def run_critic_worker(
     )
 
     system_prompt, langfuse_prompt = compile_critic_system_prompt(
-        worktree=str(root),
+        worktree="/",
         agentcore_context=agentcore_context,
         task=task,
         rubric=rubric,

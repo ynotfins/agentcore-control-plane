@@ -208,6 +208,17 @@ def test_no_memory_middleware_or_postgres_in_worker():
     assert "/conversation_history/" in backend
 
 
+def test_worker_prompts_use_virtual_filesystem_root() -> None:
+    """Models must not receive physical Windows paths for virtual backend tools."""
+    import inspect
+
+    builder_source = inspect.getsource(run_builder_worker)
+    critic_source = inspect.getsource(run_critic_worker)
+
+    assert 'compile_builder_system_prompt(\n        worktree="/",' in builder_source
+    assert 'compile_critic_system_prompt(\n        worktree="/",' in critic_source
+
+
 def test_validate_worktree_still_blocks_forbidden_drives():
     with pytest.raises(PermissionError):
         _validate_worktree("C:\\Windows")
