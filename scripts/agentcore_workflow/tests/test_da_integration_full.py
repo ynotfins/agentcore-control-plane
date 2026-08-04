@@ -461,6 +461,25 @@ def test_da_critic_finding_reaches_scorer_and_can_affect_verdict():
     )
     assert judge_result3.get("post_exec_verdict") in ("proceed", "needs_operator")
 
+    # ── Part 5: critic infrastructure failure always blocks ───────────────────
+    critic_runtime_failure = {
+        "status": "failed",
+        "passed": False,
+        "score": 0.0,
+        "findings": [],
+        "error": "GraphRecursionError: bounded critic did not complete",
+    }
+    judge_state4 = {
+        **base_state,
+        "da_critic_result": critic_runtime_failure,
+        "score": 1.0,
+    }
+    judge_result4 = node_post_exec_judge(judge_state4)
+
+    assert judge_result4["next_action"] == "workflow_fail"
+    assert judge_result4["post_exec_verdict"] == "block"
+    assert "critic status='failed'" in judge_result4["errors"][0]
+
 
 def test_da_enabled_routing(proj_a_id):
     """da_enabled flag set by risk_assess when worktree exists and DA is available."""

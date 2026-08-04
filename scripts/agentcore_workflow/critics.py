@@ -403,6 +403,17 @@ def post_execution_judge(
     da_critic_score: float = float(da_critic_result.get("score", 1.0))
     da_critic_passed: bool = bool(da_critic_result.get("passed", True))
     da_findings: list = da_critic_result.get("findings", [])
+    da_critic_status = str(da_critic_result.get("status", "completed"))
+    da_critic_error = str(da_critic_result.get("error") or "")
+
+    # A critic that did not complete produced no trustworthy review.  This is
+    # infrastructure failure, not an advisory quality finding, so it must fail
+    # closed regardless of the pre-execution score.
+    if da_critic_status in ("error", "failed"):
+        return "block", (
+            f"Post-execution: critic status='{da_critic_status}' and did not "
+            f"produce valid review evidence. Critic error: {da_critic_error}"
+        )
 
     # Combine pre-execution score with DA critic review quality
     combined_score = round(0.70 * pre_exec_score + 0.30 * da_critic_score, 4)

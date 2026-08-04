@@ -57,7 +57,7 @@ DEFAULT_MAX_SUBAGENTS = int(os.environ.get("AGENTCORE_DA_MAX_SUBAGENTS", "0"))
 DEFAULT_MAX_REWORK = int(os.environ.get("AGENTCORE_DA_MAX_REWORK", "2"))
 DEFAULT_TOKEN_BUDGET = int(os.environ.get("AGENTCORE_DA_TOKEN_BUDGET", "32000"))
 DEFAULT_BUILDER_MAX_ITER = int(os.environ.get("AGENTCORE_DA_MAX_ITERATIONS_BUILDER", "3"))
-DEFAULT_CRITIC_MAX_ITER = int(os.environ.get("AGENTCORE_DA_MAX_ITERATIONS_CRITIC", "2"))
+DEFAULT_CRITIC_MAX_ITER = int(os.environ.get("AGENTCORE_DA_MAX_ITERATIONS_CRITIC", "3"))
 DEFAULT_VRAM_SLOTS = int(os.environ.get("AGENTCORE_DA_VRAM_SLOTS", "1"))
 
 # Process-local admission controls (not cross-process; gate_resource also checks).

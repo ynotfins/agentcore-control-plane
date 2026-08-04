@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from agentcore_workflow.deepagents_worker import _worker_invoke_config
+from agentcore_workflow.deepagents_worker import (
+    DEFAULT_CRITIC_MAX_ITER,
+    _worker_invoke_config,
+)
 from agentcore_workflow.nodes import node_da_critic
 from agentcore_workflow.state import initial_state
 
@@ -100,3 +103,14 @@ def test_worker_iteration_budget_uses_langgraph_recursion_limit() -> None:
 
     assert config["recursion_limit"] == 13
     assert "max_iterations" not in config["configurable"]
+
+
+def test_critic_default_budget_allows_bounded_read_and_review_cycle() -> None:
+    assert DEFAULT_CRITIC_MAX_ITER == 3
+    config = _worker_invoke_config(
+        role="critic",
+        thread_uuid="thread-id",
+        max_iterations=DEFAULT_CRITIC_MAX_ITER,
+    )
+
+    assert config["recursion_limit"] == 13
