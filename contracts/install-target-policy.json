@@ -25,7 +25,7 @@
     "agentcore": {
       "hot_root": "F:\\AgentCore",
       "postgres18_data": "F:\\PostgreSQL18\\data",
-      "staging": "I:\\AgentCore\\staging",
+      "staging": "F:\\AgentCore\\staging",
       "backup_root": "E:\\AgentCore",
       "third_party_direct_use_allowed": false
     },

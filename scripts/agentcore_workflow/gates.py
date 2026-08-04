@@ -30,7 +30,7 @@ ALLOWED_WORKTREE_ROOTS = (
     Path(r"D:\agentcore-worktrees"),
     Path(r"D:\agentcore-fixture"),
     Path(r"D:\test"),
-    Path(r"I:\AgentCoreScratch"),
+    Path(r"F:\AgentCore\staging"),
 )
 SECRET_PATTERNS = (
     re.compile(r"(?i)(password|secret|api[_-]?key|token)\s*[=:]\s*['\"]?[^\s'\"]{8,}"),

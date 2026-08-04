@@ -9,7 +9,7 @@
 - Secondary backup copy: `G:\AgentCoreArchive\agentcore-memory\backups\pg18`.
 - WAL archive: `E:\AgentCoreArchive\agentcore-memory\wal\pg18`.
 - WAL DR copy: `G:\AgentCoreArchive\agentcore-memory\wal\pg18`.
-- Restore test roots: `I:\AgentCoreRestoreTests\pg18*` (disposable).
+- Restore test roots: `F:\AgentCore\staging\restore-tests\pg18*` (disposable).
 
 ## Commands
 

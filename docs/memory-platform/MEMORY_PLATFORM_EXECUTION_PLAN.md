@@ -104,24 +104,24 @@ C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
 - Required databases and least-privilege service roles exist.
 - Old PostgreSQL cluster remains preserved and recoverable.
 - Rollback is proven.
-- No durable database, WAL, checkpoint, queue, or lock workload is placed on I: or E:.
+- No AgentCore durable database, WAL, checkpoint, queue, or lock workload is placed on I: or E:. Neutral local applications may own isolated native databases under `I:\LocalApps\<AppName>` only.
 
-**Live storage state (2026-07-14 evidence):**
+**Historical M1 storage evidence (2026-07-14; superseded for I: role by `AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE`):**
 - E:, F:, H: already 65536-byte (64KB) allocation units — verified, no correction needed
-- I: has 512-byte allocation units, is **empty** — correction to NTFS/64KB is authorized and safe
+- I: was then empty and misformatted; later accepted evidence established NTFS/64KB, and its current role is neutral `I:\LocalApps` hot data
 - F: PG16 cluster stopped (155,432 not listening); 3722 GB free beside ~3.4 GB used content
 
-**Acceptance tests:** I: formatted and service health verified; restore a logical backup into a disposable database and verify row counts/hashes; PG18 service starts under native Windows lifecycle ownership; `CREATE EXTENSION vector` succeeds; role matrix (`agentcore_read/ingest/worker/admin/backup/cognee`) verified with negative permission tests; old PG16 cluster still starts; no workload on I: or E:.
+**Acceptance tests:** retained I: NTFS/64KB evidence and neutral LocalApps classification verified; restore a logical backup into a disposable database and verify row counts/hashes; PG18 service starts under native Windows lifecycle ownership; `CREATE EXTENSION vector` succeeds; role matrix (`agentcore_read/ingest/worker/admin/backup/cognee`) verified with negative permission tests; old PG16 cluster still starts; no AgentCore workload on I: or primary SQL workload on E:.
 
 **Rollback point:** pre-format manifests/backups and PG16 cluster untouched at `F:\AgentCore\database_cluster`. PG18 uses a **new data directory** on F:; never point PG18 at the PG16 data directory.
 
-**Required evidence:** allocation-unit verification report, I: format manifest with hash (empty — no data to preserve), backup manifests with hashes, restore-test transcript, service configuration, role grants dump (no credentials).
+**Required evidence:** allocation-unit verification report, retained historical I: correction evidence plus current neutral-tier classification, backup manifests with hashes, restore-test transcript, service configuration, role grants dump (no credentials).
 
 **Dependencies:** M0.
 
 **Macro guidance (refined from live evidence — see M1 execution plan below):**
-1. Verify and record allocation units for all four drives (E:, F:, H:, I:) — three already correct, I: needs correction; retain H: for neutral/Swarm-owned data, never AgentCore runtime
-2. Quick-format I: to NTFS/64KB (I: confirmed empty; no data at risk; physical disk identity verified first per BLUEPRINT §4)
+1. Verify and record allocation units for all four drives (E:, F:, H:, I:); preserve current I: NTFS/64KB as neutral LocalApps storage and retain H: for neutral/Swarm-owned data, never AgentCore runtime
+2. Preserve the accepted NTFS/64KB I: volume as the neutral `I:\LocalApps` hot-data tier; do not format it as part of later AgentCore work
 3. Bring PG16 online and inventory databases/roles/schemas
 4. Logical backup (`pg_dump`) via existing `ops/Backup-AgentCorePostgres.ps1` to E: and G:
 5. Physical backup (`pg_basebackup`) to E:\AgentCoreArchive

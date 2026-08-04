@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md — AgentCore Universal IDE Self-Enrollment Package
 
-**Updated:** 2026-08-04 — current-release truth, repository-owned LangGraph runtime, and documentation drift controls reconciled under `AUTH-2026-08-04-AGENTCORE-LANGGRAPH-DOC-RECONCILIATION`; single-gateway contract unchanged.
+**Updated:** 2026-08-04 — neutral LocalApps storage and AgentCore staging reconciled under `AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE`; single-gateway contract unchanged.
 **Repository:** `@D:\github\agentcore-control-plane`
 **Authority:** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → current contracts/runbooks
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`, `contracts/global-agent-policy.yaml`, `contracts/model-context-profiles.json`
@@ -19,7 +19,7 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 | --- | --- |
 | AgentCore repository / design authority | `@D:\github\agentcore-control-plane` |
 | AgentCore hot runtime / data namespace | `F:\AgentCore\...` |
-| AgentCore staging | `I:\AgentCore\staging` |
+| AgentCore staging | `F:\AgentCore\staging` |
 | Third-party local app hot data | `I:\LocalApps\...` |
 | AgentCore cold / backup namespace | `E:\AgentCore\...` only |
 | Swarm hot runtime / data | `H:` exclusively (after AgentCore relocation and acceptance cutover) |
@@ -32,6 +32,7 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 - Neutral shared SwarmRecall is the sole bounded exception under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own adapter. It is a semantic projection, never canonical evidence, checkpoints, policy, or execution state.
 - No canonical resource may be jointly owned.
 - Third-party local apps must not place durable databases, vector stores, indexes, app data, runtime state, or persistent caches on `C:` or `D:`. Source repos may live on `D:`; durable local-app data defaults to `I:\LocalApps\<AppName>` and backups to `E:\LocalApps\Backups\<AppName>`.
+- `I:\LocalApps` is neutral application storage, not AgentCore or Swarm. Each application owns separate data, database, index, credential, service, log, backup, and recovery boundaries; no application receives raw access to another application's database.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
 - Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
 

@@ -108,7 +108,7 @@ class WorkflowState(TypedDict):
 
     # ── A/B alternate implementation (optional, bounded, high-risk only) ─────
     # Activated by node_risk_assess when ab_enabled=True (risk >= high, uncertainty >= 0.5).
-    # The B-path runs in an isolated git worktree on I: (disposable scratch) and is
+    # The B-path runs in an isolated worktree under F:\\AgentCore\\staging and is
     # archived to E:\\AgentCoreArchive\\ab-worktrees\\ after the run.
     # Low-risk work never creates an alt worktree; these fields remain empty.
     ab_alt_worktree_path: str  # path to isolated alternate worktree (I:\\ only); "" when unused

@@ -22,8 +22,8 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
 - Source authority = `D:\github\agentcore-control-plane`; `D:\MCP-Control-Plane` is evidence only.
 - Secrets: Windows User-scope environment variables only. Never print values; never create `.env`;
   never commit secrets, rendered PAT URLs, DB dumps, or `F:\AgentCore` runtime state.
-- Drives: `C:` OS/config, `D:` repos/projects/worktrees, `E:` archive/cold, `F:` AgentCore hot DB/RAG/search/runtime,
-  `G:` backup, `H:` reserved for Swarm hot runtime/data, `I:` disposable scratch,
+- Drives: `C:` OS/config, `D:` repos/projects/worktrees, `E:` archive/cold (neutral app backups under `E:\LocalApps\Backups`), `F:` AgentCore hot DB/RAG/search/runtime and staging,
+  `G:` backup, `H:` reserved for Swarm hot runtime/data, `I:` neutral local-application hot data under `I:\LocalApps`,
   `J:` portable media. PostgreSQL 18 `agent_core` / `cognee_core` uses `127.0.0.1:55433`;
   PostgreSQL 16 at `127.0.0.1:55432` is preserved only as offline rollback/legacy evidence.
   Neutral SwarmRecall owns its native PostgreSQL 16 backend at `127.0.0.1:65432`; AgentCore and

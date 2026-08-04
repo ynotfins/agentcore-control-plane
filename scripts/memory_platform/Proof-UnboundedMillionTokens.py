@@ -101,7 +101,7 @@ try:
     old_db = os.environ.get("AGENTCORE_PG_DATABASE")
     old_repo = os.environ.get("AGENTCORE_REPO_PATH")
     old_artifacts = os.environ.get("AGENTCORE_HOT_ARTIFACT_ROOT")
-    scratch = Path("I:/proof-scratch") / run_id
+    scratch = Path("F:/AgentCore/staging/proof-scratch") / run_id
     scratch.mkdir(parents=True, exist_ok=True)
     try:
         os.environ["AGENTCORE_PG_DATABASE"] = proof_db

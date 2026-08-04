@@ -7,6 +7,7 @@
 > **Operator approval (2026-07-12):** Bifrost MCP Gateway cutover — non-Swarm IDE single-gateway baseline.
 > **Operator approval (2026-07-14):** §0.1 Project Execution Boundaries; BLUEPRINT.md locked at hierarchy level 3.
 > **Operator approval (2026-07-31):** Ecosystem and drive separation reconciliation — AgentCore and Swarm are independent control planes; AgentCore hot namespace is `F:\AgentCore\...`; `H:` is reserved for Swarm after relocation acceptance.
+> **Operator approval (2026-08-04):** `AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE` — I: is the neutral `LocalApps` hot-data tier and AgentCore staging moves to `F:\AgentCore\staging`.
 
 ---
 
@@ -18,7 +19,7 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 | --- | --- |
 | AgentCore repository / design authority | `D:\github\agentcore-control-plane` |
 | AgentCore hot runtime / data namespace | `F:\AgentCore\...` |
-| AgentCore staging | `I:\AgentCore\staging` |
+| AgentCore staging | `F:\AgentCore\staging` |
 | Third-party local app hot data | `I:\LocalApps\...` |
 | AgentCore cold / backup namespace | `E:\AgentCore\...` only |
 | Swarm hot runtime / data | `H:` exclusively (after AgentCore relocation and acceptance cutover) |
@@ -93,7 +94,7 @@ Non-negotiable invariants for every AgentCore-managed project:
 | `F:`  | AgentCore dedicated hot NVMe: PostgreSQL 18, Bifrost/AgentRuntime under `F:\AgentCore\...`, memory hot artifacts, Tentra, MCP helpers, caches (access DB via service/API/CLI wrappers only) |
 | `G:`  | Second backup copy target only |
 | `H:`  | Reserved exclusively for Swarm hot runtime/data after AgentCore relocation acceptance. AgentCore must not place canonical runtime, data, or rollback here. |
-| `I:`  | Neutral local-app hot data under `I:\LocalApps\...` and AgentCore staging under `I:\AgentCore\staging`. Third-party app databases/vector stores/runtime data default here unless current authority grants a more specific root. |
+| `I:`  | Neutral local-application hot data under `I:\LocalApps\...`. It is not AgentCore or Swarm storage. Third-party app databases/vector stores/runtime data default here unless current authority grants a more specific root. |
 | `J:`  | Portable media / transfer only |
 
 Mutable path details, transitional leftover locations, and acceptance evidence live in `CONTEXT_BLOCK.md`, current handoffs, and audits — not here.

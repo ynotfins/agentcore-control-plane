@@ -1,11 +1,11 @@
 """AgentCore M6 A/B alternate worker.
 
-Creates an isolated git worktree on I: (disposable scratch per BLUEPRINT.md §3),
+Creates an isolated git worktree under F:\\AgentCore\\staging,
 runs a bounded DA alternate builder in it, archives the result to E:, and removes
 the worktree. Returns a result dict compatible with the da_builder_result schema.
 
 Boundaries (locked per BLUEPRINT.md + ADR-DEEP-AGENTS-WORKER-HARNESS.md):
-- The alternate worktree lives on I: only (disposable scratch drive).
+- The alternate worktree lives under the AgentCore staging root only.
 - The DA builder in the alternate worktree has the same FilesystemMiddleware bounds
   as the primary builder; it does NOT share state with the primary path.
 - All durable writes from the B path go through db.record_evidence() only.
@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 # Drive assignments per BLUEPRINT.md §3
-AB_WORKTREE_ROOT = Path("I:\\ab-worktrees")
+AB_WORKTREE_ROOT = Path("F:\\AgentCore\\staging\\ab-worktrees")
 AB_ARCHIVE_ROOT = Path("E:\\AgentCoreArchive\\ab-worktrees")
 REPO_PATH = Path("D:\\github\\agentcore-control-plane")
 
@@ -122,7 +122,7 @@ def run_ab_alternate_builder(
     """Run the DA builder in the isolated alternate worktree (B path).
 
     Uses the same deepagents_worker.run_builder_worker() as the primary (A) path
-    but with worktree_path set to the isolated I: worktree. The builder has
+    but with worktree_path set to the isolated AgentCore staging worktree. The builder has
     identical requirements and acceptance criteria as the A-path builder.
 
     Returns a result dict matching the da_builder_result schema, augmented with

@@ -94,5 +94,5 @@ Max latency:         3.680 ms
 - Cold backups, snapshots, exports, and raw large artifacts use `E:\AgentCoreArchive`.
 - Normal agents use `agentcore-gateway` → `agentcore-memory`, not direct SQL.
 - Trusted ingest/admin runners may use direct SQL only with explicit control-plane approval recorded in `D:\github\agentcore-control-plane` (never approved by `D:\MCP-Control-Plane`, which is evidence only).
-- The Bifrost gateway runtime lives at `F:\AgentCore\runtime\bifrost`. `I:` is disposable scratch; `J:` is portable media (see `PROJECT_ANCHOR.md` §2).
+- The Bifrost gateway runtime lives at `F:\AgentCore\runtime\bifrost`; AgentCore scratch/staging lives at `F:\AgentCore\staging`. `I:\LocalApps` is neutral application hot data, and `J:` is portable media (see `PROJECT_ANCHOR.md` §2).
 - The 128 GB NVMe is not part of the active design. Keep it as spare/scratch unless a future control-plane decision assigns it a specific role.

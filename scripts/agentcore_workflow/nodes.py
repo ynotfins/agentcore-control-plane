@@ -18,7 +18,7 @@ Node graph:
   micro_execute | post_exec_judge → evidence_record → next_step → gate_check | done
 
 A/B alternate path (high-risk only, ab_enabled=True):
-  After da_critic: node_ab_alternate creates isolated git worktree on I:,
+  After da_critic: node_ab_alternate creates an isolated AgentCore staging worktree,
   runs DA builder B-path, archives to E:, routes to post_exec_judge.
   post_exec_judge compares A (da_builder_result) vs B (ab_alt_result) and selects.
 
@@ -1350,7 +1350,7 @@ def node_ab_alternate(state: WorkflowState) -> dict:
     uncertainty_score >= 0.5). Low-risk work never reaches this node.
 
     Responsibilities:
-    1. Create an isolated detached git worktree on I: (disposable scratch).
+    1. Create an isolated detached git worktree under F:\\AgentCore\\staging.
     2. Run the same DA builder task with identical requirements/acceptance
        criteria as the A-path (da_builder), but in the isolated worktree.
     3. Archive minimal result metadata to E:\\AgentCoreArchive\\ab-worktrees\\.
@@ -1361,8 +1361,8 @@ def node_ab_alternate(state: WorkflowState) -> dict:
     and select the better implementation.
 
     Isolation guarantees:
-    - B-path worktree is on I: only; never shares files with primary worktree.
-    - B-path DA builder uses FilesystemMiddleware scoped to the I: worktree.
+    - B-path worktree is under AgentCore staging only; never shares files with primary worktree.
+    - B-path DA builder uses FilesystemMiddleware scoped to the staging worktree.
     - All durable writes from B go through db.record_evidence() only.
     - The primary checkpoint (PostgresSaver) is not affected by the B path.
     """
@@ -1383,7 +1383,7 @@ def node_ab_alternate(state: WorkflowState) -> dict:
         f"Milestone: {state.get('milestone_key', 'M6')}\n"
         f"Micro step: {micro_key}\n"
         f"Risk class: {state.get('current_risk_class', 'high')}\n"
-        f"A/B path: ALTERNATE (B) — isolated worktree on I:\n"
+        f"A/B path: ALTERNATE (B) — isolated AgentCore staging worktree\n"
         f"Requirements identical to primary (A) path: {task}\n"
     )
 

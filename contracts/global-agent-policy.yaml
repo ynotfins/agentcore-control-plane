@@ -227,6 +227,17 @@ mandatory_rules:
       write authority into H: or E:\Swarm\...; H: is reserved for Swarm after M9 acceptance.
       Never format or re-provision H:.
 
+  - id: local-application-storage
+    title: Neutral local-application storage
+    rule: >-
+      C: is for Windows and installed programs; D: is for source repositories, projects,
+      worktrees, and build files. Durable neutral local-application databases, indexes, runtime
+      state, caches, and logs live under I:\LocalApps\<AppName>; cold backups live under
+      E:\LocalApps\Backups\<AppName>. AgentCore hot data and staging remain under F:\AgentCore,
+      and H: remains Swarm/neutral-Recall storage. Keep every application's data, database,
+      indexes, credentials, services, logs, backups, and recovery isolated; never grant one
+      application raw access to another application's database.
+
   - id: secrets
     title: Secrets policy
     rule: >-

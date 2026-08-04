@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime (current):** `F:\AgentCore\runtime\bifrost` (not design authority; historical `H:\AgentRuntime\bifrost` is vacated for Bifrost — remaining H: vacation is Milestone M9)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-08-04 (`AUTH-2026-08-04-AGENTCORE-LANGGRAPH-DOC-RECONCILIATION`; current-release truth, LangGraph runtime ownership, and documentation drift controls)
+**Updated:** 2026-08-04 (`AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE`; neutral LocalApps hot/cold tiers and AgentCore staging reconciliation)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -106,6 +106,7 @@ No other root or docs file may silently override this chain. If a document confl
 | `docs/adr/ADR-2026-07-12-configuration-source-of-truth.md` | Contracts → renderer → live Bifrost config; IDEs get gateway entry only (current live root `F:\AgentCore\runtime\bifrost`) |
 | `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md` | Neutral semantic-memory exception and portable Context Engine boundary |
 | `docs/adr/ADR-2026-08-02-agentcore-bifrost-context-alignment.md` | AgentCore/Bifrost/Context Engine/Recall/Context Fabric/Arabold responsibility model and benchmark-gated future extensions |
+| `docs/adr/ADR-2026-08-04-neutral-local-application-storage.md` | Neutral `I:\LocalApps` hot-data tier, `E:\LocalApps\Backups` cold tier, `F:\AgentCore\staging`, and per-application isolation |
 | `docs/superpowers/specs/2026-08-02-agentcore-bifrost-context-alignment-design.md` | Approved design details subordinate to BLUEPRINT/ADR |
 | `SERENA.md` | Current Serena project configuration, dormant shared-gateway disposition, safe host-local usage, and recovery boundary |
 | `docs/bifrost/*.md` | Classification, profiles, Tentra local mode, Depwire reconciliation, migration/rollback |

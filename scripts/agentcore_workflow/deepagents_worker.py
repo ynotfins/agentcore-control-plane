@@ -306,7 +306,7 @@ def _validate_worktree(worktree_path: str) -> Path:
         Path(r"D:\agentcore-worktrees"),
         Path(r"D:\agentcore-fixture"),
         Path(r"D:\test"),
-        Path(r"I:\AgentCoreScratch"),
+        Path(r"F:\AgentCore\staging"),
     )
     allowed = False
     for allowed_root in allowed_roots:

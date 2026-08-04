@@ -115,7 +115,7 @@ Temporary git worktrees created by DA worker harness or operator for isolated wo
 
 | Property | Value |
 |----------|-------|
-| **Primary storage** | I: scratch drive (`I:\`) only — never canonical drives |
+| **Primary storage** | `F:\AgentCore\staging\ab-worktrees` — AgentCore staging only |
 | **Archive location** | None — ephemeral by design |
 | **Retention duration** | Task lifetime only |
 | **Deletion policy** | Deleted on task completion. Operator must not persist canonical data here. |

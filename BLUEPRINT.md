@@ -27,7 +27,9 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 | --- | --- |
 | AgentCore repository / design authority | `D:\github\agentcore-control-plane` |
 | AgentCore hot runtime / data namespace | `F:\AgentCore\...` |
-| AgentCore staging | `I:` (unless later changed by explicit authority) |
+| AgentCore staging | `F:\AgentCore\staging` |
+| Neutral local-application hot data | `I:\LocalApps\...` |
+| Neutral local-application cold backups | `E:\LocalApps\Backups\...` |
 | AgentCore cold / backup namespace | `E:\AgentCore\...` only |
 | Swarm hot runtime / data | `H:` exclusively (after AgentCore relocation and acceptance cutover) |
 | Swarm cold / backup namespace | `E:\Swarm\...` only |
@@ -47,7 +49,7 @@ flowchart LR
     Repo["D:\\github\\agentcore-control-plane"]
     Hot["F:\\AgentCore\\..."]
     Cold["E:\\AgentCore\\..."]
-    Stage["I: staging"]
+    Stage["F:\\AgentCore\\staging"]
     GW["agentcore-gateway :8080"]
     Mem["agentcore-memory"]
     PG["PostgreSQL 18 :55433"]
@@ -393,7 +395,7 @@ Rules:
 | F: | 4 TB Samsung 990 PRO | AgentCore dedicated hot: PostgreSQL 18, pgvector, Bifrost/AgentRuntime under `F:\AgentCore\...`, memory hot artifacts, indexes, caches |
 | G: | 4 TB external HDD | Second backup copy |
 | H: | 2 TB Crucial P5 Plus NVMe | Reserved exclusively for Swarm hot runtime/data after AgentCore relocation acceptance. Not AgentCore |
-| I: | 1 TB Crucial BX500 SATA SSD | AgentCore disposable staging and sequential temporary exports only |
+| I: | 1 TB Crucial BX500 SATA SSD | Neutral local-application databases, indexes, runtime state, caches, and logs under `I:\LocalApps\<AppName>`; not AgentCore or Swarm storage |
 | J: | 1 TB portable exFAT SSD | Portable transfer only |
 
 ### Allocation-unit targets
@@ -405,7 +407,7 @@ Rules:
 | E: | NTFS / 64 KB | Verify; correct only if mismatched |
 | F: | NTFS / 64 KB | Verify; correct only if mismatched |
 | H: | NTFS / 64 KB | Swarm concern after cutover; AgentCore must not place canonical workload here |
-| I: | NTFS / 64 KB | Expected to require correction |
+| I: | NTFS / 64 KB | Verified target for neutral local-application hot data |
 | G: | Preserve | Do not format |
 | J: | Preserve exFAT | Do not format |
 
@@ -611,7 +613,7 @@ Detailed exit-criteria text for M0–M8 is preserved below. M9 is the bounded Ag
 - Required databases and least-privilege service roles exist.
 - Old PostgreSQL cluster remains preserved and recoverable.
 - Rollback is proven.
-- No durable database, WAL, checkpoint, queue, or lock workload is placed on I: or E: primary SQL paths.
+- No AgentCore durable database, WAL, checkpoint, queue, or lock workload is placed on I: or E: primary SQL paths. Isolated neutral application databases may live only under `I:\LocalApps\<AppName>`.
 
 **Rollback point:** pre-format manifests/backups and preserved prior PostgreSQL cluster.
 

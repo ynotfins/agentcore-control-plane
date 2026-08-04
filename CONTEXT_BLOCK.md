@@ -186,7 +186,9 @@ No component above is installed, started, enrolled, or added to the Context Engi
 | `G:` | Independent backup copy |
 | `H:\SwarmData\recall` | Neutral Recall hot physical data |
 | `H:\SwarmData\claw` and other Swarm-owned H: roots | Swarm execution/runtime data; forbidden to AgentCore normal ops |
-| `I:` | AgentCore disposable staging/cache only |
+| `I:\LocalApps\...` | Neutral local-application databases, indexes, runtime state, caches, and logs; not AgentCore or Swarm storage |
+| `E:\LocalApps\Backups\...` | Neutral local-application cold backups |
+| `F:\AgentCore\staging` | AgentCore staging and disposable worktrees |
 | `J:` | Portable transfer; outside normal AgentCore writes |
 
 The neutral Recall physical placement on H: does not authorize AgentCore filesystem access to H:. AgentCore reaches it only over the bounded localhost service adapter.

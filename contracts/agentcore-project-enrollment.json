@@ -16,6 +16,13 @@
         "D:\\github\\agentcore-context-engine",
         "D:\\agentcore-worktrees\\agentcore-context-engine"
       ]
+    },
+    {
+      "project_key": "odysseus",
+      "name": "Odysseus",
+      "paths": [
+        "D:\\odysseus"
+      ]
     }
   ],
   "foreign_markers": [

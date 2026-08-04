@@ -113,7 +113,9 @@ is not the production operator contract.
 | `F:\AgentCore\...` | AgentCore hot runtime |
 | `F:\PostgreSQL18\data` | AgentCore canonical PG18 data/checkpoints |
 | `E:\AgentCore\...` | AgentCore cold/archive/backup namespace |
-| `I:` | AgentCore disposable staging only |
+| `I:\LocalApps\...` | Neutral local-application hot data; not AgentCore or Swarm storage |
+| `F:\AgentCore\staging` | AgentCore disposable staging/worktrees |
+| `E:\LocalApps\Backups\...` | Neutral local-application cold backups |
 | `H:\SwarmData\recall` | Physical neutral Recall data; AgentCore has no filesystem authority there |
 | Other `H:\SwarmData\...` | Swarm execution/runtime state; forbidden to AgentCore normal operations |
 | `E:\Swarm\...` | Swarm cold/backup namespace |
