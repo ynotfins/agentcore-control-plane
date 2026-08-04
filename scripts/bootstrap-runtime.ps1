@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Bootstrap AgentCore Python runtime — create/update venv and install dependencies.
+    Bootstrap AgentCore Python runtime - create/update venv and install dependencies.
 
 .DESCRIPTION
     Creates (or updates) a virtual environment at scripts\.venv\, installs all
@@ -26,8 +26,9 @@ $RepoRoot   = Split-Path -Parent $ScriptDir
 $VenvDir    = Join-Path $ScriptDir ".venv"
 $ReqWorkflow = Join-Path $ScriptDir "agentcore_workflow\requirements.txt"
 $ReqMemory   = Join-Path $ScriptDir "agentcore_memory\requirements.txt"
+$ContextCatalog = Join-Path $RepoRoot "contracts\context-engine-execution-catalog.json"
 
-# ── Prefer the AgentCore Python installation ─────────────────────────────────
+# -- Prefer the AgentCore Python installation ---------------------------------
 $PythonExe = "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe"
 if (-not (Test-Path $PythonExe)) {
     $PythonExe = "python"  # fall back to PATH
@@ -43,7 +44,7 @@ Write-Step "Venv:    $VenvDir"
 Write-Step "Python:  $PythonExe"
 Write-Host ""
 
-# ── 1. Verify Python version ≥ 3.11 ─────────────────────────────────────────
+# -- 1. Verify Python version >= 3.11 -----------------------------------------
 Write-Step "Checking Python version..."
 try {
     $VerStr = & $PythonExe --version 2>&1
@@ -62,11 +63,11 @@ try {
         exit 1
     }
 } catch {
-    Write-Fail "Python not found at $PythonExe — $_"
+    Write-Fail "Python not found at $PythonExe - $_"
     exit 1
 }
 
-# ── 2. Create / update virtual environment ───────────────────────────────────
+# -- 2. Create / update virtual environment ----------------------------------
 Write-Step "Creating/updating virtual environment..."
 if (-not (Test-Path $VenvDir)) {
     & $PythonExe -m venv $VenvDir
@@ -94,13 +95,13 @@ if ($LASTEXITCODE -ne 0) {
     Write-Ok "pip bootstrapped"
 }
 
-# ── 3. Upgrade pip ──────────────────────────────────────────────────────────
+# -- 3. Upgrade pip -----------------------------------------------------------
 Write-Step "Upgrading pip..."
 & $VenvPython -m pip install --quiet --upgrade pip
 if ($LASTEXITCODE -ne 0) { Write-Fail "pip upgrade failed"; exit 1 }
 Write-Ok "pip upgraded"
 
-# ── 4. Install agentcore_workflow requirements ───────────────────────────────
+# -- 4. Install agentcore_workflow requirements ------------------------------
 Write-Step "Installing agentcore_workflow requirements..."
 if (Test-Path $ReqWorkflow) {
     & $VenvPip install --quiet -r $ReqWorkflow
@@ -114,7 +115,7 @@ if (Test-Path $ReqWorkflow) {
     exit 1
 }
 
-# ── 5. Install agentcore_memory requirements (if present) ───────────────────
+# -- 5. Install agentcore_memory requirements (if present) -------------------
 Write-Step "Checking agentcore_memory requirements..."
 if (Test-Path $ReqMemory) {
     & $VenvPip install --quiet -r $ReqMemory
@@ -124,27 +125,68 @@ if (Test-Path $ReqMemory) {
     }
     Write-Ok "agentcore_memory requirements installed"
 } else {
-    # agentcore_memory shares psycopg with workflow — no separate requirements.txt is normal
+    # agentcore_memory shares psycopg with workflow; no separate requirements is normal
     Write-Ok "No separate requirements.txt for agentcore_memory (shares agentcore_workflow deps)"
 }
 
-# ── 6. Print pinned versions of key packages ────────────────────────────────
+Write-Step "Installing governed Context Engine runtime..."
+if (-not (Test-Path -LiteralPath $ContextCatalog -PathType Leaf)) {
+    Write-Fail "Context Engine execution catalog not found: $ContextCatalog"
+    exit 1
+}
+$Catalog = Get-Content -LiteralPath $ContextCatalog -Raw | ConvertFrom-Json
+$ContextSource = [string]$Catalog.portable_catalog.source
+$ContextVersion = [string]$Catalog.portable_catalog.version
+$ReleaseDir = Join-Path $ContextSource ("release\" + $ContextVersion)
+$ReleaseManifestPath = Join-Path $ReleaseDir "manifest.json"
+if (-not (Test-Path -LiteralPath $ReleaseManifestPath -PathType Leaf)) {
+    Write-Fail "Context Engine release manifest not found: $ReleaseManifestPath"
+    exit 1
+}
+$ReleaseManifest = Get-Content -LiteralPath $ReleaseManifestPath -Raw | ConvertFrom-Json
+if ([string]$ReleaseManifest.release -ne $ContextVersion) {
+    Write-Fail "Context Engine catalog/release version mismatch"
+    exit 1
+}
+$EngineArtifacts = @($ReleaseManifest.artifacts | Where-Object { [string]$_.file -like "agentcore_context_engine-*.whl" })
+if ($EngineArtifacts.Count -ne 1) {
+    Write-Fail "Expected exactly one Context Engine wheel in the sealed release"
+    exit 1
+}
+$EngineWheel = Join-Path $ReleaseDir ([string]$EngineArtifacts[0].file)
+if (-not (Test-Path -LiteralPath $EngineWheel -PathType Leaf)) {
+    Write-Fail "Context Engine wheel not found: $EngineWheel"
+    exit 1
+}
+$EngineWheelHash = (Get-FileHash -LiteralPath $EngineWheel -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($EngineWheelHash -ne ([string]$EngineArtifacts[0].sha256).ToLowerInvariant()) {
+    Write-Fail "Context Engine wheel hash does not match the sealed release manifest"
+    exit 1
+}
+& $VenvPip install --quiet --force-reinstall --no-deps $EngineWheel
+if ($LASTEXITCODE -ne 0) {
+    Write-Fail "Failed to install the governed Context Engine wheel"
+    exit 1
+}
+Write-Ok "agentcore-context-engine $ContextVersion installed from verified sealed wheel"
+
+# -- 6. Print pinned versions of key packages --------------------------------
 Write-Host ""
 Write-Step "Installed key package versions:"
-$KeyPackages = @("langgraph", "langgraph-checkpoint-postgres", "psycopg", "psycopg-pool", "deepagents", "copier")
+$KeyPackages = @("langgraph", "langgraph-checkpoint-postgres", "psycopg", "psycopg-pool", "deepagents", "langchain-openrouter", "agentcore-context-engine", "copier")
 foreach ($pkg in $KeyPackages) {
     $ver = & $VenvPip show $pkg 2>$null | Select-String "^Version:" | ForEach-Object { $_.ToString() }
     if ($ver) {
-        Write-Host "    $pkg — $($ver.Trim())"
+        Write-Host "    $pkg - $($ver.Trim())"
     } else {
-        Write-Host "    $pkg — (not installed)"
+        Write-Host "    $pkg - (not installed)"
     }
 }
 
-# ── 7. Quick smoke test ──────────────────────────────────────────────────────
+# -- 7. Quick smoke test ------------------------------------------------------
 Write-Host ""
-Write-Step "Smoke test: import langgraph..."
-$smoke = & $VenvPython -c "import importlib.metadata as metadata; import langgraph; print('langgraph', metadata.version('langgraph'))" 2>&1
+Write-Step "Smoke test: import LangGraph, OpenRouter, and Context Engine security..."
+$smoke = & $VenvPython -c "import importlib.metadata as metadata; import langgraph; from langchain_openrouter import ChatOpenRouter; from agentcore_context_engine.security import DeviceIdentityManager; print('langgraph', metadata.version('langgraph'), 'langchain-openrouter', metadata.version('langchain-openrouter'), 'agentcore-context-engine', metadata.version('agentcore-context-engine'))" 2>&1
 if ($LASTEXITCODE -eq 0) {
     Write-Ok $smoke
 } else {

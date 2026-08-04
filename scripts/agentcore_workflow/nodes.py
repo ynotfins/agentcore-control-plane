@@ -193,9 +193,15 @@ def node_start(state: WorkflowState) -> dict:
 
             bump_lease_epoch()
             memory_gateway.assert_ten_memory_tools()
+            project_root = str(state.get("project_root") or "")
+            worktree_path = str(
+                updates.get("worktree_path") or state.get("worktree_path") or ""
+            )
             opened = memory_gateway.open_memory_session(
                 state["project_key"],
-                str(updates.get("worktree_path") or state.get("worktree_path") or ""),
+                project_root,
+                canonical_repo_path=project_root,
+                worktree_path=worktree_path,
                 session_key=f"wf-{state.get('thread_uuid', '')}",
                 milestone=state.get("milestone_key"),
                 model_provider=state.get("provider") or None,
@@ -221,7 +227,7 @@ def node_start(state: WorkflowState) -> dict:
                 updates["memory_session_id"] = sid
                 memory_gateway.startup_context(
                     state["project_key"],
-                    str(updates.get("worktree_path") or state.get("worktree_path") or ""),
+                    project_root,
                     session_id=sid,
                     context_profile=state.get("context_profile") or "standard-context",
                 )
@@ -240,7 +246,7 @@ def node_start(state: WorkflowState) -> dict:
                 }
                 memory_gateway.append_event(
                     state["project_key"],
-                    str(updates.get("worktree_path") or state.get("worktree_path") or ""),
+                    project_root,
                     sid,
                     "prompt",
                     prompt_payload,
@@ -770,7 +776,7 @@ def node_next_step(state: WorkflowState) -> dict:
 
             memory_gateway.append_event(
                 str(state.get("project_key") or ""),
-                str(state.get("worktree_path") or ""),
+                str(state.get("project_root") or ""),
                 sid,
                 "handoff",
                 {
@@ -782,7 +788,7 @@ def node_next_step(state: WorkflowState) -> dict:
             )
             memory_gateway.close_memory_session(
                 str(state.get("project_key") or ""),
-                str(state.get("worktree_path") or ""),
+                str(state.get("project_root") or ""),
                 sid,
             )
         except Exception:
@@ -872,7 +878,7 @@ def _close_memory_session(state: WorkflowState) -> None:
 
         memory_gateway.close_memory_session(
             str(state.get("project_key") or ""),
-            str(state.get("worktree_path") or ""),
+            str(state.get("project_root") or ""),
             sid,
         )
     except Exception:
@@ -1079,7 +1085,20 @@ def node_da_critic(state: WorkflowState) -> dict:
         "Return JSON: {\"passed\": true/false, \"score\": 0.0-1.0, \"findings\": [\"...\"]}"
     )
 
-    task = f"Review the output of micro step {micro_key}"
+    builder_output = str(builder_result.get("output") or "")[:4000]
+    files_changed = [str(path) for path in builder_result.get("files_changed") or []]
+    if files_changed:
+        changed_scope = "\n".join(f"- {path}" for path in files_changed[:50])
+        task = (
+            f"Review micro step {micro_key}. Inspect only these changed files:\n"
+            f"{changed_scope}\n\nBuilder output:\n{builder_output}"
+        )
+    else:
+        task = (
+            f"Review micro step {micro_key}. No files changed. "
+            "Do not inspect the repository; evaluate only this builder output:\n"
+            f"{builder_output}"
+        )
 
     worker_ready = DEEPAGENTS_AVAILABLE or _worker_mode() in ("deterministic", "hang")
     if not worker_ready or not worktree_path:

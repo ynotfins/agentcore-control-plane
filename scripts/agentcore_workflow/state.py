@@ -89,6 +89,7 @@ class WorkflowState(TypedDict):
 
     # ── AgentCore memory session (via agentcore-gateway MCP) ─────────────────
     memory_session_id: str   # agentcore-memory session_id opened through gateway
+    project_root: str        # canonical enrolled repository root for memory identity
 
     # ── Deep Agents worker harness (optional, bounded) ────────────────────────
     # All DA fields are worker-scoped; M6 PostgresSaver is the canonical checkpoint.
@@ -142,6 +143,7 @@ def initial_state(
     context_profile: str = "standard-context",
     risk_profile: str = "medium",
     budget_profile: str = "",
+    project_root: str = "",
     worktree_path: str = "",
 ) -> WorkflowState:
     """Return a fresh workflow state for a new run."""
@@ -189,6 +191,7 @@ def initial_state(
         resolved_execution_profile={},
         resolved_execution_history=[],
         memory_session_id="",
+        project_root=str(Path(project_root).resolve()) if project_root else "",
         worktree_path=str(Path(worktree_path).resolve()) if worktree_path else "",
         da_enabled=False,
         da_builder_result={},

@@ -288,6 +288,7 @@ def run_workflow(
     risk_profile: str = "medium",
     budget_profile: str = "",
     run_db_id: str | None = None,
+    project_root: str = "",
     worktree_path: str = "",
 ) -> dict:
     """Start or resume a workflow run against the production PostgresSaver.
@@ -354,6 +355,7 @@ def run_workflow(
                         context_profile=context_profile or "standard-context",
                         risk_profile=risk_profile or "medium",
                         budget_profile=budget_profile or "",
+                        project_root=project_root,
                         worktree_path=worktree_path,
                     )
                     result = graph.invoke(state, config=config)

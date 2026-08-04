@@ -58,12 +58,12 @@ from typing import Any
 
 from agentcore_project_boundary import ProjectBoundaryError, validate_project_identity
 from agentcore_workflow import db as wf_db
+from agentcore_workflow.runtime_attestation import build_runtime_attestation
 from agentcore_workflow.workflow import (
     build_topology,
-    topology_fingerprint,
     run_workflow,
+    topology_fingerprint,
 )
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Paths and constants (mirror agentcore/__main__.py; never print secrets)
@@ -89,6 +89,26 @@ def _workflow_result_ok(result: dict[str, Any]) -> bool:
     judge_verdict = str(result.get("judge_verdict") or "")
     return not errors and (
         completed or judge_verdict in ("proceed", "needs_operator")
+    )
+
+
+def _record_runtime_attestation(
+    run_db_id: str,
+    project_id: str,
+    scope_key: str,
+) -> str:
+    detail = build_runtime_attestation(
+        topology_sha256=topology_fingerprint(build_topology()),
+    )
+    version = detail["context_engine"]["installed_version"]
+    return wf_db.record_evidence(
+        run_db_id,
+        project_id,
+        scope_key,
+        "runtime_attestation",
+        f"Context Engine {version} runtime and sealed artifacts verified",
+        detail,
+        trust_class="system_verified",
     )
 
 
@@ -680,6 +700,13 @@ def cmd_start(args: argparse.Namespace) -> int:
         except Exception as exc:
             print(f"WARN: could not persist model selection: {exc}", file=sys.stderr)
 
+    try:
+        _record_runtime_attestation(run_db_id, project_id, milestone)
+    except Exception as exc:  # noqa: BLE001 - runtime boundary must fail closed
+        wf_db.update_run_status(run_db_id, "failed")
+        print(f"ERROR: workflow runtime attestation failed: {exc}", file=sys.stderr)
+        return 2
+
     # Mark run as running with current milestone
     wf_db.update_run_status(run_db_id, "running", current_milestone=milestone)
 
@@ -700,6 +727,7 @@ def cmd_start(args: argparse.Namespace) -> int:
             context_profile=context_profile,
             risk_profile=risk_profile,
             budget_profile=budget_profile,
+            project_root=str(proj.get("canonical_repo_path") or proj.get("root_path") or ""),
             worktree_path=str(assigned_worktree),
         )
     except Exception as exc:
@@ -902,6 +930,7 @@ def _resolve_pause_and_resume(args: argparse.Namespace, resolution: str, decisio
             thread_uuid=run["langgraph_thread"],
             resume_from={"decision": decision_word, "resolution": resolution, "notes": notes},
             conninfo=_pg_conninfo(),
+            project_root=str(run.get("canonical_repo_path") or run.get("root_path") or ""),
             worktree_path=str(run["worktree_path"]),
         )
         resumed_ok = True
@@ -1003,6 +1032,7 @@ def cmd_resume(args: argparse.Namespace) -> int:
             thread_uuid=run["langgraph_thread"],
             resume_from=None,
             conninfo=_pg_conninfo(),
+            project_root=str(run.get("canonical_repo_path") or run.get("root_path") or ""),
             worktree_path=str(run["worktree_path"]),
         )
     except Exception as exc:

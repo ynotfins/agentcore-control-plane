@@ -1,4 +1,5 @@
 # AgentCore memory server runtime dependencies
 # Python >=3.13; install in the approved AgentCore memory runtime environment.
 cryptography==49.0.0
+keyring==25.7.0
 psycopg[binary,pool]>=3.3.4,<4.0

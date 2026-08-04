@@ -50,14 +50,18 @@ def test_authorized_input_file_rejects_path_outside_assigned_worktree(tmp_path: 
 
 
 def test_initial_state_preserves_selected_worktree(tmp_path: Path) -> None:
+    canonical = tmp_path / "canonical"
+    worktree = tmp_path / "worktree"
     state = initial_state(
         "project-id",
         "project-key",
         "thread-id",
-        worktree_path=str(tmp_path),
+        project_root=str(canonical),
+        worktree_path=str(worktree),
     )
 
-    assert state["worktree_path"] == str(tmp_path.resolve())
+    assert state["project_root"] == str(canonical.resolve())
+    assert state["worktree_path"] == str(worktree.resolve())
 
 
 def test_resolved_project_requires_persisted_primary_worktree(monkeypatch) -> None:

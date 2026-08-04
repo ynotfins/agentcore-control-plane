@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "catalog_version": "2026-08-01.1",
+  "catalog_version": "2026-08-04.1",
   "portable_catalog": {
     "package": "agentcore-context-engine",
-    "version": "0.2.0",
+    "version": "0.2.4",
     "source": "D:\\github\\agentcore-context-engine",
     "catalog_sha256": "748c3497e6034016a7ff4c306402184f54d0c8ffb1035b8cf1924708e3138aa8"
   },

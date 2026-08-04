@@ -4,7 +4,7 @@
 # Agents must use approved dependencies or submit an evidence-backed proposal.
 # "latest" is NEVER automatically approved.
 
-catalog_version: "2026-07-16"
+catalog_version: "2026-08-04"
 reviewed_by: "operator"
 
 dependencies:
@@ -125,7 +125,7 @@ dependencies:
     source: https://pypi.org/project/cryptography/
     repository: https://github.com/pyca/cryptography
     documentation: https://cryptography.io/en/latest/
-    license: Apache-2.0 OR BSD-3-Clause
+    license: Apache-2.0 / BSD-3-Clause (dual)
     provenance: Python Cryptographic Authority; official stable wheels for Python 3.13
     security_notes: >
       Ed25519 private keys stay in approved OS credential storage; agentcore-memory
@@ -138,6 +138,42 @@ dependencies:
       Standard audited primitive implementation required for device proof while
       preserving the existing Bifrost and ten-tool contracts.
     last_review: "2026-08-01"
+
+  - package: keyring
+    ecosystem: python
+    status: approved
+    purpose: Windows Credential Locker access for Context Engine device private keys
+    version_policy: "==25.7.0"
+    tested_version: "25.7.0"
+    source: https://pypi.org/project/keyring/
+    repository: https://github.com/jaraco/keyring
+    documentation: https://keyring.readthedocs.io/en/stable/
+    license: MIT
+    provenance: jaraco; PyPI production/stable package; Python 3.13 compatible
+    security_notes: >
+      Private keys remain in the OS credential store. Do not configure plaintext
+      fallback backends or serialize credential values into files or evidence.
+    alternatives_considered: "DPAPI-specific custom wrapper (more code), file-backed keys (rejected)"
+    approval_reason: "Required by the sealed Context Engine security extra for OS-owned secret storage"
+    last_review: "2026-08-04"
+
+  - package: langchain-openrouter
+    ecosystem: python
+    status: approved
+    purpose: Official LangChain integration used by bounded workers through OpenRouter
+    version_policy: "==0.2.6"
+    tested_version: "0.2.6"
+    source: https://pypi.org/project/langchain-openrouter/
+    repository: https://github.com/OpenRouterTeam/langchain-openrouter
+    documentation: https://openrouter.ai/docs/community/lang-chain
+    license: MIT
+    provenance: OpenRouter team; official PyPI integration; live worker path verified
+    security_notes: >
+      Reads the OpenRouter credential from Windows environment configuration only.
+      No API keys may be written into project files, prompts, evidence, or checkpoints.
+    alternatives_considered: "Generic ChatOpenAI compatibility wrapper (less direct integration)"
+    approval_reason: "Direct dependency imported by the governed live Deep Agents worker path"
+    last_review: "2026-08-04"
 
   - package: cognee
     ecosystem: python
