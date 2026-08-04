@@ -55,33 +55,30 @@ No ordinary IDE receives raw Recall or database credentials.
 | Cognee | `1.3.0`, available through its isolated native Windows environment |
 | Neutral Recall | API/database health passed at `127.0.0.1:3300`; server-side projection only |
 | LangGraph | Locked 15-node topology fingerprint `a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32` |
-| Workflow tests | 88 workflow unit/boundary tests passed on 2026-08-04 |
-| Last production proof | RUN11 completed with 23 PostgresSaver checkpoints; this remains point-in-time evidence, not current release recertification |
+| Context Engine | Exact v0.2.4 wheels installed; `agentcore-context validate --live` passed against gateway `v2.0.0-prerelease1`, memory `0.9.1`, and the exact ten-tool facade |
+| Workflow tests | 105 workflow unit/boundary tests passed on 2026-08-04 |
+| Current production proof | Run `cdb3a8ae-346e-4798-9477-fcee962280f6`, thread `1af1a09d-8b9b-4cf0-bfa8-01e42b1eb7a5`: one atomic CE024 micro, exact `OK\n` bytes durably attested as 3 bytes / SHA-256 `a12b7cb43c9d9134b5bb1b35e9096b66775d9e92e7611d1cc92b02edd6782a87`, strict-schema critic pass, score 1.0, 13 PostgresSaver checkpoints |
 
 Mutable aggregate tool counts are intentionally omitted. Use the authenticated
 gateway status probe instead of copying a count from this file.
 
 ## 3. Current release and launch gates
 
-The Context Engine is not currently final-certified:
+Context Engine v0.2.4 release and live-integration gates passed:
 
-- source repository is v0.2.1 release-candidate material;
-- the machine-installed distribution and installation manifest still report
-  v0.2.0;
-- `agentcore-context validate --live` fails `engine_version`;
-- the 2026-08-02 acceptance certifies the earlier v0.2.0/RUN11 snapshot only;
-- v0.2.1 needs exact installation, full host/memory lifecycle proof, and an
-  independent review of the exact final SHA.
+- final source/artifact commit `789b42a12e55a98e71327a8ce6c49f30320f2143`;
+- exact core wheel SHA-256 `7d1601211014b1e76c24f84ca79488c3f17ef5b963c0c093cb09742fd66804dd`;
+- exact host-adapter wheel SHA-256 `eea046dd985a6ec5373c6f9e6150ed20a59550459948de6400448f259c74cf4d`;
+- release-manifest SHA-256 `cce767fae6bc52c922bb4b5df8b7da98c1c868e63a302740c251f04ad79f3753`;
+- 127 Context Engine tests, reproducible wheel rebuild, four-host install,
+  signed companion lifecycle, and live gateway validation passed;
+- LangGraph run `cdb3a8ae-346e-4798-9477-fcee962280f6` durably attested those
+  artifacts and passed builder, independent critic, exact-byte acceptance,
+  completion metadata, isolated-worktree enforcement, and 13 checkpoints.
 
-LangGraph is a working live baseline but not yet cleared for the first new
-commercial project. Required gates are:
-
-1. final Context Engine v0.2.1 acceptance;
-2. one governed PG18 lifecycle owner and reboot/restart proof;
-3. a new post-v0.2.1 production canary;
-4. worktree-path enforcement and `wf_runs.completed_at` metadata repair or
-   explicit residual acceptance;
-5. live neutral Recall pool/project-isolation proof.
+The controlled first-project workflow path is certified. Fully unattended
+commercial launch still requires the operational residuals in section 6 to be
+accepted or closed; those residuals do not roll back the v0.2.4 release proof.
 
 ## 4. Supported operator runtime
 
@@ -127,28 +124,33 @@ credentials, checkpoints, schedules, or authority.
 
 ## 6. Current known residuals
 
-1. Context Engine source/install version mismatch.
-2. PG18 automatic service stopped while a separate process launcher owns the
+1. PG18 automatic service stopped while a separate process launcher owns the
    healthy database process.
-3. Neutral Recall global/project pools and consistent projection `pool_id`
+2. Neutral Recall global/project pools and consistent projection `pool_id`
    wiring lack current acceptance evidence.
-4. `wf_runs.completed_at` may be null for a completed run.
-5. RUN11 used the project root rather than the intended isolated worktree.
-6. Signed writes are enforced; unsigned reads remain temporarily allowed under
+3. Signed writes are enforced; unsigned reads remain temporarily allowed under
    `legacy_compat` until the approved migration window closes.
-7. Cursor MCP discovery can latch disconnected while direct Bifrost remains
+4. Cursor MCP discovery can latch disconnected while direct Bifrost remains
    healthy.
-8. The ChatGPT compatibility proxy at `:18081` lacks a governed lifecycle
+5. The ChatGPT compatibility proxy at `:18081` lacks a governed lifecycle
    owner; direct Bifrost is the supported gateway health surface.
-9. Context Fabric Windows drift severity is unreliable under the current CRLF
+6. Context Fabric Windows drift severity is unreliable under the current CRLF
    behavior; Git objects and explicit diffs remain authoritative.
+7. Native alignment-skill copies are hash-matched but remain
+   `installed_unverified` until each host proves fresh-task discovery.
+8. SwarmClaw still requires its separate Swarm-owned adapter/skills acceptance
+   and live autonomous canary; no AgentCore skill was installed into Swarm.
+9. `deepseek/deepseek-v4-flash` did not terminate reliably in the bounded Deep
+   Agents file-write canary. Gemini `gemini-3.6-flash` is the currently proven
+   live worker for this path; model qualification remains per model/task class.
 
 ## 7. Document classification rule
 
 - `CONTEXT_BLOCK.md` owns current mutable readiness.
 - Dated audits prove only the named release/run at the recorded time.
 - `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` is v0.2.0/RUN11
-  point-in-time evidence, not v0.2.1 acceptance.
+  point-in-time evidence and is superseded for release status by
+  `audits/CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md`.
 - Archived development chats, old handoffs, direct-MCP configs, PG16-era plans,
   and Swarm-first AgentCore documents are evidence only and must never be
   executed as current instructions.
@@ -157,14 +159,15 @@ credentials, checkpoints, schedules, or authority.
 
 ## 8. Immediate completion sequence
 
-1. Finish and independently certify Context Engine v0.2.1 in its own repo.
-2. Reconcile PG18 to one governed lifecycle owner without interrupting a
-   concurrent canary.
-3. Prove Recall pool/project isolation.
-4. Run a fresh production LangGraph canary through deterministic checks,
-   critic, scorer, judge, evidence, checkpoints, memory and recovery.
-5. Run validators, secret/junk scan, independent review, commit and push only
-   task-owned changes.
+1. Reconcile PG18 to one governed lifecycle owner and prove reboot recovery.
+2. Prove neutral Recall global/project pool isolation and projection identity.
+3. Validate native alignment-skill discovery in each supported host.
+4. Build and validate the separate Swarm-owned SwarmClaw adapter and run its
+   first autonomous canary.
+5. Start the first governed AgentCore project with an explicit goal and
+   acceptance file; use Gemini Flash until another worker model is qualified.
 
 Current reconciliation evidence:
 `audits/AGENTCORE_LANGGRAPH_AUTHORITY_RECONCILIATION_2026-08-04.md`.
+Current release/canary evidence:
+`audits/CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md`.

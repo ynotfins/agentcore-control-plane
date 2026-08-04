@@ -136,7 +136,7 @@ This file does **not** define Swarm build milestones. Swarm readiness appears on
 
 ## M3 — Lossless Context and STATE Projections
 
-**Status:** completed (accepted) for the recorded release; current Context Engine v0.2.1 release recertification pending
+**Status:** completed; Context Engine v0.2.4 exact-installed and live-certified on 2026-08-04
 
 **Outcome:** Long sessions compact without losing recoverability.
 

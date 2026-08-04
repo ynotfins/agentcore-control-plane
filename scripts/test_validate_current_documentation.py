@@ -20,7 +20,7 @@ class CurrentDocumentationValidatorTests(unittest.TestCase):
         root = Path(temp.name)
         baseline = (
             "AUTH-2026-08-04-AGENTCORE-LANGGRAPH-DOC-RECONCILIATION\n"
-            "v0.2.1 release recertification pending\n"
+            "v0.2.4 exact-installed and live-certified\n"
             "AgentCore-PostgreSQL18 pool identity\n"
             "point-in-time Context Engine v0.2.0\n"
             "docs/operations/LANGFUSE_TRACING_AND_PROMPTS.md Inherited untracked WIP\n"
@@ -30,6 +30,8 @@ class CurrentDocumentationValidatorTests(unittest.TestCase):
             f"Set-Location '{SCRIPTS_CWD}'\n"
             "agentcore-gateway http://127.0.0.1:8080/mcp\n"
             "127.0.0.1:55433 neutral SwarmRecall Portable Context Engine\n"
+            "installed_unverified SwarmClaw receives no AgentCore skill install\n"
+            "Exact release identity\n## Independent review\n"
         )
         for relative in CURRENT_DOCS:
             path = root / relative
@@ -48,6 +50,16 @@ class CurrentDocumentationValidatorTests(unittest.TestCase):
         root = self._root()
         path = root / "CONTEXT_BLOCK.md"
         path.write_text(path.read_text(encoding="utf-8") + "\n110/110 tests\n", encoding="utf-8")
+        self.assertTrue(any("stale Context Engine" in error for error in validate(root)))
+
+    def test_rejects_superseded_v021_pending_gate(self) -> None:
+        root = self._root()
+        path = root / "CONTEXT_BLOCK.md"
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "\nv0.2.1 release recertification pending\n",
+            encoding="utf-8",
+        )
         self.assertTrue(any("stale Context Engine" in error for error in validate(root)))
 
     def test_rejects_unqualified_operator_command(self) -> None:
@@ -102,6 +114,18 @@ class CurrentDocumentationValidatorTests(unittest.TestCase):
             encoding="utf-8",
         )
         self.assertTrue(any("handoff recency" in error for error in validate(root)))
+
+    def test_rejects_alignment_runbook_without_honest_host_status(self) -> None:
+        root = self._root()
+        path = root / "docs/operations/AGENTCORE_ALIGNMENT_SKILL.md"
+        path.write_text("SwarmClaw receives no AgentCore skill install\n", encoding="utf-8")
+        self.assertTrue(any("alignment skill" in error for error in validate(root)))
+
+    def test_rejects_acceptance_without_independent_review_section(self) -> None:
+        root = self._root()
+        path = root / "audits/CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md"
+        path.write_text("Exact release identity\n", encoding="utf-8")
+        self.assertTrue(any("acceptance audit" in error for error in validate(root)))
 
 
 if __name__ == "__main__":

@@ -52,7 +52,7 @@ Read and follow in this order. Nothing below overrides anything above it.
 
 Do **not** treat mutable tool counts, Bifrost uptime, or live IDE screenshots as architecture authority. Read live posture from `@D:\github\agentcore-control-plane\CONTEXT_BLOCK.md` and current audits.
 
-Do **not** infer current Context Engine acceptance from the 2026-08-02 v0.2.0 report. Current release readiness requires the installed package metadata, installation manifest, `agentcore-context validate --live`, exact source/release identity, host lifecycle proof, and independent exact-SHA review to agree. If any disagree, report `release_recertification_required`.
+Do **not** infer current Context Engine acceptance from the 2026-08-02 v0.2.0 report. Current v0.2.4 acceptance is `@D:\github\agentcore-control-plane\audits\CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md` and requires the installed package metadata, installation manifest, `agentcore-context validate --live`, exact source/release identity, host lifecycle proof, and independent exact-SHA review to agree. If any disagree, report `release_recertification_required`.
 
 ---
 
@@ -79,6 +79,7 @@ Never paste the full upstream registry into an IDE. Never add a second AgentCore
 - **Neutral SwarmRecall:** machine-level semantic projections reached through bounded server-side adapters; never a raw IDE MCP.
 - **Context Fabric:** project-local committed snapshot, decision projection, bounded briefing, and drift warning; rebuildable and non-canonical.
 - **Arabold Docs:** local, version-labelled official-document corpus used before version-sensitive implementation.
+- **AgentCore lifecycle skill:** `@D:\github\agentcore-control-plane\skills\agentcore-project-lifecycle\SKILL.md` is the governed semantic task/memory/STATE/tool-routing contract. Host delivery status is defined only by `@D:\github\agentcore-control-plane\contracts\agentcore-alignment-skill-hosts.json`; file presence never upgrades a host beyond `installed_unverified`.
 
 MCP tool traffic is `IDE -> agentcore-gateway/Bifrost -> approved MCP upstreams`. Model inference is a separate path. Do not claim an IDE prompt receives OmniRoute compression merely because the IDE uses Bifrost for MCP. OmniRoute, Graphify, Hindsight, and CrewAI remain disabled, benchmark-gated candidates until an approved ADR and acceptance suite promotes one.
 
@@ -343,6 +344,8 @@ Read these files using @ + full absolute Windows paths:
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\VALIDATION.md
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\MCP_CONFIG_TEMPLATE.*
 - @D:\github\agentcore-control-plane\docs\adr\ADR-2026-08-02-agentcore-bifrost-context-alignment.md
+- @D:\github\agentcore-control-plane\skills\agentcore-project-lifecycle\SKILL.md
+- @D:\github\agentcore-control-plane\contracts\agentcore-alignment-skill-hosts.json
 If your IDE is UI_only, also read @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\MCP_ENROLLMENT_UI.md.
 Also read the ecosystem separation section at the top of @D:\github\agentcore-control-plane\MASTER_CONFIG_AND_PROMPT.md and the HARD STOP for Swarm-owned selection.
 

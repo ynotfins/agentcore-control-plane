@@ -19,6 +19,8 @@ CURRENT_DOCS = (
     "docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md",
     "docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md",
     "docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md",
+    "docs/operations/AGENTCORE_ALIGNMENT_SKILL.md",
+    "audits/CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md",
     "scripts/agentcore_workflow/studio/README.md",
 )
 
@@ -63,14 +65,18 @@ def validate(root: Path) -> list[str]:
             errors.append(f"historical document missing classification marker {marker!r}: {relative}")
 
     joined = "\n".join(texts.values())
-    for stale in ("82450b8c3b3884d12e2e1eece22b5771484e8686", "110/110 tests"):
+    for stale in (
+        "82450b8c3b3884d12e2e1eece22b5771484e8686",
+        "110/110 tests",
+        "v0.2.1 release recertification pending",
+    ):
         if stale in joined:
             errors.append(f"stale Context Engine acceptance claim remains: {stale}")
 
     context = texts.get("CONTEXT_BLOCK.md", "")
     for required in (
         "AUTH-2026-08-04-AGENTCORE-LANGGRAPH-DOC-RECONCILIATION",
-        "v0.2.1 release recertification pending",
+        "v0.2.4 exact-installed and live-certified",
         "AgentCore-PostgreSQL18",
         "pool identity",
     ):
@@ -93,6 +99,16 @@ def validate(root: Path) -> list[str]:
     milestones = texts.get("MILESTONES.md", "")
     if "Milestone acceptance is point-in-time evidence" not in milestones:
         errors.append("MILESTONES does not separate historical acceptance from current readiness")
+
+    alignment = texts.get("docs/operations/AGENTCORE_ALIGNMENT_SKILL.md", "")
+    if "installed_unverified" not in alignment or "SwarmClaw receives no AgentCore skill install" not in alignment:
+        errors.append("alignment skill runbook omits honest host or Swarm boundary status")
+
+    acceptance = texts.get(
+        "audits/CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md", ""
+    )
+    if "Exact release identity" not in acceptance or "## Independent review" not in acceptance:
+        errors.append("Context Engine acceptance audit omits release identity or independent review")
 
     read_order = texts.get("docs/agent-policy/DOCUMENTATION_READ_ORDER.md", "")
     if "Global `BLUEPRINT.md` and current `CONTEXT_BLOCK.md`" not in read_order:

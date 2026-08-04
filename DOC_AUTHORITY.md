@@ -46,7 +46,7 @@ No other root or docs file may silently override this chain. If a document confl
 - `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` — M6 LangGraph production + Studio runbook
 - `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md` — exact `python -m agentcore workflow …` commands from control-plane
 - `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` — final release acceptance report with validator matrix and HEAD reference
-- `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` — point-in-time Context Engine v0.2.0/native-host/RUN11 acceptance; it does **not** certify the later v0.2.1 release candidate
+- `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` — point-in-time Context Engine v0.2.0/native-host/RUN11 acceptance; it does **not** certify current v0.2.4
 - `audits/AGENTCORE_LANGGRAPH_AUTHORITY_RECONCILIATION_2026-08-04.md` — current release/runtime/documentation reconciliation and launch gates
 - `docs/adr/ADR-2026-08-02-agentcore-bifrost-context-alignment.md` — current responsibility model, transport-plane separation, and future-extension gates
 
@@ -108,8 +108,9 @@ No other root or docs file may silently override this chain. If a document confl
 | -- | -- |
 | `CONTEXT_BLOCK.md` | Current mutable system state and launch gates. It is the only narrative file in this table allowed to claim current runtime readiness. |
 | `audits/AGENTCORE_LANGGRAPH_AUTHORITY_RECONCILIATION_2026-08-04.md` | Current AgentCore/LangGraph documentation, runtime, and release-status reconciliation. |
+| `audits/CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md` | Current Context Engine v0.2.4 exact-artifact, live lifecycle, alignment skill, and LangGraph CE024 canary acceptance. |
 | `audits/AGENTCORE_BIFROST_CONTEXT_ALIGNMENT_2026-08-03.md` | Point-in-time v0.9.1 release-candidate evidence; final exact-SHA reviews were pending in that report. |
-| `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` | Point-in-time v0.2.0 + RUN11 acceptance. Superseded for Context Engine release status by the v0.2.1 release-candidate note and current live validation. |
+| `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` | Point-in-time v0.2.0 + RUN11 acceptance. Superseded for release status by the v0.2.4 acceptance audit and current live validation. |
 | `audits/AGENTCORE_BIFROST_CONTEXT_ALIGNMENT_2026-08-02.md` | Point-in-time protected-change, indexing, drift, review, validator, hash, and rollback evidence. |
 | `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md` | Current evidence synthesis (not architecture authority; live probes and `CONTEXT_BLOCK.md` win). |
 | `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` | Source-only handoff for model-aware active context, full-history recovery, and M3.002 validation |
@@ -235,7 +236,7 @@ All historical docs must not be run as instructions without current operator app
 
 ## Current blockers (require explicit operator approval or follow-on work)
 
-- Portable Context Engine source is v0.2.1 release-candidate material while the installed package/manifest remains v0.2.0 until the exact release is installed and `agentcore-context validate --live` passes. The 2026-08-02 v0.2.0 acceptance must not be promoted to current v0.2.1 acceptance.
+- Portable Context Engine v0.2.4 is exact-installed and live-validated at artifact commit `789b42a12e55a98e71327a8ce6c49f30320f2143`; current acceptance is `audits/CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md`. The 2026-08-02 v0.2.0 report remains historical evidence only.
 - PostgreSQL 18 is reachable and production checkpoints are readable, but the registered automatic service `AgentCore-PostgreSQL18` is stopped while a separate launcher owns the live process. Commercial readiness requires one governed lifecycle owner plus restart proof.
 - The repo-owned workflow runtime is `scripts\.venv\Scripts\python.exe`. Run `scripts\bootstrap-runtime.ps1` to create/repair it. Bare system Python is a bootstrap source or emergency diagnostic, not the production operator contract.
 - Neutral Recall is healthy, but current global/per-project pool provisioning and consistent `pool_id` projection wiring require explicit live acceptance before cross-project semantic isolation is claimed.
@@ -245,6 +246,7 @@ All historical docs must not be run as instructions without current operator app
 - Continual-learning Cursor plugin auto-trigger disabled; do not re-enable user-role followups — `docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`.
 - `depwire-cloud` and `github-mcp` remain deferred/`enabled=false` until healthy verification
 - Live IDE cutover completion evidence still incomplete for some clients (see Bifrost handoff / artifacts / IDE profiles)
+- Native alignment-skill files are hash-matched but remain `installed_unverified` until each supported host proves fresh-task discovery. SwarmClaw uses a separate Swarm-owned adapter and is not certified by the AgentCore skill acceptance.
 
 ---
 

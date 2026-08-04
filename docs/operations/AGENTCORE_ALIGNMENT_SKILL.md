@@ -58,10 +58,10 @@ File installation yields `installed_unverified`, not `live_validated`. Open a fr
 
 Do not harden or force full synchronous claims until:
 
-1. Context Engine v0.2.1 live certification is complete at the exact accepted SHA.
-2. LangGraph production completes a bounded canary with the hash-pinned capsule.
-3. SwarmClaw independently validates its Swarm-owned adapter and native stores.
-4. Each IDE is recorded at an honest certification level.
-5. No direct Recall, SQL, duplicate MCP, shared implicit-project tool, or cross-runtime state route exists.
+1. **Passed:** Context Engine v0.2.4 is installed and live-validated at exact artifact commit `789b42a12e55a98e71327a8ce6c49f30320f2143`.
+2. **Passed:** LangGraph production run `cdb3a8ae-346e-4798-9477-fcee962280f6` completed the hash-pinned capsule canary with a system-verified 3-byte/SHA-256 artifact manifest, strict-schema critic pass, and 13 checkpoints.
+3. **Pending:** SwarmClaw independently validates its Swarm-owned adapter and native stores.
+4. **Pending per host:** each IDE advances from `installed_unverified` or adapter-only status only after fresh-task discovery proof.
+5. **Continuous invariant:** no direct Recall, SQL, duplicate MCP, shared implicit-project tool, or cross-runtime state route exists.
 
 `BLUEPRINT.md` remains unchanged and authoritative throughout this polish phase.
