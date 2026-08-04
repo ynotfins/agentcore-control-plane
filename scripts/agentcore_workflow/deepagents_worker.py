@@ -90,6 +90,21 @@ def resource_ceiling_defaults() -> dict[str, int]:
     }
 
 
+def _worker_invoke_config(
+    *,
+    role: str,
+    thread_uuid: str,
+    max_iterations: int,
+) -> dict[str, Any]:
+    """Translate agent iterations into LangGraph's enforced super-step limit."""
+    recursion_limit = max(2, (max_iterations * 2) + 1)
+    return {
+        "configurable": {"thread_id": f"{role}-{thread_uuid or 'local'}"},
+        "recursion_limit": recursion_limit,
+        "run_name": f"agentcore-da-{role}",
+    }
+
+
 # Deep Agents is a bounded optional dependency.
 # We guard the import so AgentCore works without it and fails fast here.
 try:
@@ -688,13 +703,11 @@ def run_builder_worker(
             )
 
             invoke_config = merge_invoke_config(
-                {
-                    "configurable": {
-                        "thread_id": f"builder-{thread_uuid or 'local'}",
-                        "max_iterations": max_iterations,
-                    },
-                    "run_name": "agentcore-da-builder",
-                }
+                _worker_invoke_config(
+                    role="builder",
+                    thread_uuid=thread_uuid,
+                    max_iterations=max_iterations,
+                )
             )
 
             def _invoke_builder() -> dict[str, Any]:
@@ -871,13 +884,11 @@ def run_critic_worker(
             )
 
             invoke_config = merge_invoke_config(
-                {
-                    "configurable": {
-                        "thread_id": f"critic-{thread_uuid or 'local'}",
-                        "max_iterations": max_iterations,
-                    },
-                    "run_name": "agentcore-da-critic",
-                }
+                _worker_invoke_config(
+                    role="critic",
+                    thread_uuid=thread_uuid,
+                    max_iterations=max_iterations,
+                )
             )
 
             def _invoke_critic() -> dict[str, Any]:

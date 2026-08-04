@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from agentcore_workflow.deepagents_worker import _worker_invoke_config
 from agentcore_workflow.nodes import node_da_critic
 from agentcore_workflow.state import initial_state
 
@@ -88,3 +89,14 @@ def test_critic_with_file_changes_receives_exact_review_scope(monkeypatch, tmp_p
     assert "- src/service.py" in captured["task"]
     assert "- tests/test_service.py" in captured["task"]
     assert "Implemented the bounded change." in captured["task"]
+
+
+def test_worker_iteration_budget_uses_langgraph_recursion_limit() -> None:
+    config = _worker_invoke_config(
+        role="builder",
+        thread_uuid="thread-id",
+        max_iterations=3,
+    )
+
+    assert config["recursion_limit"] == 7
+    assert "max_iterations" not in config["configurable"]
