@@ -97,6 +97,6 @@ The active documentation surface contains one coherent launch contract:
 | Task-owned secret/junk/whitespace scan | PASS |
 | Repository-wide reconciliation scan | PARTIAL — authority, Stage A, ports, classification, and Markdown links pass; pre-existing legacy credential-backup files require separate approved remediation |
 | Context Engine v0.2.1 live validation | BLOCKED — installed metadata remains v0.2.0; `engine_version` mismatch |
-| Independent review | Review 1: FAIL on bare pip and handoff-recency authority; repaired. Review 2: FAIL because the validator missed Markdown-table pip and repo-root launch forms; repaired with realistic regression tests. Final exact-commit re-review pending. |
+| Independent review | PASS on exact implementation commit `eebbb34c07068332636a12e82951474d778644df`; two prior review rounds found realistic operator/validator defects, all were repaired, and the final reviewer reported zero remaining findings and safe-to-push |
 
-The exact review result and final Git commit are appended after independent review completes.
+The implementation commit above is the exact diff independently reviewed. This audit-only closeout records that result; Git history is the authority for its final certification commit.
