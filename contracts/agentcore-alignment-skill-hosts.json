@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "skill_name": "agentcore-project-lifecycle",
+  "source": "skills/agentcore-project-lifecycle",
+  "hosts": [
+    {
+      "host": "cursor",
+      "delivery": "native_skill",
+      "target": "{userprofile}\\.cursor\\skills\\agentcore-project-lifecycle",
+      "validation": "restart_or_fresh_task_required"
+    },
+    {
+      "host": "codex",
+      "delivery": "native_skill",
+      "target": "{userprofile}\\.agents\\skills\\agentcore-project-lifecycle",
+      "validation": "fresh_task_required"
+    },
+    {
+      "host": "claude-code",
+      "delivery": "native_skill",
+      "target": "{userprofile}\\.claude\\skills\\agentcore-project-lifecycle",
+      "validation": "native_cli_required"
+    },
+    {
+      "host": "minimax",
+      "delivery": "native_skill_empirical",
+      "target": "{userprofile}\\.minimax\\skills\\agentcore-project-lifecycle",
+      "validation": "configured_restart_required"
+    },
+    {
+      "host": "mavis",
+      "delivery": "alias_of_minimax",
+      "target": "{userprofile}\\.mavis\\skills\\agentcore-project-lifecycle",
+      "validation": "same_data_root_no_second_copy"
+    },
+    {
+      "host": "claude-desktop",
+      "delivery": "generated_rule_adapter",
+      "source": "ide-profiles/claude-desktop/GLOBAL_RULES.md",
+      "validation": "manual_import"
+    },
+    {
+      "host": "antigravity",
+      "delivery": "generated_rule_adapter",
+      "source": "ide-profiles/antigravity/GLOBAL_RULES.md",
+      "validation": "unverified"
+    },
+    {
+      "host": "open-interpreter",
+      "delivery": "generated_rule_adapter",
+      "source": "ide-profiles/open-interpreter/GLOBAL_RULES.md",
+      "validation": "manual_import"
+    },
+    {
+      "host": "cherry-studio",
+      "delivery": "governed_prompt_adapter",
+      "source": "docs/prompts/cherry-agentcore-workspace-agent.md",
+      "validation": "manual_import"
+    },
+    {
+      "host": "minimax-classic",
+      "delivery": "generated_rule_adapter",
+      "source": "ide-profiles/minimax-classic/GLOBAL_RULES.md",
+      "validation": "ui_only"
+    },
+    {
+      "host": "langgraph-production",
+      "delivery": "execution_catalog_capsule",
+      "source": "contracts/context-engine-execution-catalog.json",
+      "validation": "workflow_canary_required"
+    },
+    {
+      "host": "langgraph-studio",
+      "delivery": "execution_catalog_capsule",
+      "source": "contracts/context-engine-execution-catalog.json",
+      "validation": "dev_only"
+    },
+    {
+      "host": "swarmclaw",
+      "delivery": "foreign_swarm_adapter",
+      "source": "D:\\github\\swarm-ecosystem-control",
+      "validation": "swarm_owned_no_agentcore_install"
+    }
+  ]
+}

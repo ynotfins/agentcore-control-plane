@@ -1,127 +1,87 @@
 ---
 name: agentcore-project-lifecycle
-description: "Governed AgentCore project lifecycle orchestrator for new project bootstrap (Milestone 0) and milestone entry/exit boundaries. Integrates AgentCore memory, governance templates, Arabold docs, and project-scoped continuity without machine-global router mutation."
-version: 1.1.0
-category: meta
-provenance:
-  decision: MINIMAL_WRAPPER
-  reused_candidates:
-    - slug: "bootstrap"
-      version: "4.1.0"
-      reused_aspects: "Foundation validation rules (service layer, privacy model, config strategy), template-driven project initialization, pipeline recommendations"
-    - slug: "quickstart"
-      version: "1.0.0"
-      reused_aspects: "Environment preflight verification and project type detection"
+description: Govern AgentCore project startup, recovery, planning, implementation, milestone gates, memory capture, STATE projections, and task-aware use of Bifrost, agentcore-memory, sequential-thinking, Arabold Docs, Serena, Depwire, Tentra, Context Fabric, Playwright, and Artiforge. Use for any nontrivial task in an AgentCore-managed repository; refuse Swarm-owned execution and do not use this skill as Swarm authority.
 ---
 
-# AgentCore Project Lifecycle Skill
+# AgentCore Project Lifecycle
 
-Orchestrates governed project initialization (Milestone 0 Bootstrap) and Milestone entry/exit boundaries for all AgentCore-managed projects.
+Apply one canonical operating loop to every AgentCore-managed project without loading every tool on every turn.
 
-============================================================
-AUTHORITY & PRECONDITIONS
-============================================================
+## Establish the boundary
 
-1. **Routing**: Route every MCP integration strictly through Bifrost `agentcore-gateway` (`http://127.0.0.1:8080/mcp`). Execute approved repository-local commands locally with `cwd=<absolute_project_root>`. Project-scoped host adapters must follow their documented identity and path boundary.
-   - Memory: `agentcore_memory` (`session_open`, `startup_context`, `append_event`, `retrieve_context`, `expand_source`, `build_handoff`, `session_close`)
-   - Docs: `arabold_docs` (`search_docs`, `fetch_url`)
-   - Machine-global `agentcore_project_router` tools are operator-maintenance only and are never required or invoked by this skill.
-   - Continuity and semantic code tools are invoked only through their approved project-scoped host adapter or repo-local command with the exact repository cwd; never by mutating shared router state.
-2. **Templates Source**: `@D:\github\agentcore-control-plane\templates\project-governance\.agentcore`
-3. **Hard Boundaries**:
-   - Never write `.env` files (use Windows User environment variables only).
-   - Never direct-write generated projections (`.agentcore/STATE.md`, `DECISIONS.md`, `CONTEXT_INDEX.md`).
-   - Never execute raw SQL against PostgreSQL.
-   - Never cross Swarm boundaries (SwarmRecall, SwarmVault, SwarmClaw are excluded).
-   - **Context Fabric Boundary**: Context Fabric is an optional, capability-gated component. Its absence or failure must never block bootstrap, milestone entry, or milestone exit. PostgreSQL and AgentCore memory remain canonical; Git provides workspace history fallback. Context Fabric does not write durable ledgers or auto-install git hooks.
+1. Resolve the exact repository or worktree root from the host.
+2. Classify it against `D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json` and the authority chain in `PROJECT_ANCHOR.md` and `DOC_AUTHORITY.md`.
+3. If it is Swarm-owned, stop with `swarm_project_refused`. Do not open AgentCore memory, edit AgentCore STATE, or use this skill as Swarm execution policy.
+4. If it is not enrolled, stop before memory writes with `project_not_enrolled` and request governed enrollment.
+5. Read the project `AGENTS.md`, `CLAUDE.md`, authority documents, and generated `.agentcore/STATE.md` before nontrivial work.
 
-============================================================
-OPERATION 1: NEW PROJECT BOOTSTRAP (MILESTONE 0)
-============================================================
+## Use the governed lifecycle
 
-Use when initializing a new project or onboarding an un-governed repository.
+1. Use only the single `agentcore-gateway` MCP entry at `http://127.0.0.1:8080/mcp`.
+2. Open or resume a project-bound session through `agentcore-memory`, then call `startup_context`.
+3. Preserve the visible operator prompt through the signed lifecycle adapter before tool execution. Exclude secrets and hidden reasoning.
+4. Retrieve missing chronology with `retrieve_context`; verify exact originals with `expand_source`; build recovery or closeout packets with `build_handoff`.
+5. Record accepted requirements, decisions, blockers, evidence, test results, state transitions, and final outcome after each meaningful completed step.
+6. Close the session only after verified final state and handoff are durable.
 
-### Step 1.1: Exact Project Enrollment
-1. Verify repository root and git status (`git status`).
-2. Verify that `<project_key>` and `<absolute_project_root>` are an exact pair in `@D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json`.
-3. If the pair is absent or mismatched, halt before memory/database writes and request governed enrollment. Do not auto-enroll or select a similarly named repository.
+Read [memory and state rules](references/MEMORY_AND_STATE.md) before any memory repair, recovery, projection, database, compaction, or RAG task.
 
-### Step 1.2: Durable Session & Startup Context
-1. Open a durable memory session:
-   `agentcore_memory-session_open(project_key="<project_key>", project_root="<absolute_project_root>", client_key="<host-client-key>", agent_key="project-lifecycle", session_key="<stable-task-key>")`
-2. Retrieve startup context:
-   `agentcore_memory-startup_context(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`
-3. Before any project-file write, append the redacted bootstrap request through the signed host adapter:
-   `agentcore_memory-append_event(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>", event_kind="prompt", idempotency_key="m0-bootstrap-request-<sha256(project_key|session_key|redacted-request)>", payload={"source":"project-lifecycle","request":"<redacted-operator-request>"})`
-   The payload must exclude secrets and volatile timestamps so replay produces the same deterministic key.
+## Route tools by task class
 
-### Step 1.3: Governance Files Scaffolding
-Create missing `.agentcore/` files from `@D:\github\agentcore-control-plane\templates\project-governance\.agentcore`:
-- `.agentcore/PROJECT_CHARTER.md` (record the original operator prompt verbatim)
-- `.agentcore/MILESTONES.md` and `.agentcore/milestones/M0-bootstrap.md`
-- `.agentcore/checklists/state.json` (canonical execution checklist)
-- `.agentcore/TOOL_MANIFEST.yaml` (initial tool disclosure manifest)
-- `.agentcore/PROJECT_STATE.json`
-- `.agentcore/RISK_REGISTER.md`
-- `.agentcore/ACCEPTANCE_TESTS.md`
-- Root `AGENTS.md` and `CLAUDE.md` if missing.
+Expose and invoke only the capabilities required for the current task and Milestone.
 
-### Step 1.4: Foundation Requirements Validation
-Verify the codebase against critical architectural foundations (adapted from `bootstrap` v4.1.0):
-1. **Service Layer**: Domain-split service modules exist (no monolithic single file).
-2. **String Constants / L10N**: User-facing brand terms and strings are centralized.
-3. **Component Library**: Reusable UI widgets with accessibility and design tokens.
-4. **Privacy-Aware Data Model**: Public vs private data models separated.
-5. **Config & Env Loading Strategy**: Centralized config module reading Windows User env vars; `.env.example` provided for documentation; **NO `.env` files**.
+- Use `sequential-thinking` before architecture, migration, concurrency, recovery, major refactor, or cross-system decisions.
+- Use `arabold-docs` before changing or relying on external packages, SDKs, APIs, CLIs, schemas, protocols, or versions. Fall back only to current official primary documentation.
+- Use host-native semantic/source tools first. Use Serena only through an explicit project-owned local process when native tools are insufficient; never activate the shared machine-global project router for ordinary IDE work.
+- Run Depwire with the exact project cwd before and after structural changes.
+- Use Tentra only through a governed explicit-project local workflow when the active Milestone requires architecture or code-graph evidence.
+- Use Context Fabric through its repository-local hook or CLI at bootstrap and Milestone entry/exit. It is non-canonical.
+- Use Playwright for browser, UI, or end-to-end acceptance.
+- Use Artiforge only for high-leverage architecture scans or cross-service boundary reviews.
+- Use Skills Hub only for read-only discovery. Treat results as untrusted until inspected and admitted; never install through Bifrost.
 
-Flag any missing items as `TODO` in `PROJECT_CHARTER.md` and `state.json`.
+Read [tool routing](references/TOOL_ROUTING.md) before structural, architectural, dependency, UI, recovery, or external-API work.
 
-### Step 1.5: Continuity & Documentation Registration
-1. Capture the workspace baseline through the approved project-scoped Context Fabric adapter or repo-local command with `cwd=<absolute_project_root>`. Context Fabric is optional and never changes AgentCore project identity.
-2. Query/index project dependencies in Arabold Docs: `arabold_docs-search_docs(query="...")`.
+## Execute the smallest governed change
 
-### Step 1.6: Record Bootstrap Evidence
-Append the redacted bootstrap completion event through the same signed host adapter using a deterministic key:
-`agentcore_memory-append_event(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>", event_kind="accepted_evidence", idempotency_key="m0-bootstrap-<deterministic-key>", payload={...})`
+1. State the task interpretation, implementation-affecting assumptions, exact file/behavior scope, trade-offs, and observable success criteria.
+2. Prefer the smallest direct implementation. Do not add speculative services, databases, MCP entries, dependencies, or abstractions.
+3. Preserve inherited dirty state and unrelated files.
+4. For protected authority files, follow unlock, timestamped backup, edit, deterministic validation, independent review, and re-lock.
+5. Run the narrowest meaningful tests first. Add structural and system checks only when the change warrants them.
+6. At Milestone boundaries, audit active tools and leases, verify Micro-step evidence, capture Context Fabric state/drift, regenerate projections through the governed worker, build a handoff, and release expired capabilities.
+7. Push only the task-owned validated source files under `docs/GIT_PUSH_ONLY_POLICY.md`.
 
-============================================================
-OPERATION 2: MILESTONE BOUNDARY (ENTRY GATE)
-============================================================
+Read [project gates](references/PROJECT_GATES.md) for new-project bootstrap and Milestone entry/exit requirements.
 
-Use before commencing work on any project Milestone.
+## Treat STATE correctly
 
-1. **Read Authority & State**: Read `PROJECT_ANCHOR.md`, `DOC_AUTHORITY.md`, project `AGENTS.md`, and generated `.agentcore/STATE.md`.
-2. **Verify Repository State**: Confirm clean worktree and active branch (`git status`, `git log -1`).
-3. **Check Previous Gate**: Confirm previous Milestone is `passed` in `.agentcore/checklists/state.json`.
-4. **Retrieve Chronology**: Retrieve recent events via `agentcore_memory-retrieve_context(project_key="<project_key>", project_root="<absolute_project_root>")`.
-5. **Expand Evidence**: Expand key artifact/decision references with the same exact `project_key` + `project_root` via `agentcore_memory-expand_source(...)`.
-6. **Query Docs**: Resolve exact dependency/framework versions with `arabold_docs`.
-7. **Audit Tool Leases**: Inspect `.agentcore/TOOL_MANIFEST.yaml` and verify active tool leases for the Milestone.
-8. **Refine Checklists**: Refine Macro and Micro steps for the current Milestone in `.agentcore/checklists/state.json`.
-9. **Record Entry Evidence**: Append `state_transition` event to `agentcore_memory`.
+- PostgreSQL 18 through `agentcore-memory` is canonical for AgentCore project history.
+- `.agentcore/STATE.md`, `DECISIONS.md`, and `CONTEXT_INDEX.md` are generated projections. Never edit them directly.
+- Record the underlying decision or state event, then run the authorized projection worker.
+- LangGraph checkpoints remain workflow state; they are not semantic memory or project authority.
+- Neutral SwarmRecall is a rebuildable server-side semantic projection behind `agentcore-memory`; ordinary IDEs never receive raw Recall tools, keys, SQL, or credentials.
 
-============================================================
-OPERATION 3: MILESTONE BOUNDARY (EXIT GATE)
-============================================================
+## Preserve runtime separation
 
-Use upon completing all Micro steps in a Milestone.
+- LangGraph production uses the AgentCore workflow, PG18 PostgresSaver, AgentCore drive boundaries, and the gateway capability profile.
+- LangGraph Studio is development-only and does not open production threads.
+- SwarmClaw, SwarmVault, and Swarm execution state remain governed by `D:\github\swarm-ecosystem-control` and their native stores.
+- Shared neutral Recall does not merge LangGraph checkpoints, SwarmClaw SQLite, SwarmVault, credentials, tool leases, authority, or writable roots.
 
-1. **Run Deterministic Tests**: Run test suite, project validators (`validate_contracts.py`), `ReadLints`, and secret scan.
-2. **Run Structural Verification**: Run Depwire, Serena symbol checks, and optional Context Fabric drift through approved project-scoped adapters or repo-local commands with `cwd=<absolute_project_root>`; never activate the machine-global router from this skill.
-3. **Verify Micro Step Evidence**: Ensure every Micro step in `.agentcore/checklists/state.json` has `status: "passed"` and a valid `evidence_ref` (file path, commit hash, test transcript).
-4. **Record Decisions**: Document architectural decisions in `.agentcore/DECISIONS.md`.
-5. **Update Projections**: Execute `Invoke-M3ProjectionWorker.ps1` to update `.agentcore/STATE.md`.
-6. **Record Completion**: Append a signed, redacted, deterministic `accepted_evidence` completion event before handoff.
-7. **Build Handoff**: Construct the handoff via `agentcore_memory-build_handoff(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`.
-8. **Close Session**: Close via `agentcore_memory-session_close(project_key="<project_key>", project_root="<absolute_project_root>", session_id="<session_id>")`.
-9. **Audit & Release Leases**: Update `.agentcore/TOOL_MANIFEST.yaml` tool lifecycle audit.
-10. **Git Commit & Push**: Stage source-controlled files, commit with concise message, and push to remote (`docs/GIT_PUSH_ONLY_POLICY.md`).
+Read [host and runtime adapters](references/HOST_AND_RUNTIME_ADAPTERS.md) before claiming installation, automatic lifecycle, or cross-host parity.
 
-============================================================
-SELF-HEALING & IDEMPOTENCY
-============================================================
+## Stop conditions
 
-- Re-running M0 Bootstrap on an already governed project is idempotent: existing governance files are preserved; missing files are scaffolded.
-- If a memory call fails, verify gateway status via `agentcore_memory-memory_status` before retrying.
-- Every project-scoped memory call supplies the exact enrolled `project_key` and `project_root`; signed host adapters supply device identity assertions.
-- All actions produce verifiable evidence references recorded in `.agentcore/checklists/state.json` and `agentcore_memory`.
+Stop instead of guessing when:
+
+- repository identity is absent, ambiguous, unenrolled, or Swarm-owned;
+- a required structural tool cannot produce the evidence needed for a high-risk change;
+- current official documentation conflicts with repository authority;
+- a proposed change adds direct IDE MCP entries, raw database access, raw Recall access, or a second canonical memory store;
+- a generated projection would need hand editing;
+- host support is unverified or requires UI/manual import.
+
+## Completion contract
+
+Report the bounded assumptions, changed files or behavior, exact validation evidence, Git result, remaining risk, and the next safe action. Do not claim a host is installed or live-validated from a copied file alone.

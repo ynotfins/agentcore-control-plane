@@ -94,8 +94,8 @@
   },
   "skill_capsules": {
     "agentcore-project-lifecycle": {
-      "sha256": "7c97b389a4123aa0a3e4301bd9ce05f52110c58a210ea324c06074b7f4209b68",
-      "instructions": "Use Milestone entry/exit gates, evidence-backed Micro steps, canonical memory, and deterministic handoffs."
+      "sha256": "3de60a3b0e892f2b335fb980f8f8285f717d2cb624217e4148b7ccc5939943d1",
+      "instructions": "Classify the exact project, refuse Swarm-owned execution, use signed canonical memory and generated STATE projections, disclose tools progressively by task class, and close with verified evidence and a deterministic handoff."
     },
     "serena-semantic-code": {
       "sha256": "4a6d4822f5a64a326f65d3fef2ce77f31ae092b0ab9456724a4d0dfe5a3ba761",
