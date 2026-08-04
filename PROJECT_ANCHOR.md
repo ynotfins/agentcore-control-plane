@@ -18,7 +18,8 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 | --- | --- |
 | AgentCore repository / design authority | `D:\github\agentcore-control-plane` |
 | AgentCore hot runtime / data namespace | `F:\AgentCore\...` |
-| AgentCore staging | `I:` (unless later changed by explicit authority) |
+| AgentCore staging | `I:\AgentCore\staging` |
+| Third-party local app hot data | `I:\LocalApps\...` |
 | AgentCore cold / backup namespace | `E:\AgentCore\...` only |
 | Swarm hot runtime / data | `H:` exclusively (after AgentCore relocation and acceptance cutover) |
 | Swarm cold / backup namespace | `E:\Swarm\...` only |
@@ -92,7 +93,7 @@ Non-negotiable invariants for every AgentCore-managed project:
 | `F:`  | AgentCore dedicated hot NVMe: PostgreSQL 18, Bifrost/AgentRuntime under `F:\AgentCore\...`, memory hot artifacts, Tentra, MCP helpers, caches (access DB via service/API/CLI wrappers only) |
 | `G:`  | Second backup copy target only |
 | `H:`  | Reserved exclusively for Swarm hot runtime/data after AgentCore relocation acceptance. AgentCore must not place canonical runtime, data, or rollback here. |
-| `I:`  | AgentCore disposable scratch / staging only |
+| `I:`  | Neutral local-app hot data under `I:\LocalApps\...` and AgentCore staging under `I:\AgentCore\staging`. Third-party app databases/vector stores/runtime data default here unless current authority grants a more specific root. |
 | `J:`  | Portable media / transfer only |
 
 Mutable path details, transitional leftover locations, and acceptance evidence live in `CONTEXT_BLOCK.md`, current handoffs, and audits — not here.
@@ -128,6 +129,7 @@ Swarm ports, Swarm databases, Swarm vault roots, OpenClaw/ClawX gateways, and Sw
 - Treating `H:\AgentRuntime` (or any `H:` path) as AgentCore’s final runtime/data home.
 - Requiring Swarm MCP servers in AgentCore IDE baselines.
 - Persisting Swarm project work through AgentCore memory, project router, or IDE profiles.
+- Placing third-party local-app primary databases, vector stores, indexes, app data, runtime state, or persistent caches on `C:` or `D:`. Source repos may live on `D:`; durable app data defaults to `I:\LocalApps\<AppName>`.
 
 ---
 

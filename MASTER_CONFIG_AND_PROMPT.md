@@ -19,7 +19,8 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 | --- | --- |
 | AgentCore repository / design authority | `@D:\github\agentcore-control-plane` |
 | AgentCore hot runtime / data namespace | `F:\AgentCore\...` |
-| AgentCore staging | `I:` (unless later changed by explicit authority) |
+| AgentCore staging | `I:\AgentCore\staging` |
+| Third-party local app hot data | `I:\LocalApps\...` |
 | AgentCore cold / backup namespace | `E:\AgentCore\...` only |
 | Swarm hot runtime / data | `H:` exclusively (after AgentCore relocation and acceptance cutover) |
 | Swarm cold / backup namespace | `E:\Swarm\...` only |
@@ -30,6 +31,7 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 - Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
 - Neutral shared SwarmRecall is the sole bounded exception under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own adapter. It is a semantic projection, never canonical evidence, checkpoints, policy, or execution state.
 - No canonical resource may be jointly owned.
+- Third-party local apps must not place durable databases, vector stores, indexes, app data, runtime state, or persistent caches on `C:` or `D:`. Source repos may live on `D:`; durable local-app data defaults to `I:\LocalApps\<AppName>` and backups to `E:\LocalApps\Backups\<AppName>`.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
 - Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
 
@@ -46,6 +48,8 @@ Read and follow in this order. Nothing below overrides anything above it.
 5. `@D:\github\agentcore-control-plane\docs\memory-platform\MEMORY_PLATFORM_EXECUTION_PLAN.md` — memory/database implementation authority
 6. Current contracts and runbooks — `@D:\github\agentcore-control-plane\contracts\agentcore-gateway-client.json`, `@D:\github\agentcore-control-plane\contracts\bifrost-upstream-mcp-registry.json`, `@D:\github\agentcore-control-plane\contracts\global-agent-policy.yaml`, `@D:\github\agentcore-control-plane\contracts\model-context-profiles.json`, `@D:\github\agentcore-control-plane\docs\operations\AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `@D:\github\agentcore-control-plane\docs\operations\AUTONOMOUS_WORKFLOW_QUICKSTART.md`, `@D:\github\agentcore-control-plane\docs\operations\OPENROUTER_MCP.md`, `@D:\github\agentcore-control-plane\docs\operations\DORMANT_MCP_CAPABILITY_CATALOG.md`
 7. Machine-fact authority — `@D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md`
+
+For any new app install, app repair, database/vector-store setup, MCP server, IDE plugin, skill, runtime, Windows service, or scheduled task, also read `@D:\github\agentcore-control-plane\docs\install-platform\INSTALLATION_POLICY.md`, `@D:\github\agentcore-control-plane\docs\install-platform\INSTALL_NEW_THING.md`, `@D:\github\agentcore-control-plane\docs\install-platform\SCENARIO_CATALOG.yaml`, and `@D:\github\agentcore-control-plane\contracts\install-target-policy.json` before changing anything.
 
 `@D:\github\agentcore-control-plane\AGENTS.md` is the agent operating contract. `@D:\MCP-Control-Plane` is compatibility/live-ops evidence only, never design authority.
 `@D:\github\agentcore-control-plane\AUTHORITY_LOCK.md` and `@D:\github\agentcore-control-plane\contracts\authority-lock.yaml` define protected source classes. `@D:\github\agentcore-control-plane\docs\boundaries\SWARM_FOREIGN_BOUNDARY.md` is the minimal Swarm pointer; it does not import Swarm runtime authority and must not be read as permission to enroll Swarm work into AgentCore.
@@ -106,6 +110,8 @@ Only the authority-maintainer path may add a project/worktree entry.
 - Secrets live only in Windows User-scope environment variables. No `.env` files.
 - Never print, store, or commit resolved bearer tokens, virtual keys, API keys, PATs, DB passwords, or live secret-bearing IDE configs.
 - Live IDE configs are app-owned; changes flow through the approved self-enrollment prompt/ops with backup first.
+- New installs and app repairs go through AgentCore install intake. Do not run arbitrary installer commands from a project terminal when the app may create a database, vector store, service, MCP server, or persistent runtime state.
+- Third-party app data defaults to `I:\LocalApps\<AppName>`; third-party app backups default to `E:\LocalApps\Backups\<AppName>`. A source-local compatibility junction is allowed only after a rollback backup and exact-path validation.
 - Forbidden active routes: Context7, raw Mem0, direct Composio, Hostinger, direct AgentCore/IDE SQL to neutral Recall at `:65432`, whole-drive filesystem MCP roots, Postgres credentials in IDE configs, `global-memory-gateway` as a default route. The service-owned `:65432` backend is permitted only behind the bounded `agentcore-memory` projection adapter.
 - OpenClaw/ClawX are Swarm-managed and outside AgentCore Bifrost IDE enrollment.
 - Do **not** place Swarm MCP servers or Swarm component configuration in this file, in IDE profiles, or in AgentCore gateway client renderers.

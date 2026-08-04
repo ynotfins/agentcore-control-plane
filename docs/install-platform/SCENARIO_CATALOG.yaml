@@ -1,0 +1,73 @@
+schema_version: 1
+authority: PROJECT_ANCHOR.md -> DOC_AUTHORITY.md -> docs/install-platform/INSTALLATION_POLICY.md
+default_policy: stop_before_mutation
+
+scenarios:
+  source_repo:
+    description: Source checkout or local development project.
+    source_default: D:\github\<repo>
+    durable_state_default: I:\LocalApps\<AppName>
+    requires_project_root_proof: true
+    requires_agentcore_enrollment_decision: true
+
+  database_backed_app:
+    description: App with SQLite, Postgres, Chroma, vector store, search index, or other local durable data.
+    data_default: I:\LocalApps\<AppName>\data
+    backup_default: E:\LocalApps\Backups\<AppName>
+    forbidden_data_roots:
+      - C:\
+      - D:\
+      - F:\AgentCore
+      - F:\PostgreSQL18
+      - F:\AgentCore\database_cluster
+      - H:\SwarmData
+      - E:\AgentCore
+      - E:\Swarm
+    compatibility_strategy: use_project_local_junction_only_after_backup
+
+  mcp_server:
+    description: Tool server intended for agent access.
+    default_exposure: dormant
+    ide_rule: do_not_add_directly_to_ides
+    gateway_rule: register_through_agentcore_bifrost_only_after_approval
+    requires_capability_profile: true
+
+  ide_plugin_or_skill:
+    description: IDE plugin, Codex skill, Cursor rule, Claude hook, or similar agent-facing extension.
+    default_exposure: installed_unverified
+    requires_content_inspection: true
+    requires_secret_scan: true
+    requires_host_validation: true
+
+  python_runtime:
+    description: Python tool, server, or local runtime.
+    install_default: project_or_tool_owned_venv
+    data_default: I:\LocalApps\<AppName>
+    forbidden: write_secrets_to_dotenv
+
+  node_runtime:
+    description: Node, npm, pnpm, or npx service/tool.
+    install_default: project_local_or_user_tool
+    data_default: I:\LocalApps\<AppName>
+    forbidden: permanent_random_npx_daemon_without_lifecycle
+
+  windows_service_or_task:
+    description: Persistent background service or scheduled task.
+    default_policy: approval_required
+    requires: process_tree_commandline_port_path_account_evidence
+    requires_rollback: true
+
+  model_provider_helper:
+    description: Local proxy, gateway, router, or inference helper.
+    default_policy: benchmark_gated
+    inference_plane_note: MCP and model inference are separate planes.
+    requires_adr: true
+
+common_stop_conditions:
+  - database_or_vector_store_on_c_or_d
+  - direct_agentcore_database_reuse
+  - direct_swarm_or_recall_database_reuse
+  - missing_project_root_proof
+  - missing_rollback_backup
+  - secret_requested_without_approved_env_var
+  - binds_non_loopback_without_approval

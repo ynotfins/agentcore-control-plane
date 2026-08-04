@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "authority": "PROJECT_ANCHOR.md -> DOC_AUTHORITY.md -> docs/install-platform/INSTALLATION_POLICY.md",
+  "default_policy": "deny_until_classified",
+  "roots": {
+    "source": {
+      "default": "D:\\github",
+      "allowed_examples": [
+        "D:\\github\\<repo>",
+        "D:\\<approved-standalone-source-repo>"
+      ],
+      "durable_database_allowed": false
+    },
+    "third_party_local_apps": {
+      "default": "I:\\LocalApps\\<AppName>",
+      "data": "I:\\LocalApps\\<AppName>\\data",
+      "runtime": "I:\\LocalApps\\<AppName>\\runtime",
+      "logs": "I:\\LocalApps\\<AppName>\\logs",
+      "cache": "I:\\LocalApps\\<AppName>\\cache",
+      "indexes": "I:\\LocalApps\\<AppName>\\indexes"
+    },
+    "third_party_backups": {
+      "default": "E:\\LocalApps\\Backups\\<AppName>"
+    },
+    "agentcore": {
+      "hot_root": "F:\\AgentCore",
+      "postgres18_data": "F:\\PostgreSQL18\\data",
+      "staging": "I:\\AgentCore\\staging",
+      "backup_root": "E:\\AgentCore",
+      "third_party_direct_use_allowed": false
+    },
+    "swarm": {
+      "hot_root": "H:\\SwarmData",
+      "backup_root": "E:\\Swarm",
+      "third_party_direct_use_allowed": false
+    }
+  },
+  "database_rules": {
+    "forbidden_primary_database_roots": [
+      "C:\\",
+      "D:\\",
+      "E:\\AgentCore",
+      "E:\\Swarm",
+      "F:\\AgentCore",
+      "F:\\PostgreSQL18",
+      "H:\\SwarmData"
+    ],
+    "default_third_party_database_root": "I:\\LocalApps\\<AppName>\\data",
+    "project_relative_storage": {
+      "policy": "junction_allowed_after_backup",
+      "target_root": "I:\\LocalApps\\<AppName>",
+      "backup_root": "E:\\LocalApps\\Backups\\<AppName>"
+    }
+  },
+  "odysseus": {
+    "project_root": "D:\\odysseus",
+    "data_root": "I:\\LocalApps\\Odysseus\\data",
+    "backup_root": "E:\\LocalApps\\Backups\\Odysseus",
+    "forbidden": [
+      "direct AgentCore PG18",
+      "direct AgentCore PG16 legacy cluster",
+      "direct neutral SwarmRecall PG/Meili",
+      "inherited global DATABASE_URL"
+    ]
+  }
+}

@@ -50,6 +50,14 @@ No other root or docs file may silently override this chain. If a document confl
 - `audits/AGENTCORE_LANGGRAPH_AUTHORITY_RECONCILIATION_2026-08-04.md` — current release/runtime/documentation reconciliation and launch gates
 - `docs/adr/ADR-2026-08-02-agentcore-bifrost-context-alignment.md` — current responsibility model, transport-plane separation, and future-extension gates
 
+**For any new install, app repair, local database/vector store, MCP server, IDE plugin, skill, runtime, Windows service, or scheduled task, additionally attach:**
+
+- `docs/install-platform/INSTALLATION_POLICY.md` — governed install intake and storage rules
+- `docs/install-platform/INSTALL_NEW_THING.md` — operator entrypoint and required planning output
+- `docs/install-platform/SCENARIO_CATALOG.yaml` — install scenario classification
+- `contracts/install-target-policy.json` — machine-readable source/data/backup target policy
+- `docs/prompts/odysseus-agentcore-install-repair.md` — Odysseus-specific repair prompt when working on `D:\odysseus`
+
 **Add as needed:**
 
 - `docs/handoffs/AGENTCORE_SWARM_DUAL_ECOSYSTEM_HANDOFF_2026-07-25.md` — point-in-time dual-ecosystem handoff; current paths/status come from each control plane's current context block
@@ -88,7 +96,9 @@ No other root or docs file may silently override this chain. If a document confl
 | `AUTHORITY_LOCK.md` / `contracts/authority-lock.yaml` | Authority-lock classification and enforcement manifest for operator-locked, governed mutable, generated read-only, and normal workstream files. |
 | `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` | Detailed Milestone execution guidance; derives from BLUEPRINT.md; BLUEPRINT wins on conflicts |
 | `docs/agent-policy/*.md` | Global New Project Bootstrap, Milestone execution, checklist, tool-lifecycle, and read-order policy |
+| `docs/install-platform/*.md` / `docs/install-platform/SCENARIO_CATALOG.yaml` | Governed install intake for apps, database-backed tools, MCP servers, IDE plugins, skills, runtimes, services, and scheduled tasks |
 | `contracts/global-agent-policy.yaml` | Canonical machine-readable semantic agent policy (source for per-IDE rule profiles) |
+| `contracts/install-target-policy.json` | Machine-readable storage target policy for new installs; third-party durable app data defaults to `I:\LocalApps\<AppName>` |
 | `MASTER_CONFIG_AND_PROMPT.md` | Controlling IDE MCP/rules setup after Bifrost rebuild |
 | `contracts/bifrost-upstream-mcp-registry.json` | Canonical upstream MCP servers + capability profiles |
 | `contracts/agentcore-gateway-client.json` | Single `agentcore-gateway` client connection contract |
@@ -231,6 +241,7 @@ All historical docs must not be run as instructions without current operator app
 - Direct edits to live IDE configs under `C:\Users\ynotf\.*` without backup + approved prompt/ops
 - `:65432` as a direct AgentCore or IDE runtime route (the neutral Recall service-owned backend is allowed only behind `agentcore-memory`)
 - Whole-drive filesystem MCP roots or Postgres credentials in IDE configs
+- Third-party local-app primary databases, vector stores, indexes, app data, runtime state, or persistent caches on `C:` or `D:`. Use `I:\LocalApps\<AppName>` by default and `E:\LocalApps\Backups\<AppName>` for backups.
 
 ---
 
