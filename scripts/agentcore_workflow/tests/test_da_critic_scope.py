@@ -106,11 +106,11 @@ def test_worker_iteration_budget_uses_langgraph_recursion_limit() -> None:
 
 
 def test_critic_default_budget_allows_bounded_read_and_review_cycle() -> None:
-    assert DEFAULT_CRITIC_MAX_ITER == 3
+    assert DEFAULT_CRITIC_MAX_ITER == 4
     config = _worker_invoke_config(
         role="critic",
         thread_uuid="thread-id",
         max_iterations=DEFAULT_CRITIC_MAX_ITER,
     )
 
-    assert config["recursion_limit"] == 13
+    assert config["recursion_limit"] == 17
