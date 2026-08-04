@@ -20,7 +20,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 def scan_authority_chain() -> list[str]:
     errors = []
-    
+
     files_to_check = [
         REPO_ROOT / "DOC_AUTHORITY.md",
         REPO_ROOT / "BLUEPRINT.md",
@@ -30,7 +30,7 @@ def scan_authority_chain() -> list[str]:
         REPO_ROOT / "AGENTS.md",
         REPO_ROOT / "rules" / "canonical" / "GLOBAL_AGENT_RULES.md",
     ]
-    
+
     for path in files_to_check:
         text = path.read_text(encoding="utf-8")
         if "PROJECT_ANCHOR.md" in text and "DOC_AUTHORITY.md" in text and "BLUEPRINT.md" in text and "CONTEXT_BLOCK.md" in text:
@@ -38,7 +38,7 @@ def scan_authority_chain() -> list[str]:
             read_order_match = re.search(r"Read in this order:.*?(?=\n\n|\Z)", text, re.DOTALL | re.IGNORECASE) or \
                                re.search(r"Read order:.*?(?=\n\n|\Z)", text, re.DOTALL | re.IGNORECASE) or \
                                re.search(r"1\.\s*`?PROJECT_ANCHOR\.md`?.*", text, re.DOTALL)
-            
+
             if read_order_match:
                 section = read_order_match.group(0)
                 anchor_pos = section.find("PROJECT_ANCHOR.md")
@@ -79,8 +79,16 @@ def scan_obsolete_ports_and_dbs() -> list[str]:
     ]
     for path in active_files:
         text = path.read_text(encoding="utf-8")
-        if ":65432" in text and "forbidden" not in text.lower() and "archived" not in text.lower():
-            errors.append(f"{path.name}: active reference to obsolete port 65432")
+        lowered = text.lower()
+        if (
+            ":65432" in text
+            and "forbidden" not in lowered
+            and "archived" not in lowered
+            and "neutral recall" not in lowered
+            and "swarmrecall" not in lowered
+            and "service-owned" not in lowered
+        ):
+            errors.append(f"{path.name}: active reference to obsolete AgentCore route on port 65432")
         if "127.0.0.1:55432" in text and "legacy" not in text.lower() and "rollback" not in text.lower() and "swarm" not in text.lower() and "preserved" not in text.lower():
             errors.append(f"{path.name}: active non-legacy reference to PG16 port 55432 for AgentCore")
     return errors
@@ -100,12 +108,12 @@ def scan_secrets_and_junk() -> list[str]:
         re.compile(r"ghp_[a-zA-Z0-9]{36}"),
         re.compile(r"vk-[a-zA-Z0-9]{32,}"),  # Real virtual key token (not descriptive string)
     ]
-    
+
     for p in REPO_ROOT.rglob("*"):
         if p.is_dir() or ".git" in p.parts or ".venv" in p.parts or "artifacts" in p.parts:
             continue
         rel = str(p.relative_to(REPO_ROOT))
-        
+
         if p.suffix in (".md", ".yaml", ".yml", ".json", ".py", ".ps1"):
             try:
                 content = p.read_text(encoding="utf-8", errors="ignore")
@@ -120,22 +128,22 @@ def scan_markdown_links() -> list[str]:
     errors = []
     md_files = [f for f in list(REPO_ROOT.glob("*.md")) + list((REPO_ROOT / "docs").rglob("*.md"))
                 if "archive" not in f.parts]
-    
+
     link_pattern = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
-    
+
     for md in md_files:
         content = md.read_text(encoding="utf-8", errors="ignore")
         for match in link_pattern.finditer(content):
             target = match.group(2).split("#")[0].strip()
             if not target or target.startswith("http://") or target.startswith("https://") or target.startswith("mailto:") or target.startswith("env.") or target.startswith("bc-id") or target.startswith("sandbox:"):
                 continue
-            
+
             # Resolve relative link
             if target.startswith("D:\\") or target.startswith("C:\\"):
                 target_path = Path(target)
             else:
                 target_path = (md.parent / target).resolve()
-            
+
             if not target_path.exists():
                 # Check repo-relative path fallback
                 alt_path = (REPO_ROOT / target.lstrip("/\\")).resolve()
@@ -145,7 +153,7 @@ def scan_markdown_links() -> list[str]:
 
 def main() -> int:
     print("[*] Running AgentCore Reconciliation Scan Suite...")
-    
+
     scans = [
         ("Authority & Read-Order Chain", scan_authority_chain),
         ("Stale Stage A Claims", scan_stale_stage_a),
@@ -154,7 +162,7 @@ def main() -> int:
         ("Secrets & Junk Scan", scan_secrets_and_junk),
         ("Internal Markdown Links & Paths", scan_markdown_links),
     ]
-    
+
     total_errors = 0
     for name, scan_func in scans:
         errs = scan_func()
@@ -165,11 +173,11 @@ def main() -> int:
             total_errors += len(errs)
         else:
             print(f"  [PASS] {name}")
-            
+
     if total_errors > 0:
         print(f"\nTotal scan failures: {total_errors}")
         return 1
-        
+
     print("\n[PASS] All reconciliation scans passed cleanly.")
     return 0
 

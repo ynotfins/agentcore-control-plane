@@ -1,6 +1,6 @@
 # Autonomous Workflow Quickstart
 
-**Run from:** `D:\github\agentcore-control-plane\scripts` (operator cwd).  
+**Run from:** `D:\github\agentcore-control-plane\scripts` with the repository-owned Python runtime.
 **Not from:** repo root alone (`ModuleNotFoundError: No module named 'agentcore'`) or `D:\github\deepagents` (upstream Deep Agents checkout is not the operator CLI).
 
 **Full runbook:** `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`
@@ -16,44 +16,45 @@ When the IDE routes via Cursor Auto (model not reliably observable), use AgentCo
 ## Exact commands
 
 ```powershell
-cd D:\github\agentcore-control-plane\scripts
-
-# If bare `python` is missing from PATH:
-# $py = "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe"
+$AgentCorePython = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe'
+if (-not (Test-Path -LiteralPath $AgentCorePython)) {
+  & 'D:\github\agentcore-control-plane\scripts\bootstrap-runtime.ps1'
+}
+Set-Location 'D:\github\agentcore-control-plane\scripts'
 
 # One-time project registration
-python -m agentcore workflow init `
+& $AgentCorePython -m agentcore workflow init `
   --project-key <project_key> `
   --project-name "<name>" `
   --target-path <repo_root> `
   --trust-class project_verified
 
 # Start
-python -m agentcore workflow start `
+& $AgentCorePython -m agentcore workflow start `
   --project-key <project_key> `
   --milestone M6 `
   --goal "<goal text>"
 
 # Observe (production evidence)
-python -m agentcore workflow status  --project-key <project_key>
-python -m agentcore workflow logs    --project-key <project_key> --tail 50
-python -m agentcore workflow topology
+& $AgentCorePython -m agentcore workflow status  --project-key <project_key>
+& $AgentCorePython -m agentcore workflow logs    --project-key <project_key> --tail 50
+& $AgentCorePython -m agentcore workflow topology
 
 # Control
-python -m agentcore workflow pause   --project-key <project_key> --reason "<why>"
-python -m agentcore workflow approve --project-key <project_key> --decision approve --notes "<notes>"
-python -m agentcore workflow reject  --project-key <project_key> --decision reject   --notes "<notes>"
-python -m agentcore workflow resume  --project-key <project_key>
-python -m agentcore workflow cancel  --project-key <project_key> --reason "<why>"
+& $AgentCorePython -m agentcore workflow pause   --project-key <project_key> --reason "<why>"
+& $AgentCorePython -m agentcore workflow approve --project-key <project_key> --decision approve --notes "<notes>"
+& $AgentCorePython -m agentcore workflow reject  --project-key <project_key> --decision reject   --notes "<notes>"
+& $AgentCorePython -m agentcore workflow resume  --project-key <project_key>
+& $AgentCorePython -m agentcore workflow cancel  --project-key <project_key> --reason "<why>"
 
 # Evidence
-python -m agentcore workflow evidence --project-key <project_key> --run <run_db_id>
+& $AgentCorePython -m agentcore workflow evidence --project-key <project_key> --run <run_db_id>
 
 # Studio (dev-only Agent Server; NOT production PostgresSaver; cannot open production thread IDs)
-python -m agentcore workflow studio --port 2024 --no-browser
+& $AgentCorePython -m agentcore workflow studio --port 2024 --no-browser
 ```
 
-**Repo-root alternative:** from `D:\github\agentcore-control-plane`, set `$env:PYTHONPATH = "D:\github\agentcore-control-plane\scripts"` then run the same commands. Prefer `cd …\scripts`.
+Do not substitute an arbitrary system Python for production operation. `scripts\bootstrap-runtime.ps1` uses the approved system interpreter only to create or repair the repository runtime.
 
 Studio defaults: `127.0.0.1:2024`, `LANGSMITH_TRACING=false`, `LANGGRAPH_CLI_NO_ANALYTICS=1`, anonymous/local first. Topology fingerprint must be `a86e40e8ddd0a370…`.
 

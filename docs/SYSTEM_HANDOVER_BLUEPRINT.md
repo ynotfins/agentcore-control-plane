@@ -1,16 +1,19 @@
-# System Handover Blueprint
+# System Handover Blueprint — Superseded Evidence
 
 Generated: 2026-06-25
 Updated: 2026-07-14
 
-> **Bifrost override:** This handover predates the Bifrost MCP Gateway cutover.
-> For non-Swarm IDE setup, follow `PROJECT_ANCHOR.md`,
-> `MASTER_CONFIG_AND_PROMPT.md`, and `docs/bifrost/UNIFIED_GATEWAY_SETUP.md`.
-> The current IDE route is `agentcore-gateway` → `agentcore-memory`; older
-> `global-memory-gateway` statements below are retained as historical memory
-> architecture context.
+> **SUPERSEDED HANDOVER — DO NOT USE AS CURRENT AUTHORITY OR AN OPERATOR RUNBOOK.**
+> This document predates the Bifrost gateway, PG18 memory platform, neutral
+> SwarmRecall boundary, and current LangGraph runtime. Its older `PG16`,
+> `SwarmVault`, `global-memory-gateway`, live-root, renderer, and startup claims
+> are retained only as historical evidence. Current authority is
+> `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` →
+> `CONTEXT_BLOCK.md`; current IDE setup is in `MASTER_CONFIG_AND_PROMPT.md` and
+> current LangGraph commands are in
+> `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`.
 
-This document is the canonical architecture handoff for the current AgentCore local runtime, storage, and governed memory environment. It is intended for global-controller ingestion and should be treated as an operational dependency map, not as a speculative future-state design.
+The remainder of this document is an immutable snapshot of the former architecture. It is not eligible for current-context ingestion except as explicitly requested historical evidence.
 
 ## Source And Live Roots
 

@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md — AgentCore Universal IDE Self-Enrollment Package
 
-**Updated:** 2026-08-02 — neutral shared Recall, portable Context Engine, Arabold/Context Fabric drift controls, and Codex/Cursor execution ownership reconciled under `AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`; single-gateway contract unchanged.
+**Updated:** 2026-08-04 — current-release truth, repository-owned LangGraph runtime, and documentation drift controls reconciled under `AUTH-2026-08-04-AGENTCORE-LANGGRAPH-DOC-RECONCILIATION`; single-gateway contract unchanged.
 **Repository:** `@D:\github\agentcore-control-plane`
 **Authority:** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → current contracts/runbooks
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`, `contracts/global-agent-policy.yaml`, `contracts/model-context-profiles.json`
@@ -52,6 +52,8 @@ Read and follow in this order. Nothing below overrides anything above it.
 
 Do **not** treat mutable tool counts, Bifrost uptime, or live IDE screenshots as architecture authority. Read live posture from `@D:\github\agentcore-control-plane\CONTEXT_BLOCK.md` and current audits.
 
+Do **not** infer current Context Engine acceptance from the 2026-08-02 v0.2.0 report. Current release readiness requires the installed package metadata, installation manifest, `agentcore-context validate --live`, exact source/release identity, host lifecycle proof, and independent exact-SHA review to agree. If any disagree, report `release_recertification_required`.
+
 ---
 
 ## 2. Architecture — exactly one gateway
@@ -83,6 +85,8 @@ MCP tool traffic is `IDE -> agentcore-gateway/Bifrost -> approved MCP upstreams`
 ### Execution ownership
 
 The AgentCore authority-maintainer owns architecture, protected contracts, live runtime wiring, security boundaries, final validation, and Git integration. Cursor is used for bounded implementation and independent review through focused project subagents. Cursor does not receive authority to redesign the stack or activate future candidates from this enrollment package.
+
+LangGraph operator commands use the repository-owned runtime at `@D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe` from the `@D:\github\agentcore-control-plane\scripts` working directory. Create or repair it with `@D:\github\agentcore-control-plane\scripts\bootstrap-runtime.ps1`. Bare system Python is not the production operator contract.
 
 If a client cannot expand `${env:…}` (observed: MiniMax Code daemon → 401), materialize the User-scope `BIFROST_MCP_VIRTUAL_KEY` into the **live** config only — never commit the resolved value.
 
@@ -207,7 +211,7 @@ Preserve client-native safety, sandbox, approval, account, and UI settings. Do n
 
 ## 7. Client identification and profile selection
 
-Supported AgentCore / enrolled non-Swarm clients (current authority reconciliation 2026-08-02; context-hook certification does not by itself prove an IDE's live MCP discovery UI):
+Supported AgentCore / enrolled non-Swarm clients (last client-specific evidence dates are recorded per profile; context-hook certification does not by itself prove current IDE MCP discovery or current Context Engine release acceptance):
 
 | Client | Profile directory | Configuration mode | Native validation status |
 | --- | --- | --- | --- |
@@ -461,7 +465,7 @@ Every new AgentCore-managed project runs Milestone 0 per `@D:\github\agentcore-c
 
 ## CURSOR CONTINUATION PROMPT
 
-If additional Cursor work is needed after this audit (for example, running the native memory lifecycle acceptance inside MiniMax Code, MiniMax Agent Classic, Codex, Claude Code/Desktop, Antigravity, Cherry Studio, or Open Interpreter CLI), paste the following into a fresh Cursor chat on `@D:\github\agentcore-control-plane`:
+If additional Cursor work is needed after this audit (for example, running the native memory lifecycle acceptance inside MiniMax Code, MiniMax Agent Classic, Codex, Claude Code/Desktop, Antigravity, Cherry Studio, or Open Interpreter CLI), paste the following into a fresh Cursor chat on `@D:\github\agentcore-control-plane` only after current Context Engine live validation passes:
 
 ```text
 Run the AgentCore native lifecycle acceptance for the selected IDE only.

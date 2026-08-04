@@ -84,6 +84,16 @@ if (-not (Test-Path $VenvPython)) {
     exit 1
 }
 
+# A partially-created venv can contain python.exe without pip. Repair that
+# supported state in place instead of requiring an operator to recreate it.
+& $VenvPython -m pip --version *> $null
+if ($LASTEXITCODE -ne 0) {
+    Write-Step "Repairing missing pip in the existing virtual environment..."
+    & $VenvPython -m ensurepip --upgrade
+    if ($LASTEXITCODE -ne 0) { Write-Fail "pip bootstrap failed"; exit 1 }
+    Write-Ok "pip bootstrapped"
+}
+
 # ── 3. Upgrade pip ──────────────────────────────────────────────────────────
 Write-Step "Upgrading pip..."
 & $VenvPython -m pip install --quiet --upgrade pip
@@ -134,7 +144,7 @@ foreach ($pkg in $KeyPackages) {
 # ── 7. Quick smoke test ──────────────────────────────────────────────────────
 Write-Host ""
 Write-Step "Smoke test: import langgraph..."
-$smoke = & $VenvPython -c "import langgraph; print('langgraph', langgraph.__version__)" 2>&1
+$smoke = & $VenvPython -c "import importlib.metadata as metadata; import langgraph; print('langgraph', metadata.version('langgraph'))" 2>&1
 if ($LASTEXITCODE -eq 0) {
     Write-Ok $smoke
 } else {
@@ -144,5 +154,5 @@ if ($LASTEXITCODE -eq 0) {
 
 Write-Host ""
 Write-Ok "Bootstrap complete. Activate venv: scripts\.venv\Scripts\Activate.ps1"
-Write-Ok "Run tests: python scripts\agentcore_workflow\tests\m8_acceptance.py"
+Write-Ok "Run tests: scripts\.venv\Scripts\python.exe scripts\agentcore_workflow\tests\m8_acceptance.py"
 exit 0

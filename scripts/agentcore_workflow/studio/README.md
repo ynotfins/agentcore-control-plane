@@ -13,7 +13,7 @@
 | Analytics | n/a | `LANGGRAPH_ANALYTICS=false` forced |
 | Bind | 127.0.0.1 only | 127.0.0.1 only |
 | Windows service | No | No — Studio is a foreground process |
-| Operator use | `python -m agentcore workflow start` | `python -m agentcore workflow studio` |
+| Operator use | repo venv `-m agentcore workflow start` | repo venv `-m agentcore workflow studio` |
 
 ## Topology fingerprint
 
@@ -29,17 +29,18 @@ options). A topology change invalidates the fingerprint by design.
 
 ## Launch Studio
 
-From the repository root (run from `scripts/`):
+From `scripts/` with the repository-owned runtime:
 
 ```powershell
-cd D:\github\agentcore-control-plane\scripts
-python -m agentcore workflow studio
+$AgentCorePython = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe'
+Set-Location 'D:\github\agentcore-control-plane\scripts'
+& $AgentCorePython -m agentcore workflow studio
 ```
 
 Or specify port:
 
 ```powershell
-python -m agentcore workflow studio --port 2024 --no-browser
+& $AgentCorePython -m agentcore workflow studio --port 2024 --no-browser
 ```
 
 The launcher:
@@ -88,7 +89,7 @@ Rules:
 - `OPENROUTER_API_KEY` is inherited from the Windows User environment by the Studio
   process; do not create `.env` files.
 - `LANGSMITH_TRACING=false` remains forced unless separately approved.
-- Topology fingerprint must match production (`python -m agentcore workflow topology`).
+- Topology fingerprint must match production (`& $AgentCorePython -m agentcore workflow topology`).
 
 ## What to verify in Studio
 
@@ -111,7 +112,7 @@ Rules:
 ## What Studio is NOT
 
 - NOT a second production Agent Server database.
-- NOT a replacement for `python -m agentcore workflow start`.
+- NOT a replacement for the production repo-venv `-m agentcore workflow start` path.
 - NOT a persistent Windows service.
 - NOT a route to LangSmith Cloud — `LANGSMITH_TRACING=false` prevents
   AgentCore application data from being sent.
@@ -123,13 +124,13 @@ is ephemeral; nothing persists.
 
 ## Operational runbook
 
-- **Start:** `python -m agentcore workflow studio` (from `scripts/`).
+- **Start:** `& $AgentCorePython -m agentcore workflow studio` (from `scripts/`).
 - **Status:** Studio prints the API URL on startup.
 - **Stop:** Ctrl+C in the dev-server terminal.
 - **Restart:** Re-run the start command.
-- **Validation:** `python -m langgraph_cli validate -c scripts/agentcore_workflow/studio/langgraph.json`.
+- **Validation:** `& $AgentCorePython -m langgraph_cli validate -c agentcore_workflow/studio/langgraph.json` (from `scripts/`).
 - **Topology parity:** automatic in the workflow CLI launcher; manual
-  check via `python -m agentcore workflow topology --json`.
+  check via `& $AgentCorePython -m agentcore workflow topology --json`.
 
 ## Files
 

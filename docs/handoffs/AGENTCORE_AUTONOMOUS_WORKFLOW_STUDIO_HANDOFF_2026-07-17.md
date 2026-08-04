@@ -1,5 +1,10 @@
 # Autonomous Workflow & LangGraph Studio Productization — Handoff 2026-07-17
 
+> **POINT-IN-TIME HANDOFF — DO NOT EXECUTE AS CURRENT INSTRUCTIONS.** The old
+> port and unqualified Python examples are preserved as release evidence. Use
+> `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` for the current repo-venv
+> operator contract and Studio port 2024.
+
 **Status:** READY — production launcher + LangGraph Studio adapter + E2E recovery suite + canonical runbook.
 
 ## Scope

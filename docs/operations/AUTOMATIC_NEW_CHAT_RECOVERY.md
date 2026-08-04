@@ -48,11 +48,15 @@ Cursor hook (project .cursor/hooks.json)
 ## Operator CLI
 
 ```powershell
-cd D:\github\agentcore-control-plane
-python -m agentcore cursor recover
-python -m agentcore cursor status
-python -m agentcore cursor resume --session-key <key>
-python -m agentcore cursor new-task --slug <slug>
+$AgentCorePython = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe'
+if (-not (Test-Path -LiteralPath $AgentCorePython)) {
+  & 'D:\github\agentcore-control-plane\scripts\bootstrap-runtime.ps1'
+}
+Set-Location 'D:\github\agentcore-control-plane\scripts'
+& $AgentCorePython -m agentcore cursor recover
+& $AgentCorePython -m agentcore cursor status
+& $AgentCorePython -m agentcore cursor resume --session-key <key>
+& $AgentCorePython -m agentcore cursor new-task --slug <slug>
 ```
 
 ## Degraded mode
@@ -68,7 +72,7 @@ When `agentcore-gateway` is temporarily unavailable:
 1. Write `.cursor/hooks.json.new`
 2. Schema-check JSON
 3. Confirm `.cursor/hooks/agentcore-hook.cmd` and dispatcher exist
-4. Run `python scripts/agentcore_cursor/test_hook_protocol.py --iterations 100`
+4. Run `D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe D:\github\agentcore-control-plane\scripts\agentcore_cursor\test_hook_protocol.py --iterations 100`
 5. Backup prior hooks.json to `E:\AgentCore-Backups\`
 6. Atomically rename `hooks.json.new` → `hooks.json`
 7. Restart Cursor and rerun the `Continue.` recovery proof only when hook registration or lifecycle behavior changed

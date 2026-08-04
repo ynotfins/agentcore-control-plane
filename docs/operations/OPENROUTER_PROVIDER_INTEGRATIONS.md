@@ -1,8 +1,14 @@
 # OpenRouter Provider Integrations
 
-**Authority:** `contracts/openrouter-provider-contract.json`  
-**Status:** PHASE 1 API SELECTABILITY PROVEN (partial) — see `audits/OPENROUTER_API_PHASE1_EVIDENCE_2026-07-20.md`  
+**Authority:** `contracts/openrouter-provider-contract.json`
+**Status:** HISTORICAL PHASE 1 EVIDENCE — DO NOT EXECUTE AS THE CURRENT LANGGRAPH RUNBOOK
 **Updated:** 2026-07-20
+
+> The provider concepts in this document are point-in-time evidence. Its model
+> list and CLI examples predate the current project-enrollment and repository
+> runtime contracts. Use `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`,
+> `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`, and the live provider
+> contract for current commands. Do not copy commands from this file.
 
 ---
 

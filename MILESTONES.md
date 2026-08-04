@@ -2,7 +2,7 @@
 
 > **Status:** Locked Milestone outcomes and exit criteria for the AgentCore platform.
 > Operator-authored core Milestones M0–M8 preserved; Macro/Micro steps remain adaptable from repository and machine evidence.
-> **Updated:** 2026-08-02 — execution ownership and neutral semantic-memory exception reconciled under `AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`; Milestone outcomes/order unchanged.
+> **Updated:** 2026-08-04 — current operational readiness separated from point-in-time Milestone acceptance under `AUTH-2026-08-04-AGENTCORE-LANGGRAPH-DOC-RECONCILIATION`; Milestone outcomes/order unchanged.
 
 ## Ecosystem and Drive Separation — Read First
 
@@ -55,6 +55,8 @@ No execution lead or specialist may change without explicit operator approval:
 | **historical evidence** | Prior facts that must not be re-executed as current instructions |
 | **external boundary condition** | Swarm-side readiness AgentCore does not implement; AgentCore only proves it cannot access the Swarm domain |
 
+Milestone acceptance is point-in-time evidence, not a perpetual runtime health claim. `CONTEXT_BLOCK.md` owns current launch readiness and may place an accepted Milestone into operational recertification without changing its locked outcome or exit criteria.
+
 Rendered detailed execution guidance: `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` (BLUEPRINT wins on conflicts). Autonomy / Studio runbooks: `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`.
 
 ---
@@ -66,12 +68,12 @@ Rendered detailed execution guidance: `docs/memory-platform/MEMORY_PLATFORM_EXEC
 | M0 — Authority and Execution Foundation | **completed (accepted)** |
 | M1 — PostgreSQL 18 Safety Foundation | **completed (accepted)** |
 | M2 — Canonical Identity and Immutable Evidence | **completed (accepted)** |
-| M3 — Lossless Context and STATE Projections | **completed (accepted)** / M3.002 live |
+| M3 — Lossless Context and STATE Projections | **completed (accepted)** for the recorded release; Context Engine v0.2.1 operational recertification pending |
 | M4 — AgentCore Memory Gateway | **completed (accepted)** / ten-tool surface live |
 | M5 — Hybrid Retrieval and Curated Cognee Memory | **completed (accepted)** with ongoing ops restore-test evidence |
-| M6 — Durable LangGraph Autonomous Workflow | **completed (accepted)** / productized CLI + Studio trajectory **current / live** |
+| M6 — Durable LangGraph Autonomous Workflow | **completed (accepted)** / live baseline; new post-v0.2.1 production canary pending |
 | M7 — Engineering Knowledge and Templates | **completed (accepted)** |
-| M8 — Operations, Recovery, Performance, and Cutover | **completed (accepted)** with residual IDE-matrix hardening tracked in audits |
+| M8 — Operations, Recovery, Performance, and Cutover | **completed (accepted)** at the recorded release; current PG18 lifecycle-owner recertification pending |
 | M9 — AgentCore Relocation and Ecosystem Separation | **transitional / target** — Bifrost runtime already on `F:\AgentCore\runtime` (current); full H: vacation + negative-access acceptance still required |
 
 This file does **not** define Swarm build milestones. Swarm readiness appears only as an external boundary condition after M9 acceptance.
@@ -134,7 +136,7 @@ This file does **not** define Swarm build milestones. Swarm readiness appears on
 
 ## M3 — Lossless Context and STATE Projections
 
-**Status:** completed (accepted) / current (M3.002 live)
+**Status:** completed (accepted) for the recorded release; current Context Engine v0.2.1 release recertification pending
 
 **Outcome:** Long sessions compact without losing recoverability.
 
@@ -205,7 +207,7 @@ This file does **not** define Swarm build milestones. Swarm readiness appears on
 
 ## M6 — Durable LangGraph Autonomous Workflow
 
-**Status:** completed (accepted) / current / live
+**Status:** completed (accepted) / live baseline; commercial launch recertification pending
 
 **Outcome:** The autonomous developer workflow resumes safely and verifies its work. LangGraph Studio remains the approved interactive autonomy surface for AgentCore-managed arbitrary-project engineering within governed write boundaries.
 
@@ -220,7 +222,7 @@ This file does **not** define Swarm build milestones. Swarm readiness appears on
 - Human pause/resume for genuine operator decisions.
 - Progressive tool disclosure and JIT leases backed by PostgreSQL.
 - Concurrent projects cannot change each other’s tools or state.
-- Production CLI runs from `D:\github\agentcore-control-plane` only (`python -m agentcore workflow …`).
+- Production CLI runs from `D:\github\agentcore-control-plane\scripts` with `D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe -m agentcore workflow …`.
 - Studio is localhost-bound, isolated from production thread IDs, and not a persistent Windows service.
 - Deep Agents remains a bounded worker harness inside LangGraph nodes only (`docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md`).
 - Workflows operate only on AgentCore and explicitly enrolled non-Swarm projects — never on Swarm-owned repositories through AgentCore continuity.
@@ -249,7 +251,7 @@ This file does **not** define Swarm build milestones. Swarm readiness appears on
 
 ## M8 — Operations, Recovery, Performance, and Cutover
 
-**Status:** completed (accepted) with residual IDE-matrix hardening tracked in audits
+**Status:** completed (accepted) at the recorded release; current lifecycle-owner and release recertification tracked in `CONTEXT_BLOCK.md`
 
 **Outcome:** The platform operates reliably without expert intervention.
 

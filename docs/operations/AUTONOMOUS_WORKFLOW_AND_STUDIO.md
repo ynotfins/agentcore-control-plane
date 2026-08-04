@@ -1,10 +1,10 @@
 # AgentCore Autonomous Workflow & LangGraph Studio Runbook
 
-**Status:** READY — `python -m agentcore workflow {init,start,status,pause,approve,reject,resume,cancel,logs,evidence,topology,studio}` from **`D:\github\agentcore-control-plane\scripts`** (operator cwd). Fixture E2E **17/17 PASS**. Topology fingerprint `a86e40e8ddd0a370…`. Production and Studio persistence are isolated.
+**Status:** LIVE BASELINE — COMMERCIAL RELEASE RECERTIFICATION REQUIRED. The recorded fixture E2E is 17/17 and the topology fingerprint remains `a86e40e8ddd0a370…`, but current launch readiness also requires Context Engine live validation, one governed PG18 lifecycle owner, and a new production canary. Production and Studio persistence remain isolated.
 
 **Authority:** `BLUEPRINT.md` M6 + `MEMORY_PLATFORM_EXECUTION_PLAN.md` M6 + `AGENTS.md`.
 
-**Quickstart:** `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`  
+**Quickstart:** `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`
 **See also:** `docs/operations/OPENROUTER_MCP.md` · `audits/LANGGRAPH_GATEWAY_ENROLLMENT_2026-07-20.md` · `audits/LANGGRAPH_STUDIO_LIVE_ACCEPTANCE_2026-07-21.md` · `audits/LANGGRAPH_END_TO_END_RECOVERY_2026-07-21.json`
 
 ---
@@ -14,7 +14,9 @@
 | Role | Path |
 |---|---|
 | Control plane (canonical Git repo) | `D:\github\agentcore-control-plane` |
-| **Operator cwd** (run all `python -m agentcore` commands here) | `D:\github\agentcore-control-plane\scripts` |
+| **Operator cwd** | `D:\github\agentcore-control-plane\scripts` |
+| **Operator Python** | `D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe` |
+| Runtime bootstrap/repair | `scripts\bootstrap-runtime.ps1` |
 | Operator CLI | `scripts\agentcore\workflow_cli.py` |
 | Studio adapter | `scripts\agentcore\studio.py` + `scripts\agentcore_workflow\studio\` |
 | Workflow engine | `scripts\agentcore_workflow\` |
@@ -25,19 +27,21 @@
 
 Do **not** run production workflow commands from `D:\github\deepagents`. Deep Agents is a PyPI worker pin only (`deepagents==0.6.12`).
 
-### Operator shell (verified 2026-08-02)
+### Operator shell (verified 2026-08-04)
 
 | Launch context | Result |
 |---|---|
-| `cd D:\github\agentcore-control-plane` then `python -m agentcore …` | **FAIL** — `ModuleNotFoundError: No module named 'agentcore'` |
-| `cd D:\github\agentcore-control-plane\scripts` then `python -m agentcore …` | **PASS** — topology + health succeed |
-| Repo root with `$env:PYTHONPATH = "D:\github\agentcore-control-plane\scripts"` | **PASS** — equivalent; prefer `scripts` cwd for simplicity |
+| Repo root with an unqualified `python -m agentcore …` | **FAIL** — `ModuleNotFoundError: No module named 'agentcore'` |
+| `scripts` cwd + repo venv | **PASS** — dependency import, topology, and production status succeed |
+| Repo venv missing/incomplete | Run `scripts\bootstrap-runtime.ps1`; it repairs missing `pip` and installs pinned runtime dependencies |
 
-On some shells bare `python` is not on PATH. Use the full executable when needed:
+Use this executable for production and Studio operator commands:
 
 ```text
-C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe
+D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe
 ```
+
+The approved system Python is a bootstrap source or explicit diagnostic fallback, not the production operator contract.
 
 ---
 
@@ -67,37 +71,38 @@ No committed `.env`. Never print secret values. Never paste `LANGSMITH_API_KEY` 
 
 ## 3. Production launcher
 
-From **`D:\github\agentcore-control-plane\scripts`**:
+From **`D:\github\agentcore-control-plane\scripts`** with the repository runtime:
 
 ```powershell
-cd D:\github\agentcore-control-plane\scripts
+$AgentCorePython = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe'
+if (-not (Test-Path -LiteralPath $AgentCorePython)) {
+  & 'D:\github\agentcore-control-plane\scripts\bootstrap-runtime.ps1'
+}
+Set-Location 'D:\github\agentcore-control-plane\scripts'
 
-# If bare `python` is missing from PATH, set:
-# $py = "C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe"
-
-python -m agentcore workflow init `
+& $AgentCorePython -m agentcore workflow init `
   --project-key fixture-project-a `
   --project-name "Fixture Project A" `
   --target-path D:\agentcore-fixture\fixture-project `
   --trust-class project_verified
 
-python -m agentcore workflow start `
+& $AgentCorePython -m agentcore workflow start `
   --project-key fixture-project-a `
   --milestone M6 `
   --goal "Diagnose the failing tests in calc.py and apply a minimal fix."
 
-python -m agentcore workflow status  --project-key fixture-project-a
-python -m agentcore workflow pause   --project-key fixture-project-a --reason "operator audit"
-python -m agentcore workflow approve --project-key fixture-project-a --decision approve --notes "approved"
-python -m agentcore workflow reject  --project-key fixture-project-a --decision reject   --notes "needs more"
-python -m agentcore workflow resume  --project-key fixture-project-a
-python -m agentcore workflow cancel  --project-key fixture-project-a --reason "abort"
-python -m agentcore workflow logs     --project-key fixture-project-a --tail 50
-python -m agentcore workflow evidence --project-key fixture-project-a --run <run_db_id>
-python -m agentcore workflow topology
+& $AgentCorePython -m agentcore workflow status  --project-key fixture-project-a
+& $AgentCorePython -m agentcore workflow pause   --project-key fixture-project-a --reason "operator audit"
+& $AgentCorePython -m agentcore workflow approve --project-key fixture-project-a --decision approve --notes "approved"
+& $AgentCorePython -m agentcore workflow reject  --project-key fixture-project-a --decision reject   --notes "needs more"
+& $AgentCorePython -m agentcore workflow resume  --project-key fixture-project-a
+& $AgentCorePython -m agentcore workflow cancel  --project-key fixture-project-a --reason "abort"
+& $AgentCorePython -m agentcore workflow logs     --project-key fixture-project-a --tail 50
+& $AgentCorePython -m agentcore workflow evidence --project-key fixture-project-a --run <run_db_id>
+& $AgentCorePython -m agentcore workflow topology
 ```
 
-**Alternative (repo root):** set `$env:PYTHONPATH = "D:\github\agentcore-control-plane\scripts"` before the same `python -m agentcore workflow …` invocations. Prefer the `scripts` cwd above.
+Do not use the repo-root/PYTHONPATH workaround as the normal operator path; it bypasses the reproducible runtime contract.
 
 Exit codes: `0` ok · `2` pre-flight · `3` runtime · `4` pause conflict · `5` internal.
 
@@ -129,10 +134,11 @@ Exit codes: `0` ok · `2` pre-flight · `3` runtime · `4` pause conflict · `5`
 ## 6. Restart recovery
 
 ```powershell
-cd D:\github\agentcore-control-plane\scripts
+$AgentCorePython = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe'
+Set-Location 'D:\github\agentcore-control-plane\scripts'
 
-python -m agentcore workflow status --project-key <project_key>
-python -m agentcore workflow resume  --project-key <project_key>
+& $AgentCorePython -m agentcore workflow status --project-key <project_key>
+& $AgentCorePython -m agentcore workflow resume  --project-key <project_key>
 ```
 
 Covered by fixture scenarios `03-kill_resume_partial` and `03-kill_resume` (17/17 suite).
@@ -160,21 +166,22 @@ Use the right surface for the question. Production runs and Studio dev runs are 
 Inspect live or completed **production** runs with the CLI from `scripts\`. These commands read `agentcore.wf_*` registry rows and production `PostgresSaver` state on PG18.
 
 ```powershell
-cd D:\github\agentcore-control-plane\scripts
+$AgentCorePython = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe'
+Set-Location 'D:\github\agentcore-control-plane\scripts'
 
 # Run registry: status, milestone, node, blockers, checkpoint summary
-python -m agentcore workflow status --project-key <project_key>
-python -m agentcore workflow status --project-key <project_key> --thread <thread_uuid>
-python -m agentcore workflow status --project-key <project_key> --run <run_db_id>
+& $AgentCorePython -m agentcore workflow status --project-key <project_key>
+& $AgentCorePython -m agentcore workflow status --project-key <project_key> --thread <thread_uuid>
+& $AgentCorePython -m agentcore workflow status --project-key <project_key> --run <run_db_id>
 
 # Operator log tail
-python -m agentcore workflow logs --project-key <project_key> --tail 50
+& $AgentCorePython -m agentcore workflow logs --project-key <project_key> --tail 50
 
 # Evidence artefact for a specific run
-python -m agentcore workflow evidence --project-key <project_key> --run <run_db_id>
+& $AgentCorePython -m agentcore workflow evidence --project-key <project_key> --run <run_db_id>
 
 # Graph parity fingerprint (production topology)
-python -m agentcore workflow topology
+& $AgentCorePython -m agentcore workflow topology
 ```
 
 `workflow status` includes a checkpoint summary from PG18 `public.checkpoints` for the production thread. Direct SQL (trusted admin only) can audit the same tables:
@@ -194,9 +201,10 @@ Database: PG18 `127.0.0.1:55433` / `agent_core`.
 Studio is for **local topology parity and disposable dev runs** only. It uses the Agent Server **dev** checkpointer (sqlite/in-memory), **not** production `PostgresSaver`.
 
 ```powershell
-cd D:\github\agentcore-control-plane\scripts
+$AgentCorePython = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe'
+Set-Location 'D:\github\agentcore-control-plane\scripts'
 
-python -m agentcore workflow studio --port 2024 --no-browser
+& $AgentCorePython -m agentcore workflow studio --port 2024 --no-browser
 # Ctrl+C to stop
 ```
 
@@ -242,8 +250,9 @@ Production and Studio **never share thread IDs**. Studio **cannot** inspect prod
 ### Start / stop
 
 ```powershell
-cd D:\github\agentcore-control-plane\scripts
-python -m agentcore workflow studio --port 2024 --no-browser
+$AgentCorePython = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe'
+Set-Location 'D:\github\agentcore-control-plane\scripts'
+& $AgentCorePython -m agentcore workflow studio --port 2024 --no-browser
 # Ctrl+C to stop
 ```
 
@@ -284,10 +293,10 @@ Use the disposable fixture for Studio destructive tests — not a live operator 
 
 | Symptom | Fix |
 |---|---|
-| `ModuleNotFoundError: No module named 'agentcore'` | `cd D:\github\agentcore-control-plane\scripts` (or set `PYTHONPATH` to that path) |
-| `python` not found | Use full path: `C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe` |
-| `ModuleNotFoundError: agentcore_workflow` | `pip install -e D:\github\agentcore-control-plane\scripts` |
-| Missing `langgraph-api` | `pip install -U "langgraph-cli[inmem]==0.4.29"` |
+| `ModuleNotFoundError: No module named 'agentcore'` | Use the repository venv from the `scripts` cwd; do not run the module from repo root |
+| Repo venv missing or lacks `pip`/dependencies | Run `D:\github\agentcore-control-plane\scripts\bootstrap-runtime.ps1` |
+| `ModuleNotFoundError: agentcore_workflow` | Re-run `D:\github\agentcore-control-plane\scripts\bootstrap-runtime.ps1`; do not repair the production runtime with bare `pip` |
+| Missing `langgraph-api` | Re-run `D:\github\agentcore-control-plane\scripts\bootstrap-runtime.ps1` to restore the pinned Studio dependencies |
 | Port 2024 in use | Stop the other listener or choose another free port explicitly |
 | Hosted Studio blank; `/docs` OK | Chrome PNA → allow Local network access on smith.langchain.com |
 | Browser asks for LangSmith auth | Gate `LANGSMITH_STUDIO_BROWSER_CREDENTIAL_REQUIRED` — set User env name `LANGSMITH_API_KEY` (value never in chat) |

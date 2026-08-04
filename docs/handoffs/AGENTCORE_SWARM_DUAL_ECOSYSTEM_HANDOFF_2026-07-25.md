@@ -1,7 +1,7 @@
 ---
 document: AGENTCORE_SWARM_DUAL_ECOSYSTEM_HANDOFF_2026-07-25.md
 purpose: New-ChatGPT continuity handoff for AgentCore and the separate local Swarm ecosystem
-status: current-until-reconciled
+status: point-in-time-superseded
 created_at: 2026-07-25
 operator: Tony Valentine (ynotf)
 machine: CHAOSCENTRAL
@@ -12,6 +12,11 @@ scope:
   - separate SwarmClaw/SwarmRecall/SwarmVault local ecosystem
 not_architecture_authority: true
 ---
+
+> **POINT-IN-TIME HANDOFF — DO NOT EXECUTE AS CURRENT INSTRUCTIONS.** Current
+> state is `CONTEXT_BLOCK.md`; current LangGraph commands are in
+> `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`. Mutable paths, versions,
+> commands, and readiness claims below are preserved only as 2026-07-25 evidence.
 
 # AgentCore + Local Swarm Dual-Ecosystem Handoff — 2026-07-25
 
@@ -1150,4 +1155,3 @@ This handoff can be archived when:
 - AgentCore-only, Swarm-only, and simultaneous-operation isolation all pass;
 - the LangGraph supervisor proxy completes a controlled real-project pilot;
 - ordinary continuation no longer depends on manual chat handoffs.
-
