@@ -97,10 +97,11 @@ def _worker_invoke_config(
     max_iterations: int,
 ) -> dict[str, Any]:
     """Translate agent iterations into LangGraph's enforced super-step limit."""
-    # Deep Agents middleware consumes additional super-steps around each
-    # model/tool turn; four graph steps per intended agent iteration preserves
-    # the operator iteration ceiling without relying on LangGraph's large default.
-    recursion_limit = max(2, (max_iterations * 4) + 1)
+    # LangGraph counts graph super-steps, not model/tool turns. Deep Agents adds
+    # planning, filesystem, and middleware subgraphs around each intended turn,
+    # so reserve eight super-steps per bounded worker iteration. The independent
+    # wall-clock timeout remains the outer execution ceiling.
+    recursion_limit = max(2, (max_iterations * 8) + 1)
     return {
         "configurable": {"thread_id": f"{role}-{thread_uuid or 'local'}"},
         "recursion_limit": recursion_limit,

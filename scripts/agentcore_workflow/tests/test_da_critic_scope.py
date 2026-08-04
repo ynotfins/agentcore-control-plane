@@ -101,7 +101,7 @@ def test_worker_iteration_budget_uses_langgraph_recursion_limit() -> None:
         max_iterations=3,
     )
 
-    assert config["recursion_limit"] == 13
+    assert config["recursion_limit"] == 25
     assert "max_iterations" not in config["configurable"]
 
 
@@ -113,4 +113,4 @@ def test_critic_default_budget_allows_bounded_read_and_review_cycle() -> None:
         max_iterations=DEFAULT_CRITIC_MAX_ITER,
     )
 
-    assert config["recursion_limit"] == 17
+    assert config["recursion_limit"] == 33
