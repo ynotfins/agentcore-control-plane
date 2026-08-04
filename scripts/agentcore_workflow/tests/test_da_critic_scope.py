@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from agentcore_workflow.deepagents_worker import (
+    DEFAULT_BUILDER_MAX_ITER,
     DEFAULT_CRITIC_MAX_ITER,
     _worker_invoke_config,
 )
@@ -106,11 +107,12 @@ def test_worker_iteration_budget_uses_langgraph_recursion_limit() -> None:
 
 
 def test_critic_default_budget_allows_bounded_read_and_review_cycle() -> None:
-    assert DEFAULT_CRITIC_MAX_ITER == 4
+    assert DEFAULT_BUILDER_MAX_ITER == 12
+    assert DEFAULT_CRITIC_MAX_ITER == 12
     config = _worker_invoke_config(
         role="critic",
         thread_uuid="thread-id",
         max_iterations=DEFAULT_CRITIC_MAX_ITER,
     )
 
-    assert config["recursion_limit"] == 33
+    assert config["recursion_limit"] == 97
