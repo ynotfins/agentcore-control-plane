@@ -72,19 +72,21 @@ def _split_goal_bullets(goal: str) -> list[str]:
     text = (goal or "").strip()
     if not text:
         return ["Complete operator goal"]
-    # Prefer explicit bullets / numbered lines
+    # Split only when the operator explicitly supplied bullets or numbered
+    # lines. Plain prose sentences form one atomic requirement: later
+    # sentences commonly carry acceptance constraints for the first sentence.
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-    bullets: list[str] = []
+    explicit_items: list[str] = []
+    has_explicit_item = False
     for ln in lines:
         m = re.match(r"^(?:[-*]|\d+[.)])\s+(.*)$", ln)
         if m:
-            bullets.append(m.group(1).strip())
-    if bullets:
-        return bullets
-    # Sentence split fallback (keep short goals as one unit)
-    parts = [p.strip() for p in re.split(r"(?<=[.!?])\s+", text) if p.strip()]
-    if len(parts) >= 2:
-        return parts[:8]
+            has_explicit_item = True
+            explicit_items.append(m.group(1).strip())
+        else:
+            explicit_items.append(ln)
+    if has_explicit_item:
+        return explicit_items[:8]
     return [text]
 
 

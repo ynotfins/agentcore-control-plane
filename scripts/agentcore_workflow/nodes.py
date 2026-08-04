@@ -934,7 +934,13 @@ def node_da_builder(state: WorkflowState) -> dict:
         f"JIT skill capsules: {skill_capsules}\n"
     )
 
-    task = f"Execute micro step {micro_key}: {_micro_label(state, micro_key)}"
+    requirement_contract = _requirement_contract(state, micro_key)
+    agentcore_context += f"\n{requirement_contract}\n"
+    task = (
+        f"Execute micro step {micro_key}: {_micro_label(state, micro_key)}\n\n"
+        f"{requirement_contract}\n"
+        "Treat this contract as immutable. Do not substitute a nearby result."
+    )
 
     worker_ready = DEEPAGENTS_AVAILABLE or _worker_mode() in ("deterministic", "hang")
     if not worker_ready or not worktree_path:
@@ -1041,6 +1047,29 @@ def _micro_label(state: WorkflowState, micro_key: str) -> str:
     return micro_key
 
 
+def _requirement_contract(state: WorkflowState, micro_key: str) -> str:
+    """Render the immutable operator goal and acceptance applicable to a micro."""
+    goal = str(state.get("goal") or "").strip() or "(unspecified)"
+    acceptance = [
+        str(item).strip()
+        for item in state.get("acceptance_criteria", [])
+        if str(item).strip()
+    ]
+    checklist = [
+        str(item.get("label") or "").strip()
+        for item in state.get("checklist_items", [])
+        if item.get("micro_key") == micro_key and str(item.get("label") or "").strip()
+    ]
+    criteria = acceptance or checklist or [f"Complete exactly: {_micro_label(state, micro_key)}"]
+    rendered = "\n".join(f"- {item}" for item in criteria)
+    return (
+        "IMMUTABLE OPERATOR CONTRACT\n"
+        f"Goal: {goal}\n"
+        "Acceptance criteria:\n"
+        f"{rendered}"
+    )
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # DA CRITIC — Deep Agents bounded worker (read-only critic)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1080,9 +1109,14 @@ def node_da_critic(state: WorkflowState) -> dict:
         f"JIT skill capsules: {skill_capsules}\n"
     )
 
+    requirement_contract = _requirement_contract(state, micro_key)
+    agentcore_context += f"\n{requirement_contract}\n"
     rubric = (
-        "Review the builder's changes for correctness, completeness, and test coverage. "
-        "Return JSON: {\"passed\": true/false, \"score\": 0.0-1.0, \"findings\": [\"...\"]}"
+        "Independently verify the changed files and builder result against every item in "
+        "this immutable operator contract. Any unmet item must set passed=false.\n"
+        f"{requirement_contract}\n"
+        "Return JSON: {\"passed\": true/false, \"score\": 0.0-1.0, "
+        "\"findings\": [\"...\"]}"
     )
 
     builder_output = str(builder_result.get("output") or "")[:4000]
@@ -1091,13 +1125,13 @@ def node_da_critic(state: WorkflowState) -> dict:
         changed_scope = "\n".join(f"- {path}" for path in files_changed[:50])
         task = (
             f"Review micro step {micro_key}. Inspect only these changed files:\n"
-            f"{changed_scope}\n\nBuilder output:\n{builder_output}"
+            f"{changed_scope}\n\n{requirement_contract}\n\nBuilder output:\n{builder_output}"
         )
     else:
         task = (
             f"Review micro step {micro_key}. No files changed. "
             "Do not inspect the repository; evaluate only this builder output:\n"
-            f"{builder_output}"
+            f"{builder_output}\n\n{requirement_contract}"
         )
 
     worker_ready = DEEPAGENTS_AVAILABLE or _worker_mode() in ("deterministic", "hang")

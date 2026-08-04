@@ -67,6 +67,20 @@ def test_synthesize_from_goal_deterministic():
     assert first_micro_key(a["macro_steps"], a["micro_steps"]) != ""
 
 
+def test_plain_prose_goal_remains_one_atomic_requirement() -> None:
+    goal = (
+        "Create runtime_probe.txt. Its contents must be exactly OK followed by a newline. "
+        "Do not modify any other file."
+    )
+
+    charter = synthesize_from_goal(goal, milestone_key="CE024")
+
+    assert charter["goal"] == goal
+    assert len(charter["macro_steps"]) == 1
+    assert len(charter["micro_steps"]) == 1
+    assert "exactly OK" in charter["macro_steps"][0]["label"]
+
+
 def test_judge_cannot_waive_hard_gate_failure():
     det = [{"check": "c1", "passed": True}]
     gv = {"requirement": "pass", "lint": "fail"}

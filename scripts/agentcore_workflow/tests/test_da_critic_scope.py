@@ -7,7 +7,7 @@ from agentcore_workflow.deepagents_worker import (
     DEFAULT_CRITIC_MAX_ITER,
     _worker_invoke_config,
 )
-from agentcore_workflow.nodes import node_da_critic
+from agentcore_workflow.nodes import node_da_builder, node_da_critic
 from agentcore_workflow.state import initial_state
 
 
@@ -93,6 +93,62 @@ def test_critic_with_file_changes_receives_exact_review_scope(monkeypatch, tmp_p
     assert "- src/service.py" in captured["task"]
     assert "- tests/test_service.py" in captured["task"]
     assert "Implemented the bounded change." in captured["task"]
+
+
+def test_builder_and_critic_receive_immutable_operator_contract(monkeypatch, tmp_path):
+    captured_builder: dict = {}
+    captured_critic: dict = {}
+
+    def fake_builder_worker(**kwargs):
+        captured_builder.update(kwargs)
+        return {
+            "status": "completed",
+            "output": "created probe",
+            "files_changed": ["runtime_probe.txt"],
+            "gate_evidence": {},
+        }
+
+    def fake_critic_worker(**kwargs):
+        captured_critic.update(kwargs)
+        return {
+            "status": "completed",
+            "passed": True,
+            "score": 1.0,
+            "findings": [],
+        }
+
+    monkeypatch.setattr(
+        "agentcore_workflow.deepagents_worker.DEEPAGENTS_AVAILABLE", True
+    )
+    monkeypatch.setattr(
+        "agentcore_workflow.deepagents_worker.run_builder_worker",
+        fake_builder_worker,
+    )
+    monkeypatch.setattr(
+        "agentcore_workflow.deepagents_worker.run_critic_worker",
+        fake_critic_worker,
+    )
+
+    goal = "Create runtime_probe.txt with the exact required bytes."
+    acceptance = ["runtime_probe.txt contains exactly OK followed by a newline"]
+    state = dict(initial_state("project-id", "project-key", "thread-id"))
+    state.update(
+        {
+            "goal": goal,
+            "acceptance_criteria": acceptance,
+            "current_micro_key": "CE024.1.1",
+            "worktree_path": str(tmp_path),
+        }
+    )
+
+    builder_update = node_da_builder(state)
+    state.update(builder_update)
+    node_da_critic(state)
+
+    assert goal in captured_builder["task"]
+    assert acceptance[0] in captured_builder["task"]
+    assert goal in captured_critic["task"]
+    assert acceptance[0] in captured_critic["rubric"]
 
 
 def test_worker_iteration_budget_uses_langgraph_recursion_limit() -> None:
