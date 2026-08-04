@@ -21,8 +21,10 @@ REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO / "scripts"))
 
 from agentcore_workflow.deepagents_worker import (
+    _build_artifact_manifest,
     _git_files_changed,
     _git_snapshot,
+    _parse_critic_output,
     _validate_worktree,
     resource_ceiling_defaults,
     run_builder_worker,
@@ -91,6 +93,47 @@ def test_git_files_changed_detects_new_file(git_worktree):
     (git_worktree / "new_module.py").write_text("x = 1\n", encoding="utf-8")
     changed = _git_files_changed(git_worktree, before)
     assert "new_module.py" in changed
+
+
+def test_artifact_manifest_records_exact_bytes_and_sha256(git_worktree):
+    artifact = git_worktree / "runtime_probe.txt"
+    artifact.write_bytes(b"OK\n")
+
+    manifest = _build_artifact_manifest(git_worktree, ["runtime_probe.txt"])
+
+    assert manifest == [
+        {
+            "path": "runtime_probe.txt",
+            "status": "present",
+            "bytes": 3,
+            "sha256": "a12b7cb43c9d9134b5bb1b35e9096b66775d9e92e7611d1cc92b02edd6782a87",
+        }
+    ]
+
+
+def test_critic_output_parser_fails_closed_on_plain_text():
+    with pytest.raises(ValueError, match="JSON object"):
+        _parse_critic_output("Looks good to me.")
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        '{"passed": "yes", "score": 1.0, "findings": []}',
+        '{"passed": true, "score": 1.1, "findings": []}',
+        '{"passed": true, "score": 1.0, "findings": "none"}',
+    ],
+)
+def test_critic_output_parser_rejects_invalid_schema(payload):
+    with pytest.raises(ValueError, match="critic output"):
+        _parse_critic_output(payload)
+
+
+def test_critic_output_parser_accepts_fenced_structured_json():
+    parsed = _parse_critic_output(
+        '```json\n{"passed": false, "score": 0.25, "findings": ["wrong bytes"]}\n```'
+    )
+    assert parsed == {"passed": False, "score": 0.25, "findings": ["wrong bytes"]}
 
 
 def test_worktree_validator_rejects_unapproved_d_drive_path(tmp_path):

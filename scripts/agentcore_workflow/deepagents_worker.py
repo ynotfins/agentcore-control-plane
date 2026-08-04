@@ -33,6 +33,7 @@ Authority: BLUEPRINT.md + docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re as _re
@@ -152,6 +153,9 @@ def _deterministic_worker_result(
             "status": "completed",
             "output": f"[deterministic-fixture] builder completed: {task[:200]}",
             "files_changed": list(files_changed or []),
+            "artifact_manifest": _build_artifact_manifest(
+                Path(worktree_path), list(files_changed or [])
+            ),
             "gate_evidence": {},
             "error": None,
             "elapsed_ms": elapsed,
@@ -385,6 +389,68 @@ def _git_files_changed(worktree: Path, before: set[str]) -> list[str]:
     except (OSError, subprocess.SubprocessError):
         pass
     return changed
+
+
+def _build_artifact_manifest(worktree: Path, files_changed: list[str]) -> list[dict[str, Any]]:
+    """Capture durable, content-addressed evidence for changed worktree files."""
+    root = worktree.resolve()
+    manifest: list[dict[str, Any]] = []
+    for raw_path in sorted(set(files_changed)):
+        candidate = (root / raw_path).resolve()
+        try:
+            relative = candidate.relative_to(root).as_posix()
+        except ValueError as exc:
+            raise ValueError(f"changed artifact escaped worktree: {raw_path}") from exc
+
+        if not candidate.exists():
+            manifest.append({"path": relative, "status": "deleted"})
+            continue
+        if not candidate.is_file():
+            manifest.append({"path": relative, "status": "non_file"})
+            continue
+
+        digest = hashlib.sha256()
+        byte_count = 0
+        with candidate.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+                byte_count += len(chunk)
+        manifest.append(
+            {
+                "path": relative,
+                "status": "present",
+                "bytes": byte_count,
+                "sha256": digest.hexdigest(),
+            }
+        )
+    return manifest
+
+
+def _parse_critic_output(final_text: str) -> dict[str, Any]:
+    """Parse the required critic schema; malformed output is a hard failure."""
+    start = final_text.find("{")
+    end = final_text.rfind("}") + 1
+    if start < 0 or end <= start:
+        raise ValueError("critic output must contain a JSON object")
+    try:
+        parsed = json.loads(final_text[start:end])
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"critic output is not valid JSON: {exc.msg}") from exc
+    if not isinstance(parsed, dict):
+        raise ValueError("critic output JSON must be an object")
+
+    passed = parsed.get("passed")
+    score = parsed.get("score")
+    findings = parsed.get("findings")
+    if type(passed) is not bool:
+        raise ValueError("critic output passed must be a boolean")
+    if isinstance(score, bool) or not isinstance(score, (int, float)):
+        raise ValueError("critic output score must be numeric")
+    if not 0.0 <= float(score) <= 1.0:
+        raise ValueError("critic output score must be between 0 and 1")
+    if not isinstance(findings, list) or any(not isinstance(item, str) for item in findings):
+        raise ValueError("critic output findings must be a list of strings")
+    return {"passed": passed, "score": float(score), "findings": findings}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -752,11 +818,13 @@ def run_builder_worker(
 
             files_changed = _git_files_changed(root, before_files)
             gate_ev = _run_tool_gates_after_build(files_changed=files_changed, worktree=root)
+            artifact_manifest = _build_artifact_manifest(root, files_changed)
             elapsed = int((datetime.now(UTC) - t0).total_seconds() * 1000)
             return {
                 "status": "completed",
                 "output": final_text[:8000],
                 "files_changed": files_changed,
+                "artifact_manifest": artifact_manifest,
                 "gate_evidence": gate_ev,
                 "error": None,
                 "elapsed_ms": elapsed,
@@ -932,26 +1000,14 @@ def run_critic_worker(
                     final_text = m.content
                     break
 
-            # Extract structured JSON if present
-            critique: dict[str, Any] = {"passed": True, "score": 1.0, "findings": [final_text[:2000]]}
-            for chunk in [final_text]:
-                try:
-                    start = chunk.find("{")
-                    end = chunk.rfind("}") + 1
-                    if start >= 0 and end > start:
-                        parsed = json.loads(chunk[start:end])
-                        if "passed" in parsed:
-                            critique = parsed
-                            break
-                except (json.JSONDecodeError, ValueError):
-                    pass
+            critique = _parse_critic_output(final_text)
 
             elapsed = int((datetime.now(UTC) - t0).total_seconds() * 1000)
             return {
                 "status": "completed",
                 "critique": critique,
-                "passed": bool(critique.get("passed", True)),
-                "score": float(critique.get("score", 1.0)),
+                "passed": critique["passed"],
+                "score": critique["score"],
                 "error": None,
                 "elapsed_ms": elapsed,
                 "model": model,
