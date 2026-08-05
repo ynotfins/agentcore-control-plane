@@ -934,7 +934,6 @@
         "list-task-classifications",
         "get-endpoint-uptime-history",
         "search-docs",
-        "view-skills",
         "ping",
         "get-preset",
         "list-presets",
@@ -963,7 +962,6 @@
             "list-task-classifications",
             "get-endpoint-uptime-history",
             "search-docs",
-            "view-skills",
             "ping",
             "get-preset",
             "list-presets"
@@ -1081,7 +1079,7 @@
         "generate-speech classified openrouter-media-generation (operator-approved JIT). transcribe-audio classified openrouter-transcription (operator-approved JIT; results raw_untrusted). get-preset/list-presets join openrouter-discovery-read.",
         "config.db MUST be treated as secret-bearing. Backups to E:/G: secure paths only.",
         "Official endpoint: https://mcp.openrouter.ai/mcp. Transport: Streamable HTTP (MCP 2025-03-26 spec).",
-        "AUTHENTICATED LIVE INVENTORY updated 2026-08-05: 23 tools observed through Bifrost. All 23 live tools classified (19 permitted + 4 denied). get-endpoint-uptime-history added to discovery-read; install-ori-harness and spawn-ori-eval denied by default.",
+        "AUTHENTICATED LIVE INVENTORY updated 2026-08-05: 22 tools observed through Bifrost. All 22 live tools classified (18 permitted + 4 denied). get-endpoint-uptime-history added to discovery-read; view-skills no longer observed live; install-ori-harness and spawn-ori-eval denied by default.",
         "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
         "No OPENROUTER_MCP_KEY in Windows env \u2014 OAuth token managed by Bifrost config.db only.",
         "oauth_config_id is runtime-only metadata in F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json. Never committed to Git, source renderers, IDE configs, or logs."

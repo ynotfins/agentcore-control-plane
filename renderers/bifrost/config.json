@@ -197,7 +197,6 @@
           "list-task-classifications",
           "get-endpoint-uptime-history",
           "search-docs",
-          "view-skills",
           "ping",
           "get-preset",
           "list-presets",

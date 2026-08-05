@@ -6,7 +6,7 @@
   "endpoint": "https://mcp.openrouter.ai/mcp",
   "discovery": {
     "authenticated_at": "2026-08-05",
-    "tool_count": 23,
+    "tool_count": 22,
     "sha256": "live-bifrost-discovery-not-rehashed",
     "protocol_hint": "2025-03-26"
   },
@@ -25,7 +25,6 @@
     "list-task-classifications": { "group": "openrouter-discovery-read", "access": "jit_short" },
     "get-endpoint-uptime-history": { "group": "openrouter-discovery-read", "access": "jit_short", "notes": "Read-only endpoint uptime history discovered live through Bifrost on 2026-08-05." },
     "search-docs": { "group": "openrouter-discovery-read", "access": "jit_short" },
-    "view-skills": { "group": "openrouter-discovery-read", "access": "jit_short" },
     "ping": { "group": "openrouter-discovery-read", "access": "jit_short" },
     "get-preset": { "group": "openrouter-discovery-read", "access": "jit_short", "notes": "Read-only preset discovery; short JIT." },
     "list-presets": { "group": "openrouter-discovery-read", "access": "jit_short", "notes": "Read-only preset listing; short JIT." },
