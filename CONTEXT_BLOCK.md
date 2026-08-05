@@ -3,17 +3,19 @@ document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
 authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
-verified_at: 2026-08-04
+verified_at: 2026-08-05
 canonical_repository: D:\github\agentcore-control-plane
 locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
 current_acceptance: audits/AGENTCORE_LANGGRAPH_AUTHORITY_RECONCILIATION_2026-08-04.md
-current_alignment_approval: AUTH-2026-08-04-AGENTCORE-LANGGRAPH-DOC-RECONCILIATION
+current_alignment_approval: AUTH-2026-08-05-MEMORY-CONTEXT-AUTHORITY-RECONCILIATION
 ---
 
 # AgentCore Canonical Context Block
 
 Read `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` before this file. `BLUEPRINT.md` owns stable architecture and locked outcomes. This file owns mutable current posture. Generated `.agentcore/STATE.md`, `.agentcore/DECISIONS.md`, and `.agentcore/CONTEXT_INDEX.md` are subordinate projections and must not be edited directly.
+
+Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory/context plane**, while **AgentCore PG18 remains the canonical exact-evidence, policy, recovery, and LangGraph checkpoint authority**. `docs/current/PC_MEMORY_CONTEXT_WIRING_2026-08-05.md` records the reconciliation model. Do not collapse these into one database authority.
 
 ## 0. Current platform posture — VERIFIED 2026-08-04
 
@@ -93,7 +95,7 @@ The single `agentcore-gateway` MCP entry does not make Cursor model prompts trav
 
 - PG18 is the canonical exact-evidence and workflow authority.
 - The Context Engine orchestrates rolling context above the stable `agentcore-memory` surface; it does not expose a second IDE gateway.
-- Neutral Recall holds global/per-project semantic projections. It does not hold the only copy of raw prompts, LangGraph checkpoints, policy, or workflow state.
+- Neutral Recall / SwarmRecall is the PC-native semantic memory/context plane. It holds global/per-project curated semantic projections through bounded adapters. It does not hold the only copy of raw prompts, LangGraph checkpoints, policy, or workflow state.
 - SwarmClaw and LangGraph may use the same neutral Recall service through different bounded adapters, while execution state, databases, drives, credentials, and control planes remain separate.
 - Every memory/session write includes project and session identity, idempotency, trust, and provenance. Cross-project writes and foreign-session writes are rejected.
 - Originals remain recoverable through `retrieve_context` and `expand_source`; compaction never deletes canonical evidence.

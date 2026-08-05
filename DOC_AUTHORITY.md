@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime (current):** `F:\AgentCore\runtime\bifrost` (not design authority; historical `H:\AgentRuntime\bifrost` is vacated for Bifrost — remaining H: vacation is Milestone M9)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-08-04 (`AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE`; neutral LocalApps hot/cold tiers and AgentCore staging reconciliation)
+**Updated:** 2026-08-05 (`AUTH-2026-08-05-MEMORY-CONTEXT-AUTHORITY-RECONCILIATION`; AgentCore/LangGraph/neutral SwarmRecall/SwarmClaw memory-context boundary reconciliation)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -45,6 +45,7 @@ No other root or docs file may silently override this chain. If a document confl
 - `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` — point-in-time M3.002 rollout evidence (`agentcore-memory` v0.6.0); current version/status comes from `CONTEXT_BLOCK.md` and `memory_status`
 - `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` — M6 LangGraph production + Studio runbook
 - `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md` — exact `python -m agentcore workflow …` commands from control-plane
+- `docs/current/PC_MEMORY_CONTEXT_WIRING_2026-08-05.md` — reconciliation aid for the PC-native SwarmRecall semantic plane vs AgentCore/LangGraph canonical workflow authority
 - `audits/M8/UNBOUNDED_DURABLE_MEMORY_RELEASE_ACCEPTANCE.md` — final release acceptance report with validator matrix and HEAD reference
 - `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` — point-in-time Context Engine v0.2.0/native-host/RUN11 acceptance; it does **not** certify current v0.2.4
 - `audits/AGENTCORE_LANGGRAPH_AUTHORITY_RECONCILIATION_2026-08-04.md` — current release/runtime/documentation reconciliation and launch gates
@@ -124,6 +125,7 @@ No other root or docs file may silently override this chain. If a document confl
 | `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` | Point-in-time v0.2.0 + RUN11 acceptance. Superseded for release status by the v0.2.4 acceptance audit and current live validation. |
 | `audits/AGENTCORE_BIFROST_CONTEXT_ALIGNMENT_2026-08-02.md` | Point-in-time protected-change, indexing, drift, review, validator, hash, and rollback evidence. |
 | `docs/current/CURRENT_PROJECT_RECONSTRUCTION.md` | Current evidence synthesis (not architecture authority; live probes and `CONTEXT_BLOCK.md` win). |
+| `docs/current/PC_MEMORY_CONTEXT_WIRING_2026-08-05.md` | Current reconciliation aid: SwarmRecall is the PC-native semantic memory/context plane; AgentCore PG18 remains exact evidence/workflow authority; LangGraph and SwarmClaw remain separate runtimes. |
 | `docs/handoffs/AGENTCORE_FULL_RECOVERY_SOURCE_HANDOFF_2026-07-16.md` | Source-only handoff for model-aware active context, full-history recovery, and M3.002 validation |
 | `docs/handoffs/AGENTCORE_FULL_RECOVERY_LIVE_ROLLOUT_HANDOFF_2026-07-17.md` | Point-in-time M3.002 rollout evidence; current memory/host status is superseded by 2026-08-02 acceptance and live probes |
 | `docs/handoffs/AGENTCORE_AUTONOMOUS_WORKFLOW_STUDIO_HANDOFF_2026-07-17.md` | Workflow + Studio productization handoff (prefer `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` for commands) |
