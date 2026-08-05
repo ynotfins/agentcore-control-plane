@@ -209,6 +209,8 @@ def build_stdio_client(
         "auth_type": "none",
         "is_ping_available": is_ping_available,
     }
+    if server.get("is_code_mode_client") is True:
+        client["is_code_mode_client"] = True
 
     # Attach non-secret static values via notes only — Bifrost stdio envs inherit
     # process environment; STATIC_ENV_VALUES are documented for installers.
@@ -247,6 +249,8 @@ def build_http_client(server: dict[str, Any], oauth_state: dict[str, Any] | None
         "tools_to_execute": effective_tools,
         "auth_type": auth_type,
     }
+    if server.get("is_code_mode_client") is True:
+        client["is_code_mode_client"] = True
     headers = server.get("headers")
     if headers:
         client["headers"] = headers
@@ -510,6 +514,7 @@ def build_bifrost_config(
                 "tool_execution_timeout": "2m",
                 "max_agent_depth": 1,
                 "disable_auto_tool_inject": True,
+                "code_mode_binding_level": "server",
             },
         },
         "governance": {

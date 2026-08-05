@@ -30,8 +30,11 @@ class OpenRouterClassificationTests(unittest.TestCase):
         self.assertIn("list-presets", permitted)
         self.assertIn("generate-speech", permitted)
         self.assertIn("transcribe-audio", permitted)
+        self.assertIn("get-endpoint-uptime-history", permitted)
         self.assertIn("send-message", denied)
         self.assertIn("generate-image", denied)
+        self.assertIn("install-ori-harness", denied)
+        self.assertIn("spawn-ori-eval", denied)
         self.assertNotIn("send-message", permitted)
         self.assertNotIn("generate-image", permitted)
 
@@ -39,11 +42,12 @@ class OpenRouterClassificationTests(unittest.TestCase):
         g = self.or_server["tool_groups"]["openrouter-discovery-read"]["tools"]
         self.assertIn("get-preset", g)
         self.assertIn("list-presets", g)
+        self.assertIn("get-endpoint-uptime-history", g)
         self.assertNotIn("send-message", g)
         self.assertNotIn("generate-image", g)
         self.assertNotIn("generate-speech", g)
         self.assertNotIn("transcribe-audio", g)
-        self.assertEqual(len(g), 13)
+        self.assertEqual(len(g), 14)
 
     def test_media_and_transcription_groups(self) -> None:
         media = self.or_server["tool_groups"]["openrouter-media-generation"]
@@ -56,9 +60,9 @@ class OpenRouterClassificationTests(unittest.TestCase):
         self.assertEqual(tr.get("content_trust_class"), "raw_untrusted")
         self.assertIn("repository_files", tr.get("upload_policy", {}).get("forbid", []))
 
-    def test_manifest_covers_twenty_live_tools(self) -> None:
-        self.assertEqual(self.manifest["discovery"]["tool_count"], 20)
-        self.assertEqual(len(self.manifest["tools"]), 20)
+    def test_manifest_covers_live_tools(self) -> None:
+        self.assertEqual(self.manifest["discovery"]["tool_count"], 23)
+        self.assertEqual(len(self.manifest["tools"]), 23)
         self.assertTrue(self.manifest["no_wildcard_grants"])
         self.assertTrue(self.manifest["no_automatic_activation"])
 
@@ -67,7 +71,7 @@ class OpenRouterClassificationTests(unittest.TestCase):
         self.assertEqual(billable, [])  # denied filtered out
         discovery = bridge.load_tool_group("openrouter-discovery-read")
         self.assertIn("get-preset", discovery)
-        self.assertEqual(len(discovery), 13)
+        self.assertEqual(len(discovery), 14)
 
     def test_openrouter_not_in_permanent_profiles(self) -> None:
         for pid, profile in self.registry["capability_profiles"].items():

@@ -1,19 +1,19 @@
 {
   "manifest_id": "openrouter-mcp-tool-inventory",
-  "schema_version": "2026-07-20",
+  "schema_version": "2026-08-05",
   "authority": "contracts/bifrost-upstream-mcp-registry.json",
   "server_id": "openrouter",
   "endpoint": "https://mcp.openrouter.ai/mcp",
   "discovery": {
-    "authenticated_at": "2026-07-20",
-    "tool_count": 20,
-    "sha256": "83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e",
+    "authenticated_at": "2026-08-05",
+    "tool_count": 23,
+    "sha256": "live-bifrost-discovery-not-rehashed",
     "protocol_hint": "2025-03-26"
   },
   "default_exposure": "zero_without_lease",
   "no_wildcard_grants": true,
   "no_automatic_activation": true,
-  "denied_from_discovery_leases": ["send-message", "generate-image"],
+  "denied_from_discovery_leases": ["send-message", "generate-image", "install-ori-harness", "spawn-ori-eval"],
   "tools": {
     "list-models": { "group": "openrouter-discovery-read", "access": "jit_short" },
     "get-model": { "group": "openrouter-discovery-read", "access": "jit_short" },
@@ -23,6 +23,7 @@
     "list-app-rankings": { "group": "openrouter-discovery-read", "access": "jit_short" },
     "list-benchmarks": { "group": "openrouter-discovery-read", "access": "jit_short" },
     "list-task-classifications": { "group": "openrouter-discovery-read", "access": "jit_short" },
+    "get-endpoint-uptime-history": { "group": "openrouter-discovery-read", "access": "jit_short", "notes": "Read-only endpoint uptime history discovered live through Bifrost on 2026-08-05." },
     "search-docs": { "group": "openrouter-discovery-read", "access": "jit_short" },
     "view-skills": { "group": "openrouter-discovery-read", "access": "jit_short" },
     "ping": { "group": "openrouter-discovery-read", "access": "jit_short" },
@@ -47,6 +48,8 @@
       "notes": "Sensitive upload + billable processing; results raw_untrusted unless promoted."
     },
     "send-message": { "group": "openrouter-billable", "access": "denied_by_default", "in_denied_tools": true },
-    "generate-image": { "group": "openrouter-billable", "access": "denied_by_default", "in_denied_tools": true }
+    "generate-image": { "group": "openrouter-billable", "access": "denied_by_default", "in_denied_tools": true },
+    "install-ori-harness": { "group": "openrouter-billable", "access": "denied_by_default", "in_denied_tools": true, "notes": "Installation side effect; never grant from discovery leases." },
+    "spawn-ori-eval": { "group": "openrouter-billable", "access": "denied_by_default", "in_denied_tools": true, "notes": "Evaluation side effect; never grant from discovery leases." }
   }
 }

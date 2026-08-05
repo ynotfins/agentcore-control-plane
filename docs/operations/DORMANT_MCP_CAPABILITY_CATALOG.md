@@ -2,7 +2,7 @@
 
 **Status:** `DORMANT MCP CAPABILITY CATALOG READY` (documentation + registry reconciliation; zero default tool exposure for dormant entries)
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`, `contracts/project-tool-lifecycle.json`, `PROJECT_ANCHOR.md`
-**Updated:** 2026-07-19
+**Updated:** 2026-08-05
 **Scope:** Non-Swarm AgentCore gateway only. SwarmRecall / SwarmVault / SwarmClaw excluded.
 
 ## Purpose
@@ -48,14 +48,20 @@ It does **not** authorize live IDE configuration changes. IDEs keep the single e
 | Canonical ID | Pin / provenance | Transport | Env names | Default exposure | Notes |
 | -- | -- | -- | -- | -- | -- |
 | `playwright` | `@playwright/mcp` (registry pin) | stdio | none | builder profile | Browser automation; operator-risk class |
-| `filesystem` | `@modelcontextprotocol/server-filesystem@2026.7.10` | router | none | builder/reviewer | Bounded to `D:\github` only |
-| `obsidian-vault` | OpenClaw launcher script (registry) | stdio | none | builder/reviewer/docs/operator | Vault writes remain operator-sensitive |
+| `arabold-docs` | `@arabold/docs-mcp-server` vendored pin | stdio | `OPENAI_API_KEY` | builder/reviewer/docs/database/operator/chatgpt profiles | Documentation lookup; Code Mode enabled |
+| `sequential-thinking` | `@modelcontextprotocol/server-sequential-thinking@2026.7.4` | stdio | `DISABLE_THOUGHT_LOGGING` | builder/reviewer/docs/chatgpt profiles | One-tool planning surface; classic mode |
+| `agentcore-memory` | repo-owned Python server | stdio | inherited AgentCore env | builder/reviewer/database/operator/chatgpt profiles | Canonical memory facade; classic mode |
+| `agentcore-project-router` | repo-owned Python server | stdio | none | operator profile | Operator-only project activation; classic mode |
+| `cursor-agent-mcp` | `cursor-agent-mcp@1.0.5` | stdio | `CURSOR_API_KEY`, `CURSOR_API_URL` | builder profile | Cursor subagent controls; exact allowlist; classic mode |
+| `skills-hub` | isolated local wrapper | stdio | none | builder/chatgpt profiles | `install_skill` denied |
 
 ### Deferred / dormant — zero default tools
 
 | Canonical ID | Status | Pin / endpoint | Auth | Env names | Activation | Deactivation / rollback |
 | -- | -- | -- | -- | -- | -- | -- |
 | `openrouter` | `dormant` registry + `authenticated_dormant` lifecycle (`enabled=true`, not in default `allowed_server_ids`) | `https://mcp.openrouter.ai/mcp` | OAuth (`mcp` scope) bound in Bifrost store | none (OAuth in Bifrost store); `BIFROST_ENCRYPTION_KEY` required | M6 lease + `jit_vk_bridge` for exact groups — see `docs/operations/OPENROUTER_MCP.md` | revoke lease / revoke OAuth; re-render; restart `\AgentCore\AgentCore-Bifrost-Gateway` |
+| `filesystem` | `dormant_project_scoped` (`enabled=false`) | `@modelcontextprotocol/server-filesystem@2026.7.10` through project router | none | Explicit project identity + lease; do not expose as default global filesystem | `enabled=false`; no per-IDE duplicate |
+| `obsidian-vault` | `disabled` (`enabled=false`) | OpenClaw launcher script (registry) | none | Explicit operator enable only | `enabled=false`; no per-IDE duplicate |
 | `github-mcp` | `deferred` (`enabled=false`) | `ghcr.io/github/github-mcp-server` via Docker | PAT | `GITHUB_PERSONAL_ACCESS_TOKEN`, `GITHUB_PAT_TOKEN` | Health gate + named tool inventory + remove wildcard before enable | Remain `enabled=false`; no Docker start from this catalog alone |
 | `mcp-debugger` | `disabled` | registry pin | none | — | Explicit operator enable | `enabled=false` |
 | `artiforge` | `disabled` | registry pin | none | — | Explicit operator enable | `enabled=false` |
@@ -144,7 +150,8 @@ Dormant/deferred servers must **not** appear in permanent `allowed_server_ids` u
 | -- | -- | -- |
 | `openrouter` | **No** | Yes — JIT-only |
 | `github-mcp` | **No** (capability_profiles list is aspirational; enabled=false) | Yes until health gate |
-| `playwright` / `filesystem` / `obsidian-vault` | Yes (active) | Expected — not dormant |
+| `playwright` | Yes (active) | Expected — active builder-only browser automation |
+| `filesystem` / `obsidian-vault` | No | Expected — dormant/disabled, no permanent default exposure |
 
 Validators: `python scripts/bifrost/validate_contracts.py` (includes OpenRouter zero-exposure invariant).
 

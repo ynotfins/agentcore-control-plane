@@ -24,7 +24,7 @@
       "Fail-open by design: if the contract cannot be loaded the normalizer relays raw JSON-RPC unchanged."
     ]
   },
-  "tool_lifecycle_note": "TRANSITIONAL WILDCARD EXPOSURE: permitted_tools [\"*\"] grants on some non-OpenRouter servers remain a documented transitional state per contracts/project-tool-lifecycle.json (wildcard_policy.transitional_exception). M6 PostgreSQL capability leases + scripts/bifrost/jit_vk_bridge.py are live for exact OpenRouter named groups (docs/operations/OPENROUTER_MCP.md). Do not extend wildcard grants to new servers without review.",
+  "tool_lifecycle_note": "NO ACTIVE WILDCARD EXPOSURE: enabled default-profile servers use named permitted_tools inventories. Disabled/dormant project-scoped entries may retain transitional permitted_tools [\"*\"] placeholders because they do not render into live Bifrost clients. M6 PostgreSQL capability leases + scripts/bifrost/jit_vk_bridge.py remain live for exact OpenRouter named groups (docs/operations/OPENROUTER_MCP.md). Do not extend wildcard grants to new active servers without review.",
   "capability_profiles": {
     "builder": {
       "display_name": "Builder",
@@ -132,7 +132,16 @@
       "project_scope": "global",
       "write_classification": "read_only",
       "permitted_tools": [
-        "*"
+        "cancel_job",
+        "fetch_url",
+        "find_version",
+        "get_job_info",
+        "list_jobs",
+        "list_libraries",
+        "refresh_version",
+        "remove_docs",
+        "scrape_docs",
+        "search_docs"
       ],
       "denied_tools": [],
       "capability_profiles": [
@@ -159,10 +168,12 @@
       "rollback_route": "Disable arabold_docs in Bifrost mcp.client_configs and restore direct IDE entry only under explicit operator approval.",
       "enabled": true,
       "bifrost_client_name": "arabold_docs",
+      "is_code_mode_client": true,
       "status": "active",
       "notes": [
         "Vendored package path under ~/.cursor/vendor/arabold-docs-mcp",
-        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. enabled=true is authoritative for Bifrost launch; do not disable to chase startup latency — arabold-docs is mandatory for exact-version docs."
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. enabled=true is authoritative for Bifrost launch; do not disable to chase startup latency \u2014 arabold-docs is mandatory for exact-version docs.",
+        "2026-08-05: wildcard replaced with live named inventory; Code Mode enabled because this global docs client is a high-token discovery surface."
       ]
     },
     "serena": {
@@ -229,7 +240,7 @@
       "project_scope": "global",
       "write_classification": "read_only",
       "permitted_tools": [
-        "*"
+        "sequentialthinking"
       ],
       "denied_tools": [],
       "capability_profiles": [
@@ -257,7 +268,8 @@
       "status": "active",
       "notes": [
         "Set DISABLE_THOUGHT_LOGGING=true in Bifrost stdio envs.",
-        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled — required for architecture/recovery decisions."
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled \u2014 required for architecture/recovery decisions.",
+        "2026-08-05: wildcard replaced with exact one-tool inventory; remains classic mode."
       ]
     },
     "cursor-agent-mcp": {
@@ -281,7 +293,15 @@
       "project_scope": "global",
       "write_classification": "write_capable",
       "permitted_tools": [
-        "*"
+        "addFollowup",
+        "createAgent",
+        "deleteAgent",
+        "getAgent",
+        "getAgentConversation",
+        "getMe",
+        "listAgents",
+        "listModels",
+        "listRepositories"
       ],
       "denied_tools": [],
       "capability_profiles": [
@@ -305,7 +325,8 @@
       "status": "active",
       "notes": [
         "CURSOR_API_URL fixed to https://api.cursor.com in renderer env map (non-secret).",
-        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled for Cursor cloud-agent orchestration."
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled for Cursor cloud-agent orchestration.",
+        "2026-08-05: wildcard replaced with live named inventory. Kept classic mode so subagent controls remain directly discoverable to builder clients."
       ]
     },
     "context-fabric": {
@@ -352,7 +373,7 @@
       "status": "dormant_project_scoped",
       "notes": [
         "Dormant in shared Bifrost profiles because calls lack trustworthy per-session project identity. Use the repository-local hook/CLI; reject Swarm and agentmemory roots.",
-        "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* → unprefixed)."
+        "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* \u2192 unprefixed)."
       ]
     },
     "mcp-debugger": {
@@ -449,7 +470,7 @@
         "Prefer headers auth if Artiforge exposes a Bearer/header mode.",
         "Current live Artiforge MCP requires query-param PAT composition.",
         "Set Windows User env ARTIFORGE_MCP_URL to the composed URL using ARTIFORGE_PAT locally (never commit).",
-        "Bifrost connection_string uses env.ARTIFORGE_MCP_URL only — no secret literals in config.",
+        "Bifrost connection_string uses env.ARTIFORGE_MCP_URL only \u2014 no secret literals in config.",
         "If upstream returns 401 User is inactive, treat as deferred until ARTIFORGE_PAT is refreshed."
       ],
       "deferred": true
@@ -638,7 +659,7 @@
       "bifrost_client_name": "obsidian_vault",
       "status": "disabled",
       "notes": [
-        "OBSIDIAN_* names only — never embed key values.",
+        "OBSIDIAN_* names only \u2014 never embed key values.",
         "Non-secret defaults may set OBSIDIAN_BASE_URL=https://127.0.0.1:27124 and OBSIDIAN_VERIFY_SSL=false in renderer."
       ]
     },
@@ -660,9 +681,33 @@
       "project_scope": "global",
       "write_classification": "bounded_write",
       "permitted_tools": [
-        "*"
+        "browser_click",
+        "browser_close",
+        "browser_console_messages",
+        "browser_drag",
+        "browser_drop",
+        "browser_evaluate",
+        "browser_fill_form",
+        "browser_find",
+        "browser_handle_dialog",
+        "browser_hover",
+        "browser_navigate",
+        "browser_navigate_back",
+        "browser_network_request",
+        "browser_network_requests",
+        "browser_press_key",
+        "browser_resize",
+        "browser_select_option",
+        "browser_snapshot",
+        "browser_tabs",
+        "browser_take_screenshot",
+        "browser_type",
+        "browser_wait_for"
       ],
-      "denied_tools": [],
+      "denied_tools": [
+        "browser_file_upload",
+        "browser_run_code_unsafe"
+      ],
       "capability_profiles": [
         "builder"
       ],
@@ -681,9 +726,11 @@
       "rollback_route": "Disable playwright client; leave browser profiles untouched.",
       "enabled": true,
       "bifrost_client_name": "playwright",
+      "is_code_mode_client": true,
       "status": "active",
       "notes": [
-        "Bounded automation only — no Swarm or agentmemory roots."
+        "Bounded automation only \u2014 no Swarm or agentmemory roots.",
+        "2026-08-05: wildcard replaced with live named inventory. browser_file_upload and browser_run_code_unsafe are denied by default. Code Mode enabled because Playwright is a heavy browser automation client."
       ]
     },
     "filesystem": {
@@ -740,7 +787,7 @@
       "status": "dormant_project_scoped",
       "notes": [
         "Dormant until a per-session project identity can be injected; native IDE filesystem access remains project-local.",
-        "Phase 7: permitted_tools named inventory from live tools/list (filesystem-* → unprefixed)."
+        "Phase 7: permitted_tools named inventory from live tools/list (filesystem-* \u2192 unprefixed)."
       ]
     },
     "github-mcp": {
@@ -865,7 +912,7 @@
     "openrouter": {
       "canonical_id": "openrouter",
       "display_name": "OpenRouter MCP",
-      "purpose": "Live model discovery, context-window verification, provider availability, pricing, benchmark comparisons, routing research, OpenRouter documentation, and operator-scoped account functions. Not an LLM provider route for normal IDE inference — does not change any IDE default model or provider.",
+      "purpose": "Live model discovery, context-window verification, provider availability, pricing, benchmark comparisons, routing research, OpenRouter documentation, and operator-scoped account functions. Not an LLM provider route for normal IDE inference \u2014 does not change any IDE default model or provider.",
       "owner": "agentcore",
       "pinned_version": "live-remote",
       "connection_type": "http",
@@ -885,6 +932,7 @@
         "list-app-rankings",
         "list-benchmarks",
         "list-task-classifications",
+        "get-endpoint-uptime-history",
         "search-docs",
         "view-skills",
         "ping",
@@ -898,7 +946,9 @@
       ],
       "denied_tools": [
         "send-message",
-        "generate-image"
+        "generate-image",
+        "install-ori-harness",
+        "spawn-ori-eval"
       ],
       "tool_groups": {
         "openrouter-discovery-read": {
@@ -911,6 +961,7 @@
             "list-app-rankings",
             "list-benchmarks",
             "list-task-classifications",
+            "get-endpoint-uptime-history",
             "search-docs",
             "view-skills",
             "ping",
@@ -977,10 +1028,12 @@
         "openrouter-billable": {
           "tools": [
             "send-message",
-            "generate-image"
+            "generate-image",
+            "install-ori-harness",
+            "spawn-ori-eval"
           ],
           "access_policy": "billable_approval",
-          "description": "Billable inference/image calls. Remain in denied_tools — never grant from discovery leases. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation.",
+          "description": "Billable inference/image calls. Remain in denied_tools \u2014 never grant from discovery leases. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation.",
           "lease_defaults": {
             "max_duration_seconds": 900,
             "max_invocations": 5,
@@ -1017,20 +1070,20 @@
       "status": "dormant",
       "notes": [
         "LIFECYCLE: installed_dormant -> ready_auth_on_first_use -> authenticated_dormant (OAuth connected) -> jit_leased. Registry status remains 'dormant' by validator contract because tools require a live M6 lease.",
-        "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY — OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
+        "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY \u2014 OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
         "ENCRYPTION: BIFROST_ENCRYPTION_KEY required in Windows User scope; OAuth token stored encrypted in data/config.db.",
         "OAUTH BINDING: Runtime state F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json holds oauth_config_id + mcp_client_id only. After enrollment, runtime config.json must use oauth_config_id (not oauth_config) or restart unbinds the client.",
         "RENDERER BEHAVIOR: Pre-enrollment git/sanitized renderers embed oauth_config public params. Post-enrollment runtime render substitutes oauth_config_id from state file. Do not commit runtime oauth_config_id into Git renderers (OR-10).",
         "ZERO TOOLS exposed without a live M6 capability lease + Bifrost VK mcp_configs grant via scripts/bifrost/jit_vk_bridge.py. capability_profiles: [operator] is JIT-eligible reference only.",
-        "openrouter must NOT appear in capability_profiles[*].allowed_server_ids — enforced by validator.",
+        "openrouter must NOT appear in capability_profiles[*].allowed_server_ids \u2014 enforced by validator.",
         "JIT governance: M6 PostgreSQL capability_leases. VK updates MUST preserve existing mcp_configs[].id fields or Bifrost returns 409. Failure leaves tools hidden.",
-        "denied_tools send-message/generate-image stay ungated; never grant from discovery leases.",
+        "denied_tools send-message/generate-image/install-ori-harness/spawn-ori-eval stay ungated; never grant from discovery leases.",
         "generate-speech classified openrouter-media-generation (operator-approved JIT). transcribe-audio classified openrouter-transcription (operator-approved JIT; results raw_untrusted). get-preset/list-presets join openrouter-discovery-read.",
         "config.db MUST be treated as secret-bearing. Backups to E:/G: secure paths only.",
         "Official endpoint: https://mcp.openrouter.ai/mcp. Transport: Streamable HTTP (MCP 2025-03-26 spec).",
-        "AUTHENTICATED LIVE INVENTORY 2026-07-20: 20 tools; hash 83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e. All 20 live tools now classified (18 permitted + 2 denied).",
+        "AUTHENTICATED LIVE INVENTORY updated 2026-08-05: 23 tools observed through Bifrost. All 23 live tools classified (19 permitted + 4 denied). get-endpoint-uptime-history added to discovery-read; install-ori-harness and spawn-ori-eval denied by default.",
         "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
-        "No OPENROUTER_MCP_KEY in Windows env — OAuth token managed by Bifrost config.db only.",
+        "No OPENROUTER_MCP_KEY in Windows env \u2014 OAuth token managed by Bifrost config.db only.",
         "oauth_config_id is runtime-only metadata in F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json. Never committed to Git, source renderers, IDE configs, or logs."
       ]
     },

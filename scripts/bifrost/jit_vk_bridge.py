@@ -31,7 +31,7 @@ REGISTRY_PATH = Path(__file__).resolve().parents[2] / "contracts" / "bifrost-ups
 OPENROUTER_CLIENT_NAME = "openrouter"
 DEFAULT_VK_ID = "vk-agentcore-operator"
 
-DENIED_ALWAYS = frozenset({"send-message", "generate-image"})
+DENIED_ALWAYS = frozenset({"send-message", "generate-image", "install-ori-harness", "spawn-ori-eval"})
 
 
 def load_permitted_tools(registry_path: Path = REGISTRY_PATH) -> list[str]:

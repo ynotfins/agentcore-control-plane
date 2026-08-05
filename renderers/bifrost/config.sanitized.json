@@ -134,10 +134,20 @@
           "envs": []
         },
         "tools_to_execute": [
-          "*"
+          "cancel_job",
+          "fetch_url",
+          "find_version",
+          "get_job_info",
+          "list_jobs",
+          "list_libraries",
+          "refresh_version",
+          "remove_docs",
+          "scrape_docs",
+          "search_docs"
         ],
         "auth_type": "none",
-        "is_ping_available": true
+        "is_ping_available": true,
+        "is_code_mode_client": true
       },
       {
         "name": "cursor_agent_mcp",
@@ -159,7 +169,15 @@
           "envs": []
         },
         "tools_to_execute": [
-          "*"
+          "addFollowup",
+          "createAgent",
+          "deleteAgent",
+          "getAgent",
+          "getAgentConversation",
+          "getMe",
+          "listAgents",
+          "listModels",
+          "listRepositories"
         ],
         "auth_type": "none",
         "is_ping_available": true
@@ -177,6 +195,7 @@
           "list-app-rankings",
           "list-benchmarks",
           "list-task-classifications",
+          "get-endpoint-uptime-history",
           "search-docs",
           "view-skills",
           "ping",
@@ -216,10 +235,32 @@
           "envs": []
         },
         "tools_to_execute": [
-          "*"
+          "browser_click",
+          "browser_close",
+          "browser_console_messages",
+          "browser_drag",
+          "browser_drop",
+          "browser_evaluate",
+          "browser_fill_form",
+          "browser_find",
+          "browser_handle_dialog",
+          "browser_hover",
+          "browser_navigate",
+          "browser_navigate_back",
+          "browser_network_request",
+          "browser_network_requests",
+          "browser_press_key",
+          "browser_resize",
+          "browser_select_option",
+          "browser_snapshot",
+          "browser_tabs",
+          "browser_take_screenshot",
+          "browser_type",
+          "browser_wait_for"
         ],
         "auth_type": "none",
-        "is_ping_available": true
+        "is_ping_available": true,
+        "is_code_mode_client": true
       },
       {
         "name": "sequential_thinking",
@@ -241,7 +282,7 @@
           "envs": []
         },
         "tools_to_execute": [
-          "*"
+          "sequentialthinking"
         ],
         "auth_type": "none",
         "is_ping_available": true
@@ -276,7 +317,8 @@
     "tool_manager_config": {
       "tool_execution_timeout": "2m",
       "max_agent_depth": 1,
-      "disable_auto_tool_inject": true
+      "disable_auto_tool_inject": true,
+      "code_mode_binding_level": "server"
     }
   },
   "governance": {
@@ -305,25 +347,63 @@
           {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
-              "*"
+              "cancel_job",
+              "fetch_url",
+              "find_version",
+              "get_job_info",
+              "list_jobs",
+              "list_libraries",
+              "refresh_version",
+              "remove_docs",
+              "scrape_docs",
+              "search_docs"
             ]
           },
           {
             "mcp_client_name": "cursor_agent_mcp",
             "tools_to_execute": [
-              "*"
+              "addFollowup",
+              "createAgent",
+              "deleteAgent",
+              "getAgent",
+              "getAgentConversation",
+              "getMe",
+              "listAgents",
+              "listModels",
+              "listRepositories"
             ]
           },
           {
             "mcp_client_name": "playwright",
             "tools_to_execute": [
-              "*"
+              "browser_click",
+              "browser_close",
+              "browser_console_messages",
+              "browser_drag",
+              "browser_drop",
+              "browser_evaluate",
+              "browser_fill_form",
+              "browser_find",
+              "browser_handle_dialog",
+              "browser_hover",
+              "browser_navigate",
+              "browser_navigate_back",
+              "browser_network_request",
+              "browser_network_requests",
+              "browser_press_key",
+              "browser_resize",
+              "browser_select_option",
+              "browser_snapshot",
+              "browser_tabs",
+              "browser_take_screenshot",
+              "browser_type",
+              "browser_wait_for"
             ]
           },
           {
             "mcp_client_name": "sequential_thinking",
             "tools_to_execute": [
-              "*"
+              "sequentialthinking"
             ]
           },
           {
@@ -372,13 +452,22 @@
           {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
-              "*"
+              "cancel_job",
+              "fetch_url",
+              "find_version",
+              "get_job_info",
+              "list_jobs",
+              "list_libraries",
+              "refresh_version",
+              "remove_docs",
+              "scrape_docs",
+              "search_docs"
             ]
           },
           {
             "mcp_client_name": "sequential_thinking",
             "tools_to_execute": [
-              "*"
+              "sequentialthinking"
             ]
           }
         ]
@@ -407,7 +496,16 @@
           {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
-              "*"
+              "cancel_job",
+              "fetch_url",
+              "find_version",
+              "get_job_info",
+              "list_jobs",
+              "list_libraries",
+              "refresh_version",
+              "remove_docs",
+              "scrape_docs",
+              "search_docs"
             ]
           }
         ]
@@ -421,13 +519,22 @@
           {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
-              "*"
+              "cancel_job",
+              "fetch_url",
+              "find_version",
+              "get_job_info",
+              "list_jobs",
+              "list_libraries",
+              "refresh_version",
+              "remove_docs",
+              "scrape_docs",
+              "search_docs"
             ]
           },
           {
             "mcp_client_name": "sequential_thinking",
             "tools_to_execute": [
-              "*"
+              "sequentialthinking"
             ]
           }
         ]
@@ -465,7 +572,16 @@
           {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
-              "*"
+              "cancel_job",
+              "fetch_url",
+              "find_version",
+              "get_job_info",
+              "list_jobs",
+              "list_libraries",
+              "refresh_version",
+              "remove_docs",
+              "scrape_docs",
+              "search_docs"
             ]
           }
         ]

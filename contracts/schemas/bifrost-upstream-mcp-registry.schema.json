@@ -243,6 +243,10 @@
           "pattern": "^[a-z][a-z0-9_]*$",
           "description": "Bifrost MCP client name. Underscores only; no hyphens or spaces."
         },
+        "is_code_mode_client": {
+          "type": "boolean",
+          "description": "When true, render this upstream as a Bifrost Code Mode MCP client. Use only for heavy global clients after exact tool inventory and rollback are documented."
+        },
         "headers": {
           "type": "object",
           "additionalProperties": { "type": "string" },

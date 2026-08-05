@@ -121,17 +121,27 @@ if (-not [string]::IsNullOrWhiteSpace($vk)) {
     }
     $registry = Get-Content -LiteralPath $registryPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 100
     $builderServerIds = @($registry.capability_profiles.builder.allowed_server_ids)
-    $expectedPrefixes = @(
+    $activeBuilderServers = @(
       $registry.servers.PSObject.Properties |
         Where-Object {
           $_.Name -in $builderServerIds -and
           $_.Value.enabled -eq $true -and
           $_.Value.status -eq 'active'
-        } |
-        ForEach-Object { ([string]$_.Value.bifrost_client_name) + '-' }
+        }
     )
-    Assert-True ($expectedPrefixes.Count -gt 0) 'builder profile resolves at least one active MCP server'
-    foreach ($prefix in $expectedPrefixes) {
+    Assert-True ($activeBuilderServers.Count -gt 0) 'builder profile resolves at least one active MCP server'
+    $codeModeServers = @($activeBuilderServers | Where-Object { $_.Value.is_code_mode_client -eq $true })
+    if ($codeModeServers.Count -gt 0) {
+      foreach ($metaTool in @('listToolFiles', 'readToolFile', 'getToolDocs', 'executeToolCode')) {
+        Assert-True ($toolNames -contains $metaTool) "Code Mode meta-tool present: $metaTool"
+      }
+    }
+    foreach ($serverProp in $activeBuilderServers) {
+      if ($serverProp.Value.is_code_mode_client -eq $true) {
+        Write-Host "PASS  contract-active builder MCP client is Code Mode hidden: $($serverProp.Value.bifrost_client_name)"
+        continue
+      }
+      $prefix = ([string]$serverProp.Value.bifrost_client_name) + '-'
       Assert-True (@($toolNames | Where-Object { $_ -like "$prefix*" }).Count -gt 0) "contract-active builder MCP tool prefix present: $prefix"
     }
     foreach ($pattern in @('swarm', 'postgres', 'psql', 'whole_drive', 'bifrost_admin')) {
