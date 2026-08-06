@@ -7,7 +7,8 @@
     "docs/agent-policy/NEW_PROJECT_BOOTSTRAP.md",
     "docs/agent-policy/MILESTONE_EXECUTION_STANDARD.md",
     "docs/agent-policy/CHECKLIST_STANDARD.md",
-    "docs/agent-policy/DOCUMENTATION_READ_ORDER.md"
+    "docs/agent-policy/DOCUMENTATION_READ_ORDER.md",
+    "docs/agent-policy/DEFERRED_COMMITMENT_POLICY.md"
   ],
   "status_vocabulary": ["pending", "in_progress", "passed", "blocked", "failed", "skipped_with_reason"],
   "checklist_rules": {
@@ -67,7 +68,7 @@
   ],
   "read_order": [
     "global PROJECT_ANCHOR.md + DOC_AUTHORITY.md",
-    "docs/agent-policy/",
+    "docs/agent-policy/ + docs/current/MASTER_TODO.md working ledger",
     "project AGENTS.md + CLAUDE.md",
     ".agentcore/PROJECT_CHARTER.md",
     ".agentcore/MILESTONES.md",
