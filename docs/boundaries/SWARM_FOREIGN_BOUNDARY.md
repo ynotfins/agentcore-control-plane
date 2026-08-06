@@ -9,6 +9,30 @@ Canonical repository URL: `https://github.com/ynotfins/swarm-ecosystem.git`
 **Operator amendment:** `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`  
 ADR: `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md`
 
+## Operator-Locked Ownership Model
+
+Lock approval: `AUTH-2026-08-06-PC-MEMORY-RUNTIME-OWNERSHIP`
+
+1. **SwarmClaw/Sally** MUST own Swarm operation, canonical Swarm agents, sessions, tasks, schedules, approvals, recovery, restart recovery, and lifecycle.
+2. **SwarmRecall** (one deployment) MUST remain neutral machine-level semantic memory — neither AgentCore-owned nor Swarm-owned exclusive runtime. Separately credentialed bounded clients MUST be issued for each ecosystem.
+3. **SwarmVault** MUST own the Swarm document/wiki/graph/RAG corpus and bounded context packs.
+4. **AgentCore** MUST own exact IDE prompts, evidence, identity, provenance, recovery, Bifrost and agentcore-gateway, and LangGraph production checkpoints in AgentCore PG18.
+5. Enrolled IDEs MUST use only `agentcore-gateway` → `agentcore-memory` → neutral SwarmRecall for curated semantic projection/retrieval.
+6. IDEs MUST NOT receive raw SwarmRecall or SwarmVault MCP/API access, PostgreSQL/Meilisearch credentials, or direct SQL.
+7. LangGraph checkpoints MUST NOT enter SwarmRecall, SwarmVault, or SwarmClaw SQLite.
+8. Swarm normal maintenance is not AgentCore daily operational work. AgentCore remains responsible for its own adapter, gateway, and client enrollment.
+9. No statement in this document grants either ecosystem authority to mutate the other.
+
+### Change control
+
+Semantic changes to this ownership model require:
+
+- Written operator approval bearing an `AUTH` identifier;
+- A rollback backup created before the change is applied;
+- Validators confirming the change does not violate locked ownership boundaries;
+- Independent review; and
+- Re-lock after the change is accepted.
+
 Foreign authority lives in:
 
 - `D:\github\swarm-ecosystem-control\SWARM_PROJECT_ANCHOR.md`
