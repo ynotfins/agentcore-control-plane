@@ -152,8 +152,42 @@ def main() -> int:
     # --- ide-profiles ---
     profiles_root = REPO / "ide-profiles"
     check("ide:matrix", (profiles_root / "IDE_CAPABILITY_MATRIX.yaml").exists())
-    profile_dirs = [p for p in profiles_root.iterdir() if p.is_dir()]
-    check("ide:cursor+codex present", {"cursor", "codex"}.issubset({p.name for p in profile_dirs}))
+    profile_dirs = [
+        p for p in profiles_root.iterdir()
+        if p.is_dir() and (p / "IDE_PROFILE.yaml").is_file()
+    ]
+    check(
+        "ide:priority clients + cursor+codex present",
+        {"zed", "eigent", "cursor", "codex"}.issubset({p.name for p in profile_dirs}),
+    )
+    matrix = yaml.safe_load(read("ide-profiles/IDE_CAPABILITY_MATRIX.yaml"))
+    check(
+        "ide:priority ordering truthful",
+        list((matrix.get("managed_ides") or {}).keys())[:2] == ["zed", "eigent"]
+        and matrix["managed_ides"]["zed"]["m8_enrollment"] == "awaiting_operator_import"
+        and matrix["managed_ides"]["eigent"]["m8_enrollment"] == "awaiting_operator_import",
+    )
+    zed_renderer = json.loads(read("renderers/gateway-clients/zed.json"))
+    eigent_renderer = json.loads(read("renderers/gateway-clients/eigent.json"))
+    check(
+        "ide:zed renderer schema",
+        list(zed_renderer.get("context_servers", {})) == ["agentcore-gateway"]
+        and zed_renderer["context_servers"]["agentcore-gateway"].get("url")
+        == "http://127.0.0.1:8080/mcp",
+    )
+    check(
+        "ide:eigent renderer schema",
+        list(eigent_renderer.get("mcpServers", {})) == ["agentcore-gateway"]
+        and eigent_renderer["mcpServers"]["agentcore-gateway"].get("url")
+        == "http://127.0.0.1:8080/mcp",
+    )
+    for client, renderer in (("zed", zed_renderer), ("eigent", eigent_renderer)):
+        renderer_text = json.dumps(renderer)
+        check(
+            f"ide:{client} renderer symbolic secret only",
+            "${env:BIFROST_MCP_VIRTUAL_KEY}" in renderer_text
+            and re.search(r"Bearer\s+(?!\$\{env:)[A-Za-z0-9._~+/=-]{20,}", renderer_text) is None,
+        )
     valid_modes = {"direct_write", "generated_prompt", "manual_import", "unsupported", "unverified"}
     for profile_dir in sorted(profile_dirs):
         profile_rel = f"ide-profiles/{profile_dir.name}"

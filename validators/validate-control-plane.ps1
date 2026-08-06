@@ -31,6 +31,7 @@ function Read-Json {
 function Get-ServerContainer {
   param($Json)
   if ($Json.mcpServers) { return $Json.mcpServers }
+  if ($Json.context_servers) { return $Json.context_servers }
   if ($Json.mcp_servers) { return $Json.mcp_servers }
   if ($Json.mcp -and $Json.mcp.servers) { return $Json.mcp.servers }
   return $null

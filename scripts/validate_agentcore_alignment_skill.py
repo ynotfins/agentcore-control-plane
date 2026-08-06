@@ -36,6 +36,8 @@ REQUIRED_SKILL_TERMS = {
     "SwarmClaw",
 }
 APPROVED_TARGETS = {
+    "zed": r"{userprofile}\.agents\skills\agentcore-project-lifecycle",
+    "eigent": r"{userprofile}\.eigent\skills\agentcore-project-lifecycle",
     "cursor": r"{userprofile}\.cursor\skills\agentcore-project-lifecycle",
     "codex": r"{userprofile}\.agents\skills\agentcore-project-lifecycle",
     "claude-code": r"{userprofile}\.claude\skills\agentcore-project-lifecycle",
@@ -86,7 +88,7 @@ def main() -> int:
     hosts = manifest["hosts"]
     host_names = [host["host"] for host in hosts]
     assert len(host_names) == len(set(host_names)), "duplicate host manifest entry"
-    assert {"cursor", "codex", "claude-code", "minimax", "langgraph-production", "swarmclaw"}.issubset(host_names)
+    assert {"zed", "eigent", "cursor", "codex", "claude-code", "minimax", "langgraph-production", "swarmclaw"}.issubset(host_names)
     for host, target in APPROVED_TARGETS.items():
         entry = next(item for item in hosts if item["host"] == host)
         assert entry["target"] == target, f"unapproved exact target for {host}"

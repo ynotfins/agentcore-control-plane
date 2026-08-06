@@ -22,6 +22,18 @@ def temporary_root():
 
 
 class AlignmentInstallerTests(unittest.TestCase):
+    def test_priority_client_targets_are_exact_and_bounded(self):
+        with temporary_root() as root, patch.dict(os.environ, {"USERPROFILE": str(root)}):
+            zed = installer.approved_target(
+                "zed", r"{userprofile}\.agents\skills\agentcore-project-lifecycle"
+            )
+            eigent = installer.approved_target(
+                "eigent", r"{userprofile}\.eigent\skills\agentcore-project-lifecycle"
+            )
+            self.assertEqual(zed.name, "agentcore-project-lifecycle")
+            self.assertEqual(eigent.name, "agentcore-project-lifecycle")
+            self.assertNotEqual(zed.parent, eigent.parent)
+
     def test_approved_target_rejects_broadened_manifest_path(self):
         with temporary_root() as root, patch.dict(os.environ, {"USERPROFILE": str(root)}):
             with self.assertRaisesRegex(RuntimeError, "unapproved target"):

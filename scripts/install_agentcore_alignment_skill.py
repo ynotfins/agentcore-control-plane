@@ -21,6 +21,8 @@ MANIFEST = REPO_ROOT / "contracts" / "agentcore-alignment-skill-hosts.json"
 BACKUP_ROOT = Path(r"E:\AgentCore-Backups\agentcore-alignment-skill")
 INSTALLABLE = {"native_skill", "native_skill_empirical"}
 APPROVED_TARGETS = {
+    "zed": r"{userprofile}\.agents\skills\agentcore-project-lifecycle",
+    "eigent": r"{userprofile}\.eigent\skills\agentcore-project-lifecycle",
     "cursor": r"{userprofile}\.cursor\skills\agentcore-project-lifecycle",
     "codex": r"{userprofile}\.agents\skills\agentcore-project-lifecycle",
     "claude-code": r"{userprofile}\.claude\skills\agentcore-project-lifecycle",

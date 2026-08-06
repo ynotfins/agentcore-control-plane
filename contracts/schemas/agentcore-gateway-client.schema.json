@@ -108,6 +108,8 @@
             "open_interpreter_json",
             "cherry_studio_leveldb",
             "matrix_cloud_custom_mcp",
+            "zed_settings_json",
+            "eigent_mcp_json",
             "skip_openclaw"
           ]
         },

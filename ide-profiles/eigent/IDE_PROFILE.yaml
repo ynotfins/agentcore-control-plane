@@ -1,0 +1,67 @@
+# IDE profile — source-controlled facts for this managed client.
+# Do not guess values: use 'unverified' until evidence exists.
+
+ide_id: eigent
+display_name: Eigent
+swarm_managed: false
+installed_version: 1.0.2
+live_global_rule_target: C:\Users\ynotf\.eigent\skills\agentcore-project-lifecycle\SKILL.md
+live_mcp_config_target: C:\Users\ynotf\.eigent\mcp.json
+rule_mechanism: native skills at C:\Users\ynotf\.eigent\skills with per-user skills-config; no always-on global instruction file verified
+mcp_schema: eigent_mcp_json
+mcp_transport: http/streamable through CAMEL MCPToolkit
+env_var_handling: no env-placeholder expansion evidenced; materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env into live config only
+restart_behavior: restart Eigent after MCP or Windows environment changes; fresh workforce task required for native validation
+editability:
+  global_rules: manual_import
+  project_rules: unverified
+  mcp_config: direct_write
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: '2026-08-06'
+mcp_template_source: renderers/gateway-clients/eigent.json
+known_limitations:
+- Eigent is installed and launches, but C:\Users\ynotf\.eigent\mcp.json does not yet exist; AgentCore gateway enrollment is not certified.
+- The installed build supports native skills, but no always-on global rule mechanism is verified; GLOBAL_RULES.md therefore remains manual-import guidance.
+- Eigent/CAMEL accepts literal remote MCP headers; committed templates remain symbolic and a governed live installer must materialize the Windows User environment value without printing it.
+semantic_parity_gaps:
+- Always-on global rule delivery and signed automatic AgentCore lifecycle capture are not yet certified for Eigent.
+dimensions:
+  application_launch:
+    status: live_validated
+    evidence_path: audits/ZED_EIGENT_CLIENT_INTAKE_2026-08-06.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  gateway_configuration:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/eigent/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/eigent/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  native_memory_lifecycle:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/eigent/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  fresh_chat_recovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/eigent/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  persistence_after_restart:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/eigent/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  operator_gate:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/eigent/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+m8_enrollment: awaiting_operator_import

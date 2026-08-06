@@ -14,6 +14,30 @@
   "transport": "http/streamable",
   "timeout_seconds": 300,
   "client_render_hints": {
+    "zed": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Zed\\settings.json",
+      "syntax": "zed_settings_json",
+      "supports_env_headers": false,
+      "notes": [
+        "Managed priority client; installed Zed 1.13.2 is verified, but AgentCore gateway enrollment and native memory lifecycle remain awaiting_operator_import until live proof exists",
+        "Zed remote MCP is configured under context_servers with url and headers",
+        "Zed does not document ${env:VAR} expansion in remote MCP headers; a governed live installer must materialize BIFROST_MCP_VIRTUAL_KEY from the Windows User environment into the live settings only",
+        "Zed personal instructions live at C:\\Users\\ynotf\\AppData\\Roaming\\Zed\\AGENTS.md and global skills share C:\\Users\\ynotf\\.agents\\skills"
+      ]
+    },
+    "eigent": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.eigent\\mcp.json",
+      "syntax": "eigent_mcp_json",
+      "supports_env_headers": false,
+      "notes": [
+        "Managed priority client; installed Eigent 1.0.2 is verified, but AgentCore gateway enrollment and native memory lifecycle remain awaiting_operator_import until live proof exists",
+        "Eigent persists standard mcpServers configuration at C:\\Users\\ynotf\\.eigent\\mcp.json and uses CAMEL MCPToolkit for remote URL connections",
+        "No environment-placeholder expansion is evidenced in the installed Eigent/CAMEL configuration path; a governed live installer must materialize BIFROST_MCP_VIRTUAL_KEY from the Windows User environment into the live file only",
+        "Eigent native skills live at C:\\Users\\ynotf\\.eigent\\skills; skill availability does not prove always-on global-rule delivery"
+      ]
+    },
     "cursor": {
       "enabled": true,
       "config_path": "C:\\Users\\ynotf\\.cursor\\mcp.json",

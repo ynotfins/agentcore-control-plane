@@ -16,7 +16,7 @@ You are the agent inside one supported non-Swarm IDE on CHAOSCENTRAL. Your job i
 
 Step 0 — Identify yourself
 Identify which IDE you are running in. Choose exactly one from:
-Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio.
+Zed, Eigent, Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio.
 If you cannot identify your IDE with confidence, stop and report unsupported_with_reason.
 
 Step 1 — Read your profile and authority
@@ -95,6 +95,8 @@ Report one of: live_validated, configured_restart_required, awaiting_operator_im
 
 | Client | Profile | Configuration mode | Native validation status |
 | --- | --- | --- | --- |
+| Zed | `ide-profiles/zed/` | generated_prompt | awaiting_operator_import (launch + native skill root verified) |
+| Eigent | `ide-profiles/eigent/` | generated_prompt | awaiting_operator_import (launch + MCP/skill persistence paths verified) |
 | Cursor | `ide-profiles/cursor/` | generated_prompt | live_validated (2026-07-16) |
 | Codex | `ide-profiles/codex/` | generated_prompt | configured_restart_required |
 | Claude Code | `ide-profiles/claude-code/` | generated_prompt | awaiting_operator_import |

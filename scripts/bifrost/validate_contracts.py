@@ -527,7 +527,7 @@ def strict_master_config_audit(registry: dict[str, Any]) -> list[str]:
         errors.append("MASTER_CONFIG: missing CURSOR CONTINUATION PROMPT section")
 
     # 16. Supported clients list must be current and not generic
-    if "Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio" not in content:
+    if "Zed, Eigent, Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio" not in content:
         errors.append("MASTER_CONFIG: supported client list missing or stale")
 
     # 17. Cherry Studio and MiniMax Classic must be present in the matrix
@@ -537,6 +537,8 @@ def strict_master_config_audit(registry: dict[str, Any]) -> list[str]:
             errors.append("MATRIX: cherry-studio missing from managed_ides")
         if "minimax-classic" not in managed:
             errors.append("MATRIX: minimax-classic missing from managed_ides")
+        if list(managed)[:2] != ["zed", "eigent"]:
+            errors.append("MATRIX: Zed and Eigent must be the first managed_ides")
         if "mavis" in managed:
             errors.append("MATRIX: mavis still listed as a managed IDE")
 

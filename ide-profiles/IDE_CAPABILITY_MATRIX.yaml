@@ -4,7 +4,7 @@
 # Configuration mode summary: the normal way this client receives its AgentCore baseline.
 # Do not guess values — 'unverified' until evidence exists.
 
-matrix_revision: '2026-07-25'
+matrix_revision: '2026-08-06'
 policy_source: contracts/global-agent-policy.yaml
 model_context_profile_source: contracts/model-context-profiles.json
 self_enrollment_contract:
@@ -23,6 +23,114 @@ enrollment_status_codes:
   awaiting_operator_cloud_mcp_enrollment: Operator must enroll via product's cloud MCP UI/API
   unsupported_with_reason: Product does not support required MCP baseline (see notes)
 managed_ides:
+  zed:
+    installed_version: 1.13.2
+    configuration_mode: generated_prompt
+    rule_mechanism: Windows personal AGENTS.md + project AGENTS.md + global skills at C:\Users\ynotf\.agents\skills
+    mcp_schema: zed_settings_json
+    mcp_transport: http/streamable
+    env_var_handling: live-only materialization from Windows User env; no documented placeholder expansion
+    restart_behavior: fresh Zed Agent thread after enrollment; restart after Windows env changes
+    editability:
+      global_rules: direct_write
+      project_rules: direct_write
+      mcp_config: direct_write
+    last_validated: '2026-08-06'
+    m8_enrollment: awaiting_operator_import
+    m8_notes: 'PRIORITY MANAGED CLIENT INTAKE 2026-08-06. Zed 1.13.2 is installed and launches. Official Zed documentation
+      confirms Windows personal AGENTS.md, native skills at ~/.agents/skills, and remote MCP under settings.json context_servers.
+      The live settings contained no context_servers entry during intake. No AgentCore gateway discovery or native memory lifecycle
+      is claimed until operator-approved live enrollment and the full validation contract pass.'
+    dimensions:
+      application_launch:
+        status: live_validated
+        evidence_path: audits/ZED_EIGENT_CLIENT_INTAKE_2026-08-06.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      gateway_configuration:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zed/INSTALL_OR_UPDATE.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      gateway_discovery:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zed/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      native_memory_lifecycle:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zed/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      fresh_chat_recovery:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zed/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      persistence_after_restart:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zed/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      operator_gate:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zed/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+  eigent:
+    installed_version: 1.0.2
+    configuration_mode: generated_prompt
+    rule_mechanism: native skills at C:\Users\ynotf\.eigent\skills; no always-on global instruction file verified
+    mcp_schema: eigent_mcp_json
+    mcp_transport: http/streamable through CAMEL MCPToolkit
+    env_var_handling: live-only materialization from Windows User env; no placeholder expansion evidenced
+    restart_behavior: full-app restart and fresh workforce task after enrollment
+    editability:
+      global_rules: manual_import
+      project_rules: unverified
+      mcp_config: direct_write
+    last_validated: '2026-08-06'
+    m8_enrollment: awaiting_operator_import
+    m8_notes: 'PRIORITY MANAGED CLIENT INTAKE 2026-08-06. Eigent 1.0.2 is installed and launches. Installed source confirms
+      standard MCP persistence at ~/.eigent/mcp.json, remote URL/header support through CAMEL MCPToolkit, and native skills
+      at ~/.eigent/skills. The live mcp.json did not exist during intake and no always-on global rule mechanism was verified.
+      No AgentCore gateway discovery or native memory lifecycle is claimed until operator-approved enrollment and validation.'
+    dimensions:
+      application_launch:
+        status: live_validated
+        evidence_path: audits/ZED_EIGENT_CLIENT_INTAKE_2026-08-06.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      gateway_configuration:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/eigent/INSTALL_OR_UPDATE.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      gateway_discovery:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/eigent/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      native_memory_lifecycle:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/eigent/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      fresh_chat_recovery:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/eigent/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      persistence_after_restart:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/eigent/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+      operator_gate:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/eigent/VALIDATION.md
+        evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
   cursor:
     installed_version: unverified
     configuration_mode: generated_prompt

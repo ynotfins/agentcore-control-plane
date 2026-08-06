@@ -1,0 +1,67 @@
+# IDE profile — source-controlled facts for this managed client.
+# Do not guess values: use 'unverified' until evidence exists.
+
+ide_id: zed
+display_name: Zed
+swarm_managed: false
+installed_version: 1.13.2
+live_global_rule_target: C:\Users\ynotf\AppData\Roaming\Zed\AGENTS.md
+live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\Zed\settings.json
+rule_mechanism: Windows personal AGENTS.md + project AGENTS.md + global skills at C:\Users\ynotf\.agents\skills
+mcp_schema: zed_settings_json
+mcp_transport: http/streamable
+env_var_handling: no documented env-header expansion; materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env into live config only
+restart_behavior: MCP tools-list changes support live reload; use a fresh Zed Agent thread after enrollment and restart after Windows env changes
+editability:
+  global_rules: direct_write
+  project_rules: direct_write
+  mcp_config: direct_write
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: '2026-08-06'
+mcp_template_source: renderers/gateway-clients/zed.json
+known_limitations:
+- Zed is installed and launches, but its live settings currently contain no context_servers entry; AgentCore gateway enrollment is not yet certified.
+- Zed Agent, External Agents, and Terminal Threads have distinct configuration boundaries; this profile certifies only the native Zed Agent path.
+- Configuration presence does not prove signed automatic memory capture; native lifecycle remains awaiting_operator_import until live evidence exists.
+semantic_parity_gaps:
+- Native AgentCore lifecycle hooks or a signed Context Engine adapter are not yet certified for Zed.
+dimensions:
+  application_launch:
+    status: live_validated
+    evidence_path: audits/ZED_EIGENT_CLIENT_INTAKE_2026-08-06.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  gateway_configuration:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zed/INSTALL_OR_UPDATE.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zed/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  native_memory_lifecycle:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zed/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  fresh_chat_recovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zed/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  persistence_after_restart:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zed/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+  operator_gate:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zed/VALIDATION.md
+    evidence_ts: '2026-08-06T08:45:00Z'
+    superseded_by: null
+m8_enrollment: awaiting_operator_import

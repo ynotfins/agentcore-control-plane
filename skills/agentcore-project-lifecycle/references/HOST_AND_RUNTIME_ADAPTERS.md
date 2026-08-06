@@ -4,6 +4,8 @@ One semantic contract does not imply one installation mechanism. Use the native 
 
 | Host or runtime | Delivery | Native skill claim |
 | --- | --- | --- |
+| Zed | shared user skill at `~/.agents/skills`, Windows personal `AGENTS.md`, and Zed `context_servers` gateway config | priority managed client; skill live reload is supported, but AgentCore gateway/native lifecycle validation is still required |
+| Eigent | user skill copy at `~/.eigent/skills`, manual global-rule adapter, and standard `~/.eigent/mcp.json` gateway config | priority managed client; installation is not validation and no always-on global-rule mechanism is certified |
 | Cursor | user skill plus generated always-on global rule and signed hooks | supported; restart/fresh task validation required |
 | Codex | user open-standard skill plus global `AGENTS.md` and signed hooks | supported; fresh task validation required |
 | Claude Code | user `.claude/skills` copy plus global `CLAUDE.md` and signed hooks | supported; native CLI validation required |

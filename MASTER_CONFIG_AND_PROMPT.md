@@ -65,7 +65,7 @@ Do **not** infer current Context Engine acceptance from the 2026-08-02 v0.2.0 re
 
 ```text
 Supported AgentCore / enrolled non-Swarm IDE
-  (Cursor, Codex, Claude Code/Desktop, MiniMax Code, MiniMax Agent Classic,
+  (Zed, Eigent, Cursor, Codex, Claude Code/Desktop, MiniMax Code, MiniMax Agent Classic,
    Antigravity, Open Interpreter CLI, Cherry Studio)
   -> ONE MCP entry: agentcore-gateway
        url:  http://127.0.0.1:8080/mcp
@@ -226,6 +226,8 @@ Supported AgentCore / enrolled non-Swarm clients (last client-specific evidence 
 
 | Client | Profile directory | Configuration mode | Native validation status |
 | --- | --- | --- | --- |
+| Zed | `ide-profiles/zed/` | generated_prompt | priority managed client; application launch and native skill root verified, but gateway enrollment and native memory lifecycle are `awaiting_operator_import` |
+| Eigent | `ide-profiles/eigent/` | generated_prompt | priority managed client; application launch, MCP persistence schema, and native skill root verified, but gateway enrollment, always-on rule delivery, and native memory lifecycle are `awaiting_operator_import` |
 | Cursor | `ide-profiles/cursor/` | generated_prompt | `live_validated_native_hooks_signed_gateway`; Stage B and signed write path proven. IDE MCP discovery can still require a client reconnect while Bifrost remains healthy. |
 | Codex (OpenAI Codex / ChatGPT desktop Codex view) | `ide-profiles/codex/` | generated_prompt | `live_validated_native_hooks`; MCP UI enrollment/discovery remains a separate client-specific proof. |
 | Claude Code | `ide-profiles/claude-code/` | generated_prompt | `live_validated_native_hooks`; MCP enrollment/discovery remains a separate client-specific proof. |
@@ -337,7 +339,7 @@ You are the agent inside one supported AgentCore / enrolled non-Swarm IDE on CHA
 
 Step 0 — Identify yourself
 Identify which IDE you are running in. Choose exactly one from:
-Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio.
+Zed, Eigent, Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio.
 If you cannot identify your IDE with confidence, stop and report unsupported_with_reason.
 If you are Open Interpreter GUI (Interpreter.exe) rather than CLI, stop with unsupported_with_reason (no MCP schema).
 

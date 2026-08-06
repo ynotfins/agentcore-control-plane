@@ -4,6 +4,18 @@
   "source": "skills/agentcore-project-lifecycle",
   "hosts": [
     {
+      "host": "zed",
+      "delivery": "native_skill",
+      "target": "{userprofile}\\.agents\\skills\\agentcore-project-lifecycle",
+      "validation": "live_reload_supported_native_lifecycle_required"
+    },
+    {
+      "host": "eigent",
+      "delivery": "native_skill_empirical",
+      "target": "{userprofile}\\.eigent\\skills\\agentcore-project-lifecycle",
+      "validation": "configured_restart_required"
+    },
+    {
       "host": "cursor",
       "delivery": "native_skill",
       "target": "{userprofile}\\.cursor\\skills\\agentcore-project-lifecycle",

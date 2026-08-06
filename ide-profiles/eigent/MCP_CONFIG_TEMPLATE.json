@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "url": "http://127.0.0.1:8080/mcp",
+      "timeout": 300,
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      }
+    }
+  },
+  "_agentcore": {
+    "renderer": "eigent",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Sanitized template; never commit or print the resolved virtual key.",
+      "Eigent/CAMEL does not expand the env token. A governed live installer must materialize the Windows User env value into C:\\Users\\ynotf\\.eigent\\mcp.json only."
+    ]
+  },
+  "_template_note": "DERIVED from renderers/gateway-clients/eigent.json. The env token is symbolic and must be resolved only into the protected live config by a governed installer."
+}

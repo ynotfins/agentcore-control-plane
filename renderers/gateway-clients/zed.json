@@ -1,0 +1,18 @@
+{
+  "context_servers": {
+    "agentcore-gateway": {
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      }
+    }
+  },
+  "_agentcore": {
+    "renderer": "zed",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Sanitized merge fragment; never commit or print the resolved virtual key.",
+      "Zed does not document env-placeholder expansion. A governed live installer must materialize the Windows User env value into settings.json only."
+    ]
+  }
+}
