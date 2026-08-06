@@ -183,6 +183,43 @@
         "is_ping_available": true
       },
       {
+        "name": "mcp_prompt_optimizer",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "mcp-prompt-optimizer",
+            "--contract",
+            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
+            "--",
+            "uv",
+            "run",
+            "--no-project",
+            "--directory",
+            "D:\\github\\vendor\\mcp-prompt-optimizer",
+            "--with",
+            "mcp==0.9.1",
+            "python",
+            "prompt_optimizer.py"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "analyze_prompt",
+          "optimize_prompt",
+          "auto_optimize",
+          "get_prompt_template",
+          "advanced_optimize",
+          "get_domain_template",
+          "list_domain_templates"
+        ],
+        "auth_type": "none",
+        "is_ping_available": false
+      },
+      {
         "name": "openrouter",
         "connection_type": "http",
         "connection_string": "https://mcp.openrouter.ai/mcp",
@@ -370,6 +407,18 @@
               "listAgents",
               "listModels",
               "listRepositories"
+            ]
+          },
+          {
+            "mcp_client_name": "mcp_prompt_optimizer",
+            "tools_to_execute": [
+              "analyze_prompt",
+              "optimize_prompt",
+              "auto_optimize",
+              "get_prompt_template",
+              "advanced_optimize",
+              "get_domain_template",
+              "list_domain_templates"
             ]
           },
           {
@@ -678,6 +727,7 @@
         "agentcore-project-router",
         "arabold-docs",
         "cursor-agent-mcp",
+        "mcp-prompt-optimizer",
         "playwright",
         "sequential-thinking",
         "skills-hub"

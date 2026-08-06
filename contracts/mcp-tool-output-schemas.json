@@ -99,6 +99,10 @@
       "adapter": "stdio_envelope",
       "default_profile": "external"
     },
+    "mcp-prompt-optimizer": {
+      "adapter": "stdio_envelope",
+      "default_profile": "generic"
+    },
     "context-fabric": {
       "adapter": "stdio_envelope",
       "default_profile": "context_fabric"

@@ -37,7 +37,8 @@
         "artiforge",
         "playwright",
         "agentcore-memory",
-        "skills-hub"
+        "skills-hub",
+        "mcp-prompt-optimizer"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -327,6 +328,65 @@
         "CURSOR_API_URL fixed to https://api.cursor.com in renderer env map (non-secret).",
         "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled for Cursor cloud-agent orchestration.",
         "2026-08-05: wildcard replaced with live named inventory. Kept classic mode so subagent controls remain directly discoverable to builder clients."
+      ]
+    },
+    "mcp-prompt-optimizer": {
+      "canonical_id": "mcp-prompt-optimizer",
+      "display_name": "MCP Prompt Optimizer",
+      "purpose": "Local prompt analysis and optimization tools exposed through the single AgentCore gateway.",
+      "owner": "agentcore",
+      "pinned_version": "git:317e83a1685253085972dcb60b60618362c19182+mcp==0.9.1",
+      "connection_type": "stdio",
+      "executable_or_url": "uv",
+      "arguments": [
+        "run",
+        "--no-project",
+        "--directory",
+        "D:\\github\\vendor\\mcp-prompt-optimizer",
+        "--with",
+        "mcp==0.9.1",
+        "python",
+        "prompt_optimizer.py"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "analyze_prompt",
+        "optimize_prompt",
+        "auto_optimize",
+        "get_prompt_template",
+        "advanced_optimize",
+        "get_domain_template",
+        "list_domain_templates"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove from capability_profiles.builder.allowed_server_ids; re-render Bifrost config; restart Bifrost. Cursor remains gateway-only.",
+      "enabled": true,
+      "bifrost_client_name": "mcp_prompt_optimizer",
+      "status": "active",
+      "notes": [
+        "Source clone: D:\\github\\vendor\\mcp-prompt-optimizer.",
+        "The upstream git package build path fails with setuptools flat-layout discovery; launch direct script path instead.",
+        "Pinned to mcp==0.9.1 because current mcp 2.x removes the Server.list_tools decorator API used by upstream.",
+        "No secrets, no database, no durable app data, and no direct IDE MCP entry."
       ]
     },
     "context-fabric": {
