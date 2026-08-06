@@ -7,7 +7,7 @@
     "schema_version", "policy_id", "authority", "human_policies", "status_vocabulary",
     "checklist_rules", "required_project_files", "milestone_required_fields",
     "macro_required_fields", "micro_required_fields", "entry_gate", "exit_gate",
-    "read_order", "bootstrap"
+    "read_order", "bootstrap", "documentation_governance"
   ],
   "properties": {
     "$schema": { "type": "string" },
@@ -38,6 +38,23 @@
         "macro_close_requires_all_micro_closed": { "const": true },
         "milestone_close_requires_exit_gate": { "const": true }
       }
+    },
+    "documentation_governance": {
+      "type": "object",
+      "required": [
+        "ordinary_agent_writes", "guard_role", "maintainer_role", "guard_accept_required",
+        "protected_approval_required", "generated_projection_owner", "accepted_milestone_semantics"
+      ],
+      "properties": {
+        "ordinary_agent_writes": { "const": "denied" },
+        "guard_role": { "const": "documentation_guard" },
+        "maintainer_role": { "const": "documentation_maintainer" },
+        "guard_accept_required": { "const": true },
+        "protected_approval_required": { "const": true },
+        "generated_projection_owner": { "const": "projection_worker" },
+        "accepted_milestone_semantics": { "const": "locked_until_approved_change" }
+      },
+      "additionalProperties": false
     },
     "required_project_files": { "type": "array", "items": { "type": "string" }, "minItems": 8 },
     "templates_root": { "type": "string" },

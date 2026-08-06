@@ -6,7 +6,7 @@ Hardcoded read sequence for a managed project:
 
 1. Global `PROJECT_ANCHOR.md` and `DOC_AUTHORITY.md` (in `D:\github\agentcore-control-plane`)
 2. Global `BLUEPRINT.md` and current `CONTEXT_BLOCK.md`
-3. Global agent policy (`docs/agent-policy/` in the control-plane repo)
+3. Global agent policy (`docs/agent-policy/` in the control-plane repo), including `DOCUMENTATION_GOVERNANCE.md` before any documentation mutation
 4. Cross-project deferred commitments (`docs/current/MASTER_TODO.md`); this is a working ledger, not architecture authority
 5. Project `AGENTS.md` and `CLAUDE.md`
 6. `<project>/.agentcore/PROJECT_CHARTER.md`

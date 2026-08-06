@@ -8,7 +8,8 @@
     "docs/agent-policy/MILESTONE_EXECUTION_STANDARD.md",
     "docs/agent-policy/CHECKLIST_STANDARD.md",
     "docs/agent-policy/DOCUMENTATION_READ_ORDER.md",
-    "docs/agent-policy/DEFERRED_COMMITMENT_POLICY.md"
+    "docs/agent-policy/DEFERRED_COMMITMENT_POLICY.md",
+    "docs/agent-policy/DOCUMENTATION_GOVERNANCE.md"
   ],
   "status_vocabulary": ["pending", "in_progress", "passed", "blocked", "failed", "skipped_with_reason"],
   "checklist_rules": {
@@ -19,6 +20,15 @@
     "skipped_requires_reason_and_approver": true,
     "macro_close_requires_all_micro_closed": true,
     "milestone_close_requires_exit_gate": true
+  },
+  "documentation_governance": {
+    "ordinary_agent_writes": "denied",
+    "guard_role": "documentation_guard",
+    "maintainer_role": "documentation_maintainer",
+    "guard_accept_required": true,
+    "protected_approval_required": true,
+    "generated_projection_owner": "projection_worker",
+    "accepted_milestone_semantics": "locked_until_approved_change"
   },
   "required_project_files": [
     ".agentcore/PROJECT_CHARTER.md",

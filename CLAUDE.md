@@ -38,6 +38,10 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
 - Project execution: follow `docs/agent-policy/` (New Project Bootstrap, Milestones, Macro/Micro
   checklists, tool audits, progressive tool disclosure). Memory/database work follows
   `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`.
+- Documentation: do not directly edit documentation. Submit a bounded proposal and evidence to the
+  AgentCore documentation guard/maintainer workflow in `docs/agent-policy/DOCUMENTATION_GOVERNANCE.md`.
+  Generated STATE/DECISIONS/CONTEXT_INDEX remain projection-worker-only; protected docs still need
+  explicit authority approval, rollback, validators, and independent review.
 - Git: push after every completed task; do not pull/fetch/merge/rebase unless the operator asks.
 
 ## Runtime facts

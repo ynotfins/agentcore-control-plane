@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-07-31"
+policy_revision: "2026-08-06"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -153,6 +153,20 @@ mandatory_rules:
       blocked, failed, skipped_with_reason). passed requires an evidence reference. Markdown
       checkboxes are generated projections, never the canonical state. No step is complete from
       intention, confidence, or narrative claims.
+
+  - id: documentation-governance
+    title: Dedicated documentation guard and maintainer
+    rule: >-
+      Ordinary agents and implementation workers do not directly edit documentation. They submit
+      a bounded proposed change and evidence to the read-only documentation guard. Only the
+      AgentCore documentation maintainer may apply an existing-file documentation change, and it
+      must internally obtain ACCEPT for the actual proposed diff rather than trusting a caller verdict.
+      Protected documents still require live authority-maintainer capability, matching explicit AUTH approval,
+      external rollback, validators, and independent review. Generated STATE.md, DECISIONS.md,
+      CONTEXT_INDEX.md, and global-state projections remain projection-worker-only. An IDE without
+      the Codex-owned workers must hand off the proposal; never install a second worker MCP entry or
+      expose it through Bifrost merely to bypass this rule. Authority and procedure:
+      docs/agent-policy/DOCUMENTATION_GOVERNANCE.md.
 
   - id: context-fabric-checkpoints
     title: Context Fabric checkpoints

@@ -191,6 +191,7 @@ Before asking the operator to repeat project history, query `agentcore-memory`. 
 
 ## 5. Project/worktree and context-management rules
 
+- Ordinary agents and implementation workers do not directly edit documentation. Submit a bounded proposal and evidence to the read-only documentation guard; only the AgentCore documentation maintainer may apply a change, and on write it must internally obtain `ACCEPT` for the actual proposed diff rather than trusting a caller-supplied verdict. Protected files still require live authority-maintainer capability, a matching explicit `AUTH-YYYY-MM-DD-*` approval, rollback, validators, and independent review. Generated `STATE.md`, `DECISIONS.md`, `CONTEXT_INDEX.md`, and global-state projections remain projection-worker-only. Follow `@D:\github\agentcore-control-plane\docs\agent-policy\DOCUMENTATION_GOVERNANCE.md`.
 - Write only inside the assigned AgentCore / enrolled non-Swarm repo/worktree and role-appropriate AgentCore runtime roots per `@D:\github\agentcore-control-plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`.
 - Every durable AgentCore project asset on `D:`, `E:\AgentCore\...`, `F:\AgentCore\...`, or `G:` must be appended or proposed with provenance via the governed `agentcore-memory` surface (e.g., via `append_event` or `propose_fact`); internal artifact placement is registered by the AgentCore worker (via `register_artifact_location`). Temporary files on `I:` are exempt only while temporary and must be deleted or promoted at task close.
 - Never create an unregistered durable project location on `D:`, `E:\AgentCore\...`, `F:\AgentCore\...`, or `G:`.
@@ -214,6 +215,8 @@ Delivery depends on the IDE's declared editability (read from `@D:\github\agentc
 - `unverified` — stop and report the missing evidence before acting.
 
 Preserve client-native safety, sandbox, approval, account, and UI settings. Do not overwrite non-AgentCore app preferences. Do not install Swarm MCP entries or Swarm “continuity” rules into AgentCore IDE profiles.
+
+The documentation guard and maintainer are Codex-owned workers, not additional IDE MCP entries. An IDE that cannot call them must hand off the proposed documentation diff, target path, authority citations, and evidence to the AgentCore authority maintainer rather than editing documentation directly.
 
 ---
 
