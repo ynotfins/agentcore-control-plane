@@ -30,6 +30,7 @@ classes:
       - MILESTONES.md
       - AUTHORITY_LOCK.md
       - contracts/authority-lock.yaml
+      - docs/boundaries/SWARM_FOREIGN_BOUNDARY.md
   governed_mutable:
     permitted_writer_capability: authority_maintainer
     required_approval_identifier: true
@@ -50,7 +51,6 @@ classes:
       - contracts/bifrost-upstream-mcp-registry.json
       - contracts/agentcore-gateway-client.json
       - contracts/foreign-ecosystem-boundaries.yaml
-      - docs/boundaries/SWARM_FOREIGN_BOUNDARY.md
       - docs/operations/**
       - docs/agent-policy/**
   generated_read_only:
