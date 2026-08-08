@@ -93,7 +93,7 @@ def launch_upstream(
         errors="replace",
         bufsize=1,
         env=build_child_environment(
-            parent_env or os.environ,
+            os.environ if parent_env is None else parent_env,
             declared_env_names=declared_env_names,
             static_env=static_env,
         ),

@@ -124,6 +124,12 @@ class OutputSchemaWiring:
             return False
         return self.mode(canonical_id) == "stdio_envelope"
 
+    @property
+    def isolation_configured(self) -> bool:
+        if not (self.interpreter and self.script_rel):
+            return False
+        return (REPO_ROOT / self.script_rel.replace("\\", "/")).is_file()
+
     def wrap(
         self,
         canonical_id: str,
@@ -203,14 +209,15 @@ def build_stdio_client(
         envs = list(BASE_ENVS)
 
     static_env = STATIC_ENV_VALUES.get(canonical, {})
-    if output_schema is not None and output_schema.interpreter and output_schema.script_rel:
-        command, args = output_schema.wrap(
-            canonical,
-            command,
-            args,
-            list(server.get("env_var_names") or []),
-            static_env,
-        )
+    if output_schema is None or not output_schema.isolation_configured:
+        raise ValueError(f"{canonical}: stdio environment isolation adapter is required")
+    command, args = output_schema.wrap(
+        canonical,
+        command,
+        args,
+        list(server.get("env_var_names") or []),
+        static_env,
+    )
 
     health = str(server.get("health_check_type") or "mcp_list_tools")
     is_ping_available = health in {"mcp_ping", "ping"}
