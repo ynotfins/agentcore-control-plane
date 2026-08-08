@@ -46,9 +46,12 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
       }
       trigger = [ordered]@{ type = 'logon'; user = $env:USERNAME }
       settings = [ordered]@{
+        allow_start_if_on_batteries = $true
+        dont_stop_if_going_on_batteries = $true
         execution_time_limit_seconds = 0
         restart_count = 1
         restart_interval_seconds = 60
+        start_when_available = $true
         multiple_instances = 'IgnoreNew'
       }
     }
@@ -58,14 +61,140 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
         arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`""
         working_directory = $RuntimeRoot
       }
-      trigger = [ordered]@{ type = 'daily_repeating'; repetition_interval_seconds = 60; repetition_duration_seconds = 86400 }
+      trigger = [ordered]@{
+        type = 'daily_repeating'
+        start_delay_seconds = 60
+        repetition_interval_seconds = 60
+        repetition_duration_seconds = 86400
+      }
       settings = [ordered]@{
+        allow_start_if_on_batteries = $true
+        dont_stop_if_going_on_batteries = $true
         execution_time_limit_seconds = 60
         restart_count = 0
+        start_when_available = $true
         multiple_instances = 'IgnoreNew'
       }
     }
     operational_logging = [ordered]@{ channel = 'Microsoft-Windows-TaskScheduler/Operational'; enable = $true }
+  }
+}
+
+function Add-TestScheduledTaskCall([string]$Scope, [string]$Command, $Parameters) {
+  if (-not $TestMode) { return }
+  $script:TestScheduledTaskCalls.Add([ordered]@{
+    scope = $Scope
+    command = $Command
+    parameters = $Parameters
+  })
+}
+
+function New-InstallerScheduledTaskAction($Spec, [string]$Scope) {
+  $parameters = [ordered]@{
+    Execute = [string]$Spec.executable
+    Argument = [string]$Spec.arguments
+    WorkingDirectory = [string]$Spec.working_directory
+  }
+  if ($TestMode) {
+    Add-TestScheduledTaskCall $Scope 'New-ScheduledTaskAction' $parameters
+    return [pscustomobject]@{ action = $Scope }
+  }
+  return New-ScheduledTaskAction @parameters
+}
+
+function New-InstallerLogonTrigger($Spec) {
+  if ($Spec.type -ne 'logon') { throw "Unsupported gateway task trigger type: $($Spec.type)" }
+  $parameters = [ordered]@{ AtLogOn = $true; User = [string]$Spec.user }
+  if ($TestMode) {
+    Add-TestScheduledTaskCall 'gateway' 'New-ScheduledTaskTrigger' $parameters
+    return [pscustomobject]@{ trigger = 'gateway' }
+  }
+  return New-ScheduledTaskTrigger @parameters
+}
+
+function New-InstallerRepeatingDailyTrigger($Spec) {
+  if ($Spec.type -ne 'daily_repeating') { throw "Unsupported watchdog task trigger type: $($Spec.type)" }
+  $startAt = (Get-Date).AddSeconds([int]$Spec.start_delay_seconds)
+  $dailyParameters = [ordered]@{ Daily = $true; At = $startAt }
+  $repetitionParameters = [ordered]@{
+    Once = $true
+    At = $startAt
+    RepetitionInterval = [TimeSpan]::FromSeconds([int]$Spec.repetition_interval_seconds)
+    RepetitionDuration = [TimeSpan]::FromSeconds([int]$Spec.repetition_duration_seconds)
+  }
+  if ($TestMode) {
+    Add-TestScheduledTaskCall 'watchdog' 'New-ScheduledTaskTrigger' ([ordered]@{
+      Daily = $true
+      At = $startAt.ToUniversalTime().ToString('o')
+    })
+    Add-TestScheduledTaskCall 'watchdog' 'New-ScheduledTaskTrigger' ([ordered]@{
+      Once = $true
+      At = $startAt.ToUniversalTime().ToString('o')
+      RepetitionIntervalSeconds = [int]$Spec.repetition_interval_seconds
+      RepetitionDurationSeconds = [int]$Spec.repetition_duration_seconds
+    })
+    $dailyTrigger = [pscustomobject]@{ Repetition = $null }
+    $repetitionTrigger = [pscustomobject]@{ Repetition = [pscustomobject]@{
+      Interval = $repetitionParameters.RepetitionInterval
+      Duration = $repetitionParameters.RepetitionDuration
+    } }
+  } else {
+    $dailyTrigger = New-ScheduledTaskTrigger @dailyParameters
+    $repetitionTrigger = New-ScheduledTaskTrigger @repetitionParameters
+  }
+  $dailyTrigger.Repetition = $repetitionTrigger.Repetition
+  return $dailyTrigger
+}
+
+function New-InstallerScheduledTaskSettings($Spec, [string]$Scope) {
+  $parameters = [ordered]@{
+    AllowStartIfOnBatteries = [bool]$Spec.allow_start_if_on_batteries
+    DontStopIfGoingOnBatteries = [bool]$Spec.dont_stop_if_going_on_batteries
+    ExecutionTimeLimit = [TimeSpan]::FromSeconds([int]$Spec.execution_time_limit_seconds)
+    RestartCount = [int]$Spec.restart_count
+    StartWhenAvailable = [bool]$Spec.start_when_available
+    MultipleInstances = [string]$Spec.multiple_instances
+  }
+  $capturedParameters = [ordered]@{
+    AllowStartIfOnBatteries = [bool]$Spec.allow_start_if_on_batteries
+    DontStopIfGoingOnBatteries = [bool]$Spec.dont_stop_if_going_on_batteries
+    ExecutionTimeLimitSeconds = [int]$Spec.execution_time_limit_seconds
+    RestartCount = [int]$Spec.restart_count
+  }
+  if ($Spec.Contains('restart_interval_seconds')) {
+    $parameters.RestartInterval = [TimeSpan]::FromSeconds([int]$Spec.restart_interval_seconds)
+    $capturedParameters.RestartIntervalSeconds = [int]$Spec.restart_interval_seconds
+  }
+  $capturedParameters.StartWhenAvailable = [bool]$Spec.start_when_available
+  $capturedParameters.MultipleInstances = [string]$Spec.multiple_instances
+  if ($TestMode) {
+    Add-TestScheduledTaskCall $Scope 'New-ScheduledTaskSettingsSet' $capturedParameters
+    return [pscustomobject]@{ settings = $Scope }
+  }
+  return New-ScheduledTaskSettingsSet @parameters
+}
+
+function New-InstallerScheduledTasks($TaskSpecs) {
+  $watchdogScript = Join-Path $PSScriptRoot 'Invoke-AgentCoreBifrostWatchdog.ps1'
+  if (-not (Test-Path -LiteralPath $watchdogScript)) { throw "Watchdog script missing: $watchdogScript" }
+
+  $gatewayAction = New-InstallerScheduledTaskAction $TaskSpecs.gateway.action 'gateway'
+  $gatewayTrigger = New-InstallerLogonTrigger $TaskSpecs.gateway.trigger
+  $gatewaySettings = New-InstallerScheduledTaskSettings $TaskSpecs.gateway.settings 'gateway'
+  $watchdogAction = New-InstallerScheduledTaskAction $TaskSpecs.watchdog.action 'watchdog'
+  $watchdogTrigger = New-InstallerRepeatingDailyTrigger $TaskSpecs.watchdog.trigger
+  $watchdogSettings = New-InstallerScheduledTaskSettings $TaskSpecs.watchdog.settings 'watchdog'
+
+  if ($TestMode) {
+    return [pscustomobject]@{
+      gateway = [pscustomobject]@{ action = $gatewayAction; trigger = $gatewayTrigger; settings = $gatewaySettings }
+      watchdog = [pscustomobject]@{ action = $watchdogAction; trigger = $watchdogTrigger; settings = $watchdogSettings }
+    }
+  }
+  $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
+  return [pscustomobject]@{
+    gateway = New-ScheduledTask -Action $gatewayAction -Trigger $gatewayTrigger -Settings $gatewaySettings -Principal $principal
+    watchdog = New-ScheduledTask -Action $watchdogAction -Trigger $watchdogTrigger -Settings $watchdogSettings -Principal $principal
   }
 }
 
@@ -83,9 +212,16 @@ function Assert-InstallerPrivileges {
 
 function Initialize-TestTaskModel {
   if (-not $TestMode) { return }
+  $script:TestScheduledTaskCalls = [System.Collections.Generic.List[object]]::new()
   $script:TestTaskDefinitions = @{
     gateway = if ($TestGatewayTaskModel -eq 'Absent') { $null } else { 'gateway-original' }
     watchdog = if ($TestWatchdogTaskModel -eq 'Absent') { $null } else { 'watchdog-original' }
+  }
+}
+
+function Write-TestScheduledTaskCalls {
+  if ($TestMode) {
+    Write-Host ('INSTALL_TASK_CALLS ' + (ConvertTo-Json -InputObject @($script:TestScheduledTaskCalls) -Depth 8 -Compress))
   }
 }
 
@@ -152,17 +288,20 @@ function Register-InstallerTask([string]$Name, $Task, [string]$Phase) {
   Register-ScheduledTask -TaskPath $TaskPath -TaskName $Name -InputObject $Task -Force | Out-Null
 }
 
-function Enable-TaskSchedulerOperationalLog {
+function Enable-TaskSchedulerOperationalLog($Spec) {
+  $enabledArgument = if ([bool]$Spec.enable) { '/e:true' } else { '/e:false' }
+  $argumentList = @('sl', [string]$Spec.channel, $enabledArgument)
   if ($TestMode) {
     if ($TestFailurePhase -eq 'OperationalLogEnablement') { throw 'INSTALL_TEST_FAILURE OperationalLogEnablement' }
+    Add-TestScheduledTaskCall 'operational_logging' 'wevtutil.exe' ([ordered]@{ ArgumentList = $argumentList })
     Write-AgentCoreInfo 'INSTALL_TEST_OPERATIONAL_LOG_ENABLED'
     return
   }
-  & wevtutil.exe sl 'Microsoft-Windows-TaskScheduler/Operational' '/e:true'
+  & wevtutil.exe @argumentList
   if ($LASTEXITCODE -ne 0) { throw 'Task Scheduler Operational logging enablement failed.' }
 }
 
-function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask) {
+function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask, $OperationalLoggingSpec) {
   Assert-InstallerPrivileges
   if (-not $TestMode) {
     $script:TaskBackupDirectory = Join-Path $backupsDir ("scheduled-tasks\\{0}" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
@@ -176,7 +315,7 @@ function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask) {
   try {
     Register-InstallerTask -Name $TaskName -Task $GatewayTask -Phase 'GatewayRegistration'
     Register-InstallerTask -Name $WatchdogTaskName -Task $WatchdogTask -Phase 'WatchdogRegistration'
-    Enable-TaskSchedulerOperationalLog
+    Enable-TaskSchedulerOperationalLog $OperationalLoggingSpec
   } catch {
     $originalFailure = $_
     $gatewayResult = 'failed'
@@ -199,7 +338,11 @@ if ($EmitTaskSpecs) {
 if ($TestMode) {
   Initialize-TestTaskModel
   try {
-    Invoke-TaskInstallTransaction -GatewayTask ([pscustomobject]@{ name = $TaskName; restart_count = 1 }) -WatchdogTask ([pscustomobject]@{ name = $WatchdogTaskName })
+    $specPowerShell = if ([string]::IsNullOrWhiteSpace($TaskSpecPowerShellPath)) { 'pwsh.exe' } else { $TaskSpecPowerShellPath }
+    $taskSpecs = New-BifrostTaskSpecs $specPowerShell
+    $scheduledTasks = New-InstallerScheduledTasks $taskSpecs
+    Invoke-TaskInstallTransaction -GatewayTask $scheduledTasks.gateway -WatchdogTask $scheduledTasks.watchdog -OperationalLoggingSpec $taskSpecs.operational_logging
+    Write-TestScheduledTaskCalls
     Write-TestTaskModel
     Write-AgentCoreInfo 'INSTALL_TEST_SUCCESS'
     exit 0
@@ -280,40 +423,8 @@ if (-not (Test-Path -LiteralPath $pwshPath)) {
   $pwshPath = 'pwsh.exe'
 }
 $taskSpecs = New-BifrostTaskSpecs $pwshPath
-$gatewaySpec = $taskSpecs.gateway
-$watchdogSpec = $taskSpecs.watchdog
-$launchScript = Join-Path $PSScriptRoot 'Launch-AgentCoreBifrostGateway.ps1'
-$watchdogScript = Join-Path $PSScriptRoot 'Invoke-AgentCoreBifrostWatchdog.ps1'
-$action = New-ScheduledTaskAction -Execute $gatewaySpec.action.executable -Argument $gatewaySpec.action.arguments -WorkingDirectory $gatewaySpec.action.working_directory
-$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
-$settings = New-ScheduledTaskSettingsSet `
-  -AllowStartIfOnBatteries `
-  -DontStopIfGoingOnBatteries `
-  -ExecutionTimeLimit ([TimeSpan]::FromSeconds($gatewaySpec.settings.execution_time_limit_seconds)) `
-  -RestartCount $gatewaySpec.settings.restart_count `
-  -RestartInterval (New-TimeSpan -Seconds $gatewaySpec.settings.restart_interval_seconds) `
-  -StartWhenAvailable `
-  -MultipleInstances IgnoreNew
-$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
-$task = New-ScheduledTask -Action $action -Trigger $trigger -Settings $settings -Principal $principal
-
-if (-not (Test-Path -LiteralPath $watchdogScript)) {
-  throw "Watchdog script missing: $watchdogScript"
-}
-$watchdogAction = New-ScheduledTaskAction -Execute $watchdogSpec.action.executable -Argument $watchdogSpec.action.arguments -WorkingDirectory $watchdogSpec.action.working_directory
-$watchdogTrigger = New-ScheduledTaskTrigger -Daily -At (Get-Date).AddMinutes(1)
-$watchdogRepetition = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Seconds $watchdogSpec.trigger.repetition_interval_seconds) -RepetitionDuration (New-TimeSpan -Seconds $watchdogSpec.trigger.repetition_duration_seconds)
-$watchdogTrigger.Repetition = $watchdogRepetition.Repetition
-$watchdogSettings = New-ScheduledTaskSettingsSet `
-  -AllowStartIfOnBatteries `
-  -DontStopIfGoingOnBatteries `
-  -ExecutionTimeLimit (New-TimeSpan -Seconds $watchdogSpec.settings.execution_time_limit_seconds) `
-  -RestartCount $watchdogSpec.settings.restart_count `
-  -StartWhenAvailable `
-  -MultipleInstances IgnoreNew
-$watchdogTask = New-ScheduledTask -Action $watchdogAction -Trigger $watchdogTrigger -Settings $watchdogSettings -Principal $principal
-
-Invoke-TaskInstallTransaction -GatewayTask $task -WatchdogTask $watchdogTask
+$scheduledTasks = New-InstallerScheduledTasks $taskSpecs
+Invoke-TaskInstallTransaction -GatewayTask $scheduledTasks.gateway -WatchdogTask $scheduledTasks.watchdog -OperationalLoggingSpec $taskSpecs.operational_logging
 Write-AgentCoreInfo "Registered scheduled task $TaskPath$TaskName"
 Write-AgentCoreInfo "Registered scheduled task $TaskPath$WatchdogTaskName"
 Write-AgentCoreInfo 'Enabled Task Scheduler Operational logging.'

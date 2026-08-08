@@ -5,7 +5,7 @@ import os
 import subprocess
 import threading
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -24,7 +24,10 @@ def gateway_stub(mcp_body: str):
 
         def do_POST(self) -> None:  # noqa: N802
             self.send_response(200)
-            self.send_header("Content-Type", "application/json")
+            content_type = (
+                "text/event-stream" if mcp_body.startswith("event:") else "application/json"
+            )
+            self.send_header("Content-Type", content_type)
             self.end_headers()
             self.wfile.write(mcp_body.encode("utf-8"))
 
@@ -59,6 +62,20 @@ def run_start_against_stub(runtime_root: Path, port: int) -> subprocess.Complete
     )
 
 
+def encode_initialize_response(result: dict[str, object], transport: str) -> str:
+    payload = json.dumps(
+        {"jsonrpc": "2.0", "id": 1, "result": result}, separators=(",", ":")
+    )
+    if transport == "json":
+        return payload
+    split_at = payload.index('"capabilities"')
+    return (
+        "event: message\n"
+        f"data: {payload[:split_at]}\n"
+        f"data: {payload[split_at:]}\n\n"
+    )
+
+
 def installer_task_specs(runtime_root: Path) -> dict[str, object]:
     result = subprocess.run(
         [
@@ -74,6 +91,26 @@ def installer_task_specs(runtime_root: Path) -> dict[str, object]:
     )
     assert result.returncode == 0, result.stderr
     return json.loads(result.stdout)
+
+
+def installer_task_calls(runtime_root: Path) -> list[dict[str, object]]:
+    result = subprocess.run(
+        [
+            "pwsh", "-NoProfile", "-File",
+            str(REPO_ROOT / "ops" / "bifrost" / "Install-AgentCoreBifrostGateway.ps1"),
+            "-TestMode", "-RuntimeRoot", str(runtime_root),
+            "-HostAddress", "127.0.0.1", "-Port", "18080",
+            "-TaskSpecPowerShellPath", "test-pwsh.exe",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    marker = "INSTALL_TASK_CALLS "
+    matching_lines = [line for line in result.stdout.splitlines() if line.startswith(marker)]
+    assert len(matching_lines) == 1, result.stdout
+    return json.loads(matching_lines[0][len(marker):])
 
 
 def run_watchdog(
@@ -299,24 +336,88 @@ def test_start_preflight_and_authenticated_health_do_not_clear_marker_early(tmp_
     assert not marker.exists()
 
 
-def test_start_requires_successful_mcp_initialize_response_body(tmp_path: Path) -> None:
-    valid_result = '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{},"serverInfo":{"name":"test","version":"1"}}}'
-    rpc_error = '{"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"denied"}}'
-    sse_result = 'event: message\ndata: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18",\ndata: "capabilities":{},"serverInfo":{"name":"test","version":"1"}}}\n\n'
-    bogus_result = '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18"}}'
-    for name, payload, expected_code in (
-        ("valid", valid_result, 0),
-        ("rpc-error", rpc_error, 1),
-        ("malformed", "not-json", 1),
-        ("sse-valid", sse_result, 0),
-        ("bogus-result", bogus_result, 1),
-    ):
+def test_start_accepts_only_client_supported_initialize_versions_for_json_and_sse(
+    tmp_path: Path,
+) -> None:
+    for protocol_version in ("2024-11-05", "2025-03-26", "2025-06-18"):
+        initialize_result = {
+            "protocolVersion": protocol_version,
+            "capabilities": {},
+            "serverInfo": {"name": "test", "version": "1"},
+        }
+        for transport in ("json", "sse"):
+            runtime_root = tmp_path / f"supported-{protocol_version}-{transport}"
+            payload = encode_initialize_response(initialize_result, transport)
+            with gateway_stub(payload) as port:
+                result = run_start_against_stub(runtime_root, port)
+            assert result.returncode == 0, result.stderr
+            assert not (runtime_root / "state" / "bifrost-maintenance.marker").exists()
+
+
+def test_start_rejects_invalid_initialize_result_shapes_for_json_and_sse(
+    tmp_path: Path,
+) -> None:
+    invalid_results = {
+        "empty-server-info": {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {},
+            "serverInfo": {},
+        },
+        "string-capabilities": {
+            "protocolVersion": "2025-06-18",
+            "capabilities": "tools",
+            "serverInfo": {"name": "test", "version": "1"},
+        },
+        "unsupported-version": {
+            "protocolVersion": "2099-01-01",
+            "capabilities": {},
+            "serverInfo": {"name": "test", "version": "1"},
+        },
+        "numeric-version": {
+            "protocolVersion": 20250618,
+            "capabilities": {},
+            "serverInfo": {"name": "test", "version": "1"},
+        },
+        "array-capabilities": {
+            "protocolVersion": "2025-06-18",
+            "capabilities": [],
+            "serverInfo": {"name": "test", "version": "1"},
+        },
+        "array-server-info": {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {},
+            "serverInfo": [],
+        },
+        "non-string-server-info-fields": {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {},
+            "serverInfo": {"name": 123, "version": False},
+        },
+    }
+    for name, initialize_result in invalid_results.items():
+        for transport in ("json", "sse"):
+            runtime_root = tmp_path / f"{name}-{transport}"
+            payload = encode_initialize_response(initialize_result, transport)
+            with gateway_stub(payload) as port:
+                result = run_start_against_stub(runtime_root, port)
+            assert result.returncode == 1, (name, transport, result.stdout, result.stderr)
+            assert not (runtime_root / "state" / "bifrost-maintenance.marker").exists()
+
+
+def test_start_rejects_mcp_rpc_errors_malformed_bodies_and_missing_result_fields(
+    tmp_path: Path,
+) -> None:
+    invalid_payloads = {
+        "rpc-error": '{"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"denied"}}',
+        "malformed": "not-json",
+        "missing-result-fields": '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18"}}',
+    }
+    for name, payload in invalid_payloads.items():
         runtime_root = tmp_path / name
         with gateway_stub(payload) as port:
             result = run_start_against_stub(runtime_root, port)
-        marker = runtime_root / "state" / "bifrost-maintenance.marker"
-        assert result.returncode == expected_code, result.stderr
-        assert not marker.exists()
+        assert result.returncode == 1, result.stderr
+        assert not (runtime_root / "state" / "bifrost-maintenance.marker").exists()
 
 
 def test_probe_only_never_mutates_maintenance_marker(tmp_path: Path) -> None:
@@ -389,14 +490,111 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
     assert not runtime_root.exists()
     assert specs["gateway"]["action"]["executable"] == "test-pwsh.exe"
     assert "Launch-AgentCoreBifrostGateway.ps1" in specs["gateway"]["action"]["arguments"]
+    assert specs["gateway"]["trigger"] == {"type": "logon", "user": os.environ["USERNAME"]}
+    assert specs["gateway"]["settings"] == {
+        "allow_start_if_on_batteries": True,
+        "dont_stop_if_going_on_batteries": True,
+        "execution_time_limit_seconds": 0,
+        "restart_count": 1,
+        "restart_interval_seconds": 60,
+        "start_when_available": True,
+        "multiple_instances": "IgnoreNew",
+    }
     assert specs["gateway"]["settings"]["restart_count"] == 1
     assert specs["gateway"]["settings"]["multiple_instances"] == "IgnoreNew"
+    assert specs["watchdog"]["trigger"]["start_delay_seconds"] == 60
     assert specs["watchdog"]["trigger"]["repetition_interval_seconds"] == 60
+    assert specs["watchdog"]["settings"] == {
+        "allow_start_if_on_batteries": True,
+        "dont_stop_if_going_on_batteries": True,
+        "execution_time_limit_seconds": 60,
+        "restart_count": 0,
+        "start_when_available": True,
+        "multiple_instances": "IgnoreNew",
+    }
     assert specs["watchdog"]["settings"]["multiple_instances"] == "IgnoreNew"
     assert "Invoke-AgentCoreBifrostWatchdog.ps1" in specs["watchdog"]["action"]["arguments"]
     assert specs["operational_logging"] == {
         "channel": "Microsoft-Windows-TaskScheduler/Operational", "enable": True
     }
+
+
+def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path: Path) -> None:
+    runtime_root = tmp_path / "runtime"
+    started_at = datetime.now(timezone.utc)
+    calls = installer_task_calls(runtime_root)
+    finished_at = datetime.now(timezone.utc)
+
+    assert not runtime_root.exists()
+    by_scope_and_command = {
+        (call["scope"], call["command"]): call["parameters"] for call in calls
+    }
+    launch_script = REPO_ROOT / "ops" / "bifrost" / "Launch-AgentCoreBifrostGateway.ps1"
+    watchdog_script = REPO_ROOT / "ops" / "bifrost" / "Invoke-AgentCoreBifrostWatchdog.ps1"
+    assert by_scope_and_command[("gateway", "New-ScheduledTaskAction")] == {
+        "Execute": "test-pwsh.exe",
+        "Argument": (
+            f'-NoProfile -ExecutionPolicy Bypass -File "{launch_script}" '
+            f'-RuntimeRoot "{runtime_root}" -HostAddress 127.0.0.1 -Port 18080'
+        ),
+        "WorkingDirectory": str(runtime_root),
+    }
+    assert by_scope_and_command[("gateway", "New-ScheduledTaskTrigger")] == {
+        "AtLogOn": True,
+        "User": os.environ["USERNAME"],
+    }
+    assert by_scope_and_command[("gateway", "New-ScheduledTaskSettingsSet")] == {
+        "AllowStartIfOnBatteries": True,
+        "DontStopIfGoingOnBatteries": True,
+        "ExecutionTimeLimitSeconds": 0,
+        "RestartCount": 1,
+        "RestartIntervalSeconds": 60,
+        "StartWhenAvailable": True,
+        "MultipleInstances": "IgnoreNew",
+    }
+    assert by_scope_and_command[("watchdog", "New-ScheduledTaskAction")] == {
+        "Execute": "test-pwsh.exe",
+        "Argument": (
+            f'-NoProfile -ExecutionPolicy Bypass -File "{watchdog_script}" '
+            f'-RuntimeRoot "{runtime_root}" -GatewayUrl http://127.0.0.1:18080 '
+            '-TaskPath "\\AgentCore\\" -TaskName "AgentCore-Bifrost-Gateway"'
+        ),
+        "WorkingDirectory": str(runtime_root),
+    }
+    assert by_scope_and_command[("watchdog", "New-ScheduledTaskSettingsSet")] == {
+        "AllowStartIfOnBatteries": True,
+        "DontStopIfGoingOnBatteries": True,
+        "ExecutionTimeLimitSeconds": 60,
+        "RestartCount": 0,
+        "StartWhenAvailable": True,
+        "MultipleInstances": "IgnoreNew",
+    }
+    assert by_scope_and_command[("operational_logging", "wevtutil.exe")] == {
+        "ArgumentList": [
+            "sl",
+            "Microsoft-Windows-TaskScheduler/Operational",
+            "/e:true",
+        ]
+    }
+
+    watchdog_trigger_calls = [
+        call
+        for call in calls
+        if call["scope"] == "watchdog"
+        and call["command"] == "New-ScheduledTaskTrigger"
+    ]
+    assert len(watchdog_trigger_calls) == 2
+    daily, repetition = watchdog_trigger_calls
+    assert daily["parameters"]["Daily"] is True
+    assert repetition["parameters"] == {
+        "Once": True,
+        "At": daily["parameters"]["At"],
+        "RepetitionIntervalSeconds": 60,
+        "RepetitionDurationSeconds": 86400,
+    }
+    trigger_at = datetime.fromisoformat(daily["parameters"]["At"].replace("Z", "+00:00"))
+    assert started_at + timedelta(seconds=55) <= trigger_at
+    assert trigger_at <= finished_at + timedelta(seconds=65)
 
 def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     watchdog = WATCHDOG.read_text(encoding="utf-8")

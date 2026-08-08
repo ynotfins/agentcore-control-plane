@@ -20,6 +20,18 @@ param(
 $ErrorActionPreference = 'Stop'
 $exePath = Join-Path $RuntimeRoot 'bin\bifrost-http.exe'
 $maintenanceMarker = Join-Path $RuntimeRoot 'state\bifrost-maintenance.marker'
+$supportedProtocolVersions = @('2024-11-05', '2025-03-26', '2025-06-18')
+
+function Test-JsonObjectMap($Value) {
+  return ($null -ne $Value) -and (
+    ($Value -is [System.Management.Automation.PSCustomObject]) -or
+    ($Value -is [System.Collections.IDictionary])
+  )
+}
+
+function Test-NonEmptyJsonString($Value) {
+  return ($Value -is [string]) -and -not [string]::IsNullOrWhiteSpace($Value)
+}
 
 function Test-AuthenticatedGatewayReadiness {
   if ($TestMode) { return $TestReadiness -eq 'Authenticated' }
@@ -47,8 +59,11 @@ function Test-AuthenticatedGatewayReadiness {
       $payload = $candidate | ConvertFrom-Json -ErrorAction Stop
       $result = $payload.result
       if (($payload.jsonrpc -eq '2.0') -and ($payload.id -eq 1) -and ($null -eq $payload.error) -and
-          ($null -ne $result) -and -not [string]::IsNullOrWhiteSpace([string]$result.protocolVersion) -and
-          ($null -ne $result.capabilities) -and ($null -ne $result.serverInfo)) {
+          (Test-JsonObjectMap $result) -and (Test-NonEmptyJsonString $result.protocolVersion) -and
+          ($supportedProtocolVersions -contains $result.protocolVersion) -and
+          (Test-JsonObjectMap $result.capabilities) -and (Test-JsonObjectMap $result.serverInfo) -and
+          (Test-NonEmptyJsonString $result.serverInfo.name) -and
+          (Test-NonEmptyJsonString $result.serverInfo.version)) {
         return $true
       }
     }
