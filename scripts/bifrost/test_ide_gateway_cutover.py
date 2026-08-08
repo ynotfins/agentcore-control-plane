@@ -6,6 +6,8 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CUTOVER = REPO_ROOT / "ops" / "bifrost" / "Invoke-AgentCoreIdeGatewayCutover.ps1"
@@ -27,7 +29,14 @@ def write_mcp_fixture(path: Path) -> bytes:
 def run_cutover(
     config: Path, evidence: Path, *, client: str = "cursor", dry_run: bool = False
 ) -> subprocess.CompletedProcess[str]:
-    config_parameter = "-CursorConfigPath" if client == "cursor" else "-MinimaxConfigPath"
+    config_parameters = {
+        "cursor": "-CursorConfigPath",
+        "minimax": "-MinimaxConfigPath",
+    }
+    try:
+        config_parameter = config_parameters[client]
+    except KeyError as error:
+        raise ValueError(f"unsupported fixture client: {client}") from error
     args = [
         "pwsh", "-NoProfile", "-File", str(CUTOVER), "-RepoRoot", str(REPO_ROOT),
         "-EvidenceRoot", str(evidence), "-Clients", client, config_parameter, str(config),
@@ -88,6 +97,18 @@ def test_non_cursor_cutover_preserves_unknown_servers_via_explicit_path(tmp_path
     assert list(json.loads(config.read_text(encoding="utf-8"))["mcpServers"]) == [
         "command-runner", "memory-bank", "agentcore-gateway"
     ]
+
+
+def test_fixture_runner_rejects_unsupported_client_before_subprocess(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def unexpected_subprocess(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("fixture helper must not invoke PowerShell")
+
+    monkeypatch.setattr(subprocess, "run", unexpected_subprocess)
+
+    with pytest.raises(ValueError, match="unsupported fixture client: mavis"):
+        run_cutover(tmp_path / "mavis-mcp.json", tmp_path / "evidence", client="mavis")
 
 
 def test_dry_run_leaves_config_evidence_parent_and_backups_unchanged(tmp_path: Path) -> None:
