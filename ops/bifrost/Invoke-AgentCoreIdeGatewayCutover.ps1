@@ -18,6 +18,7 @@
 param(
   [string]$RepoRoot = 'D:\github\agentcore-control-plane',
   [string]$EvidenceRoot = '',
+  [string]$CursorConfigPath = 'C:\Users\ynotf\.cursor\mcp.json',
   [switch]$DryRun,
   [string[]]$Clients = @(
     'cursor',
@@ -139,9 +140,12 @@ function Update-JsonMcpServers {
   foreach ($prop in @($servers.PSObject.Properties)) {
     $name = $prop.Name
     if ($name -eq 'agentcore-gateway') { continue }
+    if ($ClientName -eq 'cursor') {
+      $toRemove += $name
+      continue
+    }
     $lower = $name.ToLowerInvariant()
-    $isCursorDockerGateway = $ClientName -eq 'cursor' -and $lower -eq 'mcp_docker'
-    if ($baselineIds -contains $name -or $baselineIds -contains $lower -or $lower -match 'swarm(recall|vault|claw)' -or $isCursorDockerGateway) {
+    if ($baselineIds -contains $name -or $baselineIds -contains $lower -or $lower -match 'swarm(recall|vault|claw)') {
       $toRemove += $name
     }
   }
@@ -247,7 +251,7 @@ $summary = @()
 foreach ($client in $Clients) {
   switch ($client) {
     'cursor' {
-      $summary += Update-JsonMcpServers -ClientName 'cursor' -ConfigPath 'C:\Users\ynotf\.cursor\mcp.json' -SupportsEnvHeaders:$true
+      $summary += Update-JsonMcpServers -ClientName 'cursor' -ConfigPath $CursorConfigPath -SupportsEnvHeaders:$true
     }
     'minimax' {
       $summary += Update-JsonMcpServers -ClientName 'minimax' -ConfigPath 'C:\Users\ynotf\.minimax\mcp\mcp.json' -SupportsEnvHeaders:$true
