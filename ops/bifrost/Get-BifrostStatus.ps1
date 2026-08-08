@@ -9,6 +9,7 @@
 #>
 [CmdletBinding()]
 param(
+  [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$GatewayUrl = 'http://127.0.0.1:8080',
   [string]$TaskPath = '\AgentCore\',
   [string]$TaskName = 'AgentCore-Bifrost-Gateway',
@@ -20,12 +21,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $failures = @()
+$maintenanceMarker = Join-Path $RuntimeRoot 'state\bifrost-maintenance.marker'
 
 function Write-Check([string]$Name, [bool]$Ok, [string]$Detail) {
   $mark = if ($Ok) { 'PASS' } else { 'FAIL' }
   Write-Host ("[{0}] {1}: {2}" -f $mark, $Name, $Detail)
   if (-not $Ok) { $script:failures += $Name }
 }
+
+Write-Check 'maintenance_marker' $true ("present={0}" -f (Test-Path -LiteralPath $maintenanceMarker))
 
 # Scheduled task
 try {

@@ -11,6 +11,7 @@ param(
   [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$RepoRoot = 'D:\github\agentcore-control-plane',
   [string]$TaskName = 'AgentCore-Bifrost-Gateway',
+  [string]$WatchdogTaskName = 'AgentCore-Bifrost-Watchdog',
   [string]$TaskPath = '\AgentCore\',
   [string]$HostAddress = '127.0.0.1',
   [int]$Port = 8080,
@@ -92,6 +93,7 @@ if (-not (Test-Path -LiteralPath $pwshPath)) {
   $pwshPath = 'pwsh.exe'
 }
 $launchScript = Join-Path $PSScriptRoot 'Launch-AgentCoreBifrostGateway.ps1'
+$watchdogScript = Join-Path $PSScriptRoot 'Invoke-AgentCoreBifrostWatchdog.ps1'
 $argument = "-NoProfile -ExecutionPolicy Bypass -File `"$launchScript`" -RuntimeRoot `"$RuntimeRoot`" -HostAddress $HostAddress -Port $Port"
 $action = New-ScheduledTaskAction -Execute $pwshPath -Argument $argument -WorkingDirectory $RuntimeRoot
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
@@ -99,16 +101,38 @@ $settings = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
   -DontStopIfGoingOnBatteries `
   -ExecutionTimeLimit ([TimeSpan]::Zero) `
-  -RestartCount 999 `
+  -RestartCount 0 `
   -RestartInterval (New-TimeSpan -Minutes 1) `
   -StartWhenAvailable `
   -MultipleInstances IgnoreNew
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
 $task = New-ScheduledTask -Action $action -Trigger $trigger -Settings $settings -Principal $principal
 
+if (-not (Test-Path -LiteralPath $watchdogScript)) {
+  throw "Watchdog script missing: $watchdogScript"
+}
+$watchdogArgument = "-NoProfile -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`""
+$watchdogAction = New-ScheduledTaskAction -Execute $pwshPath -Argument $watchdogArgument -WorkingDirectory $RuntimeRoot
+$watchdogTrigger = New-ScheduledTaskTrigger -Daily -At (Get-Date).AddMinutes(1)
+$watchdogRepetition = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 1) -RepetitionDuration ([TimeSpan]::FromDays(1))
+$watchdogTrigger.Repetition = $watchdogRepetition.Repetition
+$watchdogSettings = New-ScheduledTaskSettingsSet `
+  -AllowStartIfOnBatteries `
+  -DontStopIfGoingOnBatteries `
+  -ExecutionTimeLimit (New-TimeSpan -Minutes 1) `
+  -RestartCount 0 `
+  -StartWhenAvailable `
+  -MultipleInstances IgnoreNew
+$watchdogTask = New-ScheduledTask -Action $watchdogAction -Trigger $watchdogTrigger -Settings $watchdogSettings -Principal $principal
+
 try {
   Register-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -InputObject $task -Force | Out-Null
   Write-AgentCoreInfo "Registered scheduled task $TaskPath$TaskName"
+  Register-ScheduledTask -TaskPath $TaskPath -TaskName $WatchdogTaskName -InputObject $watchdogTask -Force | Out-Null
+  Write-AgentCoreInfo "Registered scheduled task $TaskPath$WatchdogTaskName"
+  & wevtutil.exe sl 'Microsoft-Windows-TaskScheduler/Operational' '/e:true'
+  if ($LASTEXITCODE -ne 0) { throw 'Task Scheduler Operational logging enablement failed.' }
+  Write-AgentCoreInfo 'Enabled Task Scheduler Operational logging.'
 } catch {
   Write-Warning "Scheduled task registration failed (may need elevation): $($_.Exception.Message)"
   Write-AgentCoreInfo "Manual launch: `"$pwshPath`" $argument"

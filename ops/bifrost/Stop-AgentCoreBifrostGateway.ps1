@@ -11,6 +11,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$maintenanceMarker = Join-Path $RuntimeRoot 'state\bifrost-maintenance.marker'
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $maintenanceMarker) | Out-Null
+Set-Content -LiteralPath $maintenanceMarker -Value 'stop_requested' -Encoding utf8
+Write-Host '[Stop] Maintenance marker set; Start clears it after health succeeds.'
 
 try {
   Stop-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -ErrorAction Stop
