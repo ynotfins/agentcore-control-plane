@@ -23,13 +23,50 @@ param(
   [ValidateSet('Absent', 'Present', 'ExportFailure')]
   [string]$TestGatewayTaskModel = 'Absent',
   [ValidateSet('Absent', 'Present', 'ExportFailure')]
-  [string]$TestWatchdogTaskModel = 'Absent'
+  [string]$TestWatchdogTaskModel = 'Absent',
+  [switch]$EmitTaskSpecs,
+  [string]$TaskSpecPowerShellPath = ''
 )
 
 $ErrorActionPreference = 'Stop'
 
 function Write-AgentCoreInfo([string]$Message) {
   Write-Host "[Install-AgentCoreBifrostGateway] $Message"
+}
+
+function New-BifrostTaskSpecs([string]$PowerShellPath) {
+  $launchScript = Join-Path $PSScriptRoot 'Launch-AgentCoreBifrostGateway.ps1'
+  $watchdogScript = Join-Path $PSScriptRoot 'Invoke-AgentCoreBifrostWatchdog.ps1'
+  return [ordered]@{
+    gateway = [ordered]@{
+      action = [ordered]@{
+        executable = $PowerShellPath
+        arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$launchScript`" -RuntimeRoot `"$RuntimeRoot`" -HostAddress $HostAddress -Port $Port"
+        working_directory = $RuntimeRoot
+      }
+      trigger = [ordered]@{ type = 'logon'; user = $env:USERNAME }
+      settings = [ordered]@{
+        execution_time_limit_seconds = 0
+        restart_count = 1
+        restart_interval_seconds = 60
+        multiple_instances = 'IgnoreNew'
+      }
+    }
+    watchdog = [ordered]@{
+      action = [ordered]@{
+        executable = $PowerShellPath
+        arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`""
+        working_directory = $RuntimeRoot
+      }
+      trigger = [ordered]@{ type = 'daily_repeating'; repetition_interval_seconds = 60; repetition_duration_seconds = 86400 }
+      settings = [ordered]@{
+        execution_time_limit_seconds = 60
+        restart_count = 0
+        multiple_instances = 'IgnoreNew'
+      }
+    }
+    operational_logging = [ordered]@{ channel = 'Microsoft-Windows-TaskScheduler/Operational'; enable = $true }
+  }
 }
 
 function Assert-InstallerPrivileges {
@@ -153,6 +190,12 @@ function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask) {
   }
 }
 
+if ($EmitTaskSpecs) {
+  $specPowerShell = if ([string]::IsNullOrWhiteSpace($TaskSpecPowerShellPath)) { 'pwsh.exe' } else { $TaskSpecPowerShellPath }
+  New-BifrostTaskSpecs $specPowerShell | ConvertTo-Json -Depth 8 -Compress
+  exit 0
+}
+
 if ($TestMode) {
   Initialize-TestTaskModel
   try {
@@ -236,17 +279,19 @@ $pwshPath = 'C:\Program Files\PowerShell\7\pwsh.exe'
 if (-not (Test-Path -LiteralPath $pwshPath)) {
   $pwshPath = 'pwsh.exe'
 }
+$taskSpecs = New-BifrostTaskSpecs $pwshPath
+$gatewaySpec = $taskSpecs.gateway
+$watchdogSpec = $taskSpecs.watchdog
 $launchScript = Join-Path $PSScriptRoot 'Launch-AgentCoreBifrostGateway.ps1'
 $watchdogScript = Join-Path $PSScriptRoot 'Invoke-AgentCoreBifrostWatchdog.ps1'
-$argument = "-NoProfile -ExecutionPolicy Bypass -File `"$launchScript`" -RuntimeRoot `"$RuntimeRoot`" -HostAddress $HostAddress -Port $Port"
-$action = New-ScheduledTaskAction -Execute $pwshPath -Argument $argument -WorkingDirectory $RuntimeRoot
+$action = New-ScheduledTaskAction -Execute $gatewaySpec.action.executable -Argument $gatewaySpec.action.arguments -WorkingDirectory $gatewaySpec.action.working_directory
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $settings = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
   -DontStopIfGoingOnBatteries `
-  -ExecutionTimeLimit ([TimeSpan]::Zero) `
-  -RestartCount 1 `
-  -RestartInterval (New-TimeSpan -Minutes 1) `
+  -ExecutionTimeLimit ([TimeSpan]::FromSeconds($gatewaySpec.settings.execution_time_limit_seconds)) `
+  -RestartCount $gatewaySpec.settings.restart_count `
+  -RestartInterval (New-TimeSpan -Seconds $gatewaySpec.settings.restart_interval_seconds) `
   -StartWhenAvailable `
   -MultipleInstances IgnoreNew
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
@@ -255,16 +300,15 @@ $task = New-ScheduledTask -Action $action -Trigger $trigger -Settings $settings 
 if (-not (Test-Path -LiteralPath $watchdogScript)) {
   throw "Watchdog script missing: $watchdogScript"
 }
-$watchdogArgument = "-NoProfile -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`""
-$watchdogAction = New-ScheduledTaskAction -Execute $pwshPath -Argument $watchdogArgument -WorkingDirectory $RuntimeRoot
+$watchdogAction = New-ScheduledTaskAction -Execute $watchdogSpec.action.executable -Argument $watchdogSpec.action.arguments -WorkingDirectory $watchdogSpec.action.working_directory
 $watchdogTrigger = New-ScheduledTaskTrigger -Daily -At (Get-Date).AddMinutes(1)
-$watchdogRepetition = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 1) -RepetitionDuration ([TimeSpan]::FromDays(1))
+$watchdogRepetition = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Seconds $watchdogSpec.trigger.repetition_interval_seconds) -RepetitionDuration (New-TimeSpan -Seconds $watchdogSpec.trigger.repetition_duration_seconds)
 $watchdogTrigger.Repetition = $watchdogRepetition.Repetition
 $watchdogSettings = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
   -DontStopIfGoingOnBatteries `
-  -ExecutionTimeLimit (New-TimeSpan -Minutes 1) `
-  -RestartCount 0 `
+  -ExecutionTimeLimit (New-TimeSpan -Seconds $watchdogSpec.settings.execution_time_limit_seconds) `
+  -RestartCount $watchdogSpec.settings.restart_count `
   -StartWhenAvailable `
   -MultipleInstances IgnoreNew
 $watchdogTask = New-ScheduledTask -Action $watchdogAction -Trigger $watchdogTrigger -Settings $watchdogSettings -Principal $principal

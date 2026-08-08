@@ -59,6 +59,23 @@ def run_start_against_stub(runtime_root: Path, port: int) -> subprocess.Complete
     )
 
 
+def installer_task_specs(runtime_root: Path) -> dict[str, object]:
+    result = subprocess.run(
+        [
+            "pwsh", "-NoProfile", "-File",
+            str(REPO_ROOT / "ops" / "bifrost" / "Install-AgentCoreBifrostGateway.ps1"),
+            "-EmitTaskSpecs", "-RuntimeRoot", str(runtime_root),
+            "-HostAddress", "127.0.0.1", "-Port", "18080",
+            "-TaskSpecPowerShellPath", "test-pwsh.exe",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout)
+
+
 def run_watchdog(
     runtime_root: Path, health: str, started_at: str, *extra_args: str
 ) -> subprocess.CompletedProcess[str]:
@@ -231,6 +248,18 @@ def test_watchdog_rechecks_maintenance_and_persists_recycle_failure(tmp_path: Pa
     assert "WATCHDOG_RECYCLE_SUPPRESSED" in suppressed_failure.stdout
     assert "outcome=start_failed" in suppressed_failure.stdout
 
+    healthy = run_watchdog(runtime_root, "Healthy", started_at)
+    assert healthy.returncode == 0
+    for _ in range(2):
+        assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
+    stop_failed = run_watchdog(
+        runtime_root, "Unhealthy", started_at, "-TestRecycleOutcome", "StopFailure"
+    )
+    assert stop_failed.returncode == 1
+    suppressed_stop_failure = run_watchdog(runtime_root, "Unhealthy", started_at)
+    assert suppressed_stop_failure.returncode == 1
+    assert "outcome=stop_failed" in suppressed_stop_failure.stdout
+
 
 def test_start_preflight_and_authenticated_health_do_not_clear_marker_early(tmp_path: Path) -> None:
     runtime_root = tmp_path / "runtime"
@@ -271,19 +300,45 @@ def test_start_preflight_and_authenticated_health_do_not_clear_marker_early(tmp_
 
 
 def test_start_requires_successful_mcp_initialize_response_body(tmp_path: Path) -> None:
-    valid_result = '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18"}}'
+    valid_result = '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{},"serverInfo":{"name":"test","version":"1"}}}'
     rpc_error = '{"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"denied"}}'
+    sse_result = 'event: message\ndata: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18",\ndata: "capabilities":{},"serverInfo":{"name":"test","version":"1"}}}\n\n'
+    bogus_result = '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18"}}'
     for name, payload, expected_code in (
         ("valid", valid_result, 0),
         ("rpc-error", rpc_error, 1),
         ("malformed", "not-json", 1),
+        ("sse-valid", sse_result, 0),
+        ("bogus-result", bogus_result, 1),
     ):
         runtime_root = tmp_path / name
         with gateway_stub(payload) as port:
             result = run_start_against_stub(runtime_root, port)
         marker = runtime_root / "state" / "bifrost-maintenance.marker"
         assert result.returncode == expected_code, result.stderr
-        assert marker.exists() is (expected_code == 1)
+        assert not marker.exists()
+
+
+def test_probe_only_never_mutates_maintenance_marker(tmp_path: Path) -> None:
+    valid_result = '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{},"serverInfo":{"name":"test","version":"1"}}}'
+    rpc_error = '{"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"denied"}}'
+    for name, payload, expected_code in (("success", valid_result, 0), ("failure", rpc_error, 1)):
+        runtime_root = tmp_path / name
+        marker = runtime_root / "state" / "bifrost-maintenance.marker"
+        marker.parent.mkdir(parents=True)
+        marker.write_text("operator-maintenance", encoding="utf-8")
+        original = marker.read_bytes()
+        with gateway_stub(payload) as port:
+            result = run_start_against_stub(runtime_root, port)
+        assert result.returncode == expected_code, result.stderr
+        assert marker.exists()
+        assert marker.read_bytes() == original
+
+    absent_root = tmp_path / "absent"
+    with gateway_stub(valid_result) as port:
+        result = run_start_against_stub(absent_root, port)
+    assert result.returncode == 0, result.stderr
+    assert not (absent_root / "state" / "bifrost-maintenance.marker").exists()
 
 
 def test_installer_transaction_rolls_back_and_fails_closed() -> None:
@@ -326,6 +381,23 @@ def test_installer_transaction_rolls_back_and_fails_closed() -> None:
         task_model = json.loads(partial.stdout.split("INSTALL_TASK_MODEL ")[-1])
         assert task_model == {"gateway": "gateway-original", "watchdog": "watchdog-original"}
 
+
+def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path) -> None:
+    runtime_root = tmp_path / "runtime"
+    specs = installer_task_specs(runtime_root)
+
+    assert not runtime_root.exists()
+    assert specs["gateway"]["action"]["executable"] == "test-pwsh.exe"
+    assert "Launch-AgentCoreBifrostGateway.ps1" in specs["gateway"]["action"]["arguments"]
+    assert specs["gateway"]["settings"]["restart_count"] == 1
+    assert specs["gateway"]["settings"]["multiple_instances"] == "IgnoreNew"
+    assert specs["watchdog"]["trigger"]["repetition_interval_seconds"] == 60
+    assert specs["watchdog"]["settings"]["multiple_instances"] == "IgnoreNew"
+    assert "Invoke-AgentCoreBifrostWatchdog.ps1" in specs["watchdog"]["action"]["arguments"]
+    assert specs["operational_logging"] == {
+        "channel": "Microsoft-Windows-TaskScheduler/Operational", "enable": True
+    }
+
 def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     watchdog = WATCHDOG.read_text(encoding="utf-8")
     installer = (REPO_ROOT / "ops" / "bifrost" / "Install-AgentCoreBifrostGateway.ps1").read_text(encoding="utf-8")
@@ -337,10 +409,7 @@ def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     assert "Stop-ScheduledTask" in watchdog
     assert "Start-ScheduledTask" in watchdog
     assert "WATCHDOG_RECYCLE" in watchdog
-    assert "AgentCore-Bifrost-Watchdog" in installer
-    assert "-MultipleInstances IgnoreNew" in installer
-    assert "Microsoft-Windows-TaskScheduler/Operational" in installer
-    assert "-RestartCount 1" in installer
+    assert "New-BifrostTaskSpecs" in installer
     assert "while ($true)" not in launcher
     assert "bifrost-maintenance.marker" in starter
     assert "bifrost-maintenance.marker" in stopper

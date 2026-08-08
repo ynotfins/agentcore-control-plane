@@ -34,11 +34,25 @@ function Test-AuthenticatedGatewayReadiness {
     $response = Invoke-WebRequest -Uri "http://${HostAddress}:${Port}/mcp" -Method POST -Headers $headers -Body $body -TimeoutSec 15 -ErrorAction Stop
     if ($response.StatusCode -ne 200) { return $false }
     $content = $response.Content.Trim()
-    if ($content.StartsWith('data: ')) {
-      $content = @($content -split "`n" | Where-Object { $_.StartsWith('data: ') } | ForEach-Object { $_.Substring(6).Trim() })[-1]
+    $candidates = @()
+    if ($content -match '(?m)^(?:event|data):') {
+      foreach ($event in ($content -split '(?:\r?\n){2,}')) {
+        $data = @($event -split "`r?`n" | Where-Object { $_.StartsWith('data:') } | ForEach-Object { $_.Substring(5).TrimStart() })
+        if ($data.Count -gt 0) { $candidates += ($data -join "`n") }
+      }
+    } else {
+      $candidates += $content
     }
-    $payload = $content | ConvertFrom-Json -ErrorAction Stop
-    return ($payload.jsonrpc -eq '2.0') -and ($payload.id -eq 1) -and ($null -ne $payload.result) -and ($null -eq $payload.error)
+    foreach ($candidate in $candidates) {
+      $payload = $candidate | ConvertFrom-Json -ErrorAction Stop
+      $result = $payload.result
+      if (($payload.jsonrpc -eq '2.0') -and ($payload.id -eq 1) -and ($null -eq $payload.error) -and
+          ($null -ne $result) -and -not [string]::IsNullOrWhiteSpace([string]$result.protocolVersion) -and
+          ($null -ne $result.capabilities) -and ($null -ne $result.serverInfo)) {
+        return $true
+      }
+    }
+    return $false
   } catch {
     return $false
   }
@@ -72,16 +86,17 @@ if (-not $TestMode -and -not (Test-Path -LiteralPath $exePath)) {
   throw "Missing binary: $exePath"
 }
 
+if ($ProbeOnly) {
+  if (-not (Test-AuthenticatedGatewayReadiness)) { throw "Gateway did not reach authenticated readiness on ${HostAddress}:${Port}" }
+  Write-Host "[Start] Authenticated gateway readiness confirmed on ${HostAddress}:${Port}"
+  exit 0
+}
+
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $maintenanceMarker) | Out-Null
 Set-Content -LiteralPath $maintenanceMarker -Value 'start_requested' -Encoding utf8
 
 if ($TestMode) {
   if (-not (Complete-StartWhenReady)) { throw 'Authenticated gateway readiness test failed.' }
-  exit 0
-}
-
-if ($ProbeOnly) {
-  if (-not (Complete-StartWhenReady)) { throw "Gateway did not reach authenticated readiness on ${HostAddress}:${Port}" }
   exit 0
 }
 
