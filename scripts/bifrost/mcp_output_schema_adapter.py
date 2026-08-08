@@ -33,13 +33,71 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import mcp_output_schema as mos  # noqa: E402
 
 MAX_PENDING = 4096
+
+# These are the Windows process variables needed by cmd-backed launchers,
+# Node/npm, Python, and PowerShell. All other values are opt-in per upstream.
+WINDOWS_REQUIRED_ENV_NAMES = (
+    "SYSTEMROOT",
+    "WINDIR",
+    "COMSPEC",
+    "PATHEXT",
+    "PATH",
+    "TEMP",
+    "TMP",
+    "USERPROFILE",
+    "APPDATA",
+    "LOCALAPPDATA",
+)
+
+
+def build_child_environment(
+    parent_env: Mapping[str, str],
+    *,
+    declared_env_names: list[str],
+    static_env: dict[str, str],
+) -> dict[str, str]:
+    """Return the minimal environment permitted to one STDIO upstream child."""
+    parent_by_name = {name.upper(): value for name, value in parent_env.items()}
+    allowed_names = [*WINDOWS_REQUIRED_ENV_NAMES, *declared_env_names]
+    child_env = {
+        name: parent_by_name[name]
+        for name in allowed_names
+        if parent_by_name.get(name)
+    }
+    child_env.update(static_env)
+    return child_env
+
+
+def launch_upstream(
+    child_argv: list[str],
+    *,
+    declared_env_names: list[str],
+    static_env: dict[str, str],
+    parent_env: Mapping[str, str] | None = None,
+) -> subprocess.Popen[str]:
+    """Launch an upstream child with its reviewed Windows environment only."""
+    return subprocess.Popen(  # noqa: S603 - command comes from the rendered registry
+        child_argv,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=None,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        bufsize=1,
+        env=build_child_environment(
+            parent_env or os.environ,
+            declared_env_names=declared_env_names,
+            static_env=static_env,
+        ),
+    )
 
 
 def _log(message: str) -> None:
@@ -176,8 +234,8 @@ def _split_argv(argv: list[str]) -> tuple[list[str], list[str]]:
     return argv, []
 
 
-def _parse_options(options: list[str]) -> dict[str, str]:
-    parsed: dict[str, str] = {}
+def _parse_options(options: list[str]) -> dict[str, Any]:
+    parsed: dict[str, Any] = {}
     index = 0
     while index < len(options):
         token = options[index]
@@ -187,12 +245,32 @@ def _parse_options(options: list[str]) -> dict[str, str]:
             parsed[token.lstrip("-")] = options[index + 1]
             index += 2
             continue
+        if token in ("--allow-env", "--static-env"):
+            if index + 1 >= len(options):
+                raise SystemExit(f"{token} requires a value")
+            parsed.setdefault(token.lstrip("-"), []).append(options[index + 1])
+            index += 2
+            continue
+        if token == "--no-transform":
+            parsed["no-transform"] = True
+            index += 1
+            continue
         if token == "--self-test":
             parsed["self-test"] = "1"
             index += 1
             continue
         raise SystemExit(f"unknown adapter option: {token}")
     return parsed
+
+
+def _parse_static_env(values: list[str]) -> dict[str, str]:
+    static_env: dict[str, str] = {}
+    for value in values:
+        name, separator, env_value = value.partition("=")
+        if not separator or not name:
+            raise SystemExit("--static-env requires NAME=VALUE")
+        static_env[name] = env_value
+    return static_env
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -218,18 +296,19 @@ def main(argv: list[str] | None = None) -> int:
     if not child_argv:
         raise SystemExit("upstream command required after --")
 
-    resolver: mos.OutputSchemaResolver | None
-    try:
-        resolver = mos.OutputSchemaResolver(contract_path=options.get("contract"))
-        if resolver.adapter_mode(server_id) != "stdio_envelope":
-            _log(
-                f"{server_id}: contract adapter mode is "
-                f"{resolver.adapter_mode(server_id)!r}; relaying without transforms"
-            )
+    resolver: mos.OutputSchemaResolver | None = None
+    if not options.get("no-transform"):
+        try:
+            resolver = mos.OutputSchemaResolver(contract_path=options.get("contract"))
+            if resolver.adapter_mode(server_id) != "stdio_envelope":
+                _log(
+                    f"{server_id}: contract adapter mode is "
+                    f"{resolver.adapter_mode(server_id)!r}; relaying without transforms"
+                )
+                resolver = None
+        except Exception as exc:  # noqa: BLE001 - never block the upstream launch
+            _log(f"{server_id}: contract unavailable ({exc.__class__.__name__}); raw passthrough")
             resolver = None
-    except Exception as exc:  # noqa: BLE001 - never block the upstream launch
-        _log(f"{server_id}: contract unavailable ({exc.__class__.__name__}); raw passthrough")
-        resolver = None
 
     for stream in (sys.stdin, sys.stdout):
         try:
@@ -237,15 +316,10 @@ def main(argv: list[str] | None = None) -> int:
         except (AttributeError, ValueError):
             pass
 
-    proc = subprocess.Popen(  # noqa: S603 - command comes from the rendered registry
+    proc = launch_upstream(
         child_argv,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=None,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        bufsize=1,
+        declared_env_names=list(options.get("allow-env") or []),
+        static_env=_parse_static_env(list(options.get("static-env") or [])),
     )
 
     relay = Relay(server_id, resolver)

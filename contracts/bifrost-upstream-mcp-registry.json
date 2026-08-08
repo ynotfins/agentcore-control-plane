@@ -914,7 +914,9 @@
         "-u",
         "D:\\github\\agentcore-control-plane\\scripts\\agentcore_memory\\server.py"
       ],
-      "env_var_names": [],
+      "env_var_names": [
+        "AGENT_CORE_POSTGRES_PASSWORD"
+      ],
       "timeout_seconds": 30,
       "health_check_type": "none",
       "project_scope": "global",
@@ -1157,7 +1159,9 @@
         "-u",
         "D:\\github\\agentcore-control-plane\\scripts\\project_router\\server.py"
       ],
-      "env_var_names": [],
+      "env_var_names": [
+        "BIFROST_ADMIN_KEY"
+      ],
       "timeout_seconds": 30,
       "health_check_type": "none",
       "project_scope": "global",
