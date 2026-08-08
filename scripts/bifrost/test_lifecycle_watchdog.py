@@ -3,13 +3,60 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import threading
+from contextlib import contextmanager
 from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WATCHDOG = REPO_ROOT / "ops" / "bifrost" / "Invoke-AgentCoreBifrostWatchdog.ps1"
 HARNESS = REPO_ROOT / "scripts" / "bifrost" / "acceptance_lifecycle_watchdog.py"
+
+
+@contextmanager
+def gateway_stub(mcp_body: str):
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            self.send_response(200)
+            self.end_headers()
+
+        def do_POST(self) -> None:  # noqa: N802
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(mcp_body.encode("utf-8"))
+
+        def log_message(self, _format: str, *_args: object) -> None:
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield server.server_port
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def run_start_against_stub(runtime_root: Path, port: int) -> subprocess.CompletedProcess[str]:
+    binary = runtime_root / "bin" / "bifrost-http.exe"
+    binary.parent.mkdir(parents=True)
+    binary.write_bytes(b"")
+    environment = os.environ | {"BIFROST_MCP_VIRTUAL_KEY": "test-key"}
+    return subprocess.run(
+        [
+            "pwsh", "-NoProfile", "-File",
+            str(REPO_ROOT / "ops" / "bifrost" / "Start-AgentCoreBifrostGateway.ps1"),
+            "-RuntimeRoot", str(runtime_root), "-HostAddress", "127.0.0.1", "-Port", str(port), "-ProbeOnly",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=environment,
+    )
 
 
 def run_watchdog(
@@ -152,6 +199,11 @@ def test_watchdog_rechecks_maintenance_and_persists_recycle_failure(tmp_path: Pa
     assert "WATCHDOG_RECYCLE_SKIPPED maintenance_marker_before_stop" in before_stop.stdout
     state = json.loads((runtime_root / "state" / "bifrost-watchdog.json").read_text())
     assert state["last_recycle_outcome"] == "maintenance_marker_before_stop"
+    assert state["recycle_attempted"] is False
+
+    resumed = run_watchdog(runtime_root, "Unhealthy", started_at)
+    assert resumed.returncode == 0, resumed.stderr
+    assert "WATCHDOG_TEST_RECYCLE count=4" in resumed.stdout
 
     healthy = run_watchdog(runtime_root, "Healthy", started_at)
     assert healthy.returncode == 0
@@ -174,6 +226,10 @@ def test_watchdog_rechecks_maintenance_and_persists_recycle_failure(tmp_path: Pa
     assert "WATCHDOG_RECYCLE_START_FAILED" in start_failed.stdout
     state = json.loads((runtime_root / "state" / "bifrost-watchdog.json").read_text())
     assert state["last_recycle_outcome"] == "start_failed"
+    suppressed_failure = run_watchdog(runtime_root, "Unhealthy", started_at)
+    assert suppressed_failure.returncode == 1
+    assert "WATCHDOG_RECYCLE_SUPPRESSED" in suppressed_failure.stdout
+    assert "outcome=start_failed" in suppressed_failure.stdout
 
 
 def test_start_preflight_and_authenticated_health_do_not_clear_marker_early(tmp_path: Path) -> None:
@@ -214,6 +270,22 @@ def test_start_preflight_and_authenticated_health_do_not_clear_marker_early(tmp_
     assert not marker.exists()
 
 
+def test_start_requires_successful_mcp_initialize_response_body(tmp_path: Path) -> None:
+    valid_result = '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18"}}'
+    rpc_error = '{"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"denied"}}'
+    for name, payload, expected_code in (
+        ("valid", valid_result, 0),
+        ("rpc-error", rpc_error, 1),
+        ("malformed", "not-json", 1),
+    ):
+        runtime_root = tmp_path / name
+        with gateway_stub(payload) as port:
+            result = run_start_against_stub(runtime_root, port)
+        marker = runtime_root / "state" / "bifrost-maintenance.marker"
+        assert result.returncode == expected_code, result.stderr
+        assert marker.exists() is (expected_code == 1)
+
+
 def test_installer_transaction_rolls_back_and_fails_closed() -> None:
     installer = REPO_ROOT / "ops" / "bifrost" / "Install-AgentCoreBifrostGateway.ps1"
     denied = subprocess.run(
@@ -225,18 +297,34 @@ def test_installer_transaction_rolls_back_and_fails_closed() -> None:
     assert denied.returncode != 0
     assert "INSTALL_PRIVILEGE_PREFLIGHT_FAILED" in denied.stderr
 
+    export_failure = subprocess.run(
+        [
+            "pwsh", "-NoProfile", "-File", str(installer), "-TestMode",
+            "-TestGatewayTaskModel", "ExportFailure",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert export_failure.returncode != 0
+    assert "INSTALL_TASK_BACKUP_FAILED AgentCore-Bifrost-Gateway" in export_failure.stderr
+    assert "gateway-original" in export_failure.stdout
+
     for phase in ("WatchdogRegistration", "OperationalLogEnablement"):
         partial = subprocess.run(
             [
                 "pwsh", "-NoProfile", "-File", str(installer), "-TestMode",
                 "-TestFailurePhase", phase,
+                "-TestGatewayTaskModel", "Present",
+                "-TestWatchdogTaskModel", "Present",
             ],
             capture_output=True,
             text=True,
             check=False,
         )
         assert partial.returncode != 0
-        assert "INSTALL_ROLLBACK gateway=restored watchdog=restored" in partial.stdout
+        task_model = json.loads(partial.stdout.split("INSTALL_TASK_MODEL ")[-1])
+        assert task_model == {"gateway": "gateway-original", "watchdog": "watchdog-original"}
 
 def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     watchdog = WATCHDOG.read_text(encoding="utf-8")

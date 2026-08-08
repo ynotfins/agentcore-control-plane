@@ -11,6 +11,7 @@ param(
   [int]$Port = 8080,
   [string]$VirtualKeyEnvName = 'BIFROST_MCP_VIRTUAL_KEY',
   [switch]$Direct,
+  [switch]$ProbeOnly,
   [switch]$TestMode,
   [ValidateSet('Authenticated', 'Unauthenticated')]
   [string]$TestReadiness = 'Authenticated'
@@ -31,7 +32,13 @@ function Test-AuthenticatedGatewayReadiness {
     $headers = @{ Authorization = "Bearer $vk"; 'Content-Type' = 'application/json'; Accept = 'application/json, text/event-stream' }
     $body = @{ jsonrpc = '2.0'; id = 1; method = 'initialize'; params = @{ protocolVersion = '2025-06-18'; capabilities = @{}; clientInfo = @{ name = 'agentcore-bifrost-start'; version = '1.0.0' } } } | ConvertTo-Json -Depth 6 -Compress
     $response = Invoke-WebRequest -Uri "http://${HostAddress}:${Port}/mcp" -Method POST -Headers $headers -Body $body -TimeoutSec 15 -ErrorAction Stop
-    return $response.StatusCode -eq 200
+    if ($response.StatusCode -ne 200) { return $false }
+    $content = $response.Content.Trim()
+    if ($content.StartsWith('data: ')) {
+      $content = @($content -split "`n" | Where-Object { $_.StartsWith('data: ') } | ForEach-Object { $_.Substring(6).Trim() })[-1]
+    }
+    $payload = $content | ConvertFrom-Json -ErrorAction Stop
+    return ($payload.jsonrpc -eq '2.0') -and ($payload.id -eq 1) -and ($null -ne $payload.result) -and ($null -eq $payload.error)
   } catch {
     return $false
   }
@@ -70,6 +77,11 @@ Set-Content -LiteralPath $maintenanceMarker -Value 'start_requested' -Encoding u
 
 if ($TestMode) {
   if (-not (Complete-StartWhenReady)) { throw 'Authenticated gateway readiness test failed.' }
+  exit 0
+}
+
+if ($ProbeOnly) {
+  if (-not (Complete-StartWhenReady)) { throw "Gateway did not reach authenticated readiness on ${HostAddress}:${Port}" }
   exit 0
 }
 

@@ -56,6 +56,9 @@ def main() -> int:
         failed_state = json.loads((runtime_root / "state" / "bifrost-watchdog.json").read_text())
         if failed_state["last_recycle_outcome"] != "start_failed":
             raise RuntimeError("watchdog failed-recycle state contract failed")
+        suppressed = run(runtime_root, "Unhealthy")
+        if suppressed.returncode != 1 or "outcome=start_failed" not in suppressed.stdout:
+            raise RuntimeError("watchdog suppressed-failure exit contract failed")
     print("BIFROST_WATCHDOG_ACCEPTANCE_OK")
     return 0
 

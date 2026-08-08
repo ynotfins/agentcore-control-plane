@@ -182,6 +182,7 @@ if ($state.consecutive_failures -lt $FailureThreshold) {
 }
 if ($state.recycle_attempted) {
   Write-WatchdogLog "WATCHDOG_RECYCLE_SUPPRESSED count=$($state.consecutive_failures) outcome=$($state.last_recycle_outcome)"
+  if ($state.last_recycle_outcome -in @('stop_failed', 'start_failed')) { exit 1 }
   exit 0
 }
 
@@ -189,5 +190,8 @@ $state.recycle_attempted = $true
 Save-WatchdogState $state
 $result = Invoke-ControlledRecycle -FailureCount $state.consecutive_failures
 $state.last_recycle_outcome = $result.outcome
+if ($result.outcome -in @('maintenance_marker_before_stop', 'maintenance_marker_before_restart')) {
+  $state.recycle_attempted = $false
+}
 Save-WatchdogState $state
 if (-not $result.success) { exit 1 }

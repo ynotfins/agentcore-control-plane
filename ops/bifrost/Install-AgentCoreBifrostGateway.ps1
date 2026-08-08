@@ -19,7 +19,11 @@ param(
   [switch]$TestMode,
   [switch]$TestPrivilegeDenied,
   [ValidateSet('None', 'GatewayRegistration', 'WatchdogRegistration', 'OperationalLogEnablement')]
-  [string]$TestFailurePhase = 'None'
+  [string]$TestFailurePhase = 'None',
+  [ValidateSet('Absent', 'Present', 'ExportFailure')]
+  [string]$TestGatewayTaskModel = 'Absent',
+  [ValidateSet('Absent', 'Present', 'ExportFailure')]
+  [string]$TestWatchdogTaskModel = 'Absent'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -40,23 +44,63 @@ function Assert-InstallerPrivileges {
   }
 }
 
-function Get-TaskDefinitionBackup([string]$Name) {
-  if ($TestMode) { return $null }
-  try {
-    $definition = Export-ScheduledTask -TaskPath $TaskPath -TaskName $Name -ErrorAction Stop
-    $definition | Set-Content -LiteralPath (Join-Path $script:TaskBackupDirectory "$Name.xml") -Encoding utf8
-    return $definition
-  } catch {
-    return $null
+function Initialize-TestTaskModel {
+  if (-not $TestMode) { return }
+  $script:TestTaskDefinitions = @{
+    gateway = if ($TestGatewayTaskModel -eq 'Absent') { $null } else { 'gateway-original' }
+    watchdog = if ($TestWatchdogTaskModel -eq 'Absent') { $null } else { 'watchdog-original' }
   }
 }
 
-function Restore-TaskDefinition([string]$Name, [string]$Definition) {
-  if ($TestMode) { return 'restored' }
-  if ($Definition) {
-    Register-ScheduledTask -TaskPath $TaskPath -TaskName $Name -Xml $Definition -Force | Out-Null
+function Write-TestTaskModel {
+  if ($TestMode) {
+    Write-Host ('INSTALL_TASK_MODEL ' + (@{ gateway = $script:TestTaskDefinitions.gateway; watchdog = $script:TestTaskDefinitions.watchdog } | ConvertTo-Json -Compress))
+  }
+}
+
+function Get-TaskDefinitionBackup([string]$Name) {
+  if ($TestMode) {
+    $key = if ($Name -eq $TaskName) { 'gateway' } else { 'watchdog' }
+    $model = if ($key -eq 'gateway') { $TestGatewayTaskModel } else { $TestWatchdogTaskModel }
+    if ($model -eq 'Absent') {
+      return [pscustomobject]@{ Name = $Name; Exists = $false; BackupAvailable = $true; Definition = $null }
+    }
+    if ($model -eq 'ExportFailure') {
+      return [pscustomobject]@{ Name = $Name; Exists = $true; BackupAvailable = $false; Definition = $null }
+    }
+    return [pscustomobject]@{ Name = $Name; Exists = $true; BackupAvailable = $true; Definition = $script:TestTaskDefinitions[$key] }
+  }
+  try {
+    $existing = Get-ScheduledTask -TaskPath $TaskPath -TaskName $Name -ErrorAction Stop
+  } catch {
+    if ($_.Exception.Message -match '(?i)not found|cannot find|does not exist|0x80070002') {
+      return [pscustomobject]@{ Name = $Name; Exists = $false; BackupAvailable = $true; Definition = $null }
+    }
+    return [pscustomobject]@{ Name = $Name; Exists = $true; BackupAvailable = $false; Definition = $null }
+  }
+  if (-not $existing) {
+    return [pscustomobject]@{ Name = $Name; Exists = $false; BackupAvailable = $true; Definition = $null }
+  }
+  try {
+    $definition = Export-ScheduledTask -TaskPath $TaskPath -TaskName $Name -ErrorAction Stop
+    $definition | Set-Content -LiteralPath (Join-Path $script:TaskBackupDirectory "$Name.xml") -Encoding utf8
+    return [pscustomobject]@{ Name = $Name; Exists = $true; BackupAvailable = $true; Definition = $definition }
+  } catch {
+    return [pscustomobject]@{ Name = $Name; Exists = $true; BackupAvailable = $false; Definition = $null }
+  }
+}
+
+function Restore-TaskDefinition($Backup) {
+  $key = if ($Backup.Name -eq $TaskName) { 'gateway' } else { 'watchdog' }
+  if ($TestMode) {
+    $script:TestTaskDefinitions[$key] = if ($Backup.Exists) { $Backup.Definition } else { $null }
+    return 'restored'
+  }
+  if ($Backup.Exists) {
+    if (-not $Backup.BackupAvailable -or -not $Backup.Definition) { throw "INSTALL_TASK_BACKUP_FAILED $($Backup.Name)" }
+    Register-ScheduledTask -TaskPath $TaskPath -TaskName $Backup.Name -Xml $Backup.Definition -Force | Out-Null
   } else {
-    Unregister-ScheduledTask -TaskPath $TaskPath -TaskName $Name -Confirm:$false -ErrorAction SilentlyContinue
+    Unregister-ScheduledTask -TaskPath $TaskPath -TaskName $Backup.Name -Confirm:$false -ErrorAction SilentlyContinue
   }
   return 'restored'
 }
@@ -64,6 +108,7 @@ function Restore-TaskDefinition([string]$Name, [string]$Definition) {
 function Register-InstallerTask([string]$Name, $Task, [string]$Phase) {
   if ($TestMode) {
     if ($TestFailurePhase -eq $Phase) { throw "INSTALL_TEST_FAILURE $Phase" }
+    if ($Name -eq $TaskName) { $script:TestTaskDefinitions.gateway = 'gateway-new' } else { $script:TestTaskDefinitions.watchdog = 'watchdog-new' }
     Write-AgentCoreInfo "INSTALL_TEST_REGISTER $Name"
     return
   }
@@ -88,6 +133,9 @@ function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask) {
   }
   $gatewayBackup = Get-TaskDefinitionBackup $TaskName
   $watchdogBackup = Get-TaskDefinitionBackup $WatchdogTaskName
+  foreach ($backup in @($gatewayBackup, $watchdogBackup)) {
+    if ($backup.Exists -and -not $backup.BackupAvailable) { throw "INSTALL_TASK_BACKUP_FAILED $($backup.Name)" }
+  }
   try {
     Register-InstallerTask -Name $TaskName -Task $GatewayTask -Phase 'GatewayRegistration'
     Register-InstallerTask -Name $WatchdogTaskName -Task $WatchdogTask -Phase 'WatchdogRegistration'
@@ -97,8 +145,8 @@ function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask) {
     $gatewayResult = 'failed'
     $watchdogResult = 'failed'
     $rollbackFailed = $false
-    try { $gatewayResult = Restore-TaskDefinition -Name $TaskName -Definition $gatewayBackup } catch { $rollbackFailed = $true }
-    try { $watchdogResult = Restore-TaskDefinition -Name $WatchdogTaskName -Definition $watchdogBackup } catch { $rollbackFailed = $true }
+    try { $gatewayResult = Restore-TaskDefinition $gatewayBackup } catch { $rollbackFailed = $true }
+    try { $watchdogResult = Restore-TaskDefinition $watchdogBackup } catch { $rollbackFailed = $true }
     Write-Host "INSTALL_ROLLBACK gateway=$gatewayResult watchdog=$watchdogResult"
     if ($rollbackFailed) { throw 'INSTALL_ROLLBACK_FAILED' }
     throw $originalFailure
@@ -106,10 +154,19 @@ function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask) {
 }
 
 if ($TestMode) {
-  Invoke-TaskInstallTransaction -GatewayTask ([pscustomobject]@{ name = $TaskName; restart_count = 1 }) -WatchdogTask ([pscustomobject]@{ name = $WatchdogTaskName })
-  Write-AgentCoreInfo 'INSTALL_TEST_SUCCESS'
-  exit 0
+  Initialize-TestTaskModel
+  try {
+    Invoke-TaskInstallTransaction -GatewayTask ([pscustomobject]@{ name = $TaskName; restart_count = 1 }) -WatchdogTask ([pscustomobject]@{ name = $WatchdogTaskName })
+    Write-TestTaskModel
+    Write-AgentCoreInfo 'INSTALL_TEST_SUCCESS'
+    exit 0
+  } catch {
+    Write-TestTaskModel
+    throw
+  }
 }
+
+Assert-InstallerPrivileges
 
 $binDir = Join-Path $RuntimeRoot 'bin'
 $configDir = Join-Path $RuntimeRoot 'config'
