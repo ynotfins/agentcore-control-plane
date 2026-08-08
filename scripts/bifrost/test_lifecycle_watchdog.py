@@ -16,20 +16,60 @@ HARNESS = REPO_ROOT / "scripts" / "bifrost" / "acceptance_lifecycle_watchdog.py"
 
 
 @contextmanager
-def gateway_stub(mcp_body: str):
+def gateway_stub(
+    mcp_body: str,
+    *,
+    session_id: str | None = None,
+    initialized_status: int = 202,
+    tools_body: str | None = None,
+    requests: list[dict[str, object]] | None = None,
+):
+    request_log = requests if requests is not None else []
+
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:  # noqa: N802
+            request_log.append({"method": "health"})
             self.send_response(200)
             self.end_headers()
 
         def do_POST(self) -> None:  # noqa: N802
+            body = self.rfile.read(int(self.headers.get("Content-Length", "0"))).decode(
+                "utf-8"
+            )
+            payload = json.loads(body)
+            method = payload.get("method")
+            request_log.append(
+                {
+                    "method": method,
+                    "body": payload,
+                    "authorization_present": bool(self.headers.get("Authorization")),
+                    "accept": self.headers.get("Accept"),
+                    "content_type": self.headers.get("Content-Type"),
+                    "protocol_version": self.headers.get("MCP-Protocol-Version"),
+                    "session_id": self.headers.get("Mcp-Session-Id"),
+                }
+            )
+            if method == "notifications/initialized":
+                self.send_response(initialized_status)
+                self.end_headers()
+                return
+
+            response_body = mcp_body
+            if method == "tools/list":
+                response_body = tools_body or encode_rpc_response(
+                    2, {"tools": []}, "sse" if mcp_body.startswith("event:") else "json"
+                )
             self.send_response(200)
             content_type = (
-                "text/event-stream" if mcp_body.startswith("event:") else "application/json"
+                "text/event-stream"
+                if response_body.startswith("event:")
+                else "application/json"
             )
             self.send_header("Content-Type", content_type)
+            if method == "initialize" and session_id is not None:
+                self.send_header("Mcp-Session-Id", session_id)
             self.end_headers()
-            self.wfile.write(mcp_body.encode("utf-8"))
+            self.wfile.write(response_body.encode("utf-8"))
 
         def log_message(self, _format: str, *_args: object) -> None:
             return
@@ -44,17 +84,24 @@ def gateway_stub(mcp_body: str):
         thread.join()
 
 
-def run_start_against_stub(runtime_root: Path, port: int) -> subprocess.CompletedProcess[str]:
+def run_start_against_stub(
+    runtime_root: Path, port: int, *, probe_only: bool = True
+) -> subprocess.CompletedProcess[str]:
     binary = runtime_root / "bin" / "bifrost-http.exe"
     binary.parent.mkdir(parents=True)
     binary.write_bytes(b"")
     environment = os.environ | {"BIFROST_MCP_VIRTUAL_KEY": "test-key"}
+    arguments = [
+        "pwsh", "-NoProfile", "-File",
+        str(REPO_ROOT / "ops" / "bifrost" / "Start-AgentCoreBifrostGateway.ps1"),
+        "-RuntimeRoot", str(runtime_root), "-HostAddress", "127.0.0.1", "-Port", str(port),
+    ]
+    if probe_only:
+        arguments.append("-ProbeOnly")
+    else:
+        arguments.extend(["-TestMode", "-TestUseHttpReadiness"])
     return subprocess.run(
-        [
-            "pwsh", "-NoProfile", "-File",
-            str(REPO_ROOT / "ops" / "bifrost" / "Start-AgentCoreBifrostGateway.ps1"),
-            "-RuntimeRoot", str(runtime_root), "-HostAddress", "127.0.0.1", "-Port", str(port), "-ProbeOnly",
-        ],
+        arguments,
         capture_output=True,
         text=True,
         check=False,
@@ -63,16 +110,54 @@ def run_start_against_stub(runtime_root: Path, port: int) -> subprocess.Complete
 
 
 def encode_initialize_response(result: dict[str, object], transport: str) -> str:
+    return encode_rpc_response(1, result, transport)
+
+
+def encode_rpc_response(response_id: int, result: dict[str, object], transport: str) -> str:
     payload = json.dumps(
-        {"jsonrpc": "2.0", "id": 1, "result": result}, separators=(",", ":")
+        {"jsonrpc": "2.0", "id": response_id, "result": result},
+        separators=(",", ":"),
     )
     if transport == "json":
         return payload
-    split_at = payload.index('"capabilities"')
+    split_at = payload.find(",", len(payload) // 2)
+    if split_at == -1:
+        split_at = len(payload)
+    else:
+        split_at += 1
     return (
         "event: message\n"
         f"data: {payload[:split_at]}\n"
         f"data: {payload[split_at:]}\n\n"
+    )
+
+
+def run_full_installer_transaction(
+    runtime_root: Path,
+    rendered_config: Path,
+    environment_state: Path,
+    failure_phase: str,
+) -> subprocess.CompletedProcess[str]:
+    binary = runtime_root / "bin" / "bifrost-http.exe"
+    binary.parent.mkdir(parents=True, exist_ok=True)
+    binary.write_bytes(b"")
+    return subprocess.run(
+        [
+            "pwsh", "-NoProfile", "-File",
+            str(REPO_ROOT / "ops" / "bifrost" / "Install-AgentCoreBifrostGateway.ps1"),
+            "-TestMode", "-TestFullTransaction",
+            "-RuntimeRoot", str(runtime_root),
+            "-RepoRoot", str(REPO_ROOT),
+            "-TestRenderedConfigPath", str(rendered_config),
+            "-TestEnvironmentStatePath", str(environment_state),
+            "-TestFailurePhase", failure_phase,
+            "-TestGatewayTaskModel", "Present",
+            "-TestWatchdogTaskModel", "Present",
+            "-TaskSpecPowerShellPath", "test-pwsh.exe",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
     )
 
 
@@ -354,6 +439,104 @@ def test_start_accepts_only_client_supported_initialize_versions_for_json_and_ss
             assert not (runtime_root / "state" / "bifrost-maintenance.marker").exists()
 
 
+def test_start_completes_stateful_and_stateless_mcp_lifecycle_before_clearing_marker(
+    tmp_path: Path,
+) -> None:
+    negotiated_version = "2025-03-26"
+    initialize_result = {
+        "protocolVersion": negotiated_version,
+        "capabilities": {"tools": {}},
+        "serverInfo": {"name": "test", "version": "1"},
+    }
+    for transport in ("json", "sse"):
+        for session_id in (None, "test-session-123"):
+            runtime_root = tmp_path / f"{transport}-{session_id or 'stateless'}"
+            requests: list[dict[str, object]] = []
+            with gateway_stub(
+                encode_initialize_response(initialize_result, transport),
+                session_id=session_id,
+                requests=requests,
+            ) as port:
+                result = run_start_against_stub(runtime_root, port, probe_only=False)
+
+            assert result.returncode == 0, (result.stdout, result.stderr, requests)
+            assert [request["method"] for request in requests] == [
+                "health",
+                "initialize",
+                "notifications/initialized",
+                "tools/list",
+            ]
+            initialized = requests[2]
+            tools_list = requests[3]
+            assert initialized["body"] == {
+                "jsonrpc": "2.0",
+                "method": "notifications/initialized",
+            }
+            assert tools_list["body"] == {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "tools/list",
+                "params": {},
+            }
+            for request in (initialized, tools_list):
+                assert request["authorization_present"] is True
+                assert request["accept"] == "application/json, text/event-stream"
+                assert request["content_type"] == "application/json"
+                assert request["protocol_version"] == negotiated_version
+                assert request["session_id"] == session_id
+            assert not (runtime_root / "state" / "bifrost-maintenance.marker").exists()
+
+
+def test_start_preserves_maintenance_marker_when_any_mcp_lifecycle_phase_fails(
+    tmp_path: Path,
+) -> None:
+    valid_initialize = encode_initialize_response(
+        {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {"tools": {}},
+            "serverInfo": {"name": "test", "version": "1"},
+        },
+        "json",
+    )
+    cases = {
+        "initialize": {
+            "initialize_body": '{"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"denied"}}',
+            "initialized_status": 202,
+            "tools_body": None,
+            "expected_methods": ["health", "initialize"],
+        },
+        "initialized": {
+            "initialize_body": valid_initialize,
+            "initialized_status": 400,
+            "tools_body": None,
+            "expected_methods": ["health", "initialize", "notifications/initialized"],
+        },
+        "tools-list": {
+            "initialize_body": valid_initialize,
+            "initialized_status": 202,
+            "tools_body": '{"jsonrpc":"2.0","id":2,"error":{"code":-32000,"message":"unavailable"}}',
+            "expected_methods": [
+                "health", "initialize", "notifications/initialized", "tools/list"
+            ],
+        },
+    }
+    for name, case in cases.items():
+        runtime_root = tmp_path / name
+        requests: list[dict[str, object]] = []
+        with gateway_stub(
+            case["initialize_body"],
+            session_id="failure-session",
+            initialized_status=case["initialized_status"],
+            tools_body=case["tools_body"],
+            requests=requests,
+        ) as port:
+            result = run_start_against_stub(runtime_root, port, probe_only=False)
+
+        assert result.returncode == 1, (name, result.stdout, result.stderr)
+        assert [request["method"] for request in requests] == case["expected_methods"]
+        assert (runtime_root / "state" / "bifrost-maintenance.marker").exists()
+
+
 def test_start_rejects_invalid_initialize_result_shapes_for_json_and_sse(
     tmp_path: Path,
 ) -> None:
@@ -481,6 +664,69 @@ def test_installer_transaction_rolls_back_and_fails_closed() -> None:
         assert partial.returncode != 0
         task_model = json.loads(partial.stdout.split("INSTALL_TASK_MODEL ")[-1])
         assert task_model == {"gateway": "gateway-original", "watchdog": "watchdog-original"}
+
+
+def test_installer_failure_after_render_restores_config_environment_and_tasks(
+    tmp_path: Path,
+) -> None:
+    runtime_root = tmp_path / "runtime"
+    runtime_root.mkdir()
+    live_config = runtime_root / "config.json"
+    original_config = b'{\r\n  "generation": "original"\r\n}\r\n'
+    live_config.write_bytes(original_config)
+    rendered_config = tmp_path / "candidate.json"
+    rendered_config.write_bytes(b'{"generation":"candidate","sensitive":"sentinel-value"}\n')
+    environment_state = tmp_path / "environment-state.json"
+    initial_environment = {
+        "DISABLE_THOUGHT_LOGGING": {"exists": True, "value": "original-disable"},
+        "CURSOR_API_URL": {"exists": False, "value": None},
+        "OBSIDIAN_BASE_URL": {"exists": True, "value": ""},
+        "OBSIDIAN_VERIFY_SSL": {"exists": False, "value": None},
+    }
+    environment_state.write_text(json.dumps(initial_environment), encoding="utf-8")
+
+    result = run_full_installer_transaction(
+        runtime_root, rendered_config, environment_state, "WatchdogRegistration"
+    )
+
+    assert result.returncode == 1
+    assert "sentinel-value" not in result.stdout
+    assert "sentinel-value" not in result.stderr
+    assert live_config.read_bytes() == original_config
+    assert json.loads(environment_state.read_text(encoding="utf-8")) == initial_environment
+    task_model = json.loads(result.stdout.split("INSTALL_TASK_MODEL ")[-1])
+    assert task_model == {"gateway": "gateway-original", "watchdog": "watchdog-original"}
+    assert "INSTALL_ROLLBACK config=restored environment=restored" in result.stdout
+
+
+def test_installer_failure_restores_absent_config_and_environment_entries(
+    tmp_path: Path,
+) -> None:
+    runtime_root = tmp_path / "runtime"
+    runtime_root.mkdir()
+    rendered_config = tmp_path / "candidate.json"
+    rendered_config.write_text('{"generation":"candidate"}\n', encoding="utf-8")
+    environment_state = tmp_path / "environment-state.json"
+    initial_environment = {
+        name: {"exists": False, "value": None}
+        for name in (
+            "DISABLE_THOUGHT_LOGGING",
+            "CURSOR_API_URL",
+            "OBSIDIAN_BASE_URL",
+            "OBSIDIAN_VERIFY_SSL",
+        )
+    }
+    environment_state.write_text(json.dumps(initial_environment), encoding="utf-8")
+
+    result = run_full_installer_transaction(
+        runtime_root, rendered_config, environment_state, "OperationalLogEnablement"
+    )
+
+    assert result.returncode == 1
+    assert not (runtime_root / "config.json").exists()
+    assert json.loads(environment_state.read_text(encoding="utf-8")) == initial_environment
+    task_model = json.loads(result.stdout.split("INSTALL_TASK_MODEL ")[-1])
+    assert task_model == {"gateway": "gateway-original", "watchdog": "watchdog-original"}
 
 
 def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path) -> None:

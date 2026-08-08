@@ -17,15 +17,18 @@ param(
   [int]$Port = 8080,
   [switch]$SkipScheduledTask,
   [switch]$TestMode,
+  [switch]$TestFullTransaction,
   [switch]$TestPrivilegeDenied,
-  [ValidateSet('None', 'GatewayRegistration', 'WatchdogRegistration', 'OperationalLogEnablement')]
+  [ValidateSet('None', 'ConfigActivation', 'GatewayRegistration', 'WatchdogRegistration', 'OperationalLogEnablement')]
   [string]$TestFailurePhase = 'None',
   [ValidateSet('Absent', 'Present', 'ExportFailure')]
   [string]$TestGatewayTaskModel = 'Absent',
   [ValidateSet('Absent', 'Present', 'ExportFailure')]
   [string]$TestWatchdogTaskModel = 'Absent',
   [switch]$EmitTaskSpecs,
-  [string]$TaskSpecPowerShellPath = ''
+  [string]$TaskSpecPowerShellPath = '',
+  [string]$TestRenderedConfigPath = '',
+  [string]$TestEnvironmentStatePath = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -219,6 +222,87 @@ function Initialize-TestTaskModel {
   }
 }
 
+function Initialize-TestEnvironmentModel {
+  if (-not $TestMode -or -not $TestFullTransaction) { return }
+  if ([string]::IsNullOrWhiteSpace($TestEnvironmentStatePath) -or
+      -not (Test-Path -LiteralPath $TestEnvironmentStatePath)) {
+    throw 'INSTALL_TEST_ENVIRONMENT_STATE_REQUIRED'
+  }
+  $script:TestEnvironmentState = Get-Content -Raw -LiteralPath $TestEnvironmentStatePath |
+    ConvertFrom-Json -AsHashtable -ErrorAction Stop
+}
+
+function Write-TestEnvironmentModel {
+  if (-not $TestMode -or -not $TestFullTransaction) { return }
+  $json = ConvertTo-Json -InputObject $script:TestEnvironmentState -Depth 4 -Compress
+  [IO.File]::WriteAllText($TestEnvironmentStatePath, $json, [Text.UTF8Encoding]::new($false))
+}
+
+function Get-InstallerUserEnvironmentState([string]$Name) {
+  if ($TestMode -and $TestFullTransaction) {
+    $entry = $script:TestEnvironmentState[$Name]
+    $exists = ($null -ne $entry) -and [bool]$entry.exists
+    return [pscustomobject]@{ Name = $Name; Exists = $exists; Value = if ($exists) { [string]$entry.value } else { $null } }
+  }
+  $userEnvironment = [Environment]::GetEnvironmentVariables('User')
+  $exists = $userEnvironment.Contains($Name)
+  return [pscustomobject]@{ Name = $Name; Exists = $exists; Value = if ($exists) { [string]$userEnvironment[$Name] } else { $null } }
+}
+
+function Set-InstallerUserEnvironmentState([string]$Name, [bool]$Exists, $Value) {
+  if ($TestMode -and $TestFullTransaction) {
+    $script:TestEnvironmentState[$Name] = [ordered]@{ exists = $Exists; value = if ($Exists) { [string]$Value } else { $null } }
+    Write-TestEnvironmentModel
+    return
+  }
+  [Environment]::SetEnvironmentVariable($Name, $(if ($Exists) { [string]$Value } else { $null }), 'User')
+}
+
+function Get-InstallerEnvironmentBackup($Defaults) {
+  $backup = [System.Collections.Generic.List[object]]::new()
+  foreach ($key in @($Defaults.Keys | Sort-Object)) {
+    $backup.Add((Get-InstallerUserEnvironmentState $key))
+  }
+  return @($backup)
+}
+
+function Set-InstallerEnvironmentDefaults($Defaults) {
+  foreach ($key in @($Defaults.Keys | Sort-Object)) {
+    $state = Get-InstallerUserEnvironmentState $key
+    if (-not $state.Exists -or [string]::IsNullOrWhiteSpace([string]$state.Value)) {
+      Set-InstallerUserEnvironmentState $key $true $Defaults[$key]
+      Write-AgentCoreInfo "Set User env $key (non-secret default)"
+    }
+  }
+}
+
+function Restore-InstallerEnvironment($Backup) {
+  foreach ($state in $Backup) {
+    Set-InstallerUserEnvironmentState $state.Name ([bool]$state.Exists) $state.Value
+  }
+  return 'restored'
+}
+
+function Get-InstallerFileBackup([string]$Path) {
+  $exists = Test-Path -LiteralPath $Path -PathType Leaf
+  return [pscustomobject]@{
+    Path = $Path
+    Exists = $exists
+    Bytes = if ($exists) { [IO.File]::ReadAllBytes($Path) } else { $null }
+  }
+}
+
+function Restore-InstallerFile($Backup) {
+  if ($Backup.Exists) {
+    $parent = Split-Path -Parent $Backup.Path
+    if (-not (Test-Path -LiteralPath $parent)) { New-Item -ItemType Directory -Force -Path $parent | Out-Null }
+    [IO.File]::WriteAllBytes($Backup.Path, $Backup.Bytes)
+  } else {
+    Remove-Item -LiteralPath $Backup.Path -Force -ErrorAction SilentlyContinue
+  }
+  return 'restored'
+}
+
 function Write-TestScheduledTaskCalls {
   if ($TestMode) {
     Write-Host ('INSTALL_TASK_CALLS ' + (ConvertTo-Json -InputObject @($script:TestScheduledTaskCalls) -Depth 8 -Compress))
@@ -301,7 +385,7 @@ function Enable-TaskSchedulerOperationalLog($Spec) {
   if ($LASTEXITCODE -ne 0) { throw 'Task Scheduler Operational logging enablement failed.' }
 }
 
-function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask, $OperationalLoggingSpec) {
+function Get-TaskInstallBackups {
   Assert-InstallerPrivileges
   if (-not $TestMode) {
     $script:TaskBackupDirectory = Join-Path $backupsDir ("scheduled-tasks\\{0}" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
@@ -312,21 +396,19 @@ function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask, $Operational
   foreach ($backup in @($gatewayBackup, $watchdogBackup)) {
     if ($backup.Exists -and -not $backup.BackupAvailable) { throw "INSTALL_TASK_BACKUP_FAILED $($backup.Name)" }
   }
-  try {
-    Register-InstallerTask -Name $TaskName -Task $GatewayTask -Phase 'GatewayRegistration'
-    Register-InstallerTask -Name $WatchdogTaskName -Task $WatchdogTask -Phase 'WatchdogRegistration'
-    Enable-TaskSchedulerOperationalLog $OperationalLoggingSpec
-  } catch {
-    $originalFailure = $_
-    $gatewayResult = 'failed'
-    $watchdogResult = 'failed'
-    $rollbackFailed = $false
-    try { $gatewayResult = Restore-TaskDefinition $gatewayBackup } catch { $rollbackFailed = $true }
-    try { $watchdogResult = Restore-TaskDefinition $watchdogBackup } catch { $rollbackFailed = $true }
-    Write-Host "INSTALL_ROLLBACK gateway=$gatewayResult watchdog=$watchdogResult"
-    if ($rollbackFailed) { throw 'INSTALL_ROLLBACK_FAILED' }
-    throw $originalFailure
-  }
+  return [pscustomobject]@{ Gateway = $gatewayBackup; Watchdog = $watchdogBackup }
+}
+
+function Restore-TaskInstallBackups($Backups) {
+  $gatewayResult = Restore-TaskDefinition $Backups.Gateway
+  $watchdogResult = Restore-TaskDefinition $Backups.Watchdog
+  return [pscustomobject]@{ Gateway = $gatewayResult; Watchdog = $watchdogResult }
+}
+
+function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask, $OperationalLoggingSpec) {
+  Register-InstallerTask -Name $TaskName -Task $GatewayTask -Phase 'GatewayRegistration'
+  Register-InstallerTask -Name $WatchdogTaskName -Task $WatchdogTask -Phase 'WatchdogRegistration'
+  Enable-TaskSchedulerOperationalLog $OperationalLoggingSpec
 }
 
 if ($EmitTaskSpecs) {
@@ -335,25 +417,6 @@ if ($EmitTaskSpecs) {
   exit 0
 }
 
-if ($TestMode) {
-  Initialize-TestTaskModel
-  try {
-    $specPowerShell = if ([string]::IsNullOrWhiteSpace($TaskSpecPowerShellPath)) { 'pwsh.exe' } else { $TaskSpecPowerShellPath }
-    $taskSpecs = New-BifrostTaskSpecs $specPowerShell
-    $scheduledTasks = New-InstallerScheduledTasks $taskSpecs
-    Invoke-TaskInstallTransaction -GatewayTask $scheduledTasks.gateway -WatchdogTask $scheduledTasks.watchdog -OperationalLoggingSpec $taskSpecs.operational_logging
-    Write-TestScheduledTaskCalls
-    Write-TestTaskModel
-    Write-AgentCoreInfo 'INSTALL_TEST_SUCCESS'
-    exit 0
-  } catch {
-    Write-TestTaskModel
-    throw
-  }
-}
-
-Assert-InstallerPrivileges
-
 $binDir = Join-Path $RuntimeRoot 'bin'
 $configDir = Join-Path $RuntimeRoot 'config'
 $dataDir = Join-Path $RuntimeRoot 'data'
@@ -361,72 +424,143 @@ $logsDir = Join-Path $RuntimeRoot 'logs'
 $stateDir = Join-Path $RuntimeRoot 'state'
 $backupsDir = Join-Path $RuntimeRoot 'backups'
 $exePath = Join-Path $binDir 'bifrost-http.exe'
+$liveConfigPath = Join-Path $RuntimeRoot 'config.json'
 $renderScript = Join-Path $RepoRoot 'scripts\bifrost\render_bifrost_config.py'
-
-foreach ($dir in @($RuntimeRoot, $binDir, $configDir, $dataDir, $logsDir, $stateDir, $backupsDir, 'F:\AgentCore\runtime\mcp-processes', 'F:\AgentCore\runtime\tentra\data')) {
-  New-Item -ItemType Directory -Force -Path $dir | Out-Null
-}
-
-if (-not (Test-Path -LiteralPath $exePath)) {
-  throw "bifrost-http.exe not found at $exePath. Place the binary before install."
-}
-
-if (-not (Test-Path -LiteralPath $renderScript)) {
-  throw "Renderer missing: $renderScript"
-}
-
-# Non-secret User env defaults required by upstream stdio servers
+$validateScript = Join-Path $RepoRoot 'scripts\bifrost\validate_contracts.py'
 $nonSecretDefaults = @{
   'DISABLE_THOUGHT_LOGGING' = 'true'
   'CURSOR_API_URL'          = 'https://api.cursor.com'
   'OBSIDIAN_BASE_URL'       = 'https://127.0.0.1:27124'
   'OBSIDIAN_VERIFY_SSL'     = 'false'
 }
-foreach ($key in $nonSecretDefaults.Keys) {
-  $existing = [Environment]::GetEnvironmentVariable($key, 'User')
-  if ([string]::IsNullOrWhiteSpace($existing)) {
-    [Environment]::SetEnvironmentVariable($key, $nonSecretDefaults[$key], 'User')
-    Write-AgentCoreInfo "Set User env $key (non-secret default)"
+
+if ($TestMode) { Initialize-TestTaskModel }
+
+if ($TestMode -and -not $TestFullTransaction) {
+  try {
+    $specPowerShell = if ([string]::IsNullOrWhiteSpace($TaskSpecPowerShellPath)) { 'pwsh.exe' } else { $TaskSpecPowerShellPath }
+    $taskSpecs = New-BifrostTaskSpecs $specPowerShell
+    $scheduledTasks = New-InstallerScheduledTasks $taskSpecs
+    $taskBackups = Get-TaskInstallBackups
+    Invoke-TaskInstallTransaction -GatewayTask $scheduledTasks.gateway -WatchdogTask $scheduledTasks.watchdog -OperationalLoggingSpec $taskSpecs.operational_logging
+    Write-TestScheduledTaskCalls
+    Write-TestTaskModel
+    Write-AgentCoreInfo 'INSTALL_TEST_SUCCESS'
+    exit 0
+  } catch {
+    if ($null -ne $taskBackups) {
+      try {
+        $taskRollback = Restore-TaskInstallBackups $taskBackups
+        Write-Host "INSTALL_ROLLBACK gateway=$($taskRollback.Gateway) watchdog=$($taskRollback.Watchdog)"
+      } catch { throw 'INSTALL_ROLLBACK_FAILED' }
+    }
+    Write-TestTaskModel
+    throw
   }
 }
 
-Write-AgentCoreInfo "Rendering Bifrost config into $RuntimeRoot"
+Assert-InstallerPrivileges
+if (-not (Test-Path -LiteralPath $exePath)) {
+  throw "bifrost-http.exe not found at $exePath. Place the binary before install."
+}
+if (-not $TestMode -and -not (Test-Path -LiteralPath $renderScript)) {
+  throw "Renderer missing: $renderScript"
+}
 $pythonCmd = $null
-foreach ($c in @('py', 'python', 'python3')) {
-  $cmd = Get-Command $c -ErrorAction SilentlyContinue
-  if ($cmd) { $pythonCmd = $cmd.Source; break }
-}
-if (-not $pythonCmd -and (Test-Path 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe')) {
-  $pythonCmd = 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe'
-}
-if (-not $pythonCmd) { throw 'Python interpreter not found (tried py/python/python3 and Python313 path).' }
-& $pythonCmd $renderScript --out (Join-Path $RuntimeRoot 'config.json')
-if ($LASTEXITCODE -ne 0) {
-  throw "render_bifrost_config.py failed with exit $LASTEXITCODE"
+if ($TestMode) {
+  if ([string]::IsNullOrWhiteSpace($TestRenderedConfigPath) -or
+      -not (Test-Path -LiteralPath $TestRenderedConfigPath -PathType Leaf)) {
+    throw 'INSTALL_TEST_RENDERED_CONFIG_REQUIRED'
+  }
+  Initialize-TestEnvironmentModel
+} else {
+  foreach ($c in @('py', 'python', 'python3')) {
+    $cmd = Get-Command $c -ErrorAction SilentlyContinue
+    if ($cmd) { $pythonCmd = $cmd.Source; break }
+  }
+  if (-not $pythonCmd -and (Test-Path 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe')) {
+    $pythonCmd = 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe'
+  }
+  if (-not $pythonCmd) { throw 'Python interpreter not found (tried py/python/python3 and Python313 path).' }
 }
 
-$validateScript = Join-Path $RepoRoot 'scripts\bifrost\validate_contracts.py'
-if (Test-Path -LiteralPath $validateScript) {
-  & $pythonCmd $validateScript
+$transactionId = Get-Date -Format 'yyyyMMdd-HHmmss-fffffff'
+$transactionDirectory = Join-Path $backupsDir "installer\$transactionId"
+$stagingDirectory = Join-Path $transactionDirectory 'staging'
+$stagedConfigPath = Join-Path $stagingDirectory 'config.json'
+New-Item -ItemType Directory -Force -Path $stagingDirectory | Out-Null
+
+# Capture every live state domain before rendering or activation.
+$configBackup = Get-InstallerFileBackup $liveConfigPath
+if ($configBackup.Exists) {
+  [IO.File]::WriteAllBytes((Join-Path $transactionDirectory 'config.json.before'), $configBackup.Bytes)
+}
+$environmentBackup = Get-InstallerEnvironmentBackup $nonSecretDefaults
+$taskBackups = if ($SkipScheduledTask) { $null } else { Get-TaskInstallBackups }
+
+Write-AgentCoreInfo "Rendering Bifrost config into staging $stagingDirectory"
+if ($TestMode) {
+  [IO.File]::Copy($TestRenderedConfigPath, $stagedConfigPath, $true)
+} else {
+  & $pythonCmd $renderScript --out $stagedConfigPath --no-also-config-dir --skip-renderer
   if ($LASTEXITCODE -ne 0) {
-    throw "validate_contracts.py failed with exit $LASTEXITCODE"
+    throw "render_bifrost_config.py failed with exit $LASTEXITCODE"
   }
 }
-
-if ($SkipScheduledTask) {
-  Write-AgentCoreInfo 'Skipping scheduled task registration (-SkipScheduledTask).'
-  return
+$stagedConfig = Get-Content -Raw -LiteralPath $stagedConfigPath | ConvertFrom-Json -ErrorAction Stop
+if (-not ($stagedConfig -is [System.Management.Automation.PSCustomObject])) {
+  throw 'Rendered Bifrost config must be a JSON object.'
+}
+if (-not $TestMode -and (Test-Path -LiteralPath $validateScript)) {
+  & $pythonCmd $validateScript
+  if ($LASTEXITCODE -ne 0) { throw "validate_contracts.py failed with exit $LASTEXITCODE" }
 }
 
 $pwshPath = 'C:\Program Files\PowerShell\7\pwsh.exe'
-if (-not (Test-Path -LiteralPath $pwshPath)) {
-  $pwshPath = 'pwsh.exe'
-}
+if ($TestMode -and -not [string]::IsNullOrWhiteSpace($TaskSpecPowerShellPath)) { $pwshPath = $TaskSpecPowerShellPath }
+elseif (-not (Test-Path -LiteralPath $pwshPath)) { $pwshPath = 'pwsh.exe' }
 $taskSpecs = New-BifrostTaskSpecs $pwshPath
-$scheduledTasks = New-InstallerScheduledTasks $taskSpecs
-Invoke-TaskInstallTransaction -GatewayTask $scheduledTasks.gateway -WatchdogTask $scheduledTasks.watchdog -OperationalLoggingSpec $taskSpecs.operational_logging
-Write-AgentCoreInfo "Registered scheduled task $TaskPath$TaskName"
-Write-AgentCoreInfo "Registered scheduled task $TaskPath$WatchdogTaskName"
-Write-AgentCoreInfo 'Enabled Task Scheduler Operational logging.'
+$scheduledTasks = if ($SkipScheduledTask) { $null } else { New-InstallerScheduledTasks $taskSpecs }
 
+try {
+  $runtimeDirectories = @($RuntimeRoot, $binDir, $configDir, $dataDir, $logsDir, $stateDir, $backupsDir)
+  if (-not $TestMode) { $runtimeDirectories += @('F:\AgentCore\runtime\mcp-processes', 'F:\AgentCore\runtime\tentra\data') }
+  foreach ($dir in $runtimeDirectories) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+
+  Set-InstallerEnvironmentDefaults $nonSecretDefaults
+  [IO.File]::WriteAllBytes($liveConfigPath, [IO.File]::ReadAllBytes($stagedConfigPath))
+  if ($TestMode -and $TestFailurePhase -eq 'ConfigActivation') { throw 'INSTALL_TEST_FAILURE ConfigActivation' }
+
+  if ($SkipScheduledTask) {
+    Write-AgentCoreInfo 'Skipping scheduled task registration (-SkipScheduledTask).'
+  } else {
+    Invoke-TaskInstallTransaction -GatewayTask $scheduledTasks.gateway -WatchdogTask $scheduledTasks.watchdog -OperationalLoggingSpec $taskSpecs.operational_logging
+    Write-AgentCoreInfo "Registered scheduled task $TaskPath$TaskName"
+    Write-AgentCoreInfo "Registered scheduled task $TaskPath$WatchdogTaskName"
+    Write-AgentCoreInfo 'Enabled Task Scheduler Operational logging.'
+  }
+} catch {
+  $originalFailure = $_
+  $rollbackFailed = $false
+  $configResult = 'failed'
+  $environmentResult = 'failed'
+  $gatewayResult = if ($SkipScheduledTask) { 'not_applicable' } else { 'failed' }
+  $watchdogResult = if ($SkipScheduledTask) { 'not_applicable' } else { 'failed' }
+  if ($null -ne $taskBackups) {
+    try {
+      $taskRollback = Restore-TaskInstallBackups $taskBackups
+      $gatewayResult = $taskRollback.Gateway
+      $watchdogResult = $taskRollback.Watchdog
+    } catch { $rollbackFailed = $true }
+  }
+  try { $configResult = Restore-InstallerFile $configBackup } catch { $rollbackFailed = $true }
+  try { $environmentResult = Restore-InstallerEnvironment $environmentBackup } catch { $rollbackFailed = $true }
+  Write-Host "INSTALL_ROLLBACK config=$configResult environment=$environmentResult gateway=$gatewayResult watchdog=$watchdogResult"
+  Write-TestTaskModel
+  if ($rollbackFailed) { throw 'INSTALL_ROLLBACK_FAILED' }
+  throw $originalFailure
+}
+
+Write-TestScheduledTaskCalls
+Write-TestTaskModel
 Write-AgentCoreInfo 'Install complete. Ensure BIFROST_MCP_VIRTUAL_KEY and upstream env vars exist as Windows User environment variables.'

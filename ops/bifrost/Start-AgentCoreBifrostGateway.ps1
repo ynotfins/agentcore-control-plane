@@ -13,6 +13,7 @@ param(
   [switch]$Direct,
   [switch]$ProbeOnly,
   [switch]$TestMode,
+  [switch]$TestUseHttpReadiness,
   [ValidateSet('Authenticated', 'Unauthenticated')]
   [string]$TestReadiness = 'Authenticated'
 )
@@ -33,42 +34,104 @@ function Test-NonEmptyJsonString($Value) {
   return ($Value -is [string]) -and -not [string]::IsNullOrWhiteSpace($Value)
 }
 
+function Get-McpJsonRpcResponse($Response, [int]$ExpectedId) {
+  $content = ([string]$Response.Content).Trim()
+  $candidates = [System.Collections.Generic.List[string]]::new()
+  if ($content -match '(?m)^(?:event|data):') {
+    foreach ($event in ($content -split '(?:\r?\n){2,}')) {
+      $dataLines = [System.Collections.Generic.List[string]]::new()
+      foreach ($line in ($event -split '\r?\n')) {
+        if ($line -match '^data:\s?(.*)$') { $dataLines.Add($Matches[1]) }
+      }
+      if ($dataLines.Count -gt 0) { $candidates.Add(($dataLines -join "`n")) }
+    }
+  } elseif (-not [string]::IsNullOrWhiteSpace($content)) {
+    $candidates.Add($content)
+  }
+
+  foreach ($candidate in $candidates) {
+    try { $payload = $candidate | ConvertFrom-Json -ErrorAction Stop } catch { continue }
+    if (($payload.jsonrpc -eq '2.0') -and ($payload.id -eq $ExpectedId) -and
+        ($null -eq $payload.error) -and (Test-JsonObjectMap $payload.result)) {
+      return $payload
+    }
+  }
+  return $null
+}
+
 function Test-AuthenticatedGatewayReadiness {
-  if ($TestMode) { return $TestReadiness -eq 'Authenticated' }
+  if ($TestMode -and -not $TestUseHttpReadiness) { return $TestReadiness -eq 'Authenticated' }
+  $readinessStage = 'health'
   try {
     $health = Invoke-WebRequest -Uri "http://${HostAddress}:${Port}/health" -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
-    if ($health.StatusCode -ne 200) { return $false }
+    if ($health.StatusCode -ne 200) {
+      if ($TestMode) { Write-Host 'READINESS_TEST_REJECT stage=health' }
+      return $false
+    }
     $vk = [Environment]::GetEnvironmentVariable($VirtualKeyEnvName, 'Process')
     if (-not $vk) { $vk = [Environment]::GetEnvironmentVariable($VirtualKeyEnvName, 'User') }
     if (-not $vk) { return $false }
     $headers = @{ Authorization = "Bearer $vk"; 'Content-Type' = 'application/json'; Accept = 'application/json, text/event-stream' }
     $body = @{ jsonrpc = '2.0'; id = 1; method = 'initialize'; params = @{ protocolVersion = '2025-06-18'; capabilities = @{}; clientInfo = @{ name = 'agentcore-bifrost-start'; version = '1.0.0' } } } | ConvertTo-Json -Depth 6 -Compress
+    $readinessStage = 'initialize'
     $response = Invoke-WebRequest -Uri "http://${HostAddress}:${Port}/mcp" -Method POST -Headers $headers -Body $body -TimeoutSec 15 -ErrorAction Stop
-    if ($response.StatusCode -ne 200) { return $false }
-    $content = $response.Content.Trim()
-    $candidates = @()
-    if ($content -match '(?m)^(?:event|data):') {
-      foreach ($event in ($content -split '(?:\r?\n){2,}')) {
-        $data = @($event -split "`r?`n" | Where-Object { $_.StartsWith('data:') } | ForEach-Object { $_.Substring(5).TrimStart() })
-        if ($data.Count -gt 0) { $candidates += ($data -join "`n") }
-      }
-    } else {
-      $candidates += $content
+    if ($response.StatusCode -ne 200) {
+      if ($TestMode) { Write-Host 'READINESS_TEST_REJECT stage=initialize_status' }
+      return $false
     }
-    foreach ($candidate in $candidates) {
-      $payload = $candidate | ConvertFrom-Json -ErrorAction Stop
-      $result = $payload.result
-      if (($payload.jsonrpc -eq '2.0') -and ($payload.id -eq 1) -and ($null -eq $payload.error) -and
-          (Test-JsonObjectMap $result) -and (Test-NonEmptyJsonString $result.protocolVersion) -and
-          ($supportedProtocolVersions -contains $result.protocolVersion) -and
-          (Test-JsonObjectMap $result.capabilities) -and (Test-JsonObjectMap $result.serverInfo) -and
-          (Test-NonEmptyJsonString $result.serverInfo.name) -and
-          (Test-NonEmptyJsonString $result.serverInfo.version)) {
-        return $true
-      }
+    $initializePayload = Get-McpJsonRpcResponse $response 1
+    if ($null -eq $initializePayload) {
+      if ($TestMode) { Write-Host 'READINESS_TEST_REJECT stage=initialize_rpc' }
+      return $false
     }
-    return $false
+    $result = $initializePayload.result
+    $shapeChecks = [ordered]@{
+      protocol_string = Test-NonEmptyJsonString $result.protocolVersion
+      protocol_supported = $supportedProtocolVersions -contains $result.protocolVersion
+      capabilities_object = Test-JsonObjectMap $result.capabilities
+      server_info_object = Test-JsonObjectMap $result.serverInfo
+      server_name = Test-NonEmptyJsonString $result.serverInfo.name
+      server_version = Test-NonEmptyJsonString $result.serverInfo.version
+    }
+    if ($shapeChecks.Values -contains $false) {
+      if ($TestMode) { Write-Host ('READINESS_TEST_REJECT stage=initialize_shape checks=' + ($shapeChecks | ConvertTo-Json -Compress)) }
+      return $false
+    }
+
+    $negotiatedProtocolVersion = [string]$result.protocolVersion
+    $sessionId = ''
+    $sessionHeader = $response.Headers.GetEnumerator() |
+      Where-Object { $_.Key -ieq 'Mcp-Session-Id' } |
+      Select-Object -First 1
+    if ($null -ne $sessionHeader) {
+      $sessionId = [string]($sessionHeader.Value | Select-Object -First 1)
+    }
+    $sessionHeaders = @{
+      Authorization = "Bearer $vk"
+      'Content-Type' = 'application/json'
+      Accept = 'application/json, text/event-stream'
+      'MCP-Protocol-Version' = $negotiatedProtocolVersion
+    }
+    if (-not [string]::IsNullOrWhiteSpace($sessionId)) {
+      $sessionHeaders['Mcp-Session-Id'] = $sessionId
+    }
+
+    $initializedBody = @{ jsonrpc = '2.0'; method = 'notifications/initialized' } | ConvertTo-Json -Compress
+    $readinessStage = 'notifications_initialized'
+    $initializedResponse = Invoke-WebRequest -Uri "http://${HostAddress}:${Port}/mcp" -Method POST -Headers $sessionHeaders -Body $initializedBody -TimeoutSec 15 -ErrorAction Stop
+    if ($initializedResponse.StatusCode -ne 202) { return $false }
+
+    $toolsListBody = @{ jsonrpc = '2.0'; id = 2; method = 'tools/list'; params = @{} } | ConvertTo-Json -Depth 4 -Compress
+    $readinessStage = 'tools_list'
+    $toolsListResponse = Invoke-WebRequest -Uri "http://${HostAddress}:${Port}/mcp" -Method POST -Headers $sessionHeaders -Body $toolsListBody -TimeoutSec 15 -ErrorAction Stop
+    if ($toolsListResponse.StatusCode -ne 200) { return $false }
+    $toolsListPayload = Get-McpJsonRpcResponse $toolsListResponse 2
+    if ($null -eq $toolsListPayload) { return $false }
+    $toolsProperty = $toolsListPayload.result.PSObject.Properties['tools']
+    if (($null -eq $toolsProperty) -or -not ($toolsProperty.Value -is [System.Array])) { return $false }
+    return $true
   } catch {
+    if ($TestMode) { Write-Host "READINESS_TEST_FAILURE stage=$readinessStage type=$($_.Exception.GetType().Name)" }
     return $false
   }
 }
