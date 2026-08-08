@@ -10,6 +10,7 @@
 [CmdletBinding()]
 param(
   [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
+  [int]$MaintenanceMarkerTtlSeconds = 900,
   [string]$GatewayUrl = 'http://127.0.0.1:8080',
   [string]$TaskPath = '\AgentCore\',
   [string]$TaskName = 'AgentCore-Bifrost-Gateway',
@@ -29,7 +30,14 @@ function Write-Check([string]$Name, [bool]$Ok, [string]$Detail) {
   if (-not $Ok) { $script:failures += $Name }
 }
 
-Write-Check 'maintenance_marker' $true ("present={0}" -f (Test-Path -LiteralPath $maintenanceMarker))
+$markerPresent = Test-Path -LiteralPath $maintenanceMarker
+$markerAgeSeconds = $null
+$markerExpired = $false
+if ($markerPresent) {
+  $markerAgeSeconds = [math]::Floor(((Get-Date).ToUniversalTime() - (Get-Item -LiteralPath $maintenanceMarker).LastWriteTimeUtc).TotalSeconds)
+  $markerExpired = $markerAgeSeconds -ge $MaintenanceMarkerTtlSeconds
+}
+Write-Check 'maintenance_marker' $true ("present={0}; age_seconds={1}; expired={2}" -f $markerPresent, $markerAgeSeconds, $markerExpired)
 
 # Scheduled task
 try {

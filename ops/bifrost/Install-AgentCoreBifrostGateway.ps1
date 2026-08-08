@@ -15,13 +15,100 @@ param(
   [string]$TaskPath = '\AgentCore\',
   [string]$HostAddress = '127.0.0.1',
   [int]$Port = 8080,
-  [switch]$SkipScheduledTask
+  [switch]$SkipScheduledTask,
+  [switch]$TestMode,
+  [switch]$TestPrivilegeDenied,
+  [ValidateSet('None', 'GatewayRegistration', 'WatchdogRegistration', 'OperationalLogEnablement')]
+  [string]$TestFailurePhase = 'None'
 )
 
 $ErrorActionPreference = 'Stop'
 
 function Write-AgentCoreInfo([string]$Message) {
   Write-Host "[Install-AgentCoreBifrostGateway] $Message"
+}
+
+function Assert-InstallerPrivileges {
+  if ($TestMode) {
+    if ($TestPrivilegeDenied) { throw 'INSTALL_PRIVILEGE_PREFLIGHT_FAILED' }
+    return
+  }
+  $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+  $principal = [Security.Principal.WindowsPrincipal]::new($identity)
+  if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw 'INSTALL_PRIVILEGE_PREFLIGHT_FAILED'
+  }
+}
+
+function Get-TaskDefinitionBackup([string]$Name) {
+  if ($TestMode) { return $null }
+  try {
+    $definition = Export-ScheduledTask -TaskPath $TaskPath -TaskName $Name -ErrorAction Stop
+    $definition | Set-Content -LiteralPath (Join-Path $script:TaskBackupDirectory "$Name.xml") -Encoding utf8
+    return $definition
+  } catch {
+    return $null
+  }
+}
+
+function Restore-TaskDefinition([string]$Name, [string]$Definition) {
+  if ($TestMode) { return 'restored' }
+  if ($Definition) {
+    Register-ScheduledTask -TaskPath $TaskPath -TaskName $Name -Xml $Definition -Force | Out-Null
+  } else {
+    Unregister-ScheduledTask -TaskPath $TaskPath -TaskName $Name -Confirm:$false -ErrorAction SilentlyContinue
+  }
+  return 'restored'
+}
+
+function Register-InstallerTask([string]$Name, $Task, [string]$Phase) {
+  if ($TestMode) {
+    if ($TestFailurePhase -eq $Phase) { throw "INSTALL_TEST_FAILURE $Phase" }
+    Write-AgentCoreInfo "INSTALL_TEST_REGISTER $Name"
+    return
+  }
+  Register-ScheduledTask -TaskPath $TaskPath -TaskName $Name -InputObject $Task -Force | Out-Null
+}
+
+function Enable-TaskSchedulerOperationalLog {
+  if ($TestMode) {
+    if ($TestFailurePhase -eq 'OperationalLogEnablement') { throw 'INSTALL_TEST_FAILURE OperationalLogEnablement' }
+    Write-AgentCoreInfo 'INSTALL_TEST_OPERATIONAL_LOG_ENABLED'
+    return
+  }
+  & wevtutil.exe sl 'Microsoft-Windows-TaskScheduler/Operational' '/e:true'
+  if ($LASTEXITCODE -ne 0) { throw 'Task Scheduler Operational logging enablement failed.' }
+}
+
+function Invoke-TaskInstallTransaction($GatewayTask, $WatchdogTask) {
+  Assert-InstallerPrivileges
+  if (-not $TestMode) {
+    $script:TaskBackupDirectory = Join-Path $backupsDir ("scheduled-tasks\\{0}" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
+    New-Item -ItemType Directory -Force -Path $script:TaskBackupDirectory | Out-Null
+  }
+  $gatewayBackup = Get-TaskDefinitionBackup $TaskName
+  $watchdogBackup = Get-TaskDefinitionBackup $WatchdogTaskName
+  try {
+    Register-InstallerTask -Name $TaskName -Task $GatewayTask -Phase 'GatewayRegistration'
+    Register-InstallerTask -Name $WatchdogTaskName -Task $WatchdogTask -Phase 'WatchdogRegistration'
+    Enable-TaskSchedulerOperationalLog
+  } catch {
+    $originalFailure = $_
+    $gatewayResult = 'failed'
+    $watchdogResult = 'failed'
+    $rollbackFailed = $false
+    try { $gatewayResult = Restore-TaskDefinition -Name $TaskName -Definition $gatewayBackup } catch { $rollbackFailed = $true }
+    try { $watchdogResult = Restore-TaskDefinition -Name $WatchdogTaskName -Definition $watchdogBackup } catch { $rollbackFailed = $true }
+    Write-Host "INSTALL_ROLLBACK gateway=$gatewayResult watchdog=$watchdogResult"
+    if ($rollbackFailed) { throw 'INSTALL_ROLLBACK_FAILED' }
+    throw $originalFailure
+  }
+}
+
+if ($TestMode) {
+  Invoke-TaskInstallTransaction -GatewayTask ([pscustomobject]@{ name = $TaskName; restart_count = 1 }) -WatchdogTask ([pscustomobject]@{ name = $WatchdogTaskName })
+  Write-AgentCoreInfo 'INSTALL_TEST_SUCCESS'
+  exit 0
 }
 
 $binDir = Join-Path $RuntimeRoot 'bin'
@@ -101,7 +188,7 @@ $settings = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
   -DontStopIfGoingOnBatteries `
   -ExecutionTimeLimit ([TimeSpan]::Zero) `
-  -RestartCount 0 `
+  -RestartCount 1 `
   -RestartInterval (New-TimeSpan -Minutes 1) `
   -StartWhenAvailable `
   -MultipleInstances IgnoreNew
@@ -125,17 +212,9 @@ $watchdogSettings = New-ScheduledTaskSettingsSet `
   -MultipleInstances IgnoreNew
 $watchdogTask = New-ScheduledTask -Action $watchdogAction -Trigger $watchdogTrigger -Settings $watchdogSettings -Principal $principal
 
-try {
-  Register-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -InputObject $task -Force | Out-Null
-  Write-AgentCoreInfo "Registered scheduled task $TaskPath$TaskName"
-  Register-ScheduledTask -TaskPath $TaskPath -TaskName $WatchdogTaskName -InputObject $watchdogTask -Force | Out-Null
-  Write-AgentCoreInfo "Registered scheduled task $TaskPath$WatchdogTaskName"
-  & wevtutil.exe sl 'Microsoft-Windows-TaskScheduler/Operational' '/e:true'
-  if ($LASTEXITCODE -ne 0) { throw 'Task Scheduler Operational logging enablement failed.' }
-  Write-AgentCoreInfo 'Enabled Task Scheduler Operational logging.'
-} catch {
-  Write-Warning "Scheduled task registration failed (may need elevation): $($_.Exception.Message)"
-  Write-AgentCoreInfo "Manual launch: `"$pwshPath`" $argument"
-}
+Invoke-TaskInstallTransaction -GatewayTask $task -WatchdogTask $watchdogTask
+Write-AgentCoreInfo "Registered scheduled task $TaskPath$TaskName"
+Write-AgentCoreInfo "Registered scheduled task $TaskPath$WatchdogTaskName"
+Write-AgentCoreInfo 'Enabled Task Scheduler Operational logging.'
 
 Write-AgentCoreInfo 'Install complete. Ensure BIFROST_MCP_VIRTUAL_KEY and upstream env vars exist as Windows User environment variables.'
