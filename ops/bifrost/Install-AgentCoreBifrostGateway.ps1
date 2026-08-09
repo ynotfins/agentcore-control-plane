@@ -303,6 +303,53 @@ function Restore-InstallerFile($Backup) {
   return 'restored'
 }
 
+function Restore-InstallerFiles($Backups) {
+  foreach ($backup in @($Backups)) {
+    Restore-InstallerFile $backup | Out-Null
+  }
+  return 'restored'
+}
+
+function Assert-BifrostConfigSemantics($Config) {
+  if (-not ($Config -is [System.Management.Automation.PSCustomObject])) {
+    throw 'INSTALL_INVALID_STAGED_CONFIG'
+  }
+  if ([int]$Config.version -ne 2) {
+    throw 'INSTALL_INVALID_STAGED_CONFIG'
+  }
+  if (-not ($Config.client -is [System.Management.Automation.PSCustomObject])) {
+    throw 'INSTALL_INVALID_STAGED_CONFIG'
+  }
+  if ($Config.client.mcp_disable_auto_tool_inject -ne $true) {
+    throw 'INSTALL_INVALID_STAGED_CONFIG'
+  }
+  if (-not ($Config.mcp -is [System.Management.Automation.PSCustomObject])) {
+    throw 'INSTALL_INVALID_STAGED_CONFIG'
+  }
+  if (-not ($Config.mcp.client_configs -is [array]) -or $Config.mcp.client_configs.Count -lt 1) {
+    throw 'INSTALL_INVALID_STAGED_CONFIG'
+  }
+  foreach ($clientConfig in @($Config.mcp.client_configs)) {
+    if (-not ($clientConfig -is [System.Management.Automation.PSCustomObject])) {
+      throw 'INSTALL_INVALID_STAGED_CONFIG'
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$clientConfig.name)) {
+      throw 'INSTALL_INVALID_STAGED_CONFIG'
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$clientConfig.connection_type)) {
+      throw 'INSTALL_INVALID_STAGED_CONFIG'
+    }
+    if ([string]$clientConfig.connection_type -eq 'stdio') {
+      if (-not ($clientConfig.stdio_config -is [System.Management.Automation.PSCustomObject])) {
+        throw 'INSTALL_INVALID_STAGED_CONFIG'
+      }
+      if ([string]::IsNullOrWhiteSpace([string]$clientConfig.stdio_config.command)) {
+        throw 'INSTALL_INVALID_STAGED_CONFIG'
+      }
+    }
+  }
+}
+
 function Write-TestScheduledTaskCalls {
   if ($TestMode) {
     Write-Host ('INSTALL_TASK_CALLS ' + (ConvertTo-Json -InputObject @($script:TestScheduledTaskCalls) -Depth 8 -Compress))
@@ -425,6 +472,7 @@ $stateDir = Join-Path $RuntimeRoot 'state'
 $backupsDir = Join-Path $RuntimeRoot 'backups'
 $exePath = Join-Path $binDir 'bifrost-http.exe'
 $liveConfigPath = Join-Path $RuntimeRoot 'config.json'
+$liveConfigDirPath = Join-Path $configDir 'config.json'
 $renderScript = Join-Path $RepoRoot 'scripts\bifrost\render_bifrost_config.py'
 $validateScript = Join-Path $RepoRoot 'scripts\bifrost\validate_contracts.py'
 $nonSecretDefaults = @{
@@ -491,9 +539,15 @@ $stagedConfigPath = Join-Path $stagingDirectory 'config.json'
 New-Item -ItemType Directory -Force -Path $stagingDirectory | Out-Null
 
 # Capture every live state domain before rendering or activation.
-$configBackup = Get-InstallerFileBackup $liveConfigPath
-if ($configBackup.Exists) {
-  [IO.File]::WriteAllBytes((Join-Path $transactionDirectory 'config.json.before'), $configBackup.Bytes)
+$configBackups = @(
+  (Get-InstallerFileBackup $liveConfigPath),
+  (Get-InstallerFileBackup $liveConfigDirPath)
+)
+foreach ($backup in @($configBackups)) {
+  if ($backup.Exists) {
+    $backupName = if ($backup.Path -eq $liveConfigPath) { 'config.json.before' } else { 'config_config.json.before' }
+    [IO.File]::WriteAllBytes((Join-Path $transactionDirectory $backupName), $backup.Bytes)
+  }
 }
 $environmentBackup = Get-InstallerEnvironmentBackup $nonSecretDefaults
 $taskBackups = if ($SkipScheduledTask) { $null } else { Get-TaskInstallBackups }
@@ -508,9 +562,7 @@ if ($TestMode) {
   }
 }
 $stagedConfig = Get-Content -Raw -LiteralPath $stagedConfigPath | ConvertFrom-Json -ErrorAction Stop
-if (-not ($stagedConfig -is [System.Management.Automation.PSCustomObject])) {
-  throw 'Rendered Bifrost config must be a JSON object.'
-}
+Assert-BifrostConfigSemantics $stagedConfig
 if (-not $TestMode -and (Test-Path -LiteralPath $validateScript)) {
   & $pythonCmd $validateScript
   if ($LASTEXITCODE -ne 0) { throw "validate_contracts.py failed with exit $LASTEXITCODE" }
@@ -528,7 +580,9 @@ try {
   foreach ($dir in $runtimeDirectories) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
 
   Set-InstallerEnvironmentDefaults $nonSecretDefaults
-  [IO.File]::WriteAllBytes($liveConfigPath, [IO.File]::ReadAllBytes($stagedConfigPath))
+  $stagedConfigBytes = [IO.File]::ReadAllBytes($stagedConfigPath)
+  [IO.File]::WriteAllBytes($liveConfigPath, $stagedConfigBytes)
+  [IO.File]::WriteAllBytes($liveConfigDirPath, $stagedConfigBytes)
   if ($TestMode -and $TestFailurePhase -eq 'ConfigActivation') { throw 'INSTALL_TEST_FAILURE ConfigActivation' }
 
   if ($SkipScheduledTask) {
@@ -553,7 +607,7 @@ try {
       $watchdogResult = $taskRollback.Watchdog
     } catch { $rollbackFailed = $true }
   }
-  try { $configResult = Restore-InstallerFile $configBackup } catch { $rollbackFailed = $true }
+  try { $configResult = Restore-InstallerFiles $configBackups } catch { $rollbackFailed = $true }
   try { $environmentResult = Restore-InstallerEnvironment $environmentBackup } catch { $rollbackFailed = $true }
   Write-Host "INSTALL_ROLLBACK config=$configResult environment=$environmentResult gateway=$gatewayResult watchdog=$watchdogResult"
   Write-TestTaskModel

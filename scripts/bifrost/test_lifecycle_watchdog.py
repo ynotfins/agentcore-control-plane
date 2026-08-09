@@ -161,6 +161,41 @@ def run_full_installer_transaction(
     )
 
 
+def write_valid_bifrost_config(path: Path) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "version": 2,
+                "client": {
+                    "mcp_disable_auto_tool_inject": True,
+                },
+                "config_store": {
+                    "enabled": True,
+                    "type": "sqlite",
+                    "config": {"path": "./data/config.db"},
+                },
+                "logs_store": {
+                    "enabled": True,
+                    "type": "sqlite",
+                    "config": {"path": "./logs/logs.db"},
+                },
+                "mcp": {
+                    "client_configs": [
+                        {
+                            "name": "agentcore_memory",
+                            "connection_type": "stdio",
+                            "stdio_config": {"command": "python", "args": ["-m", "server"]},
+                        }
+                    ]
+                },
+            },
+            separators=(",", ":"),
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
 def installer_task_specs(runtime_root: Path) -> dict[str, object]:
     result = subprocess.run(
         [
@@ -675,7 +710,13 @@ def test_installer_failure_after_render_restores_config_environment_and_tasks(
     original_config = b'{\r\n  "generation": "original"\r\n}\r\n'
     live_config.write_bytes(original_config)
     rendered_config = tmp_path / "candidate.json"
-    rendered_config.write_bytes(b'{"generation":"candidate","sensitive":"sentinel-value"}\n')
+    write_valid_bifrost_config(rendered_config)
+    rendered_config.write_text(
+        rendered_config.read_text(encoding="utf-8").replace(
+            '"version":2', '"version":2,"sensitive":"sentinel-value"'
+        ),
+        encoding="utf-8",
+    )
     environment_state = tmp_path / "environment-state.json"
     initial_environment = {
         "DISABLE_THOUGHT_LOGGING": {"exists": True, "value": "original-disable"},
@@ -705,7 +746,7 @@ def test_installer_failure_restores_absent_config_and_environment_entries(
     runtime_root = tmp_path / "runtime"
     runtime_root.mkdir()
     rendered_config = tmp_path / "candidate.json"
-    rendered_config.write_text('{"generation":"candidate"}\n', encoding="utf-8")
+    write_valid_bifrost_config(rendered_config)
     environment_state = tmp_path / "environment-state.json"
     initial_environment = {
         name: {"exists": False, "value": None}
@@ -727,6 +768,63 @@ def test_installer_failure_restores_absent_config_and_environment_entries(
     assert json.loads(environment_state.read_text(encoding="utf-8")) == initial_environment
     task_model = json.loads(result.stdout.split("INSTALL_TASK_MODEL ")[-1])
     assert task_model == {"gateway": "gateway-original", "watchdog": "watchdog-original"}
+
+
+def test_installer_success_writes_both_managed_config_projections(tmp_path: Path) -> None:
+    runtime_root = tmp_path / "runtime"
+    runtime_root.mkdir()
+    rendered_config = tmp_path / "candidate.json"
+    write_valid_bifrost_config(rendered_config)
+    environment_state = tmp_path / "environment-state.json"
+    environment_state.write_text(
+        json.dumps(
+            {
+                "DISABLE_THOUGHT_LOGGING": {"exists": True, "value": "true"},
+                "CURSOR_API_URL": {"exists": True, "value": "https://api.cursor.com"},
+                "OBSIDIAN_BASE_URL": {"exists": True, "value": "https://127.0.0.1:27124"},
+                "OBSIDIAN_VERIFY_SSL": {"exists": True, "value": "false"},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_full_installer_transaction(
+        runtime_root, rendered_config, environment_state, "None"
+    )
+
+    assert result.returncode == 0, (result.stdout, result.stderr)
+    candidate_bytes = rendered_config.read_bytes()
+    assert (runtime_root / "config.json").read_bytes() == candidate_bytes
+    assert (runtime_root / "config" / "config.json").read_bytes() == candidate_bytes
+
+
+def test_installer_rejects_semantically_invalid_staged_config_before_mutation(
+    tmp_path: Path,
+) -> None:
+    runtime_root = tmp_path / "runtime"
+    runtime_root.mkdir()
+    original_config = b'{"version":2,"original":true}\n'
+    (runtime_root / "config.json").write_bytes(original_config)
+    rendered_config = tmp_path / "candidate.json"
+    rendered_config.write_text('{"generation":"candidate"}\n', encoding="utf-8")
+    environment_state = tmp_path / "environment-state.json"
+    initial_environment = {
+        "DISABLE_THOUGHT_LOGGING": {"exists": False, "value": None},
+        "CURSOR_API_URL": {"exists": False, "value": None},
+        "OBSIDIAN_BASE_URL": {"exists": False, "value": None},
+        "OBSIDIAN_VERIFY_SSL": {"exists": False, "value": None},
+    }
+    environment_state.write_text(json.dumps(initial_environment), encoding="utf-8")
+
+    result = run_full_installer_transaction(
+        runtime_root, rendered_config, environment_state, "None"
+    )
+
+    assert result.returncode == 1
+    assert "INSTALL_INVALID_STAGED_CONFIG" in result.stderr
+    assert (runtime_root / "config.json").read_bytes() == original_config
+    assert not (runtime_root / "config" / "config.json").exists()
+    assert json.loads(environment_state.read_text(encoding="utf-8")) == initial_environment
 
 
 def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path) -> None:
