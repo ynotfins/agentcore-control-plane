@@ -4,7 +4,7 @@
 
 **Full runbook:** `@D:\github\agentcore-control-plane\docs\operations\BIFROST_LIVE_ROLLOUT_AND_RUNTIME_ACCEPTANCE_2026-08-09.md`
 
-**Current source-only status:** pushed through commit `d831e3b add final acceptance evidence preflight`.
+**Current source-only status:** pushed through commit `892fc61 record morning readiness live snapshot`.
 
 ## Current known state
 
