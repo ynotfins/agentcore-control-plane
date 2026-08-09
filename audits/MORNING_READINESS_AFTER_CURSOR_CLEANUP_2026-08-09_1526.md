@@ -1,7 +1,7 @@
 # Morning Readiness After Cursor Cleanup — 2026-08-09 15:26 EDT
 
-**Mode:** approved live Cursor global MCP cleanup plus read-only postflight.  
-**Source head before evidence write:** `3700c89 isolate morning rollout child exit codes`  
+**Mode:** approved live Cursor global MCP cleanup plus read-only postflight.
+**Source head before evidence write:** `3700c89 isolate morning rollout child exit codes`
 **Result:** `NOT_READY` for production runtime work until approved Bifrost live rollout runs.
 
 ## Approved action
