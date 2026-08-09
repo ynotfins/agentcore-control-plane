@@ -33,6 +33,20 @@ Required live drift to resolve:
 
 Run from `@D:\github\agentcore-control-plane`.
 
+Single-command gate:
+
+```powershell
+.\ops\bifrost\Test-AgentCoreMorningReadiness.ps1
+```
+
+The expected pre-approval status is `NOT_READY` if Cursor global MCP cleanup, Bifrost config rollout, or watchdog installation is still pending. Use `-Json` when another agent or script needs machine-readable output:
+
+```powershell
+.\ops\bifrost\Test-AgentCoreMorningReadiness.ps1 -Json
+```
+
+Expanded manual checks:
+
 ```powershell
 git status --short --branch
 
