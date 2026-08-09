@@ -6,6 +6,12 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "ops" / "bifrost" / "Test-SallyAcceptanceEvidence.ps1"
+TEMPLATE = (
+    REPO_ROOT
+    / "docs"
+    / "templates"
+    / "SALLY_FULL_SWARM_ACCEPTANCE_REPORT_TEMPLATE_2026-08-09.md"
+)
 
 
 def run_validator(report: Path) -> subprocess.CompletedProcess[str]:
@@ -20,6 +26,10 @@ def run_validator(report: Path) -> subprocess.CompletedProcess[str]:
 
 def test_sally_acceptance_script_exists() -> None:
     assert SCRIPT.is_file()
+
+
+def test_sally_acceptance_template_exists() -> None:
+    assert TEMPLATE.is_file()
 
 
 def test_sally_acceptance_script_parses() -> None:
@@ -100,6 +110,12 @@ Backup / restore point:
     result = run_validator(report)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "SALLY_ACCEPTANCE_EVIDENCE" not in result.stdout
+    assert "SUMMARY status=READY" in result.stdout
+
+
+def test_sally_acceptance_template_satisfies_structural_gate() -> None:
+    result = run_validator(TEMPLATE)
+    assert result.returncode == 0, result.stdout + result.stderr
     assert "SUMMARY status=READY" in result.stdout
 
 

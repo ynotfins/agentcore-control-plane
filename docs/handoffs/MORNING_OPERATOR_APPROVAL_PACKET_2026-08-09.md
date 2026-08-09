@@ -115,6 +115,10 @@ Give Sally the Phase 4 prompt from the full runbook:
 
 `@D:\github\agentcore-control-plane\docs\operations\BIFROST_LIVE_ROLLOUT_AND_RUNTIME_ACCEPTANCE_2026-08-09.md`
 
+Tell Sally to write the final report using this template:
+
+`@D:\github\agentcore-control-plane\docs\templates\SALLY_FULL_SWARM_ACCEPTANCE_REPORT_TEMPLATE_2026-08-09.md`
+
 Accept Sally's result only if it includes:
 
 - Swarm service table;
