@@ -4,6 +4,8 @@
 
 **Shortest morning entry point:** `@D:\github\agentcore-control-plane\docs\current\MORNING_START_HERE_2026-08-09.md`
 
+**Latest read-only evidence snapshot:** `@D:\github\agentcore-control-plane\audits\MORNING_READINESS_LIVE_SNAPSHOT_2026-08-09_0644.md`
+
 **Full runbook:** `@D:\github\agentcore-control-plane\docs\operations\BIFROST_LIVE_ROLLOUT_AND_RUNTIME_ACCEPTANCE_2026-08-09.md`
 
 **Current source-only status:** verify at runtime with `git log -1 --oneline`. This packet is intentionally not pinned to an exact current SHA so source-only readiness commits do not make the packet stale.
@@ -11,9 +13,10 @@
 ## Current known state
 
 - Bifrost is currently healthy, but live runtime config has not been rolled forward to the merged source config.
-- Cursor global MCP currently has extra global entries and must be returned to only `agentcore-gateway`.
+- Cursor global MCP currently has extra global entries (`agentcore-gateway`, `codegraph`, `repomix`) and must be returned to only `agentcore-gateway`.
 - `\AgentCore\AgentCore-Bifrost-Watchdog` is not installed live.
 - Sally returned `Canary passed cleanly. No tasks queued, no active schedules, all agents idle. System is healthy. ORCHESTRATOR_OK`; treat that as operator-reported orchestrator health only, not full SwarmRecall/SwarmVault/autonomous-team acceptance.
+- Swarm PG on `127.0.0.1:65432` is now listening in the latest read-only snapshot.
 - No live Cursor, Bifrost scheduled task, Bifrost runtime config, Swarm runtime, database, or IDE configuration mutation has been performed by this packet.
 
 ## First command after operator returns
