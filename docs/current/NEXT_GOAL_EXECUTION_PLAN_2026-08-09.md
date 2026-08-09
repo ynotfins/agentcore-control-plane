@@ -75,6 +75,8 @@ Exit evidence:
 
 Current operator-reported health evidence: Sally returned `Canary passed cleanly. No tasks queued, no active schedules, all agents idle. System is healthy. ORCHESTRATOR_OK`. This is orchestrator health evidence only; it does not replace the full SwarmRecall/SwarmVault/autonomous-runtime acceptance report.
 
+Latest AgentCore read-only snapshot observed Swarm PG listening on `127.0.0.1:65432`. Sally still owns the Swarm-side determination that this listener is expected, healthy, and correctly bound to the native Swarm runtime.
+
 Steps:
 
 1. Give Sally the Swarm prompt from the current operator response.
@@ -319,7 +321,7 @@ Start read-only:
 3. Verify SwarmRecall health on 127.0.0.1:3300.
 4. Verify Meilisearch health on 127.0.0.1:7700.
 5. Verify SwarmClaw health/UI on 127.0.0.1:3456.
-6. Verify whether Swarm PG on 127.0.0.1:65432 is expected and, if expected, whether it is listening and healthy.
+6. Verify whether Swarm PG on `127.0.0.1:65432` is expected, healthy, and correctly bound to native Swarm runtime. AgentCore's latest read-only snapshot already observed the port listening; Sally must prove Swarm-owned health.
 7. Verify SwarmVault workspace path, corpus/search/context-pack status, and backup policy.
 8. Verify Sally's agent roster, disabled duplicate agents/extensions, wake/session lifecycle, provider model, memory settings, reflection settings, and backup settings.
 9. Report any required UI/manual setting that cannot be changed safely by automation.
