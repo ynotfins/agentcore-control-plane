@@ -18,6 +18,8 @@
 param(
   [string]$RepoRoot = 'D:\github\agentcore-control-plane',
   [string]$EvidenceRoot = '',
+  [string]$CursorConfigPath = 'C:\Users\ynotf\.cursor\mcp.json',
+  [string]$MinimaxConfigPath = 'C:\Users\ynotf\.minimax\mcp\mcp.json',
   [switch]$DryRun,
   [string[]]$Clients = @(
     'cursor',
@@ -36,7 +38,9 @@ $ErrorActionPreference = 'Stop'
 if (-not $EvidenceRoot) {
   $EvidenceRoot = Join-Path $RepoRoot ('ops\bifrost\evidence\' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
 }
-New-Item -ItemType Directory -Force -Path $EvidenceRoot | Out-Null
+if (-not $DryRun) {
+  New-Item -ItemType Directory -Force -Path $EvidenceRoot | Out-Null
+}
 
 $registryPath = Join-Path $RepoRoot 'contracts\bifrost-upstream-mcp-registry.json'
 $gatewayPath = Join-Path $RepoRoot 'contracts\agentcore-gateway-client.json'
@@ -62,10 +66,22 @@ function Backup-File([string]$Path) {
   if (-not (Test-Path -LiteralPath $Path)) {
     return $null
   }
-  $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-  $backup = "$Path.bifrost-cutover-$stamp.bak"
-  Copy-Item -LiteralPath $Path -Destination $backup -Force
-  return $backup
+  $stamp = Get-Date -Format 'yyyyMMdd-HHmmssfffffff'
+  $attempt = 0
+  while ($true) {
+    $suffix = if ($attempt) { "-$attempt" } else { '' }
+    $backup = "$Path.bifrost-cutover-$stamp$suffix.bak"
+    try {
+      [System.IO.File]::Copy($Path, $backup, $false)
+      return $backup
+    } catch [System.IO.IOException] {
+      if (Test-Path -LiteralPath $backup) {
+        $attempt++
+        continue
+      }
+      throw
+    }
+  }
 }
 
 function New-GatewayJsonEntry {
@@ -97,6 +113,7 @@ function Write-SanitizedEvidence {
     [string]$Client,
     [hashtable]$Payload
   )
+  if ($DryRun) { return }
   # Redact Authorization bearer values
   $json = $Payload | ConvertTo-Json -Depth 12
   $json = [regex]::Replace($json, 'Bearer\s+[^\s"]+', 'Bearer ***REDACTED***')
@@ -123,11 +140,15 @@ function Update-JsonMcpServers {
 
   if (-not (Test-Path -LiteralPath $ConfigPath)) {
     # Create minimal file
-    $dir = Split-Path -Parent $ConfigPath
-    if ($dir) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+    if (-not $DryRun) {
+      $dir = Split-Path -Parent $ConfigPath
+      if ($dir) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+    }
     $obj = [ordered]@{ $ServersKey = [ordered]@{} }
   } else {
-    $result.backup = Backup-File -Path $ConfigPath
+    if (-not $DryRun) {
+      $result.backup = Backup-File -Path $ConfigPath
+    }
     $obj = Get-Content -LiteralPath $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
     if (-not $obj.$ServersKey) {
       $obj | Add-Member -NotePropertyName $ServersKey -NotePropertyValue ([pscustomobject]@{}) -Force
@@ -139,9 +160,12 @@ function Update-JsonMcpServers {
   foreach ($prop in @($servers.PSObject.Properties)) {
     $name = $prop.Name
     if ($name -eq 'agentcore-gateway') { continue }
+    if ($ClientName -eq 'cursor') {
+      $toRemove += $name
+      continue
+    }
     $lower = $name.ToLowerInvariant()
-    $isCursorDockerGateway = $ClientName -eq 'cursor' -and $lower -eq 'mcp_docker'
-    if ($baselineIds -contains $name -or $baselineIds -contains $lower -or $lower -match 'swarm(recall|vault|claw)' -or $isCursorDockerGateway) {
+    if ($baselineIds -contains $name -or $baselineIds -contains $lower -or $lower -match 'swarm(recall|vault|claw)') {
       $toRemove += $name
     }
   }
@@ -181,7 +205,9 @@ function Update-CodexToml {
     return $result
   }
 
-  $result.backup = Backup-File -Path $ConfigPath
+  if (-not $DryRun) {
+    $result.backup = Backup-File -Path $ConfigPath
+  }
   $lines = Get-Content -LiteralPath $ConfigPath -Encoding UTF8
   $out = New-Object System.Collections.Generic.List[string]
   $i = 0
@@ -247,10 +273,10 @@ $summary = @()
 foreach ($client in $Clients) {
   switch ($client) {
     'cursor' {
-      $summary += Update-JsonMcpServers -ClientName 'cursor' -ConfigPath 'C:\Users\ynotf\.cursor\mcp.json' -SupportsEnvHeaders:$true
+      $summary += Update-JsonMcpServers -ClientName 'cursor' -ConfigPath $CursorConfigPath -SupportsEnvHeaders:$true
     }
     'minimax' {
-      $summary += Update-JsonMcpServers -ClientName 'minimax' -ConfigPath 'C:\Users\ynotf\.minimax\mcp\mcp.json' -SupportsEnvHeaders:$true
+      $summary += Update-JsonMcpServers -ClientName 'minimax' -ConfigPath $MinimaxConfigPath -SupportsEnvHeaders:$true
     }
     'mavis' {
       $summary += Update-JsonMcpServers -ClientName 'mavis' -ConfigPath 'C:\Users\ynotf\.mavis\mcp\mcp.json' -SupportsEnvHeaders:$true
@@ -282,6 +308,11 @@ foreach ($client in $Clients) {
       Write-Warning "Unknown client skipped: $client"
     }
   }
+}
+
+if ($DryRun) {
+  ($summary | ConvertTo-Json -Depth 8) -replace 'Bearer\s+[^\s"]+', 'Bearer ***REDACTED***'
+  return
 }
 
 Write-Host "[Cutover] Evidence: $EvidenceRoot"

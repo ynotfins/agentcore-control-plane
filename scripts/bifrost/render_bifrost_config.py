@@ -124,16 +124,41 @@ class OutputSchemaWiring:
             return False
         return self.mode(canonical_id) == "stdio_envelope"
 
+    @property
+    def isolation_configured(self) -> bool:
+        if not (self.interpreter and self.script_rel):
+            return False
+        return (REPO_ROOT / self.script_rel.replace("\\", "/")).is_file()
+
     def wrap(
-        self, canonical_id: str, command: str, args: list[str]
+        self,
+        canonical_id: str,
+        command: str,
+        args: list[str],
+        env_var_names: list[str],
+        static_env: dict[str, str],
     ) -> tuple[str, list[str]]:
+        transform_args = (
+            ["--contract", self._authority_path(self.contract_rel)]
+            if self.applies_to(canonical_id)
+            else ["--no-transform"]
+        )
         wrapped_args = [
             "-u",
             self._authority_path(self.script_rel),
             "--server",
             canonical_id,
-            "--contract",
-            self._authority_path(self.contract_rel),
+            *transform_args,
+            *[
+                argument
+                for env_name in env_var_names
+                for argument in ("--allow-env", env_name)
+            ],
+            *[
+                argument
+                for name, value in static_env.items()
+                for argument in ("--static-env", f"{name}={value}")
+            ],
             "--",
             command,
             *args,
@@ -156,10 +181,9 @@ class OutputSchemaWiring:
         }
 
 
-# On Windows Bifrost STDIO, listing env names and reconstructing the process
-# environment has caused CreateProcess "The parameter is incorrect".
-# Prefer full parent-env inheritance (empty envs list). Secrets must be present
-# in the Bifrost process environment via Launch-AgentCoreBifrostGateway.ps1.
+# Bifrost launches the adapter with its normal environment because passing an
+# env list directly to Bifrost has caused CreateProcess errors on Windows. The
+# adapter then launches the actual upstream with this server's narrow policy.
 BASE_ENVS: list[str] = []
 
 
@@ -184,8 +208,16 @@ def build_stdio_client(
         args = list(server.get("arguments") or [])
         envs = list(BASE_ENVS)
 
-    if output_schema is not None and output_schema.applies_to(canonical):
-        command, args = output_schema.wrap(canonical, command, args)
+    static_env = STATIC_ENV_VALUES.get(canonical, {})
+    if output_schema is None or not output_schema.isolation_configured:
+        raise ValueError(f"{canonical}: stdio environment isolation adapter is required")
+    command, args = output_schema.wrap(
+        canonical,
+        command,
+        args,
+        list(server.get("env_var_names") or []),
+        static_env,
+    )
 
     health = str(server.get("health_check_type") or "mcp_list_tools")
     is_ping_available = health in {"mcp_ping", "ping"}
@@ -212,12 +244,10 @@ def build_stdio_client(
     if server.get("is_code_mode_client") is True:
         client["is_code_mode_client"] = True
 
-    # Attach non-secret static values via notes only — Bifrost stdio envs inherit
-    # process environment; STATIC_ENV_VALUES are documented for installers.
     notes: dict[str, Any] = {
-        "windows_env_inheritance": "stdio_config.envs is empty so Bifrost inherits the gateway process environment",
+        "windows_env_isolation": "the adapter launches the upstream with Windows base variables plus only reviewed env_var_names and static_env",
         "required_parent_env": list(server.get("env_var_names") or []),
-        "static_env": STATIC_ENV_VALUES.get(canonical, {}),
+        "static_env": static_env,
     }
     if denied:
         notes["denied_tools"] = denied
@@ -455,6 +485,8 @@ def build_bifrost_config(
     output_schema: "OutputSchemaWiring | None" = None,
 ) -> dict[str, Any]:
     _ = gateway_client  # reserved for future timeout / URL cross-checks
+    if output_schema is None:
+        output_schema = OutputSchemaWiring(registry)
     return {
         "$schema": "https://www.getbifrost.ai/schema",
         "version": 2,
