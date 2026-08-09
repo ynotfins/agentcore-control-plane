@@ -165,7 +165,7 @@ Stop if:
 
 ## Phase 4 — Sally current Swarm acceptance
 
-Give Sally this prompt after Bifrost/Cursor are stable, or earlier if Swarm recovery is the active blocker. Ask Sally to write the final report using the template at `@D:\github\agentcore-control-plane\docs\templates\SALLY_FULL_SWARM_ACCEPTANCE_REPORT_TEMPLATE_2026-08-09.md`.
+Give Sally this prompt after Bifrost/Cursor are stable, or earlier if Swarm recovery is the active blocker. The standalone paste-ready version is `@D:\github\agentcore-control-plane\docs\prompts\SALLY_FULL_SWARM_ACCEPTANCE_PROMPT_2026-08-09.md`. Ask Sally to write the final report using the template at `@D:\github\agentcore-control-plane\docs\templates\SALLY_FULL_SWARM_ACCEPTANCE_REPORT_TEMPLATE_2026-08-09.md`.
 
 ```text
 SALLY GOAL MODE — CURRENT SWARM RUNTIME READINESS AND AUTONOMOUS TEAM ACCEPTANCE

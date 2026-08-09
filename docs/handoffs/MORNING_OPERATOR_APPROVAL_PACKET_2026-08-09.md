@@ -111,7 +111,11 @@ Pass condition:
 
 ## Sally full Swarm acceptance prompt
 
-Give Sally the Phase 4 prompt from the full runbook:
+Give Sally the standalone acceptance prompt:
+
+`@D:\github\agentcore-control-plane\docs\prompts\SALLY_FULL_SWARM_ACCEPTANCE_PROMPT_2026-08-09.md`
+
+The same prompt is also embedded in Phase 4 of the full runbook:
 
 `@D:\github\agentcore-control-plane\docs\operations\BIFROST_LIVE_ROLLOUT_AND_RUNTIME_ACCEPTANCE_2026-08-09.md`
 
