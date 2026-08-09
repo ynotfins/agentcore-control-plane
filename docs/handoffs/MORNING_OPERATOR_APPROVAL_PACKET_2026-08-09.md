@@ -4,7 +4,7 @@
 
 **Shortest morning entry point:** `@D:\github\agentcore-control-plane\docs\current\MORNING_START_HERE_2026-08-09.md`
 
-**Latest read-only evidence snapshot:** `@D:\github\agentcore-control-plane\audits\MORNING_READINESS_LIVE_SNAPSHOT_2026-08-09_0644.md`
+**Latest evidence snapshot:** `@D:\github\agentcore-control-plane\audits\MORNING_READINESS_AFTER_CURSOR_CLEANUP_2026-08-09_1526.md`
 
 **Full runbook:** `@D:\github\agentcore-control-plane\docs\operations\BIFROST_LIVE_ROLLOUT_AND_RUNTIME_ACCEPTANCE_2026-08-09.md`
 
@@ -13,11 +13,12 @@
 ## Current known state
 
 - Bifrost is currently healthy, but live runtime config has not been rolled forward to the merged source config.
-- Cursor global MCP currently has extra global entries (`agentcore-gateway`, `codegraph`, `repomix`) and must be returned to only `agentcore-gateway`.
+- Cursor global MCP cleanup is complete; global Cursor now has only `agentcore-gateway`.
+- `@D:\github\nfa-alerts-enterprise` project-level MCP still has `mcp-codebase-search`, `code-search`, `codebase-memory`, `claude-context`, `codegraph`, and `repomix`; AgentCore global cleanup did not remove these project-level servers.
 - `\AgentCore\AgentCore-Bifrost-Watchdog` is not installed live.
 - Sally returned `Canary passed cleanly. No tasks queued, no active schedules, all agents idle. System is healthy. ORCHESTRATOR_OK`; treat that as operator-reported orchestrator health only, not full SwarmRecall/SwarmVault/autonomous-team acceptance.
 - Swarm PG on `127.0.0.1:65432` is now listening in the latest read-only snapshot.
-- No live Cursor, Bifrost scheduled task, Bifrost runtime config, Swarm runtime, database, or IDE configuration mutation has been performed by this packet.
+- Approved live Cursor global MCP cleanup has been performed. No Bifrost scheduled task, Bifrost runtime config, Swarm runtime, database, or project-level IDE configuration mutation has been performed by this packet.
 
 ## First command after operator returns
 
@@ -27,17 +28,16 @@ Run from `@D:\github\agentcore-control-plane`:
 .\ops\bifrost\Invoke-AgentCoreMorningRollout.ps1
 ```
 
-Expected before approvals:
+Expected after Cursor cleanup and before Bifrost rollout approval:
 
 ```text
 SUMMARY status=NOT_READY
 ```
 
-Expected failures before approvals:
+Expected failures after Cursor cleanup and before Bifrost rollout approval:
 
-1. `cursor_global_mcp`
-2. `bifrost_config_drift`
-3. `task_AgentCore-Bifrost-Watchdog`
+1. `bifrost_config_drift`
+2. `task_AgentCore-Bifrost-Watchdog`
 
 Any additional failure is a stop condition.
 
@@ -50,7 +50,9 @@ For direct checker output only, run:
 
 ## Approval 1 — Cursor global MCP cleanup
 
-Approve this exact live action:
+Status: complete as of evidence `@D:\github\agentcore-control-plane\audits\MORNING_READINESS_AFTER_CURSOR_CLEANUP_2026-08-09_1526.md`.
+
+Do not rerun unless `cursor_global_mcp` drifts again. Historical approval text:
 
 ```text
 I approve live cleanup of @C:\Users\ynotf\.cursor\mcp.json back to the single agentcore-gateway entry, using the repo-owned cursor-only cutover helper, with timestamped backup/evidence under F:\AgentCore\runtime\bifrost\backups.

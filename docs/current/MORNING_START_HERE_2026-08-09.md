@@ -14,21 +14,23 @@ That packet contains the exact command order, approval boundaries, Sally prompt 
 
 Latest audit:
 
-`@D:\github\agentcore-control-plane\audits\MORNING_READINESS_LIVE_SNAPSHOT_2026-08-09_0644.md`
+`@D:\github\agentcore-control-plane\audits\MORNING_READINESS_AFTER_CURSOR_CLEANUP_2026-08-09_1526.md`
 
 ## Current known live state
 
-The latest source-only snapshot found the workstation is source-prepared but still `NOT_READY` for production runtime work until the approved live phases run.
+The latest post-cleanup snapshot found the workstation is source-prepared but still `NOT_READY` for production runtime work until the approved Bifrost live rollout runs.
 
 Expected blockers:
 
-1. Cursor global MCP still has extra entries: `agentcore-gateway`, `codegraph`, `repomix`; it must be reduced to only `agentcore-gateway`.
-2. Bifrost live config has not been rolled forward to the merged source config.
-3. `AgentCore-Bifrost-Watchdog` is not installed live.
+1. Bifrost live config has not been rolled forward to the merged source config.
+2. `AgentCore-Bifrost-Watchdog` is not installed live.
 
 Current good evidence:
 
 - Bifrost health is OK.
+- Cursor global MCP now has only `agentcore-gateway`.
+- `@D:\github\nfa-alerts-enterprise` project-level MCP still has `mcp-codebase-search`, `code-search`, `codebase-memory`, `claude-context`, `codegraph`, and `repomix`.
+- `codegraph` and `repomix` project-level MCP servers passed independent stdio initialize + tools/list smoke tests.
 - SwarmRecall, Meilisearch, SwarmClaw, and SwarmVault/Swarm UI endpoints are up on loopback.
 - `H:\SwarmData`, `H:\SwarmRuntime`, and `E:\SwarmBackups` exist.
 - Swarm PG on `127.0.0.1:65432` is now listening.
