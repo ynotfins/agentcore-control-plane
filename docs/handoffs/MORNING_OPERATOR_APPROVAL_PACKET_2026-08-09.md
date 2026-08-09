@@ -141,6 +141,7 @@ After Sally gives the final report path, run the read-only structural gate from 
 ```
 
 Only continue to runtime canaries if the gate returns `SUMMARY status=READY`. This checks report completeness and obvious secret leakage; it does not replace Sally's Swarm-owned validation.
+The gate also fails final reports that still contain unresolved bracketed placeholders from the template.
 
 ## Runtime canaries
 

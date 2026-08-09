@@ -240,6 +240,7 @@ After Sally provides the final report path, run the read-only structural gate fr
 ```
 
 This gate checks evidence coverage and obvious secret leakage only. It does not replace Sally's Swarm-owned runtime validation or operator review.
+The gate also fails final reports that still contain unresolved bracketed placeholders from the template.
 
 ## Phase 5 — runtime canaries
 

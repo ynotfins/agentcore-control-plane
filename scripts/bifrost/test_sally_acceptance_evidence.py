@@ -14,9 +14,14 @@ TEMPLATE = (
 )
 
 
-def run_validator(report: Path) -> subprocess.CompletedProcess[str]:
+def run_validator(
+    report: Path, *, allow_placeholders: bool = False
+) -> subprocess.CompletedProcess[str]:
+    command = ["pwsh", "-NoProfile", "-File", str(SCRIPT), "-Path", str(report)]
+    if allow_placeholders:
+        command.append("-AllowPlaceholders")
     return subprocess.run(
-        ["pwsh", "-NoProfile", "-File", str(SCRIPT), "-Path", str(report)],
+        command,
         capture_output=True,
         text=True,
         check=False,
@@ -113,8 +118,68 @@ Backup / restore point:
     assert "SUMMARY status=READY" in result.stdout
 
 
-def test_sally_acceptance_template_satisfies_structural_gate() -> None:
+def test_sally_acceptance_template_satisfies_structural_gate_with_placeholder_allowance() -> None:
+    result = run_validator(TEMPLATE, allow_placeholders=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "SUMMARY status=READY" in result.stdout
+
+
+def test_sally_acceptance_template_fails_as_final_report_without_placeholder_allowance() -> None:
     result = run_validator(TEMPLATE)
+    assert result.returncode != 0
+    assert "unresolved_placeholders" in result.stdout
+    assert "SUMMARY status=NOT_READY" in result.stdout
+
+
+def test_sally_acceptance_unresolved_placeholder_fails(tmp_path: Path) -> None:
+    report = tmp_path / "placeholder.md"
+    report.write_text(
+        """
+Timestamp: 2026-08-09T08:00:00-04:00
+Final status: PASS
+SwarmClaw version v1.9.39
+SwarmRecall version v0.3.0
+SwarmVault version v3.20.0
+H:\\SwarmData H:\\SwarmRuntime E:\\SwarmBackups
+Services: SwarmClaw SwarmRecall SwarmVault Meilisearch PostgreSQL listener
+SwarmRecall canary write read search exact match
+SwarmVault search context-pack corpus source count
+Autonomous team canary Builder task result review completed
+No writes to AgentCore Bifrost LangGraph IDE configs
+Exact files changed: [path]
+Files intentionally not touched: AgentCore Bifrost LangGraph IDE
+Backup path E:\\SwarmBackups\\acceptance files readable
+""",
+        encoding="utf-8",
+    )
+    result = run_validator(report)
+    assert result.returncode != 0
+    assert "unresolved_placeholders" in result.stdout
+    assert "SUMMARY status=NOT_READY" in result.stdout
+
+
+def test_sally_acceptance_markdown_links_are_not_placeholder_failures(tmp_path: Path) -> None:
+    report = tmp_path / "link.md"
+    report.write_text(
+        """
+Timestamp: 2026-08-09T08:00:00-04:00
+Final status: PASS
+SwarmClaw version v1.9.39
+SwarmRecall version v0.3.0
+SwarmVault version v3.20.0
+H:\\SwarmData H:\\SwarmRuntime E:\\SwarmBackups
+Services: SwarmClaw SwarmRecall SwarmVault Meilisearch PostgreSQL listener
+SwarmRecall canary write read search exact match
+SwarmVault search context-pack corpus source count
+Autonomous team canary Builder task result review completed
+No writes to AgentCore Bifrost LangGraph IDE configs
+Exact files changed: none, see [audit](D:/github/swarm-ecosystem-control/audits/report.md)
+Files intentionally not touched: AgentCore Bifrost LangGraph IDE
+Backup path E:\\SwarmBackups\\acceptance files readable
+""",
+        encoding="utf-8",
+    )
+    result = run_validator(report)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "SUMMARY status=READY" in result.stdout
 

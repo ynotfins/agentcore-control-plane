@@ -88,3 +88,4 @@ After Sally returns the final report path, validate the report from `@D:\github\
 ```
 
 Continue to runtime canaries only if the validator returns `SUMMARY status=READY`.
+The validator fails final reports that still contain unresolved bracketed placeholders.

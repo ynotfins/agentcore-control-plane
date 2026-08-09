@@ -13,7 +13,8 @@
 param(
   [Parameter(Mandatory = $true)]
   [string]$Path,
-  [switch]$Json
+  [switch]$Json,
+  [switch]$AllowPlaceholders
 )
 
 $ErrorActionPreference = 'Stop'
@@ -97,6 +98,16 @@ if (Test-TextAny $content $secretPatterns) {
   Add-EvidenceResult 'FAIL' 'secret_scan' 'obvious secret/token literal pattern present'
 } else {
   Add-EvidenceResult 'PASS' 'secret_scan' 'no obvious secret/token literal pattern'
+}
+
+if ($content -match '\[[^\]\r\n]{1,120}\](?!\()') {
+  if ($AllowPlaceholders) {
+    Add-EvidenceResult 'PASS' 'unresolved_placeholders' 'placeholder text allowed for template validation'
+  } else {
+    Add-EvidenceResult 'FAIL' 'unresolved_placeholders' 'unresolved bracketed placeholder text present'
+  }
+} else {
+  Add-EvidenceResult 'PASS' 'unresolved_placeholders' 'no unresolved bracketed placeholders'
 }
 
 Test-RequiredEvidence 'timestamp' $content @(
