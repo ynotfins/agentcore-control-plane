@@ -1,7 +1,7 @@
 # Morning Readiness Live Snapshot — 2026-08-09 06:44 EDT
 
-**Mode:** read-only evidence refresh.  
-**Source head:** `e7f4925 link morning pointer in readiness plan`  
+**Mode:** read-only evidence refresh.
+**Source head:** `e7f4925 link morning pointer in readiness plan`
 **Result:** `NOT_READY` for production runtime work until approved live phases run.
 
 ## Readiness summary
