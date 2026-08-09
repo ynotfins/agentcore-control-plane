@@ -73,27 +73,28 @@ Expected final state:
 - Authorization header uses `${env:BIFROST_MCP_VIRTUAL_KEY}`;
 - no `codegraph`, `repomix`, `command-runner`, `memory-bank`, raw Recall, raw Vault, raw database, or project-local indexer entries.
 
+Operator-approved dry run:
+
+```powershell
+.\ops\bifrost\Invoke-AgentCoreIdeGatewayCutover.ps1 `
+  -RepoRoot ('D:' + '\github\agentcore-control-plane') `
+  -EvidenceRoot ('F:' + '\AgentCore\runtime\bifrost\backups\cursor-mcp-dry-run') `
+  -Clients cursor `
+  -CursorConfigPath ('C:' + '\Users\ynotf\.cursor\mcp.json') `
+  -DryRun
+```
+
 Operator-approved cleanup command:
 
 ```powershell
-$cursorMcp = 'C:' + '\Users\ynotf\.cursor\mcp.json'
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$backupDir = ('F:' + "\AgentCore\runtime\bifrost\backups\cursor-mcp-$stamp")
-New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
-Copy-Item -LiteralPath $cursorMcp -Destination (Join-Path $backupDir 'mcp.json') -Force
+$evidenceRoot = ('F:' + "\AgentCore\runtime\bifrost\backups\cursor-mcp-$stamp")
 
-$raw = Get-Content -Raw -LiteralPath $cursorMcp
-$json = $raw | ConvertFrom-Json -ErrorAction Stop
-$gateway = $json.mcpServers.'agentcore-gateway'
-if (-not $gateway) { throw 'agentcore-gateway missing from Cursor MCP config; aborting cleanup.' }
-
-$clean = [ordered]@{
-  mcpServers = [ordered]@{
-    'agentcore-gateway' = $gateway
-  }
-}
-$clean | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $cursorMcp -Encoding utf8
-Write-Host "Cursor MCP backup: $backupDir"
+.\ops\bifrost\Invoke-AgentCoreIdeGatewayCutover.ps1 `
+  -RepoRoot ('D:' + '\github\agentcore-control-plane') `
+  -EvidenceRoot $evidenceRoot `
+  -Clients cursor `
+  -CursorConfigPath ('C:' + '\Users\ynotf\.cursor\mcp.json')
 ```
 
 Post-cleanup validation:
