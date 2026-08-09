@@ -3,6 +3,7 @@
 **Created:** 2026-08-09
 **Companion handoff:** `@D:\github\agentcore-control-plane\docs\handoffs\AGENTCORE_NEXT_GOAL_HANDOFF_2026-08-09.md`
 **Morning start pointer:** `@D:\github\agentcore-control-plane\docs\current\MORNING_START_HERE_2026-08-09.md`
+**Goal checklist:** `@D:\github\agentcore-control-plane\docs\current\GOAL_COMPLETION_CHECKLIST_2026-08-09.md`
 **Authority chain:** `PROJECT_ANCHOR.md` -> `DOC_AUTHORITY.md` -> `BLUEPRINT.md` -> `CONTEXT_BLOCK.md` -> `docs\memory-platform\MEMORY_PLATFORM_EXECUTION_PLAN.md`
 **Scope:** AgentCore production hardening, Swarm health coordination through Sally, MCP placement certification, and runtime acceptance.
 

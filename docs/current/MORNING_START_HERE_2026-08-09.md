@@ -10,6 +10,10 @@ Open the morning approval packet:
 
 That packet contains the exact command order, approval boundaries, Sally prompt path, evidence gates, canary sequence, and final restore-point preflight.
 
+Checklist and drift guard:
+
+`@D:\github\agentcore-control-plane\docs\current\GOAL_COMPLETION_CHECKLIST_2026-08-09.md`
+
 ## Latest read-only evidence snapshot
 
 Latest audit:
