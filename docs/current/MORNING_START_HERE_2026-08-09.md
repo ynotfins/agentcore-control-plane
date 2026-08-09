@@ -10,13 +10,19 @@ Open the morning approval packet:
 
 That packet contains the exact command order, approval boundaries, Sally prompt path, evidence gates, canary sequence, and final restore-point preflight.
 
+## Latest read-only evidence snapshot
+
+Latest audit:
+
+`@D:\github\agentcore-control-plane\audits\MORNING_READINESS_LIVE_SNAPSHOT_2026-08-09_0644.md`
+
 ## Current known live state
 
 The latest source-only snapshot found the workstation is source-prepared but still `NOT_READY` for production runtime work until the approved live phases run.
 
 Expected blockers:
 
-1. Cursor global MCP still has extra entries and must be reduced to only `agentcore-gateway`.
+1. Cursor global MCP still has extra entries: `agentcore-gateway`, `codegraph`, `repomix`; it must be reduced to only `agentcore-gateway`.
 2. Bifrost live config has not been rolled forward to the merged source config.
 3. `AgentCore-Bifrost-Watchdog` is not installed live.
 
@@ -25,6 +31,7 @@ Current good evidence:
 - Bifrost health is OK.
 - SwarmRecall, Meilisearch, SwarmClaw, and SwarmVault/Swarm UI endpoints are up on loopback.
 - `H:\SwarmData`, `H:\SwarmRuntime`, and `E:\SwarmBackups` exist.
+- Swarm PG on `127.0.0.1:65432` is now listening.
 - LangGraph topology is the expected 15-node production fingerprint.
 
 ## Guardrail
