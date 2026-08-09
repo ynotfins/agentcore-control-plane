@@ -77,7 +77,14 @@ def test_morning_rollout_approved_paths_pass_arguments_as_single_parameter(tmp_p
     fake_ops.mkdir(parents=True)
 
     scripts = {
-        "Test-AgentCoreMorningReadiness.ps1": "Write-Host 'READY'; exit 0\n",
+        "Test-AgentCoreMorningReadiness.ps1": (
+            "$countPath = Join-Path $PSScriptRoot 'readiness-count.txt'\n"
+            "if (-not (Test-Path -LiteralPath $countPath)) {\n"
+            "  Set-Content -LiteralPath $countPath -Value '1'\n"
+            "  Write-Host 'NOT_READY'; exit 1\n"
+            "}\n"
+            "Write-Host 'READY'; exit 0\n"
+        ),
         "Invoke-AgentCoreIdeGatewayCutover.ps1": (
             "param([string]$RepoRoot,[string]$EvidenceRoot,[string[]]$Clients,[string]$CursorConfigPath)\n"
             "if ($Clients -ne 'cursor') { throw \"bad clients: $Clients\" }\n"
@@ -103,7 +110,6 @@ def test_morning_rollout_approved_paths_pass_arguments_as_single_parameter(tmp_p
             str(tmp_path / "runtime"),
             "-CursorMcpPath",
             str(tmp_path / "mcp.json"),
-            "-SkipInitialReadiness",
             "-ApproveCursorCleanup",
             "-ApproveBifrostRollout",
         ],

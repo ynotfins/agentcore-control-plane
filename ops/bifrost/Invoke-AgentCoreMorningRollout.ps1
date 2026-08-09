@@ -37,6 +37,7 @@ function Invoke-RepoScript {
   if (-not (Test-Path -LiteralPath $script -PathType Leaf)) {
     throw "Required script missing: $script"
   }
+  $global:LASTEXITCODE = 0
   & $script @Parameters
   if ($LASTEXITCODE -ne 0) {
     throw "Script failed: $script exit=$LASTEXITCODE"
