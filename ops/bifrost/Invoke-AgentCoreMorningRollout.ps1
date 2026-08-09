@@ -31,13 +31,13 @@ function Write-Section {
 function Invoke-RepoScript {
   param(
     [string]$RelativePath,
-    [string[]]$Arguments = @()
+    [hashtable]$Parameters = @{}
   )
   $script = Join-Path $RepoRoot $RelativePath
   if (-not (Test-Path -LiteralPath $script -PathType Leaf)) {
     throw "Required script missing: $script"
   }
-  & $script @Arguments
+  & $script @Parameters
   if ($LASTEXITCODE -ne 0) {
     throw "Script failed: $script exit=$LASTEXITCODE"
   }
@@ -75,24 +75,24 @@ if ($ApproveCursorCleanup) {
   Write-Section 'Approved Cursor global MCP cleanup'
   $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
   $evidenceRoot = Join-Path $RuntimeRoot "backups\cursor-mcp-$stamp"
-  Invoke-RepoScript 'ops\bifrost\Invoke-AgentCoreIdeGatewayCutover.ps1' @(
-    '-RepoRoot', $RepoRoot,
-    '-EvidenceRoot', $evidenceRoot,
-    '-Clients', 'cursor',
-    '-CursorConfigPath', $CursorMcpPath
-  )
+  Invoke-RepoScript 'ops\bifrost\Invoke-AgentCoreIdeGatewayCutover.ps1' -Parameters @{
+    RepoRoot = $RepoRoot
+    EvidenceRoot = $evidenceRoot
+    Clients = @('cursor')
+    CursorConfigPath = $CursorMcpPath
+  }
   Invoke-RepoScript 'ops\bifrost\Test-AgentCoreBifrostGateway.ps1'
 }
 
 if ($ApproveBifrostRollout) {
   Write-Section 'Approved Bifrost live rollout'
-  Invoke-RepoScript 'ops\bifrost\Install-AgentCoreBifrostGateway.ps1' @(
-    '-RuntimeRoot', $RuntimeRoot,
-    '-RepoRoot', $RepoRoot
-  )
-  Invoke-RepoScript 'ops\bifrost\Start-AgentCoreBifrostGateway.ps1' @(
-    '-RuntimeRoot', $RuntimeRoot
-  )
+  Invoke-RepoScript 'ops\bifrost\Install-AgentCoreBifrostGateway.ps1' -Parameters @{
+    RuntimeRoot = $RuntimeRoot
+    RepoRoot = $RepoRoot
+  }
+  Invoke-RepoScript 'ops\bifrost\Start-AgentCoreBifrostGateway.ps1' -Parameters @{
+    RuntimeRoot = $RuntimeRoot
+  }
   Invoke-RepoScript 'ops\bifrost\Get-BifrostStatus.ps1'
   Invoke-RepoScript 'ops\bifrost\Test-AgentCoreBifrostGateway.ps1'
 }
