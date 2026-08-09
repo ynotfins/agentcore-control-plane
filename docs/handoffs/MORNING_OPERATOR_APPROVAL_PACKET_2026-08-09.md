@@ -84,7 +84,7 @@ Pass condition:
 Approve this exact live action:
 
 ```text
-I approve governed Bifrost live rollout from @D:\github\agentcore-control-plane main to @F:\AgentCore\runtime\bifrost, including both config projections, AgentCore-Bifrost-Watchdog scheduled task installation, Task Scheduler Operational logging enablement, rollback backups, and postflight validation.
+I approve governed Bifrost live rollout from @D:\github\agentcore-control-plane main to @F:\AgentCore\runtime\bifrost and approve including both config projections, AgentCore-Bifrost-Watchdog scheduled task installation, Task Scheduler Operational logging enablement, rollback backups, and postflight validation.
 ```
 
 Run in elevated PowerShell from `@D:\github\agentcore-control-plane`:
