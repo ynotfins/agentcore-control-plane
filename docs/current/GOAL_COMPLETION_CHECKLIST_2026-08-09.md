@@ -23,17 +23,19 @@
 | M1 — Cursor global MCP cleanup | Done | Global `@C:\Users\ynotf\.cursor\mcp.json` has only `agentcore-gateway`; `Test-AgentCoreBifrostGateway.ps1` passed. |
 | M2 — Project MCP preservation | Done | `@D:\github\nfa-alerts-enterprise\.cursor\mcp.json` still has project-level servers; `codegraph` and `repomix` stdio handshake tests passed. |
 | M3 — Bifrost live rollout | Done | `Test-AgentCoreMorningReadiness.ps1` returned `SUMMARY status=READY pass=23 warn=0 fail=0`; config drift cleared via source-rendered runtime candidate; `AgentCore-Bifrost-Watchdog` installed and healthy. |
-| M4 — Sally full Swarm acceptance | Pending Sally report | Sally produces a full Swarm acceptance report and `Test-SallyAcceptanceEvidence.ps1` returns `SUMMARY status=READY`. |
-| M5 — LangGraph canary | Pending runtime canary | Production LangGraph canary evidence exists and uses the AgentCore workflow runtime/checkpoint authority. |
-| M6 — SwarmClaw canary | Pending Sally-owned canary | SwarmClaw autonomous canary evidence exists and proves writes stayed inside Swarm-owned boundaries. |
+| M4 — Sally full Swarm acceptance | Done | Sally report `@H:\SwarmData\claw\workspace\sally\SALLY_FULL_SWARM_ACCEPTANCE_2026-08-09.md`; `Test-SallyAcceptanceEvidence.ps1` returned `SUMMARY status=READY pass=16 fail=0`. |
+| M5 — LangGraph canary | Done | `@D:\github\agentcore-control-plane\audits\LANGGRAPH_TOPOLOGY_CANARY_2026-08-09_1951.md`; production topology fingerprint matched and PostgresSaver authority confirmed. |
+| M6 — SwarmClaw canary | Pending Sally-owned canary | Give Sally `@D:\github\agentcore-control-plane\docs\prompts\SALLY_SWARMCLAW_AUTONOMOUS_CANARY_PROMPT_2026-08-09.md`; SwarmClaw autonomous canary evidence exists and proves writes stayed inside Swarm-owned boundaries. |
 | M7 — Final evidence preflight | Pending final gate | `Test-AgentCoreFinalAcceptanceEvidence.ps1` returns `SUMMARY status=READY`. |
 | M8 — Restore point report | Pending final artifact | `New-AgentCoreRestorePointReport.ps1` generates the final restore-point report after M7 passes. |
 
 ## Current next action
 
-Continue to M4: Sally full Swarm acceptance. Give Sally:
+Continue to M6: Sally-owned SwarmClaw autonomous canary. Give Sally:
 
-`@D:\github\agentcore-control-plane\docs\prompts\SALLY_FULL_SWARM_ACCEPTANCE_PROMPT_2026-08-09.md`
+`@D:\github\agentcore-control-plane\docs\prompts\SALLY_SWARMCLAW_AUTONOMOUS_CANARY_PROMPT_2026-08-09.md`
+
+For a real project comparison across LangGraph and SwarmClaw, the operator must supply one shared project goal and acceptance criteria so both runtimes run the same work item.
 
 ## Completion condition
 
