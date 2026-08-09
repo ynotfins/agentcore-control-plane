@@ -257,6 +257,21 @@ SwarmClaw canary:
 
 Create a final evidence report after all accepted phases.
 
+Report generator:
+
+```powershell
+$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+$outFile = "audits\RESTORE_POINT_RUNTIME_ACCEPTANCE_$stamp.md"
+
+.\ops\bifrost\New-AgentCoreRestorePointReport.ps1 `
+  -SallyAcceptancePath '<path from Sally final acceptance>' `
+  -LangGraphCanaryPath '<path from LangGraph production canary>' `
+  -SwarmClawCanaryPath '<path from Sally SwarmClaw autonomous canary>' `
+  -OutFile $outFile
+```
+
+The generator defaults to stdout if `-OutFile` is omitted. Do not commit a generated restore-point report unless morning readiness is `READY` and all three acceptance evidence paths are present.
+
 Required contents:
 
 - current commit SHA for `@D:\github\agentcore-control-plane`;
