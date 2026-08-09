@@ -29,12 +29,14 @@ function Add-ReadinessResult {
     [ValidateSet('PASS', 'WARN', 'FAIL')]
     [string]$Status,
     [string]$Name,
-    [string]$Detail
+    [string]$Detail,
+    [string]$Remediation = ''
   )
   $results.Add([pscustomobject]@{
     status = $Status
     name = $Name
     detail = $Detail
+    remediation = $Remediation
   }) | Out-Null
 }
 
@@ -67,7 +69,7 @@ function Get-Sha256OrMissing {
 
 function Test-CursorMcp {
   if (-not (Test-Path -LiteralPath $CursorMcpPath -PathType Leaf)) {
-    Add-ReadinessResult 'FAIL' 'cursor_global_mcp' "missing: $CursorMcpPath"
+    Add-ReadinessResult 'FAIL' 'cursor_global_mcp' "missing: $CursorMcpPath" 'Phase 2: approve/run cursor-only Invoke-AgentCoreIdeGatewayCutover.ps1 cleanup after restoring or recreating the config.'
     return
   }
   try {
@@ -77,22 +79,22 @@ function Test-CursorMcp {
     if ($names.Count -eq 1 -and $names[0] -eq 'agentcore-gateway') {
       Add-ReadinessResult 'PASS' 'cursor_global_mcp' 'exactly one server: agentcore-gateway'
     } else {
-      Add-ReadinessResult 'FAIL' 'cursor_global_mcp' ("expected only agentcore-gateway; found count={0}; names={1}" -f $names.Count, ($names -join ','))
+      Add-ReadinessResult 'FAIL' 'cursor_global_mcp' ("expected only agentcore-gateway; found count={0}; names={1}" -f $names.Count, ($names -join ',')) 'Phase 2: approve/run cursor-only Invoke-AgentCoreIdeGatewayCutover.ps1 cleanup, then rerun Test-AgentCoreBifrostGateway.ps1.'
     }
     if ($raw -match 'sk-[A-Za-z0-9_-]{20,}') {
-      Add-ReadinessResult 'FAIL' 'cursor_global_mcp_secret_scan' 'obvious secret literal pattern present'
+      Add-ReadinessResult 'FAIL' 'cursor_global_mcp_secret_scan' 'obvious secret literal pattern present' 'Security stop: do not proceed; sanitize/rotate the exposed secret with explicit operator approval.'
     } else {
       Add-ReadinessResult 'PASS' 'cursor_global_mcp_secret_scan' 'no obvious secret literal pattern'
     }
   } catch {
-    Add-ReadinessResult 'FAIL' 'cursor_global_mcp_parse' $_.Exception.Message
+    Add-ReadinessResult 'FAIL' 'cursor_global_mcp_parse' $_.Exception.Message 'Phase 2 stop: repair JSON parse error from timestamped backup before cleanup.'
   }
 }
 
 function Test-BifrostStatusScript {
   $statusScript = Join-Path $RepoRoot 'ops\bifrost\Get-BifrostStatus.ps1'
   if (-not (Test-Path -LiteralPath $statusScript -PathType Leaf)) {
-    Add-ReadinessResult 'FAIL' 'bifrost_status_script' "missing: $statusScript"
+    Add-ReadinessResult 'FAIL' 'bifrost_status_script' "missing: $statusScript" 'Repo/source stop: restore missing Bifrost status script before live rollout.'
     return
   }
   $pwsh = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -100,7 +102,7 @@ function Test-BifrostStatusScript {
     $pwsh = (Get-Command powershell -ErrorAction SilentlyContinue).Source
   }
   if (-not $pwsh) {
-    Add-ReadinessResult 'FAIL' 'bifrost_status_script' 'PowerShell executable not found for child status capture'
+    Add-ReadinessResult 'FAIL' 'bifrost_status_script' 'PowerShell executable not found for child status capture' 'Host stop: install/repair PowerShell before running Bifrost lifecycle checks.'
     return
   }
   $output = & $pwsh -NoProfile -File $statusScript 2>&1
@@ -108,7 +110,7 @@ function Test-BifrostStatusScript {
   if ($exit -eq 0 -and (($output | Out-String) -match 'BIFROST_STATUS_OK')) {
     Add-ReadinessResult 'PASS' 'bifrost_status_script' 'BIFROST_STATUS_OK'
   } else {
-    Add-ReadinessResult 'FAIL' 'bifrost_status_script' (($output | Out-String).Trim())
+    Add-ReadinessResult 'FAIL' 'bifrost_status_script' (($output | Out-String).Trim()) 'Phase 3 stop: repair Bifrost health/status before config or watchdog rollout.'
   }
 }
 
@@ -120,13 +122,13 @@ function Test-BifrostConfigDrift {
   $liveHash = Get-Sha256OrMissing $liveConfig
   $projectionHash = Get-Sha256OrMissing $liveConfigProjection
   if (-not $sourceHash -or -not $liveHash -or -not $projectionHash) {
-    Add-ReadinessResult 'FAIL' 'bifrost_config_hashes' "source=$sourceHash live=$liveHash projection=$projectionHash"
+    Add-ReadinessResult 'FAIL' 'bifrost_config_hashes' "source=$sourceHash live=$liveHash projection=$projectionHash" 'Phase 3: approve governed Bifrost installer rollout; stop if any config path is unexpectedly missing.'
     return
   }
   if ($sourceHash -eq $liveHash -and $sourceHash -eq $projectionHash) {
     Add-ReadinessResult 'PASS' 'bifrost_config_drift' "source/live/projection match: $sourceHash"
   } else {
-    Add-ReadinessResult 'FAIL' 'bifrost_config_drift' "source=$sourceHash live=$liveHash projection=$projectionHash"
+    Add-ReadinessResult 'FAIL' 'bifrost_config_drift' "source=$sourceHash live=$liveHash projection=$projectionHash" 'Phase 3: approve/run Install-AgentCoreBifrostGateway.ps1 to activate both config projections, then rerun this checker.'
   }
 }
 
@@ -138,7 +140,12 @@ function Test-AgentCoreScheduledTasks {
       $status = if ($taskName -eq 'AgentCore-Bifrost-Gateway' -and $task.State -ne 'Running') { 'FAIL' } else { 'PASS' }
       Add-ReadinessResult $status "task_$taskName" ("state={0}; lastResult={1}; lastRun={2}" -f $task.State, $info.LastTaskResult, $info.LastRunTime)
     } catch {
-      Add-ReadinessResult 'FAIL' "task_$taskName" $_.Exception.Message
+      $remediation = if ($taskName -eq 'AgentCore-Bifrost-Watchdog') {
+        'Phase 3: approve/run governed Bifrost installer rollout to install AgentCore-Bifrost-Watchdog.'
+      } else {
+        'Phase 3 stop: repair or reinstall AgentCore-Bifrost-Gateway scheduled task before production work.'
+      }
+      Add-ReadinessResult 'FAIL' "task_$taskName" $_.Exception.Message $remediation
     }
   }
 }
@@ -147,7 +154,7 @@ function Test-LangGraphTopology {
   $scriptsRoot = Join-Path $RepoRoot 'scripts'
   $python = Join-Path $scriptsRoot '.venv\Scripts\python.exe'
   if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
-    Add-ReadinessResult 'FAIL' 'langgraph_topology' "missing runtime python: $python"
+    Add-ReadinessResult 'FAIL' 'langgraph_topology' "missing runtime python: $python" 'Runtime stop: repair AgentCore scripts virtualenv with bootstrap-runtime.ps1 before LangGraph canary.'
     return
   }
   Push-Location $scriptsRoot
@@ -155,17 +162,17 @@ function Test-LangGraphTopology {
     $output = & $python -m agentcore workflow topology --json 2>&1
     $exit = $LASTEXITCODE
     if ($exit -ne 0) {
-      Add-ReadinessResult 'FAIL' 'langgraph_topology' (($output | Out-String).Trim())
+      Add-ReadinessResult 'FAIL' 'langgraph_topology' (($output | Out-String).Trim()) 'Runtime stop: repair LangGraph topology/runtime before production canary.'
       return
     }
     $topology = ($output | Out-String) | ConvertFrom-Json -ErrorAction Stop
     if ($topology.topology_fingerprint_sha256 -eq 'a86e40e8ddd0a370498bf75d612cfda9b8c18eb7c5f178000ba1fe61db94ae32' -and [int]$topology.node_count -eq 15) {
       Add-ReadinessResult 'PASS' 'langgraph_topology' ("fingerprint={0}; nodes={1}" -f $topology.topology_fingerprint_sha256, $topology.node_count)
     } else {
-      Add-ReadinessResult 'FAIL' 'langgraph_topology' ("unexpected fingerprint={0}; nodes={1}" -f $topology.topology_fingerprint_sha256, $topology.node_count)
+      Add-ReadinessResult 'FAIL' 'langgraph_topology' ("unexpected fingerprint={0}; nodes={1}" -f $topology.topology_fingerprint_sha256, $topology.node_count) 'Runtime stop: topology drift requires explicit operator approval before production canary.'
     }
   } catch {
-    Add-ReadinessResult 'FAIL' 'langgraph_topology' $_.Exception.Message
+    Add-ReadinessResult 'FAIL' 'langgraph_topology' $_.Exception.Message 'Runtime stop: repair LangGraph topology command before production canary.'
   } finally {
     Pop-Location
   }
@@ -177,7 +184,7 @@ function Test-KeyPorts {
     if ($netstat -match "127\.0\.0\.1:$port\s+") {
       Add-ReadinessResult 'PASS' "port_$port" 'listening on 127.0.0.1'
     } else {
-      Add-ReadinessResult 'FAIL' "port_$port" 'not observed listening on 127.0.0.1'
+      Add-ReadinessResult 'FAIL' "port_$port" 'not observed listening on 127.0.0.1' 'Service stop: restore the owning service before runtime acceptance; Sally owns Swarm ports, AgentCore owns Bifrost/PG18.'
     }
   }
 }
@@ -214,6 +221,9 @@ if ($Json) {
 } else {
   foreach ($result in $results) {
     Write-Host ("{0}  {1}: {2}" -f $result.status.PadRight(4), $result.name, $result.detail)
+    if ($result.status -ne 'PASS' -and -not [string]::IsNullOrWhiteSpace([string]$result.remediation)) {
+      Write-Host ("      remediation: {0}" -f $result.remediation)
+    }
   }
   Write-Host ("SUMMARY status={0} pass={1} warn={2} fail={3}" -f $(if ($failCount -eq 0) { 'READY' } else { 'NOT_READY' }), $passCount, $warnCount, $failCount)
 }

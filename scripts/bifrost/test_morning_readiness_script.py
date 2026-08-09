@@ -57,8 +57,11 @@ def test_morning_readiness_script_covers_current_approval_gates() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
     required_markers = [
         "cursor_global_mcp",
+        "Phase 2: approve/run cursor-only Invoke-AgentCoreIdeGatewayCutover.ps1 cleanup",
         "bifrost_config_drift",
+        "Phase 3: approve/run Install-AgentCoreBifrostGateway.ps1",
         "AgentCore-Bifrost-Watchdog",
+        "Phase 3: approve/run governed Bifrost installer rollout to install AgentCore-Bifrost-Watchdog",
         "swarmrecall_api_health",
         "meilisearch_health",
         "swarmclaw_health",
@@ -67,3 +70,9 @@ def test_morning_readiness_script_covers_current_approval_gates() -> None:
     ]
     for marker in required_markers:
         assert marker in text
+
+
+def test_morning_readiness_results_include_remediation_field() -> None:
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert "remediation = $Remediation" in text
+    assert "remediation:" in text
