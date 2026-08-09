@@ -4,7 +4,7 @@
 
 **Full runbook:** `@D:\github\agentcore-control-plane\docs\operations\BIFROST_LIVE_ROLLOUT_AND_RUNTIME_ACCEPTANCE_2026-08-09.md`
 
-**Current source-only status:** pushed through commit `892fc61 record morning readiness live snapshot`.
+**Current source-only status:** verify at runtime with `git log -1 --oneline`. This packet is intentionally not pinned to an exact current SHA so source-only readiness commits do not make the packet stale.
 
 ## Current known state
 
