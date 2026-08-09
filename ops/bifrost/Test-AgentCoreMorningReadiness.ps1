@@ -67,6 +67,16 @@ function Get-Sha256OrMissing {
   return (Get-FileHash -Algorithm SHA256 -LiteralPath $Path).Hash
 }
 
+function Get-PythonCommandOrNull {
+  foreach ($candidate in @('py', 'python', 'python3')) {
+    $cmd = Get-Command $candidate -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+  }
+  $python313 = 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe'
+  if (Test-Path -LiteralPath $python313 -PathType Leaf) { return $python313 }
+  return $null
+}
+
 function Test-CursorMcp {
   if (-not (Test-Path -LiteralPath $CursorMcpPath -PathType Leaf)) {
     Add-ReadinessResult 'FAIL' 'cursor_global_mcp' "missing: $CursorMcpPath" 'Phase 2: approve/run cursor-only Invoke-AgentCoreIdeGatewayCutover.ps1 cleanup after restoring or recreating the config.'
@@ -115,20 +125,45 @@ function Test-BifrostStatusScript {
 }
 
 function Test-BifrostConfigDrift {
-  $sourceConfig = Join-Path $RepoRoot 'renderers\bifrost\config.json'
+  $renderScript = Join-Path $RepoRoot 'scripts\bifrost\render_bifrost_config.py'
   $liveConfig = Join-Path $RuntimeRoot 'config.json'
   $liveConfigProjection = Join-Path $RuntimeRoot 'config\config.json'
-  $sourceHash = Get-Sha256OrMissing $sourceConfig
-  $liveHash = Get-Sha256OrMissing $liveConfig
-  $projectionHash = Get-Sha256OrMissing $liveConfigProjection
-  if (-not $sourceHash -or -not $liveHash -or -not $projectionHash) {
-    Add-ReadinessResult 'FAIL' 'bifrost_config_hashes' "source=$sourceHash live=$liveHash projection=$projectionHash" 'Phase 3: approve governed Bifrost installer rollout; stop if any config path is unexpectedly missing.'
+  $candidateHash = $null
+  if (-not (Test-Path -LiteralPath $renderScript -PathType Leaf)) {
+    Add-ReadinessResult 'FAIL' 'bifrost_config_hashes' "missing renderer: $renderScript" 'Source stop: restore render_bifrost_config.py before evaluating live config drift.'
     return
   }
-  if ($sourceHash -eq $liveHash -and $sourceHash -eq $projectionHash) {
-    Add-ReadinessResult 'PASS' 'bifrost_config_drift' "source/live/projection match: $sourceHash"
+  $pythonCmd = Get-PythonCommandOrNull
+  if (-not $pythonCmd) {
+    Add-ReadinessResult 'FAIL' 'bifrost_config_hashes' 'Python interpreter not found for source-rendered runtime candidate' 'Host stop: install/repair Python before evaluating live config drift.'
+    return
+  }
+  $candidatePath = Join-Path ([IO.Path]::GetTempPath()) ("agentcore-bifrost-candidate-{0}.json" -f ([guid]::NewGuid().ToString('N')))
+  try {
+    & $pythonCmd $renderScript --out $candidatePath --no-also-config-dir --skip-renderer | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+      Add-ReadinessResult 'FAIL' 'bifrost_config_hashes' "renderer exit=$LASTEXITCODE" 'Source stop: repair Bifrost renderer/contract errors before live rollout.'
+      return
+    }
+    $candidateHash = Get-Sha256OrMissing $candidatePath
+  } catch {
+    Add-ReadinessResult 'FAIL' 'bifrost_config_hashes' $_.Exception.Message 'Source stop: repair Bifrost renderer/contract errors before live rollout.'
+    return
+  } finally {
+    if (Test-Path -LiteralPath $candidatePath -PathType Leaf) {
+      [IO.File]::Delete($candidatePath)
+    }
+  }
+  $liveHash = Get-Sha256OrMissing $liveConfig
+  $projectionHash = Get-Sha256OrMissing $liveConfigProjection
+  if (-not $candidateHash -or -not $liveHash -or -not $projectionHash) {
+    Add-ReadinessResult 'FAIL' 'bifrost_config_hashes' "candidate=$candidateHash live=$liveHash projection=$projectionHash" 'Phase 3: approve governed Bifrost installer rollout; stop if any config path is unexpectedly missing.'
+    return
+  }
+  if ($candidateHash -eq $liveHash -and $candidateHash -eq $projectionHash) {
+    Add-ReadinessResult 'PASS' 'bifrost_config_drift' "source-rendered candidate/live/projection match: $candidateHash"
   } else {
-    Add-ReadinessResult 'FAIL' 'bifrost_config_drift' "source=$sourceHash live=$liveHash projection=$projectionHash" 'Phase 3: approve/run Install-AgentCoreBifrostGateway.ps1 to activate both config projections, then rerun this checker.'
+    Add-ReadinessResult 'FAIL' 'bifrost_config_drift' "candidate=$candidateHash live=$liveHash projection=$projectionHash" 'Phase 3: approve/run Install-AgentCoreBifrostGateway.ps1 to activate both config projections, then rerun this checker.'
   }
 }
 

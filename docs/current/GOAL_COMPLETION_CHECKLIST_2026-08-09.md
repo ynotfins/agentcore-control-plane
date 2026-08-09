@@ -4,7 +4,7 @@
 
 **Start file:** `@D:\github\agentcore-control-plane\docs\current\MORNING_START_HERE_2026-08-09.md`
 **Execution packet:** `@D:\github\agentcore-control-plane\docs\handoffs\MORNING_OPERATOR_APPROVAL_PACKET_2026-08-09.md`
-**Latest evidence:** `@D:\github\agentcore-control-plane\audits\BIFROST_ROLLOUT_TASK_BACKUP_CLASSIFICATION_FIX_2026-08-09_1641.md`
+**Latest evidence:** `@D:\github\agentcore-control-plane\audits\BIFROST_ROLLOUT_READY_2026-08-09_1801.md`
 
 ## Drift rules
 
@@ -22,7 +22,7 @@
 | M0 — Source lock | Done | Current docs, helper fixes, and checklist committed/pushed to `origin/main`. |
 | M1 — Cursor global MCP cleanup | Done | Global `@C:\Users\ynotf\.cursor\mcp.json` has only `agentcore-gateway`; `Test-AgentCoreBifrostGateway.ps1` passed. |
 | M2 — Project MCP preservation | Done | `@D:\github\nfa-alerts-enterprise\.cursor\mcp.json` still has project-level servers; `codegraph` and `repomix` stdio handshake tests passed. |
-| M3 — Bifrost live rollout | Pending Administrator rerun after source fix | Administrator attempt reached task backup and exposed a missing-task classification bug; source fix validates `CmdletizationQuery_NotFound`/`ObjectNotFound` as absent-task, not backup failure. Pass condition: config drift clears; `AgentCore-Bifrost-Watchdog` exists; gateway postflight passes. |
+| M3 — Bifrost live rollout | Done | `Test-AgentCoreMorningReadiness.ps1` returned `SUMMARY status=READY pass=23 warn=0 fail=0`; config drift cleared via source-rendered runtime candidate; `AgentCore-Bifrost-Watchdog` installed and healthy. |
 | M4 — Sally full Swarm acceptance | Pending Sally report | Sally produces a full Swarm acceptance report and `Test-SallyAcceptanceEvidence.ps1` returns `SUMMARY status=READY`. |
 | M5 — LangGraph canary | Pending runtime canary | Production LangGraph canary evidence exists and uses the AgentCore workflow runtime/checkpoint authority. |
 | M6 — SwarmClaw canary | Pending Sally-owned canary | SwarmClaw autonomous canary evidence exists and proves writes stayed inside Swarm-owned boundaries. |
@@ -31,17 +31,9 @@
 
 ## Current next action
 
-After the task-backup classification fix is committed and pushed, rerun the already-approved Bifrost live rollout from an Administrator PowerShell:
+Continue to M4: Sally full Swarm acceptance. Give Sally:
 
-```powershell
-Set-Location -LiteralPath ('D:' + '\github\agentcore-control-plane')
-.\ops\bifrost\Invoke-AgentCoreMorningRollout.ps1 -ApproveBifrostRollout
-```
-
-Expected remaining blockers before this action:
-
-1. `bifrost_config_drift`
-2. `task_AgentCore-Bifrost-Watchdog`
+`@D:\github\agentcore-control-plane\docs\prompts\SALLY_FULL_SWARM_ACCEPTANCE_PROMPT_2026-08-09.md`
 
 ## Completion condition
 

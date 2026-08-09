@@ -18,20 +18,20 @@ Checklist and drift guard:
 
 Latest audit:
 
-`@D:\github\agentcore-control-plane\audits\BIFROST_ROLLOUT_TASK_BACKUP_CLASSIFICATION_FIX_2026-08-09_1641.md`
+`@D:\github\agentcore-control-plane\audits\BIFROST_ROLLOUT_READY_2026-08-09_1801.md`
 
 ## Current known live state
 
-The latest Administrator rollout attempt was safely blocked by `INSTALL_TASK_BACKUP_FAILED AgentCore-Bifrost-Watchdog`. Source diagnosis found Windows reported the absent watchdog as `CmdletizationQuery_NotFound`/`ObjectNotFound`; the installer fix is to classify that as absent-task, not backup failure, then rerun the approved rollout.
+The governed Bifrost rollout is complete. `Test-AgentCoreMorningReadiness.ps1` returned `SUMMARY status=READY pass=23 warn=0 fail=0`.
 
-Expected blockers:
+Current blockers:
 
-1. Bifrost live config has not been rolled forward to the merged source config.
-2. `AgentCore-Bifrost-Watchdog` is not installed live.
+None for Bifrost readiness. Continue to Sally full Swarm acceptance before production project work.
 
 Current good evidence:
 
 - Bifrost health is OK.
+- `AgentCore-Bifrost-Watchdog` is installed and healthy.
 - Cursor global MCP now has only `agentcore-gateway`.
 - `@D:\github\nfa-alerts-enterprise` project-level MCP still has `mcp-codebase-search`, `code-search`, `codebase-memory`, `claude-context`, `codegraph`, and `repomix`.
 - `codegraph` and `repomix` project-level MCP servers passed independent stdio initialize + tools/list smoke tests.
