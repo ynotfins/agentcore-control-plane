@@ -158,7 +158,18 @@ SwarmClaw canary must run through Sally and keep writes inside Swarm-owned roots
 
 ## Final restore-point report
 
-After all acceptance evidence exists, run from `@D:\github\agentcore-control-plane`:
+Before generating the final restore-point report, run the read-only evidence preflight from `@D:\github\agentcore-control-plane`:
+
+```powershell
+.\ops\bifrost\Test-AgentCoreFinalAcceptanceEvidence.ps1 `
+  -SallyAcceptancePath '<path from Sally final acceptance>' `
+  -LangGraphCanaryPath '<path from LangGraph production canary>' `
+  -SwarmClawCanaryPath '<path from Sally SwarmClaw autonomous canary>'
+```
+
+Proceed only if it returns `SUMMARY status=READY`.
+
+After all acceptance evidence exists and the preflight passes, run from `@D:\github\agentcore-control-plane`:
 
 ```powershell
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'

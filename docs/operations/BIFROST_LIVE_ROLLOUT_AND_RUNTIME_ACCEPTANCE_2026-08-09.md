@@ -266,6 +266,17 @@ SwarmClaw canary:
 
 Create a final evidence report after all accepted phases.
 
+Before generating the final restore-point report, run the read-only evidence preflight from `@D:\github\agentcore-control-plane`:
+
+```powershell
+.\ops\bifrost\Test-AgentCoreFinalAcceptanceEvidence.ps1 `
+  -SallyAcceptancePath '<path from Sally final acceptance>' `
+  -LangGraphCanaryPath '<path from LangGraph production canary>' `
+  -SwarmClawCanaryPath '<path from Sally SwarmClaw autonomous canary>'
+```
+
+Proceed only if it returns `SUMMARY status=READY`.
+
 Report generator:
 
 ```powershell
