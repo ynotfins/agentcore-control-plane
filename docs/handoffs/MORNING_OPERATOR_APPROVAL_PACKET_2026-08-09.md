@@ -126,6 +126,14 @@ Accept Sally's result only if it includes:
 
 `ORCHESTRATOR_OK` alone is not enough.
 
+After Sally gives the final report path, run the read-only structural gate from `@D:\github\agentcore-control-plane`:
+
+```powershell
+.\ops\bifrost\Test-SallyAcceptanceEvidence.ps1 -Path '<path from Sally final acceptance>'
+```
+
+Only continue to runtime canaries if the gate returns `SUMMARY status=READY`. This checks report completeness and obvious secret leakage; it does not replace Sally's Swarm-owned validation.
+
 ## Runtime canaries
 
 LangGraph canary must use:

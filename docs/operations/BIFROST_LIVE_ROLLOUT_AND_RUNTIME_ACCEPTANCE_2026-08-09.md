@@ -233,6 +233,14 @@ Final output:
 
 Accept Sally's result only if it includes evidence for SwarmRecall, SwarmVault, autonomous delegation, and no-cross-write boundaries. `ORCHESTRATOR_OK` alone is not enough.
 
+After Sally provides the final report path, run the read-only structural gate from `@D:\github\agentcore-control-plane`:
+
+```powershell
+.\ops\bifrost\Test-SallyAcceptanceEvidence.ps1 -Path '<path from Sally final acceptance>'
+```
+
+This gate checks evidence coverage and obvious secret leakage only. It does not replace Sally's Swarm-owned runtime validation or operator review.
+
 ## Phase 5 — runtime canaries
 
 Run only after Cursor cleanup, Bifrost rollout, and Sally acceptance are green or explicitly waived.
