@@ -4,7 +4,7 @@
 
 **Start file:** `@D:\github\agentcore-control-plane\docs\current\MORNING_START_HERE_2026-08-09.md`
 **Execution packet:** `@D:\github\agentcore-control-plane\docs\handoffs\MORNING_OPERATOR_APPROVAL_PACKET_2026-08-09.md`
-**Latest evidence:** `@D:\github\agentcore-control-plane\audits\MORNING_READINESS_AFTER_CURSOR_CLEANUP_2026-08-09_1526.md`
+**Latest evidence:** `@D:\github\agentcore-control-plane\audits\BIFROST_ROLLOUT_PRIVILEGE_PREFLIGHT_2026-08-09_1530.md`
 
 ## Drift rules
 
@@ -22,7 +22,7 @@
 | M0 — Source lock | Done | Current docs, helper fixes, and checklist committed/pushed to `origin/main`. |
 | M1 — Cursor global MCP cleanup | Done | Global `@C:\Users\ynotf\.cursor\mcp.json` has only `agentcore-gateway`; `Test-AgentCoreBifrostGateway.ps1` passed. |
 | M2 — Project MCP preservation | Done | `@D:\github\nfa-alerts-enterprise\.cursor\mcp.json` still has project-level servers; `codegraph` and `repomix` stdio handshake tests passed. |
-| M3 — Bifrost live rollout | Pending approved live action | `Invoke-AgentCoreMorningRollout.ps1 -ApproveBifrostRollout` completes; config drift clears; `AgentCore-Bifrost-Watchdog` exists; gateway postflight passes. |
+| M3 — Bifrost live rollout | Blocked on Administrator shell | First approved attempt stopped at `INSTALL_PRIVILEGE_PREFLIGHT_FAILED`; rerun from Administrator PowerShell. Pass condition: config drift clears; `AgentCore-Bifrost-Watchdog` exists; gateway postflight passes. |
 | M4 — Sally full Swarm acceptance | Pending Sally report | Sally produces a full Swarm acceptance report and `Test-SallyAcceptanceEvidence.ps1` returns `SUMMARY status=READY`. |
 | M5 — LangGraph canary | Pending runtime canary | Production LangGraph canary evidence exists and uses the AgentCore workflow runtime/checkpoint authority. |
 | M6 — SwarmClaw canary | Pending Sally-owned canary | SwarmClaw autonomous canary evidence exists and proves writes stayed inside Swarm-owned boundaries. |
@@ -31,9 +31,10 @@
 
 ## Current next action
 
-Run the already-approved Bifrost live rollout from an elevated PowerShell if required:
+Run the already-approved Bifrost live rollout from an Administrator PowerShell:
 
 ```powershell
+Set-Location -LiteralPath ('D:' + '\github\agentcore-control-plane')
 .\ops\bifrost\Invoke-AgentCoreMorningRollout.ps1 -ApproveBifrostRollout
 ```
 

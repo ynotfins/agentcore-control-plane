@@ -18,11 +18,11 @@ Checklist and drift guard:
 
 Latest audit:
 
-`@D:\github\agentcore-control-plane\audits\MORNING_READINESS_AFTER_CURSOR_CLEANUP_2026-08-09_1526.md`
+`@D:\github\agentcore-control-plane\audits\BIFROST_ROLLOUT_PRIVILEGE_PREFLIGHT_2026-08-09_1530.md`
 
 ## Current known live state
 
-The latest post-cleanup snapshot found the workstation is source-prepared but still `NOT_READY` for production runtime work until the approved Bifrost live rollout runs.
+The latest rollout attempt was safely blocked by `INSTALL_PRIVILEGE_PREFLIGHT_FAILED`; run the approved Bifrost rollout from an Administrator PowerShell.
 
 Expected blockers:
 

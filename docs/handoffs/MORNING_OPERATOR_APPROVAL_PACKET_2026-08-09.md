@@ -4,7 +4,7 @@
 
 **Shortest morning entry point:** `@D:\github\agentcore-control-plane\docs\current\MORNING_START_HERE_2026-08-09.md`
 
-**Latest evidence snapshot:** `@D:\github\agentcore-control-plane\audits\MORNING_READINESS_AFTER_CURSOR_CLEANUP_2026-08-09_1526.md`
+**Latest evidence snapshot:** `@D:\github\agentcore-control-plane\audits\BIFROST_ROLLOUT_PRIVILEGE_PREFLIGHT_2026-08-09_1530.md`
 
 **Goal checklist / drift guard:** `@D:\github\agentcore-control-plane\docs\current\GOAL_COMPLETION_CHECKLIST_2026-08-09.md`
 
@@ -14,7 +14,7 @@
 
 ## Current known state
 
-- Bifrost is currently healthy, but live runtime config has not been rolled forward to the merged source config.
+- Bifrost is currently healthy, but live runtime config has not been rolled forward to the merged source config. The first approved rollout attempt stopped at `INSTALL_PRIVILEGE_PREFLIGHT_FAILED`; rerun from Administrator PowerShell.
 - Cursor global MCP cleanup is complete; global Cursor now has only `agentcore-gateway`.
 - `@D:\github\nfa-alerts-enterprise` project-level MCP still has `mcp-codebase-search`, `code-search`, `codebase-memory`, `claude-context`, `codegraph`, and `repomix`; AgentCore global cleanup did not remove these project-level servers.
 - `\AgentCore\AgentCore-Bifrost-Watchdog` is not installed live.
