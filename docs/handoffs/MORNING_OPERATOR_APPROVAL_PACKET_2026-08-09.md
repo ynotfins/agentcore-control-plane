@@ -19,7 +19,7 @@
 Run from `@D:\github\agentcore-control-plane`:
 
 ```powershell
-.\ops\bifrost\Test-AgentCoreMorningReadiness.ps1
+.\ops\bifrost\Invoke-AgentCoreMorningRollout.ps1
 ```
 
 Expected before approvals:
@@ -36,6 +36,13 @@ Expected failures before approvals:
 
 Any additional failure is a stop condition.
 
+The helper above is read-only unless explicit approval switches are supplied.
+For direct checker output only, run:
+
+```powershell
+.\ops\bifrost\Test-AgentCoreMorningReadiness.ps1
+```
+
 ## Approval 1 — Cursor global MCP cleanup
 
 Approve this exact live action:
@@ -45,6 +52,12 @@ I approve live cleanup of @C:\Users\ynotf\.cursor\mcp.json back to the single ag
 ```
 
 After approval, run from `@D:\github\agentcore-control-plane`:
+
+```powershell
+.\ops\bifrost\Invoke-AgentCoreMorningRollout.ps1 -ApproveCursorCleanup
+```
+
+Equivalent expanded command:
 
 ```powershell
 .\ops\bifrost\Invoke-AgentCoreIdeGatewayCutover.ps1 `
@@ -70,6 +83,12 @@ I approve governed Bifrost live rollout from @D:\github\agentcore-control-plane 
 ```
 
 Run in elevated PowerShell from `@D:\github\agentcore-control-plane`:
+
+```powershell
+.\ops\bifrost\Invoke-AgentCoreMorningRollout.ps1 -ApproveBifrostRollout
+```
+
+Equivalent expanded commands:
 
 ```powershell
 .\ops\bifrost\Install-AgentCoreBifrostGateway.ps1 `
