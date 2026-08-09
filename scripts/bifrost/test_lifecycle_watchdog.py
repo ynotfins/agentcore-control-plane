@@ -701,6 +701,20 @@ def test_installer_transaction_rolls_back_and_fails_closed() -> None:
         assert task_model == {"gateway": "gateway-original", "watchdog": "watchdog-original"}
 
 
+def test_installer_classifies_windows_cim_missing_task_as_absent() -> None:
+    installer_source = (
+        REPO_ROOT / "ops" / "bifrost" / "Install-AgentCoreBifrostGateway.ps1"
+    ).read_text(encoding="utf-8")
+
+    assert "function Test-ScheduledTaskNotFoundError" in installer_source
+    assert "FullyQualifiedErrorId" in installer_source
+    assert "CategoryInfo.Category" in installer_source
+    assert "CategoryInfo.Reason" in installer_source
+    assert "CmdletizationQuery_NotFound" in installer_source
+    assert "ObjectNotFound" in installer_source
+    assert "if (Test-ScheduledTaskNotFoundError $_)" in installer_source
+
+
 def test_installer_failure_after_render_restores_config_environment_and_tasks(
     tmp_path: Path,
 ) -> None:

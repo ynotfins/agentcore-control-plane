@@ -37,6 +37,17 @@ function Write-AgentCoreInfo([string]$Message) {
   Write-Host "[Install-AgentCoreBifrostGateway] $Message"
 }
 
+function Test-ScheduledTaskNotFoundError($ErrorRecord) {
+  $parts = @(
+    [string]$ErrorRecord.Exception.Message,
+    [string]$ErrorRecord.FullyQualifiedErrorId,
+    [string]$ErrorRecord.CategoryInfo.Category,
+    [string]$ErrorRecord.CategoryInfo.Reason
+  ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+  $errorText = $parts -join ' '
+  return ($errorText -match '(?i)not found|cannot find|does not exist|0x80070002|CmdletizationQuery_NotFound|ObjectNotFound')
+}
+
 function New-BifrostTaskSpecs([string]$PowerShellPath) {
   $launchScript = Join-Path $PSScriptRoot 'Launch-AgentCoreBifrostGateway.ps1'
   $watchdogScript = Join-Path $PSScriptRoot 'Invoke-AgentCoreBifrostWatchdog.ps1'
@@ -377,7 +388,7 @@ function Get-TaskDefinitionBackup([string]$Name) {
   try {
     $existing = Get-ScheduledTask -TaskPath $TaskPath -TaskName $Name -ErrorAction Stop
   } catch {
-    if ($_.Exception.Message -match '(?i)not found|cannot find|does not exist|0x80070002') {
+    if (Test-ScheduledTaskNotFoundError $_) {
       return [pscustomobject]@{ Name = $Name; Exists = $false; BackupAvailable = $true; Definition = $null }
     }
     return [pscustomobject]@{ Name = $Name; Exists = $true; BackupAvailable = $false; Definition = $null }

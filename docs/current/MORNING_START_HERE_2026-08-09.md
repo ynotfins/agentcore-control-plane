@@ -18,11 +18,11 @@ Checklist and drift guard:
 
 Latest audit:
 
-`@D:\github\agentcore-control-plane\audits\BIFROST_ROLLOUT_PRIVILEGE_PREFLIGHT_2026-08-09_1530.md`
+`@D:\github\agentcore-control-plane\audits\BIFROST_ROLLOUT_TASK_BACKUP_CLASSIFICATION_FIX_2026-08-09_1641.md`
 
 ## Current known live state
 
-The latest rollout attempt was safely blocked by `INSTALL_PRIVILEGE_PREFLIGHT_FAILED`; run the approved Bifrost rollout from an Administrator PowerShell.
+The latest Administrator rollout attempt was safely blocked by `INSTALL_TASK_BACKUP_FAILED AgentCore-Bifrost-Watchdog`. Source diagnosis found Windows reported the absent watchdog as `CmdletizationQuery_NotFound`/`ObjectNotFound`; the installer fix is to classify that as absent-task, not backup failure, then rerun the approved rollout.
 
 Expected blockers:
 
