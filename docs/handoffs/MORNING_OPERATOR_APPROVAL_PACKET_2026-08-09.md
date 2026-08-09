@@ -2,6 +2,8 @@
 
 **Purpose:** concise execution packet for moving from source-ready to live-ready.
 
+**Shortest morning entry point:** `@D:\github\agentcore-control-plane\docs\current\MORNING_START_HERE_2026-08-09.md`
+
 **Full runbook:** `@D:\github\agentcore-control-plane\docs\operations\BIFROST_LIVE_ROLLOUT_AND_RUNTIME_ACCEPTANCE_2026-08-09.md`
 
 **Current source-only status:** verify at runtime with `git log -1 --oneline`. This packet is intentionally not pinned to an exact current SHA so source-only readiness commits do not make the packet stale.
@@ -11,7 +13,7 @@
 - Bifrost is currently healthy, but live runtime config has not been rolled forward to the merged source config.
 - Cursor global MCP currently has extra global entries and must be returned to only `agentcore-gateway`.
 - `\AgentCore\AgentCore-Bifrost-Watchdog` is not installed live.
-- Sally returned `ORCHESTRATOR_OK`; treat that as orchestrator health only, not full SwarmRecall/SwarmVault/autonomous-team acceptance.
+- Sally returned `Canary passed cleanly. No tasks queued, no active schedules, all agents idle. System is healthy. ORCHESTRATOR_OK`; treat that as operator-reported orchestrator health only, not full SwarmRecall/SwarmVault/autonomous-team acceptance.
 - No live Cursor, Bifrost scheduled task, Bifrost runtime config, Swarm runtime, database, or IDE configuration mutation has been performed by this packet.
 
 ## First command after operator returns

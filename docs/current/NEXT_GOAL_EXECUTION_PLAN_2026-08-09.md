@@ -2,6 +2,7 @@
 
 **Created:** 2026-08-09
 **Companion handoff:** `@D:\github\agentcore-control-plane\docs\handoffs\AGENTCORE_NEXT_GOAL_HANDOFF_2026-08-09.md`
+**Morning start pointer:** `@D:\github\agentcore-control-plane\docs\current\MORNING_START_HERE_2026-08-09.md`
 **Authority chain:** `PROJECT_ANCHOR.md` -> `DOC_AUTHORITY.md` -> `BLUEPRINT.md` -> `CONTEXT_BLOCK.md` -> `docs\memory-platform\MEMORY_PLATFORM_EXECUTION_PLAN.md`
 **Scope:** AgentCore production hardening, Swarm health coordination through Sally, MCP placement certification, and runtime acceptance.
 
@@ -71,6 +72,8 @@ Exit evidence:
 ## Phase 1 - Sally And Swarm Health
 
 **Purpose:** Get Sally/SwarmClaw back to a reliable starting point without AgentCore taking Swarm ownership.
+
+Current operator-reported health evidence: Sally returned `Canary passed cleanly. No tasks queued, no active schedules, all agents idle. System is healthy. ORCHESTRATOR_OK`. This is orchestrator health evidence only; it does not replace the full SwarmRecall/SwarmVault/autonomous-runtime acceptance report.
 
 Steps:
 
