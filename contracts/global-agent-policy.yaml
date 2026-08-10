@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-08-06"
+policy_revision: "2026-08-10"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -37,12 +37,13 @@ mandatory_rules:
     title: Swarm isolation
     rule: >-
       SwarmVault and SwarmClaw are a separate execution ecosystem. Neutral shared SwarmRecall is
-      machine-level semantic-memory infrastructure and may be used by AgentCore only through the
-      server-side agentcore-memory projection; ordinary IDEs must never receive raw SwarmRecall
+      the PC-native semantic memory/context plane and may be used by AgentCore only through the
+      server-side agentcore-memory access facade/projection adapter; ordinary IDEs must never receive raw SwarmRecall
       MCP tools, database credentials, or Recall API keys. Never require SwarmVault, SwarmClaw,
       or Swarm-owned file roots for AgentCore / enrolled non-Swarm work.
       Never modify Swarm product installs. OpenClaw/ClawX are Swarm-managed and outside the
-      AgentCore baseline. No normal AgentCore IDE continuity on Swarm projects: if the selected
+      AgentCore baseline. AgentCore PG18 remains canonical for exact evidence, recovery, policy,
+      generated projections, and LangGraph checkpoints. No normal AgentCore IDE continuity on Swarm projects: if the selected
       path is Swarm-owned, HARD STOP with swarm_project_refused. Do not persist Swarm work
       through AgentCore memory, project router, or IDE profiles. A neutral dual workspace may
       be used only for read-only collision and boundary audits. SwarmClaw uses its own Recall

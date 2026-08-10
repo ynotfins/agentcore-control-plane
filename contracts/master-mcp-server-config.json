@@ -2,6 +2,18 @@
   "schema_version": "2026-06-26",
   "contract_id": "agentcore.master-mcp-server-config.v1",
   "authority": "D:\\github\\agentcore-control-plane",
+  "lifecycle_status": "historical_superseded_pre_bifrost",
+  "do_not_use_for_current_non_swarm_ide_setup": true,
+  "superseded_by": [
+    "PROJECT_ANCHOR.md",
+    "DOC_AUTHORITY.md",
+    "BLUEPRINT.md",
+    "CONTEXT_BLOCK.md",
+    "MASTER_CONFIG_AND_PROMPT.md",
+    "contracts/bifrost-upstream-mcp-registry.json",
+    "contracts/agentcore-gateway-client.json"
+  ],
+  "current_memory_authority_note": "Current ordinary IDE memory path is agentcore-gateway -> agentcore-memory access facade -> neutral SwarmRecall for PC-native semantic memory/context, with AgentCore PG18 retained for exact evidence, recovery, policy, and LangGraph checkpoints. The legacy fields below are historical evidence unless a current validator explicitly consumes them for migration compatibility.",
   "live_ops_root": "D:\\MCP-Control-Plane",
   "purpose": "Canonical MCP server contract for AgentCore IDE clients. Use this to verify mandatory and essential MCP servers, client-specific surfaces, retired routes, and unique setup requirements without exposing secrets.",
   "normal_memory_rule": {

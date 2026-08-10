@@ -4,6 +4,13 @@
 **Purpose:** Verify or reject the planning assumption: *"OpenClaw exposes a universal OpenAI-compatible gateway at `localhost:3000/v1` and `/mcp` that can transparently run every IDE through Lossless Claw."*
 **Verdict:** **REJECTED.** See §1.
 
+> **HISTORICAL EVIDENCE ONLY — SUPERSEDED BY 2026-08-10 AUTHORITY.**
+> This report correctly rejected the OpenClaw universal-gateway assumption in July, but its
+> statement that the canonical entry point is direct SwarmRecall MCP is no longer current.
+> Current ordinary IDE memory/context route is `agentcore-gateway` -> `agentcore-memory`
+> access facade -> neutral SwarmRecall server-side semantic adapter; SwarmRecall is the
+> PC-native semantic memory/context plane and is not exposed as raw IDE MCP.
+
 ---
 
 ## 1. Verdict (Executive)

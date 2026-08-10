@@ -1,6 +1,6 @@
 # MASTER_CONFIG_AND_PROMPT.md — AgentCore Universal IDE Self-Enrollment Package
 
-**Updated:** 2026-08-10 — PC-native SwarmRecall semantic-memory alignment under `AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT`; single-gateway contract unchanged.
+**Updated:** 2026-08-04 — neutral LocalApps storage and AgentCore staging reconciled under `AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE`; single-gateway contract unchanged.
 **Repository:** `@D:\github\agentcore-control-plane`
 **Authority:** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → current contracts/runbooks
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`, `contracts/global-agent-policy.yaml`, `contracts/model-context-profiles.json`
@@ -29,7 +29,7 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 
 - AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm-owned runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
 - Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
-- Neutral shared SwarmRecall is the sole bounded exception under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: it is the **PC-native semantic memory/context plane**. AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own adapter. It is semantic memory/context, never canonical evidence, checkpoints, policy, or execution state.
+- Neutral shared SwarmRecall is the sole bounded exception under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own adapter. It is a semantic projection, never canonical evidence, checkpoints, policy, or execution state.
 - No canonical resource may be jointly owned.
 - Third-party local apps must not place durable databases, vector stores, indexes, app data, runtime state, or persistent caches on `C:` or `D:`. Source repos may live on `D:`; durable local-app data defaults to `I:\LocalApps\<AppName>` and backups to `E:\LocalApps\Backups\<AppName>`.
 - `I:\LocalApps` is neutral application storage, not AgentCore or Swarm. Each application owns separate data, database, index, credential, service, log, backup, and recovery boundaries; no application receives raw access to another application's database.
@@ -72,19 +72,16 @@ Supported AgentCore / enrolled non-Swarm IDE
        auth: Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
   -> Bifrost native Gateway (F:\AgentCore\runtime\bifrost, bifrost-http.exe)
   -> approved upstream MCP servers from contracts/bifrost-upstream-mcp-registry.json
-  -> agentcore-memory access facade
-     +-- neutral SwarmRecall: PC-native semantic memory/context
-     +-- AgentCore PG18: exact evidence, recovery, policy, LangGraph checkpoints
 ```
 
 Never paste the full upstream registry into an IDE. Never add a second AgentCore MCP front door. Shared gateway tools must be global/read-only or carry explicit project/session identity. Implicit project-bound upstreams remain dormant; native IDE tools and explicit-cwd local CLIs provide project-local execution.
 
 ### Responsibility model and separate transport planes
 
-- **Neutral SwarmRecall:** PC-native semantic memory/context plane reached through bounded server-side adapters; never a raw IDE MCP.
-- **AgentCore:** canonical PG18 evidence, exact recovery, workflow/policy state, LangGraph checkpoints, and generated projections.
+- **AgentCore:** canonical PG18 evidence, exact recovery, workflow/policy state, and generated projections.
 - **Bifrost:** sole normal IDE MCP front door, MCP aggregation, authentication, capability profiles, leases, audit, and upstream lifecycle.
 - **Portable Context Engine:** host lifecycle adapters and rolling-context orchestration above `agentcore-memory`.
+- **Neutral SwarmRecall:** machine-level semantic projections reached through bounded server-side adapters; never a raw IDE MCP.
 - **Context Fabric:** project-local committed snapshot, decision projection, bounded briefing, and drift warning; rebuildable and non-canonical.
 - **Arabold Docs:** local, version-labelled official-document corpus used before version-sensitive implementation.
 - **AgentCore lifecycle skill:** `@D:\github\agentcore-control-plane\skills\agentcore-project-lifecycle\SKILL.md` is the governed semantic task/memory/STATE/tool-routing contract. Host delivery status is defined only by `@D:\github\agentcore-control-plane\contracts\agentcore-alignment-skill-hosts.json`; file presence never upgrades a host beyond `installed_unverified`.
@@ -152,7 +149,7 @@ Mutable Swarm runtime facts are owned by `@D:\github\swarm-ecosystem-control` on
 
 ## 4. Stable memory lifecycle — ten tools
 
-The canonical AgentCore memory access identity is `agentcore-memory` (Bifrost client name `agentcore_memory`). It is the governed facade for AgentCore/enrolled non-Swarm IDEs; the PC-native semantic memory/context plane behind its bounded projection adapter is neutral SwarmRecall. The normal agent surface is **exactly ten tools**:
+The canonical AgentCore memory identity is `agentcore-memory` (Bifrost client name `agentcore_memory`). The normal agent surface is **exactly ten tools**:
 
 1. `memory_status`
 2. `startup_context`
@@ -169,7 +166,7 @@ Project-router surface (four tools) is operator-only maintenance: `project_list`
 
 No SQL, DDL, database-admin, backup-admin, or Bifrost-admin tools are exposed to normal agents. Normal agents have no direct database access; never put `AGENT_CORE_PG*` credentials in IDE configs. `Obsidian Vault` is preserved as an application and vault outside the default MCP surface; the default gateway baseline exposes zero Obsidian tools.
 
-AgentCore durable exact evidence plus neutral SwarmRecall semantic memory are **effectively unbounded** by model-token limits. Model context limits control only one assembled request. Compaction is **non-destructive**: summaries are versioned and expandable, and no summary may replace or delete canonical originals. Describe it as **model-limit-aware active context over an effectively unbounded durable local project history, with SwarmRecall as the PC-native semantic memory/context plane**.
+AgentCore durable memory is **effectively unbounded** by model-token limits. Model context limits control only one assembled request. Compaction is **non-destructive**: summaries are versioned and expandable, and no summary may replace or delete canonical originals. Describe it as **model-limit-aware active context over an effectively unbounded durable local project history**.
 
 Normal lifecycle at every new chat (AgentCore / enrolled non-Swarm projects only):
 

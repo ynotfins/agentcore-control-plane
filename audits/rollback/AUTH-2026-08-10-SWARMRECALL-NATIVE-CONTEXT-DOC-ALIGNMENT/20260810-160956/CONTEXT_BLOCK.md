@@ -3,19 +3,19 @@ document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
 authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
-verified_at: 2026-08-10
+verified_at: 2026-08-05
 canonical_repository: D:\github\agentcore-control-plane
 locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
-current_acceptance: audits/RESTORE_POINT_RUNTIME_ACCEPTANCE_20260809-220421.md
-current_alignment_approval: AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT
+current_acceptance: audits/AGENTCORE_LANGGRAPH_AUTHORITY_RECONCILIATION_2026-08-04.md
+current_alignment_approval: AUTH-2026-08-05-MEMORY-CONTEXT-AUTHORITY-RECONCILIATION
 ---
 
 # AgentCore Canonical Context Block
 
 Read `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` before this file. `BLUEPRINT.md` owns stable architecture and locked outcomes. This file owns mutable current posture. Generated `.agentcore/STATE.md`, `.agentcore/DECISIONS.md`, and `.agentcore/CONTEXT_INDEX.md` are subordinate projections and must not be edited directly.
 
-Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory/context plane**, while **AgentCore PG18 remains the canonical exact-evidence, policy, recovery, and LangGraph checkpoint authority**. `agentcore-memory` is the AgentCore-governed access facade and lifecycle surface; it is not the top semantic-memory authority. `docs/current/PC_MEMORY_CONTEXT_WIRING_2026-08-05.md` records the reconciliation model. Do not collapse these into one database authority.
+Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory/context plane**, while **AgentCore PG18 remains the canonical exact-evidence, policy, recovery, and LangGraph checkpoint authority**. `docs/current/PC_MEMORY_CONTEXT_WIRING_2026-08-05.md` records the reconciliation model. Do not collapse these into one database authority.
 
 ## 0. Current platform posture — VERIFIED 2026-08-04
 
@@ -25,7 +25,7 @@ Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory
 | Bifrost | Native `2.0.0-prerelease1` under `F:\AgentCore\runtime\bifrost`; scheduled owner `\AgentCore\AgentCore-Bifrost-Gateway`; `127.0.0.1:8080/health` healthy | Live status and gateway acceptance pass |
 | IDE MCP front door | Exactly one `agentcore-gateway` at `http://127.0.0.1:8080/mcp` | Cursor live config: one entry, environment-backed bearer, no MCP_DOCKER |
 | Gateway surface | Exact ten-tool `agentcore-memory` identity retained; ordinary profiles exclude the operator router | Live authenticated probes are required for mutable totals; do not copy a point-in-time aggregate tool count into client configuration |
-| AgentCore memory facade | source and live `agentcore-memory` `0.9.1`; PG18 reachable at `127.0.0.1:55433`; neutral SwarmRecall is the semantic target behind the bounded adapter | Every scoped call requires exact enrolled `project_key` + `project_root`; task sessions are also bound to client, agent, device, user, canonical repository, and worktree; ten-tool identity unchanged |
+| AgentCore memory | source and live `agentcore-memory` `0.9.1`; PG18 reachable at `127.0.0.1:55433` | Every scoped call requires exact enrolled `project_key` + `project_root`; task sessions are also bound to client, agent, device, user, canonical repository, and worktree; ten-tool identity unchanged |
 | Project enrollment | `contracts/agentcore-project-enrollment.json`; default deny; exact key + exact repository/worktree path | Shared by Cursor bootstrap, memory facade, operator router, and child launcher; ordinary IDEs cannot mutate enrollment/router state |
 | Device identity | `legacy_compat`; writes require signed device assertion; unsigned reads remain temporarily permitted | `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md`; migration window ends 2026-08-09 |
 | Cognee | `available`, version `1.3.0`, isolated native Windows venv under `F:\AgentCore\runtime\agentcore-memory\cognee` | Live `memory_status` after governed v0.9.1 promotion; canonical retrieval remains PostgreSQL-backed |
@@ -44,7 +44,7 @@ The Bifrost process is healthy now. Prior Cursor “Not connected” incidents w
 AgentCore / enrolled non-Swarm IDE or workflow
   |
   +-- MCP tools --> agentcore-gateway / Bifrost :8080
-  |                  +-- agentcore-memory (10-tool access facade)
+  |                  +-- agentcore-memory (10-tool facade)
   |                  +-- operator-only project-router maintenance
   |                  +-- other governed upstreams by profile/lease
   |                  +-- no implicit-project filesystem/semantic/drift upstreams
@@ -55,10 +55,10 @@ AgentCore / enrolled non-Swarm IDE or workflow
                                  +-- no canonical database ownership
 
 agentcore-memory
-  +-- neutral SwarmRecall adapter: PC-native semantic memory/context
   +-- PG18 agent_core: canonical identity, evidence, summaries, policy, workflow metadata
   +-- PG18 LangGraph checkpoint tables: canonical production checkpoints
   +-- Cognee adapter: optional curated graph processing in its isolated venv
+  +-- neutral Recall adapter: semantic projection only
   +-- generated read-only STATE/DECISIONS/CONTEXT_INDEX projections
 ```
 
@@ -69,7 +69,7 @@ agentcore-memory
 | Canonical truth and recovery | AgentCore | Live |
 | MCP aggregation and governance | Bifrost | Live |
 | Rolling context and host portability | Context Engine | v0.2.4 exact-installed and live-certified |
-| PC-native semantic memory/context | Neutral SwarmRecall | Live/healthy |
+| Shared semantic projection | Neutral SwarmRecall | Live/healthy |
 | Project committed context and drift | Context Fabric | Adopted repo-locally; shared Bifrost exposure dormant |
 | Current upstream documentation | Arabold Docs | Required candidate corpus indexed and retrieval-proven; Bifrost corpus has an explicit metadata limitation |
 | Semantic code intelligence | Native IDE/project-local tools; Serena catalogued | Shared Bifrost Serena dormant until explicit per-session routing exists |
@@ -94,7 +94,7 @@ The single `agentcore-gateway` MCP entry does not make Cursor model prompts trav
 ## 2. Memory, context, and project isolation
 
 - PG18 is the canonical exact-evidence and workflow authority.
-- The Context Engine orchestrates AgentCore host lifecycle, retrieval, handoff, compaction, and active-context assembly above the stable `agentcore-memory` surface; it does not expose a second IDE gateway.
+- The Context Engine orchestrates rolling context above the stable `agentcore-memory` surface; it does not expose a second IDE gateway.
 - Neutral Recall / SwarmRecall is the PC-native semantic memory/context plane. It holds global/per-project curated semantic projections through bounded adapters. It does not hold the only copy of raw prompts, LangGraph checkpoints, policy, or workflow state.
 - SwarmClaw and LangGraph may use the same neutral Recall service through different bounded adapters, while execution state, databases, drives, credentials, and control planes remain separate.
 - Every memory/session write includes project and session identity, idempotency, trust, and provenance. Cross-project writes and foreign-session writes are rejected.

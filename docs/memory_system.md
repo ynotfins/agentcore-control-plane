@@ -2,7 +2,8 @@
 
 > **HISTORICAL SNAPSHOT — SUPERSEDED (2026-07-14).** This describes the pre-Bifrost PG16 memory
 > system (`global-memory-gateway`, `memory_append`/`memory_search`). Current IDE route:
-> `agentcore-gateway` → `agentcore-memory`. Current implementation authority:
+> `agentcore-gateway` -> `agentcore-memory` -> neutral SwarmRecall server-side semantic adapter.
+> Current implementation authority:
 > `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`. SwarmRecall/SwarmVault content below
 > is Swarm-ecosystem-only. Read for historical facts, not as current instructions.
 
@@ -22,16 +23,16 @@ AgentCore memory is local-first.
 
 AgentCore does not use `.env` files. All secrets and runtime credentials are stored in Windows Environment Variables. Documentation may list variable names only, never values.
 
-## Current Runtime Facts
+## Historical Runtime Facts
 
-- Active database: `127.0.0.1:55432/agent_core`
+- Historical database at time of report: `127.0.0.1:55432/agent_core`
 - Active vector table: `global_vector_memory_store`
 - Active telemetry table: `agent_cross_project_telemetry`
 - Active normalized tables: `system_info`, `projects`, `project_facts`, `messages`, `embeddings`
-- Active drive: `F:\AgentCore`
+- Historical active drive: `F:\AgentCore`
 - Archive drive: `E:\AgentCoreArchive`
 - Canonical Git source repo: `D:\github\agentcore-control-plane`
-- Current live ops root: `D:\MCP-Control-Plane`
+- Historical live ops root: `D:\MCP-Control-Plane`
 
 ## Memory Flow
 

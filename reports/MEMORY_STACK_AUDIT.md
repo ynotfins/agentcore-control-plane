@@ -2,6 +2,12 @@
 
 **Generated:** 2026-07-03
 **Scope:** Inventory, posture, and audit of every memory and context backend installed on CHAOSCENTRAL. Maps each component to its role in the architecture options.
+
+> **HISTORICAL EVIDENCE ONLY — SUPERSEDED BY 2026-08-10 AUTHORITY.**
+> This report predates the PostgreSQL 18 AgentCore platform and the neutral PC-native
+> SwarmRecall semantic-memory alignment. Do not use its PG16, `F:\AgentCore\agentmemory`,
+> SwarmVault, or direct SwarmRecall routing claims as current instructions. Current authority:
+> `PROJECT_ANCHOR.md` -> `DOC_AUTHORITY.md` -> `BLUEPRINT.md` -> `CONTEXT_BLOCK.md`.
 **Source contracts:**
 - `D:\github\agentcore-control-plane\docs\memory_system.md`
 - `D:\github\agentcore-control-plane\docs\SYSTEM_HANDOVER_BLUEPRINT.md`

@@ -27,7 +27,9 @@
     "docs\\CONTEXT_WINDOW_OPTIMIZATION_POLICY.md",
     "docs\\PLUGIN_EXTENSION_SECURITY_MONITORING.md",
     "docs\\AGENTCORE_AUTOMATION_OPERATIONS.md",
-    "contracts\\master-mcp-server-config.json"
+    "contracts\\bifrost-upstream-mcp-registry.json",
+    "contracts\\agentcore-gateway-client.json",
+    "MASTER_CONFIG_AND_PROMPT.md"
   ],
   "validation": {
     "chaoscentral_refresh": "powershell -NoProfile -ExecutionPolicy Bypass -File D:\\ChaosCentral-Current-Build\\scripts\\Refresh-ChaosCentralInventory.ps1",

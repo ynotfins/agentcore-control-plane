@@ -1,6 +1,6 @@
 # Global Agent Rules
 
-> **Updated 2026-07-31 (ecosystem separation):** Drive roles align with `PROJECT_ANCHOR.md`.
+> **Updated 2026-08-10 (PC-native SwarmRecall semantic-memory alignment):** Drive roles and memory/context authority align with `PROJECT_ANCHOR.md`.
 > **Canonical policy pointer (2026-07-14):** The full canonical global agent policy now lives in
 > `rules/canonical/GLOBAL_AGENT_RULES.md` and `contracts/global-agent-policy.yaml`, with project
 > execution standards in `docs/agent-policy/`. This file remains for the environment-variable and
@@ -33,7 +33,7 @@ Known current AgentCore variables include:
 ### Normal IDE Agents
 
 - No direct SQL into PostgreSQL.
-- Use `agentcore-gateway` → `agentcore-memory` only (the retired `global-memory-gateway` identity must not be reintroduced).
+- Use `agentcore-gateway` -> `agentcore-memory` only for the AgentCore access facade; neutral SwarmRecall is the PC-native semantic memory/context plane behind the bounded server-side adapter. The retired `global-memory-gateway` identity must not be reintroduced.
 - Read project facts and static facts before planning.
 
 ### Trusted Ingest Agents

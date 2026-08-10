@@ -1,0 +1,91 @@
+schema_version: 1
+authority_owner: agentcore-control-plane
+authority_owner_path: D:\github\agentcore-control-plane
+approval_identity_policy:
+  allowed_capabilities:
+    - authority_maintainer
+    - projection_worker
+    - normal_builder
+    - independent_reviewer
+  model_names_are_not_authorization: true
+approval_id_pattern: '^AUTH-[0-9]{4}-[0-9]{2}-[0-9]{2}-[A-Z0-9_-]+$'
+default_rollback_required: true
+default_independent_review_required: true
+hash_provenance:
+  algorithm: sha256
+  behavior: record_before_after_hashes_for_protected_changes
+classes:
+  operator_locked:
+    permitted_writer_capability: authority_maintainer
+    required_approval_identifier: true
+    required_validators:
+      - python scripts/validate_authority_lock.py
+      - python scripts/bifrost/validate_contracts.py
+    independent_review_required: true
+    rollback_required: true
+    generated_file_owner: null
+    paths:
+      - PROJECT_ANCHOR.md
+      - BLUEPRINT.md
+      - MILESTONES.md
+      - AUTHORITY_LOCK.md
+      - contracts/authority-lock.yaml
+      - docs/boundaries/SWARM_FOREIGN_BOUNDARY.md
+  governed_mutable:
+    permitted_writer_capability: authority_maintainer
+    required_approval_identifier: true
+    required_validators:
+      - python scripts/validate_authority_lock.py
+      - python scripts/bifrost/validate_contracts.py
+      - python scripts/validate_cursor_prompt_format.py MASTER_CONFIG_AND_PROMPT.md
+    independent_review_required: true
+    rollback_required: true
+    generated_file_owner: null
+    paths:
+      - DOC_AUTHORITY.md
+      - CONTEXT_BLOCK.md
+      - AGENTS.md
+      - CLAUDE.md
+      - MASTER_CONFIG_AND_PROMPT.md
+      - contracts/global-agent-policy.yaml
+      - contracts/bifrost-upstream-mcp-registry.json
+      - contracts/agentcore-gateway-client.json
+      - contracts/foreign-ecosystem-boundaries.yaml
+      - docs/operations/**
+      - docs/agent-policy/**
+  generated_read_only:
+    permitted_writer_capability: projection_worker
+    required_approval_identifier: false
+    required_validators:
+      - python scripts/validate_authority_lock.py
+    independent_review_required: false
+    rollback_required: true
+    generated_file_owner: projection_worker
+    paths:
+      - .agentcore/STATE.md
+      - .agentcore/DECISIONS.md
+      - .agentcore/CONTEXT_INDEX.md
+      - C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
+  normal_workstream:
+    permitted_writer_capability: normal_builder
+    required_approval_identifier: false
+    required_validators:
+      - narrowest relevant project validators
+    independent_review_required: false
+    rollback_required: false
+    generated_file_owner: null
+    paths:
+      - scripts/**
+      - tests/**
+      - docs/**
+      - audits/**
+      - contracts/**
+enforcement:
+  deny_direct_edit_without_capability: true
+  deny_shell_redirect_without_capability: true
+  deny_delete_rename_without_capability: true
+  deny_generated_read_only_direct_edit: true
+  require_generated_provenance_env: AGENTCORE_GENERATED_FILE_OWNER
+  require_authority_capability_env: AGENTCORE_AUTHORITY_CAPABILITY
+  require_approval_id_env: AGENTCORE_AUTHORITY_APPROVAL_ID
+  require_independent_review_marker: independent_review

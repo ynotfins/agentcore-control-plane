@@ -23,10 +23,14 @@ ChaosCentral may discover facts. AgentCore decides policy.
 
 ## Source-Of-Truth Rules
 
-- MCP server requirements live in `contracts\master-mcp-server-config.json`.
+- Current MCP server requirements live in `contracts\bifrost-upstream-mcp-registry.json`,
+  `contracts\agentcore-gateway-client.json`, and `MASTER_CONFIG_AND_PROMPT.md`.
+  `contracts\master-mcp-server-config.json` is a superseded pre-Bifrost reference only.
 - ChaosCentral integration rules live in `contracts\chaoscentral-workhorse-contract.json`.
 - Runtime and automation ownership live in `docs\AGENTCORE_AUTOMATION_OPERATIONS.md`.
-- Database and memory contracts live in `contracts\global-memory-database-contract.json` and memory docs.
+- Database and memory contracts live in `BLUEPRINT.md`, `CONTEXT_BLOCK.md`,
+  `docs\memory-platform\MEMORY_PLATFORM_EXECUTION_PLAN.md`, and current memory docs.
+  `contracts\global-memory-database-contract.json` is historical PG16-era evidence.
 - Do not use ChaosCentral docs as direct renderer inputs unless an AgentCore contract explicitly consumes them.
 
 ## Useful ChaosCentral Outputs

@@ -8,7 +8,6 @@
 > **Operator approval (2026-07-14):** §0.1 Project Execution Boundaries; BLUEPRINT.md locked at hierarchy level 3.
 > **Operator approval (2026-07-31):** Ecosystem and drive separation reconciliation — AgentCore and Swarm are independent control planes; AgentCore hot namespace is `F:\AgentCore\...`; `H:` is reserved for Swarm after relocation acceptance.
 > **Operator approval (2026-08-04):** `AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE` — I: is the neutral `LocalApps` hot-data tier and AgentCore staging moves to `F:\AgentCore\staging`.
-> **Operator approval (2026-08-10):** `AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT` — SwarmRecall is the PC-native semantic memory/context plane; AgentCore remains the governed gateway, exact-evidence, recovery, policy, and LangGraph checkpoint authority.
 
 ---
 
@@ -29,7 +28,7 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 **Hard rules**
 
 - AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm **runtime** (SwarmClaw execution, SwarmVault, Swarm schedules/agents), Swarm credentials as AgentCore baseline credentials, or Swarm backup roots as AgentCore backups.
-- **Neutral shared SwarmRecall exception (AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE; reaffirmed 2026-08-10):** one machine-level SwarmRecall + PG16/pgvector + Meilisearch plane is the **PC-native semantic memory/context plane** and neutral infrastructure (not AgentCore-owned runtime, not Swarm-owned runtime). AgentCore may use it **only** through the server-side `agentcore-memory` adapter. Ordinary IDEs must never embed raw SwarmRecall MCP tools or Recall API keys.
+- **Neutral shared SwarmRecall exception (AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE):** one machine-level SwarmRecall + PG16/pgvector + Meilisearch plane is **neutral infrastructure** (not AgentCore-owned runtime, not Swarm-owned runtime). AgentCore may use it **only** through the server-side `agentcore-memory` adapter. Ordinary IDEs must never embed raw SwarmRecall MCP tools or Recall API keys.
 - Swarm must not reach AgentCore runtime, Bifrost, `agentcore-gateway`, AgentCore PG18 databases, repositories, IDE profiles, credentials, staging, or AgentCore backups. SwarmClaw may call the **neutral** Recall API through its own bounded adapter without calling Bifrost.
 - No **AgentCore-canonical** resource (PG18 evidence/checkpoints, Bifrost, Cognee DB, IDE gateway contracts) may be jointly owned with Swarm. The neutral Recall plane is the deliberate shared exception.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
@@ -53,9 +52,7 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 > ```text
 > IDE agent
 >   -> agentcore-gateway (127.0.0.1:8080/mcp)
->   -> agentcore-memory   (stable ten-tool access facade; live via gateway — do not invent alternate memory MCP entries)
->      +-- neutral SwarmRecall: PC-native semantic memory/context
->      +-- AgentCore PG18: exact evidence, recovery, policy, leases, LangGraph checkpoints
+>   -> agentcore-memory   (stable ten-tool server identity; live via gateway — do not invent alternate memory MCP entries)
 > ```
 >
 > **Swarm exclusion:** Swarm is a separate ecosystem. Do not require Swarm MCP servers in AgentCore IDE baselines. Do not depend on Swarm for AgentCore control-plane work. Do not treat Swarm repositories as AgentCore projects. Swarm product installs are outside AgentCore write authority.
@@ -142,12 +139,10 @@ Swarm ports, Swarm databases, Swarm vault roots, OpenClaw/ClawX gateways, and Sw
 ```text
 IDE agent
   -> agentcore-gateway (http://127.0.0.1:8080/mcp + Bearer BIFROST_MCP_VIRTUAL_KEY)
-  -> agentcore-memory  (stable ten-tool access facade; live as of 2026-07-17)
-     +-- neutral SwarmRecall: PC-native semantic memory/context plane
-     +-- AgentCore PG18: canonical exact evidence/recovery/policy/LangGraph checkpoints
+  -> agentcore-memory  (stable identity; ten-tool surface; live as of 2026-07-17)
 ```
 
-The `agentcore-memory` server id is stable. It is the AgentCore-governed access facade and lifecycle surface, **not** the PC-native semantic-memory authority. The PC-native semantic memory/context authority is neutral SwarmRecall. The full ten-tool memory platform landed with M3.002 and is live-validated (Cursor enrolled 2026-07-17).
+The `agentcore-memory` server id is stable. The full ten-tool memory platform landed with M3.002 and is live-validated (Cursor enrolled 2026-07-17).
 
 Normal agents must not: raw-SQL into `agent_core`; place Postgres secrets in IDE configs; write into Swarm DBs or vaults; direct-write into AgentCore hot artifact roots; direct-write into the active Obsidian vault; print secrets; create `.env` files; open AgentCore memory sessions against Swarm-owned repositories.
 
@@ -169,10 +164,10 @@ No SQL, DDL, database-admin, backup-admin, or Bifrost-admin tools are exposed to
 
 ## 6. Memory System Roles
 
-- `agentcore-memory` = stable AgentCore IDE memory identity and access facade (via Bifrost); routes curated semantic memory/context to the **neutral shared SwarmRecall** plane server-side while retaining exact AgentCore evidence/recovery functions.
+- `agentcore-memory` = stable AgentCore IDE memory identity (via Bifrost); may project curated semantic rows into the **neutral shared SwarmRecall** plane server-side.
 - `agent_core` = governed canonical AgentCore PostgreSQL/pgvector DB for exact evidence, identity, provenance, leases, and LangGraph checkpoints (not direct IDE SQL).
 - Portable Context Engine = `D:\github\agentcore-context-engine` — session/context orchestration above `agentcore-memory` and neutral Recall; does not replace Cognee or PG18 evidence.
-- Neutral shared SwarmRecall (API + PG16/pgvector + Meilisearch) = PC-native semantic memory/context data plane (AUTH-2026-08-01; reaffirmed 2026-08-10).
+- Neutral shared SwarmRecall (API + PG16/pgvector + Meilisearch) = machine-level semantic-memory data plane (AUTH-2026-08-01).
 - SwarmVault / SwarmClaw / SwarmDock / SwarmFeed / SwarmRelay / OpenClaw / ClawX = **Swarm-owned** — not part of the AgentCore IDE mandatory MCP baseline.
 
 ---

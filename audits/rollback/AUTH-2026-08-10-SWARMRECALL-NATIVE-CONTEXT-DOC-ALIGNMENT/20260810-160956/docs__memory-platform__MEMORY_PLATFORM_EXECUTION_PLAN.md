@@ -12,9 +12,9 @@
 These decisions are operator-approved and may not be changed without explicit operator approval:
 
 - **PostgreSQL 18 + pgvector** is the canonical AgentCore authority for identity, evidence, policy, queue, claim, lease, and workflow/LangGraph checkpoint state.
-- **AgentCore itself** owns immutable exact evidence, AgentCore host lifecycle, active-context assembly/recovery (via portable Context Engine + `agentcore-memory`), compaction planning, exact source expansion, project state, and generated STATE.md projections. This is the governed AgentCore access/recovery layer; it is not the PC-native semantic-memory authority.
+- **AgentCore itself** owns immutable evidence, rolling context orchestration (via portable Context Engine + `agentcore-memory`), compaction planning, exact source expansion, project state, and generated STATE.md projections.
 - **Cognee** is the selected curated AgentCore knowledge-graph **processing** subsystem behind an AgentCore adapter (`KnowledgeMemoryPort`). **Mem0 is rejected for v1 and must not be installed.**
-- **Neutral shared SwarmRecall** (AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE; reaffirmed 2026-08-10) is the approved PC-native cross-client **semantic memory/context** plane (global + per-project pools). It is not a second exact-evidence ledger and must not store LangGraph checkpoints or raw transcripts as canonical evidence. Meilisearch is a rebuildable lexical projection of Recall PG rows.
+- **Neutral shared SwarmRecall** (AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE) is the approved cross-client **semantic projection** plane (global + per-project pools). It is not a second exact-evidence ledger and must not store LangGraph checkpoints or raw transcripts as canonical evidence. Meilisearch is a rebuildable lexical projection of Recall PG rows.
 - **Portable Context Engine** repository: `D:\github\agentcore-context-engine` — orchestration above `agentcore-memory` and neutral Recall; does not replace Cognee or PG18.
 - **Bifrost** retains the stable IDE-facing `agentcore-gateway` (`http://127.0.0.1:8080/mcp`).
 - The memory subsystem retains the stable Bifrost upstream identity **`agentcore-memory`**. No IDE configuration change is required at any Milestone.

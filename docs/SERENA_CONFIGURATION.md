@@ -1,13 +1,14 @@
 # Serena MCP Configuration
 
 > **HISTORICAL REFERENCE ONLY — SUPERSEDED (2026-07-14).** Pre-Bifrost Serena configuration reference. Current Serena launch is managed via `contracts/bifrost-upstream-mcp-registry.json` and `ops/bifrost/wrappers/serena-prewarm.js` behind `agentcore-gateway`. Excluded from default ChatGPT Project Sources.
+> Do not treat the body text below as current source-of-truth language where it conflicts with `PROJECT_ANCHOR.md`, `DOC_AUTHORITY.md`, `BLUEPRINT.md`, `CONTEXT_BLOCK.md`, or `MASTER_CONFIG_AND_PROMPT.md`.
 
-This document is the AgentCore source-of-truth for Serena MCP setup on CHAOSCENTRAL.
+This document was the former AgentCore source-of-truth for Serena MCP setup on CHAOSCENTRAL. It is now historical reference only.
 
 ## Current Authority
 
 - Master prompt: `D:\github\agentcore-control-plane\MASTER_CONFIG_AND_PROMPT.md`
-- Machine contract: `D:\github\agentcore-control-plane\contracts\master-mcp-server-config.json`
+- Former machine contract: `D:\github\agentcore-control-plane\contracts\master-mcp-server-config.json` (superseded by the Bifrost registry and gateway client contract)
 - Renderers:
   - `D:\github\agentcore-control-plane\renderers\cursor-global.mcp.json`
   - `D:\github\agentcore-control-plane\renderers\openclaw.openclaw.fragment.json`

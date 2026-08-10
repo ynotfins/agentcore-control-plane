@@ -9,9 +9,10 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
   non-Swarm gateway entry `agentcore-gateway` at `http://127.0.0.1:8080/mcp`.
 - Cursor's canonical global MCP file is `C:\Users\ynotf\.cursor\mcp.json`; project-level
   gateway duplicates are not normal.
-- The default non-Swarm memory identity is `agentcore-memory` behind Bifrost. SwarmRecall,
-  SwarmVault, and SwarmClaw remain separate Swarm ecosystem components and are not required
-  in non-Swarm IDE MCP baselines.
+- The default non-Swarm memory access identity is `agentcore-memory` behind Bifrost.
+  Neutral SwarmRecall is the PC-native semantic memory/context plane behind the bounded
+  server-side adapter. SwarmVault and SwarmClaw remain separate Swarm ecosystem components
+  and are not required in non-Swarm IDE MCP baselines.
 - `global-memory-gateway` remains retired from IDE defaults.
 - Project continuity is default-deny through `contracts/agentcore-project-enrollment.json`.
   The exact project key and repository/worktree path must be enrolled before any memory read/write;
@@ -52,6 +53,6 @@ PostgreSQL 18:   127.0.0.1:55433   (F:\PostgreSQL18\data; canonical AgentCore ag
 PostgreSQL 16:   127.0.0.1:55432   (offline rollback/legacy evidence; never an active route)
 Neutral Recall: 127.0.0.1:65432   (service-owned backend; no direct AgentCore or IDE SQL route)
 
-Neutral semantic exception: SwarmRecall is reached server-side through agentcore-memory only.
+Neutral semantic exception: SwarmRecall is the PC-native semantic memory/context plane and is reached server-side through agentcore-memory only.
 All Swarm runtime paths, launchers, credentials, and mutable facts remain under swarm-ecosystem-control authority.
 ```

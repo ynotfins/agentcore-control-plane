@@ -1,6 +1,12 @@
 # Validation Report
 
-Historical baseline report: this document captures the initial repo/bootstrap validation pass from 2026-06-24. Current source-of-truth status should be read from the newer control-plane docs, current validators, and current handoff documents.
+> **HISTORICAL BASELINE — DO NOT FOLLOW AS CURRENT INSTRUCTIONS.**
+> This document captures the initial repo/bootstrap validation pass from 2026-06-24.
+> It predates the Bifrost single-gateway baseline, PostgreSQL 18 AgentCore authority,
+> neutral PC-native SwarmRecall semantic-memory plane, and current LangGraph runtime.
+> Current source-of-truth status must be read from `PROJECT_ANCHOR.md`,
+> `DOC_AUTHORITY.md`, `BLUEPRINT.md`, `CONTEXT_BLOCK.md`, current validators,
+> and current handoff/evidence documents.
 
 **Superseded by:** `PROJECT_ANCHOR.md`, `DOC_AUTHORITY.md`, `docs/handoffs/AGENTCORE_SWARM_ROLLOUT_HANDOFF_2026-06-30.md`, `artifacts/rollout-2026-06-30/ROLLOUT_REPORT.md`, `database-plan.md`, and the current validators under `validators/` and `ops/Test-AgentCore*.ps1`. Do not use pass/fail status from this file as a current acceptance gate.
 

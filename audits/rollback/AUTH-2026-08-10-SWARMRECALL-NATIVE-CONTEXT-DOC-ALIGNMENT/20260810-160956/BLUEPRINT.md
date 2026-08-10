@@ -5,7 +5,7 @@
 > **Machine:** `CHAOSCENTRAL`
 > **Operator:** Tony Valentine (`ynotf`)
 > **Scope:** Non-Swarm AgentCore platform only
-> **Last updated:** 2026-08-10 (`AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT`; PC-native SwarmRecall semantic-memory alignment)
+> **Last updated:** 2026-08-02 (`AUTH-2026-08-02-AGENTCORE-BIFROST-CONTEXT-ALIGNMENT`; neutral-memory, drift-control, and execution-role reconciliation)
 >
 > This file is the stable blueprint for the memory/context/database build.
 > It defines the goal, architecture, storage roles, immutable guarantees, and Milestone exit criteria.
@@ -38,7 +38,7 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 
 - AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm-owned runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
 - Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
-- The sole shared exception is neutral SwarmRecall under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: it is the **PC-native semantic memory/context plane**. AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own bounded adapter. It owns semantic projections only, never AgentCore evidence/checkpoints or Swarm execution state.
+- The sole shared exception is neutral SwarmRecall under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own bounded adapter. It owns semantic projections only, never AgentCore evidence/checkpoints or Swarm execution state.
 - No canonical resource may be jointly owned. Neutral Recall is non-canonical and independently recoverable from its own governed source rows.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
 - Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
@@ -51,7 +51,7 @@ flowchart LR
     Cold["E:\\AgentCore\\..."]
     Stage["F:\\AgentCore\\staging"]
     GW["agentcore-gateway :8080"]
-    Mem["agentcore-memory<br/>access facade"]
+    Mem["agentcore-memory"]
     PG["PostgreSQL 18 :55433"]
   end
   subgraph SW["Swarm — independently owned"]
@@ -62,7 +62,7 @@ flowchart LR
   Hot --> GW --> Mem --> PG
   Hot --> Cold
   Hot --> Stage
-  NSR["Neutral SwarmRecall<br/>PC-native semantic memory/context"]
+  NSR["Neutral SwarmRecall<br/>semantic projection only"]
   Mem -->|server-side adapter| NSR
   AC -.->|no direct control-plane connectivity| SW
   SW -.->|no direct control-plane connectivity| AC
@@ -91,7 +91,7 @@ Historical, Swarm-only, superseded, and compatibility documents do not override 
 
 ## 2. Final Goal
 
-Build one local, durable, lossless AgentCore access, recovery, and rolling-context platform for every AgentCore / enrolled non-Swarm IDE and agent on `CHAOSCENTRAL`, centered on LangGraph Studio and the AgentCore workflow runtime, while using neutral SwarmRecall as the PC-native semantic memory/context plane. The platform must orchestrate approved IDE and coding agents for maximum engineering benefit within AgentCore’s governed project, safety, validation, and write boundaries.
+Build one local, durable, lossless memory and context platform for every AgentCore / enrolled non-Swarm IDE and agent on `CHAOSCENTRAL`, centered on LangGraph Studio and the AgentCore workflow runtime, able to orchestrate approved IDE and coding agents for maximum engineering benefit within AgentCore’s governed project, safety, validation, and write boundaries.
 
 The platform must:
 
@@ -101,11 +101,11 @@ The platform must:
 - Resume after context resets, IDE restarts, process failures, and machine restarts.
 - Give each project a current, accurate, generated `STATE.md`.
 - Allow all project agents to contribute through governed memory operations.
-- Keep PostgreSQL 18 as the canonical AgentCore exact-evidence, recovery, policy, and LangGraph checkpoint authority.
+- Keep PostgreSQL as the canonical authority.
 - Use Cognee only for curated semantic and relationship memory.
 - Use LangGraph for durable autonomous workflows and checkpoints.
 - Expose memory through the existing Bifrost gateway (`agentcore-gateway`).
-- Keep SwarmVault, SwarmClaw, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, and ClawX as Swarm-owned execution surfaces. Use one **neutral shared SwarmRecall** PC-native semantic memory/context plane (AUTH-2026-08-01) via `agentcore-memory` server-side only for AgentCore/enrolled non-Swarm clients; portable Context Engine at `D:\github\agentcore-context-engine`.
+- Keep SwarmVault, SwarmClaw, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, and ClawX as Swarm-owned execution surfaces. Use one **neutral shared SwarmRecall** semantic plane (AUTH-2026-08-01) via `agentcore-memory` server-side only; portable Context Engine at `D:\github\agentcore-context-engine`.
 - Use Arabold Docs as the local, version-labelled cache of official upstream documentation before version-sensitive implementation decisions.
 - Use Context Fabric as a project-local committed-state and drift-warning plane; it is rebuildable and subordinate to this authority chain and PostgreSQL.
 - Deep Agents (`deepagents==0.6.12`, MIT) may be used as an optional worker harness inside LangGraph nodes; it is not a canonical memory, workflow, policy, or tool authority. See `docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md`.
@@ -124,20 +124,13 @@ AgentCore / enrolled non-Swarm IDEs and agents
 Bifrost: agentcore-gateway  (http://127.0.0.1:8080/mcp)
         |
         v
-Bifrost upstream: agentcore-memory access facade
+Bifrost upstream: agentcore-memory
         |
         +-- Portable Context Engine
         |     - host lifecycle adapters
         |     - rolling context orchestration
         |     - model-budgeted assembly and handoff
         |     - no canonical database ownership
-        |
-        +-- Neutral shared SwarmRecall (server-side adapter)
-        |     - PC-native semantic memory/context plane
-        |     - global and per-project semantic projections
-        |     - bounded adapters only; no raw IDE Recall MCP/API keys
-        |     - no raw transcripts as canonical evidence
-        |     - no LangGraph checkpoints or AgentCore policy state
         |
         +-- PostgreSQL 18 + pgvector on F:
         |     - identity
@@ -172,6 +165,11 @@ Bifrost upstream: agentcore-memory access facade
         |     - reusable patterns
         |     - curated knowledge relationships
         |
+        +-- Neutral shared SwarmRecall (server-side adapter only)
+        |     - global and per-project semantic projections
+        |     - no raw transcripts as canonical evidence
+        |     - no LangGraph checkpoints or AgentCore policy state
+        |
         +-- Generated projections
               - C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
               - <project>\.agentcore\STATE.md
@@ -187,14 +185,14 @@ External boundary (not AgentCore):
 flowchart TB
   IDE["AgentCore IDE / enrolled non-Swarm agent"]
   GW["agentcore-gateway"]
-  MEM["agentcore-memory<br/>access facade"]
+  MEM["agentcore-memory"]
   PG[(PostgreSQL 18 agent_core / cognee_core)]
   BF["F:\\AgentCore\\runtime\\bifrost"]
   ART["F:\\AgentCore hot artifacts"]
   COLD["E:\\AgentCore cold / backups"]
   LG["LangGraph production + Studio"]
   DA["Deep Agents worker harness"]
-  RECALL["Neutral SwarmRecall<br/>PC-native semantic memory/context"]
+  RECALL["Neutral SwarmRecall<br/>semantic projection"]
   SWARM["Swarm independently owned<br/>H: reserved"]
 
   IDE --> GW --> MEM --> PG
@@ -237,7 +235,7 @@ flowchart TB
 | Canonical truth and recovery | AgentCore | PG18 evidence, exact expansion, policy/workflow state, and governed projections |
 | MCP aggregation and governance | Bifrost | Sole normal IDE MCP front door, authentication, capability profiles, leases, audit, and upstream lifecycle |
 | Rolling context | Portable Context Engine | Orchestration above `agentcore-memory`; no raw database or second gateway |
-| PC-native semantic memory/context | Neutral SwarmRecall | Shared global/per-project semantic projections through bounded adapters; never a raw IDE MCP or canonical evidence/checkpoint store |
+| Shared semantic projection | Neutral SwarmRecall | Server-side projection only; never an IDE MCP or canonical evidence store |
 | Project commit context and drift | Context Fabric | Repo-local committed snapshots, decisions, bounded briefings, and drift warnings |
 | Current external documentation | Arabold Docs | Local version-labelled official-doc corpus; not architecture authority |
 | Autonomous workflow | LangGraph | Durable checkpoints, gates, bounded workers, critic, scorer, and judge |
