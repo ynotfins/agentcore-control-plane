@@ -55,7 +55,7 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
     gateway = [ordered]@{
       action = [ordered]@{
         executable = $PowerShellPath
-        arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$launchScript`" -RuntimeRoot `"$RuntimeRoot`" -HostAddress $HostAddress -Port $Port"
+        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$launchScript`" -RuntimeRoot `"$RuntimeRoot`" -HostAddress $HostAddress -Port $Port"
         working_directory = $RuntimeRoot
       }
       trigger = [ordered]@{ type = 'logon'; user = $env:USERNAME }
@@ -72,7 +72,7 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
     watchdog = [ordered]@{
       action = [ordered]@{
         executable = $PowerShellPath
-        arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`""
+        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`""
         working_directory = $RuntimeRoot
       }
       trigger = [ordered]@{

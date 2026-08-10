@@ -892,7 +892,7 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
     assert by_scope_and_command[("gateway", "New-ScheduledTaskAction")] == {
         "Execute": "test-pwsh.exe",
         "Argument": (
-            f'-NoProfile -ExecutionPolicy Bypass -File "{launch_script}" '
+            f'-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "{launch_script}" '
             f'-RuntimeRoot "{runtime_root}" -HostAddress 127.0.0.1 -Port 18080'
         ),
         "WorkingDirectory": str(runtime_root),
@@ -913,7 +913,7 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
     assert by_scope_and_command[("watchdog", "New-ScheduledTaskAction")] == {
         "Execute": "test-pwsh.exe",
         "Argument": (
-            f'-NoProfile -ExecutionPolicy Bypass -File "{watchdog_script}" '
+            f'-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "{watchdog_script}" '
             f'-RuntimeRoot "{runtime_root}" -GatewayUrl http://127.0.0.1:18080 '
             '-TaskPath "\\AgentCore\\" -TaskName "AgentCore-Bifrost-Gateway"'
         ),
