@@ -25,15 +25,15 @@
 | M3 — Bifrost live rollout | Done | `Test-AgentCoreMorningReadiness.ps1` returned `SUMMARY status=READY pass=23 warn=0 fail=0`; config drift cleared via source-rendered runtime candidate; `AgentCore-Bifrost-Watchdog` installed and healthy. |
 | M4 — Sally full Swarm acceptance | Done | Sally report `@H:\SwarmData\claw\workspace\sally\SALLY_FULL_SWARM_ACCEPTANCE_2026-08-09.md`; `Test-SallyAcceptanceEvidence.ps1` returned `SUMMARY status=READY pass=16 fail=0`. |
 | M5 — LangGraph canary | Done | `@D:\github\agentcore-control-plane\audits\LANGGRAPH_TOPOLOGY_CANARY_2026-08-09_1951.md`; production topology fingerprint matched and PostgresSaver authority confirmed. |
-| M6 — SwarmClaw canary | Pending Sally-owned canary | Give Sally `@D:\github\agentcore-control-plane\docs\prompts\SALLY_SWARMCLAW_AUTONOMOUS_CANARY_PROMPT_2026-08-09.md`; SwarmClaw autonomous canary evidence exists and proves writes stayed inside Swarm-owned boundaries. |
-| M7 — Final evidence preflight | Pending final gate | `Test-AgentCoreFinalAcceptanceEvidence.ps1` returns `SUMMARY status=READY`. |
-| M8 — Restore point report | Pending final artifact | `New-AgentCoreRestorePointReport.ps1` generates the final restore-point report after M7 passes. |
+| M6 — SwarmClaw canary | Done | Sally report `@H:\SwarmData\claw\workspace\sally\SWARMCLAW_AUTONOMOUS_CANARY_2026-08-09.md`; autonomous Builder -> QA chain passed and all writes stayed inside Swarm-owned roots. |
+| M7 — Final evidence preflight | Done | `Test-AgentCoreFinalAcceptanceEvidence.ps1` returned `SUMMARY status=READY pass=7 fail=0`. |
+| M8 — Restore point report | Done | `@D:\github\agentcore-control-plane\audits\RESTORE_POINT_RUNTIME_ACCEPTANCE_20260809-220421.md` generated after M7 passed. |
 
 ## Current next action
 
-Continue to M6: Sally-owned SwarmClaw autonomous canary. Give Sally:
+Runtime restore point is generated and ready for commit/push:
 
-`@D:\github\agentcore-control-plane\docs\prompts\SALLY_SWARMCLAW_AUTONOMOUS_CANARY_PROMPT_2026-08-09.md`
+`@D:\github\agentcore-control-plane\audits\RESTORE_POINT_RUNTIME_ACCEPTANCE_20260809-220421.md`
 
 For a real project comparison across LangGraph and SwarmClaw, the operator must supply one shared project goal and acceptance criteria so both runtimes run the same work item.
 
