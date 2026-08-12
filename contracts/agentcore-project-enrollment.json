@@ -18,6 +18,13 @@
       ]
     },
     {
+      "project_key": "openhands",
+      "name": "OpenHands / Agent Canvas",
+      "paths": [
+        "D:\\OpenHands"
+      ]
+    },
+    {
       "project_key": "odysseus",
       "name": "Odysseus",
       "paths": [
