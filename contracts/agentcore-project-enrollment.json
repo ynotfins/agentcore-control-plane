@@ -18,6 +18,13 @@
       ]
     },
     {
+      "project_key": "codebase-analyzer",
+      "name": "Codebase Analyzer Hub",
+      "paths": [
+        "D:\\codebase-analyzer"
+      ]
+    },
+    {
       "project_key": "openhands",
       "name": "OpenHands / Agent Canvas",
       "paths": [
