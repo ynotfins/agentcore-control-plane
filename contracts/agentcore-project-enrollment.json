@@ -32,6 +32,13 @@
       ]
     },
     {
+      "project_key": "nfa-alerts-database",
+      "name": "NFA Alerts Database",
+      "paths": [
+        "D:\\nfa-alerts-database"
+      ]
+    },
+    {
       "project_key": "odysseus",
       "name": "Odysseus",
       "paths": [
