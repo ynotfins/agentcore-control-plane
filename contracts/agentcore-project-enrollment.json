@@ -39,6 +39,13 @@
       ]
     },
     {
+      "project_key": "nfa-notification-collector",
+      "name": "NFA Notification Collector",
+      "paths": [
+        "D:\\github\\nfa-notification-collector"
+      ]
+    },
+    {
       "project_key": "odysseus",
       "name": "Odysseus",
       "paths": [
