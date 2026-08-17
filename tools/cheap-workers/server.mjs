@@ -117,9 +117,9 @@ function formatUserMessage({ task, context, role }) {
 }
 
 async function callOpenRouter(model, args, systemPrompt = WORKER_SYSTEM, mode = "read-only") {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.OPENROUTER_CODEX_API_KEY;
   if (!apiKey) {
-    throw new Error("OPENROUTER_API_KEY is not set in the environment.");
+    throw new Error("OPENROUTER_CODEX_API_KEY is not set in the environment.");
   }
   assertSafeOutboundText([args.task, args.context, args.role]);
 

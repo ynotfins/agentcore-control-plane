@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { assertSafeOutboundText } from "./secret-safety.mjs";
@@ -52,9 +53,18 @@ test("outbound preflight rejects a private-key block", () => {
   );
 });
 
+test("cheap workers require the dedicated Codex OpenRouter key", async () => {
+  for (const relativePath of ["server.mjs", "edit-worker.mjs"]) {
+    const source = await readFile(new URL(relativePath, import.meta.url), "utf8");
+    assert.match(source, /process\.env\.OPENROUTER_CODEX_API_KEY/);
+    assert.doesNotMatch(source, /process\.env\.OPENROUTER_API_KEY/);
+    assert.match(source, /OPENROUTER_CODEX_API_KEY is not set in the environment/);
+  }
+});
+
 test("outbound preflight permits environment variable names and obvious placeholders", () => {
   assert.doesNotThrow(() => assertSafeOutboundText([
-    "Read OPENROUTER_API_KEY from Windows environment variables.",
+    "Read OPENROUTER_CODEX_API_KEY from Windows environment variables.",
     "Authorization: Bearer <token>",
     "apiKey: YOUR_API_KEY"
   ]));

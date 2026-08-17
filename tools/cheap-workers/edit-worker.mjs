@@ -116,9 +116,9 @@ export async function generateLazyEdit({
   basePrompt,
   fetchImpl = fetch
 }) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.OPENROUTER_CODEX_API_KEY;
   if (!apiKey) {
-    throw new Error("OPENROUTER_API_KEY is not set in the environment.");
+    throw new Error("OPENROUTER_CODEX_API_KEY is not set in the environment.");
   }
 
   const contextBlock = context ? `\n\nAdditional context:\n${context}` : "";
@@ -191,9 +191,9 @@ export async function reviewDocumentationChange({
   diff,
   fetchImpl = fetch
 }) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.OPENROUTER_CODEX_API_KEY;
   if (!apiKey) {
-    throw new Error("OPENROUTER_API_KEY is not set in the environment.");
+    throw new Error("OPENROUTER_CODEX_API_KEY is not set in the environment.");
   }
   assertSafeOutboundText([targetPath, instruction, context, diff]);
 

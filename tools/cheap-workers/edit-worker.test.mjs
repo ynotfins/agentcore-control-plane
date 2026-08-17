@@ -377,11 +377,11 @@ test("documentation guard parsing uses the final explicit verdict", () => {
 });
 
 test("lazy edit generation validates and returns the provider-reported model", async (t) => {
-  const previousKey = process.env.OPENROUTER_API_KEY;
-  process.env.OPENROUTER_API_KEY = "test-key";
+  const previousKey = process.env.OPENROUTER_CODEX_API_KEY;
+  process.env.OPENROUTER_CODEX_API_KEY = "test-key";
   t.after(() => {
-    if (previousKey === undefined) delete process.env.OPENROUTER_API_KEY;
-    else process.env.OPENROUTER_API_KEY = previousKey;
+    if (previousKey === undefined) delete process.env.OPENROUTER_CODEX_API_KEY;
+    else process.env.OPENROUTER_CODEX_API_KEY = previousKey;
   });
 
   const result = await generateLazyEdit({

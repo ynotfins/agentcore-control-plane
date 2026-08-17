@@ -25,6 +25,12 @@ Codex remains the architect, authority owner, and final verifier. Model identity
 
 Cross-process compare-and-swap is not available through the Windows filesystem API. The double hash check narrows that race, while the repository's worktree discipline and Git review remain the final concurrency boundary.
 
+## Credentials
+
+Every OpenRouter-backed cheap-worker route requires the Windows User environment variable `OPENROUTER_CODEX_API_KEY`. There is deliberately no fallback to `OPENROUTER_API_KEY`. Morph Fast Apply continues to use `MORPH_API_KEY`.
+
+Secrets must never be written to source, config, `.env`, logs, or docs. After deployment or a config cutover, open a fresh Codex task so the MCP process inherits the new User environment variable.
+
 ## Validate and deploy
 
 ```powershell
