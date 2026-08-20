@@ -113,7 +113,8 @@ def render(profile: dict, policy: dict) -> str:
 def render_install(profile: dict, policy: dict) -> str:
     ide = profile["ide_id"]
     mode = str(profile.get("installation_mode", "unverified"))
-    mcp_template = "MCP_CONFIG_TEMPLATE.toml" if ide == "codex" else "MCP_CONFIG_TEMPLATE.json"
+    mcp_schema = str(profile.get("mcp_schema", "")).lower()
+    mcp_template = "MCP_CONFIG_TEMPLATE.toml" if "toml" in mcp_schema else "MCP_CONFIG_TEMPLATE.json"
     lines = [
         f"# Install / Update — {profile.get('display_name', ide)}",
         "",

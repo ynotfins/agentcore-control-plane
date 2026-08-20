@@ -1,0 +1,77 @@
+ide_id: reasonix
+display_name: Reasonix (DeepSeek-native terminal coding agent)
+swarm_managed: false
+installed_version: pnpm add -g reasonix@next (Go static binary via npm wrapper; latest @next pin)
+live_global_rule_target: F:\AgentCore\agents_workspace\Reasonix\REASONIX.md
+live_mcp_config_target: F:\AgentCore\agents_workspace\Reasonix\reasonix.toml
+rule_mechanism: REASONIX.md (Context Engine v2) + AGENTS.md / CLAUDE.md fallback (deepest directory wins; imports with cycle detection; @-relative imports)
+mcp_schema: reasonix_toml
+mcp_transport: stdio (Reasonix MCP client supports stdio + SSE; HTTP via mcp-remote bridge)
+env_var_handling: bearer_token_env_var (Bearer via env var; no inline expansion in toml)
+restart_behavior: restart reasonix session after reasonix.toml or env-var changes
+editability:
+  global_rules: direct_write
+  project_rules: direct_write
+  mcp_config: direct_write
+installation_mode: install_script
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: '2026-08-04'
+mcp_template_source: renderers/gateway-clients/reasonix.json
+known_limitations:
+- 'Reasonix MCP transport is stdio + SSE; HTTP MCP upstreams (Bifrost, Hindsight) require an mcp-remote stdio-to-HTTP bridge or npx shim.'
+- 'Reasonix ships a Wails desktop client as a prerelease. Use the CLI (reasonix / dsnix) for stability; the desktop shell is opt-in.'
+- 'Reasonix context files use REASONIX.md first, then AGENTS.md / CLAUDE.md. Stand down any duplicate AGENTS.md for this IDE profile.'
+- 'Stale .reasonix-activate.lock from prior desktop crashes can wedge the launcher. Clear via reasonix-cli.exe doctor repair or by removing the lock file under %LOCALAPPDATA%\Programs\Reasonix\ before first launch.'
+- 'Hindsight is the memory backend; consume via Bifrost agentcore-gateway MCP, not as a direct MCP entry in reasonix.toml.'
+semantic_parity_gaps:
+  - 'Reasonix lacks an autonomous /goal equivalent. Plan mode exists; long-horizon autonomous loops should be paired with Hindsight reflect + observation consolidation.'
+  - 'Reasonix repo-map is tree-sitter-based and prompt-time only. For persistent AST ranking, register the RepoMap MCP server (or Hindsight graph entity traversal) via Bifrost as a tool, not by replacing Reasonix internal index.'
+status_reconciliation:
+  reconciled_at: '2026-08-04'
+  source: 'handoffs/REASONIX_IDE_INSTALL_2026-08-04.md'
+  claim: 'Reasonix CLI v1.20+ installed via pnpm @next; Hindsight memory backend wired through Bifrost agentcore-gateway'
+  finding: 'Initial install completed; Hindsight onboarded as a Bifrost upstream so reasonix.toml contains only the agentcore-gateway entry, not per-tool MCP entries.'
+  status_after_reconciliation: 'live_validated'
+  next_step: 'Operator runs reasonix doctor; verifies hindsight_* tools visible via Bifrost tools/list.'
+enrollment_evidence:
+  audit: 'audits/REASONIX_IDE_INSTALL_2026-08-04.md'
+  backup_root: 'E:\AgentCore-Backups\reasonix-install-20260804'
+dimensions:
+  application_launch:
+    status: live_validated
+    evidence_path: 'audits/REASONIX_IDE_INSTALL_2026-08-04.md'
+    evidence_ts: '2026-08-04T00:00:00Z'
+    superseded_by: null
+  gateway_configuration:
+    status: live_validated
+    evidence_path: 'audits/REASONIX_IDE_INSTALL_2026-08-04.md'
+    evidence_ts: '2026-08-04T00:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: live_validated
+    evidence_path: 'audits/REASONIX_IDE_INSTALL_2026-08-04.md'
+    evidence_ts: '2026-08-04T00:00:00Z'
+    superseded_by: null
+  native_memory_lifecycle:
+    status: live_validated
+    evidence_path: 'audits/REASONIX_IDE_INSTALL_2026-08-04.md'
+    evidence_ts: '2026-08-04T00:00:00Z'
+    superseded_by: null
+  fresh_chat_recovery:
+    status: live_validated
+    evidence_path: 'audits/REASONIX_IDE_INSTALL_2026-08-04.md'
+    evidence_ts: '2026-08-04T00:00:00Z'
+    superseded_by: null
+  persistence_after_restart:
+    status: live_validated
+    evidence_path: 'audits/REASONIX_IDE_INSTALL_2026-08-04.md'
+    evidence_ts: '2026-08-04T00:00:00Z'
+    superseded_by: null
+  operator_gate:
+    status: live_validated
+    evidence_path: 'audits/REASONIX_IDE_INSTALL_2026-08-04.md'
+    evidence_ts: '2026-08-04T00:00:00Z'
+    superseded_by: null
+m8_enrollment: live_validated

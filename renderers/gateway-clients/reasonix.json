@@ -1,0 +1,22 @@
+{
+  "mcp_servers": {
+    "agentcore-gateway": {
+      "url": "http://127.0.0.1:8080/mcp",
+      "bearer_token_env_var": "BIFROST_MCP_VIRTUAL_KEY",
+      "enabled": true,
+      "startup_timeout_sec": 300,
+      "tool_timeout_sec": 300
+    }
+  },
+  "_agentcore": {
+    "renderer": "reasonix",
+    "live_format": "toml",
+    "live_path": "F:\\AgentCore\\agents_workspace\\Reasonix\\reasonix.toml",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Sanitized Reasonix TOML renderer; never commit resolved bearer tokens.",
+      "Reasonix may carry one optional Zoo-Code direct MCP companion entry only under AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION."
+    ],
+    "toml_example": "[mcp.servers.agentcore-gateway]\nurl = \"http://127.0.0.1:8080/mcp\"\nbearer_token_env_var = \"BIFROST_MCP_VIRTUAL_KEY\"\nenabled = true\nstartup_timeout_sec = 300\ntool_timeout_sec = 300"
+  }
+}
