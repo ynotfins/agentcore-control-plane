@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "disabled": false,
+      "timeout": 300
+    }
+  },
+  "_agentcore": {
+    "renderer": "zoo-code",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Sanitized merge fragment; never commit or print the resolved virtual key.",
+      "Zoo-Code does not document env-placeholder expansion in persisted MCP JSON. A governed live installer must materialize the Windows User env value into settings/mcp_settings.json only."
+    ]
+  },
+  "_template_note": "DERIVED from renderers/gateway-clients/zoo-code.json. The env token is symbolic and must be resolved only into the protected live config by a governed installer."
+}

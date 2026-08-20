@@ -4,7 +4,7 @@
 ide_id: zed
 display_name: Zed
 swarm_managed: false
-installed_version: 1.13.2
+installed_version: 1.16.1
 live_global_rule_target: C:\Users\ynotf\AppData\Roaming\Zed\AGENTS.md
 live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\Zed\settings.json
 rule_mechanism: Windows personal AGENTS.md + project AGENTS.md + global skills at C:\Users\ynotf\.agents\skills
@@ -20,10 +20,10 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-08-06'
+last_validation_date: '2026-08-20'
 mcp_template_source: renderers/gateway-clients/zed.json
 known_limitations:
-- Zed is installed and launches, but its live settings currently contain no context_servers entry; AgentCore gateway enrollment is not yet certified.
+- Zed is installed and launches; live settings now contain a single agentcore-gateway context server, but native memory lifecycle certification is still not complete.
 - Zed Agent, External Agents, and Terminal Threads have distinct configuration boundaries; this profile certifies only the native Zed Agent path.
 - Configuration presence does not prove signed automatic memory capture; native lifecycle remains awaiting_operator_import until live evidence exists.
 semantic_parity_gaps:
@@ -35,14 +35,14 @@ dimensions:
     evidence_ts: '2026-08-06T08:45:00Z'
     superseded_by: null
   gateway_configuration:
-    status: awaiting_operator_import
-    evidence_path: ide-profiles/zed/INSTALL_OR_UPDATE.md
-    evidence_ts: '2026-08-06T08:45:00Z'
+    status: live_validated
+    evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+    evidence_ts: '2026-08-20T13:08:09-04:00'
     superseded_by: null
   gateway_discovery:
-    status: awaiting_operator_import
-    evidence_path: ide-profiles/zed/VALIDATION.md
-    evidence_ts: '2026-08-06T08:45:00Z'
+    status: live_validated
+    evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+    evidence_ts: '2026-08-20T13:08:09-04:00'
     superseded_by: null
   native_memory_lifecycle:
     status: awaiting_operator_import

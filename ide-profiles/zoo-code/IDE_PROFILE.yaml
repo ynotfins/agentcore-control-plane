@@ -1,0 +1,68 @@
+# IDE profile - source-controlled facts for this managed client.
+# Do not guess values: use 'unverified' until evidence exists.
+
+ide_id: zoo-code
+display_name: Zoo Code
+swarm_managed: false
+installed_version: 3.79.100391
+live_global_rule_target: unverified
+live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\Cursor\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json
+rule_mechanism: Zoo Code modes/custom instructions are extension-owned; no AgentCore global-rule delivery path certified yet.
+mcp_schema: zoo_code_mcp_json
+mcp_transport: http/streamable
+env_var_handling: no documented env-header expansion in persisted MCP JSON; materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env into live config only
+restart_behavior: restart Cursor or open a fresh Zoo Code task after MCP changes
+editability:
+  global_rules: unverified
+  project_rules: direct_write
+  mcp_config: direct_write
+installation_mode: direct_write
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: '2026-08-20'
+mcp_template_source: renderers/gateway-clients/zoo-code.json
+known_limitations:
+- Zoo Code is officially a VS Code/Open VSX extension; it is installed in Cursor on this host, not as a Zed extension.
+- Cursor CLI extension listing did not report Zoo Code, but Cursor extension folders and Zoo Code globalStorage are present.
+- Provider/account state is owned by Zoo Code/Cursor secret storage and UI import state; this profile certifies MCP enrollment only.
+- Native AgentCore memory lifecycle is not yet certified from inside a paid Zoo Code task.
+semantic_parity_gaps:
+- No signed AgentCore lifecycle adapter is certified for Zoo Code yet.
+dimensions:
+  application_launch:
+    status: live_validated
+    evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+    evidence_ts: '2026-08-20T13:08:09-04:00'
+    superseded_by: null
+  gateway_configuration:
+    status: live_validated
+    evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+    evidence_ts: '2026-08-20T13:08:09-04:00'
+    superseded_by: null
+  gateway_discovery:
+    status: live_validated
+    evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+    evidence_ts: '2026-08-20T13:08:09-04:00'
+    superseded_by: null
+  native_memory_lifecycle:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zoo-code/VALIDATION.md
+    evidence_ts: '2026-08-20T13:08:09-04:00'
+    superseded_by: null
+  fresh_chat_recovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zoo-code/VALIDATION.md
+    evidence_ts: '2026-08-20T13:08:09-04:00'
+    superseded_by: null
+  persistence_after_restart:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zoo-code/VALIDATION.md
+    evidence_ts: '2026-08-20T13:08:09-04:00'
+    superseded_by: null
+  operator_gate:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zoo-code/VALIDATION.md
+    evidence_ts: '2026-08-20T13:08:09-04:00'
+    superseded_by: null
+m8_enrollment: awaiting_operator_import

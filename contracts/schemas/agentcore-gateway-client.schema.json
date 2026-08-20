@@ -110,6 +110,9 @@
             "matrix_cloud_custom_mcp",
             "zed_settings_json",
             "eigent_mcp_json",
+            "devin_mcp_json",
+            "opencode_jsonc",
+            "zoo_code_mcp_json",
             "skip_openclaw"
           ]
         },

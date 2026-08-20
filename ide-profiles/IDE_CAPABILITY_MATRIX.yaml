@@ -4,7 +4,7 @@
 # Configuration mode summary: the normal way this client receives its AgentCore baseline.
 # Do not guess values — 'unverified' until evidence exists.
 
-matrix_revision: '2026-08-06'
+matrix_revision: '2026-08-20'
 policy_source: contracts/global-agent-policy.yaml
 model_context_profile_source: contracts/model-context-profiles.json
 self_enrollment_contract:
@@ -24,7 +24,7 @@ enrollment_status_codes:
   unsupported_with_reason: Product does not support required MCP baseline (see notes)
 managed_ides:
   zed:
-    installed_version: 1.13.2
+    installed_version: 1.16.1
     configuration_mode: generated_prompt
     rule_mechanism: Windows personal AGENTS.md + project AGENTS.md + global skills at C:\Users\ynotf\.agents\skills
     mcp_schema: zed_settings_json
@@ -35,12 +35,12 @@ managed_ides:
       global_rules: direct_write
       project_rules: direct_write
       mcp_config: direct_write
-    last_validated: '2026-08-06'
+    last_validated: '2026-08-20'
     m8_enrollment: awaiting_operator_import
-    m8_notes: 'PRIORITY MANAGED CLIENT INTAKE 2026-08-06. Zed 1.13.2 is installed and launches. Official Zed documentation
-      confirms Windows personal AGENTS.md, native skills at ~/.agents/skills, and remote MCP under settings.json context_servers.
-      The live settings contained no context_servers entry during intake. No AgentCore gateway discovery or native memory lifecycle
-      is claimed until operator-approved live enrollment and the full validation contract pass.'
+    m8_notes: 'PRIORITY MANAGED CLIENT INTAKE 2026-08-06; LIVE MCP CONFIGURATION 2026-08-20. Zed 1.16.1 is installed
+      and launches. Live settings now contain a single agentcore-gateway context server at http://127.0.0.1:8080/mcp,
+      and authenticated gateway initialize/tools-list succeeded. Full M8 enrollment remains pending until a fresh Zed Agent
+      task proves native memory lifecycle, recovery, and restart persistence.'
     dimensions:
       application_launch:
         status: live_validated
@@ -48,14 +48,14 @@ managed_ides:
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
       gateway_configuration:
-        status: awaiting_operator_import
-        evidence_path: ide-profiles/zed/INSTALL_OR_UPDATE.md
-        evidence_ts: '2026-08-06T08:45:00Z'
+        status: live_validated
+        evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+        evidence_ts: '2026-08-20T13:08:09-04:00'
         superseded_by: null
       gateway_discovery:
-        status: awaiting_operator_import
-        evidence_path: ide-profiles/zed/VALIDATION.md
-        evidence_ts: '2026-08-06T08:45:00Z'
+        status: live_validated
+        evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+        evidence_ts: '2026-08-20T13:08:09-04:00'
         superseded_by: null
       native_memory_lifecycle:
         status: awaiting_operator_import
@@ -130,6 +130,60 @@ managed_ides:
         status: awaiting_operator_import
         evidence_path: ide-profiles/eigent/VALIDATION.md
         evidence_ts: '2026-08-06T08:45:00Z'
+        superseded_by: null
+  zoo-code:
+    installed_version: 3.79.100391
+    configuration_mode: direct_write
+    rule_mechanism: Zoo Code modes/custom instructions are extension-owned; no AgentCore global-rule delivery path certified yet.
+    mcp_schema: zoo_code_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: live-only materialization from Windows User env; no documented placeholder expansion
+    restart_behavior: restart Cursor or open a fresh Zoo Code task after MCP changes
+    editability:
+      global_rules: unverified
+      project_rules: direct_write
+      mcp_config: direct_write
+    last_validated: '2026-08-20'
+    m8_enrollment: awaiting_operator_import
+    m8_notes: 'LIVE MCP CONFIGURATION 2026-08-20. Zoo Code is officially a VS Code/Open VSX extension and is installed
+      in Cursor on this host, not as a Zed extension. Live Zoo Code MCP settings now contain a single agentcore-gateway
+      entry at http://127.0.0.1:8080/mcp. Full M8 enrollment remains pending until a fresh Zoo Code task proves native
+      memory lifecycle, recovery, restart persistence, and a performance baseline.'
+    dimensions:
+      application_launch:
+        status: live_validated
+        evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+        evidence_ts: '2026-08-20T13:08:09-04:00'
+        superseded_by: null
+      gateway_configuration:
+        status: live_validated
+        evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+        evidence_ts: '2026-08-20T13:08:09-04:00'
+        superseded_by: null
+      gateway_discovery:
+        status: live_validated
+        evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
+        evidence_ts: '2026-08-20T13:08:09-04:00'
+        superseded_by: null
+      native_memory_lifecycle:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zoo-code/VALIDATION.md
+        evidence_ts: '2026-08-20T13:08:09-04:00'
+        superseded_by: null
+      fresh_chat_recovery:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zoo-code/VALIDATION.md
+        evidence_ts: '2026-08-20T13:08:09-04:00'
+        superseded_by: null
+      persistence_after_restart:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zoo-code/VALIDATION.md
+        evidence_ts: '2026-08-20T13:08:09-04:00'
+        superseded_by: null
+      operator_gate:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zoo-code/VALIDATION.md
+        evidence_ts: '2026-08-20T13:08:09-04:00'
         superseded_by: null
   cursor:
     installed_version: unverified

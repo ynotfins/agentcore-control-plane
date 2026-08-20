@@ -135,6 +135,59 @@
         "Sanitized renderer: renderers/gateway-clients/cherry-studio.json — never commit resolved VK",
         "Fully quit Cherry before LevelDB enrollment; restart after enroll for tools/list"
       ]
+    },
+    "devin": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\devin\\mcp_config.json",
+      "alternate_config_paths": [
+        "C:\\Users\\ynotf\\AppData\\Roaming\\devin\\config.json",
+        "<project>\\.devin\\mcp_config.local.json",
+        "<project>\\.devin\\mcp_config.json"
+      ],
+      "syntax": "devin_mcp_json",
+      "supports_env_headers": false,
+      "notes": [
+        "Devin CLI v3000.3+ stores MCP in dedicated mcp_config files; older versions store mcpServers in config.json (auto-migrated on startup).",
+        "Windows user scope: %APPDATA%\\devin\\mcp_config.json; per-project scopes live under .devin/ in the project root.",
+        "Remote MCP entry shape: {\"url\": \"...\", \"transport\": \"http\"}. No documented header support in remote URL config - Authorization must be materialized into the live mcp_config.json from the Windows User env.",
+        "STATUS 2026-08-16: registered for future enrollment; live cutover deliberately deferred. Operator is using Devin in the current project; do not touch live config without explicit operator instruction.",
+        "Future live installer (scripts/devin/enroll_agentcore_gateway.py, TBD) must materialize BIFROST_MCP_VIRTUAL_KEY from User env into the live file only, never commit the resolved value."
+      ]
+    },
+    "opencode": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.config\\opencode\\opencode.json",
+      "alternate_config_paths": [
+        "<project>\\opencode.json",
+        "<project>\\opencode.jsonc",
+        "C:\\ProgramData\\opencode\\opencode.json"
+      ],
+      "syntax": "opencode_jsonc",
+      "supports_env_headers": false,
+      "notes": [
+        "Confirmed live on this host at C:\\Users\\ynotf\\.config\\opencode\\opencode.json (378 bytes; uses XDG-style Windows path, not the docs' %APPDATA%\\opencode\\).",
+        "Morph integration is via the @morphllm/opencode-morph-plugin (shown as 'magic-compact' in the live config). Plugin provides Fast Apply + WarpGrep + GitHub search + 10,500 tok/s compaction + tool routing. Bifrost MCP entry for Morph is NOT used by OpenCode; plugin supersedes it.",
+        "Bifrost enrollment is for NON-MORPH tools only on OpenCode: agentcore-memory, sequential-thinking, skills-hub, etc. These are added under the same mcp key with type=remote and url=http://127.0.0.1:8080/mcp.",
+        "Remote MCP entry shape per docs: {\"mcp\": {\"<name>\": {\"type\": \"remote\", \"url\": \"...\", \"enabled\": true}}}. No documented header field; live materialization of BIFROST_MCP_VIRTUAL_KEY required if Authorization is needed.",
+        "STATUS 2026-08-16: registered. Live config currently has plugin: [\"magic-compact\"] plus existing mcp.context7 and mcp.MCP_DOCKER entries; do not modify the live config while magic-compact install is in progress.",
+        "Note: live config currently uses mcp.context7 - that route is on the AgentCore forbidden list (MASTER_CONFIG_AND_PROMPT sec 3) for the Bifrost baseline. Out of scope for the Morph rollout, but flagging for a future OpenCode governance pass."
+      ]
+    },
+    "zoo-code": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Cursor\\User\\globalStorage\\zoocodeorganization.zoo-code\\settings\\mcp_settings.json",
+      "alternate_config_paths": [
+        "<project>\\.roo\\mcp.json"
+      ],
+      "syntax": "zoo_code_mcp_json",
+      "supports_env_headers": false,
+      "notes": [
+        "Zoo-Code (formerly Roo-Code / Cline fork) installed in Cursor only on this host, not Code/VSCode or Zed.",
+        "Global MCP config: <globalStorage>/settings/mcp_settings.json.",
+        "Per-project MCP: <project>/.roo/mcp.json (auto-detected).",
+        "Remote MCP entry shape supports custom headers: {\"mcpServers\": {\"<name>\": {\"url\": \"...\", \"headers\": {...}}}}. Live cutover will materialize BIFROST_MCP_VIRTUAL_KEY from the User env into the live mcp_settings.json file.",
+        "STATUS 2026-08-20: live global MCP cutover applied for agentcore-gateway in Cursor Zoo-Code storage; provider/account state remains Zoo-owned extension secret storage/UI state."
+      ]
     }
   },
   "notes": [
