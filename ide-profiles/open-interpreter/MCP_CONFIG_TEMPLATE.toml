@@ -1,0 +1,19 @@
+# DERIVED from renderers/gateway-clients/open-interpreter.json (source contract:
+# contracts/agentcore-gateway-client.json). Do not hand-edit; regenerate from
+# the contract.
+# Merge into C:\Users\ynotf\.openinterpreter\config.toml only through the
+# approved backup-first installer flow.
+
+[mcp_servers.agentcore-gateway]
+url = "http://127.0.0.1:8080/mcp"
+bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"
+enabled = true
+startup_timeout_sec = 300
+tool_timeout_sec = 300
+
+# Optional direct companion exception:
+# Open Interpreter may include exactly one additional Zoo-Code-owned direct MCP
+# entry only when the host supports Zoo-Code and the operator wants the Zoo-Code
+# side-panel workflow. This is not an AgentCore memory route, not a Bifrost
+# replacement, and not permission for direct OpenRouter MCP, filesystem,
+# database, Swarm, or other direct per-tool MCP entries.
