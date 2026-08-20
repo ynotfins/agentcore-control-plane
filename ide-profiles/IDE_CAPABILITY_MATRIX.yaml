@@ -148,6 +148,7 @@ managed_ides:
     installed_version: 3.79.100391
     configuration_mode: direct_write
     rule_mechanism: Zoo Code modes/custom instructions are extension-owned; no AgentCore global-rule delivery path certified yet.
+    global_skill_root: C:\Users\ynotf\.roo\skills
     mcp_schema: zoo_code_mcp_json
     mcp_transport: http/streamable
     env_var_handling: live-only materialization from Windows User env; no documented placeholder expansion
@@ -160,8 +161,10 @@ managed_ides:
     m8_enrollment: awaiting_operator_import
     m8_notes: 'LIVE MCP CONFIGURATION 2026-08-20. Zoo Code is officially a VS Code/Open VSX extension and is installed
       in Cursor on this host, not as a Zed extension. Live Zoo Code MCP settings now contain a single agentcore-gateway
-      entry at http://127.0.0.1:8080/mcp. Full M8 enrollment remains pending until a fresh Zoo Code task proves native
-      memory lifecycle, recovery, restart persistence, and a performance baseline.'
+      entry at http://127.0.0.1:8080/mcp. Global Zoo-Code skills are installed at C:\Users\ynotf\.roo\skills; Morph
+      validated upstream Zoo-Code scans .roo/skills after .agents/skills and gives .roo same-source priority. Full M8
+      enrollment remains pending until a fresh Zoo Code task proves native memory lifecycle, recovery, restart persistence,
+      and a performance baseline.'
     dimensions:
       application_launch:
         status: live_validated
@@ -177,6 +180,11 @@ managed_ides:
         status: live_validated
         evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
         evidence_ts: '2026-08-20T13:08:09-04:00'
+        superseded_by: null
+      global_skills:
+        status: live_validated
+        evidence_path: artifacts/task-runs/zoo-code-skills-morph-smoke-2026-08-20/ZOO_CODE_SKILLS_MORPH_SMOKE_EVIDENCE.md
+        evidence_ts: '2026-08-20T17:58:40-04:00'
         superseded_by: null
       native_memory_lifecycle:
         status: awaiting_operator_import
