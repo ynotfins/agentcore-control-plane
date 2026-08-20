@@ -14,7 +14,7 @@ authorization, a timestamped backup, and post-change validation.
 ## MCP configuration
 
 1. Template: `ide-profiles/zoo-code/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/zoo-code.json`).
-2. Live target: `C:\Users\ynotf\AppData\Roaming\Cursor\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json` — exactly one `agentcore-gateway` entry.
+2. Live target: `C:\Users\ynotf\AppData\Roaming\Cursor\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json` — exactly one AgentCore entry named `agentcore-gateway`. The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; do not remove it when present and do not infer support when the host cannot run Zoo-Code.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
 4. Env handling: no documented env-header expansion in persisted MCP JSON; materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env into live config only.
 5. Restart behavior: restart Cursor or open a fresh Zoo Code task after MCP changes.

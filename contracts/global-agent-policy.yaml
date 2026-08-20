@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-08-10"
+policy_revision: "2026-08-20-zoo-code-direct-mcp-exception"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -18,11 +18,15 @@ mandatory_rules:
       D:\MCP-Control-Plane is evidence only.
 
   - id: single-gateway
-    title: One Bifrost gateway entry
+    title: One Bifrost gateway entry plus Zoo-Code exception
     rule: >-
-      Non-Swarm IDEs use exactly one MCP entry: agentcore-gateway at `http://127.0.0.1:8080/mcp`
-      with Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}. Never paste the upstream registry
-      or direct per-tool MCP entries into IDE configs.
+      Non-Swarm IDEs use exactly one AgentCore MCP entry: agentcore-gateway at
+      `http://127.0.0.1:8080/mcp` with Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}.
+      Operator approval AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION allows one additional
+      Zoo-Code-owned direct MCP companion entry where the host supports Zoo-Code and the operator
+      wants the Zoo-Code side-panel workflow. That companion is not an AgentCore memory route, not
+      a Bifrost replacement, and not permission to add any other direct MCP baseline. Never paste
+      the upstream registry or direct per-tool MCP entries into IDE configs.
 
   - id: client-local-execution-scope
     title: CLIENT-LOCAL EXECUTION SCOPE
@@ -219,10 +223,11 @@ mandatory_rules:
     rule: >-
       Dormant and deferred MCP capabilities are indexed in
       docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md. Do not paste dormant upstreams into
-      per-IDE mcp.json. Do not duplicate openrouter, obsidian-vault, or filesystem. Do not
-      extend wildcard permitted_tools grants to new servers. Context7 and Hostinger remain
-      forbidden until PROJECT_ANCHOR.md is explicitly updated. Catalog-only and
-      candidate_unverified entries must not be installed solely to fill inventory gaps.
+      per-IDE mcp.json. Except for the approved Zoo-Code direct MCP companion, do not duplicate
+      openrouter, obsidian-vault, filesystem, or any other service already governed through
+      agentcore-gateway. Do not extend wildcard permitted_tools grants to new servers. Context7
+      and Hostinger remain forbidden until PROJECT_ANCHOR.md is explicitly updated. Catalog-only
+      and candidate_unverified entries must not be installed solely to fill inventory gaps.
 
   - id: progressive-disclosure
     title: Progressive tool disclosure
@@ -293,7 +298,7 @@ forbidden_routes:
   - raw mem0 (Mem0 is rejected for v1 and must not be installed)
   - direct composio
   - global-memory-gateway (retired identity)
-  - direct per-IDE MCP server baselines
+  - direct per-IDE MCP server baselines other than the approved Zoo-Code direct MCP companion
   - whole-drive filesystem MCP roots
   - Postgres credentials in IDE configs
   - Swarm MCP in AgentCore / enrolled non-Swarm IDE baselines

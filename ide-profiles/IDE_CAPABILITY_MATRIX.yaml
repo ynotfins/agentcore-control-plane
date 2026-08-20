@@ -16,6 +16,18 @@ self_enrollment_contract:
   recovery: If local conversational context is missing or suspect, call retrieve_context with a recovery mode and stable pagination,
     expand_source for exact originals, and build_handoff for current project reconstruction before asking the operator to
     repeat history.
+direct_mcp_companion_exceptions:
+  zoo-code:
+    approval: AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION
+    scope: one Zoo-Code-owned direct MCP companion entry where the host supports Zoo-Code and the operator wants the Zoo-Code side-panel workflow
+    not_allowed_for:
+      - AgentCore memory or project continuity
+      - Bifrost replacement
+      - Swarm MCP
+      - OpenRouter MCP direct
+      - raw database tools
+      - filesystem baselines
+      - any other direct per-tool MCP baseline
 enrollment_status_codes:
   live_validated: MCP verified, tools confirmed, identity isolated, rolling context proven live
   configured_restart_required: Config written to live path; IDE/session restart required to activate

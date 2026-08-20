@@ -14,7 +14,7 @@ The accepted Context Engine and neutral SwarmRecall rollout changed the platform
 Adopt the following stable responsibility model:
 
 - AgentCore owns canonical truth, immutable evidence, exact recovery, policy state, and generated projections.
-- Bifrost owns the sole normal IDE MCP front door, MCP aggregation, authentication, capability policy, leases, audit, and upstream lifecycle.
+- Bifrost owns the sole normal AgentCore MCP front door, MCP aggregation, authentication, capability policy, leases, audit, and upstream lifecycle.
 - The portable Context Engine owns rolling-context orchestration above the stable `agentcore-memory` facade.
 - Neutral shared SwarmRecall is a machine-level semantic projection reached server-side through `agentcore-memory`, not a canonical ledger or raw IDE MCP.
 - Context Fabric is adopted as a project-local committed-snapshot and drift-warning plane. It is rebuildable and subordinate to the authority chain and PG18.
@@ -27,7 +27,7 @@ OmniRoute, Graphify, Hindsight, and CrewAI remain disabled evaluation candidates
 
 ## Consequences
 
-- All managed IDEs keep exactly one MCP entry named `agentcore-gateway`.
+- All managed IDEs keep exactly one AgentCore MCP entry named `agentcore-gateway`. `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION` adds a later bounded exception for one Zoo-Code-owned direct MCP companion where the host supports Zoo-Code; it does not replace Bifrost or authorize other direct MCP baselines.
 - Context Fabric runs through its repository-local hook/CLI. Its shared Bifrost upstream is dormant because Bifrost does not forward trustworthy caller/project identity to a shared STDIO child.
 - Serena, Depwire, Tentra, filesystem, and Context Fabric remain dormant in shared profiles when their calls lack explicit project/worktree identity. Native IDE tools and explicit-cwd local processes are the safe interim route.
 - The four machine-global project-router controls are operator-only maintenance and are not a concurrent-session security boundary.

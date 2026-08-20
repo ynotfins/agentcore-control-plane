@@ -103,6 +103,17 @@
       "adapter": "stdio_envelope",
       "default_profile": "generic"
     },
+    "morph-mcp": {
+      "adapter": "stdio_envelope",
+      "default_profile": "code_intel",
+      "tool_profiles": {
+        "github_codebase_search": "external",
+        "edit_file": "fs_artifact"
+      },
+      "notes": [
+        "Morph MCP is an enabled stdio builder upstream. Search/reflex tools are code-intel shaped; edit_file is bounded filesystem artifact evidence; GitHub search is external raw-untrusted evidence."
+      ]
+    },
     "context-fabric": {
       "adapter": "stdio_envelope",
       "default_profile": "context_fabric"

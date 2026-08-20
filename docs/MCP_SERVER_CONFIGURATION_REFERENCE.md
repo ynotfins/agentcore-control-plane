@@ -3,9 +3,11 @@
 > **HISTORICAL / ROLLBACK REFERENCE ONLY — SUPERSEDED (2026-07-14).**
 > This is the pre-Bifrost direct-per-IDE configuration reference. Its per-client server lists
 > (including `swarmrecall`/`swarmvault` in non-Swarm IDE surfaces) are **not** current policy.
-> **Current architecture:** every non-Swarm IDE has exactly one MCP entry — `agentcore-gateway`
-> at `http://127.0.0.1:8080/mcp` — with upstreams registered once in
-> `contracts/bifrost-upstream-mcp-registry.json`.
+> **Current architecture:** every non-Swarm IDE has exactly one AgentCore MCP entry —
+> `agentcore-gateway` at `http://127.0.0.1:8080/mcp` — with upstreams registered once in
+> `contracts/bifrost-upstream-mcp-registry.json`. The only direct companion exception is
+> Zoo-Code, approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`, where a host supports
+> the Zoo-Code side-panel workflow.
 > Current setup authority: `docs/bifrost/UNIFIED_GATEWAY_SETUP.md` and
 > `docs/prompts/install-agentcore-gateway-in-ide.md`. Per-IDE profiles: `ide-profiles/`.
 > Use this file only for rollback comparison or live-config forensics.

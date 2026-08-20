@@ -14,7 +14,7 @@ authorization, a timestamped backup, and post-change validation.
 ## MCP configuration
 
 1. Template: `ide-profiles/minimax-classic/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/minimax-classic.json`).
-2. Live target: `cloud:matrix/api/v1/mcp/add_or_edit_server (no local mcp.json)` — exactly one `agentcore-gateway` entry.
+2. Live target: `cloud:matrix/api/v1/mcp/add_or_edit_server (no local mcp.json)` — exactly one AgentCore entry named `agentcore-gateway`. The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; do not remove it when present and do not infer support when the host cannot run Zoo-Code.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
 4. Env handling: unknown — Classic stores custom MCP via Matrix cloud API (server_name, base_url, mcp_server_type=UserCustomized); materialize bearer in UI if env expansion unsupported.
 5. Restart behavior: restart Classic after MCP catalog or rules change.

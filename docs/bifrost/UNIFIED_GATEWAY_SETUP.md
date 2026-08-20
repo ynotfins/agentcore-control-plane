@@ -47,16 +47,19 @@ gateway entries.
 
 ```text
 IDE / agent host
-  └─ ONE MCP entry: agentcore-gateway
+  └─ ONE AgentCore MCP entry: agentcore-gateway
        └─ http://127.0.0.1:8080/mcp + Bearer BIFROST_MCP_VIRTUAL_KEY
             └─ Bifrost (F:\AgentCore\runtime\bifrost)
                  └─ upstream STDIO/HTTP MCP clients from
                     contracts/bifrost-upstream-mcp-registry.json
+  └─ OPTIONAL direct companion: zoo-code
+       └─ allowed only for Zoo-Code-owned side-panel workflow under AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION
 ```
 
 | Do | Don't |
 | -- | -- |
 | Put **only** `agentcore-gateway` as the AgentCore MCP baseline | Paste full Depwire/Serena/Arabold blocks into every IDE |
+| Preserve/add the direct `zoo-code` companion only where the host supports Zoo-Code | Treat Zoo-Code as a Bifrost replacement or a general permission for direct MCP servers |
 | Keep Swarm products on their own installs | Add SwarmRecall/SwarmVault to non-Swarm IDE baselines |
 | Add new MCPs in the **registry + Bifrost**, then re-render | Add new MCPs only in one IDE’s `mcp.json` |
 | Filter tools via Bifrost VK `tools_to_execute` / profiles | Rely on each IDE’s ad-hoc disable toggles as the source of truth |
@@ -214,6 +217,8 @@ then validate IDE discovery and one safe read-only tool call through `agentcore-
 ---
 
 ## How to add a new MCP server (correct path)
+
+This path applies to AgentCore-governed MCP servers. The Zoo-Code direct MCP companion is the one approved per-IDE exception and must remain bounded to Zoo-Code side-panel functionality.
 
 1. **Decide classification** in `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md` (global vs project-scoped, Swarm exclusion).
 2. **Edit** `contracts/bifrost-upstream-mcp-registry.json`:

@@ -14,7 +14,7 @@ authorization, a timestamped backup, and post-change validation.
 ## MCP configuration
 
 1. Template: `ide-profiles/cherry-studio/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/cherry-studio.json`).
-2. Live target: `C:\Users\ynotf\AppData\Roaming\CherryStudio\Local Storage\leveldb (redux persist:cherry-studio -> mcp.servers)` — exactly one `agentcore-gateway` entry.
+2. Live target: `C:\Users\ynotf\AppData\Roaming\CherryStudio\Local Storage\leveldb (redux persist:cherry-studio -> mcp.servers)` — exactly one AgentCore entry named `agentcore-gateway`. The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; do not remove it when present and do not infer support when the host cannot run Zoo-Code.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
 4. Env handling: no ${env:} expansion; materialize BIFROST_MCP_VIRTUAL_KEY bearer into live LevelDB store via scripts/cherry/enroll_agentcore_gateway.py.
 5. Restart behavior: fully quit Cherry Studio, run enrollment script, relaunch.

@@ -25,7 +25,8 @@ AgentCore and Swarm remain separate control planes. They share the machine and o
 
 ```text
 AgentCore / enrolled IDEs
-  -> one MCP entry: agentcore-gateway
+  -> one AgentCore MCP entry: agentcore-gateway
+  -> optional direct companion: zoo-code only, under AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION
   -> Bifrost on 127.0.0.1:8080/mcp
   -> agentcore-memory ten-tool facade
   -> PG18 for exact evidence, policy, recovery, and LangGraph checkpoints
@@ -246,7 +247,7 @@ Finish the PC-wide AgentCore/Swarm memory-context/database setup and harden Bifr
 - AgentCore owns Bifrost, the agentcore-gateway MCP front door, exact evidence/recovery, PG18, Context Engine, and LangGraph checkpoints.
 - SwarmClaw/Sally owns Swarm runtime, agents, sessions, tasks, recovery, SwarmVault, and Swarm lifecycle.
 - Neutral SwarmRecall is the PC-native semantic memory/context plane shared only through bounded server-side adapters.
-- Ordinary IDEs use exactly one MCP entry, agentcore-gateway. No raw SwarmRecall, SwarmVault, Meilisearch, PostgreSQL, direct SQL, or duplicate memory MCP entries in ordinary IDE configs.
+- Ordinary IDEs use exactly one AgentCore MCP entry, agentcore-gateway. The only direct companion exception is Zoo-Code under AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION. No raw SwarmRecall, SwarmVault, Meilisearch, PostgreSQL, direct SQL, OpenRouter MCP direct, filesystem baseline, or duplicate memory MCP entries in ordinary IDE configs.
 - LangGraph and SwarmClaw remain separate runtimes and must not write each other's state.
 
 Start with read-only verification:

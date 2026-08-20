@@ -235,7 +235,7 @@ flowchart TB
 | Plane | Owner | Boundary |
 | --- | --- | --- |
 | Canonical truth and recovery | AgentCore | PG18 evidence, exact expansion, policy/workflow state, and governed projections |
-| MCP aggregation and governance | Bifrost | Sole normal IDE MCP front door, authentication, capability profiles, leases, audit, and upstream lifecycle |
+| MCP aggregation and governance | Bifrost | Sole normal AgentCore MCP front door, authentication, capability profiles, leases, audit, and upstream lifecycle |
 | Rolling context | Portable Context Engine | Orchestration above `agentcore-memory`; no raw database or second gateway |
 | PC-native semantic memory/context | Neutral SwarmRecall | Shared global/per-project semantic projections through bounded adapters; never a raw IDE MCP or canonical evidence/checkpoint store |
 | Project commit context and drift | Context Fabric | Repo-local committed snapshots, decisions, bounded briefings, and drift warnings |
@@ -245,12 +245,13 @@ flowchart TB
 MCP tool traffic and model inference traffic are separate:
 
 ```text
-MCP: IDE -> agentcore-gateway/Bifrost -> approved MCP upstreams
+MCP: IDE -> agentcore-gateway/Bifrost -> approved AgentCore MCP upstreams
+Optional companion: IDE -> zoo-code direct MCP, only for Zoo-Code-owned side-panel workflow
 Inference today: host/application -> its approved model-provider path
 Future experiment only: host/application -> Bifrost inference governance -> OmniRoute -> OpenRouter
 ```
 
-Using `agentcore-gateway` does not prove that an IDE's model prompts pass through Bifrost or OmniRoute. Any inference-route change requires an explicit client/provider contract, fidelity and failure tests, and rollback.
+Using `agentcore-gateway` does not prove that an IDE's model prompts pass through Bifrost or OmniRoute. The Zoo-Code direct MCP companion exception does not prove model routing through Bifrost and does not replace AgentCore memory/governance. Any inference-route change requires an explicit client/provider contract, fidelity and failure tests, and rollback.
 
 ### Benchmark-gated intelligence extensions
 
@@ -900,7 +901,7 @@ Changes requiring explicit operator approval:
 - Replacing Cognee in v1
 - Adding another canonical vector, graph, queue, lock, or state system
 - Changing Bifrost identities
-- Adding a second normal IDE MCP front door
+- Adding a second normal AgentCore MCP front door, except the approved Zoo-Code IDE-local direct MCP companion exception (`AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`)
 - Combining AgentCore with Swarm
 - Restoring AgentCore IDE continuity on Swarm projects
 - Formatting a drive outside the authorized AgentCore E:/F:/I: correction scope

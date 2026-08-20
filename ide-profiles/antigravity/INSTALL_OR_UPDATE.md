@@ -14,7 +14,7 @@ authorization, a timestamped backup, and post-change validation.
 ## MCP configuration
 
 1. Template: `ide-profiles/antigravity/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/antigravity.json`).
-2. Live target: `C:\Users\ynotf\.gemini\config\mcp_config.json` — exactly one `agentcore-gateway` entry.
+2. Live target: `C:\Users\ynotf\.gemini\config\mcp_config.json` — exactly one AgentCore entry named `agentcore-gateway`. The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; do not remove it when present and do not infer support when the host cannot run Zoo-Code.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
 4. Env handling: supports env headers (per gateway-client contract).
 5. Restart behavior: restart client after MCP config changes.

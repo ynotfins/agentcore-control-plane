@@ -6,6 +6,7 @@ Reusable operator/agent prompt for **any** supported non-Swarm IDE on this PC.
 **Endpoint:** `http://127.0.0.1:8080/mcp`
 **Auth env:** `BIFROST_MCP_VIRTUAL_KEY` (never print the value)
 **Display name in IDEs:** `agentcore-gateway`
+**Allowed direct companion exception:** `zoo-code` only, under `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`
 
 ---
 
@@ -16,7 +17,7 @@ You are the agent inside one supported non-Swarm IDE on CHAOSCENTRAL. Your job i
 
 Step 0 — Identify yourself
 Identify which IDE you are running in. Choose exactly one from:
-Zed, Eigent, Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio.
+Zed, Eigent, Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio, Zoo-Code.
 If you cannot identify your IDE with confidence, stop and report unsupported_with_reason.
 
 Step 1 — Read your profile and authority
@@ -51,11 +52,11 @@ Read IDE_PROFILE.yaml editability and installation_mode, then:
 - unsupported/unverified: stop and report the state; do not act.
 Preserve the IDE's native safety, sandbox, approval, account, and UI settings.
 
-Step 5 — Configure exactly one MCP entry
+Step 5 — Configure the AgentCore MCP entry plus the Zoo-Code exception
 Add or merge only one AgentCore baseline entry named agentcore-gateway:
   url: http://127.0.0.1:8080/mcp
   Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
-Use the schema-correct MCP_CONFIG_TEMPLATE for your IDE. For clients that cannot expand ${env:}, materialize the bearer from Windows User env into the live config only (never commit it). Remove any direct duplicate baseline MCP entries now served by Bifrost. For Cursor, remove MCP_DOCKER unless the operator explicitly approves a documented unique-capability exception. Do not paste the full upstream registry. Do not add Swarm MCP, OpenRouter MCP direct, or raw database tools.
+Use the schema-correct MCP_CONFIG_TEMPLATE for your IDE. For clients that cannot expand ${env:}, materialize the bearer from Windows User env into the live config only (never commit it). Remove any direct duplicate baseline MCP entries now served by Bifrost. Preserve or add the Zoo-Code-owned direct MCP companion when the host supports Zoo-Code and the operator wants Zoo-Code available in that IDE. For Cursor, remove MCP_DOCKER unless the operator explicitly approves a documented unique-capability exception. Do not paste the full upstream registry. Do not add Swarm MCP, OpenRouter MCP direct, raw database tools, filesystem baselines, or any direct MCP server other than Zoo-Code.
 
 Step 6 — Restart/reload the IDE
 Fully restart or reload the IDE so environment references and the new MCP config are visible. The required restart behavior is in your IDE_PROFILE.yaml.
@@ -63,6 +64,7 @@ Fully restart or reload the IDE so environment references and the new MCP config
 Step 7 — Validate syntax and discovery
 - Validate JSON/TOML syntax of the live config.
 - Confirm the IDE lists agentcore-gateway as connected/ready.
+- Confirm any direct MCP entry other than `agentcore-gateway` is only the Zoo-Code companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`.
 - Confirm tools/list through the gateway includes exactly ten agentcore_memory-* tools: memory_status, startup_context, retrieve_context, append_event, propose_fact, expand_source, session_open, session_close, build_handoff, docs_search.
 - Confirm an ordinary IDE profile exposes zero agentcore_project_router-* tools. The four router controls are operator-only maintenance tools.
 - Confirm no Swarm, raw SQL/database, whole-drive filesystem, or Bifrost admin tools are exposed.
@@ -106,6 +108,7 @@ Report one of: live_validated, configured_restart_required, awaiting_operator_im
 | Antigravity | `ide-profiles/antigravity/` | unverified | awaiting_operator_import |
 | Open Interpreter | `ide-profiles/open-interpreter/` | generated_prompt | awaiting_operator_import |
 | Cherry Studio | `ide-profiles/cherry-studio/` | UI_only | live_validated (2026-07-20) |
+| Zoo-Code | `ide-profiles/zoo-code/` | direct_write | configured in Cursor extension storage; direct companion exception approved |
 
 `@C:\Users\ynotf\.mavis` is a junction to `@C:\Users\ynotf\.minimax` (same MiniMax Code data root) and is not a separate managed client.
 

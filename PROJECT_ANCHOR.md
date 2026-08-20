@@ -9,6 +9,7 @@
 > **Operator approval (2026-07-31):** Ecosystem and drive separation reconciliation — AgentCore and Swarm are independent control planes; AgentCore hot namespace is `F:\AgentCore\...`; `H:` is reserved for Swarm after relocation acceptance.
 > **Operator approval (2026-08-04):** `AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE` — I: is the neutral `LocalApps` hot-data tier and AgentCore staging moves to `F:\AgentCore\staging`.
 > **Operator approval (2026-08-10):** `AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT` — SwarmRecall is the PC-native semantic memory/context plane; AgentCore remains the governed gateway, exact-evidence, recovery, policy, and LangGraph checkpoint authority.
+> **Operator approval (2026-08-20):** `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION` — Zoo-Code may be added as a bounded IDE-local direct MCP companion where a host supports it; `agentcore-gateway` remains the only AgentCore memory/governance MCP front door.
 
 ---
 
@@ -39,7 +40,7 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 
 ## 0. Bifrost Gateway Override (2026-07-12, operator-approved)
 
-> **LIVE-STATE OVERRIDE for AgentCore / non-Swarm IDEs.** Bifrost native Gateway (`bifrost-http.exe`, pinned **v2.0.0-prerelease1**) is the AgentCore workstation MCP gateway. AgentCore IDEs and explicitly enrolled non-Swarm clients connect to **one** endpoint only:
+> **LIVE-STATE OVERRIDE for AgentCore / non-Swarm IDEs.** Bifrost native Gateway (`bifrost-http.exe`, pinned **v2.0.0-prerelease1**) is the AgentCore workstation MCP gateway. AgentCore IDEs and explicitly enrolled non-Swarm clients connect to **one AgentCore endpoint only**:
 >
 > ```text
 > agentcore-gateway  http://127.0.0.1:8080/mcp
@@ -47,6 +48,8 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 > ```
 >
 > Upstream MCP servers are registered behind Bifrost via `contracts/bifrost-upstream-mcp-registry.json` and rendered into the live Bifrost config under `F:\AgentCore\runtime\bifrost\`. IDEs must not embed the full per-server baseline.
+>
+> **Zoo-Code direct MCP companion exception (AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION):** IDEs may also carry one Zoo-Code-owned direct MCP server entry when the host supports Zoo-Code and the operator wants the Zoo-Code side-panel workflow. That exception is not an AgentCore memory route, not a Bifrost replacement, not permission to paste the upstream registry, and not permission to add Swarm, raw database, OpenRouter MCP, filesystem, or other direct MCP baselines.
 >
 > **Memory path (AgentCore / enrolled non-Swarm):**
 >
@@ -193,11 +196,14 @@ AgentCore may retain only minimum collision-avoidance facts:
 ## 8. Mandatory MCP Baseline (AgentCore / enrolled non-Swarm IDEs)
 
 ```text
-agentcore-gateway   # sole IDE MCP entry
+agentcore-gateway   # sole AgentCore MCP entry
                     # upstream registry lives behind Bifrost
+zoo-code            # optional bounded IDE-local direct MCP companion exception only
 ```
 
 Canonical upstream set (behind the gateway, not pasted into each IDE) is defined in `contracts/bifrost-upstream-mcp-registry.json`. The ordinary builder profile exposes shared identity-safe services only and includes zero project-router controls. `agentcore-project-router` is operator-only. Implicit-project Serena, Depwire, Tentra, filesystem, and Context Fabric upstreams remain dormant in shared profiles; local non-MCP workflow commands may use repo-local explicit-cwd paths after exact enrollment validation, while production and Studio MCP clients route through `scripts/agentcore_workflow/mcp_client.py` to `agentcore-gateway`. Deferred/disabled until healthy: `depwire-cloud`, `github-mcp`.
+
+The Zoo-Code exception is client-local. It does not add a Bifrost upstream, does not change the `agentcore-memory` ten-tool route, and must not be used for AgentCore project continuity or policy state.
 
 Ollama remains optional — not a mandatory MCP baseline server. Swarm MCP servers must never appear in this baseline.
 

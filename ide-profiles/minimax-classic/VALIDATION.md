@@ -4,7 +4,7 @@
 
 Run after installing or updating rules/MCP config for this IDE:
 
-1. The live MCP config contains exactly one `agentcore-gateway` entry (URL `http://127.0.0.1:8080/mcp`) and no direct per-tool or Swarm entries.
+1. The live MCP config contains exactly one AgentCore entry named `agentcore-gateway` (URL `http://127.0.0.1:8080/mcp`). The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; no Swarm, raw database, OpenRouter MCP, filesystem, or other direct per-tool entries are allowed.
 2. No resolved secret values appear anywhere in Git-tracked files (env references only; materialized VK allowed in the live config only where the profile documents no env-header support).
 3. The IDE lists gateway tools after restart (tools/list through `agentcore-gateway` succeeds).
 4. `agentcore-memory` responds through `memory_status`, with degraded component state clearly reported.

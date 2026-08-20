@@ -195,6 +195,7 @@
     "Project-specific behavior is selected through agentcore-project-router, not duplicate per-repo gateway entries.",
     "Do not edit OpenClaw/ClawX as part of Bifrost IDE cutover.",
     "Swarm product installs remain untouched; Swarm MCP entries are removed from non-Swarm IDE baselines during cutover.",
-    "Never commit resolved virtual key values."
+    "Never commit resolved virtual key values.",
+    "AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION: managed IDEs may also carry one Zoo-Code-owned direct MCP companion entry where the host supports Zoo-Code. This is not an AgentCore memory route, not a Bifrost replacement, and not permission for any other direct MCP baseline."
   ]
 }
