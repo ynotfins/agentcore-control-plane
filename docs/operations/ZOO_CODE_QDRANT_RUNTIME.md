@@ -41,7 +41,7 @@ Non-elevated Codex cannot create an SCM Windows Service. Current lifecycle owner
 - Start command: `ops\zoo-code\Start-ZooCodeQdrant.ps1`
 - Stop command: `ops\zoo-code\Stop-ZooCodeQdrant.ps1`
 - Health command: `ops\zoo-code\Test-ZooCodeQdrant.ps1`
-- Latest accepted report: `I:\LocalApps\ZooCode\qdrant\reports\zoo-code-qdrant-test-20260820-190403.json`
+- Latest accepted report: `I:\LocalApps\ZooCode\qdrant\reports\zoo-code-qdrant-test-20260820-190800.json`
 
 Promotion to a true Windows Service remains an admin-gated follow-up. If promoted, keep the same root, config, ports, logs, health check, registry id, and rollback procedure.
 

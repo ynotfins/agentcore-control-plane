@@ -50,7 +50,7 @@ Zoo Code Qdrant is classified as `REBUILDABLE_DERIVED_CODE_INDEX`. It must not b
 - Distributed port `6335`: closed.
 - Scheduled task registered: `\AgentCore\ZooCode-Qdrant`.
 - Start/stop scripts passed a controlled stop/start cycle.
-- Latest accepted test report: `I:\LocalApps\ZooCode\qdrant\reports\zoo-code-qdrant-test-20260820-190403.json`.
+- Latest accepted test report: `I:\LocalApps\ZooCode\qdrant\reports\zoo-code-qdrant-test-20260820-190800.json`.
 
 ## Zoo Code Configuration Evidence
 
@@ -71,7 +71,7 @@ Zoo Code Qdrant is classified as `REBUILDABLE_DERIVED_CODE_INDEX`. It must not b
 - `Stop-ZooCodeQdrant.ps1` stopped the owned process only.
 - `Start-ZooCodeQdrant.ps1` restarted the runtime.
 - `Test-ZooCodeQdrant.ps1` passed again after restart.
-- Final Qdrant acceptance run passed at `2026-08-20T19:04:03.5896395-04:00`.
+- Final Qdrant acceptance run passed at `2026-08-20T19:08:00.4529099-04:00`.
 - `python scripts/render_ide_rules.py --check` passed.
 - `python scripts/bifrost/validate_contracts.py` passed.
 - `python scripts/bifrost/test_contracts.py` passed with `PASS 173 checks`.
