@@ -18,7 +18,7 @@
 | Backup required | yes |
 | Validation required | yes |
 | Restart required | yes |
-| Last validated | 2026-08-06 |
+| Last validated | 2026-08-20 |
 
 ## Mandatory rules
 
@@ -65,7 +65,7 @@
 
 ## Product-specific notes and omissions
 
-- Limitation: Eigent is installed and launches, but C:\Users\ynotf\.eigent\mcp.json does not yet exist; AgentCore gateway enrollment is not certified.
+- Limitation: Eigent is installed and launches; C:\Users\ynotf\.eigent\mcp.json contains the single agentcore-gateway entry and the active local Brain space is bound to D:\github\agentcore-control-plane.
 - Limitation: The installed build supports native skills, but no always-on global rule mechanism is verified; GLOBAL_RULES.md therefore remains manual-import guidance.
 - Limitation: Eigent/CAMEL accepts literal remote MCP headers; committed templates remain symbolic and a governed live installer must materialize the Windows User environment value without printing it.
 - Parity gap: Always-on global rule delivery and signed automatic AgentCore lifecycle capture are not yet certified for Eigent.

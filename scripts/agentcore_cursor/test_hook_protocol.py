@@ -28,6 +28,7 @@ if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
 from agentcore_cursor.hook_dispatcher import _dispatch  # noqa: E402
+from agentcore_cursor.hooks import _first_workspace_root  # noqa: E402
 
 SECRET_PATTERNS = [
     re.compile(r"(?i)(api[_-]?key|token|password|secret|bearer)\s*[:=]\s*\S+"),
@@ -282,6 +283,23 @@ def test_drive_relative_root_rejected() -> None:
         raise RuntimeError("phantom tree regenerated from drive-relative workspace root")
 
 
+def test_structured_workspace_roots_supported() -> None:
+    expected = REPO.resolve()
+    payloads = [
+        {"workspace_roots": [{"path": str(REPO)}]},
+        {"workspace_roots": [{"uri": REPO.as_uri()}]},
+        {"workspaceRoots": [{"fsPath": str(REPO)}]},
+        {"workspaceFolder": {"uri": REPO.as_uri()}},
+    ]
+    for payload in payloads:
+        assert _first_workspace_root(payload) == expected
+
+    assert (
+        _first_workspace_root({"workspace_roots": [{"path": "d:github\\agentcore-control-plane"}]})
+        == expected
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--iterations", type=int, default=100)
@@ -328,6 +346,10 @@ def main() -> int:
 
     print("  special: drive-relative root rejected")
     test_drive_relative_root_rejected()
+    print("    PASS")
+
+    print("  special: structured workspace roots supported")
+    test_structured_workspace_roots_supported()
     print("    PASS")
 
     print("ALL PASS")

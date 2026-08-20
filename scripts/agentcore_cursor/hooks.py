@@ -19,13 +19,71 @@ import yaml
 def _normalize_workspace_path(path_str: str | None) -> Path:
     if not path_str:
         raise ValueError("workspace root is required")
-    match = re.match(r"^([a-zA-Z]):([^\\/].*)$", str(path_str))
+    raw = str(path_str).strip().strip('"').strip("'")
+
+    # Cursor workspace.json / hook payloads often use file:// URIs
+    # (e.g. file:///d%3A/OpenHands). Those are absolute roots, but
+    # pathlib treats the URI string as relative unless we decode it.
+    if raw.lower().startswith("file:"):
+        from urllib.parse import unquote, urlparse
+        from urllib.request import url2pathname
+
+        parsed = urlparse(raw)
+        if parsed.scheme.lower() != "file":
+            raise ValueError("workspace root must be absolute")
+        # url2pathname handles /D:/... and /d%3A/... on Windows.
+        raw = url2pathname(unquote(parsed.path))
+        if parsed.netloc and not raw.startswith("\\\\"):
+            # UNC file://server/share to \\server\share
+            raw = f"\\\\{parsed.netloc}{raw}"
+
+    match = re.match(r"^([a-zA-Z]):([^\\/].*)$", raw)
     if match:
-        path_str = f"{match.group(1)}:\\{match.group(2)}"
-    path = Path(path_str)
+        raw = f"{match.group(1)}:\\{match.group(2)}"
+    path = Path(raw)
     if not path.is_absolute():
         raise ValueError("workspace root must be absolute")
     return path.resolve()
+
+
+def _workspace_root_candidate(value: Any) -> str | None:
+    """Extract a path string from Cursor hook workspace root payload shapes."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        for key in (
+            "path",
+            "fsPath",
+            "fs_path",
+            "uri",
+            "folder",
+            "workspace_root",
+            "workspaceRoot",
+            "rootPath",
+        ):
+            nested = value.get(key)
+            if isinstance(nested, (str, dict)):
+                candidate = _workspace_root_candidate(nested)
+                if candidate:
+                    return candidate
+    return str(value)
+
+
+def _first_workspace_root(payload: dict[str, Any]) -> Path | None:
+    roots = payload.get("workspace_roots") or payload.get("workspaceRoots") or []
+    if not isinstance(roots, list) or not roots:
+        root = (
+            payload.get("workspace_root")
+            or payload.get("workspaceRoot")
+            or payload.get("workspaceFolder")
+            or payload.get("workspace_folder")
+        )
+        if root is None:
+            return None
+        return _normalize_workspace_path(_workspace_root_candidate(root))
+    return _normalize_workspace_path(_workspace_root_candidate(roots[0]))
 
 # Ensure scripts/ is importable when launched from repo hooks.
 _SCRIPTS = Path(__file__).resolve().parents[1]
@@ -131,10 +189,10 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
         or payload.get("conversation_id")
         or payload.get("composer_id")
     )
-    roots = payload.get("workspace_roots") or []
     workspace = None
-    if isinstance(roots, list) and roots:
-        workspace = str(_normalize_workspace_path(str(roots[0])))
+    root_path = _first_workspace_root(payload)
+    if root_path is not None:
+        workspace = str(root_path)
     result = run_bootstrap(
         workspace=workspace,
         agent_key=DEFAULT_AGENT_KEY,
@@ -192,18 +250,17 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
         or payload.get("composer_id")
         or os_environ_get("AGENTCORE_CURSOR_CONVERSATION_ID")
     )
-    roots = payload.get("workspace_roots") or []
-    if not isinstance(roots, list) or not roots:
-        return {
-            "continue": False,
-            "user_message": "AgentCore cannot bind this prompt without an explicit workspace root.",
-        }
     try:
-        root_path = _normalize_workspace_path(str(roots[0]))
+        root_path = _first_workspace_root(payload)
     except (OSError, ValueError) as exc:
         return {
             "continue": False,
             "user_message": f"AgentCore rejected the workspace root: {exc}",
+        }
+    if root_path is None:
+        return {
+            "continue": False,
+            "user_message": "AgentCore cannot bind this prompt without an explicit workspace root.",
         }
     workspace = str(root_path)
 
@@ -433,15 +490,14 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
     tool_input = raw_tool_input if isinstance(raw_tool_input, dict) else {}
     is_write = _is_write_operation(tool_name, tool_input)
     try:
-        roots = payload.get("workspace_roots") or []
-        if not isinstance(roots, list) or not roots:
+        root_path = _first_workspace_root(payload)
+        if root_path is None:
             if is_write:
                 return {
                     "permission": "deny",
                     "user_message": "AgentCore Stage B Deny: explicit workspace root is required",
                 }
             return {"permission": "allow"}
-        root_path = _normalize_workspace_path(str(roots[0]))
 
         data = load_bootstrap_json(root_path)
         result_block = (data or {}).get("result") if isinstance(data, dict) else None
@@ -900,13 +956,13 @@ def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
                     "permission": "deny",
                     "user_message": "AgentCore Stage B Shell Deny: file mutation target is not safely resolvable",
                 }
-            roots = payload.get("workspace_roots") or []
-            if not isinstance(roots, list) or not roots:
+            root_path = _first_workspace_root(payload)
+            if root_path is None:
                 return {
                     "permission": "deny",
                     "user_message": "AgentCore Stage B Shell Deny: explicit workspace root is required",
                 }
-            workspace = str(_normalize_workspace_path(str(roots[0])))
+            workspace = str(root_path)
             resolved_targets: list[Path] = []
             for target in targets:
                 expanded = _expand_shell_mutation_paths(target, Path(workspace))
@@ -940,9 +996,9 @@ def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
 def handle_post_tool(payload: dict[str, Any]) -> dict[str, Any]:
     """Stage B afterFileEdit / postToolUse footprint & evidence recorder."""
     try:
-        roots = payload.get("workspace_roots") or []
-        workspace = str(_normalize_workspace_path(str(roots[0]))) if isinstance(roots, list) and roots else None
-        root_path = _normalize_workspace_path(workspace)
+        root_path = _first_workspace_root(payload)
+        if root_path is None:
+            return {}
 
         file_path = payload.get("file_path") or payload.get("path")
         tool_name = str(payload.get("tool_name") or payload.get("name") or "")
@@ -999,9 +1055,9 @@ def handle_stop(payload: dict[str, Any]) -> dict[str, Any]:
     Never emits followup_message or fabricates operator prompts.
     """
     try:
-        roots = payload.get("workspace_roots") or []
-        workspace = str(_normalize_workspace_path(str(roots[0]))) if isinstance(roots, list) and roots else None
-        root_path = _normalize_workspace_path(workspace)
+        root_path = _first_workspace_root(payload)
+        if root_path is None:
+            return {}
 
         scope = SessionScope.load_or_create(root_path)
 

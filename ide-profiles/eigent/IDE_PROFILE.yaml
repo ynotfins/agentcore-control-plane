@@ -20,10 +20,10 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-08-06'
+last_validation_date: '2026-08-20'
 mcp_template_source: renderers/gateway-clients/eigent.json
 known_limitations:
-- Eigent is installed and launches, but C:\Users\ynotf\.eigent\mcp.json does not yet exist; AgentCore gateway enrollment is not certified.
+- Eigent is installed and launches; C:\Users\ynotf\.eigent\mcp.json contains the single agentcore-gateway entry and the active local Brain space is bound to D:\github\agentcore-control-plane.
 - The installed build supports native skills, but no always-on global rule mechanism is verified; GLOBAL_RULES.md therefore remains manual-import guidance.
 - Eigent/CAMEL accepts literal remote MCP headers; committed templates remain symbolic and a governed live installer must materialize the Windows User environment value without printing it.
 semantic_parity_gaps:
@@ -35,9 +35,9 @@ dimensions:
     evidence_ts: '2026-08-06T08:45:00Z'
     superseded_by: null
   gateway_configuration:
-    status: awaiting_operator_import
-    evidence_path: ide-profiles/eigent/INSTALL_OR_UPDATE.md
-    evidence_ts: '2026-08-06T08:45:00Z'
+    status: live_validated
+    evidence_path: artifacts/task-runs/cursor-eigent-workspace-fix-2026-08-20/CURSOR_EIGENT_WORKSPACE_FIX_EVIDENCE.md
+    evidence_ts: '2026-08-20T13:45:11-04:00'
     superseded_by: null
   gateway_discovery:
     status: awaiting_operator_import
