@@ -21,12 +21,15 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: unverified
+last_validation_date: '2026-08-20'
 mcp_template_source: renderers/gateway-clients/antigravity.json
 known_limitations:
-- Two candidate MCP config paths; verify which one the installed build reads before
-  any live change.
+- Two candidate MCP config paths exist; both were aligned on 2026-08-20, but
+  the running client still needs a restart/fresh task proof.
 - Global-rule mechanism unverified.
+- Zoo Code extension is installed under Antigravity as 3.78.0; Cursor has newer
+  3.79.100392 present. Provider/account state is extension-owned and must be
+  proven by a fresh Zoo Code task after import.
 semantic_parity_gaps:
 - Rule persistence unverified.
 dimensions:
@@ -36,14 +39,14 @@ dimensions:
     evidence_ts: '2026-07-14T00:00:00Z'
     superseded_by: null
   gateway_configuration:
-    status: awaiting_operator_import
-    evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
-    evidence_ts: '2026-07-14T00:00:00Z'
+    status: live_validated
+    evidence_path: artifacts/task-runs/antigravity-zoocode-agentcore-sync-2026-08-20/ANTIGRAVITY_ZOOCODE_AGENTCORE_SYNC_EVIDENCE.md
+    evidence_ts: '2026-08-20T16:42:15-04:00'
     superseded_by: null
   gateway_discovery:
-    status: awaiting_operator_import
-    evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
-    evidence_ts: '2026-07-14T00:00:00Z'
+    status: configured_restart_required
+    evidence_path: artifacts/task-runs/antigravity-zoocode-agentcore-sync-2026-08-20/ANTIGRAVITY_ZOOCODE_AGENTCORE_SYNC_EVIDENCE.md
+    evidence_ts: '2026-08-20T16:42:15-04:00'
     superseded_by: null
   native_memory_lifecycle:
     status: awaiting_operator_import
@@ -65,4 +68,11 @@ dimensions:
     evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
     evidence_ts: '2026-07-14T00:00:00Z'
     superseded_by: null
-m8_enrollment: awaiting_operator_import
+m8_enrollment: configured_restart_required
+m8_notes: 'LIVE CONFIGURATION 2026-08-20. Antigravity User mcp.json and Gemini backing mcp_config.json contain a
+  single active agentcore-gateway entry at http://127.0.0.1:8080/mcp. Zoo Code extension 3.78.0 is installed in
+  Antigravity and its extension-owned MCP settings were preseeded with agentcore-gateway. Antigravity User settings
+  now point zoo-code.autoImportSettingsPath to C:\Users\ynotf\Downloads\roo-code-settings.json, the same saved setup
+  Cursor uses. That saved setup selects Zoo Gateway with deepseek/deepseek-v4-pro-0813 and has no custom modes.
+  Full M8 enrollment remains pending until a fresh Antigravity/Zoo-Code task proves import/account state, gateway
+  tool discovery, native memory lifecycle, and restart persistence.'

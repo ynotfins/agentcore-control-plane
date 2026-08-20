@@ -561,7 +561,7 @@ managed_ides:
         superseded_by: null
   antigravity:
     installed_version: unverified
-    configuration_mode: unverified
+    configuration_mode: direct_write
     rule_mechanism: unverified
     mcp_schema: antigravity_mcp_json
     mcp_transport: http/streamable
@@ -571,11 +571,15 @@ managed_ides:
       global_rules: unverified
       project_rules: unverified
       mcp_config: direct_write
-    last_validated: unverified
-    m8_enrollment: awaiting_operator_import
-    m8_notes: 'Config artifact in ide-profiles/antigravity/MCP_CONFIG_TEMPLATE.json and INSTALL_OR_UPDATE.md. Operator action:
-      follow INSTALL_OR_UPDATE.md; import config artifact; restart client; confirm tools/list returns 10 agentcore-memory
-      tools. Live config path unverified on this machine.'
+    last_validated: '2026-08-20'
+    m8_enrollment: configured_restart_required
+    m8_notes: 'LIVE CONFIGURATION 2026-08-20. Antigravity User mcp.json and Gemini backing mcp_config.json contain a
+      single active agentcore-gateway entry at http://127.0.0.1:8080/mcp. Zoo Code extension 3.78.0 is installed in
+      Antigravity and its extension-owned MCP settings were preseeded with agentcore-gateway. Antigravity User settings
+      now point zoo-code.autoImportSettingsPath to C:\Users\ynotf\Downloads\roo-code-settings.json, the same saved setup
+      Cursor uses. That saved setup selects Zoo Gateway with deepseek/deepseek-v4-pro-0813 and has no custom modes.
+      Full M8 enrollment remains pending until a fresh Antigravity/Zoo-Code task proves import/account state, gateway
+      tool discovery, native memory lifecycle, and restart persistence.'
     dimensions:
       application_launch:
         status: awaiting_operator_import
@@ -583,14 +587,14 @@ managed_ides:
         evidence_ts: '2026-07-14T00:00:00Z'
         superseded_by: null
       gateway_configuration:
-        status: awaiting_operator_import
-        evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
-        evidence_ts: '2026-07-14T00:00:00Z'
+        status: live_validated
+        evidence_path: artifacts/task-runs/antigravity-zoocode-agentcore-sync-2026-08-20/ANTIGRAVITY_ZOOCODE_AGENTCORE_SYNC_EVIDENCE.md
+        evidence_ts: '2026-08-20T16:42:15-04:00'
         superseded_by: null
       gateway_discovery:
-        status: awaiting_operator_import
-        evidence_path: ide-profiles/antigravity/INSTALL_OR_UPDATE.md
-        evidence_ts: '2026-07-14T00:00:00Z'
+        status: configured_restart_required
+        evidence_path: artifacts/task-runs/antigravity-zoocode-agentcore-sync-2026-08-20/ANTIGRAVITY_ZOOCODE_AGENTCORE_SYNC_EVIDENCE.md
+        evidence_ts: '2026-08-20T16:42:15-04:00'
         superseded_by: null
       native_memory_lifecycle:
         status: awaiting_operator_import

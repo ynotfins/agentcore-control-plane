@@ -18,7 +18,7 @@
 | Backup required | yes |
 | Validation required | yes |
 | Restart required | yes |
-| Last validated | unverified |
+| Last validated | 2026-08-20 |
 
 ## Mandatory rules
 
@@ -65,6 +65,7 @@
 
 ## Product-specific notes and omissions
 
-- Limitation: Two candidate MCP config paths; verify which one the installed build reads before any live change.
+- Limitation: Two candidate MCP config paths exist; both were aligned on 2026-08-20, but the running client still needs a restart/fresh task proof.
 - Limitation: Global-rule mechanism unverified.
+- Limitation: Zoo Code extension is installed under Antigravity as 3.78.0; Cursor has newer 3.79.100392 present. Provider/account state is extension-owned and must be proven by a fresh Zoo Code task after import.
 - Parity gap: Rule persistence unverified.

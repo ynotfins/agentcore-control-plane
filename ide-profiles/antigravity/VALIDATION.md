@@ -23,4 +23,4 @@ Run after installing or updating rules/MCP config for this IDE:
 17. `ops\Test-AgentCoreDurabilityAndPlacement.ps1 -Mode Health` exits 0 (or warns only; no FAIL lines).
 18. The agentcore-memory tool surface is exactly ten tools: memory_status, startup_context, retrieve_context, append_event, propose_fact, expand_source, session_open, session_close, build_handoff, docs_search. Any deviation is a validation failure. Do not mark live_validated until all steps 1–18 pass with recorded evidence.
 
-Record results and date in `IDE_PROFILE.yaml` (`last_validation_date`). Current recorded validation: unverified.
+Record results and date in `IDE_PROFILE.yaml` (`last_validation_date`). Current recorded validation: 2026-08-20.
