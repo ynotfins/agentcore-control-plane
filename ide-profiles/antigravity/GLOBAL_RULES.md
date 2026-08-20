@@ -65,7 +65,9 @@
 
 ## Product-specific notes and omissions
 
+- Limitation: Antigravity remote MCP uses serverUrl. Legacy url/httpUrl/type/timeout entries are rejected by the current schema and can crash-loop the MCP agent.
 - Limitation: Two candidate MCP config paths exist; both were aligned on 2026-08-20, but the running client still needs a restart/fresh task proof.
+- Limitation: Header environment placeholders in Antigravity mcp_config.json are not yet proven by official docs or a fresh runtime task; do not introduce a public tunnel for local desktop Antigravity to work around this.
 - Limitation: Global-rule mechanism unverified.
 - Limitation: Zoo Code extension is installed under Antigravity as 3.78.0; Cursor has newer 3.79.100392 present. Provider/account state is extension-owned and must be proven by a fresh Zoo Code task after import.
 - Parity gap: Rule persistence unverified.

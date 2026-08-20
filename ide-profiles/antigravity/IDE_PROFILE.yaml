@@ -7,11 +7,11 @@ installed_version: unverified
 live_global_rule_target: unverified
 live_mcp_config_target: C:\Users\ynotf\.gemini\config\mcp_config.json
 alternate_mcp_config_targets:
-- C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json
+- C:\Users\ynotf\AppData\Roaming\Antigravity IDE\User\mcp.json
 rule_mechanism: unverified
 mcp_schema: antigravity_mcp_json
 mcp_transport: http/streamable
-env_var_handling: supports env headers (per gateway-client contract)
+env_var_handling: custom headers are supported; env-placeholder expansion in mcp_config.json headers is unverified, so prefer a Bifrost local adapter or governed live materialization from Windows User env when required
 restart_behavior: restart client after MCP config changes
 editability:
   global_rules: unverified
@@ -24,8 +24,13 @@ restart_required: true
 last_validation_date: '2026-08-20'
 mcp_template_source: renderers/gateway-clients/antigravity.json
 known_limitations:
+- Antigravity remote MCP uses serverUrl. Legacy url/httpUrl/type/timeout entries
+  are rejected by the current schema and can crash-loop the MCP agent.
 - Two candidate MCP config paths exist; both were aligned on 2026-08-20, but
   the running client still needs a restart/fresh task proof.
+- Header environment placeholders in Antigravity mcp_config.json are not yet
+  proven by official docs or a fresh runtime task; do not introduce a public
+  tunnel for local desktop Antigravity to work around this.
 - Global-rule mechanism unverified.
 - Zoo Code extension is installed under Antigravity as 3.78.0; Cursor has newer
   3.79.100392 present. Provider/account state is extension-owned and must be

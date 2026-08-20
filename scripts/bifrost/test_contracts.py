@@ -169,6 +169,7 @@ def main() -> int:
     )
     zed_renderer = json.loads(read("renderers/gateway-clients/zed.json"))
     eigent_renderer = json.loads(read("renderers/gateway-clients/eigent.json"))
+    antigravity_renderer = json.loads(read("renderers/gateway-clients/antigravity.json"))
     check(
         "ide:zed renderer schema",
         list(zed_renderer.get("context_servers", {})) == ["agentcore-gateway"]
@@ -181,6 +182,18 @@ def main() -> int:
         and eigent_renderer["mcpServers"]["agentcore-gateway"].get("url")
         == "http://127.0.0.1:8080/mcp",
     )
+    antigravity_gateway = antigravity_renderer["mcpServers"]["agentcore-gateway"]
+    check(
+        "ide:antigravity renderer schema",
+        list(antigravity_renderer.get("mcpServers", {})) == ["agentcore-gateway"]
+        and antigravity_gateway.get("serverUrl") == "http://127.0.0.1:8080/mcp"
+        and not any(key in antigravity_gateway for key in ("type", "url", "httpUrl", "timeout")),
+    )
+    check(
+        "ide:antigravity renderer path",
+        "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity IDE\\User\\mcp.json"
+        in antigravity_renderer.get("_agentcore", {}).get("paths", []),
+    )
     for client, renderer in (("zed", zed_renderer), ("eigent", eigent_renderer)):
         renderer_text = json.dumps(renderer)
         check(
@@ -188,6 +201,12 @@ def main() -> int:
             "${env:BIFROST_MCP_VIRTUAL_KEY}" in renderer_text
             and re.search(r"Bearer\s+(?!\$\{env:)[A-Za-z0-9._~+/=-]{20,}", renderer_text) is None,
         )
+    antigravity_renderer_text = json.dumps(antigravity_renderer)
+    check(
+        "ide:antigravity renderer symbolic secret only",
+        "${BIFROST_MCP_VIRTUAL_KEY}" in antigravity_renderer_text
+        and re.search(r"Bearer\s+(?!\$\{BIFROST_MCP_VIRTUAL_KEY\})[A-Za-z0-9._~+/=-]{20,}", antigravity_renderer_text) is None,
+    )
     valid_modes = {"direct_write", "generated_prompt", "manual_import", "unsupported", "unverified"}
     for profile_dir in sorted(profile_dirs):
         profile_rel = f"ide-profiles/{profile_dir.name}"

@@ -1,20 +1,22 @@
 {
   "mcpServers": {
     "agentcore-gateway": {
-      "type": "http",
-      "url": "http://127.0.0.1:8080/mcp",
+      "serverUrl": "http://127.0.0.1:8080/mcp",
       "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-      },
-      "timeout": 300
+        "Authorization": "Bearer ${BIFROST_MCP_VIRTUAL_KEY}"
+      }
     }
   },
   "_agentcore": {
     "renderer": "antigravity",
     "paths": [
       "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
-      "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json"
+      "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity IDE\\User\\mcp.json"
     ],
-    "source_contract": "contracts/agentcore-gateway-client.json"
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Antigravity remote MCP schema uses serverUrl, not url/httpUrl/type.",
+      "Antigravity MCP docs do not document env expansion in mcp_config.json headers; live installer must prove expansion, use a Bifrost local adapter, or materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env only into live app config."
+    ]
   }
 }

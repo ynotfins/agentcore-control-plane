@@ -103,10 +103,15 @@
       "enabled": true,
       "config_path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
       "alternate_config_paths": [
-        "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity\\User\\mcp.json"
+        "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity IDE\\User\\mcp.json"
       ],
       "syntax": "antigravity_mcp_json",
-      "supports_env_headers": true
+      "supports_env_headers": false,
+      "notes": [
+        "Antigravity remote HTTP/SSE MCP entries use serverUrl; legacy url/httpUrl/type fields are not supported by the current Antigravity schema.",
+        "Antigravity supports custom headers, but env-placeholder expansion in mcp_config.json headers is not documented. Prefer a Bifrost-owned localhost adapter for header-hostile clients; otherwise a governed live installer may materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env into live app config only.",
+        "Do not use a public tunnel for local desktop Antigravity. The ChatGPT Settings tunnel is only for a cloud ChatGPT client that must reach a local gateway."
+      ]
     },
     "open-interpreter": {
       "enabled": true,
