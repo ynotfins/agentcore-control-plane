@@ -7,16 +7,33 @@ swarm_managed: false
 installed_version: 3.79.100392
 live_global_rule_target: unverified
 live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\Cursor\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json
+live_custom_modes_target: C:\Users\ynotf\AppData\Roaming\Cursor\User\globalStorage\zoocodeorganization.zoo-code\settings\custom_modes.yaml
 rule_mechanism: Zoo Code modes/custom instructions are extension-owned; no AgentCore global-rule delivery path certified yet.
 mcp_schema: zoo_code_mcp_json
 mcp_transport: http/streamable
 env_var_handling: no documented env-header expansion in persisted MCP JSON; materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env into live config only
 restart_behavior: restart Cursor or open a fresh Zoo Code task after MCP changes
 global_skill_root: C:\Users\ynotf\.roo\skills
+codebase_indexing:
+  status: qdrant_runtime_active_provider_ui_pending
+  qdrant_owner: AgentCore / Zoo Code
+  qdrant_classification: REBUILDABLE_DERIVED_CODE_INDEX
+  qdrant_version: 1.19.0
+  qdrant_url: http://127.0.0.1:6333
+  qdrant_grpc_url: http://127.0.0.1:6334
+  qdrant_root: I:\LocalApps\ZooCode\qdrant
+  scheduled_task: \AgentCore\ZooCode-Qdrant
+  install_script: ops/zoo-code/Install-ZooCodeQdrant.ps1
+  validation_script: ops/zoo-code/Test-ZooCodeQdrant.ps1
+  latest_report_path: I:\LocalApps\ZooCode\qdrant\reports
+  provider_binding: Zoo Code UI-owned; do not patch Cursor state.vscdb directly while Cursor is active.
+  provider_recommendation: Use a Zoo Code-supported embedding provider from the Codebase Indexing UI; keep coding provider/model separate from embedding provider/model.
 editability:
   global_rules: unverified
   project_rules: direct_write
   mcp_config: direct_write
+  custom_modes: direct_write
+  codebase_index_settings: manual_import
 installation_mode: direct_write
 backup_required: true
 validation_required: true
@@ -30,6 +47,7 @@ known_limitations:
 - Zoo Code skills are installed globally at C:\Users\ynotf\.roo\skills because upstream Zoo Code scans .roo/skills after .agents/skills and gives it higher same-source priority.
 - Cursor CLI extension listing did not report Zoo Code, but Cursor extension folders and Zoo Code globalStorage are present; latest observed folder is 3.79.100392 with 3.79.100391 still present.
 - Provider/account state is owned by Zoo Code/Cursor secret storage and UI import state; this profile certifies MCP enrollment only.
+- Zoo Code Codebase Indexing supports Qdrant natively in installed 3.79.100392; the local Qdrant runtime is active and loopback-only, but embedding-provider selection/API-key storage remains Zoo Code UI-owned.
 - Native AgentCore memory lifecycle is not yet certified from inside a paid Zoo Code task.
 semantic_parity_gaps:
 - No signed AgentCore lifecycle adapter is certified for Zoo Code yet.

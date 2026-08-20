@@ -71,5 +71,6 @@
 - Limitation: Zoo Code skills are installed globally at C:\Users\ynotf\.roo\skills because upstream Zoo Code scans .roo/skills after .agents/skills and gives it higher same-source priority.
 - Limitation: Cursor CLI extension listing did not report Zoo Code, but Cursor extension folders and Zoo Code globalStorage are present; latest observed folder is 3.79.100392 with 3.79.100391 still present.
 - Limitation: Provider/account state is owned by Zoo Code/Cursor secret storage and UI import state; this profile certifies MCP enrollment only.
+- Limitation: Zoo Code Codebase Indexing supports Qdrant natively in installed 3.79.100392; the local Qdrant runtime is active and loopback-only, but embedding-provider selection/API-key storage remains Zoo Code UI-owned.
 - Limitation: Native AgentCore memory lifecycle is not yet certified from inside a paid Zoo Code task.
 - Parity gap: No signed AgentCore lifecycle adapter is certified for Zoo Code yet.
