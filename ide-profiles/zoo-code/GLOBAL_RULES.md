@@ -65,8 +65,10 @@
 
 ## Product-specific notes and omissions
 
-- Limitation: Zoo Code is officially a VS Code/Open VSX extension; it is installed in Cursor on this host, not as a Zed extension.
-- Limitation: Cursor CLI extension listing did not report Zoo Code, but Cursor extension folders and Zoo Code globalStorage are present.
+- Limitation: Zoo Code is officially a VS Code/Open VSX extension; it is installed and must remain operated locally in Cursor so the Zoo Code side panel stays available.
+- Limitation: Bifrost/agentcore-gateway is MCP/tooling only for Zoo Code; it must not be treated as the host for Zoo Code's UI, agent side panel, provider account, or model execution.
+- Limitation: Zoo Code is not installed as a Zed extension; Zed uses its own native AgentCore MCP configuration instead.
+- Limitation: Cursor CLI extension listing did not report Zoo Code, but Cursor extension folders and Zoo Code globalStorage are present; latest observed folder is 3.79.100392 with 3.79.100391 still present.
 - Limitation: Provider/account state is owned by Zoo Code/Cursor secret storage and UI import state; this profile certifies MCP enrollment only.
 - Limitation: Native AgentCore memory lifecycle is not yet certified from inside a paid Zoo Code task.
 - Parity gap: No signed AgentCore lifecycle adapter is certified for Zoo Code yet.

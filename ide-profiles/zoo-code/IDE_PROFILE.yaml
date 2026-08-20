@@ -4,7 +4,7 @@
 ide_id: zoo-code
 display_name: Zoo Code
 swarm_managed: false
-installed_version: 3.79.100391
+installed_version: 3.79.100392
 live_global_rule_target: unverified
 live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\Cursor\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json
 rule_mechanism: Zoo Code modes/custom instructions are extension-owned; no AgentCore global-rule delivery path certified yet.
@@ -23,8 +23,10 @@ restart_required: true
 last_validation_date: '2026-08-20'
 mcp_template_source: renderers/gateway-clients/zoo-code.json
 known_limitations:
-- Zoo Code is officially a VS Code/Open VSX extension; it is installed in Cursor on this host, not as a Zed extension.
-- Cursor CLI extension listing did not report Zoo Code, but Cursor extension folders and Zoo Code globalStorage are present.
+- Zoo Code is officially a VS Code/Open VSX extension; it is installed and must remain operated locally in Cursor so the Zoo Code side panel stays available.
+- Bifrost/agentcore-gateway is MCP/tooling only for Zoo Code; it must not be treated as the host for Zoo Code's UI, agent side panel, provider account, or model execution.
+- Zoo Code is not installed as a Zed extension; Zed uses its own native AgentCore MCP configuration instead.
+- Cursor CLI extension listing did not report Zoo Code, but Cursor extension folders and Zoo Code globalStorage are present; latest observed folder is 3.79.100392 with 3.79.100391 still present.
 - Provider/account state is owned by Zoo Code/Cursor secret storage and UI import state; this profile certifies MCP enrollment only.
 - Native AgentCore memory lifecycle is not yet certified from inside a paid Zoo Code task.
 semantic_parity_gaps:
