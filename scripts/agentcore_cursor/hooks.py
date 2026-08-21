@@ -42,8 +42,73 @@ def _normalize_workspace_path(path_str: str | None) -> Path:
         raw = f"{match.group(1)}:\\{match.group(2)}"
     path = Path(raw)
     if not path.is_absolute():
-        raise ValueError("workspace root must be absolute")
+        label_root = _resolve_enrolled_workspace_label(raw)
+        if label_root is None:
+            raise ValueError("workspace root must be absolute")
+        return label_root
     return path.resolve()
+
+
+def _slug(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", value.lower())
+
+
+def _read_enrolled_workspace_roots() -> list[tuple[str, str, Path]]:
+    contract_path = Path(__file__).resolve().parents[2] / "contracts" / "agentcore-project-enrollment.json"
+    try:
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows: list[tuple[str, str, Path]] = []
+    for project in contract.get("projects") or []:
+        if not isinstance(project, dict):
+            continue
+        project_key = str(project.get("project_key") or "").strip()
+        project_name = str(project.get("name") or "").strip()
+        for raw_path in project.get("paths") or []:
+            if not isinstance(raw_path, str) or not raw_path.strip():
+                continue
+            path = Path(raw_path)
+            if path.is_absolute():
+                rows.append((project_key, project_name, path.resolve()))
+    return rows
+
+
+def _project_key_marker_matches(root: Path, project_key: str) -> bool:
+    marker = root / ".agentcore" / "project_key"
+    try:
+        return marker.is_file() and marker.read_text(encoding="utf-8").strip() == project_key
+    except OSError:
+        return False
+
+
+def _resolve_enrolled_workspace_label(raw: str) -> Path | None:
+    """Resolve Cursor's folder-label root shape without accepting relative paths.
+
+    Cursor can emit the displayed workspace label (for example
+    "agentcore-control-plane") instead of a filesystem path. Only admit that
+    shape when it uniquely maps to an enrolled project root that carries the
+    matching .agentcore/project_key marker.
+    """
+    label = raw.strip().strip(".\\/ ")
+    if not label or any(sep in label for sep in ("/", "\\")) or ":" in label:
+        return None
+    wanted = {_slug(label)}
+    candidates: list[Path] = []
+    for project_key, project_name, root in _read_enrolled_workspace_roots():
+        aliases = {
+            _slug(project_key),
+            _slug(project_name),
+            _slug(root.name),
+        }
+        if not (wanted & aliases):
+            continue
+        if root.is_dir() and _project_key_marker_matches(root, project_key):
+            candidates.append(root)
+    unique = {str(path).lower(): path for path in candidates}
+    if len(unique) == 1:
+        return next(iter(unique.values()))
+    return None
 
 
 def _workspace_root_candidate(value: Any) -> str | None:
