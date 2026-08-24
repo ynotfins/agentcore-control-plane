@@ -19,7 +19,7 @@ These decisions are operator-approved and may not be changed without explicit op
 - **Bifrost** retains the stable IDE-facing `agentcore-gateway` (`http://127.0.0.1:8080/mcp`).
 - The memory subsystem retains the stable Bifrost upstream identity **`agentcore-memory`**. No IDE configuration change is required at any Milestone.
 - **The Swarm execution control plane remains independent.** SwarmVault, SwarmClaw, and Swarm-owned runtime state are never dependencies of this platform. The machine-level neutral shared SwarmRecall service is the single explicit exception: AgentCore may use it only as a non-canonical semantic projection through `agentcore-memory`, under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`.
-- **Native Windows first; Docker by exception when clearly better.** Docker/WSL may be used only for a bounded service or test harness when it is the stronger operational choice and has explicit storage, loopback/network, backup, rollback, and ownership evidence. It must not become hidden persistence or an implicit dependency for canonical AgentCore state.
+- **No Docker or WSL dependency** for the core platform.
 - **No Redis, Memurai, Qdrant, LanceDB, Neo4j, or any second canonical exact-evidence store.** Neutral shared SwarmRecall is an operator-approved cross-client semantic projection (not a second evidence ledger). Additional engines still require a benchmark + operator approval.
 - `database-plan.md` and `AGENT_DATABASE_BOOTSTRAP.md` are historical evidence; do not implement their schemas, tool names, or Swarm memory planes.
 - `D:\github\memory-context-database` is supporting corpus/template planning, not the controlling architecture.

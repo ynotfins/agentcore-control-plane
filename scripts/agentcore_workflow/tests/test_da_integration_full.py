@@ -584,6 +584,23 @@ def test_gate_arch_keyword_fallback_unaffected():
     assert verdict2 == "fail", f"keyword check must still block mem0: {details2}"
 
 
+def test_gate_arch_allows_governed_docker_keyword():
+    """Docker is native-first/governed-exception, not rejected by keyword alone."""
+    from agentcore_workflow.gates import gate_arch, gate_dependency_scan
+
+    state = {
+        "gate_evidence": {},
+        "macro_steps": [{"label": "Use Docker for bounded test harness with explicit storage"}],
+        "execution_result": {"diff": "Add docker compose smoke harness for isolated tests"},
+    }
+
+    verdict, details = gate_arch(state)
+    assert verdict == "pass", f"docker keyword alone must not fail arch gate: {details}"
+
+    dep_verdict, dep_details = gate_dependency_scan(state)
+    assert dep_verdict == "pass", f"docker keyword alone must not fail dependency scan: {dep_details}"
+
+
 def test_critic_refactor_risk_present():
     """critic_refactor_risk is registered at medium, high, and critical risk levels."""
     from agentcore_workflow.critics import CRITIC_REGISTRY, critic_refactor_risk

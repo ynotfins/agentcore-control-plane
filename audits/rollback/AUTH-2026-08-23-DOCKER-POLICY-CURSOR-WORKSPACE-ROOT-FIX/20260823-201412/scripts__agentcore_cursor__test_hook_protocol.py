@@ -292,10 +292,6 @@ def test_structured_workspace_roots_supported() -> None:
         {"workspaceFolder": {"uri": REPO.as_uri()}},
         {"workspace_roots": [REPO.name]},
         {"workspace_root": "agentcore-control-plane"},
-        {"workspace_roots": [{"name": "agentcore-control-plane"}]},
-        {"workspace_roots": [{"label": "agentcore-control-plane"}]},
-        {"workspace_roots": [{"workspaceName": "agentcore-control-plane"}]},
-        {"workspaceRoot": {"workspace_name": "agentcore-control-plane"}},
     ]
     for payload in payloads:
         assert _first_workspace_root(payload) == expected

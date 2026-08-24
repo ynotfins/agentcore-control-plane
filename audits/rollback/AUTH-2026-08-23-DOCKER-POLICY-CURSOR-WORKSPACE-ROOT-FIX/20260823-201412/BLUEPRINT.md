@@ -386,7 +386,7 @@ Rules:
 - 128 GB DDR5
 - NVIDIA RTX 4070 SUPER with 12 GB VRAM
 - Windows 11 Pro
-- Native Windows is the default for the core AgentCore platform. Docker is allowed only when it is the clearly better bounded option for a specific service or test harness, with explicit storage, loopback/network, backup, and rollback evidence. Docker/WSL must not become an implicit hidden dependency for canonical AgentCore state.
+- No Docker or WSL dependency for the core AgentCore platform
 
 ### Drive roles
 
@@ -910,7 +910,7 @@ Changes requiring explicit operator approval:
 - Allowing IDE agents direct database credentials
 - Removing immutable evidence or exact source expansion
 - Making STATE files manually edited canonical sources
-- Introducing Docker or WSL as an implicit or hidden core dependency, or placing canonical AgentCore state in ungoverned container/WSL storage
+- Introducing Docker or WSL as a core dependency
 - Placing AgentCore canonical runtime/data back onto H:
 
 The active execution lead must stop and ask before making one of these changes.

@@ -38,13 +38,13 @@ SECRET_PATTERNS = (
     re.compile(r"(?i)-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
 )
 # AUTH-2026-08-01: neutral shared SwarmRecall is an approved semantic plane.
-# AUTH-2026-08-23: Docker is native-first / governed-exception, not globally
-# forbidden. Keep forbidding Mem0, SwarmVault-as-IDE-dependency, Qdrant, Redis.
+# Keep forbidding Mem0, SwarmVault-as-IDE-dependency, Qdrant, Redis, Docker.
 FORBIDDEN_DEPENDENCY_HINTS = (
     "mem0",
     "swarmvault",
     "qdrant",
     "redis",
+    "docker",
     "dual-recall",
 )
 def _autonomous_strict(state: dict) -> bool:
@@ -173,9 +173,7 @@ def gate_scope(state: dict, db_check: bool = True) -> tuple[str, dict]:
 def gate_arch(state: dict) -> tuple[str, dict]:
     """Check that no forbidden architecture patterns are being introduced.
     Forbidden: second canonical memory store, Swarm dependency, Mem0 installation,
-    WSL as a core platform dependency, replacing PostgreSQL as canonical authority.
-    Docker is governed by the native-first / bounded-exception policy and is not
-    rejected by keyword alone.
+    Docker/WSL for core platform, replacing PostgreSQL as canonical authority.
 
     Enhanced (Gap 4): also consults Depwire/Tentra structural evidence from
     state["gate_evidence"]["depwire_verify"] when available.  Signals checked:
@@ -189,14 +187,14 @@ def gate_arch(state: dict) -> tuple[str, dict]:
     macro_labels = " ".join(s.get("label", "") for s in state.get("macro_steps", []))
     # AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE: neutral shared SwarmRecall is
     # approved as a semantic projection plane. Raw SwarmVault IDE dependency and
-    # dual-Recall / Mem0 remain forbidden. Docker requires governed evidence but
-    # is not rejected by keyword alone.
+    # dual-Recall / Mem0 / Docker remain forbidden.
     forbidden_terms = [
         ("mem0", "Mem0 is not permitted in v1"),
         ("swarmvault", "SwarmVault must not become an AgentCore IDE memory dependency"),
         ("dual-recall", "Dual-Recall topology is rejected"),
         ("qdrant", "No second canonical vector store"),
         ("redis", "No Redis dependency for core platform"),
+        ("docker", "No Docker dependency for core platform"),
         ("wsl", "No WSL dependency for core platform"),
     ]
     lower_labels = macro_labels.lower()

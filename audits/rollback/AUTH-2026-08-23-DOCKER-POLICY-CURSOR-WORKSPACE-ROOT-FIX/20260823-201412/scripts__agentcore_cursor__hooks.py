@@ -127,10 +127,6 @@ def _workspace_root_candidate(value: Any) -> str | None:
             "workspace_root",
             "workspaceRoot",
             "rootPath",
-            "name",
-            "label",
-            "workspaceName",
-            "workspace_name",
         ):
             nested = value.get(key)
             if isinstance(nested, (str, dict)):

@@ -19,7 +19,7 @@ These decisions require explicit operator approval to change:
 - Secrets come from Windows User environment variables only. Never `.env` files.
 - AgentCore memory is accessed through `agentcore-memory` behind `agentcore-gateway`.
 - Swarm (SwarmRecall, SwarmVault, SwarmClaw) is independent. Do not couple to it.
-- Native Windows is preferred for core platform services. Docker/WSL is allowed only when it is the clearly better bounded option with explicit storage, loopback/network, backup, rollback, and owner evidence; never as hidden canonical persistence.
+- No Docker or WSL dependency for the core platform.
 - Mem0 is not installed. Cognee is the semantic/graph subsystem.
 - LangGraph owns durable workflow execution and checkpoints.
 

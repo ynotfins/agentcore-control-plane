@@ -1,0 +1,38 @@
+[
+  {
+    "relative_path": "BLUEPRINT.md",
+    "sha256": "1FC462AEC7739ABC7BF778CB032AD0CC5C503A61CE3F82FEA21537396BE45434",
+    "length": 50728,
+    "was_readonly": true
+  },
+  {
+    "relative_path": "docs\\memory-platform\\MEMORY_PLATFORM_EXECUTION_PLAN.md",
+    "sha256": "1270D640145B24985ABE7092134A46D517930CFF5992E9D13C9E3A59FA72A775",
+    "length": 22009,
+    "was_readonly": true
+  },
+  {
+    "relative_path": "docs\\engineering\\CONSTITUTION.md",
+    "sha256": "917C62FB5F1452A5EE83870B1CCEE3770ABE3980B104C6D5FDF2C683A1D5ABE2",
+    "length": 16054,
+    "was_readonly": false
+  },
+  {
+    "relative_path": "scripts\\agentcore_cursor\\hooks.py",
+    "sha256": "C81CA4500A9076F17BB0146992105825ED5944C6A507EE65EFC0BB0428E09A41",
+    "length": 48218,
+    "was_readonly": false
+  },
+  {
+    "relative_path": "scripts\\agentcore_cursor\\test_hook_protocol.py",
+    "sha256": "53631C1E3B7E5B14552C41552430C5CDDB5A38E3FB3EF0CEC7844225114CC3EF",
+    "length": 12487,
+    "was_readonly": false
+  },
+  {
+    "relative_path": "scripts\\agentcore_workflow\\gates.py",
+    "sha256": "804C7B8EC7D8405EE2B615526F6AA391D9B32229EB111D14E33339E25AA6FB3B",
+    "length": 23449,
+    "was_readonly": false
+  }
+]
