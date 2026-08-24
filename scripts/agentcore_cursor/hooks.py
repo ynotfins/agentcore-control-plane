@@ -82,6 +82,22 @@ def _project_key_marker_matches(root: Path, project_key: str) -> bool:
         return False
 
 
+def _verified_current_workspace_root() -> Path | None:
+    """Return the hook process cwd only when it is an enrolled AgentCore root."""
+    try:
+        cwd = Path.cwd().resolve()
+    except OSError:
+        return None
+    for project_key, _project_name, root in _read_enrolled_workspace_roots():
+        try:
+            resolved = root.resolve()
+        except OSError:
+            continue
+        if cwd == resolved and resolved.is_dir() and _project_key_marker_matches(resolved, project_key):
+            return resolved
+    return None
+
+
 def _resolve_enrolled_workspace_label(raw: str) -> Path | None:
     """Resolve Cursor's folder-label root shape without accepting relative paths.
 
@@ -141,18 +157,40 @@ def _workspace_root_candidate(value: Any) -> str | None:
 
 
 def _first_workspace_root(payload: dict[str, Any]) -> Path | None:
+    candidates: list[Any] = []
     roots = payload.get("workspace_roots") or payload.get("workspaceRoots") or []
-    if not isinstance(roots, list) or not roots:
-        root = (
-            payload.get("workspace_root")
-            or payload.get("workspaceRoot")
-            or payload.get("workspaceFolder")
-            or payload.get("workspace_folder")
-        )
-        if root is None:
-            return None
-        return _normalize_workspace_path(_workspace_root_candidate(root))
-    return _normalize_workspace_path(_workspace_root_candidate(roots[0]))
+    if isinstance(roots, list):
+        candidates.extend(roots)
+    elif roots:
+        candidates.append(roots)
+    for key in (
+        "workspace_root",
+        "workspaceRoot",
+        "workspaceFolder",
+        "workspace_folder",
+        "project_root",
+        "projectRoot",
+        "root",
+        "cwd",
+        "currentWorkingDirectory",
+        "current_working_directory",
+    ):
+        if payload.get(key) is not None:
+            candidates.append(payload.get(key))
+
+    errors: list[Exception] = []
+    for candidate in candidates:
+        try:
+            return _normalize_workspace_path(_workspace_root_candidate(candidate))
+        except (OSError, ValueError) as exc:
+            errors.append(exc)
+
+    if errors:
+        cwd_root = _verified_current_workspace_root()
+        if cwd_root is not None:
+            return cwd_root
+        raise errors[0]
+    return None
 
 # Ensure scripts/ is importable when launched from repo hooks.
 _SCRIPTS = Path(__file__).resolve().parents[1]
