@@ -1,0 +1,44 @@
+approval_policy = "on-request"
+approvals_reviewer = "user"
+default_permissions = "coding"
+model = "openai/gpt-4.1-mini"
+model_auto_compact_token_limit = 12000
+model_context_window = 16000
+model_provider = "openrouter"
+sandbox_mode = "workspace-write"
+personality = "pragmatic"
+
+[model_providers.openrouter]
+base_url = "https://openrouter.ai/api/v1"
+env_key = "OPENROUTER_API_KEY"
+name = "OpenRouter"
+requires_openai_auth = false
+wire_api = "responses"
+
+[permissions.coding.filesystem]
+'C:\Users\ynotf\.openinterpreter-cli\tmp\/**' = "write"
+'C:\Users\ynotf\AppData\Local\Temp\/**' = "write"
+'D:\github\agentcore-control-plane\/**' = "write"
+
+[permissions.operator.filesystem]
+'C:\Users\ynotf\.openinterpreter-cli\tmp\/**' = "write"
+'C:\Users\ynotf\AppData\Local\Temp\/**' = "write"
+'D:\github\agentcore-control-plane\/**' = "write"
+
+[profiles.coding]
+approval_policy = "on-request"
+model = "openai/gpt-4.1-mini"
+model_provider = "openrouter"
+sandbox_mode = "workspace-write"
+
+[profiles.operator]
+approval_policy = "on-request"
+model = "openai/gpt-4.1-mini"
+model_provider = "openrouter"
+sandbox_mode = "danger-full-access"
+
+[projects.'d:\github\agentcore-control-plane']
+trust_level = "trusted"
+
+[windows]
+sandbox = "standard"

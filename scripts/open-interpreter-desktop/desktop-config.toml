@@ -1,0 +1,144 @@
+approval_policy = "on-request"
+approvals_reviewer = "user"
+default_permissions = "operator"
+model = "deepseek/deepseek-v4-pro"
+model_auto_compact_token_limit = 120000
+model_context_window = 1000000
+model_provider = "openrouter"
+sandbox_mode = "danger-full-access"
+personality = "pragmatic"
+
+[features]
+browser_use = true
+computer_use = true
+
+[model_providers.custom]
+base_url = "https://api.minimax.io/v1"
+experimental_bearer_token = "${env:MINIMAX_API_KEY}"
+name = "Custom Endpoint"
+requires_openai_auth = false
+wire_api = "responses"
+
+[model_providers.custom.http_headers]
+Authorization = "Bearer ${env:MINIMAX_API_KEY}"
+
+[model_providers.deepseek]
+base_url = "https://api.deepseek.com"
+env_key = "DEEPSEEK_API_KEY"
+name = "DeepSeek"
+wire_api = "chat"
+
+[model_providers.github-copilot]
+base_url = "https://api.githubcopilot.com"
+env_key = "GITHUB_TOKEN"
+name = "GitHub Copilot"
+wire_api = "chat"
+
+[model_providers.github-models]
+base_url = "https://models.github.ai/inference"
+env_key = "GITHUB_TOKEN"
+name = "GitHub Models"
+wire_api = "chat"
+
+[model_providers.huggingface]
+base_url = "https://router.huggingface.co/v1"
+env_key = "HF_TOKEN"
+name = "Hugging Face"
+wire_api = "chat"
+
+[model_providers.minimax]
+base_url = "https://api.minimax.io/anthropic/v1"
+env_key = "MINIMAX_API_KEY"
+name = "MiniMax (minimax.io)"
+wire_api = "messages"
+
+[model_providers.minimax-cn]
+base_url = "https://api.minimaxi.com/anthropic/v1"
+env_key = "MINIMAX_API_KEY"
+name = "MiniMax (minimaxi.com)"
+wire_api = "messages"
+
+[model_providers.minimax-cn-coding-plan]
+base_url = "https://api.minimaxi.com/anthropic/v1"
+env_key = "MINIMAX_API_KEY"
+name = "MiniMax Token Plan (minimaxi.com)"
+wire_api = "messages"
+
+[model_providers.minimax-coding-plan]
+base_url = "https://api.minimax.io/anthropic/v1"
+env_key = "MINIMAX_API_KEY"
+name = "MiniMax Token Plan (minimax.io)"
+wire_api = "messages"
+
+[model_providers.ollama-cloud]
+base_url = "https://ollama.com/v1"
+env_key = "OLLAMA_API_KEY"
+name = "Ollama Cloud"
+wire_api = "chat"
+
+[model_providers.openai_api_key]
+base_url = "https://api.openai.com/v1"
+env_key = "OPENAI_API_KEY"
+name = "OpenAI (API key)"
+requires_openai_auth = false
+wire_api = "responses"
+
+[model_providers.openrouter]
+base_url = "https://openrouter.ai/api/v1"
+env_key = "OPENROUTER_API_KEY"
+name = "OpenRouter"
+requires_openai_auth = false
+wire_api = "responses"
+
+[mcp_servers.agentcore-gateway]
+url = "http://127.0.0.1:8080/mcp"
+bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"
+enabled = true
+startup_timeout_sec = 300
+tool_timeout_sec = 300
+
+[mcp_servers.morph-mcp]
+enabled = true
+startup_timeout_sec = 120
+command = "npx"
+args = ["-y", "@morphllm/morphmcp@0.8.207"]
+env_vars = ["MORPH_API_KEY"]
+
+[mcp_servers.morph-mcp.env]
+
+
+[permissions.coding.filesystem]
+'C:\Users\ynotf\.openinterpreter-cli\tmp\/**' = "write"
+'C:\Users\ynotf\AppData\Local\Temp\/**' = "write"
+'D:\github\agentcore-control-plane\/**' = "write"
+[permissions.operator.filesystem]
+'C:\Users\ynotf\/**' = "write"
+'C:\Users\ynotf\AppData\Local\Temp\/**' = "write"
+'D:\github\agentcore-control-plane\/**' = "write"
+
+[profiles.sandboxed]
+approval_policy = "on-request"
+model = "deepseek/deepseek-v4-pro"
+model_provider = "openrouter"
+sandbox_mode = "workspace-write"
+
+[profiles.image]
+approval_policy = "on-request"
+model = "minimax/minimax-m3"
+model_provider = "openrouter"
+sandbox_mode = "danger-full-access"
+
+[profiles.video]
+approval_policy = "on-request"
+model = "minimax/minimax-m3"
+model_provider = "openrouter"
+sandbox_mode = "danger-full-access"
+
+[projects.'c:\users\ynotf']
+trust_level = "trusted"
+
+[projects.'d:\github\agentcore-control-plane']
+trust_level = "trusted"
+
+[windows]
+sandbox = "elevated"
