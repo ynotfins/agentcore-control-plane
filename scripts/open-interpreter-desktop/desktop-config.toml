@@ -90,23 +90,6 @@ name = "OpenRouter"
 requires_openai_auth = false
 wire_api = "responses"
 
-[mcp_servers.agentcore-gateway]
-url = "http://127.0.0.1:8080/mcp"
-bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"
-enabled = true
-startup_timeout_sec = 300
-tool_timeout_sec = 300
-
-[mcp_servers.morph-mcp]
-enabled = true
-startup_timeout_sec = 120
-command = "npx"
-args = ["-y", "@morphllm/morphmcp@0.8.207"]
-env_vars = ["MORPH_API_KEY"]
-
-[mcp_servers.morph-mcp.env]
-
-
 [permissions.coding.filesystem]
 'C:\Users\ynotf\.openinterpreter-cli\tmp\/**' = "write"
 'C:\Users\ynotf\AppData\Local\Temp\/**' = "write"
@@ -142,3 +125,10 @@ trust_level = "trusted"
 
 [windows]
 sandbox = "elevated"
+
+[mcp_servers.agentcore-gateway]
+url = "http://127.0.0.1:8080/mcp"
+bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"
+enabled = true
+startup_timeout_sec = 300
+tool_timeout_sec = 300

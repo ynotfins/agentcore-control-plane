@@ -1,0 +1,1823 @@
+{
+  "generated_at": "2026-08-27T00:24:40.560705+00:00",
+  "gateway_url": "http://127.0.0.1:8080/mcp",
+  "clients": [
+    {
+      "client": "zed",
+      "enabled": true,
+      "syntax": "zed_settings_json",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\Zed\\settings.json",
+          "status": "ok",
+          "bytes": 3988,
+          "content": {
+            "telemetry": {
+              "diagnostics": true,
+              "metrics": true,
+              "anthropic_retention": true
+            },
+            "accessible_mode": true,
+            "git_panel": {
+              "tree_view": true
+            },
+            "helix_mode": false,
+            "vim_mode": false,
+            "edit_predictions": {
+              "provider": "zed"
+            },
+            "agent": {
+              "profiles": {
+                "write": {
+                  "name": "Write",
+                  "tools": {
+                    "copy_path": true,
+                    "create_directory": true,
+                    "create_thread": true,
+                    "delete_path": true,
+                    "diagnostics": true,
+                    "apply_code_action": true,
+                    "edit_file": true,
+                    "write_file": true,
+                    "fetch": true,
+                    "find_path": true,
+                    "find_references": true,
+                    "get_code_actions": true,
+                    "go_to_definition": true,
+                    "list_agents_and_models": true,
+                    "list_directory": true,
+                    "move_path": true,
+                    "rename_symbol": true,
+                    "read_file": true,
+                    "grep": true,
+                    "skill": true,
+                    "spawn_agent": true,
+                    "terminal": true,
+                    "search_web": true
+                  },
+                  "enable_all_context_servers": true,
+                  "context_servers": {}
+                },
+                "agentcore-gateway": {
+                  "name": "AgentCore Gateway",
+                  "enable_all_context_servers": false,
+                  "context_servers": {
+                    "agentcore-gateway": {
+                      "tools": {}
+                    }
+                  },
+                  "tools": {
+                    "copy_path": false,
+                    "create_directory": false,
+                    "create_thread": false,
+                    "delete_path": false,
+                    "diagnostics": true,
+                    "apply_code_action": false,
+                    "edit_file": false,
+                    "write_file": false,
+                    "fetch": true,
+                    "find_path": false,
+                    "find_references": false,
+                    "get_code_actions": false,
+                    "go_to_definition": false,
+                    "list_agents_and_models": true,
+                    "list_directory": false,
+                    "move_path": false,
+                    "rename_symbol": false,
+                    "read_file": false,
+                    "grep": false,
+                    "skill": false,
+                    "spawn_agent": false,
+                    "terminal": false,
+                    "search_web": true
+                  }
+                }
+              },
+              "default_model": {
+                "provider": "openrouter",
+                "model": "minimax/minimax-m3"
+              }
+            },
+            "language_models": {
+              "open_router": {
+                "api_url": "https://openrouter.ai/api/v1",
+                "available_models": [
+                  {
+                    "name": "minimax/minimax-m3",
+                    "display_name": "MiniMax M3 (OpenRouter)",
+                    "max_tokens": "***REDACTED***",
+                    "supports_tools": true,
+                    "supports_images": true
+                  },
+                  {
+                    "name": "deepseek/deepseek-v4-pro-0813",
+                    "display_name": "DeepSeek V4 Pro 0813 (OpenRouter)",
+                    "max_tokens": "***REDACTED***",
+                    "supports_tools": true,
+                    "supports_images": false
+                  }
+                ]
+              }
+            },
+            "instrumentation": {
+              "performance_profiler": {
+                "enabled": true
+              }
+            },
+            "proxy": "",
+            "icon_theme": {
+              "mode": "light",
+              "light": "Zed (Default)",
+              "dark": "Zed (Default)"
+            },
+            "session": {
+              "trust_all_worktrees": true
+            },
+            "base_keymap": "Cursor",
+            "minimap": {
+              "show": "always"
+            },
+            "autosave": {
+              "after_delay": {
+                "milliseconds": 1000
+              }
+            },
+            "agent_servers": {
+              "cursor": {
+                "type": "registry"
+              },
+              "codex-acp": {
+                "type": "registry"
+              },
+              "claude-acp": {
+                "type": "registry"
+              }
+            },
+            "ui_font_size": 16,
+            "buffer_font_size": 15,
+            "theme": {
+              "mode": "dark",
+              "light": "One Dark",
+              "dark": "Gruvbox Dark"
+            },
+            "context_servers": {
+              "agentcore-gateway": {
+                "url": "http://127.0.0.1:8080/mcp",
+                "headers": {
+                  "Authorization": "***REDACTED***"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "client": "eigent",
+      "enabled": true,
+      "syntax": "eigent_mcp_json",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\.eigent\\mcp.json",
+          "status": "ok",
+          "bytes": 276,
+          "content": {
+            "mcpServers": {
+              "agentcore-gateway": {
+                "url": "http://127.0.0.1:8080/mcp",
+                "timeout": 300,
+                "headers": {
+                  "Authorization": "***REDACTED***"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "client": "cursor",
+      "enabled": true,
+      "syntax": "cursor_mcp_json",
+      "supports_env_headers": true,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\.cursor\\mcp.json",
+          "status": "ok",
+          "bytes": 238,
+          "content": {
+            "mcpServers": {
+              "agentcore-gateway": {
+                "type": "http",
+                "url": "http://127.0.0.1:8080/mcp",
+                "headers": {
+                  "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+                },
+                "timeout": 300
+              }
+            }
+          }
+        }
+      ],
+      "post_enroll": {
+        "status": "gateway-only",
+        "action": "verify-only"
+      }
+    },
+    {
+      "client": "codex",
+      "enabled": true,
+      "syntax": "codex_toml",
+      "supports_env_headers": true,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\.codex\\config.toml",
+          "status": "ok",
+          "bytes": 11809,
+          "content": {
+            "_raw_toml_note": "bearer_present_redacted"
+          }
+        }
+      ],
+      "post_enroll": {
+        "status": "deferred",
+        "action": "verify-only-not-edited"
+      }
+    },
+    {
+      "client": "claude-code",
+      "enabled": true,
+      "syntax": "claude_code_json",
+      "supports_env_headers": true,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\.claude.json",
+          "status": "ok",
+          "bytes": 38823,
+          "content": {
+            "installMethod": "native",
+            "autoUpdates": false,
+            "cachedGrowthBookFeatures": {
+              "tengu_russet_linnet": true,
+              "tengu_cobalt_heron": true,
+              "tengu_plugin_official_mkt_git_fallback": true,
+              "tengu_copper_meadow": false,
+              "tengu_amber_wren": {
+                "targetedRangeNudge": true,
+                "maxTokens": "***REDACTED***"
+              },
+              "tengu_slate_kestrel": true,
+              "tengu_vellum_ash": [],
+              "tengu_vellum_lantern": false,
+              "tengu_cedar_plume": false,
+              "tengu_cobalt_thistle": false,
+              "tengu_kestrel_arch": "OFF",
+              "tengu_bramble_lintel": 7,
+              "tengu_lantern_wick": false,
+              "tengu_react_vulnerability_warning": false,
+              "tengu_frame_publish_context": true,
+              "tengu_lapis_anchor": "off",
+              "tengu_cedar_halo": false,
+              "tengu_deferred_stub_tool": true,
+              "tengu_birthday_hat": false,
+              "tengu_bg_attach_stall_ms": 5000,
+              "tengu_cork_lantern": false,
+              "tengu_code_diff_cli": true,
+              "tengu_olive_hinge": "",
+              "tengu_read_dedup_killswitch": true,
+              "tengu_plank_river_frost": "user_intent",
+              "tengu_walrus_canteen": false,
+              "tengu_maple_sundial": false,
+              "tengu_noreread_q7m_velvet": false,
+              "tengu_startup_announcements": [
+                {
+                  "id": "opus-5-launch",
+                  "text": "Tackle your toughest work with Opus 5. Switch anytime with /model.",
+                  "maxImpressions": 3,
+                  "priority": 0,
+                  "accentBar": false
+                }
+              ],
+              "tengu_auto_mode_default_on": false,
+              "tengu_cobalt_harbor_notice": true,
+              "tengu_prompt_cache_diagnostics": true,
+              "tengu_bridge_attestation_enforce_config": {
+                "accept_level": "VERIFIED_BY_GATE",
+                "accept_statuses": []
+              },
+              "tengu_prompt_cache_1h_config": {
+                "allowlist": [
+                  "repl_main_thread*",
+                  "sdk",
+                  "auto_mode",
+                  "rolling_compact",
+                  "memdir_relevance",
+                  "agent_classifier",
+                  "prompt_suggestion",
+                  "away_summary",
+                  "extract_memories"
+                ]
+              },
+              "tengu_cinder_plover": "",
+              "tengu_wavy_light": false,
+              "tengu_lapis_thicket": false,
+              "tengu_penguins_enabled": true,
+              "tengu_ochre_hollow": false,
+              "tengu_cobalt_raccoon": true,
+              "tengu_amber_lynx": false,
+              "tengu_cobalt_plinth_direct": true,
+              "tengu_slate_trellis": false,
+              "tengu_tide_elm": "off",
+              "tengu_pewter_brook": true,
+              "tengu_sessions_elevated_auth_enforcement": true,
+              "tengu_cowork_auto_mode_include_allowed_write_mcp": true,
+              "tengu_chrome_install_upsell": false,
+              "tengu_thrifty_sonic": false,
+              "tengu_linen_osprey": false,
+              "tengu_reactive_compact_remote": false,
+              "tengu_desktop_upsell": {
+                "enable_shortcut_tip": true,
+                "enable_startup_dialog": false
+              },
+              "tengu_ccr_bundle_max_bytes": 104857600,
+              "tengu_quartz_vireo": "",
+              "tengu_amber_prism": false,
+              "tengu_copper_bridge": true,
+              "tengu_quartz_meadow": false,
+              "tengu_ccr_v2_send_events_cli": true,
+              "tengu_review_workflow_routing": false,
+              "tengu_hazel_osprey": false,
+              "tengu_otk_slot_v1": false,
+              "tengu_prompt_suggestion": true,
+              "tengu_flint_harbor_share": false,
+              "tengu_bridge_placeholder_sweep": false,
+              "tengu_lichen_compass": false,
+              "tengu_xq7_marble_zephyr": false,
+              "tengu_quiet_basalt_echo": false,
+              "tengu_remote_auto_mode_include_destructive_mcp": false,
+              "tengu_permission_friction": true,
+              "tengu-top-of-feed-tip": {
+                "tip": "",
+                "color": ""
+              },
+              "tengu_collage_kaleidoscope": true,
+              "tengu-off-switch": {
+                "activated": false
+              },
+              "tengu_hazel_trellis": 3,
+              "tengu_walnut_spire": false,
+              "tengu_ccr_bridge": true,
+              "tengu_bridge_min_version": {
+                "minVersion": "2.1.139"
+              },
+              "tengu_slate_harrier": "off",
+              "tengu_malort_pedway": {
+                "enabled": true,
+                "pixelValidation": false,
+                "clipboardPasteMultiline": true,
+                "screenshotFilter": true,
+                "mouseAnimation": true,
+                "hideBeforeAction": true,
+                "autoTargetDisplay": false,
+                "coordinateMode": "pixels"
+              },
+              "tengu_nimble_amber_prose": false,
+              "tengu_usage_overage_included_models": [
+                "Fable",
+                "Fable 5"
+              ],
+              "tengu_harbor_prism": true,
+              "tengu_blue_coaster": false,
+              "tengu_xterm_atlas_reset": true,
+              "tengu_moss_anchor": false,
+              "tengu_vellum_siding": false,
+              "tengu_willow_census_ttl_hours": 24,
+              "tengu_thistle_grebe": "default",
+              "tengu_event_sampling_config": {},
+              "tengu_lapis_finch": true,
+              "tengu_tussock_oriole": false,
+              "tengu_passport_quail": false,
+              "tengu_skills_dashboard_enabled": false,
+              "tengu_amber_lark": true,
+              "tengu_larch_pavise": false,
+              "tengu_workout2": true,
+              "tengu_scarf_coffee": false,
+              "tengu_fennel_godwit": false,
+              "tengu_sage_compass": {},
+              "tengu_chair_sermon": false,
+              "tengu_cloth_snorkel": true,
+              "tengu_crystal_beam": {
+                "budgetTokens": "***REDACTED***"
+              },
+              "tengu_startup_notice": "",
+              "tengu_gorse_plover": false,
+              "tengu_mcp_subagent_prompt": false,
+              "tengu_retire_chat_relay_artifact_backstop": true,
+              "tengu_flint_harbor_prompt": {
+                "prompt": "You are helping a power user generate an onboarding guide for teammates who are new to Claude Code. The guide will live in the team's onboarding docs and can be pasted into Claude for an interactive walkthrough.\n\nYou're co-authoring this with them — collaborative and helpful, like a teammate who's done this before and is happy to share.\n\n## Usage data (last {{WINDOW_DAYS}} days)\n\nThis was scanned from the guide creator's local Claude Code transcripts:\n\n```json\n{{USAGE_DATA}}\n```\n\n## Your task\n\nBefore anything else — including before thinking through the classification — output exactly this line as your first visible text:\n\n> Looking at how you've used Claude over the last {{WINDOW_DAYS}} days to put together an onboarding guide for teammates new to Claude Code.\n\nThis must come before any extended thinking about session descriptors. The guide creator is staring at a blank screen until you do. Classification is step 2, not step 1.\n\nGenerate the guide immediately, then ask for revisions. Don't wait for answers first — it's easier for the guide creator to edit a concrete draft than answer abstract questions.\n\n1. **Output the acknowledgment line above.** No thinking, no classification, no tool calls before this. One line, then move on.\n\n2. **Derive the work-type breakdown.** Read the `sessionDescriptors` array — each entry describes one session via its title, any linked code reviews (`prNumbers`), and first user message. Classify each session into one of these task types:\n\n   - **build_feature** — new functionality, scripts, tools, config/CI/env setup\n   - **debug_fix** — investigating and fixing bugs\n   - **improve_quality** — refactoring, tests, cleanup, code review\n   - **analyze_data** — queries, metrics, number crunching\n   - **plan_design** — architecture, approach, strategy, understanding unfamiliar code, design review\n   - **prototype** — spikes, POCs, throwaway exploration\n   - **write_docs** — PRDs, RFCs, READMEs, design docs, copy/doc review\n\n   Categories describe the *type of task*, not the project or domain — a teammate on any project should recognize them. Review sessions belong with whatever's being reviewed: code review is improve_quality, doc review is write_docs, design review is plan_design. Most sessions fit the list; only invent a new category if it's genuinely a different type of task. Pick the top 3-5 with rough percentages. First messages alone are usually enough; titles and code-review links are enrichment. If first messages are uninformative, use tool and MCP counts as a weak hint. If there are ~0 sessions, leave the breakdown as a TODO.\n\n   In the rendered guide, display categories with spaces and title case (e.g. \"Build Feature\" not \"build_feature\").\n\n3. **Gather the remaining pieces.** For repos, start with `currentRepo` and check the workspace for sibling repo directories. For MCP server setup, use each entry's `name` (and `urlOrigin` where present) to infer what the server does and how a teammate would get access. Leave the Team Tips and Get Started sections as TODO placeholders — you'll ask for these in Review and fill them in after.\n\n4. **Write the guide to `ONBOARDING.md`** following this template:\n\n```\n{{GUIDE_TEMPLATE}}\n```\n\n   Fill in real numbers from the usage data (not placeholders). Use `generatedBy` for the name; if it's missing, omit the name. Ascii bar charts: `█` for filled, `░` for empty, 20 chars wide. Keep the HTML comment instruction at the bottom exactly as shown.\n\n5. **Render the guide in a code block, then close out the first turn.** You're co-authoring this guide with the guide creator — frame the follow-up as collaboration, not corrections.\n\n   After the code block, add a `---` horizontal rule and a `**Review**` heading so the guide is visually separated from your questions. Under the heading, number these three questions:\n\n   1. \"I went with '[X]' for the team name — let me know if that sounds right.\" (or if you couldn't tell: \"What's the team name? I'll add it in.\")\n   2. Is there a starter task for someone new to Claude Code? (ticket or doc link — optional)\n   3. Any team tips you'd tell a new teammate that aren't already in CLAUDE.md?\n\n   After they answer, update `ONBOARDING.md` with their team name, tips, and starter task. Then close with this exact line (not numbered, not paraphrased):\n\n   Saved to `ONBOARDING.md`. Drop it in your team docs and channels — when a new teammate pastes it into Claude Code, they get a guided onboarding tour from there.\n\n   Apply any edits they come back with to the file.",
+                "guideTemplate": "# Welcome to [Team Name]\n\n## How We Use Claude\n\nBased on [name]'s usage over the last [N] days:\n\nWork Type Breakdown:\n  [Category 1]  [ascii bar]  [N]%\n  [Category 2]  [ascii bar]  [N]%\n  [Category 3]  [ascii bar]  [N]%\n  ...\n\nTop Skills & Commands:\n  [/command]  [ascii bar]  [N]x/month\n  ...\n\nTop MCP Servers:\n  [Server]  [ascii bar]  [N] calls\n  ...\n\n## Your Setup Checklist\n\n### Codebases\n- [ ] [repo-name] — [repo url]\n...\n\n### MCP Servers to Activate\n- [ ] [Server] — [what it's for]. [How to get access]\n...\n\n### Skills to Know About\n- [/command] — [what it does, when the team uses it]\n...\n\n## Team Tips\n\n_TODO_\n\n## Get Started\n\n_TODO_\n\n<!-- INSTRUCTION FOR CLAUDE: A new teammate just pasted this guide for how the\nteam uses Claude Code. You're their onboarding buddy — warm, conversational,\nnot lecture-y.\n\nOpen with a warm welcome — include the team name from the title. Then: \"Your\nteammate uses Claude Code for [list all the work types]. Let's get you started.\"\n\nCheck what's already in place against everything under Setup Checklist\n(including skills), using markdown checkboxes — [x] done, [ ] not yet. Lead\nwith what they already have. One sentence per item, all in one message.\n\nTell them you'll help with setup, cover the actionable team tips, then the\nstarter task (if there is one). Offer to start with the first unchecked item,\nget their go-ahead, then work through the rest one by one.\n\nAfter setup, walk them through the remaining sections — offer to help where you\ncan (e.g. link to channels), and just surface the purely informational bits.\n\nDon't invent sections or summaries that aren't in the guide. The stats are the\nguide creator's personal usage data — don't extrapolate them into a \"team\nworkflow\" narrative. -->",
+                "windowDays": 30
+              },
+              "tengu_maple_tide": false,
+              "tengu_pewter_ledger": "OFF",
+              "tengu_destructive_command_warning": false,
+              "tengu_silk_almanac": false,
+              "tengu_saffron_anchor": true,
+              "tengu_mcp_claudeai_eligibility_gate": true,
+              "tengu_amber_sentinel": true,
+              "tengu_loggia_carousel": false,
+              "tengu_desktop_upsell_v2": {
+                "enabled": false
+              },
+              "tengu_mcp_retry_failed_remote": false,
+              "tengu_fleet_needs_input_nudge": true,
+              "tengu_copper_wren": false,
+              "tengu_quartz_thimble": true,
+              "tengu_moth_copse": false,
+              "tengu_slim_subagent_claudemd": true,
+              "tengu_cobalt_compass": true,
+              "tengu_bridge_repl_v2_config": {
+                "init_retry_max_attempts": 3,
+                "init_retry_base_delay_ms": 500,
+                "init_retry_jitter_fraction": 0.25,
+                "init_retry_max_delay_ms": 4000,
+                "http_timeout_ms": 10000,
+                "uuid_dedup_buffer_size": 2000,
+                "heartbeat_interval_ms": 20000,
+                "heartbeat_jitter_fraction": 0.1,
+                "token_refresh_buffer_ms": "***REDACTED***",
+                "teardown_archive_timeout_ms": 1500,
+                "connect_timeout_ms": 15000,
+                "min_version": "2.1.70",
+                "should_show_app_upgrade_message": false
+              },
+              "tengu_timber_lark": "copy_a",
+              "tengu_osprey_lantern": false,
+              "tengu_juniper_gantry": false,
+              "tengu_satchel_banjo": false,
+              "tengu_marl_cormorant": false,
+              "tengu_surreal_dali": true,
+              "tengu_claudeai_mcp_connectors": true,
+              "tengu_mocha_barista": true,
+              "tengu_cinder_almanac": true,
+              "tengu_mcp_elicitation": true,
+              "tengu_cobalt_plinth_reader_persist": true,
+              "tengu_miraculo_the_bard": false,
+              "tengu_cobalt_plinth": true,
+              "tengu_steady_lantern": false,
+              "tengu_tense_pond": false,
+              "tengu_coral_beacon": true,
+              "tengu_willow_refresh_ttl_hours": 0,
+              "tengu_silk_hinge": false,
+              "tengu_amber_sextant": true,
+              "tengu_birch_lantern": "off",
+              "tengu_slate_thimble": false,
+              "tengu_team_discovery": false,
+              "tengu_marker_easel": false,
+              "tengu_turtle_carbon": true,
+              "tengu_luminous_seal": true,
+              "tengu_marble_anvil": true,
+              "tengu_willow_sentinel_ttl_hours": 1,
+              "tengu_md_artifact_styling": false,
+              "tengu_bridge_selfheal_heartbeats": true,
+              "tengu_kairos_github_webhooks": false,
+              "tengu_crimson_vector": false,
+              "tengu_pewter_lark": "off",
+              "tengu_cfc_in_product_permissions": true,
+              "tengu_hawthorn_steeple": false,
+              "tengu_red_coaster": false,
+              "tengu_ember_trail": "0",
+              "tengu_bridge_attestation_enforce": true,
+              "tengu_slate_ibis": true,
+              "tengu_riverbed_lantern": false,
+              "tengu_basalt_sundial": false,
+              "tengu_dunwich_bell": false,
+              "tengu_slate_fern": true,
+              "tengu_orford_ness": false,
+              "tengu_sepia_moth": false,
+              "tengu_vscode_feedback_survey": true,
+              "tengu_pewter_kestrel": {
+                "global": 50000,
+                "Bash": 30000,
+                "PowerShell": 30000,
+                "Grep": 20000,
+                "Snip": 1000,
+                "StrReplaceBasedEditTool": 30000,
+                "BashSearchTool": 20000
+              },
+              "tengu_orchid_mantis": false,
+              "tengu_tangerine_ladder_boost": true,
+              "tengu_juniper_sundial": 10,
+              "tengu_fleet_past_sessions": false,
+              "tengu_bridge_requires_action_details": true,
+              "tengu_slate_moth": true,
+              "tengu_pewter_finch": false,
+              "tengu_slate_wren": false,
+              "tengu_plan_artifact": false,
+              "tengu_walnut_prism": false,
+              "tengu_event_watchdog_default_on": true,
+              "tengu_umber_petrel": false,
+              "tengu_harbor_ledger": [
+                {
+                  "marketplace": "claude-plugins-official",
+                  "plugin": "discord"
+                },
+                {
+                  "marketplace": "claude-plugins-official",
+                  "plugin": "telegram"
+                },
+                {
+                  "marketplace": "claude-plugins-official",
+                  "plugin": "fakechat"
+                },
+                {
+                  "marketplace": "claude-plugins-official",
+                  "plugin": "imessage"
+                }
+              ],
+              "tengu-fable-off-switch": {
+                "activated": false
+              },
+              "tengu_mcp_normalize_root_combinators": [
+                "*"
+              ],
+              "tengu_gouda_loop": true,
+              "tengu_flint_harbor": false,
+              "tengu_gorse_fathom": false,
+              "tengu_ultraplan_prompt_identifier": "visual_plan",
+              "tengu_mint_lanes": false,
+              "tengu_composed_quail": true,
+              "tengu_negative_interaction_transcript_ask_config": {
+                "probability": 0
+              },
+              "tengu_cobalt_thicket": false,
+              "tengu_plugin_feedback_survey_config": {},
+              "tengu_media_byte_cap": 25165824,
+              "tengu_kairos_loop_dynamic": true,
+              "tengu_lumen_thicket_q7": false,
+              "tengu_lilac_loom": null,
+              "tengu_fennel_kite_model": "",
+              "tengu_quiet_harbor": false,
+              "tengu_session_memory": false,
+              "tengu_lapis_anchor_user_turn": false,
+              "tengu_pewter_lantern": false,
+              "tengu_feedback_survey_config": {
+                "minTimeBeforeFeedbackMs": 600000,
+                "minTimeBetweenFeedbackMs": 43200000,
+                "minTimeBetweenGlobalFeedbackMs": 43200000,
+                "minUserTurnsBeforeFeedback": 5,
+                "minUserTurnsBetweenFeedback": 25,
+                "hideThanksAfterMs": 3000,
+                "onForModels": [
+                  "*"
+                ],
+                "probability": 0.05
+              },
+              "tengu_sub_nomdrep_q7k": true,
+              "tengu_streaming_tool_execution2": true,
+              "tengu_crimson_echo": {},
+              "tengu_byte_stream_idle_timeout_ms": 180000,
+              "tengu_hazel_osprey_floor": 75000,
+              "tengu_harbor_permissions": true,
+              "tengu_plum_vx3": true,
+              "tengu_slate_harbor_experiment": false,
+              "tengu_system_prompt_global_cache": true,
+              "tengu_auto_notice_once": true,
+              "tengu_birch_compass": true,
+              "tengu_cobalt_harbor": false,
+              "tengu_amber_moleskin": {
+                "200000": {
+                  "repl": 0.15,
+                  "sdk": 0.15
+                },
+                "1000000": {
+                  "repl": 0.15,
+                  "sdk": 0.05
+                },
+                "default": {
+                  "repl": 0.15,
+                  "sdk": 0.15
+                }
+              },
+              "tengu_zinc_harbor": false,
+              "tengu_worktree_mode": true,
+              "tengu_cobalt_plinth_osier": false,
+              "tengu_tern_alloy": "copy_a",
+              "tengu_ccr_v2_session_crud_cli": false,
+              "tengu_umber_kestrel": false,
+              "tengu_version_config": {
+                "minVersion": "1.0.24"
+              },
+              "tengu_sage_compass2": {
+                "enabled": true
+              },
+              "tengu_mill_orange": false,
+              "tengu_bridge_poll_interval_config": {
+                "poll_interval_ms_not_at_capacity": 2000,
+                "poll_interval_ms_at_capacity": 600000,
+                "heartbeat_interval_ms": 0,
+                "multisession_poll_interval_ms_not_at_capacity": 5000,
+                "multisession_poll_interval_ms_at_capacity": 60000,
+                "multisession_poll_interval_ms_partial_capacity": 5000,
+                "non_exclusive_heartbeat_interval_ms": 180000,
+                "session_keepalive_interval_ms": 0,
+                "session_keepalive_interval_v2_ms": 0
+              },
+              "tengu_kairos_cron": true,
+              "tengu_gault_kestrel": false,
+              "tengu_classifier_disabled_surfaces": "",
+              "tengu_herring_clock": false,
+              "tengu_native_cursor": true,
+              "tengu_rewind_first_message": true,
+              "tengu_lantern_prism": false,
+              "tengu_bridge_system_init": false,
+              "tengu_rc_long_turn_nudge": null,
+              "tengu_fine_survey_transcript_ask_config": {
+                "probability": 0.5
+              },
+              "tengu_plugin_binary_assets": false,
+              "tengu_orchid_mantis_v2": false,
+              "tengu_cobalt_plinth_putguard": true,
+              "tengu_kairos_ready_nudge": null,
+              "tengu_slate_avocet": false,
+              "tengu_structured_output_strict": false,
+              "tengu_classifier_summary_llm_emit": true,
+              "tengu_aura_sieve": false,
+              "tengu_chomp_inflection": true,
+              "tengu_velvet_ibis": {},
+              "tengu_cedar_sundial": true,
+              "tengu_scratch": false,
+              "tengu_mcp_local_oauth_blocked_hosts": {
+                "hosts": [
+                  "microsoft365.mcp.claude.com",
+                  "gmail.mcp.claude.com",
+                  "gcal.mcp.claude.com"
+                ]
+              },
+              "tengu_loud_sugary_rock": false,
+              "tengu_slate_nexus": true,
+              "tengu_cobalt_wren": false,
+              "tengu_drift_lantern": false,
+              "tengu_ccr_bridge_multi_session": true,
+              "tengu_harbor": true,
+              "tengu_kairos_cron_durable": false,
+              "tengu_grey_step2": {
+                "enabled": true,
+                "dialogTitle": "We recommend medium effort for Opus",
+                "dialogDescription": "Effort determines how long Claude thinks for when completing your task. We recommend medium effort for most tasks to balance speed and intelligence and maximize rate limits. Use ultrathink to trigger high effort when needed."
+              },
+              "tengu_prism_ledger": false,
+              "tengu_compass_dial": true,
+              "tengu_idle_amber_finch": false,
+              "tengu_fg_left_arrow_agents": true,
+              "tengu_bad_survey_transcript_ask_config": {
+                "probability": 1
+              },
+              "tengu_marbled_teal": false,
+              "tengu_mcp_stateless_skip_init": true,
+              "tengu_cobalt_plinth_bracken": false,
+              "tengu_velvet_harbor": false,
+              "tengu_shining_fractals": false,
+              "tengu_sepia_cormorant": [],
+              "tengu_sorrel_trellis": false,
+              "tengu_lantern_spool": false,
+              "tengu_quiet_slate_wren": false,
+              "tengu_silent_harbor": false,
+              "tengu_amber_anchor": false,
+              "tengu_mcp_path_scoped_permissions": true,
+              "tengu_amber_heron": true,
+              "tengu_log_datadog_events": true,
+              "tengu_slate_meadow": true,
+              "tengu_onyx_plover": {
+                "enabled": false,
+                "minHours": 24,
+                "minSessions": 3,
+                "remoteEnabled": false
+              },
+              "tengu_report_findings_tool": false,
+              "tengu_rc_permission_nudge": {
+                "afterPromptCount": 5,
+                "probability": 0,
+                "maxImpressions": 3
+              },
+              "tengu_cedar_hollow_7m": {},
+              "tengu_pewter_summit": true,
+              "tengu_mcp_singleton_unwrap": true,
+              "tengu_amber_lattice": {
+                "plugins": [
+                  "security-guidance",
+                  "code-review",
+                  "commit-commands",
+                  "code-simplifier",
+                  "hookify",
+                  "feature-dev",
+                  "frontend-design",
+                  "pr-review-toolkit",
+                  "skill-creator",
+                  "plugin-dev",
+                  "agent-sdk-dev",
+                  "mcp-server-dev",
+                  "claude-code-setup",
+                  "claude-md-management",
+                  "playground",
+                  "ralph-loop",
+                  "explanatory-output-style",
+                  "learning-output-style",
+                  "clangd-lsp",
+                  "csharp-lsp",
+                  "gopls-lsp",
+                  "jdtls-lsp",
+                  "kotlin-lsp",
+                  "lua-lsp",
+                  "php-lsp",
+                  "pyright-lsp",
+                  "ruby-lsp",
+                  "rust-analyzer-lsp",
+                  "swift-lsp",
+                  "typescript-lsp"
+                ]
+              },
+              "tengu_jade_anvil_4": false,
+              "tengu_brass_sled": false,
+              "tengu_sorrel_avocet": false,
+              "tengu_doorbell_agave": false,
+              "tengu_bridge_poll_interval_ms": 0,
+              "tengu_ccr_post_turn_summary": false,
+              "tengu_dune_wren": false,
+              "tengu_birch_kettle": false,
+              "tengu_copper_bollard": false,
+              "tengu_frond_boric": {},
+              "tengu_amber_redwood2": "",
+              "tengu_orchid_trellis": false,
+              "tengu_harbor_willow": false,
+              "tengu_stone_shell": false,
+              "tengu_canary": {},
+              "tengu_sm_config": {
+                "minimumMessageTokensToInit": "***REDACTED***",
+                "minimumTokensBetweenUpdate": "***REDACTED***",
+                "toolCallsBetweenUpdates": 10
+              },
+              "tengu_porch_bell_9f": "",
+              "tengu_fgts": true,
+              "tengu_classifier_summary_heuristic_emit": true,
+              "tengu_maple_pier": false,
+              "tengu_saffron_lattice": {
+                "enabled": true,
+                "planLimitsEndDate": "2026-07-20T07:00:00Z"
+              },
+              "tengu_ember_latch": false,
+              "tengu_velvet_moth": 0.05,
+              "tengu_immediate_model_command": false,
+              "tengu_marble_whisper": true,
+              "tengu_shoji_engine": true,
+              "tengu_harbor_kite_limits": {},
+              "tengu_sparrow_ledger": false,
+              "tengu_slate_ribbon": true,
+              "tengu_vscode_onboarding": false,
+              "tengu_auto_mode_config": {
+                "enabled": "enabled",
+                "twoStageClassifier": true,
+                "sameTurnSiblingContext": true,
+                "jsonlTranscript": true,
+                "editRemovalVisibility": true,
+                "editRemovalCap": 3000,
+                "outcomeVisibility": false,
+                "repoVisibility": true,
+                "gitStatusType": true,
+                "gitStatusUploads": false,
+                "severityByModel": {
+                  "claude-sonnet-5[1m]": {
+                    "t1": 25,
+                    "t2": 35
+                  },
+                  "claude-opus-4-8[1m]": {
+                    "t1": 45,
+                    "t2": 35
+                  },
+                  "claude-sonnet-5": {
+                    "t1": 25,
+                    "t2": 35
+                  },
+                  "claude-opus-4-8": {
+                    "t1": 45,
+                    "t2": 35
+                  }
+                }
+              },
+              "tengu_good_survey_transcript_ask_config": {
+                "probability": 0.5
+              },
+              "tengu_cobalt_plinth_laurel": false,
+              "tengu_slate_finch": true,
+              "tengu_copper_fox": false,
+              "tengu_review_bughunter_config": {
+                "fleet_size": 5,
+                "max_duration_minutes": 10,
+                "agent_timeout_seconds": 600,
+                "total_wallclock_minutes": 22,
+                "model": "claude-opus-4-7",
+                "cost_note": "$5-$25",
+                "duration_note": "~5-10 min",
+                "enabled": true
+              },
+              "tengu_cobalt_lantern": true,
+              "tengu_feature_template": false,
+              "tengu_teal_corbel": false,
+              "tengu_bridge_repl_v2": true,
+              "tengu_harbor_kite": false,
+              "tengu_flax_grouse": false,
+              "tengu_1p_event_batch_config": {
+                "scheduledDelayMillis": 10000,
+                "maxExportBatchSize": 400,
+                "maxQueueSize": 8192,
+                "path": "/api/event_logging/v2/batch"
+              },
+              "tengu_heron_tallow": false,
+              "tengu_billiard_aviary": false,
+              "tengu_basalt_meadow": true,
+              "tengu_juniper_vale": {
+                "enabled": false,
+                "maxChars": 500,
+                "autoDismissAfterMs": 30000
+              },
+              "tengu_ide_rc_auto_enable": false,
+              "tengu_alder_compass": false,
+              "tengu_tool_pear": false,
+              "tengu_vscode_review_upsell": false,
+              "tengu_tool_search_unsupported_models": [
+                "claude-3-5-haiku",
+                "claude-3-haiku"
+              ],
+              "tengu_amber_rokovoko": 0.2,
+              "tengu_brick_follow": false,
+              "tengu_garnet_finch": false,
+              "tengu_amber_packet": false,
+              "tengu_coral_fern": false,
+              "tengu_malformed_tool_use_clean_retry": true,
+              "tengu_slate_meridian": false,
+              "tengu_kairos_input_needed_push": true,
+              "tengu_gypsum_kite": true,
+              "tengu_gha_plugin_code_review": false,
+              "tengu-model-error-overrides": {},
+              "tengu_marble_whisper2": true,
+              "tengu_cowork_chrome_automode_default": true,
+              "tengu_rate_limit_promo_notices": [
+                {
+                  "bar": "seven_day",
+                  "text": "+50% weekly limits promo through Aug 19 · clau.de/cc-50-promo",
+                  "variant": "claude"
+                }
+              ],
+              "tengu_cedar_lantern": true,
+              "tengu_hawthorn_window": 200000,
+              "tengu_ultraplan_timeout_seconds": 5400,
+              "tengu_ccr_bundle_seed_enabled": true,
+              "tengu_gleaming_fair": true,
+              "tengu_agent_list_attach": true,
+              "tengu_dash_flame": false,
+              "claude_code_skills_dashboard_enabled_cli": false,
+              "tengu_lapis_anchor_budget": 15000000,
+              "tengu_kairos_loop_prompt": true,
+              "tengu_sotto_voce": true,
+              "tengu_updater_range_resume": false,
+              "tengu_swann_brevity": "focused",
+              "tengu_copper_thistle": false,
+              "tengu_slate_siskin": {
+                "enabled": false,
+                "timeoutMs": 8000,
+                "throttleMs": 30000,
+                "summaryLineThreshold": 5
+              },
+              "tengu_ultraplan_config": {
+                "enabled": false
+              },
+              "tengu_shale_finch": true,
+              "tengu_parchment_fern": false,
+              "tengu_basalt_spur": true,
+              "tengu_keybinding_customization_release": true,
+              "tengu_amber_flint": true,
+              "tengu_disable_bypass_permissions_mode": false,
+              "tengu_trace_lantern": false,
+              "tengu_ashen_kelp": true,
+              "tengu_anchor_tide": true,
+              "tengu_workflows_enabled": true,
+              "tengu_watchdog_skip_nonstreaming_fallback": false,
+              "tengu_marble_sandcastle": false,
+              "tengu_woven_harbor": false,
+              "tengu_file_write_optimization": true,
+              "tengu_penguin_mode_promo": {
+                "discountPercent": 0,
+                "endDate": "Feb 16"
+              },
+              "tengu_willow_mode": "hint_v2",
+              "tengu_velvet_tide": false,
+              "tengu_kairos_push_notifications": true,
+              "tengu_ccr_subagent_skip_on_delta": false,
+              "tengu_quiet_reef": false,
+              "tengu_salt_marsh": false,
+              "tengu_c4w_usage_limit_notifications_enabled": true,
+              "tengu_chert_bezel": true,
+              "tengu_cork_m4q": true,
+              "tengu_fennel_kite": false,
+              "tengu_haze_glass": false,
+              "tengu_marble_lark": false,
+              "tengu_basalt_quill": false,
+              "tengu_max_version_config": {},
+              "tengu_post_compact_survey": false,
+              "tengu_cobalt_ridge": true,
+              "tengu_amber_quill_moth": false,
+              "tengu_snippet_save": false,
+              "tengu_ccr_delta_rehydrate": true,
+              "tengu_compact_cache_prefix": true,
+              "tengu_velvet_hammer_opus_4_7": false,
+              "tengu_velvet_hammer_sonnet_4_6": false,
+              "tengu_velvet_mallet_haiku_4_5": true,
+              "tengu_velvet_mallet_haiku": false,
+              "tengu_velvet_mallet_opus_4_8": false,
+              "tengu_velvet_hammer_haiku_4_5": false,
+              "tengu_velvet_hammer_sonnet_5": false,
+              "tengu_saffron_credits_only_tiers": [
+                "enterprise"
+              ],
+              "tengu_velvet_mallet_sonnet_4_5": false,
+              "tengu_velvet_hammer_fable_5": false,
+              "tengu_feature_claudified_template": false,
+              "tengu_dazzling_floyd": false,
+              "tengu_velvet_hammer_opus_4_8": true,
+              "tengu_velvet_mallet": false,
+              "tengu_tab_read_sep": false,
+              "tengu_bison_cairn": false,
+              "tengu_long_context_survey_threshold": "",
+              "tengu_quill_harbor": "acceptEdits",
+              "tengu_windows_credman": false,
+              "tengu_amber_redwood3": "",
+              "tengu_long_context_survey_probability": "",
+              "tengu_juniper_relay_config": {},
+              "tengu_ax_screen_reader": true,
+              "tengu_velvet_mallet_sonnet_4_6": true,
+              "tengu_non_deferrable_builtins": {},
+              "tengu_velvet_hammer_falcon": false,
+              "tengu_chrome_auto_enable": true,
+              "tengu_slate_quill": true,
+              "tengu_velvet_hammer_sonnet_4_5": false,
+              "tengu_ultrareview_git_init_recovery_enabled": false,
+              "tengu_loud_sugary_rock2": false,
+              "tengu_velvet_mallet_opus_4_6": true,
+              "tengu_velvet_mallet_opus_5": false,
+              "tengu_velvet_mallet_opus_4_7": true,
+              "tengu_velvet_hammer_sonnet": false,
+              "tengu_velvet_hammer": false,
+              "tengu_velvet_mallet_opus": false,
+              "tengu_velvet_mallet_fable_5": true,
+              "tengu_soft_slate_nudge": "baseline",
+              "tengu_long_context_survey_question_variant": "",
+              "tengu_hover_rest": false,
+              "tengu_auto_mode_classifier_queue": false,
+              "tengu_basalt_tern": false,
+              "tengu_velvet_hammer_haiku": false,
+              "tengu_velvet_hammer_opus": false,
+              "tengu_velvet_mallet_falcon": false,
+              "tengu_velvet_mallet_sonnet": false,
+              "tengu_lantern_hearth": "off",
+              "tengu_velvet_static": true,
+              "tengu_juniper_relay": false,
+              "tengu_long_context_survey_trigger_mode": "",
+              "tengu_c4e_slash_upsell": true,
+              "tengu_velvet_mallet_sonnet_5": true,
+              "tengu_velvet_hammer_opus_4_6": false,
+              "tengu_velvet_hammer_mythos_5": false
+            },
+            "unpinOpus47LaunchEffort": true,
+            "unpinOpus48LaunchEffort": true,
+            "unpinFable5LaunchEffort": true,
+            "additionalModelCostsCache": {},
+            "additionalModelOptionsCache": [
+              {
+                "value": "claude-fable-5[1m]",
+                "label": "Fable",
+                "description": "Fable 5 · Most capable for your hardest and longest-running tasks"
+              }
+            ],
+            "autoCompactWindowsCache": null,
+            "cachedExperimentFeatures": [
+              "tengu_amber_prism",
+              "tengu_basalt_spur",
+              "tengu_coral_beacon",
+              "tengu_flint_harbor",
+              "tengu_mcp_subagent_prompt",
+              "tengu_plank_river_frost",
+              "tengu_read_dedup_killswitch",
+              "tengu_review_workflow_routing",
+              "tengu_velvet_mallet_fable_5",
+              "tengu_velvet_mallet_haiku_4_5",
+              "tengu_velvet_mallet_opus_4_6",
+              "tengu_velvet_mallet_opus_4_7",
+              "tengu_velvet_mallet_opus_4_8",
+              "tengu_velvet_mallet_opus_5",
+              "tengu_velvet_mallet_sonnet_4_6",
+              "tengu_velvet_mallet_sonnet_5",
+              "tengu_velvet_tide"
+            ],
+            "cachedGrowthBookFeaturesAt": 1785988102048,
+            "clientDataCacheSlots": {
+              "bi1-a71d18d10102b33d": {
+                "data": {
+                  "cedar_lagoon": {
+                    "claude-fable": true,
+                    "claude-mythos": true
+                  },
+                  "cedar_basin": "2026-08-31"
+                },
+                "at": 1785467646885,
+                "entrypoint": "claude-desktop",
+                "model": "claude-sonnet-5",
+                "org": "4bd12f9d-c8a9-4316-af54-06b5f497393b"
+              },
+              "bi1-fe798dba71e55378": {
+                "data": {
+                  "cedar_lagoon": {
+                    "claude-fable": true,
+                    "claude-mythos": true
+                  },
+                  "cedar_basin": "2026-08-31"
+                },
+                "at": 1785462306333
+              },
+              "bi1-f41634802da5f1f1": {
+                "data": {
+                  "cedar_lagoon": {
+                    "claude-fable": true,
+                    "claude-mythos": true
+                  },
+                  "cedar_basin": "2026-08-31"
+                },
+                "at": 1785360946975
+              }
+            },
+            "firstStartTime": "2026-07-03T00:04:13.194Z",
+            "machineID": "4a5a82231edb03ac9a2a30a5ad9c46c934cf388e7dec222d95841131542a27b0",
+            "mcpServers": {
+              "agentcore-gateway": {
+                "headers": {
+                  "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+                },
+                "timeout": 300,
+                "type": "http",
+                "url": "http://127.0.0.1:8080/mcp"
+              },
+              "morph-mcp": {
+                "type": "stdio",
+                "command": "npx",
+                "args": [
+                  "--prefer-offline",
+                  "-y",
+                  "@morphllm/morphmcp@0.8.207"
+                ],
+                "env": {
+                  "DISABLED_TOOLS": "edit_file"
+                }
+              }
+            },
+            "migrationVersion": 13,
+            "modelAccessCache": [],
+            "oauthAccount": {
+              "accountCreatedAt": "2025-06-19T15:21:37.467052Z",
+              "accountUuid": "5bacb92e-a0e2-4215-9302-32a3dcc54714",
+              "billingType": "stripe_subscription",
+              "ccOnboardingFlags": {},
+              "claudeCodeTrialDurationDays": null,
+              "claudeCodeTrialEndsAt": null,
+              "displayName": "Tony",
+              "emailAddress": "ynotfins@gmail.com",
+              "hasExtraUsageEnabled": false,
+              "organizationName": "ynotfins@gmail.com's Organization",
+              "organizationRateLimitTier": "default_claude_ai",
+              "organizationType": "claude_pro",
+              "organizationUuid": "4bd12f9d-c8a9-4316-af54-06b5f497393b",
+              "profileFetchedAt": 1785462306129,
+              "seatTier": null,
+              "subscriptionCreatedAt": "2026-04-08T22:53:07.737572Z",
+              "userRateLimitTier": null
+            },
+            "opusProMigrationComplete": true,
+            "opusProMigrationTimestamp": 1783037053267,
+            "orgModelDefaultCache": null,
+            "pluginUsage": {
+              "productivity@inline": {
+                "lastUsedAt": 1783037062655,
+                "lastUsedNumStartups": 0,
+                "usageCount": 0
+              },
+              "anthropic-skills@inline": {
+                "usageCount": 0,
+                "lastUsedAt": 1785470675328,
+                "lastUsedNumStartups": 0
+              }
+            },
+            "projects": {
+              "C:\\Users\\ynotf\\.ao\\data\\worktrees\\ao-smoke-20260719\\ao-smoke-20260719-1": {
+                "hasTrustDialogAccepted": true
+              },
+              "D:/github/agentcore-control-plane": {
+                "allowedTools": [],
+                "disabledMcpjsonServers": [],
+                "enabledMcpjsonServers": [],
+                "hasClaudeMdExternalIncludesApproved": false,
+                "hasClaudeMdExternalIncludesWarningShown": false,
+                "hasTrustDialogAccepted": false,
+                "lastAPIDuration": 0,
+                "lastAPIDurationWithoutRetries": 0,
+                "lastCost": 0,
+                "lastDuration": 71005386,
+                "lastFpsAverage": 0,
+                "lastFpsLow1Pct": 226.71,
+                "lastGracefulShutdown": true,
+                "lastLinesAdded": 0,
+                "lastLinesRemoved": 0,
+                "lastModelUsage": {},
+                "lastSessionId": "ace5b9b7-6ae6-4f82-82ec-f2921fcd25cb",
+                "lastStartTime": 1783037618017,
+                "lastToolDuration": 0,
+                "lastTotalCacheCreationInputTokens": "***REDACTED***",
+                "lastTotalCacheReadInputTokens": "***REDACTED***",
+                "lastTotalInputTokens": "***REDACTED***",
+                "lastTotalOutputTokens": "***REDACTED***",
+                "lastTotalWebSearchRequests": 0,
+                "lastVersionBase": "2.1.199",
+                "mcpContextUris": [],
+                "mcpServers": {},
+                "projectOnboardingSeenCount": 0,
+                "hasUnseenTeamArtifacts": false
+              },
+              "D:/github/swarm-ecosystem-control": {
+                "allowedTools": [],
+                "mcpContextUris": [],
+                "mcpServers": {},
+                "enabledMcpjsonServers": [],
+                "disabledMcpjsonServers": [],
+                "hasTrustDialogAccepted": false,
+                "projectOnboardingSeenCount": 0,
+                "hasClaudeMdExternalIncludesApproved": false,
+                "hasClaudeMdExternalIncludesWarningShown": false,
+                "hasUnseenTeamArtifacts": false
+              },
+              "D:\\github\\agentcore-control-plane": {
+                "allowedTools": [],
+                "mcpContextUris": [],
+                "enabledMcpjsonServers": [],
+                "disabledMcpjsonServers": [],
+                "hasTrustDialogAccepted": true,
+                "projectOnboardingSeenCount": 0,
+                "hasClaudeMdExternalIncludesApproved": false,
+                "hasClaudeMdExternalIncludesWarningShown": false
+              },
+              "D:\\github\\nfa-alerts-enterprise-clone": {
+                "allowedTools": [],
+                "mcpContextUris": [],
+                "enabledMcpjsonServers": [],
+                "disabledMcpjsonServers": [],
+                "hasTrustDialogAccepted": true,
+                "projectOnboardingSeenCount": 0,
+                "hasClaudeMdExternalIncludesApproved": false,
+                "hasClaudeMdExternalIncludesWarningShown": false
+              },
+              "D:/github/nfa-alerts-enterprise-clone": {
+                "allowedTools": [],
+                "mcpContextUris": [],
+                "mcpServers": {},
+                "enabledMcpjsonServers": [],
+                "disabledMcpjsonServers": [],
+                "hasTrustDialogAccepted": false,
+                "projectOnboardingSeenCount": 0,
+                "hasClaudeMdExternalIncludesApproved": false,
+                "hasClaudeMdExternalIncludesWarningShown": false,
+                "hasUnseenTeamArtifacts": false
+              }
+            },
+            "seenNotifications": {},
+            "sonnet1m45MigrationComplete": true,
+            "userID": "995d05d27e6fb0315b6af8dccef4c077923ddd5a9dcc41b940f10bfdb94cf381",
+            "cachedChromeExtensionInstalled": true,
+            "changelogLastFetched": 1784510269955,
+            "claudeAiMcpEverConnected": [
+              "claude.ai Google Drive",
+              "claude.ai Gmail",
+              "claude.ai Vercel",
+              "claude.ai Todoist",
+              "claude.ai Dropbox"
+            ],
+            "passesEligibilityCache": {
+              "4bd12f9d-c8a9-4316-af54-06b5f497393b": {
+                "eligible": false,
+                "referral_code_details": null,
+                "referrer_reward": null,
+                "remaining_passes": null,
+                "limit": null,
+                "share_link": null,
+                "terms_url": null,
+                "timestamp": 1785462314885
+              }
+            },
+            "cachedExtraUsageDisabledReason": "org_level_disabled",
+            "groveConfigCache": {
+              "5bacb92e-a0e2-4215-9302-32a3dcc54714": {
+                "timestamp": 1785988102209
+              }
+            },
+            "cachedExperimentData": {
+              "tengu_coral_beacon": {
+                "experimentId": "tengu_coral_beacon",
+                "variationId": 1,
+                "value": true
+              },
+              "tengu_amber_prism": {
+                "experimentId": "tengu_amber_prism",
+                "variationId": 0,
+                "value": false
+              },
+              "tengu_plank_river_frost": {
+                "experimentId": "tengu_plank_river_frost",
+                "variationId": 0,
+                "value": "user_intent"
+              },
+              "tengu_review_workflow_routing": {
+                "experimentId": "tengu_review_workflow_routing",
+                "variationId": 0,
+                "value": false
+              },
+              "tengu_read_dedup_killswitch": {
+                "experimentId": "tengu_read_dedup_killswitch",
+                "variationId": 1,
+                "value": true
+              },
+              "tengu_cowork_chrome_automode_default": {
+                "experimentId": "cowork_chrome_automode_default_experiment_cli",
+                "variationId": 1,
+                "value": true
+              },
+              "tengu_flint_harbor": {
+                "experimentId": "tengu_flint_harbor",
+                "variationId": 1,
+                "value": false
+              },
+              "tengu_mcp_subagent_prompt": {
+                "experimentId": "tengu_mcp_subagent_prompt-public",
+                "variationId": 0,
+                "value": false
+              },
+              "tengu_basalt_spur": {
+                "experimentId": "tengu_basalt_spur",
+                "variationId": 1,
+                "value": true
+              }
+            },
+            "autoUpdatesProtectedForNative": true
+          }
+        }
+      ]
+    },
+    {
+      "client": "claude-desktop",
+      "enabled": true,
+      "syntax": "claude_desktop_json",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\Claude\\claude_desktop_config.json",
+          "status": "ok",
+          "bytes": 1377,
+          "content": {
+            "mcpServers": {},
+            "coworkUserFilesPath": "C:\\Users\\ynotf\\Claude",
+            "preferences": {
+              "coworkPreferredBrowser": "chrome",
+              "launchPreviewPersistedWorkspaces": [],
+              "launchPreviewSessionScopedSessions": [],
+              "coworkScheduledTasksEnabled": false,
+              "coworkHipaaRestricted": false,
+              "ccdScheduledTasksEnabled": false,
+              "sidebarMode": "chat",
+              "bypassPermissionsGateByAccount": {
+                "5bacb92e-a0e2-4215-9302-32a3dcc54714": false
+              },
+              "coworkWebSearchEnabled": true,
+              "coworkModelAutoFallbackByAccount": {
+                "5bacb92e-a0e2-4215-9302-32a3dcc54714": true
+              },
+              "keepAwakeEnabled": true,
+              "remoteToolsDeviceName": "chaoscentral",
+              "ccAutoArchiveOnPrClose": true,
+              "epitaxyPrefs": {
+                "desktop-frame.paneStore.v1": {
+                  "state": {
+                    "extraPanesByMode": {},
+                    "colWeightsByMode": {},
+                    "rowSplit": 0.5,
+                    "draftNonce": 0
+                  },
+                  "version": 4
+                },
+                "starred-local-code-sessions": [],
+                "starred-cowork-spaces": [],
+                "starred-session-groups": [],
+                "dframe-local-slice": {
+                  "pinnedOrder": [],
+                  "homeProjectsPinnedOrder": []
+                },
+                "ccd-sessions-filter": {
+                  "state": {
+                    "selectedProjects": []
+                  },
+                  "version": 0
+                },
+                "dframe-group-scopes": {}
+              },
+              "coworkBrowserToolsEnabled": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "client": "minimax",
+      "enabled": true,
+      "syntax": "minimax_mcp_json",
+      "supports_env_headers": true,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+          "status": "ok",
+          "bytes": 3251,
+          "content": {
+            "mcpServers": {
+              "matrix": {
+                "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\MiniMax Code\\MiniMax Code.exe",
+                "args": [
+                  "C:\\Users\\ynotf\\AppData\\Local\\Programs\\MiniMax Code\\resources\\resources\\matrix-mcp-cli\\index.js"
+                ],
+                "env": {
+                  "MATRIX_BASE_URL": "https://agent.minimax.io",
+                  "MATRIX_TIMEOUT_MS": "1500000"
+                },
+                "enabled": true,
+                "configured": true,
+                "builtin": true,
+                "description": "Matrix biz-gateway â€” you can process images, videos, and audio; generate images, videos, and music; and search the web. Your available capabilities: (1) IMAGE UNDERSTANDING â€” describe, analyze, read, OCR any image (file / url / base64); (2) VIDEO UNDERSTANDING â€” watch and answer questions about video content; (3) AUDIO UNDERSTANDING â€” transcribe speech-to-text, analyze audio content; (4) IMAGE GENERATION â€” text-to-image and image-to-image generation; (5) VIDEO GENERATION â€” text-to-video and image-to-video generation; (6) AUDIO GENERATION â€” text-to-speech (TTS), music, songs, BGM generation; (7) WEB SEARCH â€” live web search and bulk web-page content extraction; (8) IMAGE SEARCH â€” web image search and reverse image search. Use these tools whenever the user asks for any image, video, audio, music, TTS, web search, or media generation task. CDN upload also available.",
+                "timeout": 1500000
+              },
+              "cu": {
+                "env": {},
+                "url": "http://127.0.0.1:15321/mavis/mcp/cu",
+                "type": "streamable-http",
+                "enabled": true,
+                "configured": true,
+                "builtin": true,
+                "description": "Computer Use â€” control the local desktop (mouse, keyboard, screen, windows, clipboard) through 25 desktop_* tools. Requires the renderer Computer Use toggle to be enabled. Use desktop_screenshot to see the screen, then desktop_left_click / desktop_type / etc. to act on it. Coordinates are 0-1000 normalized screen coordinates: top-left [0,0], center [500,500], bottom-right [1000,1000]. They are relative to the current primary display / screenshot content, not absolute pixels. Window bounds remain absolute pixels."
+              },
+              "trash": {
+                "env": {},
+                "url": "http://127.0.0.1:15321/mavis/mcp/trash",
+                "type": "streamable-http",
+                "enabled": true,
+                "configured": true,
+                "builtin": true,
+                "description": "Recoverable file deletion. Use the `trash` tool whenever you need to delete files / directories â€” it moves them to the OS trash so the user can restore later. ALWAYS prefer `trash` over `rm`; `rm` is irreversible without daemon safety nets. Supported on macOS (Finder Trash), Linux (gio trash / freedesktop), and Windows (Recycle Bin). In shell commands, use `mavis-trash <path1> <path2> ...` directly â€” no need to go through `mavis mcp call`."
+              },
+              "agentcore-gateway": {
+                "url": "http://127.0.0.1:8080/mcp",
+                "type": "streamable-http",
+                "headers": {
+                  "Authorization": "***REDACTED***"
+                },
+                "timeout": 300,
+                "enabled": true,
+                "configured": true
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "client": "minimax-classic",
+      "enabled": true,
+      "syntax": "matrix_cloud_custom_mcp",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\.minimax-agent\\AGENT.md",
+          "status": "error",
+          "error": "JSONDecodeError"
+        }
+      ]
+    },
+    {
+      "client": "antigravity",
+      "enabled": true,
+      "syntax": "antigravity_mcp_json",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\.gemini\\config\\mcp_config.json",
+          "status": "ok",
+          "bytes": 1771,
+          "content": {
+            "mcpServers": {
+              "agentcore-gateway": {
+                "serverUrl": "http://127.0.0.1:8080/mcp",
+                "headers": {
+                  "Authorization": "***REDACTED***"
+                }
+              },
+              "notebooks": {
+                "command": "node",
+                "args": [
+                  "c:\\Users\\ynotf\\.antigravity-ide\\extensions\\googlecloudtools.datacloud-0.9.1-universal\\mcp_servers\\cli\\mcp_proxy_bundle.js",
+                  "notebooks-antigravityide"
+                ]
+              },
+              "visualization": {
+                "command": "node",
+                "args": [
+                  "c:\\Users\\ynotf\\.antigravity-ide\\extensions\\googlecloudtools.datacloud-0.9.1-universal\\mcp_servers\\cli\\mcp_proxy_bundle.js",
+                  "visualization-antigravityide"
+                ]
+              },
+              "data-agent-kit": {
+                "command": "node",
+                "args": [
+                  "c:\\Users\\ynotf\\.antigravity-ide\\extensions\\googlecloudtools.datacloud-0.9.1-universal\\mcp_servers\\cli\\mcp_proxy_bundle.js",
+                  "dataAgentKit-antigravityide"
+                ]
+              }
+            },
+            "x_agentcore_quarantined_servers": {
+              "notebooks": {
+                "disabled": true,
+                "reason": "Quarantined during Antigravity AgentCore registration; Antigravity general MCP surface is AgentCore-only."
+              },
+              "visualization": {
+                "disabled": true,
+                "reason": "Quarantined during Antigravity AgentCore registration; Antigravity general MCP surface is AgentCore-only."
+              },
+              "data-agent-kit": {
+                "disabled": true,
+                "reason": "Quarantined during Antigravity AgentCore registration; Antigravity general MCP surface is AgentCore-only."
+              },
+              "morph-mcp": {
+                "disabled": true,
+                "reason": "Quarantined during Antigravity AgentCore registration; raw local secret was removed from active config. Use AgentCore-governed routing or Windows env-backed tooling."
+              }
+            }
+          }
+        },
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\Antigravity IDE\\User\\mcp.json",
+          "status": "ok",
+          "bytes": 198,
+          "content": {
+            "mcpServers": {
+              "agentcore-gateway": {
+                "serverUrl": "http://127.0.0.1:8080/mcp",
+                "headers": {
+                  "Authorization": "***REDACTED***"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "client": "open-interpreter",
+      "enabled": true,
+      "syntax": "open_interpreter_json",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json",
+          "status": "ok",
+          "bytes": 1190,
+          "content": {
+            "lastMigrationDeprecatedProfiles": [],
+            "lastMigrationVersion": 11,
+            "lastMigrationUnsupportedProfiles": [],
+            "configVersion": 11,
+            "lastMigrationBackupPath": "C:\\Users\\ynotf\\AppData\\Roaming\\Interpreter\\config.json.pre-migration-v11",
+            "agents": {},
+            "globalDisabledTools": [],
+            "tts": {
+              "readAssistantMessages": true,
+              "modelId": "kokoro-en-v0_19",
+              "voiceId": 0,
+              "speed": 1,
+              "pitch": 0,
+              "provider": "cuda",
+              "autotuneEnabled": true,
+              "voiceResetEnabled": false,
+              "voiceResetPhrase": "Forget everything you know"
+            },
+            "stt": {
+              "backend": "moonshine",
+              "stripChineseCharacters": true,
+              "silenceTimeoutMs": 2000,
+              "fastSentenceSilenceTimeoutMs": 700,
+              "previewBeforeSendMs": 0,
+              "sendCommand": "make it so",
+              "newChatCommand": "new chat",
+              "voiceMode": "conversational",
+              "ambientTriggerPhrases": [
+                "Interpreter",
+                "Repertor"
+              ],
+              "ambientEndPhrases": [
+                "make it so",
+                "take it so"
+              ]
+            },
+            "recentFolders": [
+              {
+                "path": "C:\\Users\\ynotf\\Documents\\My Workspace (2)",
+                "name": "My Workspace (2)",
+                "lastOpened": 1787770778833
+              }
+            ],
+            "appLaunchCount": 2
+          }
+        }
+      ],
+      "post_enroll": {
+        "status": "gateway-only"
+      }
+    },
+    {
+      "client": "cherry-studio",
+      "enabled": true,
+      "syntax": "cherry_studio_leveldb",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\CherryStudio\\Local Storage\\leveldb",
+          "status": "missing"
+        },
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\CherryStudio\\Data\\agents.db",
+          "status": "error",
+          "error": "UnicodeDecodeError"
+        },
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\CherryStudio\\config.json",
+          "status": "ok",
+          "bytes": 332,
+          "content": {
+            "clientId": "019f77f6-87c6-71af-9e14-f8523f85d4f9",
+            "enableDataCollection": false,
+            "enableDeveloperMode": true,
+            "selectionAssistantEnabled": true,
+            "gitBashPath": "C:\\Program Files\\Git\\bin\\bash.exe",
+            "gitBashPathSource": "auto",
+            "enableQuickAssistant": true,
+            "selectionAssistantRemeberWinSize": true,
+            "theme": "dark"
+          }
+        }
+      ]
+    },
+    {
+      "client": "devin",
+      "enabled": true,
+      "syntax": "devin_mcp_json",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\devin\\mcp_config.json",
+          "status": "ok",
+          "bytes": 966,
+          "content": {
+            "mcpServers": {
+              "git": {
+                "command": "docker",
+                "args": [
+                  "run",
+                  "-i",
+                  "--rm",
+                  "mcp/git"
+                ]
+              },
+              "mcp-playwright": {
+                "command": "npx",
+                "args": [
+                  "-y",
+                  "@playwright/mcp@latest"
+                ]
+              },
+              "memory": {
+                "command": "npx",
+                "args": [
+                  "-y",
+                  "@modelcontextprotocol/server-memory"
+                ]
+              },
+              "context7": {
+                "command": "npx",
+                "args": [
+                  "-y",
+                  "@upstash/context7-mcp@1.0.31"
+                ]
+              },
+              "fetch": {
+                "command": "docker",
+                "args": [
+                  "run",
+                  "-i",
+                  "--rm",
+                  "mcp/fetch"
+                ]
+              },
+              "vercel": {
+                "url": "https://mcp.vercel.com"
+              },
+              "google-maps": {
+                "command": "npx",
+                "args": [
+                  "-y",
+                  "@modelcontextprotocol/server-google-maps"
+                ],
+                "env": {
+                  "GOOGLE_MAPS_API_KEY": "***REDACTED***"
+                }
+              },
+              "figma-remote-mcp-server": {
+                "url": "https://mcp.figma.com/mcp"
+              },
+              "github-mcp-server": {
+                "url": "https://api.githubcopilot.com/mcp"
+              }
+            }
+          }
+        },
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\devin\\config.json",
+          "status": "ok",
+          "bytes": 312,
+          "content": {
+            "version": 1,
+            "devin": {
+              "org_id": "org-8a5f500b35cc48cabcecba963c175a50"
+            },
+            "shell": {
+              "setup_complete": true
+            },
+            "theme_mode": "dark",
+            "permissions": {
+              "allow": [
+                "Exec(Group-Object)",
+                "Exec(Get-ChildItem)",
+                "Exec(Get-Item)",
+                "Exec(Select-Object)"
+              ]
+            }
+          }
+        },
+        {
+          "path": "<project>\\.devin\\mcp_config.local.json",
+          "status": "template_skipped"
+        },
+        {
+          "path": "<project>\\.devin\\mcp_config.json",
+          "status": "template_skipped"
+        }
+      ],
+      "post_enroll": {
+        "status": "deferred",
+        "note": "outpost layer written; token gate"
+      }
+    },
+    {
+      "client": "opencode",
+      "enabled": true,
+      "syntax": "opencode_jsonc",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\.config\\opencode\\opencode.json",
+          "status": "ok",
+          "bytes": 378,
+          "content": {
+            "$schema": "https://opencode.ai/config.json",
+            "plugin": [
+              "magic-compact"
+            ],
+            "mcp": {
+              "context7": {
+                "type": "remote",
+                "url": "https://mcp.context7.com/mcp",
+                "enabled": true,
+                "headers": {
+                  "CONTEXT7_API_KEY": "***REDACTED***"
+                }
+              },
+              "MCP_DOCKER": {
+                "type": "local",
+                "command": [
+                  "docker",
+                  "mcp",
+                  "gateway",
+                  "run",
+                  "--profile",
+                  "r3lentless_grind"
+                ],
+                "enabled": true
+              }
+            },
+            "shell": "powershell"
+          }
+        },
+        {
+          "path": "<project>\\opencode.json",
+          "status": "template_skipped"
+        },
+        {
+          "path": "<project>\\opencode.jsonc",
+          "status": "template_skipped"
+        },
+        {
+          "path": "C:\\ProgramData\\opencode\\opencode.json",
+          "status": "missing"
+        }
+      ],
+      "post_enroll": {
+        "status": "gateway-only",
+        "note": "removed context7 and MCP_DOCKER"
+      }
+    },
+    {
+      "client": "zoo-code",
+      "enabled": true,
+      "syntax": "zoo_code_mcp_json",
+      "supports_env_headers": false,
+      "entries": [
+        {
+          "path": "C:\\Users\\ynotf\\AppData\\Roaming\\Cursor\\User\\globalStorage\\zoocodeorganization.zoo-code\\settings\\mcp_settings.json",
+          "status": "ok",
+          "bytes": 254,
+          "content": {
+            "mcpServers": {
+              "agentcore-gateway": {
+                "url": "http://127.0.0.1:8080/mcp",
+                "headers": {
+                  "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+                },
+                "disabled": false,
+                "timeout": 300
+              }
+            }
+          }
+        },
+        {
+          "path": "<project>\\.roo\\mcp.json",
+          "status": "template_skipped"
+        }
+      ],
+      "post_enroll": {
+        "status": "gateway-only",
+        "action": "verify-only"
+      }
+    }
+  ],
+  "post_enroll_updated_at": "2026-08-27T00:50:15.835234+00:00",
+  "post_enroll_status": {
+    "open-interpreter-cli": {
+      "status": "gateway-only"
+    },
+    "open-interpreter-desktop": {
+      "status": "gateway-only",
+      "note": "removed morph-mcp"
+    },
+    "open-interpreter": {
+      "status": "gateway-only"
+    },
+    "opencode": {
+      "status": "gateway-only",
+      "note": "removed context7 and MCP_DOCKER"
+    },
+    "cursor": {
+      "status": "gateway-only",
+      "action": "verify-only"
+    },
+    "zoo-code": {
+      "status": "gateway-only",
+      "action": "verify-only"
+    },
+    "codex": {
+      "status": "deferred",
+      "action": "verify-only-not-edited"
+    },
+    "devin": {
+      "status": "deferred",
+      "note": "outpost layer written; token gate"
+    }
+  }
+}

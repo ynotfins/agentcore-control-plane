@@ -1,0 +1,329 @@
+{
+  "audit_id": "MAF_RECALL_REALIGNMENT_AUDIT_2026-08-26",
+  "created_at": "2026-08-26T00:00:00+00:00",
+  "updated_at": "2026-08-27T00:51:29.263966+00:00",
+  "status": "complete_with_nonblocking_followups",
+  "program": "MAF Recall Realignment",
+  "repo": "D:/github/agentcore-control-plane",
+  "package_root": "scripts/maf_recall",
+  "policy_ref": "scripts/maf_recall/common_mcp_policy.yaml",
+  "todos": [
+    {
+      "id": "session_scope",
+      "title": "Intent + declared_files + utf-8-sig read",
+      "status": "completed"
+    },
+    {
+      "id": "package_docs",
+      "title": "README architecture checklist registry memory contract",
+      "status": "completed"
+    },
+    {
+      "id": "common_mcp_policy",
+      "title": "Single gateway :8080 policy YAML",
+      "status": "completed"
+    },
+    {
+      "id": "devin_outpost",
+      "title": "Dockerfile + README binds on I:/LocalApps",
+      "status": "completed"
+    },
+    {
+      "id": "maf_host_spike",
+      "title": "agent-framework==1.15.0 spike without :8080 conflict",
+      "status": "completed"
+    },
+    {
+      "id": "foundry_local_notes",
+      "title": "4070 SUPER local inference notes",
+      "status": "completed"
+    },
+    {
+      "id": "agentcore_freeze",
+      "title": "Freeze note keep Bifrost never wipe F:/H:",
+      "status": "completed"
+    },
+    {
+      "id": "ide_inventory_scripts",
+      "title": "inventory_ide_mcp / enroll_gateway_clients / docker_tune",
+      "status": "completed"
+    },
+    {
+      "id": "post_build_audit",
+      "title": "Audit template + operator handoff",
+      "status": "completed"
+    },
+    {
+      "id": "wsl_docker_vhdx",
+      "title": "WSL 48/16/16 and VHDX on F:/Docker/wsl",
+      "status": "completed"
+    },
+    {
+      "id": "ide_enrollment_live",
+      "title": "Live IDE enrollment apply",
+      "status": "completed"
+    },
+    {
+      "id": "maf_activation",
+      "title": "Activate MAF pin later behind :8080",
+      "status": "deferred"
+    }
+  ],
+  "ports": {
+    "gateway_mcp": 8080,
+    "recall_rest": 3300,
+    "recall_pg": 65432,
+    "recall_aux": [
+      7700,
+      3456
+    ],
+    "pg18": 55433
+  },
+  "drives": {
+    "docker_vhdx": "F:/Docker/wsl",
+    "agentcore_hot": "F:",
+    "swarm_hot": "H:",
+    "local_apps_binds": "I:/LocalApps",
+    "archive": "E:"
+  },
+  "evidence": [
+    {
+      "id": "runtime",
+      "data": {
+        "vhdx": {
+          "docker_data_bytes": 97629765632,
+          "ext4_bytes": 117440512,
+          "location": "F_Docker_wsl"
+        },
+        "junctions_ok": true,
+        "d_drive_vhdx_data_files": [],
+        "wslconfig": {
+          "memory": "48GB",
+          "processors": 16,
+          "swap": "16GB"
+        },
+        "docker_info": {
+          "NCPU": 32,
+          "MemBytes": 67312361472
+        },
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 4070 SUPER",
+          "driver": "595.79",
+          "vram": "12282 MiB"
+        },
+        "ports": {
+          "8080": true,
+          "55433": true,
+          "3300_tcp": true,
+          "3300_http_health": "404_on_common_paths",
+          "bifrost_health": 200
+        },
+        "parked_junk": [
+          "D_docker_mcp",
+          "D_docker_n8n",
+          "D_docker_portainer"
+        ],
+        "openrouter_api_key_present": true,
+        "devin_outpost_token_present": false,
+        "foundry_on_path": false
+      }
+    },
+    {
+      "id": "ide_post_enroll",
+      "data": {
+        "open-interpreter-cli": {
+          "status": "gateway-only"
+        },
+        "open-interpreter-desktop": {
+          "status": "gateway-only",
+          "note": "removed morph-mcp"
+        },
+        "open-interpreter": {
+          "status": "gateway-only"
+        },
+        "opencode": {
+          "status": "gateway-only",
+          "note": "removed context7 and MCP_DOCKER"
+        },
+        "cursor": {
+          "status": "gateway-only",
+          "action": "verify-only"
+        },
+        "zoo-code": {
+          "status": "gateway-only",
+          "action": "verify-only"
+        },
+        "codex": {
+          "status": "deferred",
+          "action": "verify-only-not-edited"
+        },
+        "devin": {
+          "status": "deferred",
+          "note": "outpost layer written; token gate"
+        }
+      }
+    },
+    {
+      "id": "apply_batch_steps",
+      "data": [
+        {
+          "step": "oi_cli_live",
+          "ok": true,
+          "detail": "backup=config.toml.bak-20260827-004907; gateway_only=True"
+        },
+        {
+          "step": "oi_cli_template",
+          "ok": true,
+          "detail": "backup=cli-config.toml.bak-20260827-004907; gateway_only=True"
+        },
+        {
+          "step": "oi_desktop_live",
+          "ok": true,
+          "detail": "backup=config.toml.bak-20260827-004907"
+        },
+        {
+          "step": "oi_desktop_template",
+          "ok": true,
+          "detail": "backup=desktop-config.toml.bak-20260827-004907"
+        },
+        {
+          "step": "opencode",
+          "ok": true,
+          "detail": "backup=opencode.json.bak-20260827-004907; gateway_only=True; vk_materialized=True"
+        },
+        {
+          "step": "cursor_verify",
+          "ok": true,
+          "detail": "keys=['agentcore-gateway']; gateway_only=True"
+        },
+        {
+          "step": "zoo_code_verify",
+          "ok": true,
+          "detail": "keys=['agentcore-gateway']; gateway_only=True"
+        },
+        {
+          "step": "codex_verify_only",
+          "ok": true,
+          "detail": "has_gateway=True; extra_mcp=['morph-mcp', 'node_repl', 'cheap-workers']; edited=false"
+        },
+        {
+          "step": "repo_enrollment_status_md",
+          "ok": true,
+          "detail": "D:\\github\\agentcore-control-plane\\scripts\\maf_recall\\repo_enrollment_status.md"
+        },
+        {
+          "step": "devin_copy_Dockerfile",
+          "ok": true,
+          "detail": "I:LocalApps\\Devin\\outpost-worker\\Dockerfile"
+        },
+        {
+          "step": "devin_copy_README.md",
+          "ok": true,
+          "detail": "I:LocalApps\\Devin\\outpost-worker\\README.md"
+        },
+        {
+          "step": "devin_outpost_layer",
+          "ok": true,
+          "detail": "token_status=blocked_on_operator_token; name_present=False"
+        },
+        {
+          "step": "maf_host_import",
+          "ok": true,
+          "detail": "PIP_INSTALL_START | Collecting agent-framework==1.15.0 (from -r D:\\github\\agentcore-control-plane\\scripts\\maf_recall\\maf_host\\requirements.txt (line 1)) |   Downloading agent_framework-1.15.0-py3-none-any.whl.metadata (9.6 kB) | Collecting agent-framework-core==1.15.0 (from agent-framework-core[all]==1.15.0->agent-framework==1.15.0->-r D:\\github\\agentcore-control-plane\\scripts\\maf_recall\\maf_host\\requirements.txt (line 1)) |   Downloading agent_framework_core-1.15.0-py3-none-any.whl.metadata (11"
+        },
+        {
+          "step": "maf_host_8080_guard",
+          "ok": false,
+          "detail": "PIP_INSTALL_START | Collecting agent-framework==1.15.0 (from -r D:\\github\\agentcore-control-plane\\scripts\\maf_recall\\maf_host\\requirements.txt (line 1)) |   Downloading agent_framework-1.15.0-py3-none-any.whl.metadata (9.6 kB) | Collecting agent-framework-core==1.15.0 (from agent-framework-core[all]"
+        },
+        {
+          "step": "foundry_notes",
+          "ok": true,
+          "detail": "updated"
+        },
+        {
+          "step": "ide_inventory_update",
+          "ok": true,
+          "detail": "post_enroll_status written"
+        }
+      ]
+    },
+    {
+      "id": "maf_host_verify_followup",
+      "import_ok": true,
+      "version": "1.15.0",
+      "venv": "scripts/maf_recall/maf_host/.venv",
+      "port_8080_guard": "RuntimeError refuse bind confirmed"
+    }
+  ],
+  "blockers": [
+    "No blocking items remain for the active control-system goal"
+  ],
+  "nonblocking_followups": [
+    "Foundry Local CLI not installed",
+    "Optional Docker old-image cleanup for n8n/portainer remains",
+    "Live MAF/Recall hot-swap behind :8080 requires a separate activation gate before replacing Bifrost"
+  ],
+  "workstation_decisions": {
+    "operator_profile": "high_assistance_vibe_coder",
+    "shared_external_policy": "one_governed_gateway_primary",
+    "vendor_builtins_policy": "documented_local_exceptions_allowed",
+    "devin_local_execution": {
+      "default_mode": "local_cli_or_desktop",
+      "requires_token": false,
+      "outposts_requires_token": true
+    },
+    "codex_policy": "keep node_repl and current direct extras as temporary transition exceptions",
+    "open_interpreter_desktop_policy": "inherits Codex-backed MCP helpers from the selected Codex profile; classify as Codex transition exception, not independent OI memory/database drift",
+    "devin_policy": "keep current direct extras as temporary transition exceptions until gateway replacements exist",
+    "direct_ide_to_ide_policy": "rejected; use hub-and-spoke through agentcore-gateway plus durable memory/audit artifacts",
+    "openhands_policy": {
+      "runtime": "docker-first",
+      "container": "openhands-local-8003",
+      "url": "http://127.0.0.1:8003/canvas/",
+      "ready_url": "http://127.0.0.1:8003/ready",
+      "state_root": "I:/LocalApps/OpenHands/state",
+      "projects_root": "D:/OpenHandsProjects",
+      "startup_assets_mirrored": true,
+      "mount_policy": "no F:/ or H:/ production mounts"
+    },
+    "foundry_cloud_policy": {
+      "status": "connected",
+      "resource_group": "rg-chaoscentral-foundry-20260827",
+      "account": "chaoscentralfoundry20260827",
+      "project": "chaoscentral-control-plane",
+      "project_endpoint_env": "AZURE_AI_PROJECT_ENDPOINT",
+      "deployment": "deepseek-v4-pro",
+      "model": "DeepSeek-V4-Pro",
+      "version": "2026-04-23",
+      "provider_preference": "azure_foundry_then_openrouter"
+    },
+    "desktop_policy": {
+      "desktop_path": "C:/Users/ynotf/OneDrive/Desktop",
+      "documents_path": "C:/Users/ynotf/Documents",
+      "active_repos_on_desktop": "discouraged",
+      "recommended_roots": [
+        "D:/github",
+        "D:/devin-workspace"
+      ]
+    },
+    "automation_expectations": {
+      "mandatory_nontrivial_tools": [
+        "sequential-thinking",
+        "agentcore-memory startup/recovery",
+        "serena or project-local semantic equivalent"
+      ],
+      "mandatory_structural_tools": [
+        "depwire or equivalent dependency graph check",
+        "tentra when architecture evidence is required"
+      ],
+      "rolling_context": "durable_memory_plus_handoffs_plus_repo_state",
+      "operator_babysitting_goal": "minimize repeated human intervention"
+    }
+  },
+  "freeze_banner": {
+    "appended_at": "2026-08-27T00:50:15.836064+00:00",
+    "text": "AGENTCORE FEATURE FREEZE ACTIVE: no net-new memory planes / MCP surface / DB topology until MAF+Recall seated behind Bifrost; never wipe AgentCore or Swarm hot drives.",
+    "note_path": "scripts/maf_recall/agentcore_freeze_note.md"
+  }
+}

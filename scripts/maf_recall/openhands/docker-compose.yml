@@ -1,0 +1,17 @@
+name: openhands-local
+
+services:
+  openhands:
+    image: ghcr.io/openhands/agent-canvas:1.13.0
+    container_name: openhands-local-8003
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8003:8000"
+    environment:
+      ANALYTICS_OPT_OUT: "true"
+      LLM_API_KEY: "${OPENROUTER_API_KEY}"
+      LLM_MODEL: "openrouter/deepseek/deepseek-v4-pro"
+      LLM_BASE_URL: "https://openrouter.ai/api/v1"
+    volumes:
+      - "I:/LocalApps/OpenHands/state:/home/openhands/.openhands"
+      - "D:/OpenHandsProjects:/projects"

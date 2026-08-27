@@ -1,0 +1,180 @@
+# Machine policy: Common MCP + memory boundaries (MAF Recall Realignment)
+# Source: D:/github/agentcore-control-plane/scripts/maf_recall/common_mcp_policy.yaml
+# Secrets: Windows User-scope env only. Never commit resolved keys.
+
+schema_version: 1
+policy_id: maf-recall-common-mcp-2026-08-26
+updated_at: "2026-08-26"
+
+operator_profile:
+  style: high_assistance_vibe_coder
+  requirements:
+    - agents_should_default_to_end_to_end_execution_not_partial_guidance
+    - agents_should_use_reasoning_and_discovery_tools_before_cross_file_changes
+    - agents_should_minimize_operator_repetition_for_long_natural_language_prompts
+    - agents_should_emit_handoffs_and_status_artifacts_automatically
+
+gateway:
+  name: agentcore-gateway
+  url: http://127.0.0.1:8080/mcp
+  transport: http
+  auth:
+    mechanism: virtual_key
+    env_var: BIFROST_MCP_VIRTUAL_KEY
+  notes: >
+    Single governed gateway for shared memory, shared tools, and cross-IDE policy
+    enforcement. Non-Swarm IDEs should route shared external capability through this
+    URL instead of carrying per-app raw Recall or OpenRouter MCP baselines.
+  app_native_exceptions:
+    allowed_classes:
+      - vendor_builtin_local_ui_tools
+      - vendor_builtin_browser_or_desktop_control
+      - app_shipped_internal_helpers_that_do_not_touch_shared_memory_or_databases
+    temporary_transition_exceptions:
+      - client: codex
+        allowed_servers:
+          - node_repl
+          - morph-mcp
+          - cheap-workers
+          - devin
+        rationale: >
+          Preserve current Codex workflow until equivalent governed capability exists behind
+          the gateway. Reassess before claiming full workstation policy convergence.
+      - client: open-interpreter-desktop
+        allowed_servers:
+          - agentcore-gateway
+          - codex_profile_inherited_node_repl
+          - codex_profile_inherited_morph-mcp
+          - codex_profile_inherited_cheap-workers
+          - codex_profile_inherited_devin
+        rationale: >
+          Open Interpreter Desktop surfaces Codex-backed MCP entries from the selected Codex
+          profile. Treat these as the same documented Codex transition exception, not as a
+          separate OI-specific memory/database route.
+      - client: devin
+        allowed_servers:
+          - mcp-playwright
+          - github-mcp-server
+        rationale: >
+          Devin local code execution already works without Outposts. Keep GitHub and
+          Playwright helpers only as temporary exceptions until the common gateway can
+          replace them without degrading the local coder workflow. Filesystem access
+          must be project-scoped per repo/worktree, not global.
+
+memory:
+  default_semantic_plane: SwarmRecall
+  access_path: agentcore-gateway -> agentcore-memory (server-side adapter only)
+  long_context_policy:
+    source_of_truth: durable_memory_plus_repo_artifacts
+    compaction_policy: non_destructive
+    operator_prompt_policy: preserve_verbatim_after_secret_redaction
+    continuity_policy: >
+      Before asking the operator to restate history, agents should recover context from
+      durable memory, current handoffs, audit artifacts, and project-local state.
+  vault:
+    access: adapter_only
+    filesystem_authority: "H:"
+  forbid:
+    - raw_swarmrecall_mcp_in_ide
+    - recall_api_keys_in_ide_configs
+    - direct_sql_to_127.0.0.1:65432
+    - openrouter_mcp_direct_in_ide
+    - undocumented_direct_mcp_exceptions
+    - inventing_postgres_url_localhost_5432_agent_memory
+
+project_continuity:
+  mode: default_deny
+  enrollment_contract: contracts/agentcore-project-enrollment.json
+  requirement: >
+    Exact project_key and repository/worktree path must match enrollment before any
+    memory read/write. Ordinary IDE profiles expose no project-router controls.
+
+automation_policy:
+  default_mode: end_to_end_with_recovery
+  mandatory_for_nontrivial_tasks:
+    - sequential_thinking
+    - agentcore_memory_startup_and_recovery
+    - serena_or_project_local_semantic_equivalent
+  mandatory_for_structural_changes:
+    - depwire_or_equivalent_dependency_graph_check
+    - tentra_or_equivalent_architecture_graph_check_when_milestone_requires
+  required_behaviors:
+    - auto_resume_or_open_project_context
+    - auto_emit_status_and_handoff_artifacts
+    - use_tools_to_reduce_operator_babysitting
+    - stop_and_report_when_required_tooling_is_unavailable
+
+runtime_execution_layers:
+  langgraph:
+    mode: native
+    authority: agentcore_workflow
+    hot_root: "F:/PostgreSQL18"
+    checkpoint_db: "127.0.0.1:55433"
+    staging: "LangGraph Studio dev-only on 127.0.0.1:2024"
+  swarmclaw:
+    mode: native
+    authority: swarm_ecosystem_control
+    hot_root: "H:/SwarmData/claw"
+    runtime_port: 3456
+    staging: "Swarm-owned only; not AgentCore/IDE writable"
+  devin:
+    mode: local_first_with_optional_docker_outposts
+    authority: devin
+    source_roots:
+      - "D:/github"
+      - "D:/devin-workspace"
+    staging: "I:/LocalApps/Devin"
+    rule: "No docker.sock, no F:/H: production mounts"
+  openhands:
+    mode: docker_first
+    authority: openhands
+    image: "ghcr.io/openhands/agent-canvas:1.13.0"
+    container: "openhands-local-8003"
+    url: "http://127.0.0.1:8003/canvas/"
+    readiness: "http://127.0.0.1:8003/ready"
+    state_root: "I:/LocalApps/OpenHands/state"
+    projects_root: "D:/OpenHandsProjects"
+    rule: "localhost-only publish; no F:/H: production mounts"
+
+docker:
+  engine_data_root: "F:/Docker/wsl"
+  forbid_vhdx_on:
+    - "C:/"
+    - "D:/"
+  app_bind_root: "I:/LocalApps"
+  notes: >
+    Docker Desktop WSL2 VHDX and engine data belong on F: (AgentCore hot). Neutral app
+    container binds (e.g. Devin Outpost) use I:/LocalApps. Do not default-mount F: or H:
+    production trees into third-party workers.
+
+workstation_layout:
+  desktop_projects:
+    policy: discouraged
+    recommendation: move_active_projects_to_D_github_or_D_devin_workspace
+    rationale: >
+      OneDrive-backed Desktop is acceptable for shortcuts and light documents, but is a poor
+      home for active repositories, local databases, Docker binds, or agent runtime state
+      because sync lag, offline gaps, and file-lock churn reduce reliability.
+
+reserved_ports:
+  - { port: 8080, owner: Bifrost / agentcore-gateway MCP }
+  - { port: 55433, owner: PostgreSQL 18 AgentCore (agent_core / cognee_core) }
+  - { port: 55432, owner: PostgreSQL 16 legacy rollback only — offline }
+  - { port: 65432, owner: Neutral SwarmRecall Postgres (service-owned; no IDE SQL) }
+  - { port: 3300, owner: SwarmRecall REST / API surface }
+  - { port: 7700, owner: Meilisearch for SwarmRecall }
+  - { port: 3456, owner: SwarmClaw runtime }
+  - { port: 2024, owner: LangGraph Studio dev-only (not production) }
+
+openrouter:
+  inference: allowed_via_configured_model_routes
+  mcp:
+    status: dormant_behind_bifrost
+    rule: >
+      Do not add https://mcp.openrouter.ai/mcp to IDE MCP baselines. Tools appear only
+      while an M6 lease + JIT VK bridge grants exact openrouter-* names through the gateway.
+
+enforcement_intent:
+  - inventory_ide_mcp.ps1 reports drift from this policy
+  - enroll_gateway_clients.ps1 enrolls agentcore-gateway only
+  - docker_tune.ps1 verifies VHDX under F:/Docker/wsl

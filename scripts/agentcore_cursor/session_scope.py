@@ -116,7 +116,7 @@ class SessionScope:
         scope_path = root / ".agentcore" / "runtime" / "session-scope.json"
         if scope_path.is_file():
             try:
-                raw = json.loads(scope_path.read_text(encoding="utf-8"))
+                raw = json.loads(scope_path.read_text(encoding="utf-8-sig"))
                 ident = raw.get("identity") or {}
                 return cls(
                     project_root=root,
