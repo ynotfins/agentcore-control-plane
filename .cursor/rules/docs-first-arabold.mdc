@@ -1,7 +1,11 @@
 ---
-description: Mandatory local official-docs ingest via arabold on F:; Context7 same-turn bridge only
+description: Mandatory local official-docs ingest (arabold on F:); Context7 same-turn bridge only; session-start tools/list required
 alwaysApply: true
 ---
+
+# Session start (mandatory for every chat and task)
+
+Call `listToolFiles` (or `tools/list`) against `agentcore-gateway` **before planning or executing any work**. Build a compact internal inventory of every available tool and its server prefix. Never assume a tool is absent — verify from the live list. Do not dump the full list into your response; reference tools by name. The gateway surface is the authoritative capability boundary for this session.
 
 # Docs-first: arabold local ingest (machine-global)
 
@@ -26,7 +30,7 @@ Context7 (gateway only) may answer **this turn** for a **public** library while 
 
 ## Do not
 
-- Scrape private/authenticated docs without approval, Swarm-owned trees, unrelated sites, or “latest” when the pin is exact
+- Scrape private/authenticated docs without approval, Swarm-owned trees, unrelated sites, or "latest" when the pin is exact
 - Refresh to latest unless the lockfile pin moved or a Milestone accepts a docs refresh
 - Paste Context7 into IDE `mcp.json`
 - Dump live `tools/list` into `AGENTS.md` — use `TOOL_MANIFEST.yaml` + `.agentcore/runtime/gateway-tool-inventory.md`

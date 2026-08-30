@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "url": "http://127.0.0.1:8080/mcp",
+      "timeout": 300,
+      "headers": {
+        "Authorization": "Bearer PASTE_BIFROST_VK_HERE"
+      },
+      "_note": "Replace PASTE_BIFROST_VK_HERE with Windows User env BIFROST_MCP_VIRTUAL_KEY. Never commit resolved value."
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "PASTE_PROJECT_ROOT_HERE"],
+      "_note": "Project-local. Replace PASTE_PROJECT_ROOT_HERE with project root. Not via Bifrost — install directly."
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "PASTE_GITHUB_TOKEN_HERE"
+      },
+      "_note": "Project-local GitHub. Replace PASTE_GITHUB_TOKEN_HERE with a PAT. Not via Bifrost."
+    },
+    "serena": {
+      "command": "node",
+      "args": ["PASTE_SERENA_ENTRY_POINT_HERE"],
+      "_note": "Optional. Project-local serena. Replace with path to serena MCP entry. Skip if not installed."
+    }
+  },
+  "_agentcore": {
+    "renderer": "devin",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "agentcore-gateway provides 46 tools: arabold-docs (10), context7 (2), sequential-thinking, agentcore-memory (10), playwright, morph-mcp, mcp-prompt-optimizer, skills-hub, cursor-agent-mcp, agentcore-project-router (4).",
+      "filesystem, github, serena, depwire, tentra are project-scoped; install directly here.",
+      "Devin is NOT restricted to these servers. Add any MCP server the project needs.",
+      "Cloud Devin: tunnel http://127.0.0.1:8080/mcp to host machine for agentcore-gateway."
+    ]
+  },
+  "_template_note": "DERIVED from renderers/gateway-clients/devin.json. Replace PASTE_* placeholders. Never commit resolved secrets."
+}

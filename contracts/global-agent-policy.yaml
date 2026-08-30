@@ -212,6 +212,16 @@ mandatory_rules:
       listToolFiles) against agentcore-gateway, update TOOL_MANIFEST.yaml desired state, and
       regenerate .agentcore/runtime/gateway-tool-inventory.md. Never dump live tools/list into
       AGENTS.md or CLAUDE.md. Catalogued capability is not the same as exposed capability.
+
+  - id: session-tool-discovery
+    title: Session-start gateway tool discovery
+    rule: >-
+      At the start of every session or task, call listToolFiles (or tools/list via the gateway)
+      before planning or executing work. Build a mental inventory of every available tool name
+      and its server. Never assume a tool is absent — verify from the live list. Use the tool
+      only if the gateway reports it. Do not flood context with the full tool list; record it
+      as a compact named inventory and reference by tool name. Treat the gateway surface as the
+      authoritative capability boundary: tools not in the list do not exist this session.
   - id: openrouter-mcp
     title: OpenRouter MCP operating rules
     rule: >-
