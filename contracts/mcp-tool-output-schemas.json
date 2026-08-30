@@ -193,6 +193,14 @@
       "adapter": "unsupported",
       "default_profile": "external",
       "reason": "remote http upstream in developer_preview_oauth_pending; zero default exposure."
+    },
+    "context7": {
+      "adapter": "stdio_envelope",
+      "notes": [
+        "AUTH-2026-08-30-GLOBAL-LOCAL-DOCS-INGEST: gateway-only same-turn public docs bridge.",
+        "Arabold remains the durable local ingest path."
+      ],
+      "default_profile": "docs"
     }
   }
 }

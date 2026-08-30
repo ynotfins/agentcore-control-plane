@@ -31,6 +31,7 @@
       "purpose": "Full AgentCore coding and planning surface for IDE builders.",
       "allowed_server_ids": [
         "arabold-docs",
+        "context7",
         "sequential-thinking",
         "cursor-agent-mcp",
         "mcp-debugger",
@@ -38,7 +39,8 @@
         "playwright",
         "agentcore-memory",
         "skills-hub",
-        "mcp-prompt-optimizer"
+        "mcp-prompt-optimizer",
+        "morph-mcp"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -50,6 +52,7 @@
       "purpose": "Read-focused review surface; deny debugger attach and admin write tools.",
       "allowed_server_ids": [
         "arabold-docs",
+        "context7",
         "sequential-thinking",
         "agentcore-memory"
       ],
@@ -76,6 +79,7 @@
       "purpose": "Documentation lookup and durable note retrieval.",
       "allowed_server_ids": [
         "arabold-docs",
+        "context7",
         "sequential-thinking"
       ],
       "default_tools_policy": "allow_permitted",
@@ -91,7 +95,8 @@
         "agentcore-memory",
         "depwire",
         "artiforge",
-        "arabold-docs"
+        "arabold-docs",
+        "context7"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -117,13 +122,14 @@
     "arabold-docs": {
       "canonical_id": "arabold-docs",
       "display_name": "Arabold Docs MCP",
-      "purpose": "Local/current library and framework documentation replacing Context7.",
+      "purpose": "Local/current library and framework documentation on machine-global F: store; Context7 is same-turn public-miss bridge while scrape runs.",
       "owner": "agentcore",
       "pinned_version": "2.4.2",
       "connection_type": "stdio",
-      "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.EXE",
       "arguments": [
-        "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+        "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js",
+        "mcp"
       ],
       "env_var_names": [
         "OPENAI_API_KEY"
@@ -169,12 +175,14 @@
       "rollback_route": "Disable arabold_docs in Bifrost mcp.client_configs and restore direct IDE entry only under explicit operator approval.",
       "enabled": true,
       "bifrost_client_name": "arabold_docs",
-      "is_code_mode_client": true,
+      "is_code_mode_client": false,
       "status": "active",
       "notes": [
         "Vendored package path under ~/.cursor/vendor/arabold-docs-mcp",
         "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. enabled=true is authoritative for Bifrost launch; do not disable to chase startup latency \u2014 arabold-docs is mandatory for exact-version docs.",
-        "2026-08-05: wildcard replaced with live named inventory; Code Mode enabled because this global docs client is a high-token discovery surface."
+        "2026-08-30: classic mode restored; DOCS_MCP_STORE_PATH=F:\\AgentCore\\runtime\\docs-store\\arabold via STATIC_ENV_VALUES.",
+        "Mandatory ingest: miss then scrape_docs official URL then wait until searchable then CATALOG.json; Context7 only during wait for public libs.",
+        "2026-08-30: launch with pnpm Node 24 (ABI 137) + mcp subcommand; better-sqlite3 prebuild node-v137; DOCS_MCP_STORE_PATH on F:."
       ]
     },
     "serena": {
@@ -1402,6 +1410,119 @@
         "Required before activation: (1) Prove Bifrost OAuth 2.0 compatibility with Google OAuth flow; (2) consent/scopes approved; (3) credential storage protected (not plain Windows env var); (4) refresh behavior passes; (5) read/write capability profiles separated (sheets-read / sheets-write); (6) prompt-injection risk documented; (7) operator approves activation.",
         "Target capability split: sheets-read (get_values, get_spreadsheet) and sheets-write (update_values, update_formulas, insert_dimension, update_spreadsheet) as separate JIT-leased groups.",
         "Sheet content never logged by Bifrost (log_content=false)."
+      ]
+    },
+    "morph-mcp": {
+      "canonical_id": "morph-mcp",
+      "display_name": "Morph MCP",
+      "purpose": "Fast Apply edits, semantic codebase search, real GitHub code search, and Reflex classification for builder surfaces.",
+      "owner": "agentcore",
+      "pinned_version": "0.8.211",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "@morphllm/morphmcp@0.8.211"
+      ],
+      "env_var_names": [
+        "MORPH_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "edit_file",
+        "codebase_search",
+        "github_codebase_search",
+        "reflex_list",
+        "reflex_predict",
+        "reflex_summary",
+        "reflex_traces"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder"
+      ],
+      "is_code_mode_client": true,
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false and re-render Bifrost config; remove morph-mcp from capability_profiles.builder.allowed_server_ids; restart bifrost-http.",
+      "enabled": true,
+      "bifrost_client_name": "morph_mcp",
+      "status": "active",
+      "notes": [
+        "Pinned to @morphllm/morphmcp@0.8.211 (entry point dist/index.js, bin: morph-mcp).",
+        "All 7 canonical tools exposed; clients may suppress per-tool via their own profile.",
+        "MORPH_API_KEY is set in Windows User-scope env (length 51). Never commit value.",
+        "Optional env: MORPH_API_URL (default https://api.morphllm.com), MORPH_WARP_GREP_TIMEOUT (default 30000ms).",
+        "Gated to 'builder' capability profile. Reviewer/operator/chatgpt/database-validator do NOT get Morph tools.",
+        "SECURITY SHAPE (B1, 2026-08-16): stdio child has full filesystem access for the OS user. Tool-level scoping (repo_path in codebase_search, path in edit_file) is enforced by agent discretion, not Bifrost. This is the cost of 'one config, all IDEs' - Pattern A (dormant + host-owned explicit-cwd local process) is the alternative for tighter scoping.",
+        "Pattern B chosen 2026-08-16 by operator; per-request cwd is not injectable through stdio so per-project scope is best-effort via repo_path/path params.",
+        "Compaction (the 10,500 tok/s 'flow uninterrupted' feature) is not exposed via MCP - only available through the @morphllm/opencode-morph-plugin per upstream docs."
+      ]
+    },
+    "context7": {
+      "canonical_id": "context7",
+      "display_name": "Context7 Docs MCP",
+      "purpose": "Public-library docs bridge. Arabold first; Context7 only on public miss while scrape runs.",
+      "owner": "agentcore",
+      "pinned_version": "4.0.4",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "arguments": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\context7-mcp\\node_modules\\@upstash\\context7-mcp\\dist\\index.js"
+      ],
+      "env_var_names": [
+        "CONTEXT7_API_KEY"
+      ],
+      "timeout_seconds": 60,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "resolve-library-id",
+        "query-docs"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "docs-knowledge",
+        "reviewer",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; restore PROJECT_ANCHOR forbidden list if retiring.",
+      "enabled": true,
+      "bifrost_client_name": "context7",
+      "is_code_mode_client": false,
+      "status": "active",
+      "notes": [
+        "AUTH-2026-08-30-GLOBAL-LOCAL-DOCS-INGEST: arabold-first Context7 bridge.",
+        "Never paste into IDE mcp.json.",
+        "pnpm Node 24 launch."
       ]
     }
   }

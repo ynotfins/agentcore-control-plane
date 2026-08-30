@@ -31,6 +31,9 @@ OAUTH_STATE_PATH = DEFAULT_RUNTIME_ROOT / "state" / "oauth-clients.json"
 
 # Non-secret env defaults injected into stdio envs lists / values
 STATIC_ENV_VALUES: dict[str, dict[str, str]] = {
+    "arabold-docs": {
+        "DOCS_MCP_STORE_PATH": r"F:\AgentCore\runtime\docs-store\arabold",
+    },
     "sequential-thinking": {"DISABLE_THOUGHT_LOGGING": "true"},
     "cursor-agent-mcp": {"CURSOR_API_URL": "https://api.cursor.com"},
     "obsidian-vault": {
@@ -41,6 +44,7 @@ STATIC_ENV_VALUES: dict[str, dict[str, str]] = {
 
 SECRET_ENV_NAMES = {
     "OPENAI_API_KEY",
+    "CONTEXT7_API_KEY",
     "OPENROUTER_API_KEY",
     "CURSOR_API_KEY",
     "ARTIFORGE_PAT",

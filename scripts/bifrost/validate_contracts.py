@@ -134,7 +134,7 @@ def semantic_registry_checks(registry: dict[str, Any]) -> list[str]:
                     )
 
     # Authority-blocked servers must never be registered.
-    for blocked in ("context7", "hostinger"):
+    for blocked in ("hostinger",):  # context7 unblocked AUTH-2026-08-30-GLOBAL-LOCAL-DOCS-INGEST
         for sid in (registry.get("servers") or {}):
             if blocked in sid.lower():
                 errors.append(

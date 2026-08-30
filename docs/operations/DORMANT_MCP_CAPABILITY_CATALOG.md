@@ -24,7 +24,8 @@ It does **not** authorize live IDE configuration changes. IDEs keep the single e
 | Do not duplicate `openrouter`, `obsidian-vault`, or `filesystem` | Registry already owns one of each |
 | Do not extend wildcard `permitted_tools: ["*"]` to new servers | `contracts/project-tool-lifecycle.json` wildcard_policy |
 | Secrets | Windows User env names only; never commit values |
-| Context7 / Hostinger | **Blocked** pending explicit `PROJECT_ANCHOR.md` authority change |
+| Hostinger | **Blocked** pending explicit `PROJECT_ANCHOR.md` authority change |
+| Context7 | **Active** behind Bifrost only (arabold-first same-turn public bridge; never IDE mcp.json) |
 | Community servers | Catalog-only until official pin + checksum + operator activation gate |
 
 ## Lifecycle states used here
@@ -135,10 +136,10 @@ Do **not** install community packages to satisfy these rows.
 
 | Name | State | Authority | Required to unblock |
 | -- | -- | -- | -- |
-| Context7 | `blocked_authority` | `PROJECT_ANCHOR.md` §9 Forbidden Active Routes; arabold-docs is the docs route | Explicit operator authority edit to `PROJECT_ANCHOR.md` |
+| Context7 | `active_gateway` | AUTH-2026-08-30-GLOBAL-LOCAL-DOCS-INGEST; arabold-first; gateway-only | Keep out of IDE mcp.json; never treat Context7 answers as the local corpus |
 | Hostinger | `blocked_authority` | `PROJECT_ANCHOR.md` §9 | Explicit operator authority edit to `PROJECT_ANCHOR.md` |
 
-This plan/catalog **records** the block. It does **not** weaken the constitution by registering Context7 or Hostinger as dormant upstreams.
+Context7 is registered behind Bifrost as a same-turn public-docs bridge while arabold scrape_docs runs. Hostinger remains blocked. This catalog does **not** authorize pasting Context7 into per-IDE mcp.json.
 
 ---
 
@@ -150,6 +151,7 @@ Dormant/deferred servers must **not** appear in permanent `allowed_server_ids` u
 | -- | -- | -- |
 | `openrouter` | **No** | Yes — JIT-only |
 | `github-mcp` | **No** (capability_profiles list is aspirational; enabled=false) | Yes until health gate |
+| `context7` | Yes (active) | Expected — arabold-first same-turn public bridge |
 | `playwright` | Yes (active) | Expected — active builder-only browser automation |
 | `filesystem` / `obsidian-vault` | No | Expected — dormant/disabled, no permanent default exposure |
 

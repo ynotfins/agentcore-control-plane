@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-08-20-zoo-code-direct-mcp-exception"
+policy_revision: "2026-08-30-local-docs-ingest"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -182,10 +182,21 @@ mandatory_rules:
       defect are advisory until normalized against Git object identity.
 
   - id: arabold-docs
-    title: Arabold exact-version documentation
+    title: Arabold exact-version documentation with mandatory local ingest
     rule: >-
       Use arabold-docs (through the gateway) for exact-version dependency and API documentation
-      before dependency or external-API work. Record a documentation checkpoint per Milestone.
+      before dependency or external-API work. Machine-global store is
+      F:\AgentCore\runtime\docs-store (DOCS_MCP_STORE_PATH plus CATALOG.json plus official snapshots).
+      If library@version is absent from CATALOG.json / list_libraries / find_version, agents MUST
+      scrape_docs the official URL, wait until search_docs succeeds, write or update CATALOG.json and a
+      versioned snapshot under F:\AgentCore\runtime\docs-store\official\library\version\, then
+      answer from the local index. Context7 (gateway only) may answer the current turn for a public
+      library while that scrape job runs; Context7 answers are never the durable local corpus. Do not
+      treat Context7 as a completed ingest. Prefer find_version then scrape_docs over fetch_url for
+      new libraries. Do not scrape private or authenticated docs without approval, Swarm-owned product
+      trees, unrelated sites, latest when the project pin is exact, or a version already catalogued.
+      Pin refreshes only when the lockfile pin moves or a Milestone explicitly accepts a docs refresh.
+      Do not commit the F: store or scraped official corpora to Git.
 
   - id: tool-audits
     title: Milestone tool audits
@@ -194,6 +205,13 @@ mandatory_rules:
       docs/agent-policy/TOOL_LIFECYCLE_POLICY.md. Disable expired JIT, completed-Milestone, and
       unused tools. Keep a tool core_active only with evidence of frequent continued use.
 
+  - id: milestone-gateway-tool-inventory
+    title: Milestone gateway tool inventory
+    rule: >-
+      At every Milestone entry, refresh the gateway tool inventory: call tools/list (or
+      listToolFiles) against agentcore-gateway, update TOOL_MANIFEST.yaml desired state, and
+      regenerate .agentcore/runtime/gateway-tool-inventory.md. Never dump live tools/list into
+      AGENTS.md or CLAUDE.md. Catalogued capability is not the same as exposed capability.
   - id: openrouter-mcp
     title: OpenRouter MCP operating rules
     rule: >-
@@ -225,9 +243,10 @@ mandatory_rules:
       docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md. Do not paste dormant upstreams into
       per-IDE mcp.json. Except for the approved Zoo-Code direct MCP companion, do not duplicate
       openrouter, obsidian-vault, filesystem, or any other service already governed through
-      agentcore-gateway. Do not extend wildcard permitted_tools grants to new servers. Context7
-      and Hostinger remain forbidden until PROJECT_ANCHOR.md is explicitly updated. Catalog-only
-      and candidate_unverified entries must not be installed solely to fill inventory gaps.
+      agentcore-gateway. Do not extend wildcard permitted_tools grants to new servers. Context7 is
+      gateway-only (arabold-first same-turn public bridge); Hostinger remains forbidden. Never paste
+      Context7 into IDE mcp.json. Catalog-only and candidate_unverified entries must not be
+      installed solely to fill inventory gaps.
 
   - id: progressive-disclosure
     title: Progressive tool disclosure
@@ -275,9 +294,12 @@ mandatory_rules:
   - id: git-safety
     title: Git safety and validation
     rule: >-
-      Push after every completed task; narrowest relevant validation plus secret/junk scan first.
-      Never pull/fetch/merge/rebase or force-push without explicit operator instruction. Stage
-      only source-controlled files. See docs/GIT_PUSH_ONLY_POLICY.md.
+      Commit and push after every completed Milestone or substantial standalone change (new feature,
+      infrastructure change, policy/contract update, validator fix, renderer change). Do not ask
+      permission for these routine post-task commits. Narrowest relevant validation plus
+      secret/junk scan first; stage only source-controlled files; concise commit message.
+      Never pull/fetch/merge/rebase or force-push without explicit operator instruction.
+      See docs/GIT_PUSH_ONLY_POLICY.md.
 
   - id: cursor-prompt-path-format
     title: Cursor prompt path and continuation format
@@ -293,7 +315,6 @@ mandatory_rules:
       python scripts/validate_cursor_prompt_format.py when the prompt is a repository file.
 
 forbidden_routes:
-  - context7
   - Hostinger
   - raw mem0 (Mem0 is rejected for v1 and must not be installed)
   - direct composio

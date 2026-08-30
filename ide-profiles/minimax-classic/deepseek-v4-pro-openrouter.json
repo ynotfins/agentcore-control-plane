@@ -1,0 +1,33 @@
+{
+  "_comment_purpose": "Reference copy with full provenance. DO NOT paste this into Eigent — paste the .PASTE-INTO-EIGENT.json sibling instead. The Eigent Model Parameters JSON field is a strict JSON object; _comment_* keys would be passed to the OpenAI SDK and rejected, so they live only in this reference copy.",
+  "_comment_provider": "BYOK -> OpenRouter. Eigent v1.0.2 backend instantiates camel.models.openrouter_model.OpenRouterModel which extends OpenAICompatibleModel and uses the openai.OpenAI client pointed at https://openrouter.ai/api/v1. The JSON you put in the Model Parameters field becomes model_config_dict and is deep-copied verbatim into **request_config for client.chat.completions.create(). So the only keys that work are OpenAI-spec kwargs the SDK accepts. Anything else raises TypeError at the Python layer (before the request even leaves the box).",
+  "_comment_1m_context": "1,000,000 TOKEN CONTEXT WINDOW (1M). This JSON is built around the deepseek/deepseek-v4-pro 1M-context MoE (1.6T total / 49B active). The 1M context declaration is the OpenAI-spec `metadata.context_window_tokens: 1000000` field in the JSON below — the only OpenAI-spec kwarg that lets you carry an explicit context-window claim in the request without the SDK rejecting it. Most DeepSeek V4 Pro providers on OpenRouter support the full 1M input window; some cheaper hosts cap at 32K or 128K, in which case the request returns a 'context_length_exceeded' error and OpenRouter auto-fails-over to a 1M-capable host (when Middle-Out is enabled on the dashboard — see the _comment_huge_prompts block below). The 'max_tokens' field below sets the model's per-response output budget, not the input window.",
+  "_comment_max_tokens": "max_tokens is set to 131072 (128K), the documented maximum output for deepseek-v4-pro on most OpenRouter providers. A few providers may accept up to 200K, but 128K is the safe value that will not return a 400 from any host. With max_tokens at 128K and the 1M total context window, the practical split is up to 128K of generated output OR up to ~870K of input + ~128K of output, depending on the turn. If you want a smaller output budget, lower max_tokens to 8192 or 16384 — the model will still use the full 1M input window for whatever context you paste.",
+  "_comment_huge_prompts": "OPTIMIZED FOR HUGE PROMPTS. temperature 0.2 keeps the model deterministic enough for long generations. top_p 0.95 is standard nucleus sampling. stream true gives token-by-token feedback. The metadata.huge_prompt_optimized: true tag is purely for log-filtering / future analytics; it is ignored by the model. For inputs near 1M on the OpenRouter route, the 'middle-out' transform (which lives in the OpenRouter body, not the chat.completions kwargs) is REQUIRED for hosts that do not have native 1M context — enable it on https://openrouter.ai/settings/transforms so it applies to every request from your key, since the Eigent JSON cannot pass it through (would raise TypeError on top_k-style unknown-kwarg rejection). Same for data_collection:deny and exact router sorting — set them on https://openrouter.ai/settings/privacy and /settings/preferences.",
+  "_comment_excluded_keys": [
+    "response_format -> triggers camel-ai duplicate-kwarg bug (passes its own + yours)",
+    "top_k -> not in openai.Completions.create() signature, raises TypeError",
+    "repetition_penalty -> not in openai SDK signature, raises TypeError",
+    "transforms -> OpenRouter body param, not OpenAI-spec, raises TypeError. Lost when routed through Eigent. Workaround: enable Middle-Out transform on the OpenRouter dashboard (https://openrouter.ai/settings/transforms) so it applies to every request from your key without needing to be in the body.",
+    "provider -> OpenRouter body param (order/allow_fallbacks/sort/data_collection), not OpenAI-spec, raises TypeError. Lost when routed through Eigent. Workarounds: set 'data_collection: deny' on https://openrouter.ai/settings/privacy (applies account-wide). Pin specific provider hosts on https://openrouter.ai/settings/preferences. Both dashboard settings travel with the key regardless of Eigent.",
+    "parallel_tool_calls -> not in OPENROUTER_API_PARAMS set in camel/configs/openrouter_config.py. _prepare_request_config in base_model.py will still pop it if no tools are sent, but if Eigent does send tools the parallel_tool_calls will be passed through and the openai SDK accepts it. It is intentionally omitted from this JSON to keep the contract minimal.",
+    "tools / messages / model / stream-options -> camel-ai injects these itself, setting them here either does nothing or causes a duplicate-kwarg crash"
+  ],
+  "_comment_model_default": "Default chat model on this provider: deepseek/deepseek-v4-pro (1,000,000 token context, 1.6T total / 49B active MoE). Pricing on OpenRouter: $0.435/M input, $0.87/M output. Free tier: deepseek/deepseek-v4-pro:free. Other variants: deepseek/deepseek-v4-pro-flash (cheaper) and deepseek/deepseek-v4-flash-latest.",
+  "_comment_h3_note": "H3 is a minimax-native video+image model. It is NOT available through OpenRouter. The slug on the minimax direct API is MiniMax-H3 (hyphenated, no space). Endpoints: POST https://api.minimax.io/v2/video_generation (and image is part of the same flow). To call H3 you must switch to the BYOK -> Minimax provider in Eigent and call it directly via the API, not through OpenRouter.",
+  "temperature": 0.2,
+  "top_p": 0.95,
+  "max_tokens": 131072,
+  "stream": true,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "metadata": {
+    "context_window_tokens": 1000000,
+    "context_window_label": "1M",
+    "max_output_tokens": 131072,
+    "default_model": "deepseek/deepseek-v4-pro",
+    "huge_prompt_optimized": true,
+    "tier": "1M-context MoE (1.6T total / 49B active)"
+  },
+  "user": "ef5ff3a8-3f83-4f1d-88c0-10d4c609f5ca"
+}

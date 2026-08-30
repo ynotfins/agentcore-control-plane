@@ -1,0 +1,32 @@
+---
+description: Mandatory local official-docs ingest via arabold on F:; Context7 same-turn bridge only
+alwaysApply: true
+---
+
+# Docs-first: arabold local ingest (machine-global)
+
+Official library/SDK/API/CLI docs for every used `library@version` must live in the machine-global store:
+
+- Index DB: `F:\AgentCore\runtime\docs-store\arabold` (`DOCS_MCP_STORE_PATH`)
+- Catalog: `F:\AgentCore\runtime\docs-store\CATALOG.json`
+- Snapshots: `F:\AgentCore\runtime\docs-store\official\<library>\<version>\`
+
+All IDEs reach this store through Bifrost `arabold-docs` on `http://127.0.0.1:8080/mcp`. Do not commit the F: store to Git.
+
+## On miss (mandatory)
+
+If `library@version` is absent from `CATALOG.json` / `list_libraries` / `find_version` and the agent needs those docs:
+
+1. `scrape_docs` the official source for that exact version
+2. Wait until `search_docs` hits (poll `get_job_info`)
+3. Update `CATALOG.json` and the versioned snapshot
+4. Answer from the local index
+
+Context7 (gateway only) may answer **this turn** for a **public** library while the scrape job runs. Context7 answers are never the durable local corpus and never satisfy an Arabold checkpoint.
+
+## Do not
+
+- Scrape private/authenticated docs without approval, Swarm-owned trees, unrelated sites, or “latest” when the pin is exact
+- Refresh to latest unless the lockfile pin moved or a Milestone accepts a docs refresh
+- Paste Context7 into IDE `mcp.json`
+- Dump live `tools/list` into `AGENTS.md` — use `TOOL_MANIFEST.yaml` + `.agentcore/runtime/gateway-tool-inventory.md`

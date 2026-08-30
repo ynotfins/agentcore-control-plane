@@ -24,7 +24,7 @@ Milestone purposes, exit criteria, and ordering are fixed once approved. Macro/M
 4. Compare current state against: operator goal, Project Charter, definition of done, architecture, requirements, unresolved assumptions.
 5. Review (and refine) the Milestone's Macro and Micro checklists.
 6. Resolve exact dependency versions.
-7. Query/index exact documentation through Arabold Docs.
+7. Query/index exact documentation through Arabold Docs. If a used pin changed, ingest the new library@version into the F: docs store and update CATALOG.json before proceeding; if the pin is unchanged, keep the existing snapshot. Arabold documentation checkpoint = catalog row present for every used pin (not merely a Context7 answer). Also refresh .agentcore/runtime/gateway-tool-inventory.md and TOOL_MANIFEST.yaml desired state (never into AGENTS.md).
 8. Verify structural assumptions with Depwire/Tentra/Serena.
 9. Select `core_active` tools, `milestone_active` tools, and likely JIT tools; record them in `TOOL_MANIFEST.yaml`.
 10. Define the tool budget and expiry rules for the Milestone.
@@ -48,4 +48,4 @@ Milestone purposes, exit criteria, and ordering are fixed once approved. Macro/M
 12. Commit and push per `docs/GIT_PUSH_ONLY_POLICY.md`.
 13. Generate the next Milestone's entry packet (context summary, refined checklist skeleton, tool plan).
 
-**A Milestone is not complete until this gate passes.** Missing Context Fabric or Arabold checkpoints, missing tool audit, or incomplete Micro-step evidence block closure.
+**A Milestone is not complete until this gate passes.** Missing Context Fabric or Arabold checkpoints (catalog rows for every used pin), missing tool audit / gateway-tool-inventory refresh, or incomplete Micro-step evidence block closure.

@@ -1,0 +1,36 @@
+{
+  "_about": "minimax-m3 (OpenRouter) parameters for the Eigent IDE. Paste this whole JSON into the 'Model Parameters (JSON)' field on the OpenRouter provider config screen in Eigent (Agents > Models > OpenRouter).",
+  "_model": "minimax/minimax-m3",
+  "_api_host": "https://openrouter.ai/api/v1",
+  "_context_window_tokens": 1000000,
+  "_max_output_tokens_supported": 512000,
+  "_input_modalities": ["text", "image", "video"],
+  "_output_modalities": ["text"],
+
+  "temperature": 0.2,
+  "top_p": 0.95,
+  "top_k": 40,
+  "max_tokens": 65536,
+
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "repetition_penalty": 1.0,
+
+  "stop": null,
+  "seed": null,
+  "stream": true,
+
+  "tool_choice": "auto",
+  "parallel_tool_calls": true,
+
+  "transforms": ["middle-out"],
+
+  "provider": {
+    "order": [],
+    "allow_fallbacks": true,
+    "sort": "exacto",
+    "data_collection": "deny"
+  },
+
+  "user": "ef5ff3a8-3f83-4f1d-88c0-10d4c609f5ca"
+}

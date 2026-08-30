@@ -1,0 +1,17 @@
+{
+  "temperature": 0.2,
+  "top_p": 0.95,
+  "max_tokens": 131072,
+  "stream": true,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "metadata": {
+    "context_window_tokens": 1000000,
+    "context_window_label": "1M",
+    "max_output_tokens": 131072,
+    "default_model": "deepseek/deepseek-v4-pro",
+    "huge_prompt_optimized": true,
+    "tier": "1M-context MoE (1.6T total / 49B active)"
+  },
+  "user": "ef5ff3a8-3f83-4f1d-88c0-10d4c609f5ca"
+}

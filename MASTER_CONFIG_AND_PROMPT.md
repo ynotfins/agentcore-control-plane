@@ -117,7 +117,7 @@ Only the authority-maintainer path may add a project/worktree entry.
 - Live IDE configs are app-owned; changes flow through the approved self-enrollment prompt/ops with backup first.
 - New installs and app repairs go through AgentCore install intake. Do not run arbitrary installer commands from a project terminal when the app may create a database, vector store, service, MCP server, or persistent runtime state.
 - Third-party app data defaults to `I:\LocalApps\<AppName>`; third-party app backups default to `E:\LocalApps\Backups\<AppName>`. A source-local compatibility junction is allowed only after a rollback backup and exact-path validation.
-- Forbidden active routes: Context7, raw Mem0, direct Composio, Hostinger, direct AgentCore/IDE SQL to neutral Recall at `:65432`, whole-drive filesystem MCP roots, Postgres credentials in IDE configs, `global-memory-gateway` as a default route. The service-owned `:65432` backend is permitted only behind the bounded `agentcore-memory` projection adapter.
+- Forbidden active routes: raw Mem0, direct Composio, Hostinger, direct AgentCore/IDE SQL to neutral Recall at `:65432`, whole-drive filesystem MCP roots, Postgres credentials in IDE configs, `global-memory-gateway` as a default route. The service-owned `:65432` backend is permitted only behind the bounded `agentcore-memory` projection adapter.
 - OpenClaw/ClawX are Swarm-managed and outside AgentCore Bifrost IDE enrollment.
 - Do **not** place Swarm MCP servers or Swarm component configuration in this file, in IDE profiles, or in AgentCore gateway client renderers.
 

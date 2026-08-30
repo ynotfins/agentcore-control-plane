@@ -171,9 +171,12 @@
             "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
             "--allow-env",
             "OPENAI_API_KEY",
+            "--static-env",
+            "DOCS_MCP_STORE_PATH=F:\\AgentCore\\runtime\\docs-store\\arabold",
             "--",
-            "C:\\Program Files\\nodejs\\node.EXE",
-            "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js"
+            "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.EXE",
+            "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js",
+            "mcp"
           ],
           "envs": []
         },
@@ -190,8 +193,34 @@
           "search_docs"
         ],
         "auth_type": "none",
-        "is_ping_available": true,
-        "is_code_mode_client": true
+        "is_ping_available": true
+      },
+      {
+        "name": "context7",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "context7",
+            "--contract",
+            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
+            "--allow-env",
+            "CONTEXT7_API_KEY",
+            "--",
+            "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.EXE",
+            "C:\\Users\\ynotf\\.cursor\\vendor\\context7-mcp\\node_modules\\@upstash\\context7-mcp\\dist\\index.js"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "resolve-library-id",
+          "query-docs"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
       },
       {
         "name": "cursor_agent_mcp",
@@ -268,6 +297,40 @@
         ],
         "auth_type": "none",
         "is_ping_available": false
+      },
+      {
+        "name": "morph_mcp",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "morph-mcp",
+            "--contract",
+            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
+            "--allow-env",
+            "MORPH_API_KEY",
+            "--",
+            "C:\\Program Files\\nodejs\\npx.cmd",
+            "-y",
+            "@morphllm/morphmcp@0.8.211"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "edit_file",
+          "codebase_search",
+          "github_codebase_search",
+          "reflex_list",
+          "reflex_predict",
+          "reflex_summary",
+          "reflex_traces"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true,
+        "is_code_mode_client": true
       },
       {
         "name": "openrouter",
@@ -450,6 +513,13 @@
             ]
           },
           {
+            "mcp_client_name": "context7",
+            "tools_to_execute": [
+              "resolve-library-id",
+              "query-docs"
+            ]
+          },
+          {
             "mcp_client_name": "cursor_agent_mcp",
             "tools_to_execute": [
               "addFollowup",
@@ -473,6 +543,18 @@
               "advanced_optimize",
               "get_domain_template",
               "list_domain_templates"
+            ]
+          },
+          {
+            "mcp_client_name": "morph_mcp",
+            "tools_to_execute": [
+              "edit_file",
+              "codebase_search",
+              "github_codebase_search",
+              "reflex_list",
+              "reflex_predict",
+              "reflex_summary",
+              "reflex_traces"
             ]
           },
           {
@@ -567,6 +649,13 @@
             ]
           },
           {
+            "mcp_client_name": "context7",
+            "tools_to_execute": [
+              "resolve-library-id",
+              "query-docs"
+            ]
+          },
+          {
             "mcp_client_name": "sequential_thinking",
             "tools_to_execute": [
               "sequentialthinking"
@@ -634,6 +723,13 @@
             ]
           },
           {
+            "mcp_client_name": "context7",
+            "tools_to_execute": [
+              "resolve-library-id",
+              "query-docs"
+            ]
+          },
+          {
             "mcp_client_name": "sequential_thinking",
             "tools_to_execute": [
               "sequentialthinking"
@@ -684,6 +780,13 @@
               "remove_docs",
               "scrape_docs",
               "search_docs"
+            ]
+          },
+          {
+            "mcp_client_name": "context7",
+            "tools_to_execute": [
+              "resolve-library-id",
+              "query-docs"
             ]
           }
         ]
@@ -751,6 +854,9 @@
     ],
     "secret_policy": "env.NAME references only; never embed secret literals",
     "static_env_defaults": {
+      "arabold-docs": {
+        "DOCS_MCP_STORE_PATH": "F:\\AgentCore\\runtime\\docs-store\\arabold"
+      },
       "sequential-thinking": {
         "DISABLE_THOUGHT_LOGGING": "true"
       },
@@ -780,8 +886,10 @@
         "agentcore-memory",
         "agentcore-project-router",
         "arabold-docs",
+        "context7",
         "cursor-agent-mcp",
         "mcp-prompt-optimizer",
+        "morph-mcp",
         "playwright",
         "sequential-thinking",
         "skills-hub"

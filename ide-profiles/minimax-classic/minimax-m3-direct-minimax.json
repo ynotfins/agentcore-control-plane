@@ -1,0 +1,32 @@
+{
+  "_comment_purpose": "Reference copy with full provenance. DO NOT paste this into Eigent — paste the .PASTE-INTO-EIGENT.json sibling instead. The Eigent Model Parameters JSON field is a strict JSON object; _comment_* keys would be passed to the OpenAI SDK and rejected, so they live only in this reference copy.",
+  "_comment_provider": "BYOK -> Minimax. Eigent v1.0.2 backend instantiates camel.models.minimax_model.MinimaxModel which extends OpenAICompatibleModel and uses the openai.OpenAI client pointed at MINIMAX_API_BASE_URL. The JSON you put in the Model Parameters field becomes model_config_dict and is deep-copied verbatim into **request_config for client.chat.completions.create(). So the only keys that work are OpenAI-spec kwargs the SDK accepts. Anything else raises TypeError at the Python layer (before the request even leaves the box).",
+  "_comment_1m_context": "1,000,000 TOKEN CONTEXT WINDOW (1M). This JSON is built around the MiniMax-M3 1M-context SKU. The 1M context declaration is the OpenAI-spec `metadata.context_window_tokens: 1000000` field in the JSON below — the only OpenAI-spec kwarg that lets you carry an explicit context-window claim in the request without the SDK rejecting it. The minimax server enforces 1M tokens of input (prompt + system + tool history) and up to 524288 (512K) of generated output per turn. There is no 'middle-out' or prompt-compression transform needed on the direct API — the model has the 1M context window natively. This is one of only a handful of production chat models with full 1M context, and it is multimodal (text + image + video in, text out). DO NOT switch the Model Type field to MiniMax-M3-512k — that is the 512K hard-cap variant, the 1M declaration in the metadata will then be a lie.",
+  "_comment_max_tokens": "max_tokens is set to 524288 (512K), the documented maximum output for MiniMax-M3. This is the highest value the model will accept; going higher returns a 400 from the minimax server. With max_tokens at 512K and the 1M total context window, the practical split is up to 512K of generated output OR up to ~500K of input + ~500K of output, depending on the turn. If you want a smaller output budget (e.g. short Q&A turns), lower max_tokens to 8192 or 16384 — the model will still use the full 1M input window for whatever context you paste.",
+  "_comment_huge_prompts": "OPTIMIZED FOR HUGE PROMPTS. temperature 0.2 keeps the model deterministic enough for 100K+ token generations. top_p 0.95 is the standard nucleus sampling for code. stream true gives token-by-token feedback so the IDE does not appear to hang on multi-minute generations. The metadata.huge_prompt_optimized: true tag is purely for log-filtering / future analytics; it is ignored by the model. For inputs near the 1M ceiling: split the request across multiple turns (the IDE will accumulate them in the conversation), do not paste the full 1M in a single user message — the camel-ai agent wraps each user message in a system prompt + tool schema that consumes a non-trivial share of the budget.",
+  "_comment_excluded_keys": [
+    "response_format -> triggers camel-ai duplicate-kwarg bug (passes its own + yours)",
+    "top_k -> not in openai.Completions.create() signature, raises TypeError",
+    "repetition_penalty -> not in openai SDK signature, raises TypeError",
+    "transforms -> OpenRouter body param, not OpenAI-spec, raises TypeError",
+    "provider -> OpenRouter body param, not OpenAI-spec, raises TypeError",
+    "parallel_tool_calls -> not in MINIMAX_API_PARAMS set in camel/configs/minimax_config.py",
+    "presence_penalty / frequency_penalty -> camel-ai MinimaxConfig docstring explicitly states they are ignored by the minimax API server",
+    "tools / messages / model / stream-options -> camel-ai injects these itself, setting them here either does nothing or causes a duplicate-kwarg crash"
+  ],
+  "_comment_safety": "presence_penalty/frequency_penalty/logit_bias are silently ignored by the minimax server but they are valid OpenAI-spec kwargs, so they would be ACCEPTED by the openai SDK and forwarded. They are excluded here only because they have no effect on the minimax backend; keeping them would mislead the reader into thinking they do something. If you ever switch to a different OpenAI-compatible provider that honours them, you can re-add them.",
+  "_comment_model_default": "Default chat model on this provider: MiniMax-M3 (1,000,000 token context, multimodal input, up to 524288 output). Other endpoints on the same key: MiniMax-H3 (video+image, /v2/video_generation), speech-2.8-hd (TTS+voice clone, /v1/t2a_v2), Music-3.0 (music, /v1/music_generation). See README for endpoint URLs and pricing.",
+  "temperature": 0.2,
+  "top_p": 0.95,
+  "max_tokens": 524288,
+  "stream": true,
+  "metadata": {
+    "context_window_tokens": 1000000,
+    "context_window_label": "1M",
+    "max_output_tokens": 524288,
+    "default_model": "MiniMax-M3",
+    "huge_prompt_optimized": true,
+    "tier": "1M-context SKU (NOT -512k)"
+  },
+  "user": "ef5ff3a8-3f83-4f1d-88c0-10d4c609f5ca"
+}

@@ -1,0 +1,15 @@
+{
+  "temperature": 0.2,
+  "top_p": 0.95,
+  "max_tokens": 524288,
+  "stream": true,
+  "metadata": {
+    "context_window_tokens": 1000000,
+    "context_window_label": "1M",
+    "max_output_tokens": 524288,
+    "default_model": "MiniMax-M3",
+    "huge_prompt_optimized": true,
+    "tier": "1M-context SKU (NOT -512k)"
+  },
+  "user": "ef5ff3a8-3f83-4f1d-88c0-10d4c609f5ca"
+}

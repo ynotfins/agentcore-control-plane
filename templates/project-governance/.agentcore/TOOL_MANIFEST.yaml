@@ -1,3 +1,8 @@
+# Gateway inventory (do not put tools/list into AGENTS.md):
+#   regenerate .agentcore/runtime/gateway-tool-inventory.md at each Milestone entry
+#   via scripts/generate_gateway_tool_inventory.py (or equivalent tools/list capture).
+# Docs ingest: every used library@version must have a row in
+#   F:\AgentCore\runtime\docs-store\CATALOG.json before Arabold checkpoint passes.
 # Tool Manifest — policy and desired state
 # Policy: docs/agent-policy/TOOL_LIFECYCLE_POLICY.md (AgentCore control plane)
 # Schema: contracts/schemas/project-tool-lifecycle.schema.json (tool_manifest definition)

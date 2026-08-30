@@ -10,71 +10,225 @@
     "runtime_state_authority_when_implemented": "PostgreSQL (profiles, leases, expiry, project/session binding, concurrency, audit)",
     "note": "No temporary YAML/JSON lease database is created before M6. TOOL_MANIFEST.yaml records policy and desired state only."
   },
-  "tool_states": ["catalogued", "core_active", "milestone_active", "jit_leased", "dormant", "operator_only", "forbidden"],
+  "tool_states": [
+    "catalogued",
+    "core_active",
+    "milestone_active",
+    "jit_leased",
+    "dormant",
+    "operator_only",
+    "forbidden"
+  ],
   "manifest": {
     "path": ".agentcore/TOOL_MANIFEST.yaml",
     "required_fields": [
-      "project_id", "repo_id", "worktree_id", "active_milestone_id", "assigned_identities",
-      "base_profile", "core_active", "milestone_active", "jit_leased", "dormant",
-      "operator_only", "forbidden", "activation_reasons", "expiry_conditions",
-      "last_audit", "next_required_audit", "policy_revision"
+      "project_id",
+      "repo_id",
+      "worktree_id",
+      "active_milestone_id",
+      "assigned_identities",
+      "base_profile",
+      "core_active",
+      "milestone_active",
+      "jit_leased",
+      "dormant",
+      "operator_only",
+      "forbidden",
+      "activation_reasons",
+      "expiry_conditions",
+      "last_audit",
+      "next_required_audit",
+      "policy_revision"
     ]
   },
   "usage_ledger": {
     "path": ".agentcore/TOOL_USAGE_LEDGER.jsonl",
     "status": "deferred_to_memory_platform_M6",
-    "fields": ["timestamp", "project", "milestone", "macro_step", "micro_step", "agent_client", "tool", "activation", "invocation_summary", "result_class", "deactivation", "evidence_id"],
-    "never_log": ["secret-bearing arguments", "sensitive content"]
+    "fields": [
+      "timestamp",
+      "project",
+      "milestone",
+      "macro_step",
+      "micro_step",
+      "agent_client",
+      "tool",
+      "activation",
+      "invocation_summary",
+      "result_class",
+      "deactivation",
+      "evidence_id"
+    ],
+    "never_log": [
+      "secret-bearing arguments",
+      "sensitive content"
+    ]
   },
-  "lease_required_fields": ["project", "milestone", "step_id", "tool", "justification", "risk_class", "permitted_operations", "expiry", "requesting_agent", "approval_class", "audit_id"],
-  "lease_expiry_earliest_of": ["micro_step_completion", "macro_step_completion", "timeout", "session_close", "project_change", "milestone_close", "explicit_revocation"],
+  "lease_required_fields": [
+    "project",
+    "milestone",
+    "step_id",
+    "tool",
+    "justification",
+    "risk_class",
+    "permitted_operations",
+    "expiry",
+    "requesting_agent",
+    "approval_class",
+    "audit_id"
+  ],
+  "lease_expiry_earliest_of": [
+    "micro_step_completion",
+    "macro_step_completion",
+    "timeout",
+    "session_close",
+    "project_change",
+    "milestone_close",
+    "explicit_revocation"
+  ],
   "audit_rules": {
-    "keep_active": ["used repeatedly", "required by next milestone", "foundational for context/memory/validation/safe editing", "context cost justified"],
-    "make_dormant": ["not used in current milestone", "not required by next milestone", "useful only in uncertain future stage"],
-    "expire": ["step complete", "jit lease origin", "upstream unhealthy and nonessential"],
-    "operator_only_if_capable_of": ["gateway configuration mutation", "secret access", "destructive database operations", "live IDE configuration writes", "writes outside assigned worktree", "private code/data upload", "broad browser or arbitrary-code execution"],
-    "forbid_if": ["crosses Swarm boundaries", "bypasses AgentCore memory/database policy", "exposes whole drives", "creates duplicate canonical system", "violates project security classification"]
+    "keep_active": [
+      "used repeatedly",
+      "required by next milestone",
+      "foundational for context/memory/validation/safe editing",
+      "context cost justified"
+    ],
+    "make_dormant": [
+      "not used in current milestone",
+      "not required by next milestone",
+      "useful only in uncertain future stage"
+    ],
+    "expire": [
+      "step complete",
+      "jit lease origin",
+      "upstream unhealthy and nonessential"
+    ],
+    "operator_only_if_capable_of": [
+      "gateway configuration mutation",
+      "secret access",
+      "destructive database operations",
+      "live IDE configuration writes",
+      "writes outside assigned worktree",
+      "private code/data upload",
+      "broad browser or arbitrary-code execution"
+    ],
+    "forbid_if": [
+      "crosses Swarm boundaries",
+      "bypasses AgentCore memory/database policy",
+      "exposes whole drives",
+      "creates duplicate canonical system",
+      "violates project security classification"
+    ]
   },
   "profiles": {
     "bootstrap": {
       "purpose": "Broad safe discovery and project setup",
-      "servers": ["agentcore-project-router", "agentcore-memory", "arabold-docs", "context-fabric", "serena", "depwire", "tentra", "sequential-thinking", "filesystem"],
-      "constraints": ["depwire read/impact/verify only", "filesystem project-scoped only", "no admin/destructive tools"]
+      "servers": [
+        "agentcore-project-router",
+        "agentcore-memory",
+        "arabold-docs",
+        "context-fabric",
+        "serena",
+        "depwire",
+        "tentra",
+        "sequential-thinking",
+        "filesystem"
+      ],
+      "constraints": [
+        "depwire read/impact/verify only",
+        "filesystem project-scoped only",
+        "no admin/destructive tools"
+      ]
     },
     "builder-core": {
       "purpose": "Minimal continuous build set",
-      "servers": ["agentcore-memory", "agentcore-project-router", "arabold-docs", "context-fabric", "serena", "depwire", "sequential-thinking", "filesystem"],
-      "constraints": ["not every mutation tool automatically", "filesystem project-scoped"]
+      "servers": [
+        "agentcore-memory",
+        "agentcore-project-router",
+        "arabold-docs",
+        "context-fabric",
+        "serena",
+        "depwire",
+        "sequential-thinking",
+        "filesystem"
+      ],
+      "constraints": [
+        "not every mutation tool automatically",
+        "filesystem project-scoped"
+      ]
     },
     "milestone-builder": {
       "purpose": "builder-core plus Milestone-specific tools",
-      "servers": ["<builder-core>", "<milestone_active from TOOL_MANIFEST.yaml>"],
-      "constraints": ["milestone additions expire at milestone close"]
+      "servers": [
+        "<builder-core>",
+        "<milestone_active from TOOL_MANIFEST.yaml>"
+      ],
+      "constraints": [
+        "milestone additions expire at milestone close"
+      ]
     },
     "reviewer": {
       "purpose": "Read-focused validation",
-      "servers": ["arabold-docs", "serena", "sequential-thinking", "context-fabric", "depwire", "obsidian-vault", "filesystem", "agentcore-memory", "agentcore-project-router"],
-      "constraints": ["read-focused; deny debugger attach and admin writes"]
+      "servers": [
+        "arabold-docs",
+        "serena",
+        "sequential-thinking",
+        "context-fabric",
+        "depwire",
+        "obsidian-vault",
+        "filesystem",
+        "agentcore-memory",
+        "agentcore-project-router"
+      ],
+      "constraints": [
+        "read-focused; deny debugger attach and admin writes"
+      ]
     },
     "database-validator": {
       "purpose": "Migration and disposable-database validation only",
-      "servers": ["agentcore-memory", "arabold-docs", "agentcore-project-router"],
-      "constraints": ["deny_by_default"]
+      "servers": [
+        "agentcore-memory",
+        "arabold-docs",
+        "agentcore-project-router"
+      ],
+      "constraints": [
+        "deny_by_default"
+      ]
     },
     "docs-knowledge": {
       "purpose": "Documentation and project knowledge",
-      "servers": ["arabold-docs", "obsidian-vault", "sequential-thinking", "agentcore-project-router"],
+      "servers": [
+        "arabold-docs",
+        "obsidian-vault",
+        "sequential-thinking",
+        "agentcore-project-router"
+      ],
       "constraints": []
     },
     "operator": {
       "purpose": "Administrative capability, explicit use only",
-      "servers": ["agentcore-project-router", "agentcore-memory", "depwire", "artiforge", "obsidian-vault", "arabold-docs"],
-      "constraints": ["explicit operator activation"]
+      "servers": [
+        "agentcore-project-router",
+        "agentcore-memory",
+        "depwire",
+        "artiforge",
+        "obsidian-vault",
+        "arabold-docs"
+      ],
+      "constraints": [
+        "explicit operator activation"
+      ]
     },
     "emergency-recovery": {
       "purpose": "Minimal recovery and diagnostic operations",
-      "servers": ["agentcore-project-router", "agentcore-memory", "filesystem"],
-      "constraints": ["explicit operator activation only", "diagnostics and restore paths only"]
+      "servers": [
+        "agentcore-project-router",
+        "agentcore-memory",
+        "filesystem"
+      ],
+      "constraints": [
+        "explicit operator activation only",
+        "diagnostics and restore paths only"
+      ]
     }
   },
   "wildcard_policy": {
@@ -94,11 +248,30 @@
   "dormant_catalog": {
     "path": "docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md",
     "default_exposure": "zero_without_lease",
-    "do_not_duplicate": ["openrouter", "obsidian-vault", "filesystem"],
-    "registered_dormant_or_deferred": ["openrouter", "github-mcp", "mcp-debugger", "artiforge", "depwire-cloud"],
-    "blocked_authority": ["context7", "Hostinger"],
-    "catalog_only": ["CrewAI", "AutoGen", "MCP Registry reference servers"],
-    "candidate_unverified": ["YouTube MCP", "Dropbox MCP"]
+    "do_not_duplicate": [
+      "openrouter",
+      "obsidian-vault",
+      "filesystem"
+    ],
+    "registered_dormant_or_deferred": [
+      "openrouter",
+      "github-mcp",
+      "mcp-debugger",
+      "artiforge",
+      "depwire-cloud"
+    ],
+    "blocked_authority": [
+      "Hostinger"
+    ],
+    "catalog_only": [
+      "CrewAI",
+      "AutoGen",
+      "MCP Registry reference servers"
+    ],
+    "candidate_unverified": [
+      "YouTube MCP",
+      "Dropbox MCP"
+    ]
   },
   "openrouter_tool_classification": {
     "authority": "contracts/bifrost-upstream-mcp-registry.json servers.openrouter",
@@ -110,33 +283,58 @@
       "openrouter-discovery-read": {
         "access": "jit_short",
         "tools": [
-          "list-models", "get-model", "list-model-endpoints", "list-providers",
-          "list-daily-model-rankings", "list-app-rankings", "list-benchmarks",
-          "list-task-classifications", "search-docs", "view-skills", "ping",
-          "get-preset", "list-presets"
+          "list-models",
+          "get-model",
+          "list-model-endpoints",
+          "list-providers",
+          "list-daily-model-rankings",
+          "list-app-rankings",
+          "list-benchmarks",
+          "list-task-classifications",
+          "search-docs",
+          "view-skills",
+          "ping",
+          "get-preset",
+          "list-presets"
         ],
         "notes": "get-preset and list-presets are read-only discovery; short project/task-scoped JIT only."
       },
       "openrouter-account": {
         "access": "operator_scope",
-        "tools": ["get-credits", "get-generation", "send-feedback"]
+        "tools": [
+          "get-credits",
+          "get-generation",
+          "send-feedback"
+        ]
       },
       "openrouter-media-generation": {
         "access": "billable_approval",
-        "tools": ["generate-speech"],
+        "tools": [
+          "generate-speech"
+        ],
         "requires_operator_approval": true,
         "content_trust_class": "raw_untrusted"
       },
       "openrouter-transcription": {
         "access": "billable_approval",
-        "tools": ["transcribe-audio"],
+        "tools": [
+          "transcribe-audio"
+        ],
         "requires_operator_approval": true,
         "content_trust_class": "raw_untrusted",
-        "upload_forbid": ["repository_files", "secrets", "private_records", "unrelated_context"]
+        "upload_forbid": [
+          "repository_files",
+          "secrets",
+          "private_records",
+          "unrelated_context"
+        ]
       },
       "openrouter-billable": {
         "access": "denied_by_default",
-        "tools": ["send-message", "generate-image"],
+        "tools": [
+          "send-message",
+          "generate-image"
+        ],
         "notes": "Remain in denied_tools; never granted from discovery leases."
       }
     }
