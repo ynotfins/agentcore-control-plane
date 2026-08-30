@@ -1,0 +1,84 @@
+---
+description: Macro-level architecture critic. Invoke at Milestone exit or on-demand ("architecture critic", "strategic review", "grand design check"). Reviews overall project strategy — not component code. Finds wrong abstractions, compounding tech debt, and local best-practices that conflict with the grand system design.
+alwaysApply: false
+---
+
+# Architecture Critic — Macro-Level Strategic Review
+
+**Trigger:** Milestone exit, or: "architecture critic", "strategic review", "grand design check"
+**Scope:** System-level ONLY. Do NOT report component or line-level issues — bugbot handles those.
+**Goal:** 3–5 findings where the overall project strategy is at risk, even if individual components look correct.
+
+## What to look for (system level only)
+
+1. **Wrong abstraction boundary** — a component is well-written but the boundary itself is wrong for the project's scale or domain
+2. **Local best-practice, global anti-pattern** — a page/module follows conventions perfectly but contradicts the overall system design
+3. **Compounding tech debt** — a decision from a prior Milestone is now multiplying cost across the codebase
+4. **API / database / frontend misalignment** — the data model, API surface, and UI model are diverging and will require painful reconciliation
+5. **Dependency or scaling risk** — a library, schema, or infrastructure choice that works now but will block the project in 3–6 Milestones
+
+## Execution pattern (run as best-of-n-runner or fresh code-reviewer context)
+
+### Step 1 — Plan
+Use `sequential_thinking-sequentialthinking`:
+- What were the major decisions in this Milestone?
+- What are the 2–3 highest-risk system-level assumptions?
+- What reference architectures are most relevant?
+
+### Step 2 — Map current shape
+`morph_mcp-codebase_search` or native code tools:
+- Top-level module/service boundaries
+- Data flow: API → DB → frontend
+- Recent changes as a unit: `morph_mcp-reflex_summary`
+
+### Step 3 — Pull historical decisions
+`agentcore_memory-retrieve_context` — surface prior architecture decisions and known constraints that may now be violated.
+
+### Step 4 — Compare against proven patterns
+`morph_mcp-github_codebase_search` — find 2–3 projects of similar scale/domain. Compare: data model, service boundaries, auth pattern, event/async architecture, API surface design.
+
+### Step 5 — Report
+
+Output format — 3–5 findings MAX:
+
+```
+FINDING #N — [one-line title, system level]
+Risk: HIGH / MEDIUM
+Pattern violated: [proven pattern this conflicts with]
+Current state: [what the codebase does]
+Strategic risk: [what breaks in 2–4 Milestones if unaddressed]
+Recommended action: [one concrete architectural change]
+```
+
+## Hard limits
+
+- Do NOT report line-level bugs → that is bugbot
+- Do NOT report style, naming, or missing tests on individual units
+- Do NOT report things that are already tracking items in agentcore-memory
+- Max 5 findings. Quality over quantity. One insight that changes the Milestone direction is worth 20 line-level notes.
+
+## Model recommendation
+
+Use a reasoning model (`claude-opus-5-thinking-high` or equivalent) for strategic depth.
+
+## Devin prompt (copy-paste to Devin)
+
+```
+Architecture critic review. Do NOT review individual functions or components for bugs — that is a separate job. 
+
+Review the OVERALL SYSTEM DESIGN of this project:
+- Wrong abstraction boundaries (component looks fine but is the wrong boundary for this scale)
+- Local best-practice that conflicts with the grand project design
+- Compounding decisions from prior Milestones that now multiply cost
+- Data model / API / frontend misalignment
+- Dependency or infrastructure choices that will block scale in 3-6 Milestones
+
+Steps:
+1. Use sequential thinking to plan the review scope (major decisions this Milestone, highest-risk assumptions)
+2. Use codebase search to map the current module/service structure and data flow
+3. Use agentcore-memory retrieve_context to surface prior architecture decisions
+4. Use github_codebase_search to find 2-3 reference projects of similar scale/domain for comparison
+5. Report 3-5 strategic findings ONLY. Each finding: title, risk level, pattern violated, current state, risk in 2-4 Milestones, one concrete recommended action.
+
+Output only system-level findings. Nothing below the module/service boundary level.
+```
