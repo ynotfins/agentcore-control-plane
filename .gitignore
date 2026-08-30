@@ -29,6 +29,12 @@ reports/_raw/
 
 # Vendored third-party skill payloads (not control-plane policy)
 .minimax/
+# Context snapshots from IDE sessions — may contain secrets (raw session state)
+ide-profiles/*/recovered-from-*/context-snapshots/
+ide-profiles/*/recovered-from-*/memory/
+ide-profiles/*/recovered-from-*/sessions-INDEX.csv
+ide-profiles/*/recovered-from-*/USER_MESSAGES_*.md
+
 __pycache__/
 *.pyc
 *.pyo
