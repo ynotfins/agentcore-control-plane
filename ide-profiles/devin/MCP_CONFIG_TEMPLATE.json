@@ -1,41 +1,31 @@
 {
   "mcpServers": {
-    "agentcore-gateway": {
-      "url": "http://127.0.0.1:8080/mcp",
-      "timeout": 300,
-      "headers": {
-        "Authorization": "Bearer PASTE_BIFROST_VK_HERE"
-      },
-      "_note": "Replace PASTE_BIFROST_VK_HERE with Windows User env BIFROST_MCP_VIRTUAL_KEY. Never commit resolved value."
-    },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "PASTE_PROJECT_ROOT_HERE"],
-      "_note": "Project-local. Replace PASTE_PROJECT_ROOT_HERE with project root. Not via Bifrost — install directly."
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "PASTE_PROJECT_ROOT_HERE"]
     },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+    "depwire": {
+      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
+      "args": ["mcp"],
+      "_setup": "After connecting, call the connect_repo tool with the project root path before any graph queries."
+    },
+    "tentra": {
+      "command": "C:\\Program Files\\nodejs\\npx.cmd",
+      "args": ["-y", "tentra-mcp@1.3.3", "--local"],
       "env": {
-        "GITHUB_TOKEN": "PASTE_GITHUB_TOKEN_HERE"
-      },
-      "_note": "Project-local GitHub. Replace PASTE_GITHUB_TOKEN_HERE with a PAT. Not via Bifrost."
+        "TENTRA_DATA_DIR": "F:\\AgentCore\\runtime\\tentra\\data"
+      }
     },
     "serena": {
-      "command": "node",
-      "args": ["PASTE_SERENA_ENTRY_POINT_HERE"],
-      "_note": "Optional. Project-local serena. Replace with path to serena MCP entry. Skip if not installed."
+      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
+      "args": [
+        "start-mcp-server",
+        "--transport", "stdio",
+        "--context", "ide",
+        "--project", "PASTE_PROJECT_ROOT_HERE"
+      ],
+      "_setup": "Run serena init in the project root first to create .serena/project.yml. Server will be unavailable until initialized."
     }
   },
-  "_agentcore": {
-    "renderer": "devin",
-    "source_contract": "contracts/agentcore-gateway-client.json",
-    "notes": [
-      "agentcore-gateway provides 46 tools: arabold-docs (10), context7 (2), sequential-thinking, agentcore-memory (10), playwright, morph-mcp, mcp-prompt-optimizer, skills-hub, cursor-agent-mcp, agentcore-project-router (4).",
-      "filesystem, github, serena, depwire, tentra are project-scoped; install directly here.",
-      "Devin is NOT restricted to these servers. Add any MCP server the project needs.",
-      "Cloud Devin: tunnel http://127.0.0.1:8080/mcp to host machine for agentcore-gateway."
-    ]
-  },
-  "_template_note": "DERIVED from renderers/gateway-clients/devin.json. Replace PASTE_* placeholders. Never commit resolved secrets."
+  "_note": "agentcore-gateway, devin/github-mcp-server, devin/mcp-playwright, and devin/vercel are in the GLOBAL Devin config at AppData/Roaming/devin/mcp_config.json — do not duplicate here. This file adds only project-scoped servers."
 }
