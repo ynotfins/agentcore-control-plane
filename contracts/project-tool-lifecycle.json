@@ -257,7 +257,6 @@
       "openrouter",
       "github-mcp",
       "mcp-debugger",
-      "artiforge",
       "depwire-cloud"
     ],
     "blocked_authority": [

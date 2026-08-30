@@ -14,7 +14,6 @@
 | cursor-agent-mcp | cursor_agent_mcp | stdio | global | write_capable | active | builder |
 | context-fabric | context_fabric | router | project | bounded_write | **local project only; shared route dormant** | none |
 | mcp-debugger | mcp_debugger | stdio | project | admin | **disabled** | builder (when enabled; attach denied for reviewer) |
-| artiforge | artiforge | http | global | bounded_write | **disabled** | builder, operator (when enabled) |
 | depwire | depwire | stdio | project | write_capable | **dormant — use explicit-cwd CLI** | none |
 | depwire-cloud | depwire_cloud | http | global | read_only | **disabled/deferred** | builder, operator (when enabled) |
 | tentra | tentra | stdio | project | bounded_write | **dormant — explicit project launch required** | none |

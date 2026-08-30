@@ -36,7 +36,6 @@ Runtime and machine-state authority is classified by `PROJECT_ANCHOR.md`, `DOC_A
 - **Docs:** `arabold-docs` first (machine-global store `F:\AgentCore\runtime\docs-store`; miss must `scrape_docs` + wait + catalog). Context7 is gateway-only same-turn public bridge while scrape runs. Keep Bifrost docs indexed (`bifrost` / `2.0.0`); live binary may report `2.0.0-prerelease1` until an approved upgrade.
 - **Memory (non-Swarm):** `agentcore-memory` stable identity via gateway (ten-tool surface live; do not invent alternate memory MCP entries). Server-side projection to the **neutral shared SwarmRecall** plane is allowed; do not install raw SwarmRecall/SwarmVault MCP or Recall keys in IDE configs. Context Engine orchestrates above the facade (`D:\github\agentcore-context-engine`).
 - **Project continuity:** Context Fabric is repo-local through its Git hook/CLI only; its shared Bifrost upstream is dormant because Context Fabric tools do not carry caller/project identity. Do not initialize under Swarm or runtime memory roots.
-- **Architecture scans:** `artiforge` for high-leverage scans only.
 - **Connected app workflows:** keep Composio quarantined until explicitly re-enabled.
 
 ## Swarm / neutral-memory boundary
@@ -52,7 +51,7 @@ SwarmVault and SwarmClaw remain a **separate Swarm ecosystem** for execution. Or
 
 ## Stop Policy
 
-For `agentcore-gateway` / Bifrost, `arabold-docs`, `artiforge`, and `sequential-thinking`: do not silently downgrade. When structural verification is required, use project-local/native code tooling plus the local Depwire CLI with an explicit cwd; stop if the required evidence cannot be produced.
+For `agentcore-gateway` / Bifrost, `arabold-docs`, and `sequential-thinking`: do not silently downgrade. When structural verification is required, use project-local/native code tooling plus the local Depwire CLI with an explicit cwd; stop if the required evidence cannot be produced.
 
 ## Project Execution (all managed projects)
 

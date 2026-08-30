@@ -35,7 +35,6 @@
         "sequential-thinking",
         "cursor-agent-mcp",
         "mcp-debugger",
-        "artiforge",
         "playwright",
         "agentcore-memory",
         "skills-hub",
@@ -94,7 +93,6 @@
         "agentcore-project-router",
         "agentcore-memory",
         "depwire",
-        "artiforge",
         "arabold-docs",
         "context7"
       ],
@@ -488,58 +486,6 @@
       "status": "disabled",
       "notes": [
         "Pinned mcp-debugger@0.0.78. Deny attach tools in reviewer profile."
-      ],
-      "deferred": true
-    },
-    "artiforge": {
-      "canonical_id": "artiforge",
-      "display_name": "Artiforge",
-      "purpose": "High-leverage architecture scans, project docs, and refactor strategy.",
-      "owner": "agentcore",
-      "pinned_version": "live-http",
-      "connection_type": "http",
-      "executable_or_url": "env.ARTIFORGE_MCP_URL",
-      "arguments": [],
-      "env_var_names": [
-        "ARTIFORGE_PAT",
-        "ARTIFORGE_MCP_URL"
-      ],
-      "timeout_seconds": 180,
-      "health_check_type": "http_get",
-      "project_scope": "global",
-      "write_classification": "bounded_write",
-      "permitted_tools": [
-        "*"
-      ],
-      "denied_tools": [],
-      "capability_profiles": [
-        "builder",
-        "operator"
-      ],
-      "logging_policy": {
-        "log_invocations": true,
-        "log_content": false,
-        "redact_secrets": true
-      },
-      "retry_policy": {
-        "max_attempts": 2,
-        "backoff_seconds": 2,
-        "retry_on": [
-          "timeout",
-          "http_5xx"
-        ]
-      },
-      "rollback_route": "Disable artiforge HTTP client; do not embed ARTIFORGE_PAT in Git.",
-      "enabled": false,
-      "bifrost_client_name": "artiforge",
-      "auth_type": "none",
-      "status": "disabled",
-      "notes": [
-        "Prefer headers auth if Artiforge exposes a Bearer/header mode.",
-        "Current live Artiforge MCP requires query-param PAT composition.",
-        "Set Windows User env ARTIFORGE_MCP_URL to the composed URL using ARTIFORGE_PAT locally (never commit).",
-        "Bifrost connection_string uses env.ARTIFORGE_MCP_URL only \u2014 no secret literals in config.",
-        "If upstream returns 401 User is inactive, treat as deferred until ARTIFORGE_PAT is refreshed."
       ],
       "deferred": true
     },

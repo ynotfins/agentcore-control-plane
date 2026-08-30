@@ -65,7 +65,6 @@ It does **not** authorize live IDE configuration changes. IDEs keep the single e
 | `obsidian-vault` | `disabled` (`enabled=false`) | OpenClaw launcher script (registry) | none | Explicit operator enable only | `enabled=false`; no per-IDE duplicate |
 | `github-mcp` | `deferred` (`enabled=false`) | `ghcr.io/github/github-mcp-server` via Docker | PAT | `GITHUB_PERSONAL_ACCESS_TOKEN`, `GITHUB_PAT_TOKEN` | Health gate + named tool inventory + remove wildcard before enable | Remain `enabled=false`; no Docker start from this catalog alone |
 | `mcp-debugger` | `disabled` | registry pin | none | — | Explicit operator enable | `enabled=false` |
-| `artiforge` | `disabled` | registry pin | none | — | Explicit operator enable | `enabled=false` |
 | `depwire-cloud` | `disabled`/`deferred` | `https://api.depwire.dev/mcp` | Bearer | `DEPWIRE_API_KEY` | Cloud connection health gate | `enabled=false` |
 
 **OpenRouter current evidence (2026-07-20):** registered once; OAuth authorized + client `connected` (`audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md`); registry `status` remains `dormant`; lifecycle `authenticated_dormant`; zero OpenRouter tools on VKs without an M6 lease; JIT bridge proven for discovery (13 tools) + revoke-to-zero. Classification: `contracts/openrouter-tool-manifest.json`. Do not claim IDE model availability from MCP registration; do not add direct OpenRouter MCP IDE entries.

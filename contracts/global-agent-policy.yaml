@@ -72,8 +72,7 @@ mandatory_rules:
       Tentra use explicit-cwd local diagnostics; Context Fabric uses its repository-local hook/CLI.
       Their implicit-project shared Bifrost clients remain dormant until trustworthy per-session
       project identity is carried on every call. Use sequential-thinking for planning and critique,
-      arabold-docs for exact-version external documentation, and Artiforge for high-leverage
-      architecture scans. Do not use machine-global project-router activation as an IDE continuity
+      arabold-docs for exact-version external documentation. Do not use machine-global project-router activation as an IDE continuity
       or concurrency boundary. Swarm runtime remains outside AgentCore and must be refused with
       swarm_project_refused.
 
@@ -359,10 +358,6 @@ task_class_gates:
   - tool_name: "context-fabric"
     gate_type: "mandatory_at_project_gates"
     rule: "Mandatory through the repository-local hook/CLI at project bootstrap and Milestone entry/exit when available; use capture, drift, and health checks. Its shared implicit-project Bifrost client remains dormant. It is non-canonical and is not required for routine Micro steps when no gate is active."
-  - tool_name: "artiforge"
-    gate_type: "conditional"
-    rule: "Mandatory for high-leverage architecture scans, system maps, or cross-service boundary reviews; do not invoke it for routine single-file edits. Keep it project-scoped and report the limitation if unavailable."
-
 references:
   project_enrollment: contracts/agentcore-project-enrollment.json
   project_execution_policy: contracts/project-execution-policy.json
