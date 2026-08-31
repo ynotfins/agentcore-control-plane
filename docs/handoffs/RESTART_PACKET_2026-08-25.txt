@@ -1,0 +1,165 @@
+RESTART PACKET — 2026-08-25
+
+Canonical reconstruction handoff:
+D:\github\agentcore-control-plane\docs\handoffs\PC_INFRASTRUCTURE_RECONSTRUCTION_HANDOFF_2026-08-25.md
+Backup:
+D:\launchers\handoffs\PC_INFRASTRUCTURE_RECONSTRUCTION_HANDOFF_2026-08-25.md
+This packet:
+C:\Users\ynotf\OneDrive\Desktop\Temp\restart.txt
+D:\launchers\handoffs\RESTART_PACKET_2026-08-25.txt
+Transcript:
+C:\Users\ynotf\.cursor\projects\d-github-agentcore-control-plane\agent-transcripts\07424e2f-b936-49cc-b5cc-48eab6e0e295\07424e2f-b936-49cc-b5cc-48eab6e0e295.jsonl
+
+0. Q&A
+12 steps = original program sections 0-12. Add 13 Zoo-Code/OI/Devin and 14 secrets. Treat the program as 0-15 after the verified extras below.
+Docker-all-databases = FALSE. HIGH: Devin sidecars, LangGraph Studio, new greenfield caches/test clones. MEDIUM: Meili/Recall API only with joint AgentCore+Swarm ADR. LOW/native: PG18 agent_core + cognee_core + LangGraph checkpoints on F:\PostgreSQL18; Bifrost Windows task on F:; SwarmClaw SQLite on H:; Context Fabric cf.db. No database moves until Phase B ACCEPT. C5 also needs ADR + backup + PITR/restore proof.
+CODEX_HOME is Open Interpreter 0.0.40 process-scoped config home routing in scripts/open-interpreter-desktop/Start-OpenInterpreter-CLI.ps1. It sets CODEX_HOME to C:\Users\ynotf\.openinterpreter-cli for that process only. It is not a Cursor rule. Do not set CODEX_HOME as a Windows User environment variable. Do not point it at C:\Users\ynotf\.codex. Cursor files named codex are not the OI/Codex cross-talk cause. OI binaries live under C:\Users\ynotf\.codex\packages\standalone\ because install used that home. Inventory in Phase A. Do not clean on reboot day.
+Context Fabric is a post-commit capture hook, not a pre-commit blocker. Keep it.
+
+1. AFTER REBOOT
+1. Confirm Bifrost http://127.0.0.1:8080/health
+2. Confirm PG18 127.0.0.1:55433. Do not print passwords.
+3. Open D:\github\agentcore-control-plane
+4. Phase A read-only audit. Produce audits/PC_INFRASTRUCTURE_AUDIT_2026-08-25.json and a human summary.
+5. No Phase B/C, no DB moves, no C:\Users\ynotf\.codex edits, no H: writes without operator ACCEPT.
+Unfinished setup after writes work:
+A. Update Open Interpreter CLI config.
+B. Audit/clean Devin MCP config. Remove literal keys and direct MCP sprawl.
+C. Verify Zoo-Code UI models. Do not add Morph to Cursor.
+D. Optional: add type module to .context-fabric/runtime/package.json
+
+2. VERIFIED 2026-08-25
+Git branch: setup/zoo-code-qdrant-nfa-20260820
+HEAD: 91b918e Add Open Interpreter Desktop/CLI launcher bundle for split-home setup.
+session-scope.json was seeded by the operator. Intent, acceptance, and declared_files are populated.
+GLOBAL_STATE.md exists at C:\Users\ynotf\.agentcore\GLOBAL_STATE.md
+Same-turn Cursor writes can still fail with current operator prompt is not durably captured. That is C0 prompt-capture, not empty Step 0.
+Open Interpreter Desktop C:\Users\ynotf\.openinterpreter\config.toml
+DONE: OpenRouter + deepseek/deepseek-v4-pro
+DONE: profiles.image and profiles.video = minimax/minimax-m3
+DONE: MCP agentcore-gateway + morph-mcp
+DONE: operator danger-full-access, windows sandbox elevated
+MISSING: named fast profile for deepseek/deepseek-v4-flash-vision-exp
+Open Interpreter CLI C:\Users\ynotf\.openinterpreter-cli\config.toml
+NOT DONE. Still openai/gpt-4.1-mini, context 16000, compact 12000, windows.sandbox standard, no agentcore-gateway MCP, no image/video/fast profiles.
+Repo template scripts/open-interpreter-desktop/cli-config.toml is equally stale.
+CLI target: primary openrouter/deepseek/deepseek-v4-pro; fast openrouter/deepseek/deepseek-v4-flash-vision-exp; image/video openrouter/minimax/minimax-m3; large context; keep coding workspace-write; add agentcore-gateway via env bearer; Morph allowed on OI, never on Cursor.
+Codex: do not edit C:\Users\ynotf\.codex during Phase A.
+Official handoff previously cited hash prefix 4F336B55.
+Live SHA256 prefix of C:\Users\ynotf\.codex\config.toml at check: B754A8AC7B519051
+Record the full current hash in the Phase A audit and use that as the do-not-mutate baseline.
+Devin C:\Users\ynotf\AppData\Roaming\devin\mcp_config.json has extra direct MCP entries and a literal API key. Clean after restart using env vars only. Never paste the key.
+Secrets live only in Windows User-scope environment variables. No .env files.
+
+3. DRIVES AND RUNTIMES
+C: OS / user profiles / IDE global configs
+D: Git repos / worktrees / launchers
+E: Archive / cold E:\LocalApps\Backups
+F: AgentCore hot. Bifrost, PG18, LangGraph production checkpoints
+G: Backup
+H: Swarm hot only. AgentCore stays out. Swarm stays off F:
+I: Neutral LocalApps hot data. Devin candidate
+J: Portable media
+Runtime 1 AgentCore + LangGraph. Owner D:\github\agentcore-control-plane. Hot F: + PG18 127.0.0.1:55433. Memory agentcore-gateway -> agentcore-memory only.
+Runtime 2 Swarm Claw / Vault / schedules. Owner D:\github\swarm-ecosystem-control. Hot H: only. AgentCore agents read-only.
+Runtime 3 Neutral SwarmRecall. Ports 65432, API 3300, aux 7700. Reach only through agentcore-memory. No IDE SQL. No raw Recall MCP.
+Runtime 4 Devin. Planned I:\LocalApps\Devin and/or D:\devin-workspace. Enroll only after isolated cwd and secrets model. Do not share PG18. Do not use the Zoo-Code extension token as a Devin login.
+Enrolled paths:
+agentcore-control-plane D:\github\agentcore-control-plane
+agentcore-context-engine D:\github\agentcore-context-engine
+codebase-analyzer D:\codebase-analyzer
+openhands D:\OpenHands
+nfa-alerts-database D:\nfa-alerts-database
+nfa-notification-collector D:\github\nfa-notification-collector
+odysseus D:\odysseus
+Cloud Mia is not enrolled. Separate Cursor window. Do not open AgentCore memory against D:\CloudMia.
+
+4. IDE TARGETS
+Cursor + Zoo-Code
+Account ynotfins@gmail.com
+MCP agentcore-gateway only http://127.0.0.1:8080/mcp
+Morph stays out of Cursor
+primary openrouter/deepseek/deepseek-v4-pro
+fast openrouter/deepseek/deepseek-v4-flash-vision-exp
+image/video openrouter/minimax/minimax-m3
+Zoo-Code token in Windows EV is an extension/device token, not a universal login for Interpreter or Devin. There is no portable roo-code skill that replaces the extension.
+Open Interpreter Desktop is configured. CLI launch:
+D:\github\agentcore-control-plane\scripts\open-interpreter-desktop\Start-OpenInterpreter-CLI.ps1
+Apply live configs from external PowerShell only:
+D:\github\agentcore-control-plane\scripts\open-interpreter-desktop\RUN-APPLY.cmd
+Codex is authority-maintainer. Morph on Codex is allowed.
+Other IDEs to inventory: Claude, MiniMax, Mavis, Antigravity, Cherry Studio, Zed, Reasonix, OpenHands
+
+5. PHASE A READ-ONLY
+Drives C-J tagged AgentCore | Swarm | Neutral | Unknown | Violation
+Flag AgentCore-on-H, Swarm-on-F, app DBs on C: or D:
+Ports 55433 PG18, 55432 PG16 legacy, 65432 Recall, 8080 Bifrost, 2024 Studio if running
+Automations: Task Scheduler, Run, Startup, services, Git hooks. Context Fabric post-commit is expected.
+Forbidden: direct OpenRouter MCP, raw SwarmRecall/Vault, PG creds, global-memory-gateway, Morph in Cursor
+Deliverable: audits/PC_INFRASTRUCTURE_AUDIT_2026-08-25.json plus human summary. No secrets.
+
+6. PHASE C AFTER ACCEPT
+C0 Cursor harness + dead automations. Must be first. Acceptance: fresh chat writes a declared repo file in two tool calls.
+C1 IDE alignment. Gateway-only. OpenRouter / DeepSeek V4 Pro defaults.
+C2 Devin isolated infra + gateway enroll.
+C3 Docker pilot of one low-risk service.
+C4 Swarm H: verification.
+C5 Optional DB container moves. ADR + backup + PITR + ACCEPT.
+
+7. PARALLEL PROJECTS
+Cloud Mia D:\CloudMia https://github.com/ynotfins/CloudMia
+main 2fa6f80 feat: lock Cloud Mia media and identity assets
+Engine submodule D:\CloudMia\vendor\lobe-chat https://github.com/ynotfins/cloud-mia-lobe-engine canary 7cfe63f689
+Docs commit a93e7aa
+Do not use D:\lobehub\lobe-chat except as upstream reading.
+Do not use D:\postgreSQL18-control-plane to build Cloud Mia.
+3D source D:\CloudMia\brand\identity\
+3D scratch D:\PixarStudio\Assets\Characters\
+Backup D:\CloudMia\brand\identity\pixarstudio-backup\
+Seeded agents Mia 68, Lola 68, Kristina 48
+Empty phone agents is likely UI/cache/account, not empty DB.
+3D order: tencent/hunyuan3d-pro/image-to-3d PBR off first; bytedance/seed3d-v2.0/image-to-3d high for final comparison. Use Seed3D for canonical doubles if it looks better. Do not use Hunyuan Rapid for canonical doubles.
+After reboot start Docker Desktop for miaknuckles.com
+D:\postgreSQL18-control-plane has local uncommitted changes and no remote shown.
+codebase-analyzer is D:\codebase-analyzer not D:\github\codebase-analyzer
+D:\github2 does not exist
+NFA present at D:\github\nfa-alerts-enterprise, D:\nfa-alerts-database, D:\nfa-alert, D:\NFA-Database-Control, D:\NFA-OpenHands-Control
+No folder named Devin-NFA-Platform on D:\
+Devin app config exists at C:\Users\ynotf\AppData\Roaming\devin
+
+8. C0 HARNESS
+Auto-seed session-scope.json from the operator prompt.
+Bootstrap exception: allow writing session-scope.json when Step 0 is empty.
+Inject AGENTCORE_EXECUTION_STATE on sessionStart and beforeSubmitPrompt.
+Keep GLOBAL_STATE.md present.
+Deny messages must name the rule, the missing field, and one fix command.
+Capture the current operator prompt before tools, bound to this session and conversation.
+Do not disable Stage B unless the operator explicitly asks.
+
+9. DO NOT
+Do not pull, fetch, merge, or rebase unless the operator asks.
+Do not edit C:\Users\ynotf\.codex
+Do not write to H: or Swarm roots.
+Do not connect IDEs or AgentCore SQL to 65432.
+Do not add Morph MCP to Cursor.
+Do not Docker-move PG18, Bifrost, Swarm SQLite, or cf.db.
+Do not print or copy secrets.
+Do not create .env files.
+Do not treat D:\CloudMia or D:\postgreSQL18-control-plane as this repo.
+Do not use D:\github2
+Do not hand-edit .agentcore/STATE.md, DECISIONS.md, or CONTEXT_INDEX.md
+Do not disable Stage B to just get work done.
+
+10. NEXT AGENT PROMPT
+Continue PC infrastructure reconstruction.
+Read C:\Users\ynotf\OneDrive\Desktop\Temp\restart.txt
+or D:\launchers\handoffs\RESTART_PACKET_2026-08-25.txt
+then D:\github\agentcore-control-plane\docs\handoffs\PC_INFRASTRUCTURE_RECONSTRUCTION_HANDOFF_2026-08-25.md
+then PROJECT_ANCHOR.md then DOC_AUTHORITY.md
+Phase A only. Produce audits/PC_INFRASTRUCTURE_AUDIT_2026-08-25.json
+Protect AgentCore F: PG18 Bifrost, Swarm H:, LangGraph checkpoints on PG18.
+Design Devin as a third isolated runtime. Do not build it on day one.
+OpenRouter + deepseek/deepseek-v4-pro primary, deepseek/deepseek-v4-flash-vision-exp fast, minimax/minimax-m3 image/video.
+Cursor MCP = agentcore-gateway only. Morph stays out of Cursor.
+Secrets = Windows User environment variables only.
+Do not execute Phase B/C, Docker DB moves, .codex edits, or H: writes without explicit operator ACCEPT.
