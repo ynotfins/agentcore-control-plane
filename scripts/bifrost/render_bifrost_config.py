@@ -556,6 +556,31 @@ def build_bifrost_config(
         "governance": {
             "virtual_keys": build_virtual_keys(registry),
         },
+        # Semantic caching (direct-only mode, no embedding cost)
+        # Redis on localhost:6379; dimension=1 = hash-based exact-match only
+        # default_cache_key means ALL gateway requests are cache-eligible with no header changes
+        # TTL=30m: cached responses expire after 30 min; re-runs get fresh answers
+        # AUTH-2026-08-30-SEMANTIC-CACHE: approved operator-level config change
+        "vector_store": {
+            "enabled": True,
+            "type": "redis",
+            "config": {
+                "addr": "localhost:6379",
+            },
+        },
+        "plugins": [
+            {
+                "enabled": True,
+                "name": "semantic_cache",
+                "config": {
+                    "dimension": 1,
+                    "ttl": "30m",
+                    "cache_by_model": True,
+                    "cache_by_provider": True,
+                    "default_cache_key": "agentcore-global",
+                },
+            }
+        ],
     }
 
 

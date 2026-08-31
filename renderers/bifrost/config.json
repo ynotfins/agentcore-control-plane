@@ -839,6 +839,26 @@
       }
     ]
   },
+  "vector_store": {
+    "enabled": true,
+    "type": "redis",
+    "config": {
+      "addr": "localhost:6379"
+    }
+  },
+  "plugins": [
+    {
+      "enabled": true,
+      "name": "semantic_cache",
+      "config": {
+        "dimension": 1,
+        "ttl": "30m",
+        "cache_by_model": true,
+        "cache_by_provider": true,
+        "default_cache_key": "agentcore-global"
+      }
+    }
+  ],
   "agentcore_meta": {
     "gateway_id": "agentcore-gateway",
     "authority": "D:\\github\\agentcore-control-plane",
