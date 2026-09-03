@@ -63,7 +63,7 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
         allow_start_if_on_batteries = $true
         dont_stop_if_going_on_batteries = $true
         execution_time_limit_seconds = 0
-        restart_count = 1
+        restart_count = 999
         restart_interval_seconds = 60
         start_when_available = $true
         multiple_instances = 'IgnoreNew'

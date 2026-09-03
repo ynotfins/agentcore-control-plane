@@ -853,12 +853,12 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
         "allow_start_if_on_batteries": True,
         "dont_stop_if_going_on_batteries": True,
         "execution_time_limit_seconds": 0,
-        "restart_count": 1,
+        "restart_count": 999,
         "restart_interval_seconds": 60,
         "start_when_available": True,
         "multiple_instances": "IgnoreNew",
     }
-    assert specs["gateway"]["settings"]["restart_count"] == 1
+    assert specs["gateway"]["settings"]["restart_count"] == 999
     assert specs["gateway"]["settings"]["multiple_instances"] == "IgnoreNew"
     assert specs["watchdog"]["trigger"]["start_delay_seconds"] == 60
     assert specs["watchdog"]["trigger"]["repetition_interval_seconds"] == 60
@@ -905,7 +905,7 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         "AllowStartIfOnBatteries": True,
         "DontStopIfGoingOnBatteries": True,
         "ExecutionTimeLimitSeconds": 0,
-        "RestartCount": 1,
+        "RestartCount": 999,
         "RestartIntervalSeconds": 60,
         "StartWhenAvailable": True,
         "MultipleInstances": "IgnoreNew",
@@ -966,6 +966,8 @@ def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     assert "Start-ScheduledTask" in watchdog
     assert "WATCHDOG_RECYCLE" in watchdog
     assert "New-BifrostTaskSpecs" in installer
+    assert "restart_count = 999" in installer
+    assert "Wait-ForRedisVectorStore" in launcher
     assert "while ($true)" not in launcher
     assert "bifrost-maintenance.marker" in starter
     assert "bifrost-maintenance.marker" in stopper
