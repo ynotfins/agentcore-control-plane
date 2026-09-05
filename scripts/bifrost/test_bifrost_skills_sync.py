@@ -53,6 +53,8 @@ def _run_sync(tmp_path: Path, skill_root: Path, list_payload: dict, *args: str) 
             "-TestMode",
             "-SkillRoot",
             str(skill_root),
+            "-AdditionalSkillRoot",
+            "",
             "-TestListResponsePath",
             str(list_path),
             "-TestWriteLogPath",
@@ -164,6 +166,55 @@ def test_supporting_files_exclude_secret_backup_large_binary_and_skill_md(tmp_pa
             "content": "keep me",
             "mime_type": "text/plain",
         },
+    ]
+
+
+def test_secondary_skill_root_can_publish_user_global_nia_skill(tmp_path: Path) -> None:
+    repo_skill_root = tmp_path / "repo-skills"
+    user_skill_root = tmp_path / "user-skills"
+    _write_skill(repo_skill_root, "agentcore-project-lifecycle")
+    _write_skill(user_skill_root, "nia", {"README.md": "Nia skill docs"})
+
+    list_path = _write_json(tmp_path / "skills-list.json", {"skills": [], "total": 0})
+    write_log_path = tmp_path / "write-log.json"
+    result = subprocess.run(
+        [
+            "pwsh",
+            "-NoProfile",
+            "-File",
+            str(SCRIPT),
+            "-TestMode",
+            "-SkillRoot",
+            str(repo_skill_root),
+            "-AdditionalSkillRoot",
+            str(user_skill_root),
+            "-TestListResponsePath",
+            str(list_path),
+            "-TestWriteLogPath",
+            str(write_log_path),
+            "-Apply",
+            "-IncludeSkill",
+            "nia",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=60,
+    )
+
+    summary = json.loads(result.stdout)
+    calls = json.loads(write_log_path.read_text(encoding="utf-8-sig"))
+    assert result.returncode == 0, result.stderr
+    assert summary["created"] == ["nia"]
+    assert summary["scanned"][0]["source_root"] == str(user_skill_root)
+    assert calls[0]["name"] == "nia"
+    assert calls[0]["payload"]["files"] == [
+        {
+            "path": "README.md",
+            "source_type": "text",
+            "content": "Nia skill docs",
+            "mime_type": "text/plain",
+        }
     ]
 
 

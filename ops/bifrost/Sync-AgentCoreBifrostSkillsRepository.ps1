@@ -4,15 +4,17 @@
   Dry-run-first sync for approved AgentCore skills into the Bifrost Skills Repository.
 
 .DESCRIPTION
-  Reads the approved local skill folders, builds Bifrost Skills API payloads, scans
-  outgoing strings for obvious secret material, and compares by skill name against
-  GET /api/skills. By default this is read-only and reports would_create or
-  would_update. POST/PUT calls are made only with -Apply.
+  Reads the approved local skill folders from one or more roots, builds Bifrost
+  Skills API payloads, scans outgoing strings for obvious secret material, and
+  compares by skill name against GET /api/skills. By default this is read-only
+  and reports would_create or would_update. POST/PUT calls are made only with
+  -Apply.
 #>
 [CmdletBinding()]
 param(
   [string]$BaseUrl = 'http://127.0.0.1:8080',
   [string]$SkillRoot = 'D:\github\agentcore-control-plane\.agents\skills',
+  [string[]]$AdditionalSkillRoot = @('C:\Users\ynotf\.agents\skills'),
   [string[]]$IncludeSkill = @('agentcore-project-lifecycle', 'langfuse'),
   [switch]$Apply,
   [switch]$UpdateExisting,
@@ -25,7 +27,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$ApprovedSkills = @('agentcore-project-lifecycle', 'langfuse')
+$ApprovedSkills = @('agentcore-project-lifecycle', 'langfuse', 'nia')
 $MaxSupportingFileBytes = 65536
 $script:TestWriteCalls = @()
 
@@ -68,6 +70,34 @@ function Get-SkillRootPath {
     $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
   }
   return (Resolve-Path -LiteralPath $repoRoot).Path
+}
+
+function Resolve-SkillRoots([string[]]$Roots) {
+  $resolved = @()
+  foreach ($root in $Roots) {
+    if ([string]::IsNullOrWhiteSpace($root)) { continue }
+    if (-not (Test-Path -LiteralPath $root -PathType Container)) { continue }
+    $path = (Resolve-Path -LiteralPath $root -ErrorAction Stop).Path
+    if ($path -notin $resolved) { $resolved += $path }
+  }
+  if (@($resolved).Count -eq 0) {
+    throw 'No existing skill roots were found'
+  }
+  return @($resolved)
+}
+
+function Find-SkillInRoots([string]$Name, [string[]]$Roots) {
+  foreach ($root in $Roots) {
+    $skillPath = Join-Path $root $Name
+    $skillMdPath = Join-Path $skillPath 'SKILL.md'
+    if (Test-Path -LiteralPath $skillMdPath -PathType Leaf) {
+      return [pscustomobject]@{
+        Path = $skillPath
+        Root = $root
+      }
+    }
+  }
+  return $null
 }
 
 function ConvertTo-SlashPath([string]$Path) {
@@ -241,7 +271,7 @@ function New-SkillPayload([string]$SkillPath, [string]$Name, [string]$RepoRoot, 
       synced_by = 'AgentCore'
     }
     extra_frontmatter = Get-ExtraFrontmatter $frontmatter
-    files = Get-SupportingFiles $SkillPath
+    files = [array](Get-SupportingFiles $SkillPath)
   }
 
   $license = Get-PropertyValue $frontmatter @('license')
@@ -299,7 +329,7 @@ $summary = [ordered]@{
 
 try {
   $repoRoot = Get-SkillRootPath
-  $resolvedSkillRoot = (Resolve-Path -LiteralPath $SkillRoot -ErrorAction Stop).Path
+  $resolvedSkillRoots = Resolve-SkillRoots (@($SkillRoot) + @($AdditionalSkillRoot))
   $headers = @{}
   if ($AdminApiKey) { $headers['Authorization'] = "Bearer $AdminApiKey" }
 
@@ -318,18 +348,18 @@ try {
       continue
     }
 
-    $skillPath = Join-Path $resolvedSkillRoot $name
-    $skillMdPath = Join-Path $skillPath 'SKILL.md'
-    if (-not (Test-Path -LiteralPath $skillMdPath -PathType Leaf)) {
+    $skillMatch = Find-SkillInRoots $name $resolvedSkillRoots
+    if ($null -eq $skillMatch) {
       $summary.skipped_missing += $name
       continue
     }
 
-    $payload = New-SkillPayload $skillPath $name $repoRoot $resolvedSkillRoot
+    $payload = New-SkillPayload $skillMatch.Path $name $repoRoot $skillMatch.Root
     Assert-NoSecretMaterial $name $payload
     $summary.scanned += [pscustomobject]@{
       name = $name
       file_count = @($payload.files).Count
+      source_root = $skillMatch.Root
     }
 
     $existing = $existingByName[$name]

@@ -274,6 +274,64 @@ def main() -> int:
     check("registry:wildcards documented", not wildcards or "tool_lifecycle_note" in registry,
           f"undocumented wildcards: {wildcards}")
 
+    nia = registry["servers"].get("nia") or {}
+    nia_allowed = {
+        "search",
+        "nia_read",
+        "nia_grep",
+        "nia_explore",
+        "nia_package_search_hybrid",
+        "nia_vault_list",
+        "nia_vault_search",
+    }
+    nia_denied_required = {
+        "index",
+        "context",
+        "nia_research",
+        "nia_advisor",
+        "tracer",
+        "manage_resource",
+        "auto_subscribe_dependencies",
+        "nia_write",
+        "nia_rm",
+        "nia_mv",
+        "nia_mkdir",
+        "nia_vault_create",
+        "nia_vault_run",
+    }
+    profile_servers = registry.get("capability_profiles") or {}
+    nia_profiles = sorted(
+        profile_id
+        for profile_id, profile in profile_servers.items()
+        if "nia" in (profile.get("allowed_server_ids") or [])
+    )
+    check(
+        "registry:nia endpoint and env auth",
+        nia.get("connection_type") == "http"
+        and nia.get("executable_or_url") == "https://apigcp.trynia.ai/mcp"
+        and nia.get("auth_type") == "headers"
+        and nia.get("headers", {}).get("Authorization") == "Bearer env.NIA_API_KEY"
+        and nia.get("env_var_names") == ["NIA_API_KEY"],
+        f"nia={nia}",
+    )
+    check(
+        "registry:nia retrieval-only tool surface",
+        set(nia.get("permitted_tools") or []) == nia_allowed
+        and nia_denied_required.issubset(set(nia.get("denied_tools") or []))
+        and nia.get("write_classification") == "read_only",
+        f"permitted={nia.get('permitted_tools')} denied={nia.get('denied_tools')}",
+    )
+    check(
+        "registry:nia all-IDE profiles only",
+        nia_profiles == ["builder", "docs-knowledge", "operator"]
+        and sorted(nia.get("capability_profiles") or []) == nia_profiles,
+        f"nia_profiles={nia_profiles}",
+    )
+    check(
+        "registry:zoo-code remains non-upstream",
+        not any(server_id in registry["servers"] for server_id in ("zoo-code", "zoo_code", "zoocode")),
+    )
+
     # Shared STDIO clients receive no trustworthy caller/project identity. Project-bound
     # upstreams therefore stay dormant until an explicit per-session router exists.
     implicit_project_servers = {"serena", "depwire", "tentra", "filesystem", "context-fabric"}

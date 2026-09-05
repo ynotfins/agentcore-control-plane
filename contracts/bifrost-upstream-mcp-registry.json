@@ -39,7 +39,8 @@
         "agentcore-memory",
         "skills-hub",
         "mcp-prompt-optimizer",
-        "morph-mcp"
+        "morph-mcp",
+        "nia"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -79,7 +80,8 @@
       "allowed_server_ids": [
         "arabold-docs",
         "context7",
-        "sequential-thinking"
+        "sequential-thinking",
+        "nia"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -94,7 +96,8 @@
         "agentcore-memory",
         "depwire",
         "arabold-docs",
-        "context7"
+        "context7",
+        "nia"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -1469,6 +1472,80 @@
         "AUTH-2026-08-30-GLOBAL-LOCAL-DOCS-INGEST: arabold-first Context7 bridge.",
         "Never paste into IDE mcp.json.",
         "pnpm Node 24 launch."
+      ]
+    },
+    "nia": {
+      "canonical_id": "nia",
+      "display_name": "Nia MCP",
+      "purpose": "Agentic search and retrieval for indexed repositories, documentation, research papers, packages, local folders, and cross-agent context through the Nia cloud MCP endpoint.",
+      "owner": "agentcore",
+      "pinned_version": "remote-live; cli @nozomioai/nia@0.5.2",
+      "connection_type": "http",
+      "executable_or_url": "https://apigcp.trynia.ai/mcp",
+      "arguments": [],
+      "env_var_names": [
+        "NIA_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "search",
+        "nia_read",
+        "nia_grep",
+        "nia_explore",
+        "nia_package_search_hybrid",
+        "nia_vault_list",
+        "nia_vault_search"
+      ],
+      "denied_tools": [
+        "index",
+        "context",
+        "nia_research",
+        "nia_advisor",
+        "tracer",
+        "manage_resource",
+        "auto_subscribe_dependencies",
+        "nia_write",
+        "nia_rm",
+        "nia_mv",
+        "nia_mkdir",
+        "nia_vault_create",
+        "nia_vault_run"
+      ],
+      "capability_profiles": [
+        "builder",
+        "docs-knowledge",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "http_5xx",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove nia from capability_profiles allowed_server_ids; re-render and restart Bifrost. Nia account data and Windows User NIA_API_KEY remain unchanged.",
+      "enabled": true,
+      "bifrost_client_name": "nia",
+      "auth_type": "headers",
+      "headers": {
+        "Authorization": "Bearer env.NIA_API_KEY"
+      },
+      "status": "active",
+      "notes": [
+        "Live MCP preflight on 2026-09-05 returned 20 tools over https://apigcp.trynia.ai/mcp with NIA_API_KEY from Windows User env.",
+        "Default exposure is retrieval-only: search, read, grep, explore, package search, and vault list/search.",
+        "Indexing, context sharing, research/advisor/tracer, destructive mutation, auto-subscribe, file write/delete/move/mkdir, vault create, and vault workflow run stay denied by default.",
+        "Nia CLI is installed globally as @nozomioai/nia@0.5.2 and verified with env-sourced authentication. Do not run nia auth login in AgentCore; it may write ~/.config/nia/api_key, while AgentCore stores secrets only in Windows User environment variables.",
+        "Nia skill source on this host is C:\\Users\\ynotf\\.agents\\skills\\nia; publish through ops/bifrost/Sync-AgentCoreBifrostSkillsRepository.ps1, not by copying secrets or user-global skill trees into the repo."
       ]
     }
   }

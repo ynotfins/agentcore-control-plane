@@ -201,6 +201,23 @@
         "Arabold remains the durable local ingest path."
       ],
       "default_profile": "docs"
+    },
+    "nia": {
+      "adapter": "upstream_native",
+      "default_profile": "external",
+      "tool_profiles": {
+        "search": "code_intel",
+        "nia_read": "code_intel",
+        "nia_grep": "code_intel",
+        "nia_explore": "code_intel",
+        "nia_package_search_hybrid": "external",
+        "nia_vault_list": "docs",
+        "nia_vault_search": "docs"
+      },
+      "notes": [
+        "Remote HTTP Nia MCP advertises native input schemas through tools/list. Bifrost cannot stdio-wrap this server, so output-schema coverage is upstream-native.",
+        "Live tool inventory verified 2026-09-05 with NIA_API_KEY from Windows User env; only the retrieval subset is permanently profile-exposed."
+      ]
     }
   }
 }

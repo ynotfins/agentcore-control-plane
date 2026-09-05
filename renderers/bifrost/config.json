@@ -333,6 +333,24 @@
         "is_code_mode_client": true
       },
       {
+        "name": "nia",
+        "connection_type": "http",
+        "connection_string": "https://apigcp.trynia.ai/mcp",
+        "tools_to_execute": [
+          "search",
+          "nia_read",
+          "nia_grep",
+          "nia_explore",
+          "nia_package_search_hybrid",
+          "nia_vault_list",
+          "nia_vault_search"
+        ],
+        "auth_type": "headers",
+        "headers": {
+          "Authorization": "Bearer env.NIA_API_KEY"
+        }
+      },
+      {
         "name": "openrouter",
         "connection_type": "http",
         "connection_string": "https://mcp.openrouter.ai/mcp",
@@ -558,6 +576,18 @@
             ]
           },
           {
+            "mcp_client_name": "nia",
+            "tools_to_execute": [
+              "search",
+              "nia_read",
+              "nia_grep",
+              "nia_explore",
+              "nia_package_search_hybrid",
+              "nia_vault_list",
+              "nia_vault_search"
+            ]
+          },
+          {
             "mcp_client_name": "playwright",
             "tools_to_execute": [
               "browser_click",
@@ -730,6 +760,18 @@
             ]
           },
           {
+            "mcp_client_name": "nia",
+            "tools_to_execute": [
+              "search",
+              "nia_read",
+              "nia_grep",
+              "nia_explore",
+              "nia_package_search_hybrid",
+              "nia_vault_list",
+              "nia_vault_search"
+            ]
+          },
+          {
             "mcp_client_name": "sequential_thinking",
             "tools_to_execute": [
               "sequentialthinking"
@@ -787,6 +829,18 @@
             "tools_to_execute": [
               "resolve-library-id",
               "query-docs"
+            ]
+          },
+          {
+            "mcp_client_name": "nia",
+            "tools_to_execute": [
+              "search",
+              "nia_read",
+              "nia_grep",
+              "nia_explore",
+              "nia_package_search_hybrid",
+              "nia_vault_list",
+              "nia_vault_search"
             ]
           }
         ]
