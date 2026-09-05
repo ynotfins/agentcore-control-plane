@@ -38,7 +38,6 @@ SECRET_PATTERNS = [
     re.compile(r"(?i)Authorization:\s*Bearer\s+\S+"),
     re.compile(r"postgresql(\+[^:]+)?:\/\/[^\s'\"]+"),
 ]
-
 LOG_ROOT = Path(
     os.environ.get(
         "AGENTCORE_CURSOR_BOOTSTRAP_LOG_ROOT",
@@ -308,6 +307,7 @@ def run_bootstrap(
     force_new_task: bool = False,
     task_slug: str | None = None,
     record_recovery: bool = True,
+    session_key: str | None = None,
 ) -> BootstrapResult:
     root = resolve_workspace(workspace)
     result = BootstrapResult(ok=False, project_key=root.name, project_root=str(root))
@@ -338,13 +338,22 @@ def run_bootstrap(
         result.project_key = project_key
         result.status_flags["project_automatically_resolved"] = True
 
-        identity_hint = task_slug or cursor_conversation_id or uuid.uuid4().hex
-        if force_new_task:
-            identity_hint = f"{identity_hint}:{uuid.uuid4().hex}"
-        session_key = f"{project_key}:{CLIENT_KEY}:{agent_key}:task:{identity_hint}"
-        mode, choices = ("new" if force_new_task else "resume_or_create"), []
+        if session_key is not None:
+            expected_prefix = f"{project_key}:{CLIENT_KEY}:{agent_key}:task:"
+            if not session_key.startswith(expected_prefix):
+                result.error = "session_key_not_bound_to_project"
+                return result
+            mode = "resume_explicit"
+            choices = []
+        else:
+            identity_hint = task_slug or cursor_conversation_id or uuid.uuid4().hex
+            if force_new_task:
+                identity_hint = f"{identity_hint}:{uuid.uuid4().hex}"
+            session_key = f"{project_key}:{CLIENT_KEY}:{agent_key}:task:{identity_hint}"
+            mode, choices = ("new" if force_new_task else "resume_or_create"), []
         result.selection_mode = mode
         result.choices = choices
+
         if mode == "ambiguity":
             result.ambiguity = True
             result.ok = True

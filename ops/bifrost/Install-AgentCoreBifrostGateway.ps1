@@ -37,6 +37,51 @@ function Write-AgentCoreInfo([string]$Message) {
   Write-Host "[Install-AgentCoreBifrostGateway] $Message"
 }
 
+function Test-InstallerPythonDependencies([string]$PythonPath) {
+  if ([string]::IsNullOrWhiteSpace($PythonPath)) { return $false }
+  try {
+    & $PythonPath -c "import jsonschema, yaml" *> $null
+    return ($LASTEXITCODE -eq 0)
+  } catch {
+    return $false
+  }
+}
+
+function Resolve-InstallerPythonRunner {
+  $candidates = New-Object System.Collections.Generic.List[string]
+  $repoVenvPython = Join-Path $RepoRoot '.venv\Scripts\python.exe'
+  if (Test-Path -LiteralPath $repoVenvPython -PathType Leaf) {
+    $candidates.Add($repoVenvPython)
+  }
+  foreach ($c in @('py', 'python', 'python3')) {
+    $cmd = Get-Command $c -ErrorAction SilentlyContinue
+    if ($cmd -and -not $candidates.Contains($cmd.Source)) {
+      $candidates.Add($cmd.Source)
+    }
+  }
+  $knownPython = 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe'
+  if ((Test-Path -LiteralPath $knownPython -PathType Leaf) -and -not $candidates.Contains($knownPython)) {
+    $candidates.Add($knownPython)
+  }
+
+  foreach ($candidate in $candidates) {
+    if (Test-InstallerPythonDependencies $candidate) {
+      return [pscustomobject]@{ Command = $candidate; ArgumentsPrefix = @(); Source = 'python' }
+    }
+  }
+
+  $uv = Get-Command 'uv' -ErrorAction SilentlyContinue
+  if ($uv) {
+    return [pscustomobject]@{
+      Command = $uv.Source
+      ArgumentsPrefix = @('run', '--with', 'jsonschema', '--with', 'pyyaml', 'python')
+      Source = 'uv'
+    }
+  }
+
+  throw 'Python interpreter with jsonschema and PyYAML not found, and uv fallback is unavailable.'
+}
+
 function Test-ScheduledTaskNotFoundError($ErrorRecord) {
   $parts = @(
     [string]$ErrorRecord.Exception.Message,
@@ -68,11 +113,16 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
         start_when_available = $true
         multiple_instances = 'IgnoreNew'
       }
+      principal = [ordered]@{
+        user_id = $env:USERNAME
+        logon_type = 'Interactive'
+        run_level = 'Limited'
+      }
     }
     watchdog = [ordered]@{
       action = [ordered]@{
         executable = $PowerShellPath
-        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`""
+        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`" -FailureThreshold 2"
         working_directory = $RuntimeRoot
       }
       trigger = [ordered]@{
@@ -88,6 +138,11 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
         restart_count = 0
         start_when_available = $true
         multiple_instances = 'IgnoreNew'
+      }
+      principal = [ordered]@{
+        user_id = 'SYSTEM'
+        logon_type = 'ServiceAccount'
+        run_level = 'Highest'
       }
     }
     operational_logging = [ordered]@{ channel = 'Microsoft-Windows-TaskScheduler/Operational'; enable = $true }
@@ -188,6 +243,19 @@ function New-InstallerScheduledTaskSettings($Spec, [string]$Scope) {
   return New-ScheduledTaskSettingsSet @parameters
 }
 
+function New-InstallerScheduledTaskPrincipal($Spec, [string]$Scope) {
+  $parameters = [ordered]@{
+    UserId = [string]$Spec.user_id
+    LogonType = [string]$Spec.logon_type
+    RunLevel = [string]$Spec.run_level
+  }
+  if ($TestMode) {
+    Add-TestScheduledTaskCall $Scope 'New-ScheduledTaskPrincipal' $parameters
+    return [pscustomobject]@{ principal = $Scope }
+  }
+  return New-ScheduledTaskPrincipal @parameters
+}
+
 function New-InstallerScheduledTasks($TaskSpecs) {
   $watchdogScript = Join-Path $PSScriptRoot 'Invoke-AgentCoreBifrostWatchdog.ps1'
   if (-not (Test-Path -LiteralPath $watchdogScript)) { throw "Watchdog script missing: $watchdogScript" }
@@ -198,17 +266,18 @@ function New-InstallerScheduledTasks($TaskSpecs) {
   $watchdogAction = New-InstallerScheduledTaskAction $TaskSpecs.watchdog.action 'watchdog'
   $watchdogTrigger = New-InstallerRepeatingDailyTrigger $TaskSpecs.watchdog.trigger
   $watchdogSettings = New-InstallerScheduledTaskSettings $TaskSpecs.watchdog.settings 'watchdog'
+  $gatewayPrincipal = New-InstallerScheduledTaskPrincipal $TaskSpecs.gateway.principal 'gateway'
+  $watchdogPrincipal = New-InstallerScheduledTaskPrincipal $TaskSpecs.watchdog.principal 'watchdog'
 
   if ($TestMode) {
     return [pscustomobject]@{
-      gateway = [pscustomobject]@{ action = $gatewayAction; trigger = $gatewayTrigger; settings = $gatewaySettings }
-      watchdog = [pscustomobject]@{ action = $watchdogAction; trigger = $watchdogTrigger; settings = $watchdogSettings }
+      gateway = [pscustomobject]@{ action = $gatewayAction; trigger = $gatewayTrigger; settings = $gatewaySettings; principal = $gatewayPrincipal }
+      watchdog = [pscustomobject]@{ action = $watchdogAction; trigger = $watchdogTrigger; settings = $watchdogSettings; principal = $watchdogPrincipal }
     }
   }
-  $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
   return [pscustomobject]@{
-    gateway = New-ScheduledTask -Action $gatewayAction -Trigger $gatewayTrigger -Settings $gatewaySettings -Principal $principal
-    watchdog = New-ScheduledTask -Action $watchdogAction -Trigger $watchdogTrigger -Settings $watchdogSettings -Principal $principal
+    gateway = New-ScheduledTask -Action $gatewayAction -Trigger $gatewayTrigger -Settings $gatewaySettings -Principal $gatewayPrincipal
+    watchdog = New-ScheduledTask -Action $watchdogAction -Trigger $watchdogTrigger -Settings $watchdogSettings -Principal $watchdogPrincipal
   }
 }
 
@@ -525,7 +594,7 @@ if (-not (Test-Path -LiteralPath $exePath)) {
 if (-not $TestMode -and -not (Test-Path -LiteralPath $renderScript)) {
   throw "Renderer missing: $renderScript"
 }
-$pythonCmd = $null
+$pythonRunner = $null
 if ($TestMode) {
   if ([string]::IsNullOrWhiteSpace($TestRenderedConfigPath) -or
       -not (Test-Path -LiteralPath $TestRenderedConfigPath -PathType Leaf)) {
@@ -533,14 +602,10 @@ if ($TestMode) {
   }
   Initialize-TestEnvironmentModel
 } else {
-  foreach ($c in @('py', 'python', 'python3')) {
-    $cmd = Get-Command $c -ErrorAction SilentlyContinue
-    if ($cmd) { $pythonCmd = $cmd.Source; break }
+  $pythonRunner = Resolve-InstallerPythonRunner
+  if ($pythonRunner.Source -eq 'uv') {
+    Write-AgentCoreInfo 'Using uv-managed Python dependencies for Bifrost contract validation.'
   }
-  if (-not $pythonCmd -and (Test-Path 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe')) {
-    $pythonCmd = 'C:\Users\ynotf\AppData\Local\Programs\Python\Python313\python.exe'
-  }
-  if (-not $pythonCmd) { throw 'Python interpreter not found (tried py/python/python3 and Python313 path).' }
 }
 
 $transactionId = Get-Date -Format 'yyyyMMdd-HHmmss-fffffff'
@@ -567,7 +632,7 @@ Write-AgentCoreInfo "Rendering Bifrost config into staging $stagingDirectory"
 if ($TestMode) {
   [IO.File]::Copy($TestRenderedConfigPath, $stagedConfigPath, $true)
 } else {
-  & $pythonCmd $renderScript --out $stagedConfigPath --no-also-config-dir --skip-renderer
+  & $pythonRunner.Command @($pythonRunner.ArgumentsPrefix) $renderScript --out $stagedConfigPath --no-also-config-dir --skip-renderer
   if ($LASTEXITCODE -ne 0) {
     throw "render_bifrost_config.py failed with exit $LASTEXITCODE"
   }
@@ -575,7 +640,7 @@ if ($TestMode) {
 $stagedConfig = Get-Content -Raw -LiteralPath $stagedConfigPath | ConvertFrom-Json -ErrorAction Stop
 Assert-BifrostConfigSemantics $stagedConfig
 if (-not $TestMode -and (Test-Path -LiteralPath $validateScript)) {
-  & $pythonCmd $validateScript
+  & $pythonRunner.Command @($pythonRunner.ArgumentsPrefix) $validateScript
   if ($LASTEXITCODE -ne 0) { throw "validate_contracts.py failed with exit $LASTEXITCODE" }
 }
 

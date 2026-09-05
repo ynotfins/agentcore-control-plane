@@ -860,6 +860,11 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
     }
     assert specs["gateway"]["settings"]["restart_count"] == 999
     assert specs["gateway"]["settings"]["multiple_instances"] == "IgnoreNew"
+    assert specs["gateway"]["principal"] == {
+        "user_id": os.environ["USERNAME"],
+        "logon_type": "Interactive",
+        "run_level": "Limited",
+    }
     assert specs["watchdog"]["trigger"]["start_delay_seconds"] == 60
     assert specs["watchdog"]["trigger"]["repetition_interval_seconds"] == 60
     assert specs["watchdog"]["settings"] == {
@@ -871,7 +876,13 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
         "multiple_instances": "IgnoreNew",
     }
     assert specs["watchdog"]["settings"]["multiple_instances"] == "IgnoreNew"
+    assert specs["watchdog"]["principal"] == {
+        "user_id": "SYSTEM",
+        "logon_type": "ServiceAccount",
+        "run_level": "Highest",
+    }
     assert "Invoke-AgentCoreBifrostWatchdog.ps1" in specs["watchdog"]["action"]["arguments"]
+    assert "-FailureThreshold 2" in specs["watchdog"]["action"]["arguments"]
     assert specs["operational_logging"] == {
         "channel": "Microsoft-Windows-TaskScheduler/Operational", "enable": True
     }
@@ -910,12 +921,17 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         "StartWhenAvailable": True,
         "MultipleInstances": "IgnoreNew",
     }
+    assert by_scope_and_command[("gateway", "New-ScheduledTaskPrincipal")] == {
+        "UserId": os.environ["USERNAME"],
+        "LogonType": "Interactive",
+        "RunLevel": "Limited",
+    }
     assert by_scope_and_command[("watchdog", "New-ScheduledTaskAction")] == {
         "Execute": "test-pwsh.exe",
         "Argument": (
             f'-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "{watchdog_script}" '
             f'-RuntimeRoot "{runtime_root}" -GatewayUrl http://127.0.0.1:18080 '
-            '-TaskPath "\\AgentCore\\" -TaskName "AgentCore-Bifrost-Gateway"'
+            '-TaskPath "\\AgentCore\\" -TaskName "AgentCore-Bifrost-Gateway" -FailureThreshold 2'
         ),
         "WorkingDirectory": str(runtime_root),
     }
@@ -926,6 +942,11 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         "RestartCount": 0,
         "StartWhenAvailable": True,
         "MultipleInstances": "IgnoreNew",
+    }
+    assert by_scope_and_command[("watchdog", "New-ScheduledTaskPrincipal")] == {
+        "UserId": "SYSTEM",
+        "LogonType": "ServiceAccount",
+        "RunLevel": "Highest",
     }
     assert by_scope_and_command[("operational_logging", "wevtutil.exe")] == {
         "ArgumentList": [
@@ -954,6 +975,7 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
     assert started_at + timedelta(seconds=55) <= trigger_at
     assert trigger_at <= finished_at + timedelta(seconds=65)
 
+
 def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     watchdog = WATCHDOG.read_text(encoding="utf-8")
     installer = (REPO_ROOT / "ops" / "bifrost" / "Install-AgentCoreBifrostGateway.ps1").read_text(encoding="utf-8")
@@ -968,6 +990,11 @@ def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     assert "New-BifrostTaskSpecs" in installer
     assert "restart_count = 999" in installer
     assert "Wait-ForRedisVectorStore" in launcher
+    assert "REDIS_VECTOR_STORE_DEGRADED" in launcher
+    assert "RequireRedisVectorStore" in launcher
+    assert "Stop-AgentCoreOwnedProcess" in launcher
+    assert "Refusing to stop non-AgentCore process" in launcher
+    assert "Rotate-BifrostLogs.ps1" in launcher
     assert "while ($true)" not in launcher
     assert "bifrost-maintenance.marker" in starter
     assert "bifrost-maintenance.marker" in stopper

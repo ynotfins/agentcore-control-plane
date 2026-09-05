@@ -13,7 +13,9 @@ param(
   [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$HostAddress = '127.0.0.1',
   [int]$Port = 8080,
-  [int]$MaxDependencyWaitSeconds = 180
+  [int]$MaxDependencyWaitSeconds = 180,
+  [switch]$RequireRedisVectorStore,
+  [long]$MaxLogBytes = 50MB
 )
 
 $ErrorActionPreference = 'Stop'
@@ -58,13 +60,13 @@ function Get-RedisVectorStoreEndpoint([string]$ConfigPath) {
 }
 
 function Wait-ForRedisVectorStore([string]$Endpoint) {
-  if ([string]::IsNullOrWhiteSpace($Endpoint)) { return }
+  if ([string]::IsNullOrWhiteSpace($Endpoint)) { return $true }
   $deadline = (Get-Date).AddSeconds($MaxDependencyWaitSeconds)
   $lastLogAt = [datetime]::MinValue
   while ((Get-Date) -lt $deadline) {
     if (Test-TcpEndpoint $Endpoint) {
-      Write-AgentCoreLog "Dependency ready: redis vector store $Endpoint"
-      return
+      Write-AgentCoreLog "REDIS_VECTOR_STORE_READY endpoint=$Endpoint"
+      return $true
     }
     if (((Get-Date) - $lastLogAt).TotalSeconds -ge 30) {
       Write-AgentCoreLog "Waiting for redis vector store $Endpoint"
@@ -72,7 +74,51 @@ function Wait-ForRedisVectorStore([string]$Endpoint) {
     }
     Start-Sleep -Seconds 2
   }
-  throw "Redis vector store dependency unavailable after ${MaxDependencyWaitSeconds}s: $Endpoint"
+  Write-AgentCoreLog "REDIS_VECTOR_STORE_DEGRADED endpoint=$Endpoint waited_seconds=$MaxDependencyWaitSeconds"
+  return $false
+}
+
+function Test-AgentCoreOwnedProcess([int]$ProcessId, [string]$ExpectedExe, [string]$ExpectedRuntimeRoot) {
+  try {
+    $process = Get-CimInstance Win32_Process -Filter "ProcessId = $ProcessId" -ErrorAction Stop
+  } catch {
+    return $false
+  }
+  if ($null -eq $process) { return $false }
+  $actualExe = [string]$process.ExecutablePath
+  $commandLine = [string]$process.CommandLine
+  if ((-not [string]::IsNullOrWhiteSpace($actualExe)) -and
+      ([string]::Equals($actualExe, $ExpectedExe, [System.StringComparison]::OrdinalIgnoreCase))) {
+    return $true
+  }
+  if ((-not [string]::IsNullOrWhiteSpace($commandLine)) -and
+      ($commandLine.IndexOf($ExpectedRuntimeRoot, [System.StringComparison]::OrdinalIgnoreCase) -ge 0)) {
+    return $true
+  }
+  return $false
+}
+
+function Stop-AgentCoreOwnedProcess([int]$ProcessId, [string]$Reason) {
+  if (-not (Test-AgentCoreOwnedProcess -ProcessId $ProcessId -ExpectedExe $exe -ExpectedRuntimeRoot $RuntimeRoot)) {
+    throw "Refusing to stop non-AgentCore process PID=$ProcessId reason=$Reason port=$Port"
+  }
+  Write-AgentCoreLog "Stopping AgentCore-owned process PID=$ProcessId reason=$Reason"
+  Stop-Process -Id $ProcessId -Force -ErrorAction Stop
+}
+
+function Invoke-LogRotation {
+  $rotationScript = Join-Path $PSScriptRoot 'Rotate-BifrostLogs.ps1'
+  if (-not (Test-Path -LiteralPath $rotationScript)) {
+    Write-AgentCoreLog "Log rotation skipped: missing $rotationScript"
+    return
+  }
+  try {
+    & $rotationScript -LogDir $logDir -MaxBytes $MaxLogBytes -KeepCount 0 | ForEach-Object {
+      Write-AgentCoreLog "log_rotation: $_"
+    }
+  } catch {
+    Write-AgentCoreLog "Log rotation skipped: $($_.Exception.Message)"
+  }
 }
 
 $logDir = Join-Path $RuntimeRoot 'logs'
@@ -113,21 +159,23 @@ Write-AgentCoreLog ("BIFROST_MCP_VIRTUAL_KEY present={0} length={1}" -f (-not [s
 Write-AgentCoreLog ("BIFROST_ENCRYPTION_KEY present={0}" -f (-not [string]::IsNullOrWhiteSpace($env:BIFROST_ENCRYPTION_KEY)))
 Write-AgentCoreLog "stdout_log=$stdoutLog"
 Write-AgentCoreLog "stderr_log=$stderrLog"
-Wait-ForRedisVectorStore $redisEndpoint
+$redisReady = Wait-ForRedisVectorStore $redisEndpoint
+if ((-not $redisReady) -and $RequireRedisVectorStore) {
+  throw "Redis vector store dependency unavailable after ${MaxDependencyWaitSeconds}s: $redisEndpoint"
+}
 
-# Ensure this scheduled task becomes the sole runtime owner.
+# Ensure this scheduled task becomes the sole runtime owner without killing unrelated listeners.
 Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
   ForEach-Object {
     if ($_.OwningProcess) {
-      Write-AgentCoreLog "Stopping existing listener PID=$($_.OwningProcess) on port $Port"
-      Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
+      Stop-AgentCoreOwnedProcess -ProcessId $_.OwningProcess -Reason "listener:${Port}"
     }
   }
 Get-Process -Name bifrost-http -ErrorAction SilentlyContinue | ForEach-Object {
-  Write-AgentCoreLog "Stopping existing bifrost-http PID=$($_.Id)"
-  Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+  Stop-AgentCoreOwnedProcess -ProcessId $_.Id -Reason 'bifrost-http-name'
 }
 Start-Sleep -Seconds 1
+Invoke-LogRotation
 
 $bifrostArgs = @(
   '-app-dir', $RuntimeRoot,
