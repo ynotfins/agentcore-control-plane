@@ -1030,6 +1030,8 @@ def test_openrouter_reauth_helper_uses_secret_safe_v2_oauth_flow() -> None:
     assert "waiting_for_fresh_browser_authorization" in source
     assert "status row predates the current reauthorization request" in source
     assert "Authorization has not completed yet|already exists" in source
+    assert "authorization_expired" in source
+    assert "run -Begin to create a fresh OpenRouter authorization URL" in source
     assert "Invoke-RendererAfterComplete" in source
     assert "render_bifrost_config.py" in source
     assert "SkipRenderAfterComplete" in source

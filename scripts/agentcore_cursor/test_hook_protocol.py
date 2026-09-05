@@ -231,7 +231,10 @@ def test_missing_gateway_degraded() -> None:
     if code != 0:
         raise RuntimeError(f"degraded beforeSubmitPrompt exit {code}")
     doc = _parse_stdout(out)
-    assert doc.get("continue") is True, "degraded beforeSubmitPrompt must fail open"
+    assert doc.get("continue") is False, "degraded beforeSubmitPrompt must fail closed"
+    message = str(doc.get("user_message") or "").lower()
+    assert "cost-control gate blocked" in message
+    assert "recover" in message or "gateway" in message
 
 
 def test_idempotency() -> None:
@@ -243,6 +246,12 @@ def test_idempotency() -> None:
         raise RuntimeError("idempotency run failed exit codes")
     d1 = _parse_stdout(out1)
     d2 = _parse_stdout(out2)
+    if d1.get("continue") is False or d2.get("continue") is False:
+        messages = " ".join(
+            str(doc.get("user_message") or "").lower() for doc in (d1, d2)
+        )
+        assert "cost-control gate blocked" in messages
+        return
     e1 = d1.get("agentcore_prompt_capture") or {}
     e2 = d2.get("agentcore_prompt_capture") or {}
     assert d1.get("continue") is True and d2.get("continue") is True

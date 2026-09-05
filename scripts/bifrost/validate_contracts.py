@@ -22,6 +22,26 @@ GATEWAY_SCHEMA = REPO_ROOT / "contracts" / "schemas" / "agentcore-gateway-client
 HYPHEN_OK = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 UNDERSCORE_ONLY = re.compile(r"^[a-z][a-z0-9_]*$")
 SWARM_MARKERS = ("swarmrecall", "swarmvault", "swarmclaw", "agentswarm")
+TRACKED_SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("openrouter-api-key", re.compile(r"sk-or-v1-[A-Za-z0-9_-]{20,}")),
+    ("openai-project-api-key", re.compile(r"sk-proj-[A-Za-z0-9_-]{20,}")),
+    ("anthropic-api-key", re.compile(r"sk-ant-[A-Za-z0-9_-]{20,}")),
+    ("deepseek-api-key", re.compile(r"DEEPSEEK_API_KEY[^\\n\\r]{0,200}sk-[A-Za-z0-9_-]{20,}")),
+    ("hindsight-api-key", re.compile(r"HINDSIGHT_API_KEY[^\\n\\r]{0,200}hsk_[A-Za-z0-9_-]{20,}")),
+    ("github-token", re.compile(r"ghp_[A-Za-z0-9_]{20,}")),
+    ("bearer-sk-token", re.compile(r"Bearer\s+sk-[A-Za-z0-9_-]{20,}")),
+)
+TRACKED_SECRET_ALLOWLIST: dict[str, tuple[str, ...]] = {
+    "scripts/bifrost/mcp_output_schema.py": (
+        "sk-[A-Za-z0-9_\\-]{12,}",
+        "sk-abcdefghijklmnop",
+        "sk-abcdefghijklmnopqrst",
+    ),
+    "tools/cheap-workers/secret-safety.test.mjs": (
+        "sk-test-active-secret-1234567890",
+        "sk-or-v1-" + "abcdefghijklmnopqrstuvwxyz123456",
+    ),
+}
 
 
 def load(path: Path) -> Any:
@@ -195,6 +215,42 @@ def authority_lock_checks() -> list[str]:
     if not detail:
         detail = [f"validator exited {result.returncode}"]
     return [f"authority-lock: {line}" for line in detail]
+
+
+def tracked_secret_checks() -> list[str]:
+    """Scan every tracked text file for high-confidence secret material."""
+    result = subprocess.run(
+        ["git", "ls-files", "-z"],
+        capture_output=True,
+        cwd=REPO_ROOT,
+        check=False,
+    )
+    if result.returncode != 0:
+        return [f"tracked-secrets: git ls-files exited {result.returncode}"]
+
+    errors: list[str] = []
+    rel_paths = [
+        rel.decode("utf-8", errors="replace")
+        for rel in result.stdout.split(b"\0")
+        if rel
+    ]
+    for rel in rel_paths:
+        path = REPO_ROOT / rel
+        try:
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        except (OSError, UnicodeError):
+            continue
+
+        allowlisted = TRACKED_SECRET_ALLOWLIST.get(rel.replace("\\", "/"), ())
+        for label, pattern in TRACKED_SECRET_PATTERNS:
+            if not pattern.search(text):
+                continue
+            if allowlisted and all(hit in allowlisted for hit in set(pattern.findall(text))):
+                continue
+            errors.append(f"tracked-secrets: {rel}: possible {label} literal")
+            break
+
+    return errors
 
 
 def stub_master_config_drift() -> list[str]:
@@ -565,6 +621,7 @@ def main() -> int:
     errors.extend(strict_master_config_audit(registry))
     errors.extend(authority_lock_checks())
     errors.extend(output_schema_checks())
+    errors.extend(tracked_secret_checks())
     notices.extend(stub_master_config_drift())
 
     if notices:
@@ -586,6 +643,7 @@ def main() -> int:
     print("OK: master-config strict audit passed")
     print("OK: authority-lock and foreign-boundary manifests valid")
     print("OK: MCP outputSchema coverage — MissingOutputSchema=0 (contract gate)")
+    print("OK: tracked source secret scan passed")
     return 0
 
 

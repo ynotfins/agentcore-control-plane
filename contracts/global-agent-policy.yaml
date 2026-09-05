@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-08-30-local-docs-ingest"
+policy_revision: "2026-09-04-orchestration-routing"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -75,6 +75,20 @@ mandatory_rules:
       arabold-docs for exact-version external documentation. Do not use machine-global project-router activation as an IDE continuity
       or concurrency boundary. Swarm runtime remains outside AgentCore and must be refused with
       swarm_project_refused.
+
+  - id: orchestration-worker-routing
+    title: Codex orchestration and worker routing
+    rule: >-
+      The main Codex agent owns task interpretation, architecture, logic design, risk decisions,
+      tool routing, acceptance criteria, and final validation. For nontrivial code editing,
+      routine implementation, focused debugging, and independent review, Codex should create a
+      bounded prompt contract and use the AgentCore worker team or approved cheap-worker route,
+      then inspect and accept, revise, or reject the returned diff/evidence. Use Morph for
+      external GitHub/source discovery, precise codebase search, and surgical final application
+      only after Codex has defined the target change. Morph must not own architecture or run
+      autonomous workflows. Skip workers or Morph only for trivial edits, purely internal
+      data-only tasks, emergency repair where delegation would increase risk, or when the required
+      tool/auth path is unhealthy.
 
   - id: durable-memory-context
     title: Effectively-unbounded durable memory

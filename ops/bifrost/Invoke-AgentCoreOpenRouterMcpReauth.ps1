@@ -188,6 +188,16 @@ function Invoke-RendererAfterComplete {
   return [string]$renderer
 }
 
+function Test-PendingFlowExpired($Pending) {
+  if (-not ($Pending -and $Pending.expires_at)) { return $false }
+  try {
+    $expiresAt = [datetimeoffset]::Parse([string]$Pending.expires_at)
+    return $expiresAt -lt [datetimeoffset]::Now
+  } catch {
+    return $false
+  }
+}
+
 function Write-Result($Payload) {
   if ($Json) {
     $Payload | ConvertTo-Json -Depth 20
@@ -261,6 +271,15 @@ if ($Complete) {
   $flowId = if (-not [string]::IsNullOrWhiteSpace($OAuthConfigId)) { $OAuthConfigId } elseif ($pending) { [string]$pending.oauth_config_id } else { '' }
   if ([string]::IsNullOrWhiteSpace($flowId)) {
     throw 'OAuthConfigId is required when no pending state file exists.'
+  }
+  if (Test-PendingFlowExpired $pending) {
+    Write-Result ([ordered]@{
+      status = 'authorization_expired'
+      oauth_config_id = $flowId
+      expires_at = [string]$pending.expires_at
+      next_action = 'run -Begin to create a fresh OpenRouter authorization URL'
+    })
+    exit 2
   }
   $statusUrl = if ($pending -and $pending.status_url) { [string]$pending.status_url } else { "/api/oauth/config/$flowId/status" }
   $flowStatus = Invoke-AdminJson -Method 'GET' -Path $statusUrl

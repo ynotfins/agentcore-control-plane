@@ -343,6 +343,76 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+_HEALTHY_PROMPT_CONTINUITY = {"current", "healthy", "open_no_events"}
+_UNHEALTHY_PROMPT_CONTINUITY = {
+    "stale",
+    "projection_stale",
+    "closed",
+    "closed_no_handoff",
+    "unknown",
+}
+
+
+def _cost_control_prompt_block(result_block: Any) -> str | None:
+    if not isinstance(result_block, dict):
+        return (
+            "AgentCore cost-control gate blocked this prompt before model submission: "
+            "durable session recovery did not return a structured health result. "
+            "Run `python -m agentcore cursor recover`, verify agentcore-gateway/auth health, "
+            "then resubmit."
+        )
+
+    if not result_block.get("ok"):
+        error = str(result_block.get("error") or "unknown bootstrap failure")[:180]
+        return (
+            "AgentCore cost-control gate blocked this prompt before model submission: "
+            f"durable project session is unhealthy ({error}). "
+            "Run `python -m agentcore cursor recover`, verify agentcore-gateway/auth health, "
+            "then resubmit."
+        )
+
+    flags = result_block.get("status_flags") or {}
+    if isinstance(flags, dict):
+        required_flags = {
+            "durable_backend_available": "agentcore-memory backend is unavailable",
+            "project_automatically_resolved": "project identity was not resolved",
+        }
+        startup_ok = bool(
+            flags.get("startup_context_automatically_injected")
+            or flags.get("startup_context_completed")
+        )
+        for flag, detail in required_flags.items():
+            if flags.get(flag) is False:
+                return (
+                    "AgentCore cost-control gate blocked this prompt before model submission: "
+                    f"{detail}. "
+                    "Verify agentcore-gateway/auth health, then resubmit."
+                )
+        if not startup_ok:
+            return (
+                "AgentCore cost-control gate blocked this prompt before model submission: "
+                "session recovery did not complete startup_context. "
+                "Run `python -m agentcore cursor recover`, then resubmit."
+            )
+
+    continuity = str(result_block.get("continuity_status") or "").strip().lower()
+    if continuity in _UNHEALTHY_PROMPT_CONTINUITY:
+        return (
+            "AgentCore cost-control gate blocked this prompt before model submission: "
+            f"session recovery is `{continuity}`. "
+            "Run `python -m agentcore cursor recover` or resume the correct session, "
+            "then resubmit."
+        )
+    if continuity and continuity not in _HEALTHY_PROMPT_CONTINUITY:
+        return (
+            "AgentCore cost-control gate blocked this prompt before model submission: "
+            f"session recovery returned unrecognized continuity_status `{continuity}`. "
+            "Run `python -m agentcore cursor status`, verify the intended session, "
+            "then resubmit."
+        )
+    return None
+
+
 def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
     prompt = str(
         payload.get("prompt")
@@ -402,14 +472,13 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
             ),
         }
 
-    if prompt and (not isinstance(result_block, dict) or not result_block.get("ok")):
-        return {
-            "continue": False,
-            "user_message": (
-                "AgentCore could not establish a healthy durable project session. "
-                "Fix gateway/memory health, then resubmit."
-            ),
-        }
+    if prompt:
+        block_reason = _cost_control_prompt_block(result_block)
+        if block_reason:
+            return {
+                "continue": False,
+                "user_message": block_reason,
+            }
 
     session_id = (result_block or {}).get("session_id") if isinstance(result_block, dict) else None
     project_key = (result_block or {}).get("project_key") if isinstance(result_block, dict) else None

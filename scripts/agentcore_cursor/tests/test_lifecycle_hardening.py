@@ -87,6 +87,12 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
                 "ok": True,
                 "session_id": "session-test",
                 "project_key": "agentcore-control-plane",
+                "continuity_status": "current",
+                "status_flags": {
+                    "durable_backend_available": True,
+                    "project_automatically_resolved": True,
+                    "startup_context_completed": True,
+                },
             }
         }
         with (
@@ -102,6 +108,81 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
             )
 
         self.assertFalse(result["continue"])
+
+    def test_before_submit_cost_control_blocks_degraded_bootstrap(self) -> None:
+        rejected = bootstrap.BootstrapResult(
+            ok=False,
+            project_key="agentcore-control-plane",
+            project_root=r"D:\github\agentcore-control-plane",
+            error="RuntimeError: BIFROST_MCP_VIRTUAL_KEY missing from process/User env",
+        )
+        with (
+            patch.object(hooks, "load_bootstrap_json", return_value=None),
+            patch.object(hooks, "run_bootstrap", return_value=rejected),
+        ):
+            result = hooks.handle_before_submit(
+                {
+                    "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "prompt": "operator request",
+                }
+            )
+
+        self.assertFalse(result["continue"])
+        self.assertIn("cost-control gate blocked", result["user_message"])
+        self.assertIn("agentcore-gateway/auth health", result["user_message"])
+
+    def test_before_submit_cost_control_blocks_unhealthy_recovery(self) -> None:
+        data = {
+            "result": {
+                "ok": True,
+                "session_id": "session-test",
+                "project_key": "agentcore-control-plane",
+                "continuity_status": "projection_stale",
+                "status_flags": {
+                    "durable_backend_available": True,
+                    "project_automatically_resolved": True,
+                    "startup_context_completed": True,
+                },
+            }
+        }
+        with patch.object(hooks, "load_bootstrap_json", return_value=data):
+            result = hooks.handle_before_submit(
+                {
+                    "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "prompt": "operator request",
+                }
+            )
+
+        self.assertFalse(result["continue"])
+        self.assertIn("projection_stale", result["user_message"])
+
+    def test_before_submit_allows_healthy_unrelated_prompt(self) -> None:
+        data = {
+            "result": {
+                "ok": True,
+                "session_id": "session-test",
+                "project_key": "agentcore-control-plane",
+                "continuity_status": "current",
+                "status_flags": {
+                    "durable_backend_available": True,
+                    "project_automatically_resolved": True,
+                    "startup_context_completed": True,
+                },
+            }
+        }
+        with (
+            patch.object(hooks, "load_bootstrap_json", return_value=data),
+            patch.object(hooks, "append_prompt", return_value={"ok": True, "event_id": "event-test"}),
+            patch.object(hooks, "_set_prompt_capture_flag", return_value=True),
+        ):
+            result = hooks.handle_before_submit(
+                {
+                    "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "prompt": "ordinary unrelated request",
+                }
+            )
+
+        self.assertTrue(result["continue"])
 
     def test_new_cursor_chat_gets_distinct_task_session_key(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
