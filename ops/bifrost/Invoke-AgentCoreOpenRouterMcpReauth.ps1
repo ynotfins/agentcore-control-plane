@@ -82,7 +82,22 @@ function Invoke-AdminJson([string]$Method, [string]$Path, $Body = $null) {
   if ($null -ne $Body) {
     $args.Body = ($Body | ConvertTo-Json -Depth 30 -Compress)
   }
-  return Invoke-RestMethod @args
+  try {
+    return Invoke-RestMethod @args
+  } catch {
+    $statusCode = 0
+    try { $statusCode = [int]$_.Exception.Response.StatusCode } catch { $statusCode = 0 }
+    $errorBody = [string]$_.ErrorDetails.Message
+    if ([string]::IsNullOrWhiteSpace($errorBody)) { $errorBody = [string]$_.Exception.Message }
+    $message = $errorBody
+    try {
+      $parsed = $errorBody | ConvertFrom-Json
+      if ($parsed.error -and $parsed.error.message) { $message = [string]$parsed.error.message }
+    } catch {
+      $message = $errorBody
+    }
+    throw [System.InvalidOperationException]::new("Bifrost API $Method $Path failed ($statusCode): $message")
+  }
 }
 
 function Get-OpenRouterClient {
@@ -249,6 +264,22 @@ if ($Complete) {
   }
   $statusUrl = if ($pending -and $pending.status_url) { [string]$pending.status_url } else { "/api/oauth/config/$flowId/status" }
   $flowStatus = Invoke-AdminJson -Method 'GET' -Path $statusUrl
+  $pendingCreatedAt = if ($pending -and $pending.created_at) { [datetimeoffset]::Parse([string]$pending.created_at) } else { $null }
+  $statusCreatedAt = if ($flowStatus.created_at) { [datetimeoffset]::Parse([string]$flowStatus.created_at) } else { $null }
+  $statusIsFresh = $true
+  if ($pendingCreatedAt -and $statusCreatedAt -and ($statusCreatedAt -lt $pendingCreatedAt.AddSeconds(-5))) {
+    $statusIsFresh = $false
+  }
+  if (-not $statusIsFresh) {
+    Write-Result ([ordered]@{
+      status = 'waiting_for_fresh_browser_authorization'
+      oauth_config_id = $flowId
+      flow_status = [string]$flowStatus.status
+      status_url = $statusUrl
+      note = 'status row predates the current reauthorization request'
+    })
+    exit 2
+  }
   if ([string]$flowStatus.status -ne 'authorized') {
     Write-Result ([ordered]@{
       status = 'waiting_for_browser_authorization'
@@ -259,7 +290,22 @@ if ($Complete) {
     exit 2
   }
   $completeUrl = if ($pending -and $pending.complete_url) { [string]$pending.complete_url } else { "/api/mcp/client/$flowId/complete-oauth" }
-  $completeResult = Invoke-AdminJson -Method 'POST' -Path $completeUrl
+  try {
+    $completeResult = Invoke-AdminJson -Method 'POST' -Path $completeUrl
+  } catch {
+    $message = [string]$_.Exception.Message
+    if ($message -match 'Authorization has not completed yet|already exists') {
+      Write-Result ([ordered]@{
+        status = 'waiting_for_browser_authorization'
+        oauth_config_id = $flowId
+        flow_status = [string]$flowStatus.status
+        complete_url = $completeUrl
+        note = $message
+      })
+      exit 2
+    }
+    throw
+  }
   $client = Get-OpenRouterClient
   $state = [ordered]@{
     openrouter = [ordered]@{

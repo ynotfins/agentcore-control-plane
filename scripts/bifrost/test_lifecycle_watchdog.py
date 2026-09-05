@@ -1027,6 +1027,9 @@ def test_openrouter_reauth_helper_uses_secret_safe_v2_oauth_flow() -> None:
     assert "icacls.exe" in source
     assert "/inheritance:r" in source
     assert "/remove:g" in source
+    assert "waiting_for_fresh_browser_authorization" in source
+    assert "status row predates the current reauthorization request" in source
+    assert "Authorization has not completed yet|already exists" in source
     assert "Invoke-RendererAfterComplete" in source
     assert "render_bifrost_config.py" in source
     assert "SkipRenderAfterComplete" in source
