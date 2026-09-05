@@ -25,6 +25,48 @@ def _write(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload), encoding="utf-8")
 
 
+def _openrouter_client(config: dict) -> dict:
+    return next(
+        client
+        for client in config["mcp"]["client_configs"]
+        if client["name"] == "openrouter"
+    )
+
+
+def _has_key(payload: object, key: str) -> bool:
+    if isinstance(payload, dict):
+        return key in payload or any(_has_key(value, key) for value in payload.values())
+    if isinstance(payload, list):
+        return any(_has_key(value, key) for value in payload)
+    return False
+
+
+def test_oauth_runtime_state_never_renders_oauth_config_id() -> None:
+    registry = validator.load(validator.REGISTRY)
+    gateway_client = validator.load(validator.GATEWAY_CLIENT)
+    wiring = renderer.OutputSchemaWiring(registry)
+    config = renderer.build_bifrost_config(
+        registry,
+        gateway_client,
+        {"openrouter": {"oauth_config_id": "ocfg_fake_runtime_id", "mcp_client_id": "mcp_fake_id"}},
+        wiring,
+    )
+    openrouter = _openrouter_client(config)
+    sanitized = renderer.build_sanitized_sidecar(
+        registry,
+        config,
+        oauth_state_present=True,
+        output_schema=wiring,
+    )
+
+    assert not _has_key(config["mcp"]["client_configs"], "oauth_config_id")
+    assert not _has_key(sanitized["mcp"]["client_configs"], "oauth_config_id")
+    assert openrouter["oauth_config"] == {
+        "server_url": "https://openrouter.ai",
+        "scopes": ["mcp"],
+    }
+
+
 def test_gate_rendered_accepts_complete_renderer_output(tmp_path, monkeypatch) -> None:
     registry, expected = _expected()
     target = tmp_path / "config.sanitized.json"

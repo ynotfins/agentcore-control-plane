@@ -101,24 +101,23 @@ Without the key, Bifrost may store OAuth tokens in plaintext — do not initiate
 
 OAuth enrollment uses the **Bifrost management API**, not config.json reconciliation.
 The renderer writes `oauth_config` (public parameters only: `server_url`, `scopes`) into the
-rendered `client_configs` so Bifrost registers the client as OAuth-pending on startup. This is
-the **pre-enrollment state**. After enrollment:
+rendered `client_configs` so Bifrost can create or reauthorize the OAuth client. After
+enrollment:
 
 - Bifrost returns `oauth_config_id` in the management API response.
-- The operator stores `oauth_config_id` in a **runtime-only state file**:  
+- Bifrost persists `oauth_config_id` and the OAuth token in `config.db`.
+- The operator may mirror `oauth_config_id` in a **runtime-only state file** for status evidence:
   `F:\AgentCore\runtime\bifrost\state\oauth-clients.json` (never committed to Git).
-- On the next render, the renderer reads this state file and substitutes `oauth_config_id`
-  for `oauth_config` in the rendered config, preserving the enrolled binding.
-- Re-rendering without the state file reverts to pre-enrollment `oauth_config` (creates a new
-  pending client; existing enrolled client may be orphaned — do not re-render after enrollment
-  without the state file present).
+- The renderer does **not** substitute `oauth_config_id` into config.json. Bifrost v2 logs that
+  config-file `oauth_config_id` is ignored; the config database is the binding authority.
+- Re-rendering with public `oauth_config` must not break the enrolled binding.
 
 **Required isolated test before production OAuth:**  
 Prove on a test/isolated Bifrost runtime that:  
 (a) POST to `/api/mcp/client` with `auth_type=oauth` and `oauth_config` returns `pending_oauth` + `authorize_url` + `oauth_config_id`.  
 (b) After consent, the token is stored in config.db.  
-(c) Restart with `oauth_config_id` in config.json preserves the token (no new pending_oauth).  
-(d) Re-render with `oauth_config` (not `oauth_config_id`) creates a new pending client.  
+(c) Restart with public `oauth_config` in config.json preserves the config.db binding.
+(d) Re-render with runtime state present does not emit `oauth_config_id` and does not create a duplicate active client.
 Document the reconciliation behavior before enabling production OAuth.
 
 ### One-time enrollment (operator-initiated)
@@ -160,11 +159,11 @@ Document the reconciliation behavior before enabling production OAuth.
 5. OpenRouter consent screen appears — set spending cap, confirm scopes, approve.
 6. Bifrost receives callback → exchanges code → stores token in `config.db` (encrypted if key present).
 7. State transitions to `authenticated_dormant`.
-8. Re-render config.json to embed `oauth_config_id`:
+8. Re-render config.json to refresh public OAuth params without embedding `oauth_config_id`:
    ```powershell
    python D:\github\agentcore-control-plane\scripts\bifrost\render_bifrost_config.py
    # Renderer reads F:\AgentCore\runtime\bifrost\state\oauth-clients.json
-   # Emits oauth_config_id for openrouter (not oauth_config)
+   # Emits oauth_config for openrouter; oauth_config_id stays config.db-owned
    ```
 
 **Post-enrollment confirmations (no token values printed):**
@@ -180,8 +179,8 @@ Document the reconciliation behavior before enabling production OAuth.
 |---|---|---|
 | `F:\AgentCore\runtime\bifrost\data\config.db` | OAuth token (encrypted — requires BIFROST_ENCRYPTION_KEY) | **SECRET-BEARING — restricted ACLs required** |
 | `F:\AgentCore\runtime\bifrost\state\oauth-clients.json` | `oauth_config_id` and `mcp_client_id` only (no token values) | Runtime only — never committed to Git |
-| `renderers/bifrost/config.json` | `oauth_config` public params pre-enrollment; `oauth_config_id` post-enrollment | Post-enrollment: no secret content |
-| `F:\AgentCore\runtime\bifrost\config.json` | Rendered from above; `oauth_config_id` after enrollment | Runtime only — never commit |
+| `renderers/bifrost/config.json` | `oauth_config` public params only | Source-controlled, no secret content |
+| `F:\AgentCore\runtime\bifrost\config.json` | Rendered from above; `oauth_config` public params only | Runtime only — never commit |
 | Windows env, IDE configs, Git | Nothing | Enforced |
 
 > **Security note:** `config.db` encryption requires `BIFROST_ENCRYPTION_KEY` to be set before
@@ -326,8 +325,8 @@ Status may not advance to `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY` u
 | DENY-3 | Operator-only account access confirmed |
 | BILL-1 | Temporary billable-tool visibility through a lease without executing a paid call |
 | BILL-2 | Automatic lease expiration removes tools; explicit revocation removes tools |
-| RST-1 | Bifrost restart: OAuth reconnects; `oauth_config_id` preserved in config.json |
-| REND-1 | Re-render after enrollment: no OAuth-binding loss (state file present) |
+| RST-1 | Bifrost restart: OAuth reconnects from config.db while config.json contains only public `oauth_config` |
+| REND-1 | Re-render after enrollment: no OAuth-binding loss and no rendered `oauth_config_id` |
 | MEM-1 | Exact 10-tool agentcore-memory invariant confirmed post-enrollment |
 | IDE-1 | No direct IDE OpenRouter entries confirmed |
 | SWM-1 | No Swarm changes confirmed |
@@ -360,7 +359,7 @@ Checks in `ops/Test-AgentCoreDurabilityAndPlacement.ps1`:
 - OR-7: Tool inventory matches accepted manifest (count and schema hashes); drift triggers WARN
 - OR-8: `log_content: false` enforced for openrouter client; no content in Bifrost logs
 - OR-9: No expired PostgreSQL leases still retaining Bifrost exposure; billable tools absent from permanent VK grants
-- OR-10: `oauth_config_id` in state file only (never in source renderers, Git, or logs)
+- OR-10: `oauth_config_id` in Bifrost config.db only; optional state-file mirror is runtime evidence only, never in source renderers, runtime config.json, Git, IDE configs, or logs
 
 ---
 

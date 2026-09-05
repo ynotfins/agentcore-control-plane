@@ -1105,8 +1105,8 @@
         "LIFECYCLE: installed_dormant -> ready_auth_on_first_use -> authenticated_dormant (OAuth connected) -> jit_leased. Registry status remains 'dormant' by validator contract because tools require a live M6 lease.",
         "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY \u2014 OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
         "ENCRYPTION: BIFROST_ENCRYPTION_KEY required in Windows User scope; OAuth token stored encrypted in data/config.db.",
-        "OAUTH BINDING: Runtime state F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json holds oauth_config_id + mcp_client_id only. After enrollment, runtime config.json must use oauth_config_id (not oauth_config) or restart unbinds the client.",
-        "RENDERER BEHAVIOR: Pre-enrollment git/sanitized renderers embed oauth_config public params. Post-enrollment runtime render substitutes oauth_config_id from state file. Do not commit runtime oauth_config_id into Git renderers (OR-10).",
+        "OAUTH BINDING: Bifrost v2 persists oauth_config_id and OAuth tokens in data/config.db. Runtime state F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json may mirror oauth_config_id + mcp_client_id as operator evidence only; rendered config.json must keep oauth_config public params and must not emit oauth_config_id.",
+        "RENDERER BEHAVIOR: Git/sanitized/runtime renderers embed oauth_config public params. Runtime oauth_config_id values are config.db-owned metadata and are never copied into Git renderers, runtime config.json, IDE configs, or logs (OR-10).",
         "ZERO TOOLS exposed without a live M6 capability lease + Bifrost VK mcp_configs grant via scripts/bifrost/jit_vk_bridge.py. capability_profiles: [operator] is JIT-eligible reference only.",
         "openrouter must NOT appear in capability_profiles[*].allowed_server_ids \u2014 enforced by validator.",
         "JIT governance: M6 PostgreSQL capability_leases. VK updates MUST preserve existing mcp_configs[].id fields or Bifrost returns 409. Failure leaves tools hidden.",
@@ -1117,7 +1117,7 @@
         "AUTHENTICATED LIVE INVENTORY updated 2026-08-05: 22 tools observed through Bifrost. All 22 live tools classified (18 permitted + 4 denied). get-endpoint-uptime-history added to discovery-read; view-skills no longer observed live; install-ori-harness and spawn-ori-eval denied by default.",
         "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
         "No OPENROUTER_MCP_KEY in Windows env \u2014 OAuth token managed by Bifrost config.db only.",
-        "oauth_config_id is runtime-only metadata in F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json. Never committed to Git, source renderers, IDE configs, or logs."
+        "oauth_config_id is Bifrost config.db-owned metadata. If mirrored in F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json, treat it as runtime-only evidence. Never commit it to Git, source renderers, runtime config.json, IDE configs, or logs."
       ]
     },
     "agentcore-project-router": {

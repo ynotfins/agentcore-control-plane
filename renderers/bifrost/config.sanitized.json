@@ -896,7 +896,7 @@
       "BIFROST_MCP_VK_OPERATOR",
       "BIFROST_MCP_VK_CHATGPT"
     ],
-    "oauth_state_note": "Post-enrollment: oauth_config_id loaded from runtime state file (F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) \u2014 present=False. That file is runtime-only and never committed. Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration.",
+    "oauth_state_note": "Bifrost v2 persists oauth_config_id in config.db and ignores config-file oauth_config_id. Runtime state file (F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) present=False; it is runtime-only operator evidence and is never copied into rendered config. oauth_config (public params only) is embedded so the client can be created or reauthorized.",
     "output_schema": {
       "configured": true,
       "enabled": true,

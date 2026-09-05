@@ -25,7 +25,9 @@ SANITIZED_RENDERER = REPO_ROOT / "renderers" / "bifrost" / "config.sanitized.jso
 SANITIZED_CONFIG_COPY = REPO_ROOT / "renderers" / "bifrost" / "config.json"
 
 # Runtime-only OAuth state file (never committed to Git).
-# Written by operator after successful management-API OAuth enrollment.
+# Written by operator after successful management-API OAuth enrollment and read
+# only for operator visibility. Bifrost v2 persists oauth_config_id in config.db;
+# config-file oauth_config_id is ignored and must not be rendered.
 # Format: {"<bifrost_client_name>": {"oauth_config_id": "...", "mcp_client_id": "..."}}
 OAUTH_STATE_PATH = DEFAULT_RUNTIME_ROOT / "state" / "oauth-clients.json"
 
@@ -290,31 +292,13 @@ def build_http_client(server: dict[str, Any], oauth_state: dict[str, Any] | None
         client["headers"] = headers
         client["auth_type"] = server.get("auth_type") or "headers"
 
-    # OAuth handling: prefer oauth_config_id from runtime state (post-enrollment) over inline
-    # oauth_config (pre-enrollment public params).  This prevents re-renders from clobbering an
-    # existing OAuth-bound client in Bifrost's config store.
-    #
-    # Pre-enrollment:   oauth_state absent / no entry for this client
-    #   → emit oauth_config (public params: server_url + scopes only, no secrets)
-    #   → Bifrost registers client as oauth-pending; operator runs management-API enrollment
-    #
-    # Post-enrollment:  oauth_state contains {oauth_config_id: "...", mcp_client_id: "..."}
-    #   → emit oauth_config_id only (no oauth_config inline)
-    #   → Bifrost references the enrolled client; re-render is idempotent
-    #
-    # WARNING: re-rendering without the runtime state file after enrollment may create a new
-    # pending OAuth client and orphan the enrolled one.  Operator must keep
-    # F:\AgentCore\runtime\bifrost\state\oauth-clients.json present after enrollment.
+    # OAuth handling: Bifrost v2 owns oauth_config_id persistence in config.db and
+    # logs that config-file oauth_config_id is ignored. Render only the public
+    # oauth_config params needed to create or reauthorize the OAuth client.
     oauth_cfg = server.get("oauth_config")
     if auth_type == "oauth" and oauth_cfg:
-        state_entry = (oauth_state or {}).get(name, {})
-        oauth_config_id = state_entry.get("oauth_config_id")
-        if oauth_config_id:
-            # Post-enrollment: reference existing Bifrost OAuth record by id
-            client["oauth_config_id"] = oauth_config_id
-        else:
-            # Pre-enrollment: public params only (server_url, scopes — no secrets)
-            client["oauth_config"] = oauth_cfg
+        _ = oauth_state  # state is intentionally not rendered into config.json
+        client["oauth_config"] = oauth_cfg
 
     return client
 
@@ -608,10 +592,11 @@ def build_sanitized_sidecar(
             "BIFROST_MCP_VK_CHATGPT",
         ],
         "oauth_state_note": (
-            "Post-enrollment: oauth_config_id loaded from runtime state file "
-            f"(F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) — present={oauth_state_present}. "
-            "That file is runtime-only and never committed. "
-            "Pre-enrollment: oauth_config (public params only) is embedded for initial Bifrost registration."
+            "Bifrost v2 persists oauth_config_id in config.db and ignores config-file "
+            "oauth_config_id. Runtime state file "
+            f"(F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) present={oauth_state_present}; "
+            "it is runtime-only operator evidence and is never copied into rendered config. "
+            "oauth_config (public params only) is embedded so the client can be created or reauthorized."
         ),
     }
     if output_schema is not None:
@@ -689,15 +674,17 @@ def main() -> int:
     registry = load_json(REGISTRY_PATH)
     gateway_client = load_json(GATEWAY_CLIENT_PATH)
 
-    # Load runtime-only OAuth state (never committed).
-    # Pre-enrollment: empty dict → oauth_config (public params) embedded in config.
-    # Post-enrollment: state file present → oauth_config_id substituted; re-render is idempotent.
+    # Load runtime-only OAuth state (never committed). Bifrost v2 keeps oauth_config_id
+    # in config.db, so this state is status evidence only and is not rendered.
     oauth_state = load_oauth_state(OAUTH_STATE_PATH)
     if oauth_state:
         enrolled = [name for name in oauth_state if oauth_state[name].get("oauth_config_id")]
-        print(f"OAuth state loaded: {len(enrolled)} enrolled client(s): {', '.join(enrolled)}")
+        print(
+            f"OAuth state loaded: {len(enrolled)} enrolled client(s): {', '.join(enrolled)} "
+            "(oauth_config_id is config.db-owned and will not be rendered)"
+        )
     else:
-        print("OAuth state: pre-enrollment (no state file or empty) — oauth_config (public params) will be used")
+        print("OAuth state: no runtime state file or empty; oauth_config (public params) will be rendered")
 
     output_schema = OutputSchemaWiring(registry, enabled=not args.no_output_adapter)
     if not output_schema.configured:

@@ -58,7 +58,7 @@ def ensure_openrouter_client_permitted_tools(registry_path: Path = REGISTRY_PATH
                 break
         if not client_uuid:
             return BridgeResult(False, "client_sync", "", tuple(permitted), "client_not_found")
-        # Minimal PUT — Bifrost merges and preserves oauth_config_id.
+        # Minimal PUT: Bifrost merges and preserves config.db-owned OAuth state.
         _request(
             "PUT",
             f"/api/mcp/client/{client_uuid}",
