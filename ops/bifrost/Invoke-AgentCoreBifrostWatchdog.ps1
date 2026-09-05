@@ -16,7 +16,7 @@ param(
   [string]$TaskPath = '\AgentCore\',
   [int]$StartupGraceSeconds = 120,
   [int]$MaintenanceMarkerTtlSeconds = 900,
-  [int]$FailureThreshold = 3,
+  [int]$FailureThreshold = 2,
   [switch]$TestMode,
   [ValidateSet('Healthy', 'Unhealthy')]
   [string]$TestHealthResult = 'Healthy',

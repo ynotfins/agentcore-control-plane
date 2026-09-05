@@ -343,13 +343,12 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-_HEALTHY_PROMPT_CONTINUITY = {"current", "healthy", "open_no_events"}
+_HEALTHY_PROMPT_CONTINUITY = {"current", "healthy", "open_no_events", "unknown"}
 _UNHEALTHY_PROMPT_CONTINUITY = {
     "stale",
     "projection_stale",
     "closed",
     "closed_no_handoff",
-    "unknown",
 }
 
 

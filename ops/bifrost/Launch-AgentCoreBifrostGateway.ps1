@@ -5,8 +5,8 @@
 .DESCRIPTION
   This script is intentionally long-running. The scheduled task should own this
   PowerShell process, and this PowerShell process owns bifrost-http.exe in the
-  foreground. If bifrost exits unexpectedly, this script exits with the same
-  code so Task Scheduler can restart it.
+  foreground. If bifrost exits unexpectedly, this script restarts it quietly so
+  clean-but-unexpected exits do not leave the gateway offline.
 #>
 [CmdletBinding()]
 param(
@@ -15,7 +15,11 @@ param(
   [int]$Port = 8080,
   [int]$MaxDependencyWaitSeconds = 180,
   [switch]$RequireRedisVectorStore,
-  [long]$MaxLogBytes = 50MB
+  [long]$MaxLogBytes = 50MB,
+  [int]$InitialRestartBackoffSeconds = 2,
+  [int]$MaxRestartBackoffSeconds = 30,
+  [int]$MinRunSecondsForBackoffReset = 30,
+  [int]$MaintenanceMarkerTtlSeconds = 900
 )
 
 $ErrorActionPreference = 'Stop'
@@ -121,8 +125,39 @@ function Invoke-LogRotation {
   }
 }
 
+function Get-MaintenanceMarkerInfo {
+  if (-not (Test-Path -LiteralPath $maintenanceMarker)) {
+    return [pscustomobject]@{ Present = $false; Value = ''; AgeSeconds = $null; Active = $false }
+  }
+  $item = Get-Item -LiteralPath $maintenanceMarker -ErrorAction Stop
+  $ageSeconds = [math]::Floor(((Get-Date).ToUniversalTime() - $item.LastWriteTimeUtc).TotalSeconds)
+  $value = ''
+  try { $value = ((Get-Content -LiteralPath $maintenanceMarker -Raw -ErrorAction Stop) ?? '').Trim() } catch { $value = '' }
+  $active = ($ageSeconds -le $MaintenanceMarkerTtlSeconds)
+  return [pscustomobject]@{ Present = $true; Value = $value; AgeSeconds = $ageSeconds; Active = $active }
+}
+
+function Test-StopMaintenanceMarker {
+  $marker = Get-MaintenanceMarkerInfo
+  if (-not $marker.Present) { return $false }
+  if (-not $marker.Active) {
+    Write-AgentCoreLog "Maintenance marker stale; ignoring for launcher age_seconds=$($marker.AgeSeconds)"
+    return $false
+  }
+  return -not [string]::Equals([string]$marker.Value, 'start_requested', [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Get-NextRestartBackoff([int]$CurrentBackoff, [double]$RuntimeSeconds) {
+  if ($RuntimeSeconds -ge $MinRunSecondsForBackoffReset) { return $InitialRestartBackoffSeconds }
+  $next = [Math]::Max($InitialRestartBackoffSeconds, $CurrentBackoff * 2)
+  return [Math]::Min($next, $MaxRestartBackoffSeconds)
+}
+
+$stateDir = Join-Path $RuntimeRoot 'state'
 $logDir = Join-Path $RuntimeRoot 'logs'
+New-Item -ItemType Directory -Force -Path $stateDir | Out-Null
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+$maintenanceMarker = Join-Path $stateDir 'bifrost-maintenance.marker'
 $stdoutLog = Join-Path $logDir 'bifrost-gateway.stdout.log'
 $stderrLog = Join-Path $logDir 'bifrost-gateway.stderr.log'
 
@@ -151,7 +186,7 @@ if (-not (Test-Path -LiteralPath $configPath)) {
 }
 $redisEndpoint = Get-RedisVectorStoreEndpoint $configPath
 
-Write-AgentCoreLog "Launching AgentCore Bifrost Gateway"
+Write-AgentCoreLog "Launching AgentCore Bifrost Gateway supervisor"
 Write-AgentCoreLog "exe=$exe"
 Write-AgentCoreLog "app_dir=$RuntimeRoot"
 Write-AgentCoreLog "bind=${HostAddress}:${Port}"
@@ -159,23 +194,6 @@ Write-AgentCoreLog ("BIFROST_MCP_VIRTUAL_KEY present={0} length={1}" -f (-not [s
 Write-AgentCoreLog ("BIFROST_ENCRYPTION_KEY present={0}" -f (-not [string]::IsNullOrWhiteSpace($env:BIFROST_ENCRYPTION_KEY)))
 Write-AgentCoreLog "stdout_log=$stdoutLog"
 Write-AgentCoreLog "stderr_log=$stderrLog"
-$redisReady = Wait-ForRedisVectorStore $redisEndpoint
-if ((-not $redisReady) -and $RequireRedisVectorStore) {
-  throw "Redis vector store dependency unavailable after ${MaxDependencyWaitSeconds}s: $redisEndpoint"
-}
-
-# Ensure this scheduled task becomes the sole runtime owner without killing unrelated listeners.
-Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
-  ForEach-Object {
-    if ($_.OwningProcess) {
-      Stop-AgentCoreOwnedProcess -ProcessId $_.OwningProcess -Reason "listener:${Port}"
-    }
-  }
-Get-Process -Name bifrost-http -ErrorAction SilentlyContinue | ForEach-Object {
-  Stop-AgentCoreOwnedProcess -ProcessId $_.Id -Reason 'bifrost-http-name'
-}
-Start-Sleep -Seconds 1
-Invoke-LogRotation
 
 $bifrostArgs = @(
   '-app-dir', $RuntimeRoot,
@@ -185,13 +203,52 @@ $bifrostArgs = @(
   '-log-style', 'json'
 )
 
-try {
-  Write-AgentCoreLog "Starting bifrost-http process..."
-  & $exe @bifrostArgs 1>> $stdoutLog 2>> $stderrLog
-  $exitCode = $LASTEXITCODE
-  Write-AgentCoreLog "bifrost-http process exited code=$exitCode"
-  exit $exitCode
-} catch {
-  Write-AgentCoreLog 'bifrost-http launch failed'
-  exit 1
+$restartBackoffSeconds = $InitialRestartBackoffSeconds
+
+while ($true) {
+  if (Test-StopMaintenanceMarker) {
+    Write-AgentCoreLog 'LAUNCH_SUPPRESSED maintenance_marker'
+    exit 0
+  }
+
+  $redisReady = Wait-ForRedisVectorStore $redisEndpoint
+  if ((-not $redisReady) -and $RequireRedisVectorStore) {
+    throw "Redis vector store dependency unavailable after ${MaxDependencyWaitSeconds}s: $redisEndpoint"
+  }
+
+  # Ensure this scheduled task becomes the sole runtime owner without killing unrelated listeners.
+  Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
+    ForEach-Object {
+      if ($_.OwningProcess) {
+        Stop-AgentCoreOwnedProcess -ProcessId $_.OwningProcess -Reason "listener:${Port}"
+      }
+    }
+  Get-Process -Name bifrost-http -ErrorAction SilentlyContinue | ForEach-Object {
+    Stop-AgentCoreOwnedProcess -ProcessId $_.Id -Reason 'bifrost-http-name'
+  }
+  Start-Sleep -Seconds 1
+  Invoke-LogRotation
+
+  $startedAt = Get-Date
+  $exitCode = 1
+  try {
+    Write-AgentCoreLog "Starting bifrost-http process..."
+    & $exe @bifrostArgs 1>> $stdoutLog 2>> $stderrLog
+    $exitCode = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+  } catch {
+    $exitCode = 1
+    Write-AgentCoreLog "bifrost-http launch failed: $($_.Exception.Message)"
+  }
+
+  $runtimeSeconds = ((Get-Date) - $startedAt).TotalSeconds
+  Write-AgentCoreLog ("bifrost-http process exited code={0} runtime_seconds={1:N1}" -f $exitCode, $runtimeSeconds)
+
+  if (Test-StopMaintenanceMarker) {
+    Write-AgentCoreLog "SUPERVISOR_EXIT maintenance_marker code=$exitCode"
+    exit $exitCode
+  }
+
+  $restartBackoffSeconds = Get-NextRestartBackoff -CurrentBackoff $restartBackoffSeconds -RuntimeSeconds $runtimeSeconds
+  Write-AgentCoreLog "SUPERVISOR_RESTART delay_seconds=$restartBackoffSeconds previous_exit_code=$exitCode"
+  Start-Sleep -Seconds $restartBackoffSeconds
 }

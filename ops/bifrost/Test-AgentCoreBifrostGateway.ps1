@@ -87,6 +87,32 @@ function Get-ValidatorScheduledTask([string]$Name) {
   return Get-ScheduledTask -TaskPath $TaskPath -TaskName $Name -ErrorAction Stop
 }
 
+function Convert-TaskDurationToSeconds($Value) {
+  if ($null -eq $Value) { return $null }
+  if ($Value -is [timespan]) { return [int][math]::Round($Value.TotalSeconds) }
+  $text = [string]$Value
+  if ([string]::IsNullOrWhiteSpace($text)) { return $null }
+  if ($text -match '^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$') {
+    $hours = if ($Matches[1]) { [int]$Matches[1] } else { 0 }
+    $minutes = if ($Matches[2]) { [int]$Matches[2] } else { 0 }
+    $seconds = if ($Matches[3]) { [int]$Matches[3] } else { 0 }
+    return [int]([timespan]::new($hours, $minutes, $seconds)).TotalSeconds
+  }
+  try { return [int][math]::Round(([timespan]::Parse($text)).TotalSeconds) } catch { return $null }
+}
+
+function Get-TaskRepetitionIntervalSeconds($Task) {
+  foreach ($trigger in @($Task.Triggers)) {
+    if ($null -eq $trigger -or $null -eq $trigger.Repetition) { continue }
+    if ($null -ne $trigger.Repetition.IntervalSeconds) {
+      return [int]$trigger.Repetition.IntervalSeconds
+    }
+    $seconds = Convert-TaskDurationToSeconds $trigger.Repetition.Interval
+    if ($null -ne $seconds) { return $seconds }
+  }
+  return $null
+}
+
 function Test-GatewayScheduledTask {
   try {
     $gatewayTask = Get-ValidatorScheduledTask $GatewayTaskName
@@ -111,6 +137,9 @@ function Test-WatchdogScheduledTask {
     Assert-OrWarn ($watchdogArguments -match '-WindowStyle\s+Hidden') 'watchdog scheduled task uses hidden PowerShell' $RequireWatchdogEnabled.IsPresent
     Assert-OrWarn ($watchdogArguments -match '-NonInteractive') 'watchdog scheduled task is non-interactive' $RequireWatchdogEnabled.IsPresent
     Assert-OrWarn ($watchdogArguments -match '-FailureThreshold\s+2') 'watchdog uses debounced failure threshold 2; rerun the installer elevated to replace stale task arguments' $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ([string]$watchdogTask.Settings.MultipleInstances -eq 'IgnoreNew') 'watchdog multiple-instance policy is IgnoreNew; rerun the installer elevated to replace stale overlap-prone settings' $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ((Convert-TaskDurationToSeconds $watchdogTask.Settings.ExecutionTimeLimit) -eq 60) 'watchdog execution time limit is 60 seconds; rerun the installer elevated to replace stale unbounded settings' $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ((Get-TaskRepetitionIntervalSeconds $watchdogTask) -eq 60) 'watchdog repetition interval is 60 seconds; rerun the installer elevated to replace stale trigger cadence' $RequireWatchdogEnabled.IsPresent
     $watchdogUser = [string]$watchdogTask.Principal.UserId
     Assert-OrWarn ($watchdogUser -in @('SYSTEM', 'NT AUTHORITY\SYSTEM')) 'watchdog runs under SYSTEM/service context; rerun the installer elevated to replace stale user-bound tasks' $RequireWatchdogEnabled.IsPresent
     Assert-OrWarn ([string]$watchdogTask.Principal.LogonType -eq 'ServiceAccount') 'watchdog logon type is ServiceAccount; rerun the installer elevated to replace stale interactive tasks' $RequireWatchdogEnabled.IsPresent

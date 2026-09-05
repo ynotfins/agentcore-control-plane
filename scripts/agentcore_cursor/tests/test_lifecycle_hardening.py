@@ -184,6 +184,34 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
 
         self.assertTrue(result["continue"])
 
+    def test_before_submit_allows_unknown_continuity_when_health_flags_pass(self) -> None:
+        data = {
+            "result": {
+                "ok": True,
+                "session_id": "session-test",
+                "project_key": "agentcore-control-plane",
+                "continuity_status": "unknown",
+                "status_flags": {
+                    "durable_backend_available": True,
+                    "project_automatically_resolved": True,
+                    "startup_context_completed": True,
+                },
+            }
+        }
+        with (
+            patch.object(hooks, "load_bootstrap_json", return_value=data),
+            patch.object(hooks, "append_prompt", return_value={"ok": True, "event_id": "event-test"}),
+            patch.object(hooks, "_set_prompt_capture_flag", return_value=True),
+        ):
+            result = hooks.handle_before_submit(
+                {
+                    "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "prompt": "ordinary request after successful recovery",
+                }
+            )
+
+        self.assertTrue(result["continue"])
+
     def test_new_cursor_chat_gets_distinct_task_session_key(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

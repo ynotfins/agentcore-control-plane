@@ -277,6 +277,35 @@ def validator_task_state(
     }
 
 
+def compliant_watchdog_task_state() -> dict[str, object]:
+    return {
+        "Settings": {
+            "Enabled": True,
+            "Hidden": True,
+            "MultipleInstances": "IgnoreNew",
+            "ExecutionTimeLimit": "PT1M",
+        },
+        "Actions": {
+            "Arguments": (
+                "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass "
+                "-File Invoke-AgentCoreBifrostWatchdog.ps1 -FailureThreshold 2"
+            ),
+        },
+        "Principal": {
+            "UserId": "SYSTEM",
+            "LogonType": "ServiceAccount",
+            "RunLevel": "Highest",
+        },
+        "Triggers": [
+            {
+                "Repetition": {
+                    "Interval": "PT1M",
+                },
+            },
+        ],
+    }
+
+
 def run_watchdog(
     runtime_root: Path, health: str, started_at: str, *extra_args: str
 ) -> subprocess.CompletedProcess[str]:
@@ -312,8 +341,8 @@ def test_watchdog_debounces_failures_and_recycles_once_per_incident(tmp_path: Pa
 
     assert first.returncode == 0, first.stderr
     assert "WATCHDOG_FAILURE count=1" in first.stdout
-    assert "WATCHDOG_FAILURE count=2" in second.stdout
-    assert "WATCHDOG_TEST_RECYCLE count=3" in third.stdout
+    assert "WATCHDOG_TEST_RECYCLE count=2" in second.stdout
+    assert "WATCHDOG_RECYCLE_SUPPRESSED" in third.stdout
     assert "WATCHDOG_RECYCLE_SUPPRESSED" in fourth.stdout
 
     state = json.loads((runtime_root / "state" / "bifrost-watchdog.json").read_text())
@@ -407,8 +436,7 @@ def test_watchdog_expires_stale_maintenance_marker_and_honors_exact_120_second_g
 def test_watchdog_rechecks_maintenance_and_persists_recycle_failure(tmp_path: Path) -> None:
     runtime_root = tmp_path / "runtime"
     started_at = "2000-01-01T00:00:00Z"
-    for _ in range(2):
-        assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
+    assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
 
     before_stop = run_watchdog(
         runtime_root, "Unhealthy", started_at, "-TestRecycleOutcome", "BeforeStopMarker"
@@ -421,12 +449,11 @@ def test_watchdog_rechecks_maintenance_and_persists_recycle_failure(tmp_path: Pa
 
     resumed = run_watchdog(runtime_root, "Unhealthy", started_at)
     assert resumed.returncode == 0, resumed.stderr
-    assert "WATCHDOG_TEST_RECYCLE count=4" in resumed.stdout
+    assert "WATCHDOG_TEST_RECYCLE count=3" in resumed.stdout
 
     healthy = run_watchdog(runtime_root, "Healthy", started_at)
     assert healthy.returncode == 0
-    for _ in range(2):
-        assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
+    assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
     before_restart = run_watchdog(
         runtime_root, "Unhealthy", started_at, "-TestRecycleOutcome", "BeforeRestartMarker"
     )
@@ -435,8 +462,7 @@ def test_watchdog_rechecks_maintenance_and_persists_recycle_failure(tmp_path: Pa
 
     healthy = run_watchdog(runtime_root, "Healthy", started_at)
     assert healthy.returncode == 0
-    for _ in range(2):
-        assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
+    assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
     start_failed = run_watchdog(
         runtime_root, "Unhealthy", started_at, "-TestRecycleOutcome", "StartFailure"
     )
@@ -451,8 +477,7 @@ def test_watchdog_rechecks_maintenance_and_persists_recycle_failure(tmp_path: Pa
 
     healthy = run_watchdog(runtime_root, "Healthy", started_at)
     assert healthy.returncode == 0
-    for _ in range(2):
-        assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
+    assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
     stop_failed = run_watchdog(
         runtime_root, "Unhealthy", started_at, "-TestRecycleOutcome", "StopFailure"
     )
@@ -1059,6 +1084,7 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
 def test_verifier_reports_actionable_watchdog_stale_task_failures(tmp_path: Path) -> None:
     stale_watchdog = {
         "Settings": {"Enabled": False, "Hidden": False},
+        "Triggers": [{"Repetition": {"Interval": "PT5M"}}],
         "Actions": {
             "Arguments": (
                 "-NoProfile -ExecutionPolicy Bypass -File Invoke-AgentCoreBifrostWatchdog.ps1"
@@ -1079,6 +1105,9 @@ def test_verifier_reports_actionable_watchdog_stale_task_failures(tmp_path: Path
     assert "FAIL  watchdog scheduled task uses hidden PowerShell" in result.stdout
     assert "FAIL  watchdog scheduled task is non-interactive" in result.stdout
     assert "FAIL  watchdog uses debounced failure threshold 2; rerun the installer elevated" in result.stdout
+    assert "FAIL  watchdog multiple-instance policy is IgnoreNew; rerun the installer elevated" in result.stdout
+    assert "FAIL  watchdog execution time limit is 60 seconds; rerun the installer elevated" in result.stdout
+    assert "FAIL  watchdog repetition interval is 60 seconds; rerun the installer elevated" in result.stdout
     assert "FAIL  watchdog runs under SYSTEM/service context; rerun the installer elevated" in result.stdout
     assert "FAIL  watchdog logon type is ServiceAccount; rerun the installer elevated" in result.stdout
     assert "FAIL  watchdog run level is Highest; rerun the installer elevated" in result.stdout
@@ -1088,6 +1117,21 @@ def test_verifier_reports_actionable_watchdog_stale_task_failures(tmp_path: Path
     assert missing.returncode == 1
     assert "FAIL  watchdog scheduled task validation: scheduled task model missing" in missing.stdout
     assert "rerun the installer elevated to register the managed watchdog task" in missing.stdout
+
+
+def test_verifier_accepts_compliant_watchdog_task_profile(tmp_path: Path) -> None:
+    result = run_task_only_validator(
+        validator_task_state(compliant_watchdog_task_state()),
+        tmp_path,
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "PASS  watchdog scheduled task enabled" in result.stdout
+    assert "PASS  watchdog multiple-instance policy is IgnoreNew" in result.stdout
+    assert "PASS  watchdog execution time limit is 60 seconds" in result.stdout
+    assert "PASS  watchdog repetition interval is 60 seconds" in result.stdout
+    assert "PASS  watchdog runs under SYSTEM/service context" in result.stdout
+    assert "RESULT: PASSED" in result.stdout
 
 
 def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
@@ -1110,7 +1154,11 @@ def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     assert "Stop-AgentCoreOwnedProcess" in launcher
     assert "Refusing to stop non-AgentCore process" in launcher
     assert "Rotate-BifrostLogs.ps1" in launcher
-    assert "while ($true)" not in launcher
+    assert "while ($true)" in launcher
+    assert "SUPERVISOR_RESTART" in launcher
+    assert "SUPERVISOR_EXIT maintenance_marker" in launcher
+    assert "bifrost-maintenance.marker" in launcher
+    assert "MinRunSecondsForBackoffReset" in launcher
     assert "bifrost-maintenance.marker" in starter
     assert "bifrost-maintenance.marker" in stopper
     assert "bifrost-maintenance.marker" in status
