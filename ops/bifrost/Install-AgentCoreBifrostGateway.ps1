@@ -138,6 +138,7 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
         restart_count = 0
         start_when_available = $true
         multiple_instances = 'IgnoreNew'
+        hidden = $true
       }
       principal = [ordered]@{
         user_id = 'SYSTEM'
@@ -233,6 +234,10 @@ function New-InstallerScheduledTaskSettings($Spec, [string]$Scope) {
   if ($Spec.Contains('restart_interval_seconds')) {
     $parameters.RestartInterval = [TimeSpan]::FromSeconds([int]$Spec.restart_interval_seconds)
     $capturedParameters.RestartIntervalSeconds = [int]$Spec.restart_interval_seconds
+  }
+  if ($Spec.Contains('hidden')) {
+    $parameters.Hidden = [bool]$Spec.hidden
+    $capturedParameters.Hidden = [bool]$Spec.hidden
   }
   $capturedParameters.StartWhenAvailable = [bool]$Spec.start_when_available
   $capturedParameters.MultipleInstances = [string]$Spec.multiple_instances

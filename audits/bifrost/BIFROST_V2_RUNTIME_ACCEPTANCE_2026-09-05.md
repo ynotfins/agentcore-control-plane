@@ -42,6 +42,16 @@ Baseline commit before this audit note: `55bdd82`
   - `scripts/bifrost/validate_contracts.py`
   - `scripts/bifrost/test_contracts.py`
   - focused pytest set for Bifrost renderer/watchdog and Cursor hook gates
+- Watchdog installer source now defines the watchdog scheduled task with:
+  - `NT AUTHORITY\SYSTEM` / `ServiceAccount`
+  - `RunLevel Highest`
+  - `-WindowStyle Hidden`
+  - `-NonInteractive`
+  - `-FailureThreshold 2`
+  - task setting `Hidden = true`
+- Watchdog verifier now fails actionably under `-RequireWatchdogEnabled` when
+  the live task is disabled, visible, user-bound, interactive, limited, or
+  missing `-FailureThreshold 2`.
 - Tracked source secret scan passed.
 - Live Codex config was sanitized so raw OpenRouter/related key literals are no
   longer present in `C:\Users\ynotf\.codex\config.toml`.
@@ -81,8 +91,9 @@ or recovery path was unhealthy.
 
 This audit is not final acceptance. These gates remain open:
 
-- Watchdog is registered but currently disabled and not installed as
-  SYSTEM/Highest. Non-elevated enable attempts returned `Access is denied`.
+- Watchdog is registered but currently disabled, visible in task settings, and
+  not installed as SYSTEM/Highest. Non-elevated enable attempts returned
+  `Access is denied`.
 - Zero-popup watchdog behavior is source-configured but not live-proven until the
   elevated registration is applied.
 - Failure-recovery proof is not complete until the watchdog is enabled in

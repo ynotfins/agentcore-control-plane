@@ -234,6 +234,49 @@ def installer_task_calls(runtime_root: Path) -> list[dict[str, object]]:
     return json.loads(matching_lines[0][len(marker):])
 
 
+def run_task_only_validator(
+    task_state: dict[str, object],
+    tmp_path: Path,
+    *,
+    require_watchdog: bool = True,
+) -> subprocess.CompletedProcess[str]:
+    state_path = tmp_path / "scheduled-task-state.json"
+    state_path.write_text(json.dumps(task_state), encoding="utf-8")
+    arguments = [
+        "pwsh", "-NoProfile", "-File",
+        str(REPO_ROOT / "ops" / "bifrost" / "Test-AgentCoreBifrostGateway.ps1"),
+        "-TestMode", "-TestScheduledTasksOnly",
+        "-TestScheduledTaskStatePath", str(state_path),
+    ]
+    if require_watchdog:
+        arguments.append("-RequireWatchdogEnabled")
+    return subprocess.run(
+        arguments,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def validator_task_state(
+    watchdog: dict[str, object] | None,
+) -> dict[str, object]:
+    return {
+        "gateway": {
+            "Settings": {"Enabled": True},
+            "Actions": {
+                "Arguments": "-NoProfile -NonInteractive -WindowStyle Hidden",
+            },
+            "Principal": {
+                "UserId": os.environ["USERNAME"],
+                "LogonType": "Interactive",
+                "RunLevel": "Limited",
+            },
+        },
+        "watchdog": watchdog,
+    }
+
+
 def run_watchdog(
     runtime_root: Path, health: str, started_at: str, *extra_args: str
 ) -> subprocess.CompletedProcess[str]:
@@ -750,7 +793,11 @@ def test_installer_failure_after_render_restores_config_environment_and_tasks(
     assert "sentinel-value" not in result.stderr
     assert live_config.read_bytes() == original_config
     assert json.loads(environment_state.read_text(encoding="utf-8")) == initial_environment
-    task_model = json.loads(result.stdout.split("INSTALL_TASK_MODEL ")[-1])
+    task_model_line = [
+        line for line in result.stdout.splitlines()
+        if line.startswith("INSTALL_TASK_MODEL ")
+    ][-1]
+    task_model = json.loads(task_model_line.removeprefix("INSTALL_TASK_MODEL "))
     assert task_model == {"gateway": "gateway-original", "watchdog": "watchdog-original"}
     assert "INSTALL_ROLLBACK config=restored environment=restored" in result.stdout
 
@@ -811,6 +858,35 @@ def test_installer_success_writes_both_managed_config_projections(tmp_path: Path
     candidate_bytes = rendered_config.read_bytes()
     assert (runtime_root / "config.json").read_bytes() == candidate_bytes
     assert (runtime_root / "config" / "config.json").read_bytes() == candidate_bytes
+
+
+def test_installer_success_replaces_existing_stale_watchdog_task() -> None:
+    installer = REPO_ROOT / "ops" / "bifrost" / "Install-AgentCoreBifrostGateway.ps1"
+    result = subprocess.run(
+        [
+            "pwsh", "-NoProfile", "-File", str(installer), "-TestMode",
+            "-TestGatewayTaskModel", "Present",
+            "-TestWatchdogTaskModel", "Present",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "INSTALL_TEST_REGISTER AgentCore-Bifrost-Gateway" in result.stdout
+    assert "INSTALL_TEST_REGISTER AgentCore-Bifrost-Watchdog" in result.stdout
+    task_model_line = [
+        line for line in result.stdout.splitlines()
+        if line.startswith("INSTALL_TASK_MODEL ")
+    ][-1]
+    task_model = json.loads(task_model_line.removeprefix("INSTALL_TASK_MODEL "))
+    assert task_model == {"gateway": "gateway-new", "watchdog": "watchdog-new"}
+
+    installer_source = installer.read_text(encoding="utf-8")
+    assert "Get-TaskInstallBackups" in installer_source
+    assert "Get-TaskDefinitionBackup $WatchdogTaskName" in installer_source
+    assert "Register-ScheduledTask -TaskPath $TaskPath -TaskName $Name -InputObject $Task -Force" in installer_source
 
 
 def test_installer_rejects_semantically_invalid_staged_config_before_mutation(
@@ -875,7 +951,9 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
         "restart_count": 0,
         "start_when_available": True,
         "multiple_instances": "IgnoreNew",
+        "hidden": True,
     }
+    assert specs["watchdog"]["settings"]["hidden"] is True
     assert specs["watchdog"]["settings"]["multiple_instances"] == "IgnoreNew"
     assert specs["watchdog"]["principal"] == {
         "user_id": "SYSTEM",
@@ -941,6 +1019,7 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         "DontStopIfGoingOnBatteries": True,
         "ExecutionTimeLimitSeconds": 60,
         "RestartCount": 0,
+        "Hidden": True,
         "StartWhenAvailable": True,
         "MultipleInstances": "IgnoreNew",
     }
@@ -977,6 +1056,40 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
     assert trigger_at <= finished_at + timedelta(seconds=65)
 
 
+def test_verifier_reports_actionable_watchdog_stale_task_failures(tmp_path: Path) -> None:
+    stale_watchdog = {
+        "Settings": {"Enabled": False, "Hidden": False},
+        "Actions": {
+            "Arguments": (
+                "-NoProfile -ExecutionPolicy Bypass -File Invoke-AgentCoreBifrostWatchdog.ps1"
+            ),
+        },
+        "Principal": {
+            "UserId": os.environ["USERNAME"],
+            "LogonType": "Interactive",
+            "RunLevel": "Limited",
+        },
+    }
+
+    result = run_task_only_validator(validator_task_state(stale_watchdog), tmp_path)
+
+    assert result.returncode == 1
+    assert "FAIL  watchdog scheduled task enabled; rerun the installer elevated" in result.stdout
+    assert "FAIL  watchdog scheduled task Hidden setting is true; rerun the installer elevated" in result.stdout
+    assert "FAIL  watchdog scheduled task uses hidden PowerShell" in result.stdout
+    assert "FAIL  watchdog scheduled task is non-interactive" in result.stdout
+    assert "FAIL  watchdog uses debounced failure threshold 2; rerun the installer elevated" in result.stdout
+    assert "FAIL  watchdog runs under SYSTEM/service context; rerun the installer elevated" in result.stdout
+    assert "FAIL  watchdog logon type is ServiceAccount; rerun the installer elevated" in result.stdout
+    assert "FAIL  watchdog run level is Highest; rerun the installer elevated" in result.stdout
+    assert "RESULT: FAILED" in result.stdout
+
+    missing = run_task_only_validator(validator_task_state(None), tmp_path)
+    assert missing.returncode == 1
+    assert "FAIL  watchdog scheduled task validation: scheduled task model missing" in missing.stdout
+    assert "rerun the installer elevated to register the managed watchdog task" in missing.stdout
+
+
 def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     watchdog = WATCHDOG.read_text(encoding="utf-8")
     installer = (REPO_ROOT / "ops" / "bifrost" / "Install-AgentCoreBifrostGateway.ps1").read_text(encoding="utf-8")
@@ -1002,6 +1115,7 @@ def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     assert "bifrost-maintenance.marker" in stopper
     assert "bifrost-maintenance.marker" in status
     assert "RequireWatchdogEnabled" in validator
+    assert "TestScheduledTasksOnly" in validator
     assert "RequireOpenRouterMcpHealthy" in validator
     assert "RequireSemanticCacheHealthy" in validator
     assert "listToolFiles" in validator

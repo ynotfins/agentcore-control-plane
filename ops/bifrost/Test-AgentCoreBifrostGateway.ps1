@@ -15,7 +15,10 @@ param(
   [long]$MaxActiveLogBytes = 52428800,
   [switch]$RequireWatchdogEnabled,
   [switch]$RequireOpenRouterMcpHealthy,
-  [switch]$RequireSemanticCacheHealthy
+  [switch]$RequireSemanticCacheHealthy,
+  [switch]$TestMode,
+  [switch]$TestScheduledTasksOnly,
+  [string]$TestScheduledTaskStatePath = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -67,6 +70,67 @@ function Get-McpTextContent($Payload) {
   return (@($Payload.result.content | Where-Object { $_.type -eq 'text' } | ForEach-Object { [string]$_.text }) -join "`n")
 }
 
+function Get-ValidatorScheduledTask([string]$Name) {
+  if ($TestMode) {
+    if ([string]::IsNullOrWhiteSpace($TestScheduledTaskStatePath) -or
+        -not (Test-Path -LiteralPath $TestScheduledTaskStatePath -PathType Leaf)) {
+      throw 'VALIDATOR_TEST_SCHEDULED_TASK_STATE_REQUIRED'
+    }
+    $state = Get-Content -Raw -LiteralPath $TestScheduledTaskStatePath | ConvertFrom-Json -Depth 20 -ErrorAction Stop
+    $key = if ($Name -eq $GatewayTaskName) { 'gateway' } else { 'watchdog' }
+    $task = $state.$key
+    if ($null -eq $task) {
+      throw "scheduled task model missing: $TaskPath$Name"
+    }
+    return $task
+  }
+  return Get-ScheduledTask -TaskPath $TaskPath -TaskName $Name -ErrorAction Stop
+}
+
+function Test-GatewayScheduledTask {
+  try {
+    $gatewayTask = Get-ValidatorScheduledTask $GatewayTaskName
+    Assert-True $true "gateway scheduled task registered: $TaskPath$GatewayTaskName"
+    Assert-True ([bool]$gatewayTask.Settings.Enabled) 'gateway scheduled task enabled'
+    $gatewayArguments = [string]$gatewayTask.Actions.Arguments
+    Assert-True ($gatewayArguments -match '-WindowStyle\s+Hidden') 'gateway scheduled task uses hidden PowerShell'
+    Assert-True ($gatewayArguments -match '-NonInteractive') 'gateway scheduled task is non-interactive'
+  } catch {
+    Write-Host "FAIL  gateway scheduled task validation: $($_.Exception.Message)"
+    $script:failed = $true
+  }
+}
+
+function Test-WatchdogScheduledTask {
+  try {
+    $watchdogTask = Get-ValidatorScheduledTask $WatchdogTaskName
+    Assert-OrWarn $true "watchdog scheduled task registered: $TaskPath$WatchdogTaskName" $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ([bool]$watchdogTask.Settings.Enabled) 'watchdog scheduled task enabled; rerun the installer elevated to replace stale disabled tasks' $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ([bool]$watchdogTask.Settings.Hidden) 'watchdog scheduled task Hidden setting is true; rerun the installer elevated to replace stale visible tasks' $RequireWatchdogEnabled.IsPresent
+    $watchdogArguments = [string]$watchdogTask.Actions.Arguments
+    Assert-OrWarn ($watchdogArguments -match '-WindowStyle\s+Hidden') 'watchdog scheduled task uses hidden PowerShell' $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ($watchdogArguments -match '-NonInteractive') 'watchdog scheduled task is non-interactive' $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ($watchdogArguments -match '-FailureThreshold\s+2') 'watchdog uses debounced failure threshold 2; rerun the installer elevated to replace stale task arguments' $RequireWatchdogEnabled.IsPresent
+    $watchdogUser = [string]$watchdogTask.Principal.UserId
+    Assert-OrWarn ($watchdogUser -in @('SYSTEM', 'NT AUTHORITY\SYSTEM')) 'watchdog runs under SYSTEM/service context; rerun the installer elevated to replace stale user-bound tasks' $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ([string]$watchdogTask.Principal.LogonType -eq 'ServiceAccount') 'watchdog logon type is ServiceAccount; rerun the installer elevated to replace stale interactive tasks' $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ([string]$watchdogTask.Principal.RunLevel -eq 'Highest') 'watchdog run level is Highest; rerun the installer elevated to replace stale limited tasks' $RequireWatchdogEnabled.IsPresent
+  } catch {
+    Assert-OrWarn $false "watchdog scheduled task validation: $($_.Exception.Message); rerun the installer elevated to register the managed watchdog task" $RequireWatchdogEnabled.IsPresent
+  }
+}
+
+if ($TestScheduledTasksOnly) {
+  Test-GatewayScheduledTask
+  Test-WatchdogScheduledTask
+  if ($failed) {
+    Write-Host 'RESULT: FAILED'
+    exit 1
+  }
+  Write-Host 'RESULT: PASSED'
+  exit 0
+}
+
 $configPath = Join-Path $RuntimeRoot 'config.json'
 Assert-True (Test-Path -LiteralPath $configPath) "config.json exists at $configPath"
 Assert-True (Test-Path -LiteralPath (Join-Path $RuntimeRoot 'bin\bifrost-http.exe')) 'bifrost-http.exe present'
@@ -93,32 +157,8 @@ if (Test-Path -LiteralPath $activeLog) {
   Assert-True ($activeLogLength -le $MaxActiveLogBytes) "active stdout log is bounded ($activeLogLength bytes)"
 }
 
-try {
-  $gatewayTask = Get-ScheduledTask -TaskPath $TaskPath -TaskName $GatewayTaskName -ErrorAction Stop
-  Assert-True $true "gateway scheduled task registered: $TaskPath$GatewayTaskName"
-  Assert-True ([bool]$gatewayTask.Settings.Enabled) 'gateway scheduled task enabled'
-  $gatewayArguments = [string]$gatewayTask.Actions.Arguments
-  Assert-True ($gatewayArguments -match '-WindowStyle\s+Hidden') 'gateway scheduled task uses hidden PowerShell'
-  Assert-True ($gatewayArguments -match '-NonInteractive') 'gateway scheduled task is non-interactive'
-} catch {
-  Write-Host "FAIL  gateway scheduled task validation: $($_.Exception.Message)"
-  $failed = $true
-}
-
-try {
-  $watchdogTask = Get-ScheduledTask -TaskPath $TaskPath -TaskName $WatchdogTaskName -ErrorAction Stop
-  Assert-OrWarn $true "watchdog scheduled task registered: $TaskPath$WatchdogTaskName" $RequireWatchdogEnabled.IsPresent
-  Assert-OrWarn ([bool]$watchdogTask.Settings.Enabled) 'watchdog scheduled task enabled' $RequireWatchdogEnabled.IsPresent
-  $watchdogArguments = [string]$watchdogTask.Actions.Arguments
-  Assert-OrWarn ($watchdogArguments -match '-WindowStyle\s+Hidden') 'watchdog scheduled task uses hidden PowerShell' $RequireWatchdogEnabled.IsPresent
-  Assert-OrWarn ($watchdogArguments -match '-NonInteractive') 'watchdog scheduled task is non-interactive' $RequireWatchdogEnabled.IsPresent
-  Assert-OrWarn ($watchdogArguments -match '-FailureThreshold\s+2') 'watchdog uses debounced failure threshold 2' $RequireWatchdogEnabled.IsPresent
-  $watchdogUser = [string]$watchdogTask.Principal.UserId
-  Assert-OrWarn ($watchdogUser -in @('SYSTEM', 'NT AUTHORITY\SYSTEM')) 'watchdog runs under SYSTEM/service context' $RequireWatchdogEnabled.IsPresent
-  Assert-OrWarn ([string]$watchdogTask.Principal.RunLevel -eq 'Highest') 'watchdog run level is Highest' $RequireWatchdogEnabled.IsPresent
-} catch {
-  Assert-OrWarn $false "watchdog scheduled task validation: $($_.Exception.Message)" $RequireWatchdogEnabled.IsPresent
-}
+Test-GatewayScheduledTask
+Test-WatchdogScheduledTask
 
 $validate = Join-Path $RepoRoot 'scripts\bifrost\validate_contracts.py'
 if (Test-Path -LiteralPath $validate) {
