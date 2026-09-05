@@ -7,7 +7,15 @@ param(
   [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$BaseUrl = 'http://127.0.0.1:8080',
   [string]$RepoRoot = 'D:\github\agentcore-control-plane',
-  [string]$CursorMcpPath = 'C:\Users\ynotf\.cursor\mcp.json'
+  [string]$CursorMcpPath = 'C:\Users\ynotf\.cursor\mcp.json',
+  [string]$ExpectedVersion = 'v2.0.0',
+  [string]$TaskPath = '\AgentCore\',
+  [string]$GatewayTaskName = 'AgentCore-Bifrost-Gateway',
+  [string]$WatchdogTaskName = 'AgentCore-Bifrost-Watchdog',
+  [long]$MaxActiveLogBytes = 52428800,
+  [switch]$RequireWatchdogEnabled,
+  [switch]$RequireOpenRouterMcpHealthy,
+  [switch]$RequireSemanticCacheHealthy
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,6 +27,17 @@ function Assert-True([bool]$Condition, [string]$Label) {
   } else {
     Write-Host "FAIL  $Label"
     $script:failed = $true
+  }
+}
+
+function Assert-OrWarn([bool]$Condition, [string]$Label, [bool]$Required) {
+  if ($Condition) {
+    Write-Host "PASS  $Label"
+  } elseif ($Required) {
+    Write-Host "FAIL  $Label"
+    $script:failed = $true
+  } else {
+    Write-Host "WARN  $Label"
   }
 }
 
@@ -43,6 +62,11 @@ function Invoke-McpJson([string]$Method, [hashtable]$Params, [int]$Id, [hashtabl
   return $raw | ConvertFrom-Json -Depth 50
 }
 
+function Get-McpTextContent($Payload) {
+  if ($null -eq $Payload.result -or $null -eq $Payload.result.content) { return '' }
+  return (@($Payload.result.content | Where-Object { $_.type -eq 'text' } | ForEach-Object { [string]$_.text }) -join "`n")
+}
+
 $configPath = Join-Path $RuntimeRoot 'config.json'
 Assert-True (Test-Path -LiteralPath $configPath) "config.json exists at $configPath"
 Assert-True (Test-Path -LiteralPath (Join-Path $RuntimeRoot 'bin\bifrost-http.exe')) 'bifrost-http.exe present'
@@ -52,6 +76,48 @@ if (Test-Path -LiteralPath $configPath) {
   Assert-True ($raw -notmatch 'sk-proj-|sk-ant-|ghp_') 'config.json has no obvious secret literals'
   Assert-True ($raw -match 'env\.BIFROST_MCP_VIRTUAL_KEY') 'builder VK uses env.BIFROST_MCP_VIRTUAL_KEY'
   Assert-True ($raw -match '"mcp_disable_auto_tool_inject"\s*:\s*true') 'mcp_disable_auto_tool_inject true'
+}
+
+try {
+  $versionResponse = Invoke-RestMethod -Uri "$BaseUrl/api/version" -TimeoutSec 5
+  $versionText = if ($versionResponse -is [string]) { $versionResponse } else { [string]$versionResponse.version }
+  Assert-True ($versionText -eq $ExpectedVersion) "Bifrost version is $ExpectedVersion"
+} catch {
+  Write-Host "FAIL  Bifrost version check: $($_.Exception.Message)"
+  $failed = $true
+}
+
+$activeLog = Join-Path $RuntimeRoot 'logs\bifrost-gateway.stdout.log'
+if (Test-Path -LiteralPath $activeLog) {
+  $activeLogLength = (Get-Item -LiteralPath $activeLog).Length
+  Assert-True ($activeLogLength -le $MaxActiveLogBytes) "active stdout log is bounded ($activeLogLength bytes)"
+}
+
+try {
+  $gatewayTask = Get-ScheduledTask -TaskPath $TaskPath -TaskName $GatewayTaskName -ErrorAction Stop
+  Assert-True $true "gateway scheduled task registered: $TaskPath$GatewayTaskName"
+  Assert-True ([bool]$gatewayTask.Settings.Enabled) 'gateway scheduled task enabled'
+  $gatewayArguments = [string]$gatewayTask.Actions.Arguments
+  Assert-True ($gatewayArguments -match '-WindowStyle\s+Hidden') 'gateway scheduled task uses hidden PowerShell'
+  Assert-True ($gatewayArguments -match '-NonInteractive') 'gateway scheduled task is non-interactive'
+} catch {
+  Write-Host "FAIL  gateway scheduled task validation: $($_.Exception.Message)"
+  $failed = $true
+}
+
+try {
+  $watchdogTask = Get-ScheduledTask -TaskPath $TaskPath -TaskName $WatchdogTaskName -ErrorAction Stop
+  Assert-OrWarn $true "watchdog scheduled task registered: $TaskPath$WatchdogTaskName" $RequireWatchdogEnabled.IsPresent
+  Assert-OrWarn ([bool]$watchdogTask.Settings.Enabled) 'watchdog scheduled task enabled' $RequireWatchdogEnabled.IsPresent
+  $watchdogArguments = [string]$watchdogTask.Actions.Arguments
+  Assert-OrWarn ($watchdogArguments -match '-WindowStyle\s+Hidden') 'watchdog scheduled task uses hidden PowerShell' $RequireWatchdogEnabled.IsPresent
+  Assert-OrWarn ($watchdogArguments -match '-NonInteractive') 'watchdog scheduled task is non-interactive' $RequireWatchdogEnabled.IsPresent
+  Assert-OrWarn ($watchdogArguments -match '-FailureThreshold\s+2') 'watchdog uses debounced failure threshold 2' $RequireWatchdogEnabled.IsPresent
+  $watchdogUser = [string]$watchdogTask.Principal.UserId
+  Assert-OrWarn ($watchdogUser -in @('SYSTEM', 'NT AUTHORITY\SYSTEM')) 'watchdog runs under SYSTEM/service context' $RequireWatchdogEnabled.IsPresent
+  Assert-OrWarn ([string]$watchdogTask.Principal.RunLevel -eq 'Highest') 'watchdog run level is Highest' $RequireWatchdogEnabled.IsPresent
+} catch {
+  Assert-OrWarn $false "watchdog scheduled task validation: $($_.Exception.Message)" $RequireWatchdogEnabled.IsPresent
 }
 
 $validate = Join-Path $RepoRoot 'scripts\bifrost\validate_contracts.py'
@@ -140,6 +206,23 @@ if (-not [string]::IsNullOrWhiteSpace($vk)) {
       foreach ($metaTool in @('listToolFiles', 'readToolFile', 'getToolDocs', 'executeToolCode')) {
         Assert-True ($toolNames -contains $metaTool) "Code Mode meta-tool present: $metaTool"
       }
+      $toolFiles = Invoke-McpJson -Method 'tools/call' -Params @{
+        name      = 'listToolFiles'
+        arguments = @{}
+      } -Id 1003 -Headers $headers
+      $toolFileText = Get-McpTextContent $toolFiles
+      Assert-True ($toolFileText -match 'morph_mcp\.pyi') 'Code Mode exposes Morph tool file'
+      Assert-True ($toolFileText -match 'playwright\.pyi') 'Code Mode exposes Playwright tool file'
+      $morphToolFile = Invoke-McpJson -Method 'tools/call' -Params @{
+        name      = 'readToolFile'
+        arguments = @{ fileName = 'servers/morph_mcp.pyi' }
+      } -Id 1004 -Headers $headers
+      Assert-True ((Get-McpTextContent $morphToolFile) -match 'def edit_file\(') 'Code Mode Morph edit_file signature readable'
+      $playwrightToolFile = Invoke-McpJson -Method 'tools/call' -Params @{
+        name      = 'readToolFile'
+        arguments = @{ fileName = 'servers/playwright.pyi' }
+      } -Id 1005 -Headers $headers
+      Assert-True ((Get-McpTextContent $playwrightToolFile) -match 'def browser_') 'Code Mode Playwright signatures readable'
     }
     foreach ($serverProp in $activeBuilderServers) {
       if ($serverProp.Value.is_code_mode_client -eq $true) {
@@ -176,6 +259,37 @@ if (Test-Path -LiteralPath $CursorMcpPath) {
 } else {
   Write-Host "FAIL  Cursor MCP config missing: $CursorMcpPath"
   $failed = $true
+}
+
+$adminKey = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_KEY', 'Process')
+if (-not $adminKey) { $adminKey = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_KEY', 'User') }
+if ($adminKey) {
+  $adminHeaders = @{ Authorization = "Bearer $adminKey" }
+  try {
+    $clients = Invoke-RestMethod -Uri "$BaseUrl/api/mcp/clients" -Headers $adminHeaders -TimeoutSec 10
+    $openrouterClients = @($clients.clients | Where-Object { $_.config.name -eq 'openrouter' })
+    Assert-OrWarn ($openrouterClients.Count -eq 1) 'OpenRouter MCP client registered exactly once' $RequireOpenRouterMcpHealthy.IsPresent
+    if ($openrouterClients.Count -eq 1) {
+      $openrouterState = [string]$openrouterClients[0].state
+      Assert-OrWarn ($openrouterState -notin @('unstable', 'error', 'failed')) "OpenRouter MCP not degraded (state=$openrouterState)" $RequireOpenRouterMcpHealthy.IsPresent
+    }
+  } catch {
+    Assert-OrWarn $false "OpenRouter MCP admin check: $($_.Exception.Message)" $RequireOpenRouterMcpHealthy.IsPresent
+  }
+
+  try {
+    $plugins = Invoke-RestMethod -Uri "$BaseUrl/api/plugins" -Headers $adminHeaders -TimeoutSec 10
+    $semanticCache = @($plugins.plugins | Where-Object { $_.name -eq 'semantic_cache' -or $_.actualName -eq 'semantic_cache' })
+    Assert-OrWarn ($semanticCache.Count -eq 1) 'semantic_cache plugin registered exactly once' $RequireSemanticCacheHealthy.IsPresent
+    if ($semanticCache.Count -eq 1) {
+      $semanticStatus = [string]$semanticCache[0].status.status
+      Assert-OrWarn ($semanticStatus -notin @('error', 'failed')) "semantic_cache plugin not degraded (status=$semanticStatus)" $RequireSemanticCacheHealthy.IsPresent
+    }
+  } catch {
+    Assert-OrWarn $false "semantic_cache admin check: $($_.Exception.Message)" $RequireSemanticCacheHealthy.IsPresent
+  }
+} else {
+  Assert-OrWarn $false 'BIFROST_ADMIN_KEY is set for admin health checks (value not shown)' ($RequireOpenRouterMcpHealthy.IsPresent -or $RequireSemanticCacheHealthy.IsPresent)
 }
 
 if ($failed) {

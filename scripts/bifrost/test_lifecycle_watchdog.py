@@ -983,6 +983,7 @@ def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     starter = (REPO_ROOT / "ops" / "bifrost" / "Start-AgentCoreBifrostGateway.ps1").read_text(encoding="utf-8")
     stopper = (REPO_ROOT / "ops" / "bifrost" / "Stop-AgentCoreBifrostGateway.ps1").read_text(encoding="utf-8")
     status = (REPO_ROOT / "ops" / "bifrost" / "Get-BifrostStatus.ps1").read_text(encoding="utf-8")
+    validator = (REPO_ROOT / "ops" / "bifrost" / "Test-AgentCoreBifrostGateway.ps1").read_text(encoding="utf-8")
 
     assert "Stop-ScheduledTask" in watchdog
     assert "Start-ScheduledTask" in watchdog
@@ -999,4 +1000,11 @@ def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     assert "bifrost-maintenance.marker" in starter
     assert "bifrost-maintenance.marker" in stopper
     assert "bifrost-maintenance.marker" in status
+    assert "RequireWatchdogEnabled" in validator
+    assert "RequireOpenRouterMcpHealthy" in validator
+    assert "RequireSemanticCacheHealthy" in validator
+    assert "listToolFiles" in validator
+    assert "readToolFile" in validator
+    assert "/api/mcp/clients" in validator
+    assert "/api/plugins" in validator
     assert HARNESS.is_file()
