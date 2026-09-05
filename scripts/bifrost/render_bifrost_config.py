@@ -557,7 +557,7 @@ def build_bifrost_config(
             "virtual_keys": build_virtual_keys(registry),
         },
         # Semantic caching (direct-only mode, no embedding cost)
-        # Redis on localhost:6379; dimension=1 = hash-based exact-match only
+        # Dedicated Redis Stack on 127.0.0.1:6381; dimension=1 = hash-based exact-match only
         # default_cache_key means ALL gateway requests are cache-eligible with no header changes
         # TTL=30m: cached responses expire after 30 min; re-runs get fresh answers
         # AUTH-2026-08-30-SEMANTIC-CACHE: approved operator-level config change
@@ -565,7 +565,7 @@ def build_bifrost_config(
             "enabled": True,
             "type": "redis",
             "config": {
-                "addr": "localhost:6379",
+                "addr": "127.0.0.1:6381",
             },
         },
         "plugins": [
