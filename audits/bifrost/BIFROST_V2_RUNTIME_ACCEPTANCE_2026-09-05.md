@@ -57,6 +57,15 @@ Baseline commit before this audit note: `55bdd82`
   Live report showed Bifrost `v2.0.0`, 2 providers, 6 virtual keys, 11 MCP
   clients, semantic cache active, MCP auto-inject disabled, inference auth
   enforced, and Enterprise-only features not enabled.
+- Dry-run-first Bifrost Skills Repository sync added:
+  `ops/bifrost/Sync-AgentCoreBifrostSkillsRepository.ps1`.
+  It scans only approved local AgentCore skills, defaults to no-write mode,
+  blocks obvious secret material in outgoing payloads, and requires an admin key
+  for live `POST`/`PUT` calls.
+- Live Skills Repository apply at `2026-09-05T00:15:44-04:00` created exactly:
+  `agentcore-project-lifecycle` and `langfuse`.
+- Follow-up dry run skipped both approved skills as already existing, and the
+  read-only feature adoption reporter showed `skills_repository_count = 2`.
 - Tracked source secret scan passed.
 - Live Codex config was sanitized so raw OpenRouter/related key literals are no
   longer present in `C:\Users\ynotf\.codex\config.toml`.
@@ -92,6 +101,40 @@ AgentCore cannot establish a healthy durable project session. This is deliberate
 the prior fail-open behavior allowed expensive prompts to run while the gateway
 or recovery path was unhealthy.
 
+## Cursor Pre-Restart Stabilization
+
+Read-only Cursor checks before restart showed:
+
+- No live `Cursor.exe` process.
+- Cursor global MCP config contained exactly one server: `agentcore-gateway`.
+- The `nfa-platform` project `.cursor/mcp.json` contained an empty
+  `mcpServers` object, so it was not adding direct MCP entries.
+- Cursor logs showed `agentcore-gateway` MCP connected successfully.
+- Cursor logs also showed direct/provider-side noise from Zoo Code settings:
+  Vercel model metadata validation errors and unauthenticated `cloudflare-api`.
+- Cursor logs showed `Skill name "Nia" doesn't match directory "nia"` from the
+  user skill at `C:\Users\ynotf\.agents\skills\nia`.
+- Cursor `sessionEnd` hook errors reported `MainThreadShellExec not
+  initialized` during window close. This was not proven to be the launch-close
+  root cause; it may be fallout from the earlier forced Cursor containment.
+
+Mechanical cleanup completed with backup at
+`C:\Users\ynotf\.cursor\backups\pre-restart-cursor-stability-20260905-002129`:
+
+- Zoo Code MCP settings now expose only `agentcore-gateway`; direct `context7`,
+  `nia`, and unauthenticated `cloudflare-api` entries were removed from that
+  extension-level MCP settings file.
+- The user `nia` skill frontmatter now matches its directory name.
+
+Post-cleanup checks passed:
+
+- Zoo Code MCP settings parsed successfully with one server:
+  `agentcore-gateway`.
+- `C:\Users\ynotf\.agents\skills\nia\SKILL.md` line 3 is `name: nia`.
+- No live `Cursor.exe` process was present.
+- Bifrost feature adoption reporter still showed runtime `v2.0.0`, semantic
+  cache active, `skills_repository_count = 2`, and no admin API errors.
+
 ## Remaining Gates
 
 This audit is not final acceptance. These gates remain open:
@@ -108,9 +151,6 @@ This audit is not final acceptance. These gates remain open:
 - Bifrost routing-rule adoption is not complete. Live
   `Get-AgentCoreBifrostFeatureAdoption.ps1` evidence showed
   `routing_rule_count = 0`.
-- Bifrost Skills Repository adoption is not complete. Live
-  `Get-AgentCoreBifrostFeatureAdoption.ps1` evidence showed
-  `skills_repository_count = 0`.
 - Bifrost inference adoption is not complete. Live
   `Get-AgentCoreBifrostFeatureAdoption.ps1` evidence showed
   `logs_total_requests = 0` and `inference_traffic_observed = false`.
