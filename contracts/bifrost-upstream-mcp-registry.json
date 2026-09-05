@@ -1484,27 +1484,28 @@
       "executable_or_url": "https://apigcp.trynia.ai/mcp",
       "arguments": [],
       "env_var_names": [
-        "NIA_API_KEY"
+        "NIA_API_KEY",
+        "NIA_AUTHORIZATION"
       ],
       "timeout_seconds": 120,
       "health_check_type": "mcp_ping",
       "project_scope": "global",
       "write_classification": "read_only",
       "permitted_tools": [
+        "index",
         "search",
         "nia_read",
         "nia_grep",
         "nia_explore",
+        "nia_research",
+        "nia_advisor",
+        "context",
         "nia_package_search_hybrid",
+        "tracer",
         "nia_vault_list",
         "nia_vault_search"
       ],
       "denied_tools": [
-        "index",
-        "context",
-        "nia_research",
-        "nia_advisor",
-        "tracer",
         "manage_resource",
         "auto_subscribe_dependencies",
         "nia_write",
@@ -1537,13 +1538,14 @@
       "bifrost_client_name": "nia",
       "auth_type": "headers",
       "headers": {
-        "Authorization": "Bearer env.NIA_API_KEY"
+        "Authorization": "env.NIA_AUTHORIZATION"
       },
       "status": "active",
       "notes": [
         "Live MCP preflight on 2026-09-05 returned 20 tools over https://apigcp.trynia.ai/mcp with NIA_API_KEY from Windows User env.",
-        "Default exposure is retrieval-only: search, read, grep, explore, package search, and vault list/search.",
-        "Indexing, context sharing, research/advisor/tracer, destructive mutation, auto-subscribe, file write/delete/move/mkdir, vault create, and vault workflow run stay denied by default.",
+        "Bifrost MCP header values use whole-value env references, so NIA_AUTHORIZATION is maintained as the complete Authorization header value derived from NIA_API_KEY.",
+        "Default exposure is non-destructive intelligence: indexing, search, read, grep, explore, research/advisor, context, package search, tracer, and vault list/search.",
+        "Destructive mutation, resource management, auto-subscribe, file write/delete/move/mkdir, vault create, and vault workflow run stay denied by default.",
         "Nia CLI is installed globally as @nozomioai/nia@0.5.2 and verified with env-sourced authentication. Do not run nia auth login in AgentCore; it may write ~/.config/nia/api_key, while AgentCore stores secrets only in Windows User environment variables.",
         "Nia skill source on this host is C:\\Users\\ynotf\\.agents\\skills\\nia; publish through ops/bifrost/Sync-AgentCoreBifrostSkillsRepository.ps1, not by copying secrets or user-global skill trees into the repo."
       ]

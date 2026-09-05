@@ -337,17 +337,22 @@
         "connection_type": "http",
         "connection_string": "https://apigcp.trynia.ai/mcp",
         "tools_to_execute": [
+          "index",
           "search",
           "nia_read",
           "nia_grep",
           "nia_explore",
+          "nia_research",
+          "nia_advisor",
+          "context",
           "nia_package_search_hybrid",
+          "tracer",
           "nia_vault_list",
           "nia_vault_search"
         ],
         "auth_type": "headers",
         "headers": {
-          "Authorization": "Bearer env.NIA_API_KEY"
+          "Authorization": "env.NIA_AUTHORIZATION"
         }
       },
       {
@@ -578,11 +583,16 @@
           {
             "mcp_client_name": "nia",
             "tools_to_execute": [
+              "index",
               "search",
               "nia_read",
               "nia_grep",
               "nia_explore",
+              "nia_research",
+              "nia_advisor",
+              "context",
               "nia_package_search_hybrid",
+              "tracer",
               "nia_vault_list",
               "nia_vault_search"
             ]
@@ -762,11 +772,16 @@
           {
             "mcp_client_name": "nia",
             "tools_to_execute": [
+              "index",
               "search",
               "nia_read",
               "nia_grep",
               "nia_explore",
+              "nia_research",
+              "nia_advisor",
+              "context",
               "nia_package_search_hybrid",
+              "tracer",
               "nia_vault_list",
               "nia_vault_search"
             ]
@@ -834,11 +849,16 @@
           {
             "mcp_client_name": "nia",
             "tools_to_execute": [
+              "index",
               "search",
               "nia_read",
               "nia_grep",
               "nia_explore",
+              "nia_research",
+              "nia_advisor",
+              "context",
               "nia_package_search_hybrid",
+              "tracer",
               "nia_vault_list",
               "nia_vault_search"
             ]

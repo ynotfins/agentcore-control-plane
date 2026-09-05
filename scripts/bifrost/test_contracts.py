@@ -276,20 +276,20 @@ def main() -> int:
 
     nia = registry["servers"].get("nia") or {}
     nia_allowed = {
+        "index",
         "search",
         "nia_read",
         "nia_grep",
         "nia_explore",
+        "nia_research",
+        "nia_advisor",
+        "context",
         "nia_package_search_hybrid",
+        "tracer",
         "nia_vault_list",
         "nia_vault_search",
     }
     nia_denied_required = {
-        "index",
-        "context",
-        "nia_research",
-        "nia_advisor",
-        "tracer",
         "manage_resource",
         "auto_subscribe_dependencies",
         "nia_write",
@@ -310,12 +310,12 @@ def main() -> int:
         nia.get("connection_type") == "http"
         and nia.get("executable_or_url") == "https://apigcp.trynia.ai/mcp"
         and nia.get("auth_type") == "headers"
-        and nia.get("headers", {}).get("Authorization") == "Bearer env.NIA_API_KEY"
-        and nia.get("env_var_names") == ["NIA_API_KEY"],
+        and nia.get("headers", {}).get("Authorization") == "env.NIA_AUTHORIZATION"
+        and nia.get("env_var_names") == ["NIA_API_KEY", "NIA_AUTHORIZATION"],
         f"nia={nia}",
     )
     check(
-        "registry:nia retrieval-only tool surface",
+        "registry:nia non-destructive intelligence tool surface",
         set(nia.get("permitted_tools") or []) == nia_allowed
         and nia_denied_required.issubset(set(nia.get("denied_tools") or []))
         and nia.get("write_classification") == "read_only",
