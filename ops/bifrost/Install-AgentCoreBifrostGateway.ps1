@@ -112,6 +112,7 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
         restart_interval_seconds = 60
         start_when_available = $true
         multiple_instances = 'IgnoreNew'
+        hidden = $true
       }
       principal = [ordered]@{
         user_id = $env:USERNAME

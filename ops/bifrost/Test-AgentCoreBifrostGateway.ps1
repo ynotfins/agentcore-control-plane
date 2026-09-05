@@ -118,6 +118,7 @@ function Test-GatewayScheduledTask {
     $gatewayTask = Get-ValidatorScheduledTask $GatewayTaskName
     Assert-True $true "gateway scheduled task registered: $TaskPath$GatewayTaskName"
     Assert-True ([bool]$gatewayTask.Settings.Enabled) 'gateway scheduled task enabled'
+    Assert-True ([bool]$gatewayTask.Settings.Hidden) 'gateway scheduled task Hidden setting is true; rerun the installer elevated to replace stale visible tasks'
     $gatewayArguments = [string]$gatewayTask.Actions.Arguments
     Assert-True ($gatewayArguments -match '-WindowStyle\s+Hidden') 'gateway scheduled task uses hidden PowerShell'
     Assert-True ($gatewayArguments -match '-NonInteractive') 'gateway scheduled task is non-interactive'

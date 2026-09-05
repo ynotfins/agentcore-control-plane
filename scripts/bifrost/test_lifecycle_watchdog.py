@@ -263,7 +263,7 @@ def validator_task_state(
 ) -> dict[str, object]:
     return {
         "gateway": {
-            "Settings": {"Enabled": True},
+            "Settings": {"Enabled": True, "Hidden": True},
             "Actions": {
                 "Arguments": "-NoProfile -NonInteractive -WindowStyle Hidden",
             },
@@ -959,9 +959,11 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
         "restart_interval_seconds": 60,
         "start_when_available": True,
         "multiple_instances": "IgnoreNew",
+        "hidden": True,
     }
     assert specs["gateway"]["settings"]["restart_count"] == 999
     assert specs["gateway"]["settings"]["multiple_instances"] == "IgnoreNew"
+    assert specs["gateway"]["settings"]["hidden"] is True
     assert specs["gateway"]["principal"] == {
         "user_id": os.environ["USERNAME"],
         "logon_type": "Interactive",
@@ -1024,6 +1026,7 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         "RestartIntervalSeconds": 60,
         "StartWhenAvailable": True,
         "MultipleInstances": "IgnoreNew",
+        "Hidden": True,
     }
     assert by_scope_and_command[("gateway", "New-ScheduledTaskPrincipal")] == {
         "UserId": os.environ["USERNAME"],
@@ -1117,6 +1120,17 @@ def test_verifier_reports_actionable_watchdog_stale_task_failures(tmp_path: Path
     assert missing.returncode == 1
     assert "FAIL  watchdog scheduled task validation: scheduled task model missing" in missing.stdout
     assert "rerun the installer elevated to register the managed watchdog task" in missing.stdout
+
+
+def test_verifier_reports_actionable_gateway_visible_task_failure(tmp_path: Path) -> None:
+    state = validator_task_state(compliant_watchdog_task_state())
+    state["gateway"]["Settings"]["Hidden"] = False
+
+    result = run_task_only_validator(state, tmp_path)
+
+    assert result.returncode == 1
+    assert "FAIL  gateway scheduled task Hidden setting is true; rerun the installer elevated" in result.stdout
+    assert "RESULT: FAILED" in result.stdout
 
 
 def test_verifier_accepts_compliant_watchdog_task_profile(tmp_path: Path) -> None:
