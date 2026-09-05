@@ -12,6 +12,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WATCHDOG = REPO_ROOT / "ops" / "bifrost" / "Invoke-AgentCoreBifrostWatchdog.ps1"
+OPENROUTER_REAUTH = REPO_ROOT / "ops" / "bifrost" / "Invoke-AgentCoreOpenRouterMcpReauth.ps1"
 HARNESS = REPO_ROOT / "scripts" / "bifrost" / "acceptance_lifecycle_watchdog.py"
 
 
@@ -1008,3 +1009,25 @@ def test_watchdog_lifecycle_wiring_and_acceptance_harness_are_present() -> None:
     assert "/api/mcp/clients" in validator
     assert "/api/plugins" in validator
     assert HARNESS.is_file()
+
+
+def test_openrouter_reauth_helper_uses_secret_safe_v2_oauth_flow() -> None:
+    source = OPENROUTER_REAUTH.read_text(encoding="utf-8")
+
+    assert "/api/mcp/client/$clientId/reauthorize" in source
+    assert "/api/oauth/config/$flowId/status" in source
+    assert "/api/mcp/client/$flowId/complete-oauth" in source
+    assert "openrouter-reauth-pending.json" in source
+    assert "oauth-clients.json" in source
+    assert "BIFROST_ADMIN_KEY" in source
+    assert "BIFROST_ENCRYPTION_KEY" in source
+    assert "HardenConfigDbAcl" in source
+    assert "Set-ConfigDbAclPrivate" in source
+    assert "config-db-acl-" in source
+    assert "icacls.exe" in source
+    assert "/inheritance:r" in source
+    assert "/remove:g" in source
+    assert "Invoke-RendererAfterComplete" in source
+    assert "render_bifrost_config.py" in source
+    assert "SkipRenderAfterComplete" in source
+    assert "OPENROUTER_API_KEY" not in source
