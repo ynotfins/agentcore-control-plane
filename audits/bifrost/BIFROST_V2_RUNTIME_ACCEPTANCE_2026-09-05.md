@@ -52,6 +52,11 @@ Baseline commit before this audit note: `55bdd82`
 - Watchdog verifier now fails actionably under `-RequireWatchdogEnabled` when
   the live task is disabled, visible, user-bound, interactive, limited, or
   missing `-FailureThreshold 2`.
+- Read-only Bifrost feature adoption reporter added:
+  `ops/bifrost/Get-AgentCoreBifrostFeatureAdoption.ps1`.
+  Live report showed Bifrost `v2.0.0`, 2 providers, 6 virtual keys, 11 MCP
+  clients, semantic cache active, MCP auto-inject disabled, inference auth
+  enforced, and Enterprise-only features not enabled.
 - Tracked source secret scan passed.
 - Live Codex config was sanitized so raw OpenRouter/related key literals are no
   longer present in `C:\Users\ynotf\.codex\config.toml`.
@@ -100,6 +105,15 @@ This audit is not final acceptance. These gates remain open:
   noninteractive service context and a bounded restart/recovery test passes.
 - Post-PC-restart proof is not complete. Gateway, Redis Stack, OpenRouter MCP,
   semantic cache, and watchdog state must be rechecked after a real restart.
+- Bifrost routing-rule adoption is not complete. Live
+  `Get-AgentCoreBifrostFeatureAdoption.ps1` evidence showed
+  `routing_rule_count = 0`.
+- Bifrost Skills Repository adoption is not complete. Live
+  `Get-AgentCoreBifrostFeatureAdoption.ps1` evidence showed
+  `skills_repository_count = 0`.
+- Bifrost inference adoption is not complete. Live
+  `Get-AgentCoreBifrostFeatureAdoption.ps1` evidence showed
+  `logs_total_requests = 0` and `inference_traffic_observed = false`.
 - Git history still previously contained exposed provider keys in tracked
   recovered MiniMax artifacts and local Codex config. Current source/live config
   are cleaned, but those provider keys should be rotated.
