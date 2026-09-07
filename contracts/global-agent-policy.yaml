@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-09-04-orchestration-routing"
+policy_revision: "2026-09-05-universal-ide-bifrost-skills-alignment"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -22,11 +22,13 @@ mandatory_rules:
     rule: >-
       Non-Swarm IDEs use exactly one AgentCore MCP entry: agentcore-gateway at
       `http://127.0.0.1:8080/mcp` with Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}.
-      Operator approval AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION allows one additional
-      Zoo-Code-owned direct MCP companion entry where the host supports Zoo-Code and the operator
-      wants the Zoo-Code side-panel workflow. That companion is not an AgentCore memory route, not
-      a Bifrost replacement, and not permission to add any other direct MCP baseline. Never paste
-      the upstream registry or direct per-tool MCP entries into IDE configs.
+      AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT supersedes the Zoo-Code-only limit.
+      Zoo-Code/Roo-Code remains a compatible VS Code-family extension, not a Bifrost upstream.
+      Another host-native direct MCP companion requires a documented Bifrost parity failure, exact
+      host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore
+      memory, database, Swarm, administrative, or upstream-registry routes. Existing host/plugin
+      integrations may remain only under the same boundary. Never paste the upstream registry or
+      direct per-tool AgentCore MCP entries into IDE configs.
 
   - id: client-local-execution-scope
     title: CLIENT-LOCAL EXECUTION SCOPE
@@ -45,9 +47,13 @@ mandatory_rules:
       server-side agentcore-memory access facade/projection adapter; ordinary IDEs must never receive raw SwarmRecall
       MCP tools, database credentials, or Recall API keys. Never require SwarmVault, SwarmClaw,
       or Swarm-owned file roots for AgentCore / enrolled non-Swarm work.
-      Never modify Swarm product installs. OpenClaw/ClawX are Swarm-managed and outside the
-      AgentCore baseline. AgentCore PG18 remains canonical for exact evidence, recovery, policy,
-      generated projections, and LangGraph checkpoints. No normal AgentCore IDE continuity on Swarm projects: if the selected
+      Never modify Swarm product installs. OpenClaw and its ClawX host are AgentCore-owned and use
+      agentcore-gateway. The governed OpenClaw product root is D:\github\open--claw, Windows
+      operations live under D:\openclaw, and C:\Users\ynotf\.openclaw is live mutable state that
+      must not be enrolled as a project root. ClawX is installer-managed at C:\Program Files\ClawX.
+      A future Swarm-to-OpenClaw adapter receives no AgentCore virtual key, memory session, database
+      or Recall credential, or AgentCore write root. AgentCore PG18 remains canonical for exact
+      evidence, recovery, policy, generated projections, and LangGraph checkpoints. No normal AgentCore IDE continuity on Swarm projects: if the selected
       path is Swarm-owned, HARD STOP with swarm_project_refused. Do not persist Swarm work
       through AgentCore memory, project router, or IDE profiles. A neutral dual workspace may
       be used only for read-only collision and boundary audits. SwarmClaw uses its own Recall
@@ -186,6 +192,21 @@ mandatory_rules:
       expose it through Bifrost merely to bypass this rule. Authority and procedure:
       docs/agent-policy/DOCUMENTATION_GOVERNANCE.md.
 
+  - id: documentation-reconciliation
+    title: Documentation reconciliation via docs-guardian
+    rule: >-
+      After any material change (SQL migrations, API route files, API/RPC contracts,
+      generated client files, billing/entitlement packages, design token files,
+      environment/config files, or any authority-bundle file), the session MUST invoke the
+      docs-guardian sub-agent (run_in_background:false) as the final step before reporting
+      the task complete. docs-guardian edits normal_workstream docs directly, proposes
+      governed_mutable / operator_locked changes through the documentation-governance
+      workflow with an operator <<< >>> banner and a docs/drift-ledger.md entry, and flags
+      generated_read_only projections for regeneration. The task is not complete while
+      docs-guardian reports Completion gate BLOCKED. Skipping it without a documented reason
+      is a policy violation equivalent to skipping tests. Canonical source:
+      global-subagents/docs-guardian.md.
+
   - id: context-fabric-checkpoints
     title: Context Fabric checkpoints
     rule: >-
@@ -229,12 +250,14 @@ mandatory_rules:
   - id: session-tool-discovery
     title: Session-start gateway tool discovery
     rule: >-
-      At the start of every session or task, call listToolFiles (or tools/list via the gateway)
-      before planning or executing work. Build a mental inventory of every available tool name
-      and its server. Never assume a tool is absent — verify from the live list. Use the tool
-      only if the gateway reports it. Do not flood context with the full tool list; record it
-      as a compact named inventory and reference by tool name. Treat the gateway surface as the
-      authoritative capability boundary: tools not in the list do not exist this session.
+      At the start of every session or task, call listToolFiles, or tools/list when Code Mode is
+      unavailable, before planning or executing work. Build a compact inventory of every available
+      tool name and server without injecting the full schema catalog. For a Code Mode tool, call
+      listToolFiles, then readToolFile for the smallest relevant stub, call getToolDocs only when
+      the signature is insufficient, and call executeToolCode for the bounded operation. Refresh
+      discovery at Milestone entry and when the gateway registry changes. Never assume a hidden
+      Code Mode server is absent from the first tools/list response. Failure of this discovery path
+      is an operational issue to repair, not permission to add a direct duplicate MCP entry.
   - id: openrouter-mcp
     title: OpenRouter MCP operating rules
     rule: >-
@@ -264,8 +287,10 @@ mandatory_rules:
     rule: >-
       Dormant and deferred MCP capabilities are indexed in
       docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md. Do not paste dormant upstreams into
-      per-IDE mcp.json. Except for the approved Zoo-Code direct MCP companion, do not duplicate
-      openrouter, obsidian-vault, filesystem, or any other service already governed through
+      per-IDE mcp.json. A host-native direct MCP companion is allowed only after the parity,
+      exact-scope, security-review, rollback, and no-duplicate gates in
+      AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT. Do not duplicate openrouter,
+      obsidian-vault, filesystem, or any other service already governed through
       agentcore-gateway. Do not extend wildcard permitted_tools grants to new servers. Context7 is
       gateway-only (arabold-first same-turn public bridge); Hostinger remains forbidden. Never paste
       Context7 into IDE mcp.json. Catalog-only and candidate_unverified entries must not be
@@ -342,7 +367,7 @@ forbidden_routes:
   - raw mem0 (Mem0 is rejected for v1 and must not be installed)
   - direct composio
   - global-memory-gateway (retired identity)
-  - direct per-IDE MCP server baselines other than the approved Zoo-Code direct MCP companion
+  - direct per-IDE MCP server baselines without an approved host-native parity exception
   - whole-drive filesystem MCP roots
   - Postgres credentials in IDE configs
   - Swarm MCP in AgentCore / enrolled non-Swarm IDE baselines
@@ -351,6 +376,9 @@ forbidden_routes:
   - port 65432 as a direct AgentCore or IDE route; the neutral Recall service may own that backend only behind agentcore-memory
 
 task_class_gates:
+  - tool_name: "agentcore-memory"
+    gate_type: "mandatory_per_enrolled_session"
+    rule: "Use through agentcore-gateway for enrolled project startup, recovery, accepted evidence, handoff, and clean close; never use raw SQL or raw Recall."
   - tool_name: "arabold-docs"
     gate_type: "mandatory"
     rule: "Mandatory before using/changing external packages, SDKs, APIs, CLIs, schemas, protocols or versions."
@@ -366,12 +394,54 @@ task_class_gates:
   - tool_name: "playwright"
     gate_type: "mandatory"
     rule: "Mandatory for browser/UI/E2E acceptance."
+  - tool_name: "tentra"
+    gate_type: "milestone_conditional"
+    rule: "Use only when a Milestone explicitly requires architecture or code-graph evidence, with an explicit project root."
+  - tool_name: "filesystem"
+    gate_type: "host_fallback"
+    rule: "Use only when the host lacks adequate native project-file access; restrict access to enrolled project roots, never whole drives or user profiles."
+  - tool_name: "github"
+    gate_type: "on_demand"
+    rule: "Use for remote repository search, issues, pull requests, review, or source provenance; read by default and mutate only inside the assigned repository and task."
+  - tool_name: "shadcn"
+    gate_type: "project_conditional"
+    rule: "Use only when the project uses shadcn/ui and needs component discovery, installation, or registry guidance."
+  - tool_name: "posthog"
+    gate_type: "project_conditional"
+    rule: "Use only when the project explicitly uses PostHog for analytics, flags, experiments, or observability; do not export unrelated telemetry."
+  - tool_name: "fetch"
+    gate_type: "on_demand"
+    rule: "Use for bounded HTTP reads when browser interaction is unnecessary; never place credentials in URLs and respect allowlisted destinations."
+  - tool_name: "wcgw"
+    gate_type: "host_fallback"
+    rule: "Use for shell or computer operations only when the host lacks an equivalent native tool, with exact project and command scope."
+  - tool_name: "docker"
+    gate_type: "project_conditional"
+    rule: "Use for the owning project's container build, logs, health, or lifecycle work; never expose the Docker socket to untrusted agents or change unrelated containers."
+  - tool_name: "postgresql"
+    gate_type: "governed_read_only_facade"
+    rule: "Use only through a governed read-only facade for approved schema, status, or query work with explicit database identity; writes stay in the owning migration workflow outside MCP, and IDEs never receive direct credentials."
+  - tool_name: "sqlite"
+    gate_type: "governed_read_only_facade"
+    rule: "Use only through a governed read-only facade for an exact project-owned database file; writes stay in the owning application or migration workflow outside normal IDE MCP, and access never crosses project boundaries."
+  - tool_name: "ref"
+    gate_type: "candidate_unverified"
+    rule: "Use only after exact server identity and tool inventory are admitted and Arabold or Context7 cannot provide the verified reference result."
+  - tool_name: "agentmail"
+    gate_type: "project_conditional"
+    rule: "Use for an agent-owned mailbox, drafts, threads, or attachments; read and draft by default, with task authorization for send or destructive actions."
+  - tool_name: "morph"
+    gate_type: "on_demand"
+    rule: "Use for external GitHub/source patterns, precise repository search, or surgical application of an approved edit; edits stay inside approved files and Morph never owns architecture."
   - tool_name: "skills-hub"
     gate_type: "on_demand"
     rule: "On-demand for specialized procedural knowledge, read-only through Bifrost."
   - tool_name: "context-fabric"
     gate_type: "mandatory_at_project_gates"
     rule: "Mandatory through the repository-local hook/CLI at project bootstrap and Milestone entry/exit when available; use capture, drift, and health checks. Its shared implicit-project Bifrost client remains dormant. It is non-canonical and is not required for routine Micro steps when no gate is active."
+  - tool_name: "docs-guardian"
+    gate_type: "mandatory_completion_gate"
+    rule: "Mandatory final step after any material change; run foreground (run_in_background:false), reconcile documentation against verified source, and do not mark the task complete while Completion gate is BLOCKED."
 references:
   project_enrollment: contracts/agentcore-project-enrollment.json
   project_execution_policy: contracts/project-execution-policy.json
