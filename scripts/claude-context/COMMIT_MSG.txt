@@ -1,1 +1,1 @@
-Add Claude Context MCP templates for Zed and Eigent.
+Add Claude Context MCP to Zoo Code, Devin, and ZCode.

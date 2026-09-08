@@ -15,6 +15,9 @@ Do **not** put secret values in IDE JSON. Prefer the EV-pulling launcher.
 - Zed: `C:\Users\ynotf\AppData\Roaming\Zed\settings.json` → `context_servers`
 - Eigent: `C:\Users\ynotf\.eigent\mcp.json` → `mcpServers`
 - Launcher: `C:\Users\ynotf\.agentcore\claude-context-mcp-launch.cmd`
+- Zoo Code Cursor: `C:\Users\ynotf\AppData\Roaming\ZooCodeCursor\mcp_settings.json`
+- Zoo Code Devin: `C:\Users\ynotf\AppData\Roaming\ZooCodeDevin\mcp_config.json`
+- Zoo Code ZCode: `C:\Users\ynotf\AppData\Roaming\ZooCodeZCode\cli\config.json`
 
 ## Apply
 ```powershell

@@ -1,31 +1,14 @@
 {
   "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "PASTE_PROJECT_ROOT_HERE"]
+    "agentcore-gateway": {
+      "url": "http://127.0.0.1:18082/mcp",
+      "timeout": 300,
+      "_note": "Headerless access uses the Bifrost-owned process-attested loopback proxy; no virtual key is stored in Devin configuration."
     },
-    "depwire": {
-      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\npm\\depwire.cmd",
-      "args": ["mcp"],
-      "_setup": "After connecting, call the connect_repo tool with the project root path before any graph queries."
-    },
-    "tentra": {
-      "command": "C:\\Program Files\\nodejs\\npx.cmd",
-      "args": ["-y", "tentra-mcp@1.3.3", "--local"],
-      "env": {
-        "TENTRA_DATA_DIR": "F:\\AgentCore\\runtime\\tentra\\data"
-      }
-    },
-    "serena": {
-      "command": "C:\\Users\\ynotf\\AppData\\Roaming\\uv\\tools\\serena-agent\\Scripts\\serena.exe",
-      "args": [
-        "start-mcp-server",
-        "--transport", "stdio",
-        "--context", "ide",
-        "--project", "PASTE_PROJECT_ROOT_HERE"
-      ],
-      "_setup": "Run serena init in the project root first to create .serena/project.yml. Server will be unavailable until initialized."
+    "claude-context": {
+      "command": "C:\\Users\\ynotf\\.agentcore\\claude-context-mcp-launch.cmd",
+      "args": []
     }
   },
-  "_note": "agentcore-gateway, devin/github-mcp-server, devin/mcp-playwright, and devin/vercel are in the GLOBAL Devin config at AppData/Roaming/devin/mcp_config.json — do not duplicate here. This file adds only project-scoped servers."
+  "_note": "AgentCore baseline plus local Claude Context/Zilliz MCP. Preserve documented Devin-native integrations when they do not duplicate AgentCore upstreams."
 }
