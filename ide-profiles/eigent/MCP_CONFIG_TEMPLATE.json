@@ -1,20 +1,23 @@
 {
   "mcpServers": {
-    "agentcore-gateway": {
-      "url": "http://127.0.0.1:8080/mcp",
-      "timeout": 300,
-      "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-      }
+    "claude-context": {
+      "command": "C:\\Users\\ynotf\\.agentcore\\bin\\claude-context-mcp-launch.cmd",
+      "args": []
     }
   },
   "_agentcore": {
     "renderer": "eigent",
     "source_contract": "contracts/agentcore-gateway-client.json",
-    "notes": [
-      "Sanitized template; never commit or print the resolved virtual key.",
-      "Eigent/CAMEL does not expand the env token. A governed live installer must materialize the Windows User env value into C:\\Users\\ynotf\\.eigent\\mcp.json only."
-    ]
-  },
-  "_template_note": "DERIVED from renderers/gateway-clients/eigent.json. The env token is symbolic and must be resolved only into the protected live config by a governed installer."
+    "gateway_enrollment_status": "unsupported_with_reason",
+    "active_template": false,
+    "reason": "Eigent/CAMEL has no approved environment-backed header expansion or process-attested AgentCore route. Claude Context is a separate local stdio MCP using Windows User EVs via launcher.",
+    "legacy_state": "Existing credential-bearing live gateway configuration, when present, is legacy drift; preserve it for a separate backup-first cleanup.",
+    "required_next_architecture": "credential-free, native-token, or scoped broker",
+    "secret_policy": "Never paste or persist an AgentCore virtual key or embedding/vector secrets in this client.",
+    "claude_context": {
+      "package": "@zilliz/claude-context-mcp",
+      "launcher": "C:\\Users\\ynotf\\.agentcore\\claude-context-mcp-launch.cmd",
+      "required_user_env": ["OPENAI_API_KEY", "MILVUS_TOKEN"]
+    }
+  }
 }
