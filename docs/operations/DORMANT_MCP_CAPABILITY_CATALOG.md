@@ -2,7 +2,7 @@
 
 **Status:** `DORMANT MCP CAPABILITY CATALOG READY` (documentation + registry reconciliation; zero default tool exposure for dormant entries)
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`, `contracts/project-tool-lifecycle.json`, `PROJECT_ANCHOR.md`
-**Updated:** 2026-08-05
+**Updated:** 2026-09-09
 **Scope:** Non-Swarm AgentCore gateway only. SwarmRecall / SwarmVault / SwarmClaw excluded.
 
 ## Purpose
@@ -13,7 +13,7 @@ This catalog is the single human-readable index of MCP capabilities that are:
 2. approved for future registration after official-source and compatibility checks, or
 3. **blocked** by current authority and must not be silently enrolled.
 
-It does **not** authorize live IDE configuration changes. IDEs keep the single entry `agentcore-gateway` at `http://127.0.0.1:8080/mcp`.
+It does **not** authorize live IDE configuration changes. Each enrolled IDE keeps one `agentcore-gateway` entry selected by `contracts/agentcore-gateway-client.json`: direct `http://127.0.0.1:8080/mcp` with environment-backed authentication, `http://127.0.0.1:18082/mcp` only for approved process-attested Trust Class A clients, and no active entry for clients whose `gateway_auth_mode` is `unverified`.
 
 ## Invariants
 
@@ -48,13 +48,18 @@ It does **not** authorize live IDE configuration changes. IDEs keep the single e
 
 | Canonical ID | Pin / provenance | Transport | Env names | Default exposure | Notes |
 | -- | -- | -- | -- | -- | -- |
-| `playwright` | `@playwright/mcp` (registry pin) | stdio | none | builder profile | Browser automation; operator-risk class |
-| `arabold-docs` | `@arabold/docs-mcp-server` vendored pin | stdio | `OPENAI_API_KEY` | builder/reviewer/docs/database/operator/chatgpt profiles | Documentation lookup; Code Mode enabled |
-| `sequential-thinking` | `@modelcontextprotocol/server-sequential-thinking@2026.7.4` | stdio | `DISABLE_THOUGHT_LOGGING` | builder/reviewer/docs/chatgpt profiles | One-tool planning surface; classic mode |
-| `agentcore-memory` | repo-owned Python server | stdio | inherited AgentCore env | builder/reviewer/database/operator/chatgpt profiles | Canonical memory facade; classic mode |
+| `playwright` | `@playwright/mcp` (registry pin) | stdio | none | builder/openclaw profiles | Browser automation; operator-risk class |
+| `arabold-docs` | `@arabold/docs-mcp-server` vendored pin | stdio | `OPENAI_API_KEY` | builder/reviewer/docs/database/operator/chatgpt/openclaw profiles | Core documentation lookup; eager/classic mode |
+| `sequential-thinking` | `@modelcontextprotocol/server-sequential-thinking@2026.7.4` | stdio | `DISABLE_THOUGHT_LOGGING` | builder/reviewer/docs/chatgpt/openclaw profiles | One-tool planning surface; classic mode |
+| `agentcore-memory` | repo-owned Python server | stdio | inherited AgentCore env | builder/reviewer/database/operator/chatgpt/openclaw profiles | Canonical memory facade; classic mode |
 | `agentcore-project-router` | repo-owned Python server | stdio | none | operator profile | Operator-only project activation; classic mode |
 | `cursor-agent-mcp` | `cursor-agent-mcp@1.0.5` | stdio | `CURSOR_API_KEY`, `CURSOR_API_URL` | builder profile | Cursor subagent controls; exact allowlist; classic mode |
-| `skills-hub` | isolated local wrapper | stdio | none | builder/chatgpt profiles | `install_skill` denied |
+| `skills-hub` | isolated local wrapper | stdio | none | builder/chatgpt/openclaw profiles | `install_skill` denied |
+| `agentcore-capability-catalog` | repo-owned Python server | stdio | none | normal governed profiles except OpenClaw | Read-only `list_capabilities` / `get_capability_detail`; exposes policy metadata, never upstream schemas or credentials |
+| `exa-research` | `exa-mcp-server@3.4.1` | stdio | `EXA_API_KEY` | builder profile through Code Mode | Two admitted read-only tools |
+| `tavily-research` | `tavily-mcp@0.2.22` | stdio | `TAVILY_API_KEY` | builder profile through Code Mode | Five admitted read-only tools |
+| `firecrawl-research` | `firecrawl-mcp@3.24.0` | stdio | `FIRECRAWL_API_KEY` | builder profile through Code Mode | Eight admitted read-only web, paper, and public-code tools |
+| `apify-research` | `@apify/actors-mcp-server@0.15.4` | stdio | `APIFY_API_KEY` (adapter aliases child `APIFY_TOKEN`) | builder profile through Code Mode | Five admitted discovery/docs tools including bounded `call-actor`; never auto-executed |
 
 ### Deferred / dormant — zero default tools
 
@@ -66,10 +71,13 @@ It does **not** authorize live IDE configuration changes. IDEs keep the single e
 | `github-mcp` | `deferred` (`enabled=false`) | `ghcr.io/github/github-mcp-server` via Docker | PAT | `GITHUB_PERSONAL_ACCESS_TOKEN`, `GITHUB_PAT_TOKEN` | Health gate + named tool inventory + remove wildcard before enable | Remain `enabled=false`; no Docker start from this catalog alone |
 | `mcp-debugger` | `disabled` | registry pin | none | — | Explicit operator enable | `enabled=false` |
 | `depwire-cloud` | `disabled`/`deferred` | `https://api.depwire.dev/mcp` | Bearer | `DEPWIRE_API_KEY` | Cloud connection health gate | `enabled=false` |
+| `brightdata-research` | `catalogued_unverified` (`enabled=false`, profileless) | `@brightdata/mcp@2.11.1` | API token | `BRIGHTDATA_API_KEY` | Disposable-account startup and provider-zone side-effect review | Remain uninstalled, disabled, and profileless |
+| `serena` | `active` via HTTP session shim (`enabled=true`, Code Mode) | `http://127.0.0.1:18090/mcp` (`scripts/bifrost/serena_session_shim.py`) | none | none | Shim must be running; identity via `session_identity.py` default-deny | `enabled=false`; fall back to host-owned Serena |
+| `filesystem` / `depwire` / `tentra` / `context-fabric` | `dormant_project_scoped` | see registry | — | Phase 3b residual blockers: need per-session identity adapters; stay `enabled=false` | Host-owned Pattern A / repo-local CLI | Remain disabled; see `audits/bifrost/PHASE3B_PROJECT_SCOPED_RESIDUAL_BLOCKERS_2026-09-09.md` |
 
-**OpenRouter current evidence (2026-07-20):** registered once; OAuth authorized + client `connected` (`audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md`); registry `status` remains `dormant`; lifecycle `authenticated_dormant`; zero OpenRouter tools on VKs without an M6 lease; JIT bridge proven for discovery (13 tools) + revoke-to-zero. Classification: `contracts/openrouter-tool-manifest.json`. Do not claim IDE model availability from MCP registration; do not add direct OpenRouter MCP IDE entries.
+**OpenRouter current evidence (verified 2026-09-08):** registered once; OAuth authorized + client `connected` (original bind evidence: `audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md`); registry `status` remains `dormant`; lifecycle `authenticated_dormant`; zero permanent builder exposure; JIT bridge proven for discovery (13 tools) + revoke-to-zero. Classification: `contracts/openrouter-tool-manifest.json`. Do not claim IDE model availability from MCP registration; do not add direct OpenRouter MCP IDE entries.
 
-**GitHub MCP note:** still carries transitional `permitted_tools: ["*"]`. Wildcard must be replaced with a named inventory before any enablement (wildcard_policy transitional exception must not be extended).
+**GitHub MCP note:** still deferred (`enabled=false`). Named inventory + Docker daemon health canary required before any enablement. Do not enable in this AUTH window.
 
 ---
 
@@ -81,7 +89,6 @@ Entries below are **not** duplicated into the Bifrost registry until an official
 | -- | -- | -- | -- | -- | -- | -- | -- |
 | `gitlab-mcp` | Git hosting | Official GitLab MCP / docs.gitlab.com | stdio or http | `GITLAB_TOKEN` (name only) | write_capable / operator | `catalogued_pending_registration` | Verify current official package or remote endpoint; pin version; named tools only |
 | `gitkraken-mcp` | Git UX | Official GitKraken MCP docs | stdio | vendor token env name | write_capable | `catalogued_pending_registration` | Confirm Windows support; avoid dual Git authority with github-mcp |
-| `firecrawl-mcp` | Web crawl | Official Firecrawl MCP | stdio/http | `FIRECRAWL_API_KEY` | billable / network | `catalogued_pending_registration` | Prefer official server; do not substitute unverified community forks |
 | `google-sheets-mcp` | Sheets | Official Google Workspace MCP / Composio only if re-enabled | http/stdio | Google OAuth or service account env name | write_capable | `catalogued_pending_registration` | Composio remains quarantine until explicitly re-enabled |
 | `google-workspace-search-mcp` | Workspace search | Official Google MCP | http | OAuth | read_only / account | `catalogued_pending_registration` | Confirm scopes; no silent broad Gmail/Drive grant |
 | `cloudflare-api-mcp` | Cloudflare API | Official Cloudflare MCP | http | `CLOUDFLARE_API_TOKEN` | write_capable / operator | `catalogued_pending_registration` | Separate docs vs API surfaces; zone-scoped tokens only |
@@ -128,6 +135,30 @@ Entries below are **not** duplicated into the Bifrost registry until an official
 | Dropbox MCP | `candidate_unverified` | Official pin, scoped auth, write boundary review |
 
 Do **not** install community packages to satisfy these rows.
+
+---
+
+## Phase 4 wishlist leftovers (Code Mode candidates only — 2026-09-09)
+
+Default target bucket for every row: **Code Mode** (`is_code_mode_client=true` if admitted). Never Classic unless tool count ≤ ~3 and every-turn critical. Admit nothing that fails official pin + license + named inventory + canary.
+
+| Candidate | Proposed ID | Catalog state | Official-source gate | Notes |
+| -- | -- | -- | -- | -- |
+| OpenDeepSearch | `opendeepsearch-mcp` | `catalogued_pending_registration` | Official package pin + license + tool list | Research synthesis; Code Mode only |
+| Context Mode (mksglu) | `context-mode` | `catalogued_pending_registration` | npm pin + license + schema verify | Token compression; evaluate vs existing Code Mode |
+| Bounded Docker CLI | `docker-cli-bounded` | `catalogued_pending_registration` | Strict allowlist of inspect/run only | **Not** `docker-mcp-toolkit` (rejected aggregator) |
+| LanceDB | `lancedb-mcp` | `catalog_only` / evaluation-gated | ADR required | AgentCore baseline remains pgvector PG18 |
+| graphify | `graphify-mcp` | `catalog_only` / evaluation-gated | ADR + isolation tests | Forbidden as Context Engine dependency without ADR |
+| repowise | `repowise-mcp` | `catalogued_pending_registration` | Official pin + named tools | Architecture map candidate |
+| Grafana | `grafana-mcp` | `catalogued_pending_registration` | Instance URL + read-only token env | Observability |
+| Stripe | `stripe-mcp` | `catalogued_pending_registration` | Restricted key; read vs write split | Billing-sensitive |
+| Chrome DevTools | `chrome-devtools-mcp` | `catalogued_pending_registration` | Prefer existing Playwright / cursor-ide-browser | Avoid duplicate CDP surfaces |
+| ElevenLabs | `elevenlabs-mcp` | `catalogued_pending_registration` | API key + billable gating | Tier-4 cost risk |
+| Figma | `figma-mcp` | `catalogued_pending_registration` | Remote HTTP + OAuth/PAT; read-only | Design inspect |
+| Superpowers / Cline / Zoo Code / Zed / Cherry | N/A | `catalog_only` (wrong layer) | — | Skills or IDE clients; not Bifrost MCP servers |
+| FastAPI | N/A | Prefer `arabold-docs` | Framework docs, not MCP | Index via Arabold |
+
+SwarmRecall product docs: answer from local arabold index (`swarmrecall`); architecture authority remains ADR/boundaries, not vendor README.
 
 ---
 

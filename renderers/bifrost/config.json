@@ -593,6 +593,42 @@
         "is_ping_available": true
       },
       {
+        "name": "serena",
+        "connection_type": "http",
+        "connection_string": "http://127.0.0.1:18090/mcp",
+        "tools_to_execute": [
+          "replace_content",
+          "replace_in_files",
+          "replace_symbol_body",
+          "insert_after_symbol",
+          "insert_before_symbol",
+          "search_for_pattern",
+          "get_symbols_overview",
+          "find_symbol",
+          "find_referencing_symbols",
+          "find_implementations",
+          "find_declaration",
+          "get_diagnostics_for_file",
+          "rename_symbol",
+          "safe_delete_symbol",
+          "write_memory",
+          "read_memory",
+          "list_memories",
+          "delete_memory",
+          "rename_memory",
+          "edit_memory",
+          "open_dashboard"
+        ],
+        "auth_type": "none",
+        "is_code_mode_client": true,
+        "allowed_extra_headers": [
+          "x-agentcore-project",
+          "x-bf-session-id",
+          "x-session-id",
+          "x-bf-vk"
+        ]
+      },
+      {
         "name": "skills_hub",
         "connection_type": "stdio",
         "stdio_config": {
@@ -827,6 +863,32 @@
             "mcp_client_name": "sequential_thinking",
             "tools_to_execute": [
               "sequentialthinking"
+            ]
+          },
+          {
+            "mcp_client_name": "serena",
+            "tools_to_execute": [
+              "replace_content",
+              "replace_in_files",
+              "replace_symbol_body",
+              "insert_after_symbol",
+              "insert_before_symbol",
+              "search_for_pattern",
+              "get_symbols_overview",
+              "find_symbol",
+              "find_referencing_symbols",
+              "find_implementations",
+              "find_declaration",
+              "get_diagnostics_for_file",
+              "rename_symbol",
+              "safe_delete_symbol",
+              "write_memory",
+              "read_memory",
+              "list_memories",
+              "delete_memory",
+              "rename_memory",
+              "edit_memory",
+              "open_dashboard"
             ]
           },
           {
@@ -1098,6 +1160,32 @@
               "tracer",
               "nia_vault_list",
               "nia_vault_search"
+            ]
+          },
+          {
+            "mcp_client_name": "serena",
+            "tools_to_execute": [
+              "replace_content",
+              "replace_in_files",
+              "replace_symbol_body",
+              "insert_after_symbol",
+              "insert_before_symbol",
+              "search_for_pattern",
+              "get_symbols_overview",
+              "find_symbol",
+              "find_referencing_symbols",
+              "find_implementations",
+              "find_declaration",
+              "get_diagnostics_for_file",
+              "rename_symbol",
+              "safe_delete_symbol",
+              "write_memory",
+              "read_memory",
+              "list_memories",
+              "delete_memory",
+              "rename_memory",
+              "edit_memory",
+              "open_dashboard"
             ]
           }
         ]

@@ -43,12 +43,22 @@ The accepted concurrent-safe path is:
 ```text
 IDE
   -> one agentcore-gateway MCP entry
-  -> Bifrost at http://127.0.0.1:8080/mcp for global/project-explicit tools
-IDE/host native project tools or explicit-cwd local diagnostics
-  -> language servers and project-local cache
+  -> Bifrost at http://127.0.0.1:8080/mcp (HTTP client with allowed_extra_headers)
+  -> Serena HTTP Session Shim at http://127.0.0.1:18090/mcp (scripts/bifrost/serena_session_shim.py)
+  -> Dedicated isolated Serena child process spawned per enrolled project (--project <path>)
 ```
 
-The prior shared Serena route used one machine-global `active-project.json` and cannot isolate simultaneous IDE sessions on different projects because Bifrost does not forward trusted caller/project identity to the shared STDIO process. Serena therefore remains dormant in normal gateway profiles. Do not re-enable it by profile alone.
+### The Serena HTTP Session-Shim Architecture (2026-09-09)
+
+Under ADR-2026-09-09 (`docs/adr/ADR-2026-09-09-serena-http-session-shim.md`), Serena is admitted to Bifrost via an explicit HTTP session shim:
+
+1. **Loopback HTTP Endpoint:** Bifrost connects to `http://127.0.0.1:18090/mcp` using `connection_type: "http"`.
+2. **Dynamic Header Forwarding:** Bifrost forwards `x-agentcore-project`, `x-bf-session-id`, `x-session-id`, and `x-bf-vk` via `allowed_extra_headers`.
+3. **Enrollment Boundary Enforcement:** The shim validates the target repository strictly against `contracts/agentcore-project-enrollment.json` via `scripts/bifrost/session_identity.py` (default-deny; Swarm refuse with `swarm_project_refused`). Missing or unknown identity returns `PROJECT_NOT_ENROLLED` and **never** falls back to `agentcore-control-plane`.
+4. **Isolated Subprocesses:** For each enrolled project, the shim manages an isolated Serena child process (`serena start-mcp-server --transport stdio --context ide --project <enrolled_path>`). Concurrent IDE sessions editing different repositories are completely isolated with zero cross-project symbol or file leakage.
+5. **Code Mode Placement:** Serena is admitted with `is_code_mode_client: true`. Its 21 tool definitions stay out of eager LLM context and are accessed on demand via `listToolFiles` -> `servers/serena.pyi` -> `executeToolCode`.
+
+**Permanent Rule (No Sticky STDIO):** Never enable Serena on a shared sticky STDIO connection. Bifrost's STDIO transport cannot inject a working directory or caller identity per turn, and machine-global `active-project.json` is strictly retired as an isolation boundary.
 
 The memory path is separate:
 

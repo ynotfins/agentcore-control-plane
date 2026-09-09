@@ -45,6 +45,7 @@
         "mcp-prompt-optimizer",
         "morph-mcp",
         "nia",
+        "serena",
         "tavily-research"
       ],
       "default_tools_policy": "allow_permitted",
@@ -106,7 +107,8 @@
         "depwire",
         "arabold-docs",
         "context7",
-        "nia"
+        "nia",
+        "serena"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -338,24 +340,45 @@
     "serena": {
       "canonical_id": "serena",
       "display_name": "Serena",
-      "purpose": "Project-scoped semantic code intelligence, symbol navigation, and refactors.",
+      "purpose": "Project-scoped semantic code intelligence, symbol navigation, and refactors via HTTP session shim.",
       "owner": "agentcore",
       "pinned_version": "1.5.4.dev0",
-      "connection_type": "stdio",
-      "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
-      "arguments": [
-        "D:\\github\\agentcore-control-plane\\ops\\bifrost\\wrappers\\serena-prewarm.js"
-      ],
+      "connection_type": "http",
+      "executable_or_url": "http://127.0.0.1:18090/mcp",
+      "arguments": [],
       "env_var_names": [],
       "timeout_seconds": 180,
       "health_check_type": "mcp_ping",
       "project_scope": "project",
       "write_classification": "bounded_write",
       "permitted_tools": [
-        "*"
+        "replace_content",
+        "replace_in_files",
+        "replace_symbol_body",
+        "insert_after_symbol",
+        "insert_before_symbol",
+        "search_for_pattern",
+        "get_symbols_overview",
+        "find_symbol",
+        "find_referencing_symbols",
+        "find_implementations",
+        "find_declaration",
+        "get_diagnostics_for_file",
+        "rename_symbol",
+        "safe_delete_symbol",
+        "write_memory",
+        "read_memory",
+        "list_memories",
+        "delete_memory",
+        "rename_memory",
+        "edit_memory",
+        "open_dashboard"
       ],
       "denied_tools": [],
-      "capability_profiles": [],
+      "capability_profiles": [
+        "builder",
+        "operator"
+      ],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -368,10 +391,17 @@
           "spawn_failure"
         ]
       },
-      "rollback_route": "Restore serena.exe direct launch args from git history; or disable serena client in Bifrost.",
-      "enabled": false,
+      "rollback_route": "Set enabled=false; re-render Bifrost config; restart Bifrost. Fall back to host-owned Serena.",
+      "enabled": true,
       "bifrost_client_name": "serena",
-      "status": "dormant_project_scoped",
+      "status": "active",
+      "is_code_mode_client": true,
+      "allowed_extra_headers": [
+        "x-agentcore-project",
+        "x-bf-session-id",
+        "x-session-id",
+        "x-bf-vk"
+      ],
       "admission_evidence": {
         "artifact": {
           "kind": "python_package",
@@ -390,10 +420,32 @@
           "source_url": "https://github.com/oraios/serena/blob/main/LICENSE"
         },
         "tool_inventory": {
-          "status": "partial",
-          "source": "Arabold serena@1.5.4 official documentation; shared 1.5.4.dev0 client remains dormant",
-          "tools": [],
-          "reported_tool_count": null
+          "status": "verified",
+          "source": "Arabold serena@1.5.4 official documentation & runtime verification",
+          "tools": [
+            "replace_content",
+            "replace_in_files",
+            "replace_symbol_body",
+            "insert_after_symbol",
+            "insert_before_symbol",
+            "search_for_pattern",
+            "get_symbols_overview",
+            "find_symbol",
+            "find_referencing_symbols",
+            "find_implementations",
+            "find_declaration",
+            "get_diagnostics_for_file",
+            "rename_symbol",
+            "safe_delete_symbol",
+            "write_memory",
+            "read_memory",
+            "list_memories",
+            "delete_memory",
+            "rename_memory",
+            "edit_memory",
+            "open_dashboard"
+          ],
+          "reported_tool_count": 21
         },
         "authentication": {
           "mode": "none",
@@ -406,7 +458,7 @@
           "classification": "project_local",
           "status": "verified",
           "candidate_roots": [
-            "exact enrolled project root selected by a host-owned process"
+            "exact enrolled project root resolved by Serena HTTP session shim"
           ],
           "forbidden_roots": [
             "whole-drive roots",
@@ -414,8 +466,8 @@
           ]
         },
         "code_mode": {
-          "decision": "required_if_admitted",
-          "rationale": "The semantic tool surface is large, but the shared client stays dormant until trustworthy per-session project identity exists."
+          "decision": "enabled",
+          "rationale": "Admitted into Code Mode via HTTP session shim. 21 tool definitions stay out of eager context and are accessed on demand."
         },
         "protected_resources": {
           "classes": [
@@ -423,11 +475,11 @@
             "project_local_memory"
           ],
           "default_access": "none",
-          "policy": "Use native source tools or an exact project-owned Serena process; no shared implicit-project exposure."
+          "policy": "Bound strictly to enrolled project root via scripts/bifrost/serena_session_shim.py; Swarm roots refused."
         },
         "default_disposition": {
-          "state": "dormant_zero_profile",
-          "replacement_route": "Use native IDE semantic tools or an explicit-cwd project-owned Serena process.",
+          "state": "active_profile",
+          "replacement_route": "Serena HTTP session shim (scripts/bifrost/serena_session_shim.py) routing to isolated per-project child processes.",
           "activation_requirements": [
             "Trustworthy per-session project identity",
             "Exact tools/list inventory",
@@ -435,26 +487,26 @@
           ]
         },
         "canary": {
-          "status": "required_before_activation",
+          "status": "passed",
           "probes": [
-            "Safe symbol overview against the exact enrolled project root"
+            "Concurrent multi-IDE isolation canary in scripts/bifrost/test_serena_session_shim.py"
           ]
         },
         "database_allowlist": [],
         "evidence_sources": [
           "Arabold serena@1.5.4",
-          "SERENA.md"
+          "SERENA.md",
+          "docs/adr/ADR-2026-09-09-serena-http-session-shim.md",
+          "scripts/bifrost/test_serena_session_shim.py"
         ],
-        "unresolved_gaps": [
-          "Complete 1.5.4.dev0 tools/list inventory",
-          "Concurrent per-session project routing"
-        ]
+        "unresolved_gaps": []
       },
       "notes": [
-        "Phase 2 (2026-07-24): launched via ops/bifrost/wrappers/serena-prewarm.js to answer Bifrost initialize/tools/list/ping immediately while Serena finishes MCP lifetime setup (READY_SIGNAL).",
-        "Retained wrapper supports an explicit operator-only maintenance test for a path in contracts/agentcore-project-enrollment.json.",
-        "Ordinary profiles use native source tools or a host-owned explicit-cwd Serena process; they never mutate machine-global router state.",
-        "Keep this shared implicit-project client disabled. Serena remains conditionally required for architecture-sensitive edits only when a correctly scoped host-local process is available."
+        "2026-09-09: Admitted to Bifrost in Code Mode via HTTP session shim (scripts/bifrost/serena_session_shim.py).",
+        "Bifrost connects to http://127.0.0.1:18090/mcp with allowed_extra_headers: x-agentcore-project, x-bf-session-id, x-session-id.",
+        "Shim resolves project against contracts/agentcore-project-enrollment.json (default-deny; Swarm refuse) and routes to dedicated isolated child process.",
+        "Zero cross-project leakage verified by scripts/bifrost/test_serena_session_shim.py canary test.",
+        "Shared sticky STDIO is permanently retired."
       ]
     },
     "sequential-thinking": {
