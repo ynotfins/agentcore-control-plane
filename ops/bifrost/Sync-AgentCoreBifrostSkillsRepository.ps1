@@ -18,7 +18,6 @@ param(
   [string[]]$IncludeSkill = @('agentcore-project-lifecycle', 'langfuse'),
   [switch]$Apply,
   [switch]$UpdateExisting,
-  [string]$AdminApiKey = '',
   [switch]$OutputJson,
   [switch]$TestMode,
   [string]$TestListResponsePath = '',
@@ -307,12 +306,8 @@ function Invoke-BifrostWrite([string]$Method, [string]$Uri, $Payload, [hashtable
   return Invoke-RestMethod -Uri $Uri -Method $Method -Headers $Headers -Body $body -ContentType 'application/json' -TimeoutSec 60
 }
 
-if (-not $AdminApiKey) {
-  $AdminApiKey = Get-EnvValue 'BIFROST_ADMIN_KEY'
-}
-if (-not $AdminApiKey) {
-  $AdminApiKey = Get-EnvValue 'BIFROST_ADMIN_API_KEY'
-}
+$AdminUsername = Get-EnvValue 'BIFROST_ADMIN_USERNAME'
+$AdminPassword = Get-EnvValue 'BIFROST_ADMIN_PASSWORD'
 
 $summary = [ordered]@{
   scanned = @()
@@ -331,7 +326,10 @@ try {
   $repoRoot = Get-SkillRootPath
   $resolvedSkillRoots = Resolve-SkillRoots (@($SkillRoot) + @($AdditionalSkillRoot))
   $headers = @{}
-  if ($AdminApiKey) { $headers['Authorization'] = "Bearer $AdminApiKey" }
+  if ($AdminUsername -and $AdminPassword) {
+    $pair = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("${AdminUsername}:${AdminPassword}"))
+    $headers['Authorization'] = "Basic $pair"
+  }
 
   $existingPayload = Get-BifrostSkills $headers
   $existingByName = @{}
@@ -368,8 +366,8 @@ try {
         $summary.would_create += $name
         continue
       }
-      if (-not $AdminApiKey -and -not $TestMode) {
-        throw 'BIFROST_ADMIN_KEY is required for live create calls'
+      if (-not ($AdminUsername -and $AdminPassword) -and -not $TestMode) {
+        throw 'BIFROST_ADMIN_USERNAME/BIFROST_ADMIN_PASSWORD are required for live create calls'
       }
       $null = Invoke-BifrostWrite 'POST' "$BaseUrl/api/skills" $payload $headers
       $summary.created += $name
@@ -391,8 +389,8 @@ try {
       $summary.would_update += $name
       continue
     }
-    if (-not $AdminApiKey -and -not $TestMode) {
-      throw 'BIFROST_ADMIN_KEY is required for live update calls'
+    if (-not ($AdminUsername -and $AdminPassword) -and -not $TestMode) {
+      throw 'BIFROST_ADMIN_USERNAME/BIFROST_ADMIN_PASSWORD are required for live update calls'
     }
     $null = Invoke-BifrostWrite 'PUT' "$BaseUrl/api/skills/$existingId" $payload $headers
     $summary.updated += $name

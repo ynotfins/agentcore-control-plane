@@ -1195,7 +1195,10 @@ def test_openrouter_reauth_helper_uses_secret_safe_v2_oauth_flow() -> None:
     assert "/api/mcp/client/$flowId/complete-oauth" in source
     assert "openrouter-reauth-pending.json" in source
     assert "oauth-clients.json" in source
-    assert "BIFROST_ADMIN_KEY" in source
+    assert "BIFROST_ADMIN_USERNAME" in source
+    assert "BIFROST_ADMIN_PASSWORD" in source
+    assert "Basic $pair" in source or "Basic " in source
+    assert "admin_creds_present" in source
     assert "BIFROST_ENCRYPTION_KEY" in source
     assert "HardenConfigDbAcl" in source
     assert "Set-ConfigDbAclPrivate" in source

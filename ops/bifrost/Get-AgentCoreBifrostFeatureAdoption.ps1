@@ -92,11 +92,13 @@ function Invoke-FeatureEndpoint([string]$Name, [string]$Uri, [bool]$Admin, [stri
   try {
     $headers = @{}
     if ($Admin) {
-      $adminKey = Get-EnvValue 'BIFROST_ADMIN_KEY'
-      if (-not $adminKey) {
-        return @{ available = $false; payload = $null; error = 'BIFROST_ADMIN_KEY unavailable' }
+      $adminUser = Get-EnvValue 'BIFROST_ADMIN_USERNAME'
+      $adminPass = Get-EnvValue 'BIFROST_ADMIN_PASSWORD'
+      if (-not $adminUser -or -not $adminPass) {
+        return @{ available = $false; payload = $null; error = 'BIFROST_ADMIN_USERNAME/PASSWORD unavailable' }
       }
-      $headers['Authorization'] = "Bearer $adminKey"
+      $pair = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("${adminUser}:${adminPass}"))
+      $headers['Authorization'] = "Basic $pair"
     }
     $payload = Invoke-RestMethod -Uri $Uri -Headers $headers -TimeoutSec 10
     return @{ available = $true; payload = $payload; error = $null }
@@ -257,10 +259,11 @@ $providersPayload = $null
 $logsPayload = $null
 $adminErrors = @()
 
+$adminCredsAvailable = [bool]((Get-EnvValue 'BIFROST_ADMIN_USERNAME') -and (Get-EnvValue 'BIFROST_ADMIN_PASSWORD'))
+
 if (-not $NoAdminApi) {
-  $adminKeyAvailable = [bool](Get-EnvValue 'BIFROST_ADMIN_KEY')
-  if ($TestMode) { $adminKeyAvailable = $true }
-  if ($adminKeyAvailable) {
+  if ($TestMode) { $adminCredsAvailable = $true }
+  if ($adminCredsAvailable) {
     $endpoints = @(
       @{ name = 'version'; uri = "$BaseUrl/api/version"; fixture = $TestVersionPath },
       @{ name = 'config'; uri = "$BaseUrl/api/config?from_db=true"; fixture = $TestConfigPath },
@@ -287,7 +290,7 @@ if (-not $NoAdminApi) {
     $providersPayload = $responses.providers.payload
     $logsPayload = $responses.logs.payload
   } else {
-    $adminErrors += 'BIFROST_ADMIN_KEY unavailable'
+    $adminErrors += 'BIFROST_ADMIN_USERNAME/PASSWORD unavailable'
   }
 }
 

@@ -19,7 +19,8 @@ param(
   [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$RepoRoot = 'D:\github\agentcore-control-plane',
   [string]$ClientName = 'openrouter',
-  [string]$AdminKeyEnvName = 'BIFROST_ADMIN_KEY',
+  [string]$AdminUsernameEnvName = 'BIFROST_ADMIN_USERNAME',
+  [string]$AdminPasswordEnvName = 'BIFROST_ADMIN_PASSWORD',
   [string]$EncryptionKeyEnvName = 'BIFROST_ENCRYPTION_KEY',
   [Parameter(ParameterSetName = 'Begin')]
   [switch]$Begin,
@@ -49,12 +50,14 @@ function Get-EnvValue([string]$Name) {
 }
 
 function Get-AdminHeaders {
-  $adminKey = Get-EnvValue $AdminKeyEnvName
-  if ([string]::IsNullOrWhiteSpace($adminKey)) {
-    throw "$AdminKeyEnvName is not set; cannot call Bifrost management APIs."
+  $adminUser = Get-EnvValue $AdminUsernameEnvName
+  $adminPass = Get-EnvValue $AdminPasswordEnvName
+  if ([string]::IsNullOrWhiteSpace($adminUser) -or [string]::IsNullOrWhiteSpace($adminPass)) {
+    throw "$AdminUsernameEnvName/$AdminPasswordEnvName are not set; cannot call Bifrost management APIs."
   }
+  $pair = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("${adminUser}:${adminPass}"))
   return @{
-    Authorization  = "Bearer $adminKey"
+    Authorization  = "Basic $pair"
     'Content-Type' = 'application/json'
     Accept         = 'application/json'
   }
@@ -157,12 +160,13 @@ function Set-ConfigDbAclPrivate {
 function Invoke-Preflight {
   $health = Invoke-WebRequest -Uri ($BaseUrl.TrimEnd('/') + '/health') -UseBasicParsing -TimeoutSec 5
   $encryptionKey = Get-EnvValue $EncryptionKeyEnvName
-  $adminKey = Get-EnvValue $AdminKeyEnvName
+  $adminUser = Get-EnvValue $AdminUsernameEnvName
+  $adminPass = Get-EnvValue $AdminPasswordEnvName
   $acl = Test-ConfigDbAcl
   $client = Get-OpenRouterClient
   return [ordered]@{
     health_status = [int]$health.StatusCode
-    admin_key_present = -not [string]::IsNullOrWhiteSpace($adminKey)
+    admin_creds_present = (-not [string]::IsNullOrWhiteSpace($adminUser)) -and (-not [string]::IsNullOrWhiteSpace($adminPass))
     encryption_key_present = -not [string]::IsNullOrWhiteSpace($encryptionKey)
     config_db_acl_ok = [bool]$acl.ok
     config_db_acl_detail = [string]$acl.detail
@@ -210,7 +214,7 @@ function Write-Result($Payload) {
 
 $preflight = Invoke-Preflight
 if ($preflight.health_status -ne 200) { throw "Bifrost health check failed: $($preflight.health_status)" }
-if (-not $preflight.admin_key_present) { throw "$AdminKeyEnvName is not set." }
+if (-not $preflight.admin_creds_present) { throw "$AdminUsernameEnvName/$AdminPasswordEnvName are not set." }
 
 if ($HardenConfigDbAcl) {
   $aclResult = Set-ConfigDbAclPrivate

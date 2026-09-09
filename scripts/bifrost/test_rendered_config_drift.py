@@ -107,3 +107,22 @@ def test_gate_rendered_rejects_governance_drift(tmp_path, monkeypatch) -> None:
 
     assert len(errors) == 1
     assert "complete non-secret config" in errors[0]
+
+
+def test_dashboard_auth_and_cors_desired_state() -> None:
+    registry = renderer.load_json(renderer.REGISTRY_PATH)
+    gateway_client = validator.load(validator.GATEWAY_CLIENT)
+    config = renderer.build_bifrost_config(registry, gateway_client)
+    assert config["setup_token"] == "env.BIFROST_SETUP_TOKEN"
+    assert config["client"]["allowed_origins"] == [
+        "http://127.0.0.1:8080",
+        "http://localhost:8080",
+    ]
+    assert config["client"]["enforce_auth_on_inference"] is True
+    auth = config["governance"]["auth_config"]
+    assert auth == {
+        "is_enabled": True,
+        "admin_username": "env.BIFROST_ADMIN_USERNAME",
+        "admin_password": "env.BIFROST_ADMIN_PASSWORD",
+        "disable_auth_on_inference": False,
+    }

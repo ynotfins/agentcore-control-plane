@@ -1075,44 +1075,48 @@ if (-not $encKeyPresent) {
     Warn "or-oauth-status" "OAuth status: not_verified — BIFROST_ENCRYPTION_KEY absent; do not initiate OAuth (see OR-0)"
 } else {
     # Check Bifrost management API for openrouter client OAuth status
-    $adminKey = $env:BIFROST_ADMIN_KEY
-    if ($adminKey) {
-        try {
-            $clientsResp = Invoke-RestMethod -Uri "http://127.0.0.1:8080/api/mcp/clients" `
-                -Headers @{Authorization="Bearer $adminKey"} -TimeoutSec 10 -ErrorAction Stop
-            $orClient = $clientsResp | Where-Object { $_.name -eq "openrouter" }
-            if ($orClient) {
-                $orStatus = $orClient.status ?? "unknown"
-                $expiresAt = $orClient.expires_at ?? $orClient.oauth_expires_at ?? $null
-                $statusMsg = "openrouter Bifrost client status: $orStatus"
-                if ($expiresAt) {
-                    $expiryDt  = [datetime]::Parse($expiresAt)
-                    $hoursLeft = ($expiryDt - (Get-Date)).TotalHours
-                    $statusMsg += "; expires_at=$expiresAt ($([math]::Round($hoursLeft,1))h remaining)"
-                    if ($hoursLeft -le 0) {
-                        Fail "or-oauth-status" "$statusMsg — EXPIRED"
-                    } elseif ($hoursLeft -le 48) {
-                        Warn "or-oauth-status" "$statusMsg — WARNING: reauthorization needed soon"
-                    } else {
-                        Ok "or-oauth-status" $statusMsg
-                    }
-                } elseif ($orStatus -in @("pending_oauth","ready_auth_on_first_use","installed_dormant")) {
-                    Ok "or-oauth-status" "$statusMsg (pre-enrollment; zero tools exposed)"
-                } elseif ($orStatus -in @("connected","active","authenticated_dormant")) {
-                    Warn "or-oauth-status" "$statusMsg — expires_at not reported; cannot confirm expiry"
-                } elseif ($orStatus -in @("error","disconnected","reconnect_loop","revoked")) {
-                    Fail "or-oauth-status" "$statusMsg — needs operator attention"
-                } else {
-                    Warn "or-oauth-status" "$statusMsg — unrecognized status string; investigate"
-                }
+    $adminUser = $env:BIFROST_ADMIN_USERNAME
+    if (-not $adminUser) { $adminUser = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_USERNAME','User') }
+    $adminPass = $env:BIFROST_ADMIN_PASSWORD
+    if (-not $adminPass) { $adminPass = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_PASSWORD','User') }
+    if ($adminUser -and $adminPass) {
+        $pair = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("${adminUser}:${adminPass}"))
+        $clientsResp = Invoke-RestMethod -Uri "http://127.0.0.1:8080/api/mcp/clients" `
+            -Headers @{ Authorization = "Basic $pair" } -TimeoutSec 10 -ErrorAction Stop
+        $orClient = @($clientsResp.clients) | Where-Object { $_.config.name -eq "openrouter" } | Select-Object -First 1
+    } else {
+        $clientsResp = $null
+        $orClient = $null
+    }
+    if ($orClient) {
+        $orStatus = [string]($orClient.state ?? $orClient.status ?? "unknown")
+        $expiresAt = $orClient.expires_at ?? $orClient.oauth_expires_at ?? $null
+        $statusMsg = "openrouter Bifrost client status: $orStatus"
+        if ($expiresAt) {
+            $expiryDt  = [datetime]::Parse($expiresAt)
+            $hoursLeft = ($expiryDt - (Get-Date)).TotalHours
+            $statusMsg += "; expires_at=$expiresAt ($([math]::Round($hoursLeft,1))h remaining)"
+            if ($hoursLeft -le 0) {
+                Fail "or-oauth-status" "$statusMsg — EXPIRED"
+            } elseif ($hoursLeft -le 48) {
+                Warn "or-oauth-status" "$statusMsg — WARNING: reauthorization needed soon"
             } else {
-                Warn "or-oauth-status" "openrouter client not found in Bifrost management API response"
+                Ok "or-oauth-status" $statusMsg
             }
-        } catch {
-            Warn "or-oauth-status" "Could not query Bifrost management API for OAuth status: $($_.Exception.Message)"
+        } elseif ($orStatus -in @("pending_oauth","ready_auth_on_first_use","installed_dormant")) {
+            Ok "or-oauth-status" "$statusMsg (pre-enrollment; zero tools exposed)"
+        } elseif ($orStatus -in @("connected","active","authenticated_dormant")) {
+            Warn "or-oauth-status" "$statusMsg — expires_at not reported; cannot confirm expiry"
+        } elseif ($orStatus -in @("error","disconnected","reconnect_loop","revoked")) {
+            Fail "or-oauth-status" "$statusMsg — needs operator attention"
+        } else {
+            Warn "or-oauth-status" "$statusMsg — unrecognized status string; investigate"
         }
     } else {
-        Warn "or-oauth-status" "BIFROST_ADMIN_KEY not set — cannot query OAuth status via management API; log-based expiry check skipped (log absence is not a PASS)"
+        Warn "or-oauth-status" "openrouter client not found in Bifrost management API response"
+    }
+    if (-not $adminUser -or -not $adminPass) {
+        Warn "or-oauth-status" "BIFROST_ADMIN_USERNAME/PASSWORD not set — cannot query OAuth status via management API; log-based expiry check skipped (log absence is not a PASS)"
     }
 }
 

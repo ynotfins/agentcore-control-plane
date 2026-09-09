@@ -331,10 +331,13 @@ if (Test-Path -LiteralPath $CursorMcpPath) {
   $failed = $true
 }
 
-$adminKey = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_KEY', 'Process')
-if (-not $adminKey) { $adminKey = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_KEY', 'User') }
-if ($adminKey) {
-  $adminHeaders = @{ Authorization = "Bearer $adminKey" }
+$adminUser = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_USERNAME', 'Process')
+if (-not $adminUser) { $adminUser = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_USERNAME', 'User') }
+$adminPass = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_PASSWORD', 'Process')
+if (-not $adminPass) { $adminPass = [Environment]::GetEnvironmentVariable('BIFROST_ADMIN_PASSWORD', 'User') }
+if ($adminUser -and $adminPass) {
+  $pair = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("${adminUser}:${adminPass}"))
+  $adminHeaders = @{ Authorization = "Basic $pair" }
   try {
     $clients = Invoke-RestMethod -Uri "$BaseUrl/api/mcp/clients" -Headers $adminHeaders -TimeoutSec 10
     $openrouterClients = @($clients.clients | Where-Object { $_.config.name -eq 'openrouter' })
@@ -359,7 +362,7 @@ if ($adminKey) {
     Assert-OrWarn $false "semantic_cache admin check: $($_.Exception.Message)" $RequireSemanticCacheHealthy.IsPresent
   }
 } else {
-  Assert-OrWarn $false 'BIFROST_ADMIN_KEY is set for admin health checks (value not shown)' ($RequireOpenRouterMcpHealthy.IsPresent -or $RequireSemanticCacheHealthy.IsPresent)
+  Assert-OrWarn $false 'BIFROST_ADMIN_USERNAME/PASSWORD are set for admin health checks (values not shown)' ($RequireOpenRouterMcpHealthy.IsPresent -or $RequireSemanticCacheHealthy.IsPresent)
 }
 
 if ($failed) {

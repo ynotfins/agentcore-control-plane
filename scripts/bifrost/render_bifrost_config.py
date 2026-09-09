@@ -302,6 +302,11 @@ def build_http_client(server: dict[str, Any], oauth_state: dict[str, Any] | None
     }
     if server.get("is_code_mode_client") is True:
         client["is_code_mode_client"] = True
+    extra_headers = server.get("allowed_extra_headers")
+    if extra_headers:
+        client["allowed_extra_headers"] = extra_headers
+    if "is_ping_available" in server:
+        client["is_ping_available"] = server["is_ping_available"]
     headers = server.get("headers")
     if headers:
         client["headers"] = headers
@@ -502,6 +507,8 @@ def build_bifrost_config(
         "version": 2,
         "source_of_truth": "config.json",
         "env_label": "agentcore",
+        # Bootstrap secret for first-admin creation only; never embed the literal value.
+        "setup_token": "env.BIFROST_SETUP_TOKEN",
         "client": {
             "enable_logging": True,
             "disable_content_logging": True,
@@ -509,6 +516,11 @@ def build_bifrost_config(
             "enforce_auth_on_inference": True,
             "mcp_server_auth_mode": "headers",
             "mcp_disable_auto_tool_inject": True,
+            # Dashboard/API CORS: loopback dashboard origins only (never "*").
+            "allowed_origins": [
+                "http://127.0.0.1:8080",
+                "http://localhost:8080",
+            ],
         },
         "config_store": {
             "enabled": True,
@@ -560,6 +572,14 @@ def build_bifrost_config(
             },
         },
         "governance": {
+            # Dashboard + /api management auth (password). Inference/MCP stay on VK
+            # via client.enforce_auth_on_inference=true; never embed secret literals.
+            "auth_config": {
+                "is_enabled": True,
+                "admin_username": "env.BIFROST_ADMIN_USERNAME",
+                "admin_password": "env.BIFROST_ADMIN_PASSWORD",
+                "disable_auth_on_inference": False,
+            },
             "virtual_keys": build_virtual_keys(registry),
         },
         # Semantic caching (direct-only mode, no embedding cost)

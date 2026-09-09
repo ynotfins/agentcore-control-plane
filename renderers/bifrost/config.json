@@ -3,13 +3,18 @@
   "version": 2,
   "source_of_truth": "config.json",
   "env_label": "agentcore",
+  "setup_token": "env.BIFROST_SETUP_TOKEN",
   "client": {
     "enable_logging": true,
     "disable_content_logging": true,
     "log_retention_days": 14,
     "enforce_auth_on_inference": true,
     "mcp_server_auth_mode": "headers",
-    "mcp_disable_auto_tool_inject": true
+    "mcp_disable_auto_tool_inject": true,
+    "allowed_origins": [
+      "http://127.0.0.1:8080",
+      "http://localhost:8080"
+    ]
   },
   "config_store": {
     "enabled": true,
@@ -694,6 +699,12 @@
     }
   },
   "governance": {
+    "auth_config": {
+      "is_enabled": true,
+      "admin_username": "env.BIFROST_ADMIN_USERNAME",
+      "admin_password": "env.BIFROST_ADMIN_PASSWORD",
+      "disable_auth_on_inference": false
+    },
     "virtual_keys": [
       {
         "id": "vk-agentcore-builder",

@@ -3,7 +3,7 @@
 Maps PostgreSQL capability leases to Bifrost virtual-key mcp_configs tool grants.
 
 Security invariants:
-- Never print or log secret values (admin key, virtual keys, OAuth tokens).
+- Never print or log secret values (admin password, virtual keys, OAuth tokens).
 - Preserve existing mcp_configs[].id fields (Bifrost returns 409 if omitted incorrectly).
 - No wildcard grants; exact tool names only.
 - Failure leaves tools hidden (deny-by-default).
@@ -12,6 +12,7 @@ Security invariants:
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import os
@@ -24,7 +25,8 @@ from typing import Any, Iterable, Optional
 logger = logging.getLogger(__name__)
 
 BIFROST_BASE = os.environ.get("AGENTCORE_BIFROST_BASE", "http://127.0.0.1:8080").rstrip("/")
-ADMIN_KEY_ENV = "BIFROST_ADMIN_KEY"
+ADMIN_USERNAME_ENV = "BIFROST_ADMIN_USERNAME"
+ADMIN_PASSWORD_ENV = "BIFROST_ADMIN_PASSWORD"
 REGISTRY_PATH = Path(__file__).resolve().parents[2] / "contracts" / "bifrost-upstream-mcp-registry.json"
 
 # Bifrost numeric client id for openrouter (config_mcp_clients.id). Resolved live when possible.
@@ -79,21 +81,29 @@ class BridgeResult:
     detail: str
 
 
-def _admin_headers() -> dict[str, str]:
-    key = os.environ.get(ADMIN_KEY_ENV) or os.environ.get(ADMIN_KEY_ENV, "")
-    # Prefer User-scope on Windows when process env is empty.
-    if not key and os.name == "nt":
+def _read_env(name: str) -> str:
+    value = os.environ.get(name) or ""
+    if not value and os.name == "nt":
         try:
             import winreg
 
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Environment") as k:
-                key, _ = winreg.QueryValueEx(k, ADMIN_KEY_ENV)
+                value, _ = winreg.QueryValueEx(k, name)
         except OSError:
-            key = ""
-    if not key:
-        raise RuntimeError(f"{ADMIN_KEY_ENV} not set; JIT VK bridge cannot mutate Bifrost")
+            value = ""
+    return value or ""
+
+
+def _admin_headers() -> dict[str, str]:
+    user = _read_env(ADMIN_USERNAME_ENV)
+    password = _read_env(ADMIN_PASSWORD_ENV)
+    if not user or not password:
+        raise RuntimeError(
+            f"{ADMIN_USERNAME_ENV}/{ADMIN_PASSWORD_ENV} not set; JIT VK bridge cannot mutate Bifrost"
+        )
+    token = base64.b64encode(f"{user}:{password}".encode("utf-8")).decode("ascii")
     return {
-        "Authorization": f"Bearer {key}",
+        "Authorization": f"Basic {token}",
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
