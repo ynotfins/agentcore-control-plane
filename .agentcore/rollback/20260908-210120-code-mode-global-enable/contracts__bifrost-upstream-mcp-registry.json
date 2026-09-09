@@ -329,7 +329,7 @@
       "status": "active",
       "notes": [
         "Vendored package path under ~/.cursor/vendor/arabold-docs-mcp",
-        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. enabled=true is authoritative for Bifrost launch; do not disable to chase startup latency — arabold-docs is mandatory for exact-version docs.",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. enabled=true is authoritative for Bifrost launch; do not disable to chase startup latency \u2014 arabold-docs is mandatory for exact-version docs.",
         "2026-08-30: classic mode restored; DOCS_MCP_STORE_PATH=F:\\AgentCore\\runtime\\docs-store\\arabold via STATIC_ENV_VALUES.",
         "Mandatory ingest: miss then scrape_docs official URL then wait until searchable then CATALOG.json; Context7 only during wait for public libs.",
         "2026-08-30: launch with pnpm Node 24 (ABI 137) + mcp subcommand; better-sqlite3 prebuild node-v137; DOCS_MCP_STORE_PATH on F:."
@@ -573,7 +573,7 @@
       },
       "notes": [
         "Set DISABLE_THOUGHT_LOGGING=true in Bifrost stdio envs.",
-        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled — required for architecture/recovery decisions.",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled \u2014 required for architecture/recovery decisions.",
         "2026-08-05: wildcard replaced with exact one-tool inventory; remains classic mode."
       ]
     },
@@ -688,13 +688,11 @@
       "bifrost_client_name": "mcp_prompt_optimizer",
       "status": "active",
       "notes": [
-        "2026-09-08: Code Mode enabled (is_code_mode_client=true) with global code_mode_binding_level=tool.",
         "Source clone: D:\\github\\vendor\\mcp-prompt-optimizer.",
         "The upstream git package build path fails with setuptools flat-layout discovery; launch direct script path instead.",
         "Pinned to mcp==0.9.1 because current mcp 2.x removes the Server.list_tools decorator API used by upstream.",
         "No secrets, no database, no durable app data, and no direct IDE MCP entry."
-      ],
-      "is_code_mode_client": true
+      ]
     },
     "context-fabric": {
       "canonical_id": "context-fabric",
@@ -740,7 +738,7 @@
       "status": "dormant_project_scoped",
       "notes": [
         "Dormant in shared Bifrost profiles because calls lack trustworthy per-session project identity. Use the repository-local hook/CLI; reject Swarm and agentmemory roots.",
-        "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* → unprefixed)."
+        "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* \u2192 unprefixed)."
       ]
     },
     "mcp-debugger": {
@@ -1177,7 +1175,7 @@
       "bifrost_client_name": "obsidian_vault",
       "status": "disabled",
       "notes": [
-        "OBSIDIAN_* names only — never embed key values.",
+        "OBSIDIAN_* names only \u2014 never embed key values.",
         "Non-secret defaults may set OBSIDIAN_BASE_URL=https://127.0.0.1:27124 and OBSIDIAN_VERIFY_SSL=false in renderer."
       ]
     },
@@ -1412,7 +1410,7 @@
         ]
       },
       "notes": [
-        "Bounded automation only — no Swarm or agentmemory roots.",
+        "Bounded automation only \u2014 no Swarm or agentmemory roots.",
         "2026-09-08: all 24 exact tools are executable for Trust Class A through Code Mode; none are auto-executed."
       ]
     },
@@ -1563,7 +1561,7 @@
       },
       "notes": [
         "Dormant until a per-session project identity can be injected; native IDE filesystem access remains project-local.",
-        "Phase 7: permitted_tools named inventory from live tools/list (filesystem-* → unprefixed)."
+        "Phase 7: permitted_tools named inventory from live tools/list (filesystem-* \u2192 unprefixed)."
       ]
     },
     "github-mcp": {
@@ -1693,12 +1691,10 @@
         ]
       },
       "notes": [
-        "2026-09-08: Code Mode pre-flagged (is_code_mode_client=true) while enabled=false/deferred; do not activate without separate admission.",
         "Deferred: enabled=false unless healthy.",
         "Exact multi-architecture image pin verified without pulling or starting a container.",
         "Do not register into Bifrost client_configs until health gate and named inventory pass."
-      ],
-      "is_code_mode_client": true
+      ]
     },
     "agentcore-memory": {
       "canonical_id": "agentcore-memory",
@@ -1792,7 +1788,7 @@
     "openrouter": {
       "canonical_id": "openrouter",
       "display_name": "OpenRouter MCP",
-      "purpose": "Live model discovery, context-window verification, provider availability, pricing, benchmark comparisons, routing research, OpenRouter documentation, and operator-scoped account functions. Not an LLM provider route for normal IDE inference — does not change any IDE default model or provider.",
+      "purpose": "Live model discovery, context-window verification, provider availability, pricing, benchmark comparisons, routing research, OpenRouter documentation, and operator-scoped account functions. Not an LLM provider route for normal IDE inference \u2014 does not change any IDE default model or provider.",
       "owner": "agentcore",
       "pinned_version": "live-remote",
       "connection_type": "http",
@@ -1911,7 +1907,7 @@
             "spawn-ori-eval"
           ],
           "access_policy": "billable_approval",
-          "description": "Billable inference/image calls. Remain in denied_tools — never grant from discovery leases. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation.",
+          "description": "Billable inference/image calls. Remain in denied_tools \u2014 never grant from discovery leases. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation.",
           "lease_defaults": {
             "max_duration_seconds": 900,
             "max_invocations": 5,
@@ -1947,14 +1943,13 @@
       "bifrost_client_name": "openrouter",
       "status": "dormant",
       "notes": [
-        "2026-09-08: Code Mode enabled (is_code_mode_client=true) with global code_mode_binding_level=tool. Zero default tool exposure unchanged — tools still require M6 lease + JIT VK bridge.",
         "LIFECYCLE: installed_dormant -> ready_auth_on_first_use -> authenticated_dormant (OAuth connected) -> jit_leased. Registry status remains 'dormant' by validator contract because tools require a live M6 lease.",
-        "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY — OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
+        "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY \u2014 OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
         "ENCRYPTION: BIFROST_ENCRYPTION_KEY required in Windows User scope; OAuth token stored encrypted in data/config.db.",
         "OAUTH BINDING: Bifrost v2 persists oauth_config_id and OAuth tokens in data/config.db. Runtime state F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json may mirror oauth_config_id + mcp_client_id as operator evidence only; rendered config.json must keep oauth_config public params and must not emit oauth_config_id.",
         "RENDERER BEHAVIOR: Git/sanitized/runtime renderers embed oauth_config public params. Runtime oauth_config_id values are config.db-owned metadata and are never copied into Git renderers, runtime config.json, IDE configs, or logs (OR-10).",
         "ZERO TOOLS exposed without a live M6 capability lease + Bifrost VK mcp_configs grant via scripts/bifrost/jit_vk_bridge.py. capability_profiles: [operator] is JIT-eligible reference only.",
-        "openrouter must NOT appear in capability_profiles[*].allowed_server_ids — enforced by validator.",
+        "openrouter must NOT appear in capability_profiles[*].allowed_server_ids \u2014 enforced by validator.",
         "JIT governance: M6 PostgreSQL capability_leases. VK updates MUST preserve existing mcp_configs[].id fields or Bifrost returns 409. Failure leaves tools hidden.",
         "denied_tools send-message/generate-image/install-ori-harness/spawn-ori-eval stay ungated; never grant from discovery leases.",
         "generate-speech classified openrouter-media-generation (operator-approved JIT). transcribe-audio classified openrouter-transcription (operator-approved JIT; results raw_untrusted). get-preset/list-presets join openrouter-discovery-read.",
@@ -1962,10 +1957,9 @@
         "Official endpoint: https://mcp.openrouter.ai/mcp. Transport: Streamable HTTP (MCP 2025-03-26 spec).",
         "AUTHENTICATED LIVE INVENTORY updated 2026-08-05: 22 tools observed through Bifrost. All 22 live tools classified (18 permitted + 4 denied). get-endpoint-uptime-history added to discovery-read; view-skills no longer observed live; install-ori-harness and spawn-ori-eval denied by default.",
         "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
-        "No OPENROUTER_MCP_KEY in Windows env — OAuth token managed by Bifrost config.db only.",
+        "No OPENROUTER_MCP_KEY in Windows env \u2014 OAuth token managed by Bifrost config.db only.",
         "oauth_config_id is Bifrost config.db-owned metadata. If mirrored in F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json, treat it as runtime-only evidence. Never commit it to Git, source renderers, runtime config.json, IDE configs, or logs."
-      ],
-      "is_code_mode_client": true
+      ]
     },
     "agentcore-project-router": {
       "canonical_id": "agentcore-project-router",
@@ -3121,21 +3115,14 @@
           "classification": "project_local",
           "status": "pending_review",
           "candidate_roots": [],
-          "forbidden_roots": [
-            "whole-drive roots",
-            "Swarm-owned roots"
-          ]
+          "forbidden_roots": ["whole-drive roots", "Swarm-owned roots"]
         },
         "code_mode": {
           "decision": "unresolved",
           "rationale": "Exact tool count and schema inventory must be captured before choosing classic or Code Mode."
         },
         "protected_resources": {
-          "classes": [
-            "project_source",
-            "package_manifest",
-            "component_registry"
-          ],
+          "classes": ["project_source", "package_manifest", "component_registry"],
           "default_access": "none",
           "policy": "No component or package writes until exact project identity and named tools are reviewed."
         },
@@ -3151,24 +3138,13 @@
         },
         "canary": {
           "status": "required_before_activation",
-          "probes": [
-            "Read-only component discovery in a disposable non-protected project"
-          ]
+          "probes": ["Read-only component discovery in a disposable non-protected project"]
         },
         "database_allowlist": [],
-        "evidence_sources": [
-          "Operator-verified shadcn@4.21.0 finding"
-        ],
-        "unresolved_gaps": [
-          "Arabold exact docs",
-          "Tool inventory",
-          "Authentication behavior",
-          "Storage side effects"
-        ]
+        "evidence_sources": ["Operator-verified shadcn@4.21.0 finding"],
+        "unresolved_gaps": ["Arabold exact docs", "Tool inventory", "Authentication behavior", "Storage side effects"]
       },
-      "notes": [
-        "Catalog only. Not installed, rendered, profiled, or activated."
-      ]
+      "notes": ["Catalog only. Not installed, rendered, profiled, or activated."]
     },
     "posthog": {
       "canonical_id": "posthog",
@@ -3187,104 +3163,28 @@
       "permitted_tools": [],
       "denied_tools": [],
       "capability_profiles": [],
-      "logging_policy": {
-        "log_invocations": true,
-        "log_content": false,
-        "redact_secrets": true
-      },
-      "retry_policy": {
-        "max_attempts": 0,
-        "backoff_seconds": 0,
-        "retry_on": []
-      },
+      "logging_policy": {"log_invocations": true, "log_content": false, "redact_secrets": true},
+      "retry_policy": {"max_attempts": 0, "backoff_seconds": 0, "retry_on": []},
       "rollback_route": "Remove this disabled catalog record; no OAuth binding or remote project connection exists.",
       "enabled": false,
       "bifrost_client_name": "posthog",
       "status": "catalogued_unverified",
       "admission_evidence": {
-        "artifact": {
-          "kind": "remote_endpoint",
-          "identifier": "https://mcp.posthog.com/mcp",
-          "version": "remote-unversioned",
-          "digest": null
-        },
-        "source": {
-          "primary_url": "https://mcp.posthog.com/mcp",
-          "documentation_url": "https://posthog.com/docs/model-context-protocol",
-          "verification": "operator_verified"
-        },
-        "license": {
-          "spdx": "UNRESOLVED",
-          "status": "unresolved",
-          "source_url": "https://posthog.com/docs/model-context-protocol"
-        },
-        "tool_inventory": {
-          "status": "unresolved",
-          "source": "No authenticated exact inventory accepted",
-          "tools": [],
-          "reported_tool_count": null
-        },
-        "authentication": {
-          "mode": "unresolved",
-          "status": "unresolved",
-          "credential_storage": "unresolved",
-          "env_var_names": [],
-          "dsn_references": []
-        },
-        "storage": {
-          "classification": "remote_provider",
-          "status": "unresolved",
-          "candidate_roots": [],
-          "forbidden_roots": [
-            "local database roots",
-            "Swarm-owned roots"
-          ]
-        },
-        "code_mode": {
-          "decision": "unresolved",
-          "rationale": "Tool count and schemas are unknown until authenticated discovery is approved."
-        },
-        "protected_resources": {
-          "classes": [
-            "analytics_data",
-            "remote_project",
-            "account_credentials"
-          ],
-          "default_access": "none",
-          "policy": "No account bind or analytics mutation before scope, auth, retention, and inventory review."
-        },
-        "default_disposition": {
-          "state": "catalogued_zero_profile",
-          "replacement_route": "Use the existing PostHog UI or approved project SDK path.",
-          "activation_requirements": [
-            "Arabold exact official docs",
-            "License and auth review",
-            "Complete named inventory",
-            "Retention review",
-            "Safe read-only canary"
-          ]
-        },
-        "canary": {
-          "status": "required_before_activation",
-          "probes": [
-            "Read-only metadata call against an operator-selected test project"
-          ]
-        },
+        "artifact": {"kind": "remote_endpoint", "identifier": "https://mcp.posthog.com/mcp", "version": "remote-unversioned", "digest": null},
+        "source": {"primary_url": "https://mcp.posthog.com/mcp", "documentation_url": "https://posthog.com/docs/model-context-protocol", "verification": "operator_verified"},
+        "license": {"spdx": "UNRESOLVED", "status": "unresolved", "source_url": "https://posthog.com/docs/model-context-protocol"},
+        "tool_inventory": {"status": "unresolved", "source": "No authenticated exact inventory accepted", "tools": [], "reported_tool_count": null},
+        "authentication": {"mode": "unresolved", "status": "unresolved", "credential_storage": "unresolved", "env_var_names": [], "dsn_references": []},
+        "storage": {"classification": "remote_provider", "status": "unresolved", "candidate_roots": [], "forbidden_roots": ["local database roots", "Swarm-owned roots"]},
+        "code_mode": {"decision": "unresolved", "rationale": "Tool count and schemas are unknown until authenticated discovery is approved."},
+        "protected_resources": {"classes": ["analytics_data", "remote_project", "account_credentials"], "default_access": "none", "policy": "No account bind or analytics mutation before scope, auth, retention, and inventory review."},
+        "default_disposition": {"state": "catalogued_zero_profile", "replacement_route": "Use the existing PostHog UI or approved project SDK path.", "activation_requirements": ["Arabold exact official docs", "License and auth review", "Complete named inventory", "Retention review", "Safe read-only canary"]},
+        "canary": {"status": "required_before_activation", "probes": ["Read-only metadata call against an operator-selected test project"]},
         "database_allowlist": [],
-        "evidence_sources": [
-          "Operator-verified official endpoint finding"
-        ],
-        "unresolved_gaps": [
-          "Version pin",
-          "License",
-          "Authentication",
-          "Tool inventory",
-          "Remote retention"
-        ]
+        "evidence_sources": ["Operator-verified official endpoint finding"],
+        "unresolved_gaps": ["Version pin", "License", "Authentication", "Tool inventory", "Remote retention"]
       },
-      "notes": [
-        "Catalog only. Not installed, OAuth-bound, rendered, profiled, or activated."
-      ]
+      "notes": ["Catalog only. Not installed, OAuth-bound, rendered, profiled, or activated."]
     },
     "agentmail": {
       "canonical_id": "agentmail",
@@ -3295,9 +3195,7 @@
       "connection_type": "stdio",
       "executable_or_url": "not-configured",
       "arguments": [],
-      "env_var_names": [
-        "AGENTMAIL_API_KEY"
-      ],
+      "env_var_names": ["AGENTMAIL_API_KEY"],
       "timeout_seconds": 120,
       "health_check_type": "none",
       "project_scope": "global",
@@ -3305,107 +3203,28 @@
       "permitted_tools": [],
       "denied_tools": [],
       "capability_profiles": [],
-      "logging_policy": {
-        "log_invocations": true,
-        "log_content": false,
-        "redact_secrets": true
-      },
-      "retry_policy": {
-        "max_attempts": 0,
-        "backoff_seconds": 0,
-        "retry_on": []
-      },
+      "logging_policy": {"log_invocations": true, "log_content": false, "redact_secrets": true},
+      "retry_policy": {"max_attempts": 0, "backoff_seconds": 0, "retry_on": []},
       "rollback_route": "Remove this disabled catalog record; no package, API key binding, inbox, or message was created.",
       "enabled": false,
       "bifrost_client_name": "agentmail",
       "status": "catalogued_unverified",
       "admission_evidence": {
-        "artifact": {
-          "kind": "npm_package",
-          "identifier": "agentmail-mcp",
-          "version": "1.0.2",
-          "digest": null
-        },
-        "source": {
-          "primary_url": "https://www.npmjs.com/package/agentmail-mcp/v/1.0.2",
-          "documentation_url": "https://docs.agentmail.to/",
-          "verification": "operator_verified"
-        },
-        "license": {
-          "spdx": "MIT",
-          "status": "verified",
-          "source_url": "https://www.npmjs.com/package/agentmail-mcp/v/1.0.2"
-        },
-        "tool_inventory": {
-          "status": "reported_unverified",
-          "source": "Operator-supplied package finding; names not authenticated",
-          "tools": [],
-          "reported_tool_count": 27
-        },
-        "authentication": {
-          "mode": "headers",
-          "status": "pending_review",
-          "credential_storage": "windows_user_env",
-          "env_var_names": [
-            "AGENTMAIL_API_KEY"
-          ],
-          "dsn_references": []
-        },
-        "storage": {
-          "classification": "remote_provider",
-          "status": "pending_review",
-          "candidate_roots": [],
-          "forbidden_roots": [
-            "local mail archives",
-            "Swarm-owned roots"
-          ]
-        },
-        "code_mode": {
-          "decision": "required_if_admitted",
-          "rationale": "The reported 27-tool surface is large enough for Code Mode after exact inventory verification."
-        },
-        "protected_resources": {
-          "classes": [
-            "email_content",
-            "attachments",
-            "recipient_addresses",
-            "outbound_messages",
-            "account_credentials"
-          ],
-          "default_access": "none",
-          "policy": "Draft and read scopes must be separated from send/delete actions; outbound sends require explicit approval."
-        },
-        "default_disposition": {
-          "state": "catalogued_zero_profile",
-          "replacement_route": "Use the existing human-controlled email workflow until auth, retention, and send policy pass.",
-          "activation_requirements": [
-            "Arabold exact official docs",
-            "Authenticated 27-tool inventory",
-            "Auth and retention review",
-            "Draft-over-send policy",
-            "Safe inbox-list canary"
-          ]
-        },
-        "canary": {
-          "status": "required_before_activation",
-          "probes": [
-            "List a dedicated test inbox without sending or deleting mail"
-          ]
-        },
+        "artifact": {"kind": "npm_package", "identifier": "agentmail-mcp", "version": "1.0.2", "digest": null},
+        "source": {"primary_url": "https://www.npmjs.com/package/agentmail-mcp/v/1.0.2", "documentation_url": "https://docs.agentmail.to/", "verification": "operator_verified"},
+        "license": {"spdx": "MIT", "status": "verified", "source_url": "https://www.npmjs.com/package/agentmail-mcp/v/1.0.2"},
+        "tool_inventory": {"status": "reported_unverified", "source": "Operator-supplied package finding; names not authenticated", "tools": [], "reported_tool_count": 27},
+        "authentication": {"mode": "headers", "status": "pending_review", "credential_storage": "windows_user_env", "env_var_names": ["AGENTMAIL_API_KEY"], "dsn_references": []},
+        "storage": {"classification": "remote_provider", "status": "pending_review", "candidate_roots": [], "forbidden_roots": ["local mail archives", "Swarm-owned roots"]},
+        "code_mode": {"decision": "required_if_admitted", "rationale": "The reported 27-tool surface is large enough for Code Mode after exact inventory verification."},
+        "protected_resources": {"classes": ["email_content", "attachments", "recipient_addresses", "outbound_messages", "account_credentials"], "default_access": "none", "policy": "Draft and read scopes must be separated from send/delete actions; outbound sends require explicit approval."},
+        "default_disposition": {"state": "catalogued_zero_profile", "replacement_route": "Use the existing human-controlled email workflow until auth, retention, and send policy pass.", "activation_requirements": ["Arabold exact official docs", "Authenticated 27-tool inventory", "Auth and retention review", "Draft-over-send policy", "Safe inbox-list canary"]},
+        "canary": {"status": "required_before_activation", "probes": ["List a dedicated test inbox without sending or deleting mail"]},
         "database_allowlist": [],
-        "evidence_sources": [
-          "Operator-verified agentmail-mcp@1.0.2 package finding"
-        ],
-        "unresolved_gaps": [
-          "Arabold exact docs",
-          "Named tool inventory",
-          "Auth scope",
-          "Retention policy"
-        ]
+        "evidence_sources": ["Operator-verified agentmail-mcp@1.0.2 package finding"],
+        "unresolved_gaps": ["Arabold exact docs", "Named tool inventory", "Auth scope", "Retention policy"]
       },
-      "notes": [
-        "Catalog only. Not installed, authenticated, rendered, profiled, or activated."
-      ]
+      "notes": ["Catalog only. Not installed, authenticated, rendered, profiled, or activated."]
     },
     "fetch-mcp": {
       "canonical_id": "fetch-mcp",
@@ -3424,95 +3243,28 @@
       "permitted_tools": [],
       "denied_tools": [],
       "capability_profiles": [],
-      "logging_policy": {
-        "log_invocations": true,
-        "log_content": false,
-        "redact_secrets": true
-      },
-      "retry_policy": {
-        "max_attempts": 0,
-        "backoff_seconds": 0,
-        "retry_on": []
-      },
+      "logging_policy": {"log_invocations": true, "log_content": false, "redact_secrets": true},
+      "retry_policy": {"max_attempts": 0, "backoff_seconds": 0, "retry_on": []},
       "rollback_route": "Remove this rejected catalog record; no package or listener exists.",
       "enabled": false,
       "bifrost_client_name": "fetch_mcp",
       "status": "rejected",
       "admission_evidence": {
-        "artifact": {
-          "kind": "python_package",
-          "identifier": "mcp-server-fetch",
-          "version": "unresolved",
-          "digest": null
-        },
-        "source": {
-          "primary_url": "https://pypi.org/project/mcp-server-fetch/",
-          "documentation_url": "https://pypi.org/project/mcp-server-fetch/",
-          "verification": "unresolved"
-        },
-        "license": {
-          "spdx": "UNRESOLVED",
-          "status": "unresolved",
-          "source_url": "https://pypi.org/project/mcp-server-fetch/"
-        },
-        "tool_inventory": {
-          "status": "unresolved",
-          "source": "Conflicting package versions and inventories",
-          "tools": [],
-          "reported_tool_count": null
-        },
-        "authentication": {
-          "mode": "none",
-          "status": "unresolved",
-          "credential_storage": "none",
-          "env_var_names": [],
-          "dsn_references": []
-        },
-        "storage": {
-          "classification": "none",
-          "status": "rejected",
-          "candidate_roots": [],
-          "forbidden_roots": [
-            "private network targets",
-            "metadata endpoints",
-            "Swarm-owned roots"
-          ]
-        },
-        "code_mode": {
-          "decision": "rejected",
-          "rationale": "Code Mode cannot mitigate redundant capability, provenance ambiguity, or SSRF risk."
-        },
-        "protected_resources": {
-          "classes": [
-            "network",
-            "private_endpoints",
-            "credentials"
-          ],
-          "default_access": "rejected",
-          "policy": "Generic arbitrary URL fetch is not admitted."
-        },
-        "default_disposition": {
-          "state": "rejected",
-          "replacement_route": "Use Arabold fetch_url for documentation or the host's governed browser/web fetch path.",
-          "activation_requirements": []
-        },
-        "canary": {
-          "status": "rejected",
-          "probes": []
-        },
+        "artifact": {"kind": "python_package", "identifier": "mcp-server-fetch", "version": "unresolved", "digest": null},
+        "source": {"primary_url": "https://pypi.org/project/mcp-server-fetch/", "documentation_url": "https://pypi.org/project/mcp-server-fetch/", "verification": "unresolved"},
+        "license": {"spdx": "UNRESOLVED", "status": "unresolved", "source_url": "https://pypi.org/project/mcp-server-fetch/"},
+        "tool_inventory": {"status": "unresolved", "source": "Conflicting package versions and inventories", "tools": [], "reported_tool_count": null},
+        "authentication": {"mode": "none", "status": "unresolved", "credential_storage": "none", "env_var_names": [], "dsn_references": []},
+        "storage": {"classification": "none", "status": "rejected", "candidate_roots": [], "forbidden_roots": ["private network targets", "metadata endpoints", "Swarm-owned roots"]},
+        "code_mode": {"decision": "rejected", "rationale": "Code Mode cannot mitigate redundant capability, provenance ambiguity, or SSRF risk."},
+        "protected_resources": {"classes": ["network", "private_endpoints", "credentials"], "default_access": "rejected", "policy": "Generic arbitrary URL fetch is not admitted."},
+        "default_disposition": {"state": "rejected", "replacement_route": "Use Arabold fetch_url for documentation or the host's governed browser/web fetch path.", "activation_requirements": []},
+        "canary": {"status": "rejected", "probes": []},
         "database_allowlist": [],
-        "evidence_sources": [
-          "Operator-verified conflicting-version and SSRF finding"
-        ],
-        "unresolved_gaps": [
-          "Exact artifact provenance",
-          "License",
-          "Named tool inventory"
-        ]
+        "evidence_sources": ["Operator-verified conflicting-version and SSRF finding"],
+        "unresolved_gaps": ["Exact artifact provenance", "License", "Named tool inventory"]
       },
-      "notes": [
-        "Rejected and default-off because the capability is redundant and creates SSRF risk."
-      ]
+      "notes": ["Rejected and default-off because the capability is redundant and creates SSRF risk."]
     },
     "wcgw": {
       "canonical_id": "wcgw",
@@ -3531,95 +3283,28 @@
       "permitted_tools": [],
       "denied_tools": [],
       "capability_profiles": [],
-      "logging_policy": {
-        "log_invocations": true,
-        "log_content": false,
-        "redact_secrets": true
-      },
-      "retry_policy": {
-        "max_attempts": 0,
-        "backoff_seconds": 0,
-        "retry_on": []
-      },
+      "logging_policy": {"log_invocations": true, "log_content": false, "redact_secrets": true},
+      "retry_policy": {"max_attempts": 0, "backoff_seconds": 0, "retry_on": []},
       "rollback_route": "Remove this rejected catalog record; no package, WSL process, or shell was started.",
       "enabled": false,
       "bifrost_client_name": "wcgw",
       "status": "rejected",
       "admission_evidence": {
-        "artifact": {
-          "kind": "python_package",
-          "identifier": "wcgw",
-          "version": "5.6.5",
-          "digest": null
-        },
-        "source": {
-          "primary_url": "https://pypi.org/project/wcgw/5.6.5/",
-          "documentation_url": "https://github.com/rusiaaman/wcgw",
-          "verification": "operator_verified"
-        },
-        "license": {
-          "spdx": "Apache-2.0",
-          "status": "verified",
-          "source_url": "https://github.com/rusiaaman/wcgw/blob/main/LICENSE"
-        },
-        "tool_inventory": {
-          "status": "unresolved",
-          "source": "No admitted named inventory; unrestricted shell capability is sufficient to reject",
-          "tools": [],
-          "reported_tool_count": null
-        },
-        "authentication": {
-          "mode": "none",
-          "status": "not_required",
-          "credential_storage": "none",
-          "env_var_names": [],
-          "dsn_references": []
-        },
-        "storage": {
-          "classification": "unrestricted_host",
-          "status": "rejected",
-          "candidate_roots": [],
-          "forbidden_roots": [
-            "whole-drive roots",
-            "home-directory-wide roots",
-            "Swarm-owned roots"
-          ]
-        },
-        "code_mode": {
-          "decision": "rejected",
-          "rationale": "Schema compression does not constrain unrestricted host shell or WSL authority."
-        },
-        "protected_resources": {
-          "classes": [
-            "shell",
-            "wsl",
-            "filesystem",
-            "processes",
-            "network"
-          ],
-          "default_access": "rejected",
-          "policy": "Unrestricted shell and WSL execution are forbidden as a normal IDE MCP surface."
-        },
-        "default_disposition": {
-          "state": "rejected",
-          "replacement_route": "Use host-native exec_command scoped to the exact workspace and task.",
-          "activation_requirements": []
-        },
-        "canary": {
-          "status": "rejected",
-          "probes": []
-        },
+        "artifact": {"kind": "python_package", "identifier": "wcgw", "version": "5.6.5", "digest": null},
+        "source": {"primary_url": "https://pypi.org/project/wcgw/5.6.5/", "documentation_url": "https://github.com/rusiaaman/wcgw", "verification": "operator_verified"},
+        "license": {"spdx": "Apache-2.0", "status": "verified", "source_url": "https://github.com/rusiaaman/wcgw/blob/main/LICENSE"},
+        "tool_inventory": {"status": "unresolved", "source": "No admitted named inventory; unrestricted shell capability is sufficient to reject", "tools": [], "reported_tool_count": null},
+        "authentication": {"mode": "none", "status": "not_required", "credential_storage": "none", "env_var_names": [], "dsn_references": []},
+        "storage": {"classification": "unrestricted_host", "status": "rejected", "candidate_roots": [], "forbidden_roots": ["whole-drive roots", "home-directory-wide roots", "Swarm-owned roots"]},
+        "code_mode": {"decision": "rejected", "rationale": "Schema compression does not constrain unrestricted host shell or WSL authority."},
+        "protected_resources": {"classes": ["shell", "wsl", "filesystem", "processes", "network"], "default_access": "rejected", "policy": "Unrestricted shell and WSL execution are forbidden as a normal IDE MCP surface."},
+        "default_disposition": {"state": "rejected", "replacement_route": "Use host-native exec_command scoped to the exact workspace and task.", "activation_requirements": []},
+        "canary": {"status": "rejected", "probes": []},
         "database_allowlist": [],
-        "evidence_sources": [
-          "Operator-verified wcgw@5.6.5 capability and license finding"
-        ],
-        "unresolved_gaps": [
-          "Named tool inventory not needed for rejected disposition"
-        ]
+        "evidence_sources": ["Operator-verified wcgw@5.6.5 capability and license finding"],
+        "unresolved_gaps": ["Named tool inventory not needed for rejected disposition"]
       },
-      "notes": [
-        "Rejected and default-off; no shell or WSL process may be started from this record."
-      ]
+      "notes": ["Rejected and default-off; no shell or WSL process may be started from this record."]
     },
     "docker-mcp-toolkit": {
       "canonical_id": "docker-mcp-toolkit",
@@ -3638,95 +3323,28 @@
       "permitted_tools": [],
       "denied_tools": [],
       "capability_profiles": [],
-      "logging_policy": {
-        "log_invocations": true,
-        "log_content": false,
-        "redact_secrets": true
-      },
-      "retry_policy": {
-        "max_attempts": 0,
-        "backoff_seconds": 0,
-        "retry_on": []
-      },
+      "logging_policy": {"log_invocations": true, "log_content": false, "redact_secrets": true},
+      "retry_policy": {"max_attempts": 0, "backoff_seconds": 0, "retry_on": []},
       "rollback_route": "Remove this rejected catalog record; no Docker MCP gateway or catalog was started.",
       "enabled": false,
       "bifrost_client_name": "docker_mcp_toolkit",
       "status": "rejected",
       "admission_evidence": {
-        "artifact": {
-          "kind": "local_wrapper",
-          "identifier": "Docker MCP Toolkit",
-          "version": "0.43.1",
-          "digest": null
-        },
-        "source": {
-          "primary_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/",
-          "documentation_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/",
-          "verification": "operator_verified"
-        },
-        "license": {
-          "spdx": "UNRESOLVED",
-          "status": "unresolved",
-          "source_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/"
-        },
-        "tool_inventory": {
-          "status": "unresolved",
-          "source": "Second-aggregator catalog is intentionally not activated",
-          "tools": [],
-          "reported_tool_count": null
-        },
-        "authentication": {
-          "mode": "unresolved",
-          "status": "unresolved",
-          "credential_storage": "unresolved",
-          "env_var_names": [],
-          "dsn_references": []
-        },
-        "storage": {
-          "classification": "container_managed",
-          "status": "rejected",
-          "candidate_roots": [],
-          "forbidden_roots": [
-            "Docker Desktop global state",
-            "whole-drive roots",
-            "Swarm-owned roots"
-          ]
-        },
-        "code_mode": {
-          "decision": "rejected",
-          "rationale": "A second aggregator conflicts with Bifrost ownership and cannot be made acceptable by Code Mode."
-        },
-        "protected_resources": {
-          "classes": [
-            "containers",
-            "images",
-            "volumes",
-            "networks",
-            "mcp_aggregation"
-          ],
-          "default_access": "rejected",
-          "policy": "Bifrost remains the sole normal AgentCore MCP aggregator."
-        },
-        "default_disposition": {
-          "state": "rejected",
-          "replacement_route": "Use agentcore-gateway for MCP aggregation and task-scoped native Docker CLI only when separately authorized.",
-          "activation_requirements": []
-        },
-        "canary": {
-          "status": "rejected",
-          "probes": []
-        },
+        "artifact": {"kind": "local_wrapper", "identifier": "Docker MCP Toolkit", "version": "0.43.1", "digest": null},
+        "source": {"primary_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/", "documentation_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/", "verification": "operator_verified"},
+        "license": {"spdx": "UNRESOLVED", "status": "unresolved", "source_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/"},
+        "tool_inventory": {"status": "unresolved", "source": "Second-aggregator catalog is intentionally not activated", "tools": [], "reported_tool_count": null},
+        "authentication": {"mode": "unresolved", "status": "unresolved", "credential_storage": "unresolved", "env_var_names": [], "dsn_references": []},
+        "storage": {"classification": "container_managed", "status": "rejected", "candidate_roots": [], "forbidden_roots": ["Docker Desktop global state", "whole-drive roots", "Swarm-owned roots"]},
+        "code_mode": {"decision": "rejected", "rationale": "A second aggregator conflicts with Bifrost ownership and cannot be made acceptable by Code Mode."},
+        "protected_resources": {"classes": ["containers", "images", "volumes", "networks", "mcp_aggregation"], "default_access": "rejected", "policy": "Bifrost remains the sole normal AgentCore MCP aggregator."},
+        "default_disposition": {"state": "rejected", "replacement_route": "Use agentcore-gateway for MCP aggregation and task-scoped native Docker CLI only when separately authorized.", "activation_requirements": []},
+        "canary": {"status": "rejected", "probes": []},
         "database_allowlist": [],
-        "evidence_sources": [
-          "Operator-verified Docker MCP Toolkit 0.43.1 finding"
-        ],
-        "unresolved_gaps": [
-          "License and inventory intentionally unresolved because second-gateway architecture is rejected"
-        ]
+        "evidence_sources": ["Operator-verified Docker MCP Toolkit 0.43.1 finding"],
+        "unresolved_gaps": ["License and inventory intentionally unresolved because second-gateway architecture is rejected"]
       },
-      "notes": [
-        "Rejected and default-off because it would create a second normal MCP aggregator."
-      ]
+      "notes": ["Rejected and default-off because it would create a second normal MCP aggregator."]
     },
     "postgresql-mcp": {
       "canonical_id": "postgresql-mcp",
@@ -3745,93 +3363,28 @@
       "permitted_tools": [],
       "denied_tools": [],
       "capability_profiles": [],
-      "logging_policy": {
-        "log_invocations": true,
-        "log_content": false,
-        "redact_secrets": true
-      },
-      "retry_policy": {
-        "max_attempts": 0,
-        "backoff_seconds": 0,
-        "retry_on": []
-      },
+      "logging_policy": {"log_invocations": true, "log_content": false, "redact_secrets": true},
+      "retry_policy": {"max_attempts": 0, "backoff_seconds": 0, "retry_on": []},
       "rollback_route": "Remove this rejected catalog record; no DSN, role, database, or process was created.",
       "enabled": false,
       "bifrost_client_name": "postgresql_mcp",
       "status": "rejected",
       "admission_evidence": {
-        "artifact": {
-          "kind": "npm_package",
-          "identifier": "@modelcontextprotocol/server-postgres",
-          "version": "0.6.2",
-          "digest": null
-        },
-        "source": {
-          "primary_url": "https://www.npmjs.com/package/@modelcontextprotocol/server-postgres/v/0.6.2",
-          "documentation_url": "https://github.com/modelcontextprotocol/servers-archived/tree/main/src/postgres",
-          "verification": "operator_verified"
-        },
-        "license": {
-          "spdx": "MIT",
-          "status": "verified",
-          "source_url": "https://github.com/modelcontextprotocol/servers-archived/blob/main/LICENSE"
-        },
-        "tool_inventory": {
-          "status": "unresolved",
-          "source": "Deprecated raw database server is rejected without discovery",
-          "tools": [],
-          "reported_tool_count": null
-        },
-        "authentication": {
-          "mode": "unresolved",
-          "status": "unresolved",
-          "credential_storage": "unresolved",
-          "env_var_names": [],
-          "dsn_references": []
-        },
-        "storage": {
-          "classification": "unresolved",
-          "status": "rejected",
-          "candidate_roots": [],
-          "forbidden_roots": [
-            "AgentCore PostgreSQL data roots",
-            "Swarm-owned roots"
-          ]
-        },
-        "code_mode": {
-          "decision": "rejected",
-          "rationale": "Code Mode does not make raw database credentials or unrestricted SQL acceptable."
-        },
-        "protected_resources": {
-          "classes": [
-            "database",
-            "database_credentials",
-            "raw_sql",
-            "schema_mutation"
-          ],
-          "default_access": "rejected",
-          "policy": "Normal IDEs receive no raw SQL, DSNs, database credentials, or write tools."
-        },
-        "default_disposition": {
-          "state": "rejected",
-          "replacement_route": "Use agentcore-memory for governed reads and the owning migration workflow for approved database changes.",
-          "activation_requirements": []
-        },
-        "canary": {
-          "status": "rejected",
-          "probes": []
-        },
+        "artifact": {"kind": "npm_package", "identifier": "@modelcontextprotocol/server-postgres", "version": "0.6.2", "digest": null},
+        "source": {"primary_url": "https://www.npmjs.com/package/@modelcontextprotocol/server-postgres/v/0.6.2", "documentation_url": "https://github.com/modelcontextprotocol/servers-archived/tree/main/src/postgres", "verification": "operator_verified"},
+        "license": {"spdx": "MIT", "status": "verified", "source_url": "https://github.com/modelcontextprotocol/servers-archived/blob/main/LICENSE"},
+        "tool_inventory": {"status": "unresolved", "source": "Deprecated raw database server is rejected without discovery", "tools": [], "reported_tool_count": null},
+        "authentication": {"mode": "unresolved", "status": "unresolved", "credential_storage": "unresolved", "env_var_names": [], "dsn_references": []},
+        "storage": {"classification": "unresolved", "status": "rejected", "candidate_roots": [], "forbidden_roots": ["AgentCore PostgreSQL data roots", "Swarm-owned roots"]},
+        "code_mode": {"decision": "rejected", "rationale": "Code Mode does not make raw database credentials or unrestricted SQL acceptable."},
+        "protected_resources": {"classes": ["database", "database_credentials", "raw_sql", "schema_mutation"], "default_access": "rejected", "policy": "Normal IDEs receive no raw SQL, DSNs, database credentials, or write tools."},
+        "default_disposition": {"state": "rejected", "replacement_route": "Use agentcore-memory for governed reads and the owning migration workflow for approved database changes.", "activation_requirements": []},
+        "canary": {"status": "rejected", "probes": []},
         "database_allowlist": [],
-        "evidence_sources": [
-          "Operator-verified deprecated @modelcontextprotocol/server-postgres@0.6.2 finding"
-        ],
-        "unresolved_gaps": [
-          "No gaps can override the direct-database prohibition"
-        ]
+        "evidence_sources": ["Operator-verified deprecated @modelcontextprotocol/server-postgres@0.6.2 finding"],
+        "unresolved_gaps": ["No gaps can override the direct-database prohibition"]
       },
-      "notes": [
-        "Rejected and default-off; no normal IDE database write tools or direct DSN route."
-      ]
+      "notes": ["Rejected and default-off; no normal IDE database write tools or direct DSN route."]
     },
     "sqlite-mcp": {
       "canonical_id": "sqlite-mcp",
@@ -3850,98 +3403,28 @@
       "permitted_tools": [],
       "denied_tools": [],
       "capability_profiles": [],
-      "logging_policy": {
-        "log_invocations": true,
-        "log_content": false,
-        "redact_secrets": true
-      },
-      "retry_policy": {
-        "max_attempts": 0,
-        "backoff_seconds": 0,
-        "retry_on": []
-      },
+      "logging_policy": {"log_invocations": true, "log_content": false, "redact_secrets": true},
+      "retry_policy": {"max_attempts": 0, "backoff_seconds": 0, "retry_on": []},
       "rollback_route": "Remove this rejected catalog record; no package, database path, or process was created.",
       "enabled": false,
       "bifrost_client_name": "sqlite_mcp",
       "status": "rejected",
       "admission_evidence": {
-        "artifact": {
-          "kind": "unresolved",
-          "identifier": "sqlite MCP server",
-          "version": "unresolved",
-          "digest": null
-        },
-        "source": {
-          "primary_url": "unresolved",
-          "documentation_url": "unresolved",
-          "verification": "unresolved"
-        },
-        "license": {
-          "spdx": "UNRESOLVED",
-          "status": "unresolved",
-          "source_url": "unresolved"
-        },
-        "tool_inventory": {
-          "status": "unresolved",
-          "source": "Artifact provenance and tool inventory are unresolved",
-          "tools": [],
-          "reported_tool_count": null
-        },
-        "authentication": {
-          "mode": "none",
-          "status": "unresolved",
-          "credential_storage": "none",
-          "env_var_names": [],
-          "dsn_references": []
-        },
-        "storage": {
-          "classification": "unresolved",
-          "status": "rejected",
-          "candidate_roots": [],
-          "forbidden_roots": [
-            "AgentCore runtime databases",
-            "application databases",
-            "Swarm-owned roots"
-          ]
-        },
-        "code_mode": {
-          "decision": "rejected",
-          "rationale": "Code Mode cannot resolve provenance, license, database path, or raw query authority."
-        },
-        "protected_resources": {
-          "classes": [
-            "database",
-            "database_files",
-            "raw_sql",
-            "schema_mutation"
-          ],
-          "default_access": "rejected",
-          "policy": "No unresolved raw database MCP is available to normal IDEs."
-        },
-        "default_disposition": {
-          "state": "rejected",
-          "replacement_route": "Use an owning application's governed API or migration workflow; do not expose SQLite files through MCP.",
-          "activation_requirements": []
-        },
-        "canary": {
-          "status": "rejected",
-          "probes": []
-        },
+        "artifact": {"kind": "unresolved", "identifier": "sqlite MCP server", "version": "unresolved", "digest": null},
+        "source": {"primary_url": "unresolved", "documentation_url": "unresolved", "verification": "unresolved"},
+        "license": {"spdx": "UNRESOLVED", "status": "unresolved", "source_url": "unresolved"},
+        "tool_inventory": {"status": "unresolved", "source": "Artifact provenance and tool inventory are unresolved", "tools": [], "reported_tool_count": null},
+        "authentication": {"mode": "none", "status": "unresolved", "credential_storage": "none", "env_var_names": [], "dsn_references": []},
+        "storage": {"classification": "unresolved", "status": "rejected", "candidate_roots": [], "forbidden_roots": ["AgentCore runtime databases", "application databases", "Swarm-owned roots"]},
+        "code_mode": {"decision": "rejected", "rationale": "Code Mode cannot resolve provenance, license, database path, or raw query authority."},
+        "protected_resources": {"classes": ["database", "database_files", "raw_sql", "schema_mutation"], "default_access": "rejected", "policy": "No unresolved raw database MCP is available to normal IDEs."},
+        "default_disposition": {"state": "rejected", "replacement_route": "Use an owning application's governed API or migration workflow; do not expose SQLite files through MCP.", "activation_requirements": []},
+        "canary": {"status": "rejected", "probes": []},
         "database_allowlist": [],
-        "evidence_sources": [
-          "Operator-verified unresolved SQLite provenance and license finding"
-        ],
-        "unresolved_gaps": [
-          "Official artifact",
-          "Version",
-          "License",
-          "Tool inventory",
-          "Database path policy"
-        ]
+        "evidence_sources": ["Operator-verified unresolved SQLite provenance and license finding"],
+        "unresolved_gaps": ["Official artifact", "Version", "License", "Tool inventory", "Database path policy"]
       },
-      "notes": [
-        "Rejected and default-off because provenance, license, inventory, and storage scope are unresolved."
-      ]
+      "notes": ["Rejected and default-off because provenance, license, inventory, and storage scope are unresolved."]
     },
     "ref-mcp": {
       "canonical_id": "ref-mcp",
@@ -3960,96 +3443,28 @@
       "permitted_tools": [],
       "denied_tools": [],
       "capability_profiles": [],
-      "logging_policy": {
-        "log_invocations": true,
-        "log_content": false,
-        "redact_secrets": true
-      },
-      "retry_policy": {
-        "max_attempts": 0,
-        "backoff_seconds": 0,
-        "retry_on": []
-      },
+      "logging_policy": {"log_invocations": true, "log_content": false, "redact_secrets": true},
+      "retry_policy": {"max_attempts": 0, "backoff_seconds": 0, "retry_on": []},
       "rollback_route": "Remove this rejected catalog record; no remote auth or provider state exists.",
       "enabled": false,
       "bifrost_client_name": "ref_mcp",
       "status": "rejected",
       "admission_evidence": {
-        "artifact": {
-          "kind": "remote_endpoint",
-          "identifier": "https://api.ref.tools/mcp",
-          "version": "remote-unversioned",
-          "digest": null
-        },
-        "source": {
-          "primary_url": "https://api.ref.tools/mcp",
-          "documentation_url": "https://ref.tools/docs/mcp",
-          "verification": "operator_verified"
-        },
-        "license": {
-          "spdx": "UNRESOLVED",
-          "status": "unresolved",
-          "source_url": "https://ref.tools/docs/mcp"
-        },
-        "tool_inventory": {
-          "status": "unresolved",
-          "source": "No authenticated named inventory accepted",
-          "tools": [],
-          "reported_tool_count": null
-        },
-        "authentication": {
-          "mode": "unresolved",
-          "status": "unresolved",
-          "credential_storage": "unresolved",
-          "env_var_names": [],
-          "dsn_references": []
-        },
-        "storage": {
-          "classification": "remote_provider",
-          "status": "rejected",
-          "candidate_roots": [],
-          "forbidden_roots": [
-            "private repositories",
-            "credential stores",
-            "Swarm-owned roots"
-          ]
-        },
-        "code_mode": {
-          "decision": "rejected",
-          "rationale": "The unresolved remote surface duplicates the admitted Arabold-first documentation route."
-        },
-        "protected_resources": {
-          "classes": [
-            "remote_content",
-            "repository_context",
-            "account_credentials"
-          ],
-          "default_access": "rejected",
-          "policy": "No remote repository or documentation upload until provenance, auth, inventory, and retention are resolved."
-        },
-        "default_disposition": {
-          "state": "rejected",
-          "replacement_route": "Use Arabold exact-version docs first and Context7 only as the existing same-turn public fallback.",
-          "activation_requirements": []
-        },
-        "canary": {
-          "status": "rejected",
-          "probes": []
-        },
+        "artifact": {"kind": "remote_endpoint", "identifier": "https://api.ref.tools/mcp", "version": "remote-unversioned", "digest": null},
+        "source": {"primary_url": "https://api.ref.tools/mcp", "documentation_url": "https://ref.tools/docs/mcp", "verification": "operator_verified"},
+        "license": {"spdx": "UNRESOLVED", "status": "unresolved", "source_url": "https://ref.tools/docs/mcp"},
+        "tool_inventory": {"status": "unresolved", "source": "No authenticated named inventory accepted", "tools": [], "reported_tool_count": null},
+        "authentication": {"mode": "unresolved", "status": "unresolved", "credential_storage": "unresolved", "env_var_names": [], "dsn_references": []},
+        "storage": {"classification": "remote_provider", "status": "rejected", "candidate_roots": [], "forbidden_roots": ["private repositories", "credential stores", "Swarm-owned roots"]},
+        "code_mode": {"decision": "rejected", "rationale": "The unresolved remote surface duplicates the admitted Arabold-first documentation route."},
+        "protected_resources": {"classes": ["remote_content", "repository_context", "account_credentials"], "default_access": "rejected", "policy": "No remote repository or documentation upload until provenance, auth, inventory, and retention are resolved."},
+        "default_disposition": {"state": "rejected", "replacement_route": "Use Arabold exact-version docs first and Context7 only as the existing same-turn public fallback.", "activation_requirements": []},
+        "canary": {"status": "rejected", "probes": []},
         "database_allowlist": [],
-        "evidence_sources": [
-          "Operator-verified Ref endpoint and unresolved admission finding"
-        ],
-        "unresolved_gaps": [
-          "License",
-          "Authentication",
-          "Named tool inventory",
-          "Remote retention"
-        ]
+        "evidence_sources": ["Operator-verified Ref endpoint and unresolved admission finding"],
+        "unresolved_gaps": ["License", "Authentication", "Named tool inventory", "Remote retention"]
       },
-      "notes": [
-        "Rejected and default-off as unresolved and redundant with the governed docs route."
-      ]
+      "notes": ["Rejected and default-off as unresolved and redundant with the governed docs route."]
     }
   }
 }

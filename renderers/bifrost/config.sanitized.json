@@ -54,6 +54,32 @@
   "mcp": {
     "client_configs": [
       {
+        "name": "agentcore_capability_catalog",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "agentcore-capability-catalog",
+            "--contract",
+            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
+            "--",
+            "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\capability_catalog\\server.py"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "get_capability_detail",
+          "list_capabilities"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true
+      },
+      {
         "name": "agentcore_memory",
         "connection_type": "stdio",
         "stdio_config": {
@@ -98,9 +124,9 @@
             "--allow-env",
             "AGENTCORE_PROJECT_ENROLLMENT_CONTRACT",
             "--allow-env",
-            "AGENTCORE_RECALL_API_KEY",
-            "--allow-env",
             "AGENTCORE_RECALL_API_URL",
+            "--allow-env",
+            "AGENTCORE_RECALL_PROJECT_KEYS_JSON",
             "--allow-env",
             "AGENTCORE_REPO_PATH",
             "--allow-env",
@@ -156,6 +182,41 @@
         ],
         "auth_type": "none",
         "is_ping_available": false
+      },
+      {
+        "name": "apify_research",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "apify-research",
+            "--contract",
+            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
+            "--alias-env",
+            "APIFY_TOKEN=APIFY_API_KEY",
+            "--",
+            "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.exe",
+            "F:\\AgentCore\\runtime\\mcp-processes\\research-mcp\\node_modules\\@apify\\actors-mcp-server\\dist\\stdio.js",
+            "--tools",
+            "search-actors,fetch-actor-details,call-actor,search-apify-docs,fetch-apify-docs",
+            "--telemetry-enabled=false",
+            "--ui=default"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "search-actors",
+          "fetch-actor-details",
+          "call-actor",
+          "search-apify-docs",
+          "fetch-apify-docs"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true,
+        "is_code_mode_client": true
       },
       {
         "name": "arabold_docs",
@@ -262,6 +323,70 @@
         "is_ping_available": true
       },
       {
+        "name": "exa_research",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "exa-research",
+            "--contract",
+            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
+            "--allow-env",
+            "EXA_API_KEY",
+            "--static-env",
+            "AGNOST_DISABLE_LOGS=true",
+            "--",
+            "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.exe",
+            "F:\\AgentCore\\runtime\\mcp-processes\\research-mcp\\node_modules\\exa-mcp-server\\dist\\stdio.cjs"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "web_search_exa",
+          "web_fetch_exa"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true,
+        "is_code_mode_client": true
+      },
+      {
+        "name": "firecrawl_research",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "firecrawl-research",
+            "--contract",
+            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
+            "--allow-env",
+            "FIRECRAWL_API_KEY",
+            "--",
+            "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.exe",
+            "F:\\AgentCore\\runtime\\mcp-processes\\research-mcp\\node_modules\\firecrawl-mcp\\dist\\index.js"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "firecrawl_search",
+          "firecrawl_scrape",
+          "firecrawl_map",
+          "firecrawl_research_search_papers",
+          "firecrawl_research_inspect_paper",
+          "firecrawl_research_related_papers",
+          "firecrawl_research_read_paper",
+          "firecrawl_research_search_github"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true,
+        "is_code_mode_client": true
+      },
+      {
         "name": "mcp_prompt_optimizer",
         "connection_type": "stdio",
         "stdio_config": {
@@ -296,7 +421,8 @@
           "list_domain_templates"
         ],
         "auth_type": "none",
-        "is_ping_available": false
+        "is_ping_available": false,
+        "is_code_mode_client": true
       },
       {
         "name": "morph_mcp",
@@ -380,6 +506,7 @@
           "transcribe-audio"
         ],
         "auth_type": "oauth",
+        "is_code_mode_client": true,
         "oauth_config": {
           "server_url": "https://openrouter.ai",
           "scopes": [
@@ -413,6 +540,7 @@
           "browser_drag",
           "browser_drop",
           "browser_evaluate",
+          "browser_file_upload",
           "browser_fill_form",
           "browser_find",
           "browser_handle_dialog",
@@ -423,6 +551,7 @@
           "browser_network_requests",
           "browser_press_key",
           "browser_resize",
+          "browser_run_code_unsafe",
           "browser_select_option",
           "browser_snapshot",
           "browser_tabs",
@@ -488,13 +617,44 @@
         ],
         "auth_type": "none",
         "is_ping_available": false
+      },
+      {
+        "name": "tavily_research",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "tavily-research",
+            "--contract",
+            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
+            "--allow-env",
+            "TAVILY_API_KEY",
+            "--",
+            "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.exe",
+            "F:\\AgentCore\\runtime\\mcp-processes\\research-mcp\\node_modules\\tavily-mcp\\build\\index.js"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "tavily_search",
+          "tavily_extract",
+          "tavily_crawl",
+          "tavily_map",
+          "tavily_research"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true,
+        "is_code_mode_client": true
       }
     ],
     "tool_manager_config": {
       "tool_execution_timeout": "2m",
       "max_agent_depth": 1,
       "disable_auto_tool_inject": true,
-      "code_mode_binding_level": "server"
+      "code_mode_binding_level": "tool"
     }
   },
   "governance": {
@@ -505,6 +665,13 @@
         "value": "env.BIFROST_MCP_VIRTUAL_KEY",
         "is_active": true,
         "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_capability_catalog",
+            "tools_to_execute": [
+              "get_capability_detail",
+              "list_capabilities"
+            ]
+          },
           {
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
@@ -518,6 +685,16 @@
               "session_close",
               "build_handoff",
               "docs_search"
+            ]
+          },
+          {
+            "mcp_client_name": "apify_research",
+            "tools_to_execute": [
+              "search-actors",
+              "fetch-actor-details",
+              "call-actor",
+              "search-apify-docs",
+              "fetch-apify-docs"
             ]
           },
           {
@@ -554,6 +731,26 @@
               "listAgents",
               "listModels",
               "listRepositories"
+            ]
+          },
+          {
+            "mcp_client_name": "exa_research",
+            "tools_to_execute": [
+              "web_search_exa",
+              "web_fetch_exa"
+            ]
+          },
+          {
+            "mcp_client_name": "firecrawl_research",
+            "tools_to_execute": [
+              "firecrawl_search",
+              "firecrawl_scrape",
+              "firecrawl_map",
+              "firecrawl_research_search_papers",
+              "firecrawl_research_inspect_paper",
+              "firecrawl_research_related_papers",
+              "firecrawl_research_read_paper",
+              "firecrawl_research_search_github"
             ]
           },
           {
@@ -606,6 +803,7 @@
               "browser_drag",
               "browser_drop",
               "browser_evaluate",
+              "browser_file_upload",
               "browser_fill_form",
               "browser_find",
               "browser_handle_dialog",
@@ -616,6 +814,7 @@
               "browser_network_requests",
               "browser_press_key",
               "browser_resize",
+              "browser_run_code_unsafe",
               "browser_select_option",
               "browser_snapshot",
               "browser_tabs",
@@ -636,6 +835,16 @@
               "search_skills",
               "get_skill_detail",
               "list_installed_skills"
+            ]
+          },
+          {
+            "mcp_client_name": "tavily_research",
+            "tools_to_execute": [
+              "tavily_search",
+              "tavily_extract",
+              "tavily_crawl",
+              "tavily_map",
+              "tavily_research"
             ]
           }
         ],
@@ -658,6 +867,13 @@
         "value": "env.BIFROST_MCP_VK_REVIEWER",
         "is_active": true,
         "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_capability_catalog",
+            "tools_to_execute": [
+              "get_capability_detail",
+              "list_capabilities"
+            ]
+          },
           {
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
@@ -710,6 +926,13 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agentcore_capability_catalog",
+            "tools_to_execute": [
+              "get_capability_detail",
+              "list_capabilities"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
               "memory_status",
@@ -747,6 +970,13 @@
         "value": "env.BIFROST_MCP_VK_DOCS_KNOWLEDGE",
         "is_active": true,
         "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_capability_catalog",
+            "tools_to_execute": [
+              "get_capability_detail",
+              "list_capabilities"
+            ]
+          },
           {
             "mcp_client_name": "arabold_docs",
             "tools_to_execute": [
@@ -800,6 +1030,13 @@
         "value": "env.BIFROST_MCP_VK_OPERATOR",
         "is_active": true,
         "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_capability_catalog",
+            "tools_to_execute": [
+              "get_capability_detail",
+              "list_capabilities"
+            ]
+          },
           {
             "mcp_client_name": "agentcore_memory",
             "tools_to_execute": [
@@ -910,6 +1147,135 @@
             ]
           }
         ]
+      },
+      {
+        "id": "vk-agentcore-openclaw",
+        "name": "openclaw",
+        "value": "env.BIFROST_MCP_VK_OPENCLAW",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "agentcore_memory",
+            "tools_to_execute": [
+              "memory_status",
+              "startup_context",
+              "retrieve_context",
+              "append_event",
+              "propose_fact",
+              "expand_source",
+              "session_open",
+              "session_close",
+              "build_handoff",
+              "docs_search"
+            ]
+          },
+          {
+            "mcp_client_name": "arabold_docs",
+            "tools_to_execute": [
+              "cancel_job",
+              "fetch_url",
+              "find_version",
+              "get_job_info",
+              "list_jobs",
+              "list_libraries",
+              "refresh_version",
+              "remove_docs",
+              "scrape_docs",
+              "search_docs"
+            ]
+          },
+          {
+            "mcp_client_name": "context7",
+            "tools_to_execute": [
+              "resolve-library-id",
+              "query-docs"
+            ]
+          },
+          {
+            "mcp_client_name": "mcp_prompt_optimizer",
+            "tools_to_execute": [
+              "analyze_prompt",
+              "optimize_prompt",
+              "auto_optimize",
+              "get_prompt_template",
+              "advanced_optimize",
+              "get_domain_template",
+              "list_domain_templates"
+            ]
+          },
+          {
+            "mcp_client_name": "morph_mcp",
+            "tools_to_execute": [
+              "edit_file",
+              "codebase_search",
+              "github_codebase_search",
+              "reflex_list",
+              "reflex_predict",
+              "reflex_summary",
+              "reflex_traces"
+            ]
+          },
+          {
+            "mcp_client_name": "nia",
+            "tools_to_execute": [
+              "index",
+              "search",
+              "nia_read",
+              "nia_grep",
+              "nia_explore",
+              "nia_research",
+              "nia_advisor",
+              "context",
+              "nia_package_search_hybrid",
+              "tracer",
+              "nia_vault_list",
+              "nia_vault_search"
+            ]
+          },
+          {
+            "mcp_client_name": "playwright",
+            "tools_to_execute": [
+              "browser_click",
+              "browser_close",
+              "browser_console_messages",
+              "browser_drag",
+              "browser_drop",
+              "browser_evaluate",
+              "browser_file_upload",
+              "browser_fill_form",
+              "browser_find",
+              "browser_handle_dialog",
+              "browser_hover",
+              "browser_navigate",
+              "browser_navigate_back",
+              "browser_network_request",
+              "browser_network_requests",
+              "browser_press_key",
+              "browser_resize",
+              "browser_run_code_unsafe",
+              "browser_select_option",
+              "browser_snapshot",
+              "browser_tabs",
+              "browser_take_screenshot",
+              "browser_type",
+              "browser_wait_for"
+            ]
+          },
+          {
+            "mcp_client_name": "sequential_thinking",
+            "tools_to_execute": [
+              "sequentialthinking"
+            ]
+          },
+          {
+            "mcp_client_name": "skills_hub",
+            "tools_to_execute": [
+              "search_skills",
+              "get_skill_detail",
+              "list_installed_skills"
+            ]
+          }
+        ]
       }
     ]
   },
@@ -948,6 +1314,9 @@
     ],
     "secret_policy": "env.NAME references only; never embed secret literals",
     "static_env_defaults": {
+      "exa-research": {
+        "AGNOST_DISABLE_LOGS": "true"
+      },
       "arabold-docs": {
         "DOCS_MCP_STORE_PATH": "F:\\AgentCore\\runtime\\docs-store\\arabold"
       },
@@ -968,7 +1337,8 @@
       "BIFROST_MCP_VK_DATABASE_VALIDATOR",
       "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
       "BIFROST_MCP_VK_OPERATOR",
-      "BIFROST_MCP_VK_CHATGPT"
+      "BIFROST_MCP_VK_CHATGPT",
+      "BIFROST_MCP_VK_OPENCLAW"
     ],
     "oauth_state_note": "Bifrost v2 persists oauth_config_id in config.db and ignores config-file oauth_config_id. Runtime state file (F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) present=False; it is runtime-only operator evidence and is never copied into rendered config. oauth_config (public params only) is embedded so the client can be created or reauthorized.",
     "output_schema": {
@@ -977,16 +1347,21 @@
       "contract": "contracts\\mcp-tool-output-schemas.json",
       "envelope_version": "1.0.0",
       "wrapped_servers": [
+        "agentcore-capability-catalog",
         "agentcore-memory",
         "agentcore-project-router",
+        "apify-research",
         "arabold-docs",
         "context7",
         "cursor-agent-mcp",
+        "exa-research",
+        "firecrawl-research",
         "mcp-prompt-optimizer",
         "morph-mcp",
         "playwright",
         "sequential-thinking",
-        "skills-hub"
+        "skills-hub",
+        "tavily-research"
       ],
       "note": "tool.outputSchema and CallToolResult.structuredContent are injected by scripts/bifrost/mcp_output_schema_adapter.py in front of each wrapped stdio upstream; human-readable content blocks are preserved."
     }

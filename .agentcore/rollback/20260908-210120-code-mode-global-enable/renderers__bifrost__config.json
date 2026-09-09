@@ -506,13 +506,13 @@
           "transcribe-audio"
         ],
         "auth_type": "oauth",
-        "is_code_mode_client": true,
         "oauth_config": {
           "server_url": "https://openrouter.ai",
           "scopes": [
             "mcp"
           ]
-        }
+        },
+        "is_code_mode_client": true
       },
       {
         "name": "playwright",
