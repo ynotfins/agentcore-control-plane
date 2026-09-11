@@ -69,6 +69,10 @@
     }
   },
   "servers": {
+    "agentcore-capability-catalog": {
+      "adapter": "stdio_envelope",
+      "default_profile": "generic"
+    },
     "agentcore-memory": {
       "adapter": "stdio_envelope",
       "default_profile": "memory",
@@ -88,8 +92,11 @@
       "default_profile": "docs"
     },
     "serena": {
-      "adapter": "stdio_envelope",
-      "default_profile": "code_intel"
+      "adapter": "upstream_native",
+      "default_profile": "code_intel",
+      "notes": [
+        "Serena HTTP session shim (scripts/bifrost/serena_session_shim.py) provides native JSON-RPC responses over HTTP loopback."
+      ]
     },
     "sequential-thinking": {
       "adapter": "stdio_envelope",
@@ -194,6 +201,83 @@
       "default_profile": "external",
       "reason": "remote http upstream in developer_preview_oauth_pending; zero default exposure."
     },
+    "clasp-mcp": {
+      "adapter": "stdio_envelope",
+      "default_profile": "fs_artifact",
+      "tool_profiles": {
+        "list_projects": "external"
+      }
+    },
+    "apify-research": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external"
+    },
+    "exa-research": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external"
+    },
+    "firecrawl-research": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external"
+    },
+    "tavily-research": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external"
+    },
+    "brightdata-research": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external"
+    },
+    "pipedream-google-sheets": {
+      "adapter": "unsupported",
+      "default_profile": "external",
+      "reason": "Disabled OAuth-pending Pipedream v2 HTTP candidate with zero profile, zero permitted tools, and no admitted authenticated Sheets inventory or HTTP output-schema proof."
+    },
+    "shadcn": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "Disabled zero-profile candidate with no admitted tool inventory and no admitted output schema."
+    },
+    "posthog": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "Disabled zero-profile candidate with no admitted tool inventory and no admitted output schema."
+    },
+    "agentmail": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "Disabled zero-profile candidate with no admitted tool inventory and no admitted output schema."
+    },
+    "fetch-mcp": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "Disabled zero-profile candidate with no admitted tool inventory and no admitted output schema."
+    },
+    "wcgw": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "Disabled zero-profile candidate with no admitted tool inventory and no admitted output schema."
+    },
+    "docker-mcp-toolkit": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "Disabled zero-profile candidate with no admitted tool inventory and no admitted output schema."
+    },
+    "postgresql-mcp": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "Disabled zero-profile candidate with no admitted tool inventory and no admitted output schema."
+    },
+    "sqlite-mcp": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "Disabled zero-profile candidate with no admitted tool inventory and no admitted output schema."
+    },
+    "ref-mcp": {
+      "adapter": "unsupported",
+      "default_profile": "generic",
+      "reason": "Disabled zero-profile candidate with no admitted tool inventory and no admitted output schema."
+    },
     "context7": {
       "adapter": "stdio_envelope",
       "notes": [
@@ -218,6 +302,11 @@
         "Remote HTTP Nia MCP advertises native input schemas through tools/list. Bifrost cannot stdio-wrap this server, so output-schema coverage is upstream-native.",
         "Live tool inventory verified 2026-09-05 with NIA_API_KEY from Windows User env; only the retrieval subset is permanently profile-exposed."
       ]
+    },
+    "figma-mcp": {
+      "adapter": "upstream_native",
+      "default_profile": "external",
+      "reason": "Official Figma remote HTTP MCP; Bifrost passthrough with native JSON-RPC responses."
     }
   }
 }

@@ -164,30 +164,30 @@ def main() -> int:
     check(
         "ide:priority ordering truthful",
         list((matrix.get("managed_ides") or {}).keys())[:2] == ["zed", "eigent"]
-        and matrix["managed_ides"]["zed"]["m8_enrollment"] == "awaiting_operator_import"
-        and matrix["managed_ides"]["eigent"]["m8_enrollment"] == "awaiting_operator_import",
+        and matrix["managed_ides"]["zed"]["m8_enrollment"] == "unsupported_with_reason"
+        and matrix["managed_ides"]["eigent"]["m8_enrollment"] == "unsupported_with_reason",
     )
     zed_renderer = json.loads(read("renderers/gateway-clients/zed.json"))
     eigent_renderer = json.loads(read("renderers/gateway-clients/eigent.json"))
     antigravity_renderer = json.loads(read("renderers/gateway-clients/antigravity.json"))
     check(
-        "ide:zed renderer schema",
-        list(zed_renderer.get("context_servers", {})) == ["agentcore-gateway"]
-        and zed_renderer["context_servers"]["agentcore-gateway"].get("url")
-        == "http://127.0.0.1:8080/mcp",
+        "ide:zed renderer intentionally inactive",
+        zed_renderer.get("context_servers") == {}
+        and zed_renderer.get("_agentcore", {}).get("gateway_enrollment_status") == "unsupported_with_reason"
+        and zed_renderer.get("_agentcore", {}).get("active_template") is False,
     )
     check(
-        "ide:eigent renderer schema",
-        list(eigent_renderer.get("mcpServers", {})) == ["agentcore-gateway"]
-        and eigent_renderer["mcpServers"]["agentcore-gateway"].get("url")
-        == "http://127.0.0.1:8080/mcp",
+        "ide:eigent renderer intentionally inactive",
+        eigent_renderer.get("mcpServers") == {}
+        and eigent_renderer.get("_agentcore", {}).get("gateway_enrollment_status") == "unsupported_with_reason"
+        and eigent_renderer.get("_agentcore", {}).get("active_template") is False,
     )
     antigravity_gateway = antigravity_renderer["mcpServers"]["agentcore-gateway"]
     check(
         "ide:antigravity renderer schema",
         list(antigravity_renderer.get("mcpServers", {})) == ["agentcore-gateway"]
-        and antigravity_gateway.get("serverUrl") == "http://127.0.0.1:8080/mcp"
-        and not any(key in antigravity_gateway for key in ("type", "url", "httpUrl", "timeout")),
+        and antigravity_gateway.get("serverUrl") == "http://127.0.0.1:18082/mcp"
+        and not any(key in antigravity_gateway for key in ("type", "url", "httpUrl", "timeout", "headers")),
     )
     check(
         "ide:antigravity renderer path",
@@ -197,15 +197,15 @@ def main() -> int:
     for client, renderer in (("zed", zed_renderer), ("eigent", eigent_renderer)):
         renderer_text = json.dumps(renderer)
         check(
-            f"ide:{client} renderer symbolic secret only",
-            "${env:BIFROST_MCP_VIRTUAL_KEY}" in renderer_text
-            and re.search(r"Bearer\s+(?!\$\{env:)[A-Za-z0-9._~+/=-]{20,}", renderer_text) is None,
+            f"ide:{client} renderer contains no gateway credential material",
+            "BIFROST_MCP_VIRTUAL_KEY" not in renderer_text
+            and "Authorization" not in renderer_text
+            and "http://127.0.0.1:8080/mcp" not in renderer_text,
         )
-    antigravity_renderer_text = json.dumps(antigravity_renderer)
     check(
         "ide:antigravity renderer symbolic secret only",
-        "${BIFROST_MCP_VIRTUAL_KEY}" in antigravity_renderer_text
-        and re.search(r"Bearer\s+(?!\$\{BIFROST_MCP_VIRTUAL_KEY\})[A-Za-z0-9._~+/=-]{20,}", antigravity_renderer_text) is None,
+        "headers" not in antigravity_gateway
+        and "BIFROST_MCP_VIRTUAL_KEY" not in json.dumps(antigravity_gateway),
     )
     valid_modes = {"direct_write", "generated_prompt", "manual_import", "unsupported", "unverified"}
     for profile_dir in sorted(profile_dirs):
@@ -258,6 +258,46 @@ def main() -> int:
         "ide:client-status semantic/temporal invariants",
         status_result.returncode == 0,
         (status_result.stdout or status_result.stderr).strip()[:300],
+    )
+
+    task2_result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "unittest",
+            "scripts.bifrost.test_task2_contract_profile_alignment",
+            "-v",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=REPO,
+    )
+    check(
+        "ide:Task 2 contract/profile alignment",
+        task2_result.returncode == 0,
+        (task2_result.stdout or task2_result.stderr).strip()[:500],
+    )
+
+    research_mcp_result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "scripts/bifrost",
+            "-p",
+            "test_research_mcp_*.py",
+            "-v",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=REPO,
+    )
+    check(
+        "bifrost:research MCP source contract",
+        research_mcp_result.returncode == 0,
+        (research_mcp_result.stdout or research_mcp_result.stderr).strip()[:500],
     )
 
     # Every mandatory rule id appears in every rendered GLOBAL_RULES.md (no silent omission).
@@ -323,9 +363,44 @@ def main() -> int:
     )
     check(
         "registry:nia all-IDE profiles only",
-        nia_profiles == ["builder", "docs-knowledge", "operator"]
+        nia_profiles == ["builder", "docs-knowledge", "openclaw", "operator"]
         and sorted(nia.get("capability_profiles") or []) == nia_profiles,
         f"nia_profiles={nia_profiles}",
+    )
+
+    figma = registry["servers"].get("figma-mcp") or {}
+    figma_profiles = sorted(
+        profile_id
+        for profile_id, profile in profile_servers.items()
+        if "figma-mcp" in (profile.get("allowed_server_ids") or [])
+    )
+    figma_denied_required = {
+        "use_figma",
+        "create_new_file",
+        "generate_figma_design",
+        "weave_run_tool",
+    }
+    check(
+        "registry:figma-mcp official remote OAuth pending admission",
+        figma.get("enabled") is False
+        and figma.get("deferred") is True
+        and figma.get("status") == "developer_preview_oauth_pending"
+        and figma.get("connection_type") == "http"
+        and figma.get("executable_or_url") == "https://mcp.figma.com/mcp"
+        and figma.get("auth_type") == "oauth"
+        and figma.get("is_code_mode_client") is True
+        and figma.get("bifrost_client_name") == "figma_mcp"
+        and figma.get("write_classification") == "read_only"
+        and "whoami" in (figma.get("permitted_tools") or [])
+        and "get_design_context" in (figma.get("permitted_tools") or [])
+        and figma_denied_required.issubset(set(figma.get("denied_tools") or [])),
+        f"figma={figma}",
+    )
+    check(
+        "registry:figma-mcp zero profile exposure until OAuth client_id",
+        figma_profiles == []
+        and sorted(figma.get("capability_profiles") or []) == [],
+        f"figma_profiles={figma_profiles}",
     )
     check(
         "registry:zoo-code remains non-upstream",
@@ -337,14 +412,22 @@ def main() -> int:
     implicit_project_servers = {"serena", "depwire", "tentra", "filesystem", "context-fabric"}
     unsafe_enabled = sorted(
         server_id for server_id in implicit_project_servers
-        if registry["servers"][server_id].get("enabled")
-        or registry["servers"][server_id].get("capability_profiles")
+        if (registry["servers"][server_id].get("enabled") or registry["servers"][server_id].get("capability_profiles"))
+        and registry["servers"][server_id].get("connection_type") == "stdio"
     )
     check(
         "registry:implicit project upstreams dormant",
         not unsafe_enabled,
         f"unsafe enabled/profiled servers: {unsafe_enabled}",
     )
+    if registry["servers"]["serena"].get("enabled"):
+        check(
+            "registry:serena uses HTTP session shim",
+            registry["servers"]["serena"].get("connection_type") == "http"
+            and bool(registry["servers"]["serena"].get("allowed_extra_headers"))
+            and registry["servers"]["serena"].get("is_code_mode_client") is True,
+            "serena must use HTTP session shim and Code Mode",
+        )
     router_profiles = sorted(
         profile_id for profile_id, profile in registry["capability_profiles"].items()
         if "agentcore-project-router" in (profile.get("allowed_server_ids") or [])

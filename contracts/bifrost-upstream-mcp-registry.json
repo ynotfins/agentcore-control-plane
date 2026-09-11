@@ -31,21 +31,21 @@
       "purpose": "Trust Class A AgentCore engineering surface with broad execution and progressive disclosure.",
       "allowed_server_ids": [
         "agentcore-capability-catalog",
+        "agentcore-memory",
         "apify-research",
         "arabold-docs",
         "context7",
+        "cursor-agent-mcp",
         "exa-research",
         "firecrawl-research",
-        "sequential-thinking",
-        "cursor-agent-mcp",
         "mcp-debugger",
-        "playwright",
-        "agentcore-memory",
-        "skills-hub",
         "mcp-prompt-optimizer",
         "morph-mcp",
         "nia",
+        "playwright",
+        "sequential-thinking",
         "serena",
+        "skills-hub",
         "tavily-research"
       ],
       "default_tools_policy": "allow_permitted",
@@ -331,7 +331,7 @@
       "status": "active",
       "notes": [
         "Vendored package path under ~/.cursor/vendor/arabold-docs-mcp",
-        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. enabled=true is authoritative for Bifrost launch; do not disable to chase startup latency — arabold-docs is mandatory for exact-version docs.",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. enabled=true is authoritative for Bifrost launch; do not disable to chase startup latency \u2014 arabold-docs is mandatory for exact-version docs.",
         "2026-08-30: classic mode restored; DOCS_MCP_STORE_PATH=F:\\AgentCore\\runtime\\docs-store\\arabold via STATIC_ENV_VALUES.",
         "Mandatory ingest: miss then scrape_docs official URL then wait until searchable then CATALOG.json; Context7 only during wait for public libs.",
         "2026-08-30: launch with pnpm Node 24 (ABI 137) + mcp subcommand; better-sqlite3 prebuild node-v137; DOCS_MCP_STORE_PATH on F:."
@@ -625,7 +625,7 @@
       },
       "notes": [
         "Set DISABLE_THOUGHT_LOGGING=true in Bifrost stdio envs.",
-        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled — required for architecture/recovery decisions.",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled \u2014 required for architecture/recovery decisions.",
         "2026-08-05: wildcard replaced with exact one-tool inventory; remains classic mode."
       ]
     },
@@ -792,7 +792,7 @@
       "status": "dormant_project_scoped",
       "notes": [
         "Dormant in shared Bifrost profiles because calls lack trustworthy per-session project identity. Use the repository-local hook/CLI; reject Swarm and agentmemory roots.",
-        "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* → unprefixed)."
+        "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* \u2192 unprefixed)."
       ]
     },
     "mcp-debugger": {
@@ -1229,7 +1229,7 @@
       "bifrost_client_name": "obsidian_vault",
       "status": "disabled",
       "notes": [
-        "OBSIDIAN_* names only — never embed key values.",
+        "OBSIDIAN_* names only \u2014 never embed key values.",
         "Non-secret defaults may set OBSIDIAN_BASE_URL=https://127.0.0.1:27124 and OBSIDIAN_VERIFY_SSL=false in renderer."
       ]
     },
@@ -1464,7 +1464,7 @@
         ]
       },
       "notes": [
-        "Bounded automation only — no Swarm or agentmemory roots.",
+        "Bounded automation only \u2014 no Swarm or agentmemory roots.",
         "2026-09-08: all 24 exact tools are executable for Trust Class A through Code Mode; none are auto-executed."
       ]
     },
@@ -1615,7 +1615,7 @@
       },
       "notes": [
         "Dormant until a per-session project identity can be injected; native IDE filesystem access remains project-local.",
-        "Phase 7: permitted_tools named inventory from live tools/list (filesystem-* → unprefixed)."
+        "Phase 7: permitted_tools named inventory from live tools/list (filesystem-* \u2192 unprefixed)."
       ]
     },
     "github-mcp": {
@@ -1844,7 +1844,7 @@
     "openrouter": {
       "canonical_id": "openrouter",
       "display_name": "OpenRouter MCP",
-      "purpose": "Live model discovery, context-window verification, provider availability, pricing, benchmark comparisons, routing research, OpenRouter documentation, and operator-scoped account functions. Not an LLM provider route for normal IDE inference — does not change any IDE default model or provider.",
+      "purpose": "Live model discovery, context-window verification, provider availability, pricing, benchmark comparisons, routing research, OpenRouter documentation, and operator-scoped account functions. Not an LLM provider route for normal IDE inference \u2014 does not change any IDE default model or provider.",
       "owner": "agentcore",
       "pinned_version": "live-remote",
       "connection_type": "http",
@@ -1963,7 +1963,7 @@
             "spawn-ori-eval"
           ],
           "access_policy": "billable_approval",
-          "description": "Billable inference/image calls. Remain in denied_tools — never grant from discovery leases. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation.",
+          "description": "Billable inference/image calls. Remain in denied_tools \u2014 never grant from discovery leases. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation.",
           "lease_defaults": {
             "max_duration_seconds": 900,
             "max_invocations": 5,
@@ -1999,14 +1999,14 @@
       "bifrost_client_name": "openrouter",
       "status": "dormant",
       "notes": [
-        "2026-09-08: Code Mode enabled (is_code_mode_client=true) with global code_mode_binding_level=tool. Zero default tool exposure unchanged — tools still require M6 lease + JIT VK bridge.",
+        "2026-09-08: Code Mode enabled (is_code_mode_client=true) with global code_mode_binding_level=tool. Zero default tool exposure unchanged \u2014 tools still require M6 lease + JIT VK bridge.",
         "LIFECYCLE: installed_dormant -> ready_auth_on_first_use -> authenticated_dormant (OAuth connected) -> jit_leased. Registry status remains 'dormant' by validator contract because tools require a live M6 lease.",
-        "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY — OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
+        "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY \u2014 OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
         "ENCRYPTION: BIFROST_ENCRYPTION_KEY required in Windows User scope; OAuth token stored encrypted in data/config.db.",
         "OAUTH BINDING: Bifrost v2 persists oauth_config_id and OAuth tokens in data/config.db. Runtime state F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json may mirror oauth_config_id + mcp_client_id as operator evidence only; rendered config.json must keep oauth_config public params and must not emit oauth_config_id.",
         "RENDERER BEHAVIOR: Git/sanitized/runtime renderers embed oauth_config public params. Runtime oauth_config_id values are config.db-owned metadata and are never copied into Git renderers, runtime config.json, IDE configs, or logs (OR-10).",
         "ZERO TOOLS exposed without a live M6 capability lease + Bifrost VK mcp_configs grant via scripts/bifrost/jit_vk_bridge.py. capability_profiles: [operator] is JIT-eligible reference only.",
-        "openrouter must NOT appear in capability_profiles[*].allowed_server_ids — enforced by validator.",
+        "openrouter must NOT appear in capability_profiles[*].allowed_server_ids \u2014 enforced by validator.",
         "JIT governance: M6 PostgreSQL capability_leases. VK updates MUST preserve existing mcp_configs[].id fields or Bifrost returns 409. Failure leaves tools hidden.",
         "denied_tools send-message/generate-image/install-ori-harness/spawn-ori-eval stay ungated; never grant from discovery leases.",
         "generate-speech classified openrouter-media-generation (operator-approved JIT). transcribe-audio classified openrouter-transcription (operator-approved JIT; results raw_untrusted). get-preset/list-presets join openrouter-discovery-read.",
@@ -2014,7 +2014,7 @@
         "Official endpoint: https://mcp.openrouter.ai/mcp. Transport: Streamable HTTP (MCP 2025-03-26 spec).",
         "AUTHENTICATED LIVE INVENTORY updated 2026-08-05: 22 tools observed through Bifrost. All 22 live tools classified (18 permitted + 4 denied). get-endpoint-uptime-history added to discovery-read; view-skills no longer observed live; install-ori-harness and spawn-ori-eval denied by default.",
         "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
-        "No OPENROUTER_MCP_KEY in Windows env — OAuth token managed by Bifrost config.db only.",
+        "No OPENROUTER_MCP_KEY in Windows env \u2014 OAuth token managed by Bifrost config.db only.",
         "oauth_config_id is Bifrost config.db-owned metadata. If mirrored in F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json, treat it as runtime-only evidence. Never commit it to Git, source renderers, runtime config.json, IDE configs, or logs."
       ],
       "is_code_mode_client": true
@@ -2802,6 +2802,93 @@
         "Exact package lock: firecrawl-mcp 3.24.0 under tools/research-mcp.",
         "The upstream advertises a broader catalog; Bifrost allows only the exact read-only web, paper, and public-code research subset."
       ]
+    },
+    "figma-mcp": {
+      "canonical_id": "figma-mcp",
+      "display_name": "Figma MCP (Official Remote)",
+      "purpose": "Official Figma remote MCP for design-context extraction and design-system lookup through AgentCore Bifrost Code Mode.",
+      "owner": "agentcore",
+      "pinned_version": "remote-live",
+      "connection_type": "http",
+      "executable_or_url": "https://mcp.figma.com/mcp",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "download_assets",
+        "get_code_connect_map",
+        "get_code_connect_suggestions",
+        "get_context_for_code_connect",
+        "get_design_context",
+        "get_figjam",
+        "get_generative_plugin",
+        "get_libraries",
+        "get_metadata",
+        "get_motion_context",
+        "get_screenshot",
+        "get_shader",
+        "get_variable_defs",
+        "list_file_shaders",
+        "list_generative_plugins",
+        "list_shaders",
+        "search_design_system",
+        "whoami"
+      ],
+      "denied_tools": [
+        "add_code_connect_map",
+        "create_generative_plugin",
+        "create_new_file",
+        "create_shader",
+        "generate_diagram",
+        "generate_figma_design",
+        "send_code_connect_mappings",
+        "update_generative_plugin",
+        "update_shader",
+        "upload_assets",
+        "use_figma",
+        "weave_cancel_tool_run",
+        "weave_get_tool_inputs",
+        "weave_get_tool_run_output",
+        "weave_list_tools",
+        "weave_run_tool",
+        "weave_upload_asset"
+      ],
+      "capability_profiles": [],
+      "is_code_mode_client": true,
+      "auth_type": "oauth",
+      "oauth_config": {
+        "server_url": "https://mcp.figma.com",
+        "scopes": []
+      },
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 3,
+        "retry_on": [
+          "http_5xx",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove figma-mcp from capability_profiles allowed_server_ids; re-render Bifrost config; restart \\AgentCore\\AgentCore-Bifrost-Gateway. Revoke OAuth at Figma account settings if needed.",
+      "enabled": false,
+      "bifrost_client_name": "figma_mcp",
+      "status": "developer_preview_oauth_pending",
+      "notes": [
+        "Official remote endpoint https://mcp.figma.com/mcp registered 2026-09-11 for Bifrost Code Mode admission.",
+        "LIVE BIND STOP (2026-09-11): Bifrost initiate-verification Dynamic Client Registration returned HTTP 403 Forbidden from Figma (\"Please provide client_id manually\"). Figma remote MCP currently restricts OAuth clients; Bifrost is not an auto-approved catalog client.",
+        "Do not paste Figma into IDE mcp.json. Keep zero profile exposure until OAuth client_id is supplied or Figma approves this gateway client.",
+        "Named read-only permitted_tools inventory retained from official tools-and-prompts docs. Write/Weave tools remain denied.",
+        "Activation delta: set oauth_config.client_id to a Figma-approved OAuth client; complete Bifrost initiate-verification; set enabled=true; add builder+openclaw profiles; re-render; restart; prove listToolFiles servers/figma_mcp.",
+        "Optional interim (operator ACCEPT required): PAT-backed community stdio server is a different surface and is not the official remote MCP."
+      ],
+      "deferred": true
     },
     "tavily-research": {
       "canonical_id": "tavily-research",
