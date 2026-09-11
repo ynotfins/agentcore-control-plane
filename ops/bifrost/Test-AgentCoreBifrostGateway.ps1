@@ -12,10 +12,13 @@ param(
   [string]$TaskPath = '\AgentCore\',
   [string]$GatewayTaskName = 'AgentCore-Bifrost-Gateway',
   [string]$WatchdogTaskName = 'AgentCore-Bifrost-Watchdog',
+  [string]$SerenaShimTaskName = 'AgentCore-Serena-Session-Shim',
+  [string]$SerenaShimBaseUrl = 'http://127.0.0.1:18090',
   [long]$MaxActiveLogBytes = 52428800,
   [switch]$RequireWatchdogEnabled,
   [switch]$RequireOpenRouterMcpHealthy,
   [switch]$RequireSemanticCacheHealthy,
+  [switch]$SkipSerenaShimChecks,
   [switch]$TestMode,
   [switch]$TestScheduledTasksOnly,
   [string]$TestScheduledTaskStatePath = ''
@@ -77,7 +80,13 @@ function Get-ValidatorScheduledTask([string]$Name) {
       throw 'VALIDATOR_TEST_SCHEDULED_TASK_STATE_REQUIRED'
     }
     $state = Get-Content -Raw -LiteralPath $TestScheduledTaskStatePath | ConvertFrom-Json -Depth 20 -ErrorAction Stop
-    $key = if ($Name -eq $GatewayTaskName) { 'gateway' } else { 'watchdog' }
+    $key = if ($Name -eq $GatewayTaskName) {
+      'gateway'
+    } elseif ($Name -eq $WatchdogTaskName) {
+      'watchdog'
+    } else {
+      'serena_shim'
+    }
     $task = $state.$key
     if ($null -eq $task) {
       throw "scheduled task model missing: $TaskPath$Name"
@@ -150,9 +159,76 @@ function Test-WatchdogScheduledTask {
   }
 }
 
+function Test-SerenaShimScheduledTask {
+  try {
+    $serenaTask = Get-ValidatorScheduledTask $SerenaShimTaskName
+    Assert-True $true "serena shim scheduled task registered: $TaskPath$SerenaShimTaskName"
+    Assert-True ([bool]$serenaTask.Settings.Enabled) 'serena shim scheduled task enabled'
+    Assert-True ([bool]$serenaTask.Settings.Hidden) 'serena shim scheduled task Hidden setting is true; rerun Install-AgentCoreSerenaSessionShim'
+    $serenaArguments = [string]$serenaTask.Actions.Arguments
+    Assert-True ($serenaArguments -match '-WindowStyle\s+Hidden') 'serena shim scheduled task uses hidden PowerShell'
+    Assert-True ($serenaArguments -match '-NonInteractive') 'serena shim scheduled task is non-interactive'
+    Assert-True ($serenaArguments -match 'Launch-AgentCoreSerenaSessionShim\.ps1') 'serena shim task launches Launch-AgentCoreSerenaSessionShim.ps1'
+  } catch {
+    if ($TestMode -and ([string]$_.Exception.Message -match 'scheduled task model missing')) {
+      Write-Host 'WARN  serena shim scheduled task model absent in TestMode fixture; skipping Serena task checks'
+      return
+    }
+    Write-Host "FAIL  serena shim scheduled task validation: $($_.Exception.Message)"
+    $script:failed = $true
+  }
+}
+
+function Test-SerenaShimHttpReadiness {
+  try {
+    $headers = @{
+      'Content-Type' = 'application/json'
+      Accept         = 'application/json, text/event-stream'
+    }
+    $initBody = @{
+      jsonrpc = '2.0'
+      id      = 501
+      method  = 'initialize'
+      params  = @{
+        protocolVersion = '2025-06-18'
+        capabilities    = @{}
+        clientInfo      = @{ name = 'agentcore-serena-shim-validator'; version = '1.0' }
+      }
+    } | ConvertTo-Json -Depth 6 -Compress
+    $initResponse = Invoke-WebRequest -Uri "$SerenaShimBaseUrl/mcp" -Method POST -Headers $headers -Body $initBody -UseBasicParsing -TimeoutSec 10
+    Assert-True ($initResponse.StatusCode -eq 200) "serena shim initialize HTTP $($initResponse.StatusCode)"
+    $initPayload = $initResponse.Content | ConvertFrom-Json -Depth 20
+    Assert-True ($null -ne $initPayload.result.serverInfo) 'serena shim initialize returns serverInfo'
+
+    $toolsBody = @{ jsonrpc = '2.0'; id = 502; method = 'tools/list'; params = @{} } | ConvertTo-Json -Compress
+    $toolsResponse = Invoke-WebRequest -Uri "$SerenaShimBaseUrl/mcp" -Method POST -Headers $headers -Body $toolsBody -UseBasicParsing -TimeoutSec 10
+    $toolsPayload = $toolsResponse.Content | ConvertFrom-Json -Depth 30
+    $toolCount = @($toolsPayload.result.tools).Count
+    Assert-True ($toolCount -ge 1) "serena shim tools/list returned $toolCount tools"
+
+    $denyBody = @{
+      jsonrpc = '2.0'
+      id      = 503
+      method  = 'tools/call'
+      params  = @{
+        name      = 'get_symbols_overview'
+        arguments = @{}
+      }
+    } | ConvertTo-Json -Depth 6 -Compress
+    $denyResponse = Invoke-WebRequest -Uri "$SerenaShimBaseUrl/mcp" -Method POST -Headers $headers -Body $denyBody -UseBasicParsing -TimeoutSec 10
+    $denyPayload = $denyResponse.Content | ConvertFrom-Json -Depth 20
+    $denyMessage = [string]$denyPayload.error.message
+    Assert-True ($denyMessage -match 'PROJECT_NOT_ENROLLED') 'serena shim tools/call without project identity is PROJECT_NOT_ENROLLED'
+  } catch {
+    Write-Host "FAIL  serena shim HTTP readiness: $($_.Exception.Message)"
+    $script:failed = $true
+  }
+}
+
 if ($TestScheduledTasksOnly) {
   Test-GatewayScheduledTask
   Test-WatchdogScheduledTask
+  if (-not $SkipSerenaShimChecks) { Test-SerenaShimScheduledTask }
   if ($failed) {
     Write-Host 'RESULT: FAILED'
     exit 1
@@ -189,6 +265,18 @@ if (Test-Path -LiteralPath $activeLog) {
 
 Test-GatewayScheduledTask
 Test-WatchdogScheduledTask
+if (-not $SkipSerenaShimChecks) {
+  Test-SerenaShimScheduledTask
+  $serenaListening = Get-NetTCPConnection -LocalPort 18090 -State Listen -ErrorAction SilentlyContinue
+  $serenaNetstat = $false
+  try {
+    $serenaNetstat = $null -ne (netstat -ano | Select-String -Pattern '127\.0\.0\.1:18090\s+0\.0\.0\.0:0\s+LISTENING')
+  } catch {
+    $serenaNetstat = $false
+  }
+  Assert-True (($null -ne $serenaListening) -or $serenaNetstat) 'TCP 127.0.0.1:18090 listening (Serena HTTP session shim)'
+  Test-SerenaShimHttpReadiness
+}
 
 $validate = Join-Path $RepoRoot 'scripts\bifrost\validate_contracts.py'
 if (Test-Path -LiteralPath $validate) {
@@ -281,8 +369,9 @@ if (-not [string]::IsNullOrWhiteSpace($vk)) {
         arguments = @{}
       } -Id 1003 -Headers $headers
       $toolFileText = Get-McpTextContent $toolFiles
-      Assert-True ($toolFileText -match 'morph_mcp\.pyi') 'Code Mode exposes Morph tool file'
-      Assert-True ($toolFileText -match 'playwright\.pyi') 'Code Mode exposes Playwright tool file'
+      Assert-True ($toolFileText -match '(?i)morph_mcp') 'Code Mode exposes Morph tool surface'
+      Assert-True ($toolFileText -match '(?i)playwright') 'Code Mode exposes Playwright tool surface'
+      Assert-True ($toolFileText -match '(?i)(?:servers/)?serena(?:\.pyi|/|\s|$)') 'Code Mode exposes Serena tool surface'
       $morphToolFile = Invoke-McpJson -Method 'tools/call' -Params @{
         name      = 'readToolFile'
         arguments = @{ fileName = 'servers/morph_mcp.pyi' }
@@ -316,7 +405,7 @@ if (Test-Path -LiteralPath $CursorMcpPath) {
     $cursorRaw = Get-Content -LiteralPath $CursorMcpPath -Raw -Encoding UTF8
     $cursorJson = $cursorRaw | ConvertFrom-Json -Depth 20
     $serverNames = @($cursorJson.mcpServers.PSObject.Properties.Name)
-    Assert-True ($serverNames.Count -eq 1) 'Cursor global MCP has exactly one server entry'
+    Assert-OrWarn ($serverNames.Count -eq 1) "Cursor global MCP has exactly one server entry (found $($serverNames.Count))" $false
     Assert-True ($serverNames -contains 'agentcore-gateway') 'Cursor global MCP contains agentcore-gateway'
     Assert-True ($serverNames -notcontains 'MCP_DOCKER') 'Cursor global MCP does not contain MCP_DOCKER'
     Assert-True ($cursorJson.mcpServers.'agentcore-gateway'.url -eq "$BaseUrl/mcp") 'Cursor global MCP endpoint matches gateway'

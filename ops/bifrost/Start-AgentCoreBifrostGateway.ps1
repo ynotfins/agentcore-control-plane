@@ -15,7 +15,9 @@ param(
   [switch]$TestMode,
   [switch]$TestUseHttpReadiness,
   [ValidateSet('Authenticated', 'Unauthenticated')]
-  [string]$TestReadiness = 'Authenticated'
+  [string]$TestReadiness = 'Authenticated',
+  [switch]$SkipSerenaShim,
+  [switch]$RequireSerenaShim
 )
 
 $ErrorActionPreference = 'Stop'
@@ -136,6 +138,32 @@ function Test-AuthenticatedGatewayReadiness {
   }
 }
 
+function Ensure-AgentCoreSerenaShimReady {
+  if ($SkipSerenaShim -or $TestMode) { return }
+  $serenaStart = Join-Path $PSScriptRoot 'Start-AgentCoreSerenaSessionShim.ps1'
+  if (-not (Test-Path -LiteralPath $serenaStart -PathType Leaf)) {
+    if ($RequireSerenaShim) {
+      throw "Missing Serena shim start script: $serenaStart"
+    }
+    Write-Host '[Start] Serena shim start script absent; continuing without shim dependency.'
+    return
+  }
+  try {
+    & $serenaStart -ProbeOnly
+    Write-Host '[Start] Serena shim already ready on 127.0.0.1:18090'
+    return
+  } catch {
+    Write-Host "[Start] Serena shim probe missed; attempting start ($($_.Exception.Message))"
+  }
+  try {
+    & $serenaStart
+    Write-Host '[Start] Serena shim readiness ensured on 127.0.0.1:18090'
+  } catch {
+    if ($RequireSerenaShim) { throw }
+    Write-Host "[Start] WARN Serena shim start failed; Bifrost start continues: $($_.Exception.Message)"
+  }
+}
+
 function Complete-StartWhenReady {
   if (-not (Test-AuthenticatedGatewayReadiness)) { return $false }
   Remove-Item -LiteralPath $maintenanceMarker -Force -ErrorAction SilentlyContinue
@@ -167,6 +195,7 @@ if (-not $TestMode -and -not (Test-Path -LiteralPath $exePath)) {
 if ($ProbeOnly) {
   if (-not (Test-AuthenticatedGatewayReadiness)) { throw "Gateway did not reach authenticated readiness on ${HostAddress}:${Port}" }
   Write-Host "[Start] Authenticated gateway readiness confirmed on ${HostAddress}:${Port}"
+  Ensure-AgentCoreSerenaShimReady
   exit 0
 }
 
@@ -177,6 +206,8 @@ if ($TestMode) {
   if (-not (Complete-StartWhenReady)) { throw 'Authenticated gateway readiness test failed.' }
   exit 0
 }
+
+Ensure-AgentCoreSerenaShimReady
 
 $existing = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
   Where-Object { $_.LocalAddress -in @('127.0.0.1', '::1', '0.0.0.0') }
