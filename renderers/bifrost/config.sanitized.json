@@ -358,6 +358,37 @@
         "is_code_mode_client": true
       },
       {
+        "name": "figma_framelink_mcp",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "figma-framelink-mcp",
+            "--contract",
+            "D:\\github\\agentcore-control-plane\\contracts\\mcp-tool-output-schemas.json",
+            "--alias-env",
+            "FIGMA_API_KEY=FIGMA_ACCESS_TOKEN",
+            "--",
+            "C:\\Program Files\\nodejs\\npx.cmd",
+            "-y",
+            "figma-developer-mcp@0.13.2",
+            "--stdio",
+            "--skip-image-downloads",
+            "--no-telemetry"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "get_figma_data"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true,
+        "is_code_mode_client": true
+      },
+      {
         "name": "firecrawl_research",
         "connection_type": "stdio",
         "stdio_config": {
@@ -785,6 +816,12 @@
             "tools_to_execute": [
               "web_search_exa",
               "web_fetch_exa"
+            ]
+          },
+          {
+            "mcp_client_name": "figma_framelink_mcp",
+            "tools_to_execute": [
+              "get_figma_data"
             ]
           },
           {
@@ -1291,6 +1328,12 @@
             ]
           },
           {
+            "mcp_client_name": "figma_framelink_mcp",
+            "tools_to_execute": [
+              "get_figma_data"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -1454,6 +1497,7 @@
         "context7",
         "cursor-agent-mcp",
         "exa-research",
+        "figma-framelink-mcp",
         "firecrawl-research",
         "mcp-prompt-optimizer",
         "morph-mcp",

@@ -38,6 +38,7 @@
         "cursor-agent-mcp",
         "exa-research",
         "firecrawl-research",
+        "figma-framelink-mcp",
         "mcp-debugger",
         "mcp-prompt-optimizer",
         "morph-mcp",
@@ -137,6 +138,7 @@
         "agentcore-memory",
         "arabold-docs",
         "context7",
+        "figma-framelink-mcp",
         "mcp-prompt-optimizer",
         "morph-mcp",
         "nia",
@@ -2886,9 +2888,71 @@
         "Do not paste Figma into IDE mcp.json. Keep zero profile exposure until OAuth client_id is supplied or Figma approves this gateway client.",
         "Named read-only permitted_tools inventory retained from official tools-and-prompts docs. Write/Weave tools remain denied.",
         "Activation delta: set oauth_config.client_id to a Figma-approved OAuth client; complete Bifrost initiate-verification; set enabled=true; add builder+openclaw profiles; re-render; restart; prove listToolFiles servers/figma_mcp.",
-        "Optional interim (operator ACCEPT required): PAT-backed community stdio server is a different surface and is not the official remote MCP."
+        "Optional interim (operator ACCEPT required): PAT-backed community stdio server is a different surface and is not the official remote MCP.",
+        "INTERIM ACTIVE (2026-09-11 operator ACCEPT): live design reads use figma-framelink-mcp (Framelink PAT stdio). This official remote entry remains deferred until OAuth client_id."
       ],
       "deferred": true
+    },
+    "figma-framelink-mcp": {
+      "canonical_id": "figma-framelink-mcp",
+      "display_name": "Figma Framelink MCP (Interim PAT)",
+      "purpose": "Interim PAT-backed Figma design-data reads through Bifrost Code Mode until official remote OAuth client_id is approved.",
+      "owner": "agentcore",
+      "pinned_version": "0.13.2",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "figma-developer-mcp@0.13.2",
+        "--stdio",
+        "--skip-image-downloads",
+        "--no-telemetry"
+      ],
+      "env_var_names": [],
+      "env_aliases": {
+        "FIGMA_API_KEY": "FIGMA_ACCESS_TOKEN"
+      },
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "get_figma_data"
+      ],
+      "denied_tools": [
+        "download_figma_images"
+      ],
+      "capability_profiles": [
+        "builder",
+        "openclaw"
+      ],
+      "is_code_mode_client": true,
+      "auth_type": "none",
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove figma-framelink-mcp from capability_profiles.builder and openclaw allowed_server_ids; re-render Bifrost config; restart \\AgentCore\\AgentCore-Bifrost-Gateway. Revoke FIGMA_ACCESS_TOKEN at Figma settings if needed.",
+      "enabled": true,
+      "bifrost_client_name": "figma_framelink_mcp",
+      "status": "active",
+      "notes": [
+        "Operator ACCEPT interim PAT path 2026-09-11. Windows User-scope FIGMA_ACCESS_TOKEN maps to Framelink FIGMA_API_KEY via env_aliases; never commit or print the value.",
+        "Pinned figma-developer-mcp@0.13.2 (Framelink/GLips). This is NOT the official https://mcp.figma.com/mcp OAuth surface.",
+        "--skip-image-downloads keeps the admitted surface read-only (get_figma_data only). download_figma_images remains denied.",
+        "Do not paste Figma into IDE mcp.json. Discovery is agentcore-gateway Code Mode listToolFiles -> servers/figma_framelink_mcp.",
+        "Replace with official figma-mcp remote when Figma-approved OAuth client_id binds; then disable this interim entry.",
+        "auth_type=none because Bifrost schema has no pat enum; credential is FIGMA_ACCESS_TOKEN via env_aliases to FIGMA_API_KEY."
+      ]
     },
     "tavily-research": {
       "canonical_id": "tavily-research",

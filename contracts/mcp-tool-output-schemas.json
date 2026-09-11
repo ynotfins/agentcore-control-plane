@@ -307,6 +307,11 @@
       "adapter": "upstream_native",
       "default_profile": "external",
       "reason": "Official Figma remote HTTP MCP; Bifrost passthrough with native JSON-RPC responses."
+    },
+    "figma-framelink-mcp": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external",
+      "reason": "Interim Framelink PAT stdio MCP; envelope injects outputSchema for get_figma_data."
     }
   }
 }

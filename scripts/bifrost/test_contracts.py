@@ -402,6 +402,39 @@ def main() -> int:
         and sorted(figma.get("capability_profiles") or []) == [],
         f"figma_profiles={figma_profiles}",
     )
+
+    figma_pat = registry["servers"].get("figma-framelink-mcp") or {}
+    figma_pat_profiles = sorted(
+        profile_id
+        for profile_id, profile in profile_servers.items()
+        if "figma-framelink-mcp" in (profile.get("allowed_server_ids") or [])
+    )
+    check(
+        "registry:figma-framelink-mcp interim PAT admission",
+        figma_pat.get("enabled") is True
+        and figma_pat.get("status") == "active"
+        and figma_pat.get("connection_type") == "stdio"
+        and figma_pat.get("pinned_version") == "0.13.2"
+        and figma_pat.get("executable_or_url") == r"C:\Program Files\nodejs\npx.cmd"
+        and "figma-developer-mcp@0.13.2" in (figma_pat.get("arguments") or [])
+        and "--stdio" in (figma_pat.get("arguments") or [])
+        and "--skip-image-downloads" in (figma_pat.get("arguments") or [])
+        and "--no-telemetry" in (figma_pat.get("arguments") or [])
+        and figma_pat.get("is_code_mode_client") is True
+        and figma_pat.get("bifrost_client_name") == "figma_framelink_mcp"
+        and figma_pat.get("write_classification") == "read_only"
+        and figma_pat.get("auth_type") == "none"
+        and (figma_pat.get("env_aliases") or {}).get("FIGMA_API_KEY") == "FIGMA_ACCESS_TOKEN"
+        and (figma_pat.get("permitted_tools") or []) == ["get_figma_data"]
+        and "download_figma_images" in (figma_pat.get("denied_tools") or []),
+        f"figma_pat={figma_pat}",
+    )
+    check(
+        "registry:figma-framelink-mcp builder+openclaw profiles",
+        figma_pat_profiles == ["builder", "openclaw"]
+        and sorted(figma_pat.get("capability_profiles") or []) == figma_pat_profiles,
+        f"figma_pat_profiles={figma_pat_profiles}",
+    )
     check(
         "registry:zoo-code remains non-upstream",
         not any(server_id in registry["servers"] for server_id in ("zoo-code", "zoo_code", "zoocode")),
