@@ -123,7 +123,7 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
     watchdog = [ordered]@{
       action = [ordered]@{
         executable = $PowerShellPath
-        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`" -FailureThreshold 2"
+        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`" -FailureThreshold 2 -RecycleRetryBackoffSeconds 60 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
         working_directory = $RuntimeRoot
       }
       trigger = [ordered]@{

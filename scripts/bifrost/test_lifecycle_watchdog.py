@@ -288,7 +288,8 @@ def compliant_watchdog_task_state() -> dict[str, object]:
         "Actions": {
             "Arguments": (
                 "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass "
-                "-File Invoke-AgentCoreBifrostWatchdog.ps1 -FailureThreshold 2"
+                "-File Invoke-AgentCoreBifrostWatchdog.ps1 -FailureThreshold 2 "
+                "-StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
             ),
         },
         "Principal": {
@@ -342,8 +343,8 @@ def test_watchdog_debounces_failures_and_recycles_once_per_incident(tmp_path: Pa
     assert first.returncode == 0, first.stderr
     assert "WATCHDOG_FAILURE count=1" in first.stdout
     assert "WATCHDOG_TEST_RECYCLE count=2" in second.stdout
-    assert "WATCHDOG_RECYCLE_SUPPRESSED" in third.stdout
-    assert "WATCHDOG_RECYCLE_SUPPRESSED" in fourth.stdout
+    assert "WATCHDOG_RECYCLE_BACKOFF" in third.stdout
+    assert "WATCHDOG_RECYCLE_BACKOFF" in fourth.stdout
 
     state = json.loads((runtime_root / "state" / "bifrost-watchdog.json").read_text())
     assert state["consecutive_failures"] == 4
@@ -359,11 +360,12 @@ def test_watchdog_skips_during_maintenance_and_startup_grace(tmp_path: Path) -> 
     runtime_root = tmp_path / "runtime"
     marker = runtime_root / "state" / "bifrost-maintenance.marker"
     marker.parent.mkdir(parents=True)
-    marker.write_text("planned maintenance", encoding="utf-8")
+    marker.write_text("operator_hold", encoding="utf-8")
 
     maintenance = run_watchdog(runtime_root, "Unhealthy", "2000-01-01T00:00:00Z")
     assert maintenance.returncode == 0, maintenance.stderr
     assert "WATCHDOG_SKIP maintenance_marker" in maintenance.stdout
+    assert "value=operator_hold" in maintenance.stdout
     assert not (runtime_root / "state" / "bifrost-watchdog.json").exists()
 
     marker.unlink()
@@ -373,13 +375,71 @@ def test_watchdog_skips_during_maintenance_and_startup_grace(tmp_path: Path) -> 
     assert not (runtime_root / "state" / "bifrost-watchdog.json").exists()
 
 
+def test_watchdog_expires_orphaned_stop_and_start_markers_quickly(tmp_path: Path) -> None:
+    """Orphaned Stop/Start markers must not keep the gateway down for the long hold TTL."""
+    created_at = datetime(2026, 8, 8, tzinfo=timezone.utc).timestamp()
+
+    stop_root = tmp_path / "stop-expired"
+    stop_marker = stop_root / "state" / "bifrost-maintenance.marker"
+    stop_marker.parent.mkdir(parents=True)
+    stop_marker.write_text("stop_requested", encoding="utf-8")
+    os.utime(stop_marker, (created_at, created_at))
+    stop_expired = run_watchdog(
+        stop_root,
+        "Unhealthy",
+        "2000-01-01T00:00:00Z",
+        "-NowUtc",
+        "2026-08-08T00:02:01Z",
+        "-StopRequestedMarkerTtlSeconds",
+        "120",
+    )
+    assert stop_expired.returncode == 0, stop_expired.stderr
+    assert "WATCHDOG_STALE_MARKER_REMOVED value=stop_requested" in stop_expired.stdout
+    assert "WATCHDOG_FAILURE count=1" in stop_expired.stdout
+    assert not stop_marker.exists()
+
+    start_active_root = tmp_path / "start-active"
+    start_active_marker = start_active_root / "state" / "bifrost-maintenance.marker"
+    start_active_marker.parent.mkdir(parents=True)
+    start_active_marker.write_text("start_requested", encoding="utf-8")
+    os.utime(start_active_marker, (created_at, created_at))
+    start_active = run_watchdog(
+        start_active_root,
+        "Unhealthy",
+        "2000-01-01T00:00:00Z",
+        "-NowUtc",
+        "2026-08-08T00:02:00Z",
+        "-StartRequestedMarkerTtlSeconds",
+        "180",
+    )
+    assert "WATCHDOG_SKIP maintenance_marker value=start_requested" in start_active.stdout
+
+    start_expired_root = tmp_path / "start-expired"
+    start_expired_marker = start_expired_root / "state" / "bifrost-maintenance.marker"
+    start_expired_marker.parent.mkdir(parents=True)
+    start_expired_marker.write_text("start_requested", encoding="utf-8")
+    os.utime(start_expired_marker, (created_at, created_at))
+    start_expired = run_watchdog(
+        start_expired_root,
+        "Unhealthy",
+        "2000-01-01T00:00:00Z",
+        "-NowUtc",
+        "2026-08-08T00:03:01Z",
+        "-StartRequestedMarkerTtlSeconds",
+        "180",
+    )
+    assert "WATCHDOG_STALE_MARKER_REMOVED value=start_requested" in start_expired.stdout
+    assert "WATCHDOG_FAILURE count=1" in start_expired.stdout
+    assert not start_expired_marker.exists()
+
+
 def test_watchdog_expires_stale_maintenance_marker_and_honors_exact_120_second_grace(
     tmp_path: Path,
 ) -> None:
     runtime_root = tmp_path / "runtime"
     marker = runtime_root / "state" / "bifrost-maintenance.marker"
     marker.parent.mkdir(parents=True)
-    marker.write_text("planned maintenance", encoding="utf-8")
+    marker.write_text("operator_hold", encoding="utf-8")
     created_at = datetime(2026, 8, 8, tzinfo=timezone.utc).timestamp()
     os.utime(marker, (created_at, created_at))
     stale = run_watchdog(
@@ -392,7 +452,8 @@ def test_watchdog_expires_stale_maintenance_marker_and_honors_exact_120_second_g
         "60",
     )
     assert stale.returncode == 0, stale.stderr
-    assert "WATCHDOG_STALE_MARKER_REMOVED age_seconds=600" in stale.stdout
+    assert "WATCHDOG_STALE_MARKER_REMOVED" in stale.stdout
+    assert "age_seconds=600" in stale.stdout
     assert "WATCHDOG_FAILURE count=1" in stale.stdout
     assert not marker.exists()
 
@@ -413,7 +474,7 @@ def test_watchdog_expires_stale_maintenance_marker_and_honors_exact_120_second_g
     assert "WATCHDOG_SKIP startup_grace" in at_119.stdout
     assert "WATCHDOG_FAILURE count=1" in at_120.stdout
 
-    marker.write_text("planned maintenance", encoding="utf-8")
+    marker.write_text("operator_hold", encoding="utf-8")
     os.utime(marker, (created_at, created_at))
     status = subprocess.run(
         [
@@ -472,7 +533,7 @@ def test_watchdog_rechecks_maintenance_and_persists_recycle_failure(tmp_path: Pa
     assert state["last_recycle_outcome"] == "start_failed"
     suppressed_failure = run_watchdog(runtime_root, "Unhealthy", started_at)
     assert suppressed_failure.returncode == 1
-    assert "WATCHDOG_RECYCLE_SUPPRESSED" in suppressed_failure.stdout
+    assert "WATCHDOG_RECYCLE_BACKOFF" in suppressed_failure.stdout
     assert "outcome=start_failed" in suppressed_failure.stdout
 
     healthy = run_watchdog(runtime_root, "Healthy", started_at)
@@ -989,6 +1050,8 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
     }
     assert "Invoke-AgentCoreBifrostWatchdog.ps1" in specs["watchdog"]["action"]["arguments"]
     assert "-FailureThreshold 2" in specs["watchdog"]["action"]["arguments"]
+    assert "-StopRequestedMarkerTtlSeconds 120" in specs["watchdog"]["action"]["arguments"]
+    assert "-StartRequestedMarkerTtlSeconds 180" in specs["watchdog"]["action"]["arguments"]
     assert specs["operational_logging"] == {
         "channel": "Microsoft-Windows-TaskScheduler/Operational", "enable": True
     }
@@ -1038,7 +1101,8 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         "Argument": (
             f'-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "{watchdog_script}" '
             f'-RuntimeRoot "{runtime_root}" -GatewayUrl http://127.0.0.1:18080 '
-            '-TaskPath "\\AgentCore\\" -TaskName "AgentCore-Bifrost-Gateway" -FailureThreshold 2'
+            '-TaskPath "\\AgentCore\\" -TaskName "AgentCore-Bifrost-Gateway" -FailureThreshold 2 '
+            '-RecycleRetryBackoffSeconds 60 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180'
         ),
         "WorkingDirectory": str(runtime_root),
     }
