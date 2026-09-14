@@ -11,6 +11,7 @@ Never embeds secret values. Uses env.NAME references for Bifrost.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -447,7 +448,13 @@ def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
                     "allowed_models": ["*"],
                     "key_ids": ["*"],
                     "weight": 1,
-                }
+                },
+                {
+                    "provider": "openrouter",
+                    "allowed_models": ["*"],
+                    "key_ids": ["*"],
+                    "weight": 1,
+                },
             ],
         },
         {
@@ -612,6 +619,22 @@ def build_bifrost_config(
     }
 
 
+def _load_provider_prompt_cache_module():
+    """Load scripts/bifrost/provider_prompt_cache.py as the single source of
+    truth for the provider prompt-cache policy recorded in agentcore_meta.
+
+    No package __init__.py exists under scripts/bifrost, so sibling modules
+    are loaded via importlib.util, matching the pattern already used by
+    scripts/bifrost/test_sync_code_mode_live_clients.py.
+    """
+    module_path = Path(__file__).resolve().parent / "provider_prompt_cache.py"
+    spec = importlib.util.spec_from_file_location("provider_prompt_cache", module_path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def build_sanitized_sidecar(
     registry: dict[str, Any],
     config: dict[str, Any],
@@ -643,6 +666,10 @@ def build_sanitized_sidecar(
             "it is runtime-only operator evidence and is never copied into rendered config. "
             "oauth_config (public params only) is embedded so the client can be created or reauthorized."
         ),
+        # Documentation only — Bifrost 2.0.0 has no live providers.*.prompt_cache
+        # field. providers.openai / providers.openrouter above stay keys-only;
+        # see scripts/bifrost/provider_prompt_cache.py (single source of truth).
+        "provider_prompt_cache_policy": _load_provider_prompt_cache_module().agentcore_meta_policy(),
     }
     if output_schema is not None:
         payload["agentcore_meta"]["output_schema"] = output_schema.meta()

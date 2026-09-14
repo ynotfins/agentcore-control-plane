@@ -532,6 +532,42 @@ def main() -> int:
         str(path.relative_to(REPO)) for path in source_renderer_paths
         if oauth_id_pattern.search(path.read_text(encoding="utf-8", errors="replace"))
     ]
+
+    # --- Provider prompt-cache policy: keys-only live providers, single ---
+    # --- source of truth for the documented policy in agentcore_meta. -----
+    try:
+        import importlib.util as _importlib_util
+
+        _ppc_spec = _importlib_util.spec_from_file_location(
+            "provider_prompt_cache", REPO / "scripts" / "bifrost" / "provider_prompt_cache.py"
+        )
+        _ppc = _importlib_util.module_from_spec(_ppc_spec)
+        _ppc_spec.loader.exec_module(_ppc)  # type: ignore[union-attr]
+        expected_policy = _ppc.agentcore_meta_policy()
+
+        for renderer_path in source_renderer_paths:
+            rel = str(renderer_path.relative_to(REPO))
+            payload = json.loads(read(rel))
+            providers = payload.get("providers") or {}
+            keys_only = all(
+                set((providers.get(name) or {}).keys()) <= {"keys"}
+                for name in ("openai", "openrouter")
+            )
+            check(
+                f"provider-prompt-cache:{rel} providers keys-only",
+                keys_only,
+                f"providers keys: openai={sorted((providers.get('openai') or {}).keys())} "
+                f"openrouter={sorted((providers.get('openrouter') or {}).keys())}",
+            )
+            recorded_policy = (payload.get("agentcore_meta") or {}).get(
+                "provider_prompt_cache_policy"
+            )
+            check(
+                f"provider-prompt-cache:{rel} agentcore_meta policy matches module",
+                recorded_policy == expected_policy,
+            )
+    except Exception as exc:  # noqa: BLE001
+        check("provider-prompt-cache:policy wiring", False, str(exc)[:200])
     check(
         "renderer:no runtime OAuth metadata in Git",
         not oauth_leaks,

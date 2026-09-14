@@ -971,6 +971,16 @@
               "*"
             ],
             "weight": 1
+          },
+          {
+            "provider": "openrouter",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
           }
         ]
       },
@@ -1486,6 +1496,44 @@
       "BIFROST_MCP_VK_OPENCLAW"
     ],
     "oauth_state_note": "Bifrost v2 persists oauth_config_id in config.db and ignores config-file oauth_config_id. Runtime state file (F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) present=False; it is runtime-only operator evidence and is never copied into rendered config. oauth_config (public params only) is embedded so the client can be created or reauthorized.",
+    "provider_prompt_cache_policy": {
+      "note": "Bifrost 2.0.0 has no provider-level prompt-cache toggle; provider prompt caching is controlled entirely by request-body fields sent through Bifrost's OpenAI-compatible /v1/chat/completions route. This policy documents the exact fields; it is not a live Bifrost config surface and does not add keys to providers.openai / providers.openrouter.",
+      "implementation": "scripts/bifrost/provider_prompt_cache.py",
+      "routes": {
+        "openai_direct": {
+          "model_example": "gpt-4o-mini",
+          "mechanism": "OpenAI automatic prefix caching (implicit breakpoints); no opt-in field enables the cache write/read itself.",
+          "minimum_cacheable_prefix_tokens": 1024,
+          "request_fields": {
+            "prompt_cache_key": "stable per-route string; optimizes routing to a warm cache shard on models before GPT-5.6",
+            "prompt_cache_retention": "in_memory; always-supported retention value for this model family"
+          },
+          "usage_fields": [
+            "usage.prompt_tokens_details.cached_tokens"
+          ]
+        },
+        "openrouter_openai": {
+          "model_example": "openrouter/openai/gpt-4o-mini",
+          "mechanism": "OpenRouter forwards to OpenAI's own automatic prefix caching; OpenRouter's explicit cache_control breakpoints are documented for Anthropic/Gemini/Alibaba families, not OpenAI models.",
+          "minimum_cacheable_prefix_tokens": 1024,
+          "request_fields": {
+            "prompt_cache_key": "stable per-route string; also used by OpenRouter provider sticky routing",
+            "cache_control_on_system_block": "included for operator-locked request-shape parity with the Anthropic/Gemini pattern; documented as inert for OpenAI-family upstream per current openrouter docs"
+          },
+          "usage_fields": [
+            "usage.prompt_tokens_details.cached_tokens",
+            "usage.prompt_tokens_details.cache_write_tokens"
+          ],
+          "docs_caveat": "openrouter@2026.9.14 prompt-caching guide documents cache_control breakpoints for Anthropic, Gemini, and Alibaba; OpenAI-family caching there is automatic with a 1024-token minimum and no additional configuration."
+        }
+      },
+      "pass_rule": "A route passes only when the second call sharing the stable prefix reports cached_read_tokens or cached_tokens > 0 AND Bifrost's own hash cache_debug.cache_hit is not true (rules out the dimension=1 exact-match semantic-cache plugin as the source of token savings).",
+      "non_goals": [
+        "No live providers.*.prompt_cache field invented in Bifrost config (2.0.0 has none)",
+        "No static OpenRouter x-session-id",
+        "No change to MCP eager surface, Code Mode, device_assertion, enrollment, Stage B, or disable_content_logging"
+      ]
+    },
     "output_schema": {
       "configured": true,
       "enabled": true,
