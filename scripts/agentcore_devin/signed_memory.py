@@ -147,7 +147,6 @@ def default_session_open_arguments(project_key: str, project_root: str, extra=No
         "project_root": project_root,
         "canonical_repo_path": project_root,
         "worktree_path": project_root,
-        "repo_key": project_key,
         "client_key": CLIENT_KEY,
         "agent_key": DEFAULT_AGENT_KEY,
         "context_profile": "standard-context",

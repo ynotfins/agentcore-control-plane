@@ -18,14 +18,17 @@ scripts\.venv\Scripts\python.exe scripts\devin_signed_memory.py sign --tool sess
 
 ## Proof
 
-See `scripts/agentcore_devin/tests/test_signed_memory.py`.
+See `scripts/agentcore_devin/tests/test_signed_memory.py` (11 passed). Live host `sign` and `call` used the existing Cursor device enrollment (`legacy_compat: false`).
 
-| Case | Expected |
-| --- | --- |
-| Unsigned `session_open` | `device_assertion_required` |
-| Signed Approach A + enrolled goal-staging-001 | verify accepts / call_tool reaches session_open |
-| Replay same assertion | `device_assertion_replay` |
-| Assertion `project_key` mismatch | `device_assertion_project_mismatch` |
+| Case | Expected | Evidence |
+| --- | --- | --- |
+| Unsigned `session_open` | `device_assertion_required` | unit + call_tool |
+| Signed Approach A + enrolled nfa-platform | verify accepts / live session_open ok | live `D:\github\nfa-platform` session `78a70916-78bf-4f6a-a109-1338cf576d42` |
+| Replay same assertion | `device_assertion_replay` | unit |
+| Assertion `project_key` mismatch | `device_assertion_project_mismatch` | unit |
+| Live Devin MCP JSON | `:18082`, no Authorization, no VK literal | inspect test |
+
+`goal-staging-001` is enrolled for exact-path matching and signing. Live `session_open` for that worktree still hits `project_key is already bound to a different repository` because memory binds one `project_key` to one repository row. That is outside Approach A and remains with Task 2 / multi-path session binding.
 
 ## Not changed
 
