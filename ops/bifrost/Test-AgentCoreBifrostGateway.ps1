@@ -458,6 +458,31 @@ if ($adminUser -and $adminPass) {
   Assert-OrWarn $false 'BIFROST_ADMIN_USERNAME/PASSWORD are set for admin health checks (values not shown)' ($RequireOpenRouterMcpHealthy.IsPresent -or $RequireSemanticCacheHealthy.IsPresent)
 }
 
+$codeModeSync = Join-Path $RepoRoot 'scripts\bifrost\sync_code_mode_live_clients.py'
+if (Test-Path -LiteralPath $codeModeSync) {
+  try {
+    $syncPython = Join-Path $RepoRoot 'scripts\.venv\Scripts\python.exe'
+    if (-not (Test-Path -LiteralPath $syncPython -PathType Leaf)) {
+      $syncPython = Join-Path $RepoRoot '.venv\Scripts\python.exe'
+    }
+    if (-not (Test-Path -LiteralPath $syncPython -PathType Leaf)) {
+      foreach ($c in @('py', 'python', 'python3')) {
+        $cmd = Get-Command $c -ErrorAction SilentlyContinue
+        if ($cmd) { $syncPython = $cmd.Source; break }
+      }
+    }
+    Assert-True (-not [string]::IsNullOrWhiteSpace([string]$syncPython)) 'Python interpreter found for Code Mode live sync check'
+    & $syncPython $codeModeSync --mode check
+    Assert-True ($LASTEXITCODE -eq 0) 'live config.db is_code_mode_client matches rendered'
+  } catch {
+    Write-Host "FAIL  Code Mode live client sync check: $($_.Exception.Message)"
+    $failed = $true
+  }
+} else {
+  Write-Host "FAIL  Code Mode live sync helper missing: $codeModeSync"
+  $failed = $true
+}
+
 if ($failed) {
   Write-Host 'RESULT: FAILED'
   exit 1

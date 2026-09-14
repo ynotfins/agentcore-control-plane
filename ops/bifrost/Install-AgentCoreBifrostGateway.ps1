@@ -699,4 +699,26 @@ try {
 
 Write-TestScheduledTaskCalls
 Write-TestTaskModel
+function Invoke-CodeModeLiveClientSync {
+  if ($TestMode) { return }
+  $syncScript = Join-Path $RepoRoot 'scripts\bifrost\sync_code_mode_live_clients.py'
+  if (-not (Test-Path -LiteralPath $syncScript -PathType Leaf)) {
+    throw "CODE_MODE_LIVE_SYNC missing: $syncScript"
+  }
+  try {
+    $health = Invoke-WebRequest -Uri ("http://{0}:{1}/health" -f $HostAddress, $Port) -UseBasicParsing -TimeoutSec 3
+    if ($health.StatusCode -ne 200) {
+      Write-AgentCoreInfo 'CODE_MODE_LIVE_SYNC skipped: gateway not healthy'
+      return
+    }
+  } catch {
+    Write-AgentCoreInfo 'CODE_MODE_LIVE_SYNC skipped: gateway not reachable'
+    return
+  }
+  if ($null -eq $pythonRunner) { $script:pythonRunner = Resolve-InstallerPythonRunner }
+  & $pythonRunner.Command @($pythonRunner.ArgumentsPrefix) $syncScript --mode apply
+  if ($LASTEXITCODE -ne 0) { throw "CODE_MODE_LIVE_SYNC_FAILED exit=$LASTEXITCODE" }
+  Write-AgentCoreInfo 'Code Mode live client flags synced to config.db'
+}
+Invoke-CodeModeLiveClientSync
 Write-AgentCoreInfo 'Install complete. Ensure BIFROST_MCP_VIRTUAL_KEY and upstream env vars exist as Windows User environment variables.'

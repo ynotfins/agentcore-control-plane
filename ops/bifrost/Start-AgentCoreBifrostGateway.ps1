@@ -164,10 +164,39 @@ function Ensure-AgentCoreSerenaShimReady {
   }
 }
 
+function Resolve-StartPythonRunner {
+  $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
+  foreach ($candidate in @(
+      (Join-Path $repoRoot 'scripts\.venv\Scripts\python.exe'),
+      (Join-Path $repoRoot '.venv\Scripts\python.exe')
+    )) {
+    if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+  }
+  foreach ($name in @('py', 'python', 'python3')) {
+    $cmd = Get-Command $name -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+  }
+  return 'python'
+}
+
+function Invoke-CodeModeLiveClientSync {
+  if ($TestMode) { return }
+  $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
+  $syncScript = Join-Path $repoRoot 'scripts\bifrost\sync_code_mode_live_clients.py'
+  if (-not (Test-Path -LiteralPath $syncScript -PathType Leaf)) {
+    throw "CODE_MODE_LIVE_SYNC missing: $syncScript"
+  }
+  $python = Resolve-StartPythonRunner
+  & $python $syncScript --mode apply
+  if ($LASTEXITCODE -ne 0) { throw "CODE_MODE_LIVE_SYNC_FAILED exit=$LASTEXITCODE" }
+  Write-Host '[Start] Code Mode live client flags synced to config.db'
+}
+
 function Complete-StartWhenReady {
   if (-not (Test-AuthenticatedGatewayReadiness)) { return $false }
   Remove-Item -LiteralPath $maintenanceMarker -Force -ErrorAction SilentlyContinue
   Write-Host "[Start] Authenticated gateway readiness confirmed on ${HostAddress}:${Port}"
+  Invoke-CodeModeLiveClientSync
   return $true
 }
 

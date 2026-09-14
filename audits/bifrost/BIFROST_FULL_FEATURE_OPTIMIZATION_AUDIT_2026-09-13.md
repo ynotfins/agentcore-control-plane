@@ -8,7 +8,7 @@ Evidence commit (Phase A): `b24b34d`
 
 | Feature | Status | Live evidence | Gap | Priority |
 |---|---|---|---|---|
-| Code Mode (binding=tool) | Configured | Eager tools/list **29** (was 53); VFS includes serena, nia, cursor_agent_mcp, skills_hub, morph, playwright, research | Rendered `is_code_mode_client` does not alone update config.db; requires admin PUT | P0 done / ops note |
+| Code Mode (binding=tool) | Configured | Eager tools/list **29** (was 53); VFS includes serena, nia, cursor_agent_mcp, skills_hub, morph, playwright, research; live `--mode check` drift_count=0 | Apply path now PUTs `is_code_mode_client` after render/restart | P0 done |
 | Eager hot path | Configured | memory, sequential-thinking, Code Mode meta-tools, capability-catalog, arabold-docs, context7 remain eager | Arabold still 10 eager schemas (~keep until docs-first measured separately) | P1 candidate |
 | Tool filtering / VK MCP | Configured | `mcp_disable_auto_tool_inject=true`; builder VK profile allowlists | None urgent | - |
 | Gateway auth | Configured | headers mode for IDE VKs on `:8080`; Trust Class A `:18082` | Do not flip oauth-only | Rejected change |
@@ -33,7 +33,7 @@ Evidence commit (Phase A): `b24b34d`
 2. **Watchdog TTL pin** — elevated install; Test PASS. **DONE**.
 3. **Hash-cache proof** — Redis 6381 + dimension 1 + miss/hit. **DONE** (`audits/bifrost/BIFROST_HASH_CACHE_PROOF_2026-09-14.json`).
 4. **Vibe-prompt guard** — handoff over huge pastes; keep content logging off. **DONE** (`.cursor/rules/vibe-prompt-protection.mdc`).
-5. **Ops gap close** — apply path must PUT `is_code_mode_client` on live clients after render/restart so config.json and config.db cannot diverge. **Implement this pass**.
+5. **Ops gap close** — apply path must PUT `is_code_mode_client` on live clients after render/restart so config.json and config.db cannot diverge. **DONE** (`scripts/bifrost/sync_code_mode_live_clients.py --mode check|apply`; Install if healthy; Start after readiness; Test `--check`; proof `audits/bifrost/BIFROST_CODE_MODE_LIVE_SYNC_PROOF_2026-09-14.json`).
 
 ### P1 (next bounded tasks)
 1. Provider prompt-cache enablement on stable system/tool prefixes for openai/openrouter inference routes; prove `prompt_tokens_details` / cache read tokens.
@@ -59,7 +59,8 @@ Evidence commit (Phase A): `b24b34d`
 | Measured eager-token reduction | PASS (53 to 29; compact chars 64234 to 34764; o200k 7910) |
 | Watchdog self-heal pinned | PASS |
 | Cache proofs | PASS (hash miss then hit; content logging off) |
+| Live Code Mode apply path | PASS (19 enabled clients matched; drift_count=0; no recycle) |
 | No secret leakage | PASS (proof JSON has no tokens/bodies) |
 
 ## 5. Recommended next operator action
-Accept P0 ops fix (live Code Mode PUT after render), then schedule P1 prompt-cache enablement as a separate bounded task.
+P0 is accepted. Run the P1 provider prompt-cache task as a separate bounded chat.

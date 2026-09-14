@@ -1,0 +1,53 @@
+{
+  "mode": "check",
+  "rendered_path_kind": "live",
+  "desired_count": 19,
+  "ok": [
+    "agentcore_capability_catalog",
+    "agentcore_memory",
+    "agentcore_project_router",
+    "apify_research",
+    "arabold_docs",
+    "context7",
+    "cursor_agent_mcp",
+    "exa_research",
+    "figma_framelink_mcp",
+    "firecrawl_research",
+    "mcp_prompt_optimizer",
+    "morph_mcp",
+    "nia",
+    "openrouter",
+    "playwright",
+    "sequential_thinking",
+    "serena",
+    "skills_hub",
+    "tavily_research"
+  ],
+  "drift": [],
+  "updated": [],
+  "skip_missing": [],
+  "skip_no_id": [],
+  "code_mode_true": [
+    "apify_research",
+    "cursor_agent_mcp",
+    "exa_research",
+    "figma_framelink_mcp",
+    "firecrawl_research",
+    "mcp_prompt_optimizer",
+    "morph_mcp",
+    "nia",
+    "openrouter",
+    "playwright",
+    "serena",
+    "skills_hub",
+    "tavily_research"
+  ],
+  "code_mode_false": [
+    "agentcore_capability_catalog",
+    "agentcore_memory",
+    "agentcore_project_router",
+    "arabold_docs",
+    "context7",
+    "sequential_thinking"
+  ]
+}

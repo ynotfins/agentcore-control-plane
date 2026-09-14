@@ -378,6 +378,41 @@ def main() -> int:
         skills_hub.get("is_code_mode_client") is True,
         f"skills-hub is_code_mode_client={skills_hub.get('is_code_mode_client')}",
     )
+    start_ps1 = read("ops/bifrost/Start-AgentCoreBifrostGateway.ps1")
+    install_ps1 = read("ops/bifrost/Install-AgentCoreBifrostGateway.ps1")
+    test_ps1 = read("ops/bifrost/Test-AgentCoreBifrostGateway.ps1")
+    sync_py = read("scripts/bifrost/sync_code_mode_live_clients.py")
+    check(
+        "ops:code-mode sync helper has check/apply",
+        '--mode' in sync_py and 'choices=("check", "apply")' in sync_py,
+    )
+    check(
+        "ops:Start applies code-mode live sync",
+        "sync_code_mode_live_clients.py" in start_ps1
+        and "--mode apply" in start_ps1
+        and "if ($TestMode) { return }" in start_ps1,
+    )
+    check(
+        "ops:Install applies code-mode live sync when healthy",
+        "sync_code_mode_live_clients.py" in install_ps1
+        and "CODE_MODE_LIVE_SYNC" in install_ps1,
+    )
+    check(
+        "ops:Test checks code-mode live sync",
+        "sync_code_mode_live_clients.py" in test_ps1
+        and "--mode check" in test_ps1,
+    )
+    sync_test = subprocess.run(
+        [sys.executable, "-m", "unittest", "scripts.bifrost.test_sync_code_mode_live_clients", "-v"],
+        capture_output=True,
+        text=True,
+        cwd=REPO,
+    )
+    check(
+        "ops:code-mode live sync unit tests",
+        sync_test.returncode == 0,
+        (sync_test.stdout or sync_test.stderr).strip()[:500],
+    )
     check(
         "registry:nia all-IDE profiles only",
         nia_profiles == ["builder", "docs-knowledge", "openclaw", "operator"]
