@@ -51,6 +51,36 @@
       "paths": [
         "D:\\odysseus"
       ]
+    },
+    {
+      "project_key": "nfa-alerts-enterprise",
+      "name": "NFA Alerts Enterprise",
+      "paths": [
+        "D:\\github\\nfa-alerts-enterprise"
+      ]
+    },
+    {
+      "project_key": "nfa-platform",
+      "name": "NFA Platform",
+      "paths": [
+        "D:\\github\\nfa-platform",
+        "D:\\agentcore-worktrees\\nfa-platform",
+        "D:\\agentcore-worktrees\\nfa-platform\\goal-staging-001"
+      ]
+    },
+    {
+      "project_key": "openclaw-product",
+      "name": "OpenClaw Product",
+      "paths": [
+        "D:\\github\\open--claw"
+      ]
+    },
+    {
+      "project_key": "openclaw-windows-ops",
+      "name": "OpenClaw Windows Operations",
+      "paths": [
+        "D:\\openclaw"
+      ]
     }
   ],
   "foreign_markers": [
@@ -60,10 +90,7 @@
     "swarmclaw",
     "agentswarm",
     "agent-swarm",
-    "swarm-agent",
-    "openclaw",
-    "open--claw",
-    "clawx"
+    "swarm-agent"
   ],
   "foreign_roots": [
     "D:\\github\\swarm-ecosystem-control",
