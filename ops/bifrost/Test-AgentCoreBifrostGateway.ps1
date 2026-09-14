@@ -387,6 +387,8 @@ if (-not [string]::IsNullOrWhiteSpace($vk)) {
     }
     foreach ($serverProp in $activeBuilderServers) {
       if ($serverProp.Value.is_code_mode_client -eq $true) {
+        $prefix = ([string]$serverProp.Value.bifrost_client_name) + '-'
+        Assert-True (@($toolNames | Where-Object { $_ -like "$prefix*" }).Count -eq 0) "contract-active builder MCP Code Mode client has no eager prefix: $prefix"
         Write-Host "PASS  contract-active builder MCP client is Code Mode hidden: $($serverProp.Value.bifrost_client_name)"
         continue
       }

@@ -1,0 +1,15 @@
+---
+description: Prefer memory handoffs over huge vibe-coding pastes to protect context and cost.
+alwaysApply: true
+---
+
+# Vibe-prompt protection
+
+When a user or prior chat pastes a large dump (long logs, whole files, multi-thousand-token transcripts):
+
+1. Do **not** re-paste or expand the dump into the next turn.
+2. Prefer `agentcore-memory` via `agentcore-gateway`: `retrieve_context`, `expand_source`, then `build_handoff`.
+3. Summarize only what is needed for the next action; keep durable facts in memory, not in the prompt.
+4. If a paste exceeds roughly one model context page or clearly drowns the task, stop and ask for a handoff/source id instead of absorbing the blob.
+5. Keep Bifrost `disable_content_logging: true`; never enable content logging to debug prompt bloat.
+6. Do not weaken device_assertion, enrollment, or Stage B gates to make pastes easier.

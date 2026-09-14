@@ -1,0 +1,51 @@
+{
+  "redis_6381_tcp": true,
+  "disable_content_logging": true,
+  "semantic_cache_config": {
+    "enabled": true,
+    "dimension": 1,
+    "ttl": "30m",
+    "default_cache_key_set": true,
+    "cache_by_model": true,
+    "cache_by_provider": true
+  },
+  "vector_store_enabled": true,
+  "vector_store_type": "redis",
+  "live_plugin": {
+    "found": true,
+    "status": "active"
+  },
+  "inference_probe": {
+    "first": {
+      "http_cache_header_keys": [
+        "cf-cache-status"
+      ],
+      "cache_debug_present": true,
+      "cache_hit": false,
+      "usage_keys": [
+        "completion_tokens",
+        "completion_tokens_details",
+        "prompt_tokens",
+        "prompt_tokens_details",
+        "total_tokens"
+      ],
+      "has_choices": true
+    },
+    "second": {
+      "http_cache_header_keys": [
+        "cf-cache-status"
+      ],
+      "cache_debug_present": true,
+      "cache_hit": true,
+      "usage_keys": [
+        "completion_tokens",
+        "completion_tokens_details",
+        "prompt_tokens",
+        "prompt_tokens_details",
+        "total_tokens"
+      ],
+      "has_choices": true
+    },
+    "ok": true
+  }
+}
