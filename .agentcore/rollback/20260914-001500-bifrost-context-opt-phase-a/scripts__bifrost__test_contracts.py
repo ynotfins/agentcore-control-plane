@@ -362,23 +362,6 @@ def main() -> int:
         f"permitted={nia.get('permitted_tools')} denied={nia.get('denied_tools')}",
     )
     check(
-        "registry:nia Code Mode",
-        nia.get("is_code_mode_client") is True,
-        f"nia is_code_mode_client={nia.get('is_code_mode_client')}",
-    )
-    cursor_agent = registry["servers"].get("cursor-agent-mcp") or {}
-    check(
-        "registry:cursor-agent-mcp Code Mode",
-        cursor_agent.get("is_code_mode_client") is True,
-        f"cursor-agent-mcp is_code_mode_client={cursor_agent.get('is_code_mode_client')}",
-    )
-    skills_hub = registry["servers"].get("skills-hub") or {}
-    check(
-        "registry:skills-hub Code Mode",
-        skills_hub.get("is_code_mode_client") is True,
-        f"skills-hub is_code_mode_client={skills_hub.get('is_code_mode_client')}",
-    )
-    check(
         "registry:nia all-IDE profiles only",
         nia_profiles == ["builder", "docs-knowledge", "openclaw", "operator"]
         and sorted(nia.get("capability_profiles") or []) == nia_profiles,

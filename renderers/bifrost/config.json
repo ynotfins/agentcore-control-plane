@@ -325,7 +325,8 @@
           "listRepositories"
         ],
         "auth_type": "none",
-        "is_ping_available": true
+        "is_ping_available": true,
+        "is_code_mode_client": true
       },
       {
         "name": "exa_research",
@@ -513,6 +514,7 @@
           "nia_vault_search"
         ],
         "auth_type": "headers",
+        "is_code_mode_client": true,
         "headers": {
           "Authorization": "env.NIA_AUTHORIZATION"
         }
@@ -688,7 +690,8 @@
           "list_installed_skills"
         ],
         "auth_type": "none",
-        "is_ping_available": false
+        "is_ping_available": false,
+        "is_code_mode_client": true
       },
       {
         "name": "tavily_research",
