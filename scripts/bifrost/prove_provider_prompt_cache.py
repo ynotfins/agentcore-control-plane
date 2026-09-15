@@ -99,7 +99,7 @@ def probe_route(*, model: str, provider: str, vk: str) -> dict[str, Any]:
             )
             payload = _post_chat(body, vk=vk)
             calls.append(PPC.extract_usage_evidence(payload))
-            time.sleep(1.0)
+            time.sleep(2.5)
     except urllib.error.HTTPError as exc:
         error = f"HTTPError {exc.code}: {exc.reason}"
     except urllib.error.URLError as exc:
