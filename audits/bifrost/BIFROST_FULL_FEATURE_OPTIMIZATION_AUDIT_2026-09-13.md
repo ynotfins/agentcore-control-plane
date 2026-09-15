@@ -16,7 +16,7 @@ Evidence commit (Phase A): `b24b34d`
 | Retries / fallbacks | Partial | Provider configs present (openai, openrouter) | Explicit fallback chains not audited this pass | P2 |
 | Compat plugin | Unused | Not required for current IDE surface | Admit only for LiteLLM drop-in need | Rejected now |
 | Drop-in replacement | Partial | `/v1/chat/completions` works with builder VK | Document inference vs MCP plane separation | P1 |
-| Prompt caching (provider) | Partial | Inference path live; usage includes `prompt_tokens_details` | Need provider-specific cache TTL/header enablement where supported | P1 |
+| Prompt caching (provider) | Configured | openai_direct + openrouter_openai both `pass=true`; second call `cached_tokens`/`cached_read_tokens`=1408, `hash_cache_hit`=false (`audits/bifrost/BIFROST_PROVIDER_PROMPT_CACHE_PROOF_2026-09-14.json`) | None; `agentcore_meta.provider_prompt_cache_policy` recorded, providers stay keys-only | P1 done |
 | Semantic / hash cache | Configured | dimension=1 hash mode; Redis `:6381` up; plugin `active`; probe miss then hit (`cache_debug.cache_hit` false then true) | Treat as proven hash cache, not stub | P0 done |
 | Content logging | Configured | `disable_content_logging: true` | Keep forever unless operator changes AUTH | Protect |
 | OTEL | Unused | Not enabled | Optional GenAI spans later; no content export | P2 |
@@ -36,7 +36,7 @@ Evidence commit (Phase A): `b24b34d`
 5. **Ops gap close** — apply path must PUT `is_code_mode_client` on live clients after render/restart so config.json and config.db cannot diverge. **DONE** (`scripts/bifrost/sync_code_mode_live_clients.py --mode check|apply`; Install if healthy; Start after readiness; Test `--check`; proof `audits/bifrost/BIFROST_CODE_MODE_LIVE_SYNC_PROOF_2026-09-14.json`).
 
 ### P1 (next bounded tasks)
-1. Provider prompt-cache enablement on stable system/tool prefixes for openai/openrouter inference routes; prove `prompt_tokens_details` / cache read tokens.
+1. **Provider prompt-cache enablement** — openai/openrouter stable system/tool prefixes; cache-read tokens proven. **DONE** (commits `b85fa98`, `cbe681e`; `audits/bifrost/BIFROST_PROVIDER_PROMPT_CACHE_PROOF_2026-09-14.json`; 19/19 unit tests).
 2. Arabold eager-token measurement; only then decide Code Mode vs bounded eager subset (docs-first non-negotiable).
 3. Serena executeToolCode project-identity injection for enrolled roots (without sticky STDIO).
 4. Strengthen Test to assert Code Mode clients are absent from tools/list (not only registry flag).
@@ -63,4 +63,4 @@ Evidence commit (Phase A): `b24b34d`
 | No secret leakage | PASS (proof JSON has no tokens/bodies) |
 
 ## 5. Recommended next operator action
-P0 is accepted. Run the P1 provider prompt-cache task as a separate bounded chat.
+P0 is accepted. P1 provider prompt-cache is done (see row above). Run the next pending P1 — Arabold eager-token measurement — as a separate bounded chat.
