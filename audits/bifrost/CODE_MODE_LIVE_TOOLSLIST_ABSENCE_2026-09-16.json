@@ -1,0 +1,198 @@
+{
+  "absence_check": {
+    "apify_research-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "cursor_agent_mcp-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "exa_research-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "figma_framelink_mcp-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "firecrawl_research-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "mcp_prompt_optimizer-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "morph_mcp-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "nia-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "openrouter-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "playwright-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "serena-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "skills_hub-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    },
+    "tavily_research-": {
+      "absent": true,
+      "leaked_count": 0,
+      "leaked_sample": []
+    }
+  },
+  "captured_at": "2026-09-17T21:14:13.896549+00:00",
+  "eager_check": {
+    "agentcore_memory-": {
+      "count": 10,
+      "present": true,
+      "sample": [
+        "agentcore_memory-append_event",
+        "agentcore_memory-build_handoff",
+        "agentcore_memory-docs_search",
+        "agentcore_memory-expand_source",
+        "agentcore_memory-memory_status"
+      ]
+    },
+    "arabold_docs-": {
+      "count": 10,
+      "present": true,
+      "sample": [
+        "arabold_docs-cancel_job",
+        "arabold_docs-fetch_url",
+        "arabold_docs-find_version",
+        "arabold_docs-get_job_info",
+        "arabold_docs-list_jobs"
+      ]
+    },
+    "executeToolCode": {
+      "present": true
+    },
+    "getToolDocs": {
+      "present": true
+    },
+    "listToolFiles": {
+      "present": true
+    },
+    "readToolFile": {
+      "present": true
+    },
+    "sequential_thinking-": {
+      "count": 1,
+      "present": true,
+      "sample": [
+        "sequential_thinking-sequentialthinking"
+      ]
+    }
+  },
+  "endpoint": "http://127.0.0.1:8080/mcp",
+  "evidence_id": "CODE_MODE_LIVE_TOOLSLIST_ABSENCE_2026-09-16",
+  "health_url": "http://127.0.0.1:8080/health",
+  "method": "tools/list",
+  "pass": true,
+  "profile": "builder",
+  "registry_code_mode_enabled_servers": [
+    {
+      "bifrost_client_name": "apify_research",
+      "prefix": "apify_research-",
+      "server_id": "apify-research"
+    },
+    {
+      "bifrost_client_name": "cursor_agent_mcp",
+      "prefix": "cursor_agent_mcp-",
+      "server_id": "cursor-agent-mcp"
+    },
+    {
+      "bifrost_client_name": "exa_research",
+      "prefix": "exa_research-",
+      "server_id": "exa-research"
+    },
+    {
+      "bifrost_client_name": "figma_framelink_mcp",
+      "prefix": "figma_framelink_mcp-",
+      "server_id": "figma-framelink-mcp"
+    },
+    {
+      "bifrost_client_name": "firecrawl_research",
+      "prefix": "firecrawl_research-",
+      "server_id": "firecrawl-research"
+    },
+    {
+      "bifrost_client_name": "mcp_prompt_optimizer",
+      "prefix": "mcp_prompt_optimizer-",
+      "server_id": "mcp-prompt-optimizer"
+    },
+    {
+      "bifrost_client_name": "morph_mcp",
+      "prefix": "morph_mcp-",
+      "server_id": "morph-mcp"
+    },
+    {
+      "bifrost_client_name": "nia",
+      "prefix": "nia-",
+      "server_id": "nia"
+    },
+    {
+      "bifrost_client_name": "openrouter",
+      "prefix": "openrouter-",
+      "server_id": "openrouter"
+    },
+    {
+      "bifrost_client_name": "playwright",
+      "prefix": "playwright-",
+      "server_id": "playwright"
+    },
+    {
+      "bifrost_client_name": "serena",
+      "prefix": "serena-",
+      "server_id": "serena"
+    },
+    {
+      "bifrost_client_name": "skills_hub",
+      "prefix": "skills_hub-",
+      "server_id": "skills-hub"
+    },
+    {
+      "bifrost_client_name": "tavily_research",
+      "prefix": "tavily_research-",
+      "server_id": "tavily-research"
+    }
+  ],
+  "required_absence_prefixes": [
+    "serena-",
+    "nia-",
+    "skills_hub-",
+    "cursor_agent_mcp-",
+    "morph_mcp-",
+    "playwright-"
+  ],
+  "secrets_printed": false,
+  "tool_count": 29,
+  "vk_env_var": "BIFROST_MCP_VIRTUAL_KEY",
+  "vk_present": true
+}
