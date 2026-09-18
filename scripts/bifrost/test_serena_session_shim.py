@@ -298,6 +298,57 @@ class SerenaConcurrentIsolationCanaryTests(unittest.TestCase):
         self.assertEqual(data["error"]["code"], -32002)
         self.assertIn("PROJECT_NOT_ENROLLED", data["error"]["message"])
 
+    def test_tools_call_agentcore_project_arg_without_headers_routes_and_strips(self):
+        """No identity headers: arguments.agentcore_project enrolls; reserved arg stripped."""
+        mock_child = MagicMock(spec=SerenaChildProcess)
+        mock_child.project_key = "agentcore-control-plane"
+        mock_child.project_path = Path(r"D:\github\agentcore-control-plane").resolve()
+        mock_child.call_jsonrpc.return_value = {
+            "jsonrpc": "2.0",
+            "id": 301,
+            "result": {"symbols": ["ArgIdentitySymbol"]},
+        }
+        with SHIM_MANAGER._lock:
+            SHIM_MANAGER.children["agentcore-control-plane"] = mock_child
+
+        abs_path = str(
+            mock_child.project_path / "scripts" / "bifrost" / "session_identity.py"
+        )
+        req_payload = {
+            "jsonrpc": "2.0",
+            "id": 301,
+            "method": "tools/call",
+            "params": {
+                "name": "find_symbol",
+                "arguments": {
+                    "agentcore_project": "agentcore-control-plane",
+                    "name_path_pattern": "EnrollmentRegistry",
+                    "relative_path": abs_path,
+                },
+            },
+        }
+        post_req = urllib.request.Request(
+            self.base_url,
+            data=json.dumps(req_payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(post_req) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+        self.assertNotIn("error", data)
+        self.assertEqual(data["result"]["symbols"], ["ArgIdentitySymbol"])
+        mock_child.call_jsonrpc.assert_called_once()
+        forwarded = mock_child.call_jsonrpc.call_args[0][0]
+        forwarded_args = forwarded["params"]["arguments"]
+        self.assertNotIn("agentcore_project", forwarded_args)
+        self.assertNotIn("project_key", forwarded_args)
+        self.assertEqual(
+            forwarded_args["relative_path"],
+            "scripts/bifrost/session_identity.py",
+        )
+        self.assertEqual(forwarded_args["name_path_pattern"], "EnrollmentRegistry")
+
 
 if __name__ == "__main__":
     unittest.main()

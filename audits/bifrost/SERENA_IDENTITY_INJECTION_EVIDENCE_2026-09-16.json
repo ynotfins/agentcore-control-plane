@@ -1,0 +1,25 @@
+{
+  "evidence_id": "SERENA_IDENTITY_INJECTION_EVIDENCE_2026-09-16",
+  "shim_url": "http://127.0.0.1:18090/mcp",
+  "tool": "find_symbol",
+  "name_path_pattern": "extract_project_arg",
+  "sticky_stdio": false,
+  "headers_sent": false,
+  "agentcore_project_arg": "agentcore-control-plane",
+  "relative_path_call_ok": true,
+  "absolute_path_rewrite_ok": true,
+  "deny_without_identity": true,
+  "tools_call_ok": true,
+  "probe": {
+    "variants_tried": [
+      {
+        "name": "minimal",
+        "ok": true,
+        "summary": "{\"isError\": false, \"keys\": [\"content\", \"isError\", \"structuredContent\"], \"preview\": \"{'content': [{'type': 'text', 'text': '[{\\\"name_path\\\": \\\"extract_project_arg\\\", \\\"kind\\\": \\\"Function\\\", \\\"relative_path\\\": \\\"scripts\\\\\\\\\\\\\\\\bifrost\\\\\\\\\\\\\\\\session_identity.py\\\", \\\"body_location\\\": {\\\"start_line\\\": 170, \\\"end_line\\\": 176}}]'}], 'structuredContent': {'result': '[{\\\"name_path\\\": \\\"extract_project_arg\\\", \\\"kind\\\": \\\"F\"}"
+      }
+    ],
+    "winning_variant": "minimal"
+  },
+  "secrets_printed": false,
+  "pass": true
+}

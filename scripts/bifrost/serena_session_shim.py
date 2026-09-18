@@ -5,9 +5,11 @@ Provides a multi-IDE, concurrent-safe HTTP MCP endpoint on 127.0.0.1:18090/mcp.
 Bifrost connects to this shim as an HTTP MCP client with allowed_extra_headers.
 
 The shim binds caller headers (x-agentcore-project, x-bf-session-id, x-session-id)
-to enrolled project roots from contracts/agentcore-project-enrollment.json (default-deny;
-Swarm refuse). Missing or unknown identity returns PROJECT_NOT_ENROLLED — never falls
-back to agentcore-control-plane. For each enrolled project, an isolated Serena child
+or reserved tool args (agentcore_project / project_key) to enrolled project roots from
+contracts/agentcore-project-enrollment.json (default-deny; Swarm refuse). Absolute path
+args under the enrolled root are rewritten to relative before the child call. Missing or
+unknown identity returns PROJECT_NOT_ENROLLED — never falls back to agentcore-control-plane
+and never uses sticky STDIO. For each enrolled project, an isolated Serena child
 process is spawned with `--project <enrolled_path>`, preventing cross-project symbol
 or file leakage.
 
@@ -38,6 +40,7 @@ from bifrost.session_identity import (  # noqa: E402
     EnrollmentRegistry,
     load_enrollment_contract,
     resolve_request_identity,
+    sanitize_tool_args_for_upstream,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -52,6 +55,34 @@ SERENA_EXE = os.environ.get(
     if sys.platform == "win32"
     else "serena",
 )
+
+# Serena language servers (python via uvx) require uv/uvx on PATH. Scheduled-task
+# and Direct launchers often omit the user-local uv bin directory.
+_DEFAULT_UV_BIN_DIRS = (
+    Path.home() / ".local" / "bin",
+    Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Links",
+    Path.home() / ".cargo" / "bin",
+)
+
+
+def _child_env_with_uv() -> dict[str, str]:
+    env = dict(os.environ)
+    path_parts = [p for p in env.get("PATH", "").split(os.pathsep) if p]
+    extras: list[str] = []
+    for candidate in _DEFAULT_UV_BIN_DIRS:
+        try:
+            resolved = str(candidate.resolve())
+        except OSError:
+            continue
+        if candidate.is_dir() and resolved not in path_parts and resolved not in extras:
+            extras.append(resolved)
+    serena_dir = str(Path(SERENA_EXE).resolve().parent) if SERENA_EXE else ""
+    if serena_dir and serena_dir not in path_parts and serena_dir not in extras:
+        extras.append(serena_dir)
+    if extras:
+        env["PATH"] = os.pathsep.join(extras + path_parts)
+    return env
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -124,8 +155,10 @@ class SerenaChildProcess:
                     text=True,
                     encoding="utf-8",
                     bufsize=1,
+                    env=_child_env_with_uv(),
                 )
                 self._running = True
+                self._initialized = False
                 self._reader_thread = threading.Thread(
                     target=self._read_stdout,
                     daemon=True,
@@ -144,33 +177,47 @@ class SerenaChildProcess:
                 self.proc = None
                 return False
 
-    def _read_stdout(self) -> None:
-        if not self.proc or not self.proc.stdout:
-            return
-        for line in self.proc.stdout:
-            line_str = line.strip()
-            if not line_str:
-                continue
-            try:
-                msg = json.loads(line_str)
-                msg_id = msg.get("id")
-                if msg_id is not None and msg_id in self._response_queues:
-                    self._response_queues[msg_id].put(msg)
-            except json.JSONDecodeError:
-                pass
-            except Exception as exc:
-                logger.debug(f"Error handling Serena stdout line: {exc}")
-        self._running = False
+    def _ensure_mcp_initialized(self, timeout_sec: float = 30.0) -> Optional[dict[str, Any]]:
+        """Run MCP initialize handshake once per STDIO child before tools/call.
 
-    def _drain_stderr(self) -> None:
-        if not self.proc or not self.proc.stderr:
-            return
-        for line in self.proc.stderr:
-            clean = line.strip()
-            if clean:
-                logger.debug(f"[{self.project_key}:stderr] {clean}")
+        The HTTP shim answers initialize synthetically to Bifrost clients. The
+        underlying Serena STDIO process still requires its own initialize or
+        tools/call returns -32602 Invalid request parameters.
+        """
+        if self._initialized:
+            return None
+        init_id = f"shim-init:{self.project_key}"
+        init_payload = {
+            "jsonrpc": "2.0",
+            "id": init_id,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "serena-session-shim",
+                    "version": "1.5.4",
+                },
+            },
+        }
+        init_resp = self.call_jsonrpc(init_payload, timeout_sec=timeout_sec, _internal=True)
+        if "error" in init_resp:
+            return init_resp
+        # MCP initialized notification (no response expected).
+        self.call_jsonrpc(
+            {"jsonrpc": "2.0", "method": "notifications/initialized"},
+            timeout_sec=timeout_sec,
+            _internal=True,
+        )
+        self._initialized = True
+        return None
 
-    def call_jsonrpc(self, payload: dict[str, Any], timeout_sec: float = 30.0) -> dict[str, Any]:
+    def call_jsonrpc(
+        self,
+        payload: dict[str, Any],
+        timeout_sec: float = 30.0,
+        _internal: bool = False,
+    ) -> dict[str, Any]:
         msg_id = payload.get("id")
         if not self.start():
             return {
@@ -178,6 +225,22 @@ class SerenaChildProcess:
                 "id": msg_id,
                 "error": {"code": -32000, "message": f"Serena process failed to start for project {self.project_key}"},
             }
+
+        method = str(payload.get("method") or "")
+        if not _internal and method not in ("initialize", "notifications/initialized"):
+            init_err = self._ensure_mcp_initialized(timeout_sec=timeout_sec)
+            if init_err is not None:
+                return {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "error": {
+                        "code": -32000,
+                        "message": (
+                            "Serena child MCP initialize failed: "
+                            + str((init_err.get("error") or {}).get("message") or init_err)
+                        ),
+                    },
+                }
 
         q: queue.Queue = queue.Queue(maxsize=1)
         if msg_id is not None:
@@ -232,6 +295,33 @@ class SerenaChildProcess:
                         pass
             self.proc = None
             self._running = False
+            self._initialized = False
+
+    def _read_stdout(self) -> None:
+        if not self.proc or not self.proc.stdout:
+            return
+        for line in self.proc.stdout:
+            line_str = line.strip()
+            if not line_str:
+                continue
+            try:
+                msg = json.loads(line_str)
+                msg_id = msg.get("id")
+                if msg_id is not None and msg_id in self._response_queues:
+                    self._response_queues[msg_id].put(msg)
+            except json.JSONDecodeError:
+                pass
+            except Exception as exc:
+                logger.debug(f"Error handling Serena stdout line: {exc}")
+        self._running = False
+
+    def _drain_stderr(self) -> None:
+        if not self.proc or not self.proc.stderr:
+            return
+        for line in self.proc.stderr:
+            clean = line.strip()
+            if clean:
+                logger.debug(f"[{self.project_key}:stderr] {clean}")
 
 
 # Embedded tool catalog matching Serena v1.5.4
@@ -685,8 +775,16 @@ class SerenaShimHTTPHandler(BaseHTTPRequestHandler):
                     "error": {"code": -32002, "message": "Failed to resolve Serena child for project"},
                 }
 
-            # Forward tools/call to isolated child
-            return child.call_jsonrpc(payload)
+            # Sanitize: strip reserved identity args; rewrite absolute paths under
+            # enrolled root to relative before forwarding. Never sticky STDIO.
+            sanitized_args = sanitize_tool_args_for_upstream(
+                tool_args, child.project_path
+            )
+            forward_payload = dict(payload)
+            forward_params = dict(params)
+            forward_params["arguments"] = sanitized_args
+            forward_payload["params"] = forward_params
+            return child.call_jsonrpc(forward_payload)
 
         return {
             "jsonrpc": "2.0",

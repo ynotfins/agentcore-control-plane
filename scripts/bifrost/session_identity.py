@@ -22,9 +22,11 @@ ENROLLMENT_CONTRACT = REPO_ROOT / "contracts" / "agentcore-project-enrollment.js
 PROJECT_HEADER_NAMES = ("x-agentcore-project", "x-project-key")
 SESSION_HEADER_NAMES = ("x-bf-session-id", "x-session-id")
 PATH_ARG_NAMES = ("relative_path", "path", "project", "project_path", "root_path")
+RESERVED_IDENTITY_ARG_NAMES = ("agentcore_project", "project_key")
 
 ERROR_NOT_ENROLLED = "PROJECT_NOT_ENROLLED"
 ERROR_SWARM_REFUSED = "swarm_project_refused"
+ERROR_IDENTITY_MISMATCH = "project_identity_mismatch"
 
 
 @dataclass(frozen=True)
@@ -166,19 +168,70 @@ def extract_candidate_path(args: dict[str, Any]) -> Optional[str]:
     return None
 
 
+def extract_project_arg(args: dict[str, Any]) -> Optional[str]:
+    """Extract reserved enrollment identity from tool arguments (never sticky STDIO)."""
+    for name in RESERVED_IDENTITY_ARG_NAMES:
+        raw = args.get(name)
+        if isinstance(raw, str) and raw.strip():
+            return raw.strip()
+    return None
+
+
+def sanitize_tool_args_for_upstream(
+    args: dict[str, Any],
+    primary_path: Path,
+) -> dict[str, Any]:
+    """Strip reserved identity keys and rewrite absolute paths under primary_path to relative.
+
+    Serena rejects absolute relative_path values; Bifrost/Code Mode often supplies
+    absolutes that are valid for enrollment but invalid for the child tool schema.
+    """
+    sanitized: dict[str, Any] = dict(args)
+    for name in RESERVED_IDENTITY_ARG_NAMES:
+        sanitized.pop(name, None)
+
+    primary = primary_path.resolve()
+    primary_norm = str(primary).lower()
+    for name in PATH_ARG_NAMES:
+        raw = sanitized.get(name)
+        if not isinstance(raw, str) or not raw.strip():
+            continue
+        candidate = Path(raw.strip())
+        if not candidate.is_absolute():
+            continue
+        try:
+            resolved = candidate.resolve()
+            resolved_norm = str(resolved).lower()
+            if resolved_norm == primary_norm or resolved_norm.startswith(
+                primary_norm + os.sep
+            ):
+                sanitized[name] = resolved.relative_to(primary).as_posix()
+        except (ValueError, OSError):
+            continue
+    return sanitized
+
+
 def resolve_request_identity(
     registry: EnrollmentRegistry,
     headers: dict[str, str],
     args: Optional[dict[str, Any]] = None,
     session_bindings: Optional[dict[str, str]] = None,
 ) -> ProjectResolution:
-    """Resolve an MCP tool call to an enrolled project. Default-deny."""
+    """Resolve an MCP tool call to an enrolled project. Default-deny.
+
+    Order: header > session bind > reserved tool arg > absolute enrolled path.
+    Header and tool arg both present but disagree => project_identity_mismatch.
+    Never sticky STDIO / machine-global default.
+    """
     project_header = extract_project_header(headers)
     session_id = extract_session_id(headers)
     bound_key = None
     if not project_header and session_id and session_bindings:
         bound_key = session_bindings.get(session_id)
+    project_arg = extract_project_arg(args or {})
+    if project_header and project_arg and project_header != project_arg:
+        return ProjectResolution(None, None, ERROR_IDENTITY_MISMATCH)
     return registry.resolve(
-        project_key=project_header or bound_key,
+        project_key=project_header or bound_key or project_arg,
         candidate_path=extract_candidate_path(args or {}),
     )
