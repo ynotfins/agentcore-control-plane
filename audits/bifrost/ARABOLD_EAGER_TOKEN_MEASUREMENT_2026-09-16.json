@@ -1,0 +1,248 @@
+{
+  "measurement_id": "ARABOLD_EAGER_TOKEN_MEASUREMENT_2026-09-16",
+  "bifrost_health": {
+    "http_status": 200,
+    "status": "ok"
+  },
+  "endpoint": "http://127.0.0.1:8080/mcp",
+  "profile": "builder",
+  "method": "tools/list",
+  "secrets_printed": false,
+  "before": {
+    "eager_all": {
+      "label": "eager_all_before",
+      "tool_count": 29,
+      "tool_names": [
+        "agentcore_capability_catalog-get_capability_detail",
+        "agentcore_capability_catalog-list_capabilities",
+        "agentcore_memory-append_event",
+        "agentcore_memory-build_handoff",
+        "agentcore_memory-docs_search",
+        "agentcore_memory-expand_source",
+        "agentcore_memory-memory_status",
+        "agentcore_memory-propose_fact",
+        "agentcore_memory-retrieve_context",
+        "agentcore_memory-session_close",
+        "agentcore_memory-session_open",
+        "agentcore_memory-startup_context",
+        "arabold_docs-cancel_job",
+        "arabold_docs-fetch_url",
+        "arabold_docs-find_version",
+        "arabold_docs-get_job_info",
+        "arabold_docs-list_jobs",
+        "arabold_docs-list_libraries",
+        "arabold_docs-refresh_version",
+        "arabold_docs-remove_docs",
+        "arabold_docs-scrape_docs",
+        "arabold_docs-search_docs",
+        "context7-query-docs",
+        "context7-resolve-library-id",
+        "executeToolCode",
+        "getToolDocs",
+        "listToolFiles",
+        "readToolFile",
+        "sequential_thinking-sequentialthinking"
+      ],
+      "full_json": {
+        "chars": 34764,
+        "bytes_utf8": 34806,
+        "estimate_chars_div_4": 8691,
+        "o200k_base": 7910,
+        "o200k_base_source": "tiktoken"
+      },
+      "compact_json": {
+        "chars": 31991,
+        "bytes_utf8": 32033,
+        "estimate_chars_div_4": 7998,
+        "o200k_base": 7264,
+        "o200k_base_source": "tiktoken"
+      }
+    },
+    "arabold_only": {
+      "label": "arabold_eager_before",
+      "tool_count": 10,
+      "tool_names": [
+        "arabold_docs-cancel_job",
+        "arabold_docs-fetch_url",
+        "arabold_docs-find_version",
+        "arabold_docs-get_job_info",
+        "arabold_docs-list_jobs",
+        "arabold_docs-list_libraries",
+        "arabold_docs-refresh_version",
+        "arabold_docs-remove_docs",
+        "arabold_docs-scrape_docs",
+        "arabold_docs-search_docs"
+      ],
+      "full_json": {
+        "chars": 5377,
+        "bytes_utf8": 5377,
+        "estimate_chars_div_4": 1345,
+        "o200k_base": 1199,
+        "o200k_base_source": "tiktoken"
+      },
+      "compact_json": {
+        "chars": 4475,
+        "bytes_utf8": 4475,
+        "estimate_chars_div_4": 1119,
+        "o200k_base": 1009,
+        "o200k_base_source": "tiktoken"
+      }
+    }
+  },
+  "after_counterfactual": {
+    "note": "Computed from the same live tools/list schemas without applying config or recycling Bifrost.",
+    "arabold_code_mode": {
+      "label": "arabold_after_code_mode",
+      "tool_count": 0,
+      "tool_names": [],
+      "full_json": {
+        "chars": 2,
+        "bytes_utf8": 2,
+        "estimate_chars_div_4": 1,
+        "o200k_base": 1,
+        "o200k_base_source": "tiktoken"
+      },
+      "compact_json": {
+        "chars": 2,
+        "bytes_utf8": 2,
+        "estimate_chars_div_4": 1,
+        "o200k_base": 1,
+        "o200k_base_source": "tiktoken"
+      }
+    },
+    "arabold_bounded_eager_subset": {
+      "label": "arabold_after_bounded_eager_subset",
+      "tool_count": 5,
+      "tool_names": [
+        "arabold_docs-find_version",
+        "arabold_docs-get_job_info",
+        "arabold_docs-list_libraries",
+        "arabold_docs-scrape_docs",
+        "arabold_docs-search_docs"
+      ],
+      "full_json": {
+        "chars": 3212,
+        "bytes_utf8": 3212,
+        "estimate_chars_div_4": 803,
+        "o200k_base": 739,
+        "o200k_base_source": "tiktoken"
+      },
+      "compact_json": {
+        "chars": 2742,
+        "bytes_utf8": 2742,
+        "estimate_chars_div_4": 686,
+        "o200k_base": 639,
+        "o200k_base_source": "tiktoken"
+      }
+    },
+    "eager_all_if_arabold_code_mode": {
+      "label": "eager_all_if_arabold_code_mode",
+      "tool_count": 19,
+      "tool_names": [
+        "agentcore_capability_catalog-get_capability_detail",
+        "agentcore_capability_catalog-list_capabilities",
+        "agentcore_memory-append_event",
+        "agentcore_memory-build_handoff",
+        "agentcore_memory-docs_search",
+        "agentcore_memory-expand_source",
+        "agentcore_memory-memory_status",
+        "agentcore_memory-propose_fact",
+        "agentcore_memory-retrieve_context",
+        "agentcore_memory-session_close",
+        "agentcore_memory-session_open",
+        "agentcore_memory-startup_context",
+        "context7-query-docs",
+        "context7-resolve-library-id",
+        "executeToolCode",
+        "getToolDocs",
+        "listToolFiles",
+        "readToolFile",
+        "sequential_thinking-sequentialthinking"
+      ],
+      "full_json": {
+        "chars": 29388,
+        "bytes_utf8": 29430,
+        "estimate_chars_div_4": 7347,
+        "o200k_base": 6714,
+        "o200k_base_source": "tiktoken"
+      },
+      "compact_json": {
+        "chars": 27517,
+        "bytes_utf8": 27559,
+        "estimate_chars_div_4": 6880,
+        "o200k_base": 6257,
+        "o200k_base_source": "tiktoken"
+      }
+    },
+    "eager_all_if_arabold_bounded_subset": {
+      "label": "eager_all_if_arabold_bounded_subset",
+      "tool_count": 24,
+      "tool_names": [
+        "agentcore_capability_catalog-get_capability_detail",
+        "agentcore_capability_catalog-list_capabilities",
+        "agentcore_memory-append_event",
+        "agentcore_memory-build_handoff",
+        "agentcore_memory-docs_search",
+        "agentcore_memory-expand_source",
+        "agentcore_memory-memory_status",
+        "agentcore_memory-propose_fact",
+        "agentcore_memory-retrieve_context",
+        "agentcore_memory-session_close",
+        "agentcore_memory-session_open",
+        "agentcore_memory-startup_context",
+        "arabold_docs-find_version",
+        "arabold_docs-get_job_info",
+        "arabold_docs-list_libraries",
+        "arabold_docs-scrape_docs",
+        "arabold_docs-search_docs",
+        "context7-query-docs",
+        "context7-resolve-library-id",
+        "executeToolCode",
+        "getToolDocs",
+        "listToolFiles",
+        "readToolFile",
+        "sequential_thinking-sequentialthinking"
+      ],
+      "full_json": {
+        "chars": 32599,
+        "bytes_utf8": 32641,
+        "estimate_chars_div_4": 8150,
+        "o200k_base": 7450,
+        "o200k_base_source": "tiktoken"
+      },
+      "compact_json": {
+        "chars": 30258,
+        "bytes_utf8": 30300,
+        "estimate_chars_div_4": 7565,
+        "o200k_base": 6894,
+        "o200k_base_source": "tiktoken"
+      }
+    },
+    "bounded_subset_suffixes": [
+      "find_version",
+      "get_job_info",
+      "list_libraries",
+      "scrape_docs",
+      "search_docs"
+    ]
+  },
+  "decision": {
+    "recommendation": "keep_full_eager",
+    "arabold_compact_o200k_before": 1009,
+    "savings_code_mode_o200k": 1008,
+    "savings_bounded_subset_o200k": 370,
+    "arabold_share_of_eager_compact": 0.1389,
+    "rationale": [
+      "arabold compact o200k=1009 is modest (13.9% of eager list); docs-first hot path benefits from direct tool schemas without Code Mode discovery latency.",
+      "counterfactual savings rejected: code_mode~1008, bounded_subset~370 o200k \u2014 not worth docs-first friction or dropping admin tools from tools_to_execute."
+    ],
+    "apply_live": false,
+    "apply_note": "Measurement-only this pass; no registry/renderer mutation and no Bifrost recycle. Operator may apply the recommendation in a follow-up."
+  },
+  "acceptance": {
+    "measured_before": true,
+    "measured_after_counterfactuals": true,
+    "evidence_json_written": true,
+    "docs_first_unchanged": true
+  }
+}

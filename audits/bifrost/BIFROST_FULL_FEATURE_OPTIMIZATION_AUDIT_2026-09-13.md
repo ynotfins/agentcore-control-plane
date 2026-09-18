@@ -9,7 +9,7 @@ Evidence commit (Phase A): `b24b34d`
 | Feature | Status | Live evidence | Gap | Priority |
 |---|---|---|---|---|
 | Code Mode (binding=tool) | Configured | Eager tools/list **29** (was 53); VFS includes serena, nia, cursor_agent_mcp, skills_hub, morph, playwright, research; live `--mode check` drift_count=0 | Apply path now PUTs `is_code_mode_client` after render/restart | P0 done |
-| Eager hot path | Configured | memory, sequential-thinking, Code Mode meta-tools, capability-catalog, arabold-docs, context7 remain eager | Arabold still 10 eager schemas (~keep until docs-first measured separately) | P1 candidate |
+| Eager hot path | Configured | memory, sequential-thinking, Code Mode meta-tools, capability-catalog, arabold-docs, context7 remain eager | Arabold 10 eager schemas kept (`keep_full_eager`; o200k 1009) | P1#2 done |
 | Tool filtering / VK MCP | Configured | `mcp_disable_auto_tool_inject=true`; builder VK profile allowlists | None urgent | - |
 | Gateway auth | Configured | headers mode for IDE VKs on `:8080`; Trust Class A `:18082` | Do not flip oauth-only | Rejected change |
 | Keys / load balance | Configured | Weighted keys via governance render | Continue model allowlists | P2 |
@@ -37,7 +37,7 @@ Evidence commit (Phase A): `b24b34d`
 
 ### P1 (next bounded tasks)
 1. **Provider prompt-cache enablement** — openai/openrouter stable system/tool prefixes; cache-read tokens proven. **DONE** (commits `b85fa98`, `cbe681e`; `audits/bifrost/BIFROST_PROVIDER_PROMPT_CACHE_PROOF_2026-09-14.json`; 19/19 unit tests).
-2. Arabold eager-token measurement; only then decide Code Mode vs bounded eager subset (docs-first non-negotiable).
+2. **Arabold eager-token measurement** — docs-first hot path stays eager. **DONE** (`keep_full_eager`; 10 tools; compact o200k 1009; Code Mode save 1008 and bounded-subset save 370 rejected; `audits/bifrost/ARABOLD_EAGER_TOKEN_MEASUREMENT_2026-09-16.md`; unit tests `scripts/bifrost/test_arabold_eager_tokens.py` 3/3).
 3. Serena executeToolCode project-identity injection for enrolled roots (without sticky STDIO).
 4. Strengthen Test to assert Code Mode clients are absent from tools/list (not only registry flag).
 
@@ -63,4 +63,4 @@ Evidence commit (Phase A): `b24b34d`
 | No secret leakage | PASS (proof JSON has no tokens/bodies) |
 
 ## 5. Recommended next operator action
-P0 is accepted. P1 provider prompt-cache is done (see row above). Run the next pending P1 — Arabold eager-token measurement — as a separate bounded chat.
+P0 is accepted. P1#1 provider prompt-cache and P1#2 Arabold (`keep_full_eager`) are done. Next pending P1 is Serena executeToolCode project-identity injection.
