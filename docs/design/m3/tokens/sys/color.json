@@ -1,0 +1,44 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "Tier 2 md.sys.color — M3 roles. Themes override bindings. Components bind ONLY to these roles.",
+  "md": {
+    "sys": {
+      "color": {
+        "primary": { "$value": "{md.ref.palette.primary.40}", "$type": "color" },
+        "onPrimary": { "$value": "{md.ref.palette.primary.100}", "$type": "color" },
+        "primaryContainer": { "$value": "{md.ref.palette.primary.90}", "$type": "color" },
+        "onPrimaryContainer": { "$value": "{md.ref.palette.primary.10}", "$type": "color" },
+        "secondary": { "$value": "{md.ref.palette.secondary.40}", "$type": "color" },
+        "onSecondary": { "$value": "{md.ref.palette.secondary.100}", "$type": "color" },
+        "secondaryContainer": { "$value": "{md.ref.palette.secondary.90}", "$type": "color" },
+        "onSecondaryContainer": { "$value": "{md.ref.palette.secondary.10}", "$type": "color" },
+        "tertiary": { "$value": "{md.ref.palette.tertiary.40}", "$type": "color" },
+        "onTertiary": { "$value": "{md.ref.palette.tertiary.100}", "$type": "color" },
+        "tertiaryContainer": { "$value": "{md.ref.palette.tertiary.90}", "$type": "color" },
+        "onTertiaryContainer": { "$value": "{md.ref.palette.tertiary.10}", "$type": "color" },
+        "error": { "$value": "{md.ref.palette.error.40}", "$type": "color" },
+        "onError": { "$value": "{md.ref.palette.error.100}", "$type": "color" },
+        "errorContainer": { "$value": "{md.ref.palette.error.90}", "$type": "color" },
+        "onErrorContainer": { "$value": "{md.ref.palette.error.10}", "$type": "color" },
+        "surface": { "$value": "{md.ref.palette.neutral.98}", "$type": "color" },
+        "onSurface": { "$value": "{md.ref.palette.neutral.10}", "$type": "color" },
+        "surfaceVariant": { "$value": "{md.ref.palette.neutralVariant.90}", "$type": "color" },
+        "onSurfaceVariant": { "$value": "{md.ref.palette.neutralVariant.30}", "$type": "color" },
+        "surfaceDim": { "$value": "{md.ref.palette.neutral.87}", "$type": "color" },
+        "surfaceBright": { "$value": "{md.ref.palette.neutral.98}", "$type": "color" },
+        "surfaceContainerLowest": { "$value": "{md.ref.palette.neutral.100}", "$type": "color" },
+        "surfaceContainerLow": { "$value": "{md.ref.palette.neutral.96}", "$type": "color" },
+        "surfaceContainer": { "$value": "{md.ref.palette.neutral.94}", "$type": "color" },
+        "surfaceContainerHigh": { "$value": "{md.ref.palette.neutral.92}", "$type": "color" },
+        "surfaceContainerHighest": { "$value": "{md.ref.palette.neutral.90}", "$type": "color" },
+        "outline": { "$value": "{md.ref.palette.neutralVariant.50}", "$type": "color" },
+        "outlineVariant": { "$value": "{md.ref.palette.neutralVariant.80}", "$type": "color" },
+        "inverseSurface": { "$value": "{md.ref.palette.neutral.20}", "$type": "color" },
+        "inverseOnSurface": { "$value": "{md.ref.palette.neutral.95}", "$type": "color" },
+        "inversePrimary": { "$value": "{md.ref.palette.primary.80}", "$type": "color" },
+        "scrim": { "$value": "oklch(0% 0 0 / 0.32)", "$type": "color" },
+        "shadow": { "$value": "oklch(0% 0 0 / 0.24)", "$type": "color" }
+      }
+    }
+  }
+}

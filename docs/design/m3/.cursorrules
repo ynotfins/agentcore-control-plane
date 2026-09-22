@@ -1,0 +1,22 @@
+# R3lentless-Grind Design System (RGDS) — Cursor Rules (mandatory)
+
+This file mirrors the repo-root `.cursorrules` for agents working inside `docs/design/m3/`.
+The AI enforces the **R3lentless-Grind Design System (RGDS)** standards.
+See also: `D:\github\agentcore-control-plane\.cursor\rules\design-system-m3.mdc`.
+
+## Token scopes (components bind only to system + approved custom)
+
+- Colors: `md.sys.color.*` (+ theme `data-theme`)
+- Typography: `md.sys.typescale.*`
+- Spacing: `md.sys.spacing.*`
+- Shape: `md.sys.shape.corner.*`
+- Custom featured: `md.custom.rainbowPulse` / `.md-rainbow-pulse` (Theme 4 only)
+- Icons: `--md-custom-icon-a|b|c` (featured) or `md.sys.color.primary` (utility)
+
+## Preview
+
+Open `preview.html` and toggle all four themes. Theme 4 featured cards must show live rainbow pulse.
+
+## Bifrost
+
+Use Figma MCP through `agentcore-gateway` for validation. Do not register this folder as a Bifrost MCP upstream.

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "md": {
+    "sys": {
+      "typescale": {
+        "displayLarge": { "font": "{md.ref.typeface.brand.family}", "size": "{md.ref.type.display.large.size}", "lineHeight": "{md.ref.type.display.large.lineHeight}", "weight": "{md.ref.type.display.large.weight}" },
+        "headlineMedium": { "font": "{md.ref.typeface.brand.family}", "size": "{md.ref.type.headline.medium.size}", "lineHeight": "{md.ref.type.headline.medium.lineHeight}", "weight": "{md.ref.type.headline.medium.weight}" },
+        "titleLarge": { "font": "{md.ref.typeface.plain.family}", "size": "{md.ref.type.title.large.size}", "lineHeight": "{md.ref.type.title.large.lineHeight}", "weight": "{md.ref.type.title.large.weight}" },
+        "bodyLarge": { "font": "{md.ref.typeface.plain.family}", "size": "{md.ref.type.body.large.size}", "lineHeight": "{md.ref.type.body.large.lineHeight}", "weight": "{md.ref.type.body.large.weight}" },
+        "bodyMedium": { "font": "{md.ref.typeface.plain.family}", "size": "{md.ref.type.body.medium.size}", "lineHeight": "{md.ref.type.body.medium.lineHeight}", "weight": "{md.ref.type.body.medium.weight}" },
+        "labelLarge": { "font": "{md.ref.typeface.plain.family}", "size": "{md.ref.type.label.large.size}", "lineHeight": "{md.ref.type.label.large.lineHeight}", "weight": "{md.ref.type.label.large.weight}" }
+      }
+    }
+  }
+}

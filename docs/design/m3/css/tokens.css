@@ -1,0 +1,162 @@
+/* R3lentless-Grind Design System (RGDS) — Material 3 compiled CSS custom properties.
+   Source: docs/design/m3/tokens/**. Components use these variables only. */
+
+:root {
+  /* Typography */
+  --md-sys-typescale-font: Inter, "SF Pro Text", system-ui, sans-serif;
+  --md-sys-typescale-display-large-size: 3.5625rem;
+  --md-sys-typescale-headline-medium-size: 1.75rem;
+  --md-sys-typescale-title-large-size: 1.375rem;
+  --md-sys-typescale-body-large-size: 1rem;
+  --md-sys-typescale-body-medium-size: 0.875rem;
+  --md-sys-typescale-label-large-size: 0.875rem;
+
+  /* Spacing — md.sys.spacing */
+  --md-sys-spacing-none: 0;
+  --md-sys-spacing-xs: 4px;
+  --md-sys-spacing-sm: 8px;
+  --md-sys-spacing-md: 16px;
+  --md-sys-spacing-lg: 24px;
+  --md-sys-spacing-xl: 32px;
+  --md-sys-spacing-2xl: 48px;
+  --md-sys-spacing-3xl: 64px;
+  --md-sys-spacing-4xl: 96px;
+
+  /* Shape — md.sys.shape.corner */
+  --md-sys-shape-corner-none: 0;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+
+  /* Elevation */
+  --md-sys-elevation-level1: 0 1px 2px oklch(0% 0 0 / 0.06), 0 1px 3px oklch(0% 0 0 / 0.08);
+  --md-sys-elevation-level2: 0 2px 6px oklch(0% 0 0 / 0.08), 0 4px 12px oklch(0% 0 0 / 0.10);
+  --md-sys-elevation-level3: 0 4px 12px oklch(0% 0 0 / 0.10), 0 8px 24px oklch(0% 0 0 / 0.12);
+
+  /* Motion */
+  --md-sys-motion-duration-short: 120ms;
+  --md-sys-motion-duration-medium: 280ms;
+  --md-ref-motion-custom-pulse-duration: 4000ms;
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Custom rainbow (resolved per theme) */
+  --md-custom-rainbow-gradient: linear-gradient(
+    120deg,
+    oklch(65% 0.25 25),
+    oklch(75% 0.20 60),
+    oklch(85% 0.20 95),
+    oklch(72% 0.20 145),
+    oklch(75% 0.15 230),
+    oklch(60% 0.20 290),
+    oklch(65% 0.25 0),
+    oklch(65% 0.25 25)
+  );
+  --md-custom-stroke-featured: transparent;
+  --md-custom-icon-a: var(--md-sys-color-primary);
+  --md-custom-icon-b: var(--md-sys-color-tertiary);
+  --md-custom-icon-c: var(--md-sys-color-secondary);
+}
+
+/* Theme 1 — Primary Light */
+:root,
+:root[data-theme="primary-light"] {
+  --md-sys-color-primary: oklch(50% 0.16 250);
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: oklch(92% 0.04 250);
+  --md-sys-color-on-primary-container: oklch(18% 0.06 250);
+  --md-sys-color-secondary: oklch(52% 0.18 25);
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: oklch(90% 0.05 25);
+  --md-sys-color-tertiary: oklch(52% 0.16 145);
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-surface: oklch(99% 0.001 260);
+  --md-sys-color-on-surface: oklch(16% 0.008 260);
+  --md-sys-color-surface-container: oklch(96% 0.002 260);
+  --md-sys-color-surface-container-high: oklch(94% 0.002 260);
+  --md-sys-color-surface-container-highest: oklch(92% 0.003 260);
+  --md-sys-color-outline: oklch(56% 0.012 260);
+  --md-sys-color-outline-variant: oklch(84% 0.006 260);
+  --md-custom-icon-a: oklch(58% 0.17 250);
+  --md-custom-icon-b: oklch(60% 0.17 145);
+  --md-custom-icon-c: oklch(84% 0.16 95);
+  --md-custom-stroke-featured: transparent;
+  --md-custom-rainbow-enabled: 0;
+}
+
+/* Theme 2 — Secondary Light */
+:root[data-theme="secondary-light"] {
+  --md-sys-color-primary: oklch(68% 0.18 55);
+  --md-sys-color-on-primary: oklch(16% 0.008 260);
+  --md-sys-color-primary-container: oklch(92% 0.05 55);
+  --md-sys-color-on-primary-container: oklch(42% 0.16 45);
+  --md-sys-color-secondary: oklch(52% 0.18 45);
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: oklch(96% 0.02 55);
+  --md-sys-color-tertiary: oklch(50% 0.16 250);
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-surface: oklch(96% 0.02 55);
+  --md-sys-color-on-surface: oklch(16% 0.008 260);
+  --md-sys-color-surface-container: oklch(99% 0.001 260);
+  --md-sys-color-surface-container-high: oklch(98% 0.001 260);
+  --md-sys-color-surface-container-highest: oklch(96% 0.002 260);
+  --md-sys-color-outline: oklch(52% 0.18 45);
+  --md-sys-color-outline-variant: oklch(88% 0.10 55);
+  --md-custom-icon-a: oklch(68% 0.18 55);
+  --md-custom-icon-b: oklch(58% 0.17 250);
+  --md-custom-icon-c: oklch(60% 0.17 145);
+  --md-custom-stroke-featured: oklch(84% 0.16 95);
+  --md-custom-rainbow-enabled: 0;
+}
+
+/* Theme 3 — Primary Dark (ngrok-like) */
+:root[data-theme="primary-dark"] {
+  --md-sys-color-primary: oklch(82% 0.08 250);
+  --md-sys-color-on-primary: oklch(10% 0.012 250);
+  --md-sys-color-primary-container: oklch(26% 0.010 250);
+  --md-sys-color-on-primary-container: oklch(82% 0.08 250);
+  --md-sys-color-secondary: oklch(84% 0.004 260);
+  --md-sys-color-on-secondary: oklch(10% 0.012 250);
+  --md-sys-color-secondary-container: oklch(21% 0.012 250);
+  --md-sys-color-tertiary: oklch(82% 0.08 145);
+  --md-sys-color-on-tertiary: oklch(10% 0.012 250);
+  --md-sys-color-surface: oklch(10% 0.012 250);
+  --md-sys-color-on-surface: oklch(99% 0.001 260);
+  --md-sys-color-surface-container: oklch(16% 0.012 250);
+  --md-sys-color-surface-container-high: oklch(18% 0.012 250);
+  --md-sys-color-surface-container-highest: oklch(21% 0.012 250);
+  --md-sys-color-outline: oklch(66% 0.006 260);
+  --md-sys-color-outline-variant: oklch(26% 0.010 250);
+  --md-custom-icon-a: oklch(82% 0.08 250);
+  --md-custom-icon-b: oklch(82% 0.08 145);
+  --md-custom-icon-c: oklch(92% 0.003 260);
+  --md-custom-stroke-featured: oklch(66% 0.006 260);
+  --md-custom-rainbow-enabled: 0;
+}
+
+/* Theme 4 — Secondary Dark (speakeasy + rainbowPulse) */
+:root[data-theme="secondary-dark"] {
+  --md-sys-color-primary: oklch(68% 0.18 55);
+  --md-sys-color-on-primary: #000000;
+  --md-sys-color-primary-container: oklch(42% 0.16 45);
+  --md-sys-color-on-primary-container: oklch(88% 0.10 55);
+  --md-sys-color-secondary: oklch(52% 0.18 45);
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: oklch(11% 0 0);
+  --md-sys-color-tertiary: oklch(82% 0.08 250);
+  --md-sys-color-on-tertiary: #000000;
+  --md-sys-color-surface: #000000;
+  --md-sys-color-on-surface: oklch(99% 0.001 260);
+  --md-sys-color-surface-container: oklch(8% 0 0);
+  --md-sys-color-surface-container-high: oklch(11% 0 0);
+  --md-sys-color-surface-container-highest: oklch(14% 0 0);
+  --md-sys-color-outline: oklch(62% 0.18 55);
+  --md-sys-color-outline-variant: oklch(11% 0 0);
+  --md-custom-icon-a: oklch(68% 0.18 55);
+  --md-custom-icon-b: oklch(82% 0.08 250);
+  --md-custom-icon-c: oklch(82% 0.08 145);
+  --md-custom-stroke-featured: oklch(68% 0.18 55);
+  --md-custom-rainbow-enabled: 1;
+}

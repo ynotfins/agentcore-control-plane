@@ -1,0 +1,25 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "md": {
+    "ref": {
+      "typeface": {
+        "brand": {
+          "family": { "$value": "Inter", "$type": "fontFamily" },
+          "weight": {
+            "regular": { "$value": 400, "$type": "fontWeight" },
+            "medium": { "$value": 500, "$type": "fontWeight" },
+            "bold": { "$value": 700, "$type": "fontWeight" }
+          }
+        },
+        "plain": {
+          "family": { "$value": "Inter", "$type": "fontFamily" },
+          "weight": {
+            "regular": { "$value": 400, "$type": "fontWeight" },
+            "medium": { "$value": 500, "$type": "fontWeight" },
+            "bold": { "$value": 700, "$type": "fontWeight" }
+          }
+        }
+      }
+    }
+  }
+}

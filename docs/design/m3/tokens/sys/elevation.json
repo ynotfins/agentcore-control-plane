@@ -1,0 +1,15 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "md": {
+    "sys": {
+      "elevation": {
+        "level0": { "$value": "{md.ref.elevation.0}", "$type": "shadow" },
+        "level1": { "$value": "{md.ref.elevation.1}", "$type": "shadow" },
+        "level2": { "$value": "{md.ref.elevation.2}", "$type": "shadow" },
+        "level3": { "$value": "{md.ref.elevation.3}", "$type": "shadow" },
+        "level4": { "$value": "{md.ref.elevation.4}", "$type": "shadow" },
+        "level5": { "$value": "{md.ref.elevation.5}", "$type": "shadow" }
+      }
+    }
+  }
+}

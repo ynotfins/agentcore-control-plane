@@ -1,0 +1,39 @@
+---
+description: Mandatory R3lentless-Grind Design System (RGDS) Material 3 standards for all UI work
+globs:
+  - "**/*.{tsx,jsx,vue,svelte,css,scss,html,dart}"
+  - "**/DESIGN_SYSTEM.md"
+  - "**/tokens.json"
+  - "docs/design/**"
+alwaysApply: true
+---
+
+# R3lentless-Grind Design System (RGDS) — mandatory
+
+The AI enforces the **R3lentless-Grind Design System (RGDS)** standards.
+
+Authority: `docs/design/m3/` + `docs/design/DESIGN_SYSTEM.md`.
+
+RGDS is the master organizational design system. Products such as AgentCore or NFA consume RGDS; they are not the system name.
+
+## Hard rules
+
+1. **Token-only styling.** Components may use only `md.sys.*` and approved `md.custom.*` CSS variables / token aliases. Reject and refactor any hardcoded hex, rgb, hsl, raw `px` padding/margin/gap (except inside token sheets), or one-off shadow/radius literals in UI code.
+2. **Four themes only.** Switch via `data-theme` on `<html>`:
+   - `primary-light` · `secondary-light` · `primary-dark` · `secondary-dark`
+3. **Rainbow pulse** (`md.custom.rainbowPulse` / `.md-rainbow-pulse`) is **Theme 4 (`secondary-dark`) featured surfaces only**. Never decorate every card.
+4. **Icons.** Featured/high-priority: multi-color vector layers using `--md-custom-icon-a|b|c`. All other icons: solid single-color token.
+5. **Brand swap.** Temporary seeds live in `docs/design/m3/tokens/ref/palette.json` only. Never patch brand colors in components.
+6. **Figma validation.** For new or materially changed UI, use Bifrost/Cursor Figma MCP (`search_design_system`, `get_design_context`, `get_variable_defs`) against the published design library when available. Do not invent freehand visuals that diverge from RGDS tokens.
+7. **Bootstrap deps.** New UI projects install **pinned** packages from `docs/design/m3/package-pins.json` via `npm install --save-exact …` (or equivalent). Do **not** run unpinned `npx`/`npm install` “latest”. Do **not** invent alternate design kits.
+8. **Bifrost role.** Bifrost exposes Figma + docs tools. It does **not** host the RGDS token engine. Copy or reference `docs/design/m3` into each project; keep Git as source of truth.
+9. **No legacy 3-theme API.** Do not introduce `data-theme="light|dark|hc"` for new work. Map old aliases to the four M3 modes if migrating.
+10. **Naming.** Refer to this standard as **R3lentless-Grind Design System (RGDS)** in docs, commits, and agent guidance — not “NFA Design System” or “AgentCore Design System.”
+
+## Required adoption checklist
+
+- [ ] Link `css/tokens.css`, `css/components.css`, `css/animations.css` (or project compile of the same tokens)
+- [ ] Set `data-theme` before first paint; persist with `localStorage['rgds-theme']`
+- [ ] Large cards / large buttons / 64px icon targets
+- [ ] `prefers-reduced-motion` honored for rainbow pulse
+- [ ] Grep UI sources for `#[0-9a-fA-F]{3,8}` — only allowed inside `tokens/ref` seeds (and `#000`/`#fff` when a seed explicitly needs them)

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "Theme 3 — Primary Dark. ngrok-inspired slate/charcoal, high-contrast text boxes, sharp premium vector borders. No rainbow.",
+  "$extensions": { "agentcore.dataTheme": "primary-dark", "agentcore.seedStatus": "TEMPORARY_PLACEHOLDER" },
+  "md": {
+    "sys": {
+      "color": {
+        "primary": { "$value": "{md.ref.palette.blue.80}", "$type": "color" },
+        "onPrimary": { "$value": "{md.ref.palette.slate.4}", "$type": "color" },
+        "primaryContainer": { "$value": "{md.ref.palette.slate.16}", "$type": "color" },
+        "onPrimaryContainer": { "$value": "{md.ref.palette.blue.80}", "$type": "color" },
+        "secondary": { "$value": "{md.ref.palette.neutral.80}", "$type": "color" },
+        "onSecondary": { "$value": "{md.ref.palette.slate.4}", "$type": "color" },
+        "secondaryContainer": { "$value": "{md.ref.palette.slate.12}", "$type": "color" },
+        "onSecondaryContainer": { "$value": "{md.ref.palette.neutral.90}", "$type": "color" },
+        "tertiary": { "$value": "{md.ref.palette.green.80}", "$type": "color" },
+        "onTertiary": { "$value": "{md.ref.palette.slate.4}", "$type": "color" },
+        "surface": { "$value": "{md.ref.palette.slate.4}", "$type": "color" },
+        "onSurface": { "$value": "{md.ref.palette.neutral.98}", "$type": "color" },
+        "surfaceVariant": { "$value": "{md.ref.palette.slate.10}", "$type": "color" },
+        "onSurfaceVariant": { "$value": "{md.ref.palette.neutral.80}", "$type": "color" },
+        "surfaceContainerLowest": { "$value": "{md.ref.palette.inkBlack.0}", "$type": "color" },
+        "surfaceContainerLow": { "$value": "{md.ref.palette.slate.6}", "$type": "color" },
+        "surfaceContainer": { "$value": "{md.ref.palette.slate.8}", "$type": "color" },
+        "surfaceContainerHigh": { "$value": "{md.ref.palette.slate.10}", "$type": "color" },
+        "surfaceContainerHighest": { "$value": "{md.ref.palette.slate.12}", "$type": "color" },
+        "outline": { "$value": "{md.ref.palette.neutral.60}", "$type": "color" },
+        "outlineVariant": { "$value": "{md.ref.palette.slate.16}", "$type": "color" }
+      }
+    },
+    "custom": {
+      "border": {
+        "premium": { "$value": "1.5px solid {md.sys.color.outline}", "$type": "string", "$description": "Sharp vector border for layout boxes" }
+      },
+      "stroke": { "featured": { "$value": "{md.ref.palette.neutral.60}", "$type": "color" } },
+      "icon": {
+        "multicolorA": { "$value": "{md.ref.palette.blue.80}", "$type": "color" },
+        "multicolorB": { "$value": "{md.ref.palette.green.80}", "$type": "color" },
+        "multicolorC": { "$value": "{md.ref.palette.neutral.90}", "$type": "color" }
+      },
+      "rainbowPulse": { "enabled": { "$value": false, "$type": "boolean" } }
+    }
+  }
+}

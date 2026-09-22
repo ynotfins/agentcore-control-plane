@@ -1,0 +1,47 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "Theme 4 — Secondary Dark. Speakeasy-like deep black, orange secondary stack, blue/green accents, rainbowPulse on featured.",
+  "$extensions": { "agentcore.dataTheme": "secondary-dark", "agentcore.seedStatus": "TEMPORARY_PLACEHOLDER" },
+  "md": {
+    "sys": {
+      "color": {
+        "primary": { "$value": "{md.ref.palette.orange.50}", "$type": "color" },
+        "onPrimary": { "$value": "{md.ref.palette.inkBlack.0}", "$type": "color" },
+        "primaryContainer": { "$value": "{md.ref.palette.orangeDark.30}", "$type": "color" },
+        "onPrimaryContainer": { "$value": "{md.ref.palette.orange.80}", "$type": "color" },
+        "secondary": { "$value": "{md.ref.palette.orangeDark.40}", "$type": "color" },
+        "onSecondary": { "$value": "{md.ref.palette.neutral.100}", "$type": "color" },
+        "secondaryContainer": { "$value": "{md.ref.palette.inkBlack.6}", "$type": "color" },
+        "onSecondaryContainer": { "$value": "{md.ref.palette.orange.80}", "$type": "color" },
+        "tertiary": { "$value": "{md.ref.palette.blue.80}", "$type": "color" },
+        "onTertiary": { "$value": "{md.ref.palette.inkBlack.0}", "$type": "color" },
+        "tertiaryContainer": { "$value": "{md.ref.palette.green.40}", "$type": "color" },
+        "onTertiaryContainer": { "$value": "{md.ref.palette.green.90}", "$type": "color" },
+        "surface": { "$value": "{md.ref.palette.inkBlack.0}", "$type": "color" },
+        "onSurface": { "$value": "{md.ref.palette.neutral.98}", "$type": "color" },
+        "surfaceVariant": { "$value": "{md.ref.palette.inkBlack.6}", "$type": "color" },
+        "onSurfaceVariant": { "$value": "{md.ref.palette.neutral.80}", "$type": "color" },
+        "surfaceContainerLowest": { "$value": "{md.ref.palette.inkBlack.0}", "$type": "color" },
+        "surfaceContainerLow": { "$value": "{md.ref.palette.inkBlack.2}", "$type": "color" },
+        "surfaceContainer": { "$value": "{md.ref.palette.inkBlack.4}", "$type": "color" },
+        "surfaceContainerHigh": { "$value": "{md.ref.palette.inkBlack.6}", "$type": "color" },
+        "surfaceContainerHighest": { "$value": "oklch(14% 0 0)", "$type": "color" },
+        "outline": { "$value": "{md.ref.palette.orange.40}", "$type": "color" },
+        "outlineVariant": { "$value": "{md.ref.palette.inkBlack.6}", "$type": "color" }
+      }
+    },
+    "custom": {
+      "accent": {
+        "blue": { "$value": "{md.ref.palette.blue.80}", "$type": "color" },
+        "green": { "$value": "{md.ref.palette.green.80}", "$type": "color" }
+      },
+      "icon": {
+        "multicolorA": { "$value": "{md.ref.palette.orange.50}", "$type": "color" },
+        "multicolorB": { "$value": "{md.ref.palette.blue.80}", "$type": "color" },
+        "multicolorC": { "$value": "{md.ref.palette.green.80}", "$type": "color" }
+      },
+      "stroke": { "featured": { "$value": "{md.ref.palette.orange.50}", "$type": "color" } },
+      "rainbowPulse": { "enabled": { "$value": true, "$type": "boolean" } }
+    }
+  }
+}

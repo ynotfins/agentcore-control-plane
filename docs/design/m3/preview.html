@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="primary-light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>R3lentless-Grind Design System Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/tokens.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+  <link rel="stylesheet" href="./css/animations.css" />
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("rgds-theme") || localStorage.getItem("agentcore-m3-theme");
+        if (t) document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <div class="md-shell">
+    <aside class="md-sidebar" aria-label="Theme controls">
+      <div class="md-brand">R3lentless-Grind <span>RGDS</span></div>
+      <p class="md-note">R3lentless-Grind Design System (RGDS) — Material 3 token gallery. Seeds are temporary — swap brand hex in <code>tokens/ref/palette.json</code>.</p>
+      <div class="md-theme-list" role="group" aria-label="Theme modes">
+        <button type="button" class="md-theme-btn" data-theme-set="primary-light" aria-pressed="true">1 · Primary Light</button>
+        <button type="button" class="md-theme-btn" data-theme-set="secondary-light" aria-pressed="false">2 · Secondary Light</button>
+        <button type="button" class="md-theme-btn" data-theme-set="primary-dark" aria-pressed="false">3 · Primary Dark</button>
+        <button type="button" class="md-theme-btn" data-theme-set="secondary-dark" aria-pressed="false">4 · Secondary Dark</button>
+      </div>
+      <p class="md-note" id="theme-status">Active: primary-light</p>
+    </aside>
+
+    <main class="md-main">
+      <section>
+        <h1 class="md-section-title">Color roles</h1>
+        <div class="md-swatch-row" aria-label="Semantic color swatches">
+          <div class="md-swatch" style="background: var(--md-sys-color-primary)" title="primary"></div>
+          <div class="md-swatch" style="background: var(--md-sys-color-secondary)" title="secondary"></div>
+          <div class="md-swatch" style="background: var(--md-sys-color-tertiary)" title="tertiary"></div>
+          <div class="md-swatch" style="background: var(--md-sys-color-surface-container)" title="surface-container"></div>
+          <div class="md-swatch" style="background: var(--md-sys-color-outline)" title="outline"></div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="md-section-title">Large cards</h2>
+        <div class="md-grid">
+          <article class="md-card">
+            <h3>Standard card</h3>
+            <p>Token-bound surface, generous padding (<code>md.sys.spacing.lg</code>), medium elevation, slightly rounded corners.</p>
+            <div class="md-btn-row">
+              <button type="button" class="md-btn md-btn-primary">Primary</button>
+              <button type="button" class="md-btn md-btn-secondary">Secondary</button>
+            </div>
+          </article>
+
+          <article class="md-card md-featured md-rainbow-pulse">
+            <h3>Featured card</h3>
+            <p>Theme 2 uses yellow featured stroke. Theme 4 enables <code>md.custom.rainbowPulse</code> — watch the border shift and pulse.</p>
+            <div class="md-btn-row">
+              <button type="button" class="md-btn md-btn-primary md-rainbow-pulse">Featured CTA</button>
+            </div>
+          </article>
+
+          <article class="md-card">
+            <h3>Layout box</h3>
+            <p>Theme 3 (Primary Dark) uses sharper premium borders on cards for the ngrok-like slate look.</p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="md-section-title">Large buttons</h2>
+        <div class="md-btn-row">
+          <button type="button" class="md-btn md-btn-primary">Continue</button>
+          <button type="button" class="md-btn md-btn-secondary">Cancel</button>
+          <button type="button" class="md-btn md-btn-primary md-rainbow-pulse">Rainbow CTA (T4)</button>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="md-section-title">Icons — solid vs multi-color</h2>
+        <div class="md-icon-frame">
+          <div class="md-icon-target" title="Utility solid">
+            <svg class="md-icon-solid" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="md-icon-target md-icon-multi" title="Featured multi-color">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="8" cy="10" r="5" fill="var(--md-custom-icon-a)"/>
+              <circle cx="16" cy="10" r="5" fill="var(--md-custom-icon-b)" fill-opacity="0.9"/>
+              <circle cx="12" cy="16" r="5" fill="var(--md-custom-icon-c)" fill-opacity="0.85"/>
+            </svg>
+          </div>
+          <div class="md-icon-target md-icon-multi" title="Featured multi-color 2">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 18V6l8-3 8 3v12l-8 3-8-3z" fill="var(--md-custom-icon-a)"/>
+              <path d="M12 3v18" stroke="var(--md-custom-icon-b)" stroke-width="2"/>
+              <path d="M4 9h16" stroke="var(--md-custom-icon-c)" stroke-width="2"/>
+            </svg>
+          </div>
+          <p class="md-note">Multi-color icons: featured / high-priority only. Utility icons stay solid <code>md.sys.color.primary</code>.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var status = document.getElementById("theme-status");
+      var buttons = Array.prototype.slice.call(document.querySelectorAll("[data-theme-set]"));
+
+      function applyTheme(theme) {
+        root.setAttribute("data-theme", theme);
+        try { localStorage.setItem("rgds-theme", theme); } catch (e) {}
+        status.textContent = "Active: " + theme;
+        buttons.forEach(function (btn) {
+          btn.setAttribute("aria-pressed", String(btn.getAttribute("data-theme-set") === theme));
+        });
+      }
+
+      buttons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          applyTheme(btn.getAttribute("data-theme-set"));
+        });
+      });
+
+      applyTheme(root.getAttribute("data-theme") || "primary-light");
+    })();
+  </script>
+</body>
+</html>

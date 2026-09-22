@@ -1,0 +1,22 @@
+{
+  "$description": "Pinned frontend deps for R3lentless-Grind Design System (RGDS) / Material 3 project bootstrap. Do not use unpinned latest. Install only when a new UI project initializes.",
+  "npm": {
+    "tailwindcss": "4.1.12",
+    "@tailwindcss/cli": "4.1.12",
+    "lucide-react": "0.542.0",
+    "lucide": "0.542.0",
+    "@radix-ui/react-slot": "1.2.3",
+    "@radix-ui/react-dialog": "1.1.15",
+    "@radix-ui/react-dropdown-menu": "2.1.16",
+    "@radix-ui/react-tabs": "1.1.13",
+    "@radix-ui/react-switch": "1.2.6",
+    "@radix-ui/react-tooltip": "1.2.8",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "tailwind-merge": "3.3.1"
+  },
+  "install": {
+    "web": "npm install --save-exact tailwindcss@4.1.12 lucide-react@0.542.0 @radix-ui/react-slot@1.2.3 class-variance-authority@0.7.1 clsx@2.1.1 tailwind-merge@3.3.1",
+    "note": "Copy docs/design/m3 into the project (or symlink). Components consume CSS variables from css/tokens.css — never invent local color maps."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "Apple-like slightly rounded corners — prefer medium/large for cards and buttons.",
+  "md": {
+    "ref": {
+      "shape": {
+        "corner": {
+          "none": { "$value": "0", "$type": "dimension" },
+          "extraSmall": { "$value": "4px", "$type": "dimension" },
+          "small": { "$value": "8px", "$type": "dimension" },
+          "medium": { "$value": "12px", "$type": "dimension" },
+          "large": { "$value": "16px", "$type": "dimension" },
+          "extraLarge": { "$value": "28px", "$type": "dimension" },
+          "full": { "$value": "9999px", "$type": "dimension" }
+        }
+      }
+    }
+  }
+}

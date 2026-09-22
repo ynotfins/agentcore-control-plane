@@ -1,0 +1,21 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "md.custom.rainbowPulse — Theme 4 featured cards/buttons only. Honor prefers-reduced-motion.",
+  "md": {
+    "custom": {
+      "rainbowPulse": {
+        "gradient": {
+          "$value": "linear-gradient(120deg, oklch(65% 0.25 25), oklch(75% 0.20 60), oklch(85% 0.20 95), oklch(72% 0.20 145), oklch(75% 0.15 230), oklch(60% 0.20 290), oklch(65% 0.25 0), oklch(65% 0.25 25))",
+          "$type": "gradient"
+        },
+        "duration": { "$value": "{md.ref.motion.custom.pulse.duration}", "$type": "duration" },
+        "easing": { "$value": "linear", "$type": "cubicBezier" },
+        "keyframeName": { "$value": "md-custom-rainbow-pulse", "$type": "string" },
+        "pulseOpacityMin": { "$value": "0.72", "$type": "number" },
+        "pulseOpacityMax": { "$value": "1", "$type": "number" },
+        "enabledThemes": { "$value": ["secondary-dark"], "$type": "string" },
+        "utilityClass": { "$value": "md-rainbow-pulse", "$type": "string" }
+      }
+    }
+  }
+}

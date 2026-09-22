@@ -1,0 +1,50 @@
+# R3lentless-Grind Design System (RGDS) — Cursor Rules (mandatory)
+
+The AI enforces the **R3lentless-Grind Design System (RGDS)** standards on every UI project on this PC.
+
+Canonical tree: `D:\github\agentcore-control-plane\docs\design\m3\`  
+Authority: `docs/design/DESIGN_SYSTEM.md`
+
+Modern Cursor also loads `.cursor/rules/design-system-m3.mdc` (same RGDS policy). If both exist, they must not diverge.
+
+RGDS is the master organizational design system. Individual products (AgentCore, NFA, etc.) consume RGDS — they are not the name of the system.
+
+## 1. Lock-in
+
+- Source of truth: W3C token sheets under `docs/design/m3/tokens/` (`md.ref.*` + `md.sys.*` + themes + `md.custom.rainbowPulse`).
+- Runtime CSS: `docs/design/m3/css/{tokens,components,animations}.css`.
+- Visual proof: open `docs/design/m3/preview.html` in a browser.
+- Authority doc: `docs/design/DESIGN_SYSTEM.md`.
+
+## 2. Four themes (`data-theme` on `<html>`)
+
+1. `primary-light` — multi-color; blue primary, red secondary, green/orange/pink/yellow accents
+2. `secondary-light` — light/dark orange; blue+green accents; yellow featured strokes
+3. `primary-dark` — ngrok-like slate/charcoal; sharp premium borders; no rainbow
+4. `secondary-dark` — deep black; orange secondary stack; `.md-rainbow-pulse` on featured only
+
+## 3. Forbidden
+
+- Hardcoded hex/rgb/hsl in components
+- Raw pixel spacing/radius/shadow outside token sheets
+- Unpinned `npm install` / `npx` “latest” for Tailwind, Radix, Lucide
+- Putting RGDS tokens behind a Bifrost upstream (Bifrost = Figma/docs MCP only)
+- Rainbow accents on every card/icon
+- Reintroducing legacy `light|dark|hc` as the primary theme API
+- Branding RGDS as “NFA Design System” or “AgentCore Design System” in new work
+
+## 4. New project bootstrap (AI must)
+
+1. Copy or reference `docs/design/m3` into the project.
+2. Install **exact** versions from `docs/design/m3/package-pins.json` using package managers (`npm install --save-exact …`). Allowed tools: npm/pnpm/yarn/pip only for listed pins — never random latest.
+3. Wire CSS variables / Tailwind `@theme` from compiled tokens — no `tailwind.config.js` color overrides.
+4. Validate non-trivial UI with Figma MCP (`search_design_system`, `get_design_context`) when a design library is available.
+5. If any PR introduces hardcoded style values: reject, refactor to `md.sys.*` / `md.custom.*`.
+
+## 5. Brand hex later
+
+Temporary seeds are marked `TEMPORARY_PLACEHOLDER` in `tokens/ref/palette.json`. Operator replaces seeds there; regenerate CSS; do not edit components for brand swaps.
+
+## 6. Component aesthetic
+
+Apple-like clean vector UI: large cards, large buttons, slightly rounded corners (`md.sys.shape.corner.medium|large`), subtle-to-medium elevation, generous whitespace (`md.sys.spacing.*`). Featured icons may use 2–3 color vector layers; utility icons stay solid.

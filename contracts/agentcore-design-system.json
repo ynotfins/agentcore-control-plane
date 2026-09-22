@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "name": "r3lentless-grind-design-system",
+  "display_name": "R3lentless-Grind Design System",
+  "abbreviation": "RGDS",
+  "standard": "material-3",
+  "authority": "docs/design/DESIGN_SYSTEM.md",
+  "root": "docs/design/m3",
+  "preview": "docs/design/m3/preview.html",
+  "package_pins": "docs/design/m3/package-pins.json",
+  "themes": [
+    { "id": "primary-light", "data_theme": "primary-light", "label": "Primary Light" },
+    { "id": "secondary-light", "data_theme": "secondary-light", "label": "Secondary Light" },
+    { "id": "primary-dark", "data_theme": "primary-dark", "label": "Primary Dark" },
+    { "id": "secondary-dark", "data_theme": "secondary-dark", "label": "Secondary Dark", "features": ["md.custom.rainbowPulse"] }
+  ],
+  "token_tiers": ["md.ref", "md.sys", "md.custom"],
+  "enforcement": [
+    ".cursorrules",
+    ".cursor/rules/design-system-m3.mdc",
+    "docs/design/m3/.cursorrules"
+  ],
+  "bifrost": {
+    "hosts_tokens": false,
+    "validation_tools": ["search_design_system", "get_design_context", "get_variable_defs"],
+    "route": "agentcore-gateway"
+  },
+  "seed_status": "TEMPORARY_PLACEHOLDER",
+  "notes": "File path contracts/agentcore-design-system.json is historical; display authority name is R3lentless-Grind Design System (RGDS)."
+}

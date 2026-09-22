@@ -1,0 +1,18 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "md": {
+    "sys": {
+      "shape": {
+        "corner": {
+          "none": { "$value": "{md.ref.shape.corner.none}", "$type": "dimension" },
+          "extraSmall": { "$value": "{md.ref.shape.corner.extraSmall}", "$type": "dimension" },
+          "small": { "$value": "{md.ref.shape.corner.small}", "$type": "dimension" },
+          "medium": { "$value": "{md.ref.shape.corner.medium}", "$type": "dimension" },
+          "large": { "$value": "{md.ref.shape.corner.large}", "$type": "dimension" },
+          "extraLarge": { "$value": "{md.ref.shape.corner.extraLarge}", "$type": "dimension" },
+          "full": { "$value": "{md.ref.shape.corner.full}", "$type": "dimension" }
+        }
+      }
+    }
+  }
+}
