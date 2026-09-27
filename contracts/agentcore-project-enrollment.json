@@ -25,6 +25,13 @@
       ]
     },
     {
+      "project_key": "geocode-addresses",
+      "name": "US Address Fabric / Recover Geocode",
+      "paths": [
+        "D:\\geocode-addresses"
+      ]
+    },
+    {
       "project_key": "openhands",
       "name": "OpenHands / Agent Canvas",
       "paths": [
@@ -66,6 +73,9 @@
         "D:\\github\\nfa-platform",
         "D:\\agentcore-worktrees\\nfa-platform",
         "D:\\agentcore-worktrees\\nfa-platform\\goal-staging-001"
+      ],
+      "path_prefixes": [
+        "D:\\agentcore-worktrees\\nfa-platform"
       ]
     },
     {
@@ -81,7 +91,23 @@
       "paths": [
         "D:\\openclaw"
       ]
+    },
+    {
+      "project_key": "clawteam",
+      "name": "ClawTeam",
+      "paths": [
+        "D:\\github\\ClawTeam",
+        "C:\\Users\\ynotf\\.clawteam\\workspaces\\llm-smoke\\probe4",
+        "C:\\Users\\ynotf\\.clawteam\\workspaces\\llm-smoke\\probe5"
+      ],
+      "path_prefixes": [
+        "C:\\Users\\ynotf\\.clawteam\\workspaces"
+      ]
     }
+  ],
+  "approved_path_prefix_parents": [
+    "D:\\agentcore-worktrees\\nfa-platform",
+    "C:\\Users\\ynotf\\.clawteam\\workspaces"
   ],
   "foreign_markers": [
     "swarm-ecosystem-control",
