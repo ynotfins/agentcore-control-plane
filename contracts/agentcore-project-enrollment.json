@@ -28,7 +28,8 @@
       "project_key": "geocode-addresses",
       "name": "US Address Fabric / Recover Geocode",
       "paths": [
-        "D:\\geocode-addresses"
+        "D:\\geocode-addresses",
+        "D:\\geocode-addresses.worktrees\\lane-d-m1-safe-loader"
       ]
     },
     {
