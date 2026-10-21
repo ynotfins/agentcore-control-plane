@@ -74,7 +74,8 @@
         "D:\\github\\nfa-platform",
         "D:\\agentcore-worktrees\\nfa-platform",
         "D:\\agentcore-worktrees\\nfa-platform\\goal-staging-001",
-        "D:\\agentcore-worktrees\\nfa-platform\\goal-lane-e-red-high-temp-off"
+        "D:\\agentcore-worktrees\\nfa-platform\\goal-lane-e-red-high-temp-off",
+        "D:\\agentcore-worktrees\\nfa-platform\\goal-sheet-mirror-row-expand-backfill"
       ],
       "path_prefixes": [
         "D:\\agentcore-worktrees\\nfa-platform"
@@ -105,11 +106,37 @@
       "path_prefixes": [
         "C:\\Users\\ynotf\\.clawteam\\workspaces"
       ]
+    },
+    {
+      "project_key": "fire-business",
+      "name": "Fire Business NJ/NY Household-Fire Directory",
+      "paths": [
+        "D:\\github\\Fire-Business"
+      ]
+    },
+    {
+      "project_key": "ai-attorney-represented",
+      "name": "AI Attorney Represented (Lex)",
+      "paths": [
+        "D:\\github\\AI-attorney-represented"
+      ]
+    },
+    {
+      "project_key": "zcode-workspace",
+      "name": "ZCode Default Workspace (document processing)",
+      "paths": [
+        "G:\\Zcode\\.zcode\\workspace\\default",
+        "I:\\LocalApps\\ZCode\\workspace\\default"
+      ],
+      "path_prefixes": [
+        "I:\\LocalApps\\ZCode\\workspace"
+      ]
     }
   ],
   "approved_path_prefix_parents": [
     "D:\\agentcore-worktrees\\nfa-platform",
-    "C:\\Users\\ynotf\\.clawteam\\workspaces"
+    "C:\\Users\\ynotf\\.clawteam\\workspaces",
+    "I:\\LocalApps\\ZCode\\workspace"
   ],
   "foreign_markers": [
     "swarm-ecosystem-control",

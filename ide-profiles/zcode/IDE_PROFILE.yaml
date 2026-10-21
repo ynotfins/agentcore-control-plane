@@ -1,0 +1,88 @@
+ide_id: zcode
+display_name: ZCode
+swarm_managed: false
+installed_version: 3.10.1
+live_global_rule_target: C:\Users\ynotf\.zcode\AGENTS.md
+live_mcp_config_target: C:\Users\ynotf\.zcode\cli\config.json
+rule_mechanism: user AGENTS.md at C:\Users\ynotf\.zcode\AGENTS.md + workspace AGENTS.md + workspace .zcode\config.json + hooks under C:\Users\ynotf\.zcode\hooks
+mcp_schema: zcode_mcp_json
+mcp_transport: http/streamable
+env_var_handling: process-attested loopback proxy at http://127.0.0.1:18082/mcp; no bearer stored in live MCP JSON
+gateway_url: http://127.0.0.1:18082/mcp
+gateway_auth_mode: process_attested_proxy
+restart_behavior: restart client after MCP config changes
+editability:
+  global_rules: direct_write
+  project_rules: direct_write
+  mcp_config: direct_write
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: '2026-10-21'
+mcp_template_source: renderers/gateway-clients/zcode.json
+known_limitations:
+- ZCode uses headerless Trust Class A via :18082; exact Windows process ancestry must resolve to
+  C:\Program Files\ZCode\ZCode.exe.
+- ZCode is distinct from Zoo-Code/Roo-Code (VS Code-family extension); never merge their profiles.
+- Signed memory writes go through the host signer (scripts/agentcore_zcode/signed_memory.py);
+  the in-session MCP client cannot mint device assertions in-process (same pattern as Devin).
+semantic_parity_gaps:
+- In-session device-assertion injection is a manual sign-then-call pattern via the host signer;
+  not yet automated inside the ZCode client.
+dimensions:
+  application_launch:
+    status: live_validated
+    evidence_path: audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md
+    evidence_ts: '2026-10-21T22:06:00Z'
+    superseded_by: null
+  gateway_configuration:
+    status: live_validated
+    evidence_path: audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md
+    evidence_ts: '2026-10-21T22:06:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: live_validated
+    evidence_path: audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md
+    evidence_ts: '2026-10-21T22:06:00Z'
+    superseded_by: null
+  native_memory_lifecycle:
+    status: live_validated
+    evidence_path: audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md
+    evidence_ts: '2026-10-21T22:06:00Z'
+    superseded_by: null
+  fresh_chat_recovery:
+    status: configured_restart_required
+    evidence_path: audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md
+    evidence_ts: '2026-10-21T22:06:00Z'
+    superseded_by: null
+  persistence_after_restart:
+    status: configured_restart_required
+    evidence_path: audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md
+    evidence_ts: '2026-10-21T22:06:00Z'
+    superseded_by: null
+  operator_gate:
+    status: live_validated
+    evidence_path: audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md
+    evidence_ts: '2026-10-21T22:06:00Z'
+    superseded_by: null
+m8_enrollment: live_validated
+gateway_enrollment_status: process_attested_proxy
+m8_notes: >-
+  Trust Class A source enrollment complete 2026-10-21. Live C:\Users\ynotf\.zcode\cli\config.json
+  mcp.servers.agentcore-gateway points at http://127.0.0.1:18082/mcp with no headers. The full
+  signed memory lifecycle (session_open, startup_context, append_event, retrieve_context,
+  expand_source, build_handoff, session_close) passed 2026-10-21 through the host signer
+  scripts/agentcore_zcode/signed_memory.py against canonical PG18 (legacy_compat false). ZCode
+  app data lives at I:\LocalApps\ZCode; the legacy G:\Zcode trial tree is retired per
+  PROJECT_ANCHOR §2. Never paste BIFROST_MCP_VIRTUAL_KEY.
+legacy_gateway_state:
+  classification: legacy_drift
+  mutation_in_this_task: true
+  note: >-
+    The 2026-08/09 trial placed ZCode data on G: (G:\Zcode docs-store, MCP launchers, default
+    workspace) under a write-only-to-G rule. Per PROJECT_ANCHOR §2 (G: = second backup copy
+    target only) the permanent layout moved ZCode data to I:\LocalApps\ZCode on 2026-10-21;
+    the G:\Zcode tree remains as read-only legacy evidence pending operator cleanup.
+  evidence_paths:
+  - audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md

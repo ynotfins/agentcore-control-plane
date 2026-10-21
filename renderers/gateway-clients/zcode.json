@@ -1,0 +1,29 @@
+{
+  "mcp": {
+    "servers": {
+      "agentcore-gateway": {
+        "type": "http",
+        "url": "http://127.0.0.1:18082/mcp",
+        "timeoutMs": 300000,
+        "enabled": true,
+        "_note": "Headerless access uses the Bifrost-owned process-attested loopback proxy; no virtual key is stored in ZCode configuration."
+      }
+    }
+  },
+  "_agentcore": {
+    "renderer": "zcode",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "gateway_enrollment_status": "process_attested_proxy",
+    "active_template": true,
+    "gateway_url": "http://127.0.0.1:18082/mcp",
+    "gateway_auth_mode": "process_attested_proxy",
+    "trusted_executable": "C:\\Program Files\\ZCode\\ZCode.exe",
+    "notes": [
+      "Sanitized source template; no resolved virtual key, token, or credential is permitted in Git.",
+      "agentcore-gateway is the only AgentCore MCP entry under mcp.servers. Do not store bearer headers.",
+      "ZCode is distinct from Zoo-Code/Roo-Code; the live ZCode entry lives at C:\\Users\\ynotf\\.zcode\\cli\\config.json under mcp.servers (zcode_mcp_json).",
+      "Signed memory writes use the host signer scripts/agentcore_zcode/signed_memory.py (mirrors agentcore_devin); no key material enters client config."
+    ],
+    "secret_policy": "Never paste or persist an AgentCore virtual key in this client."
+  }
+}
