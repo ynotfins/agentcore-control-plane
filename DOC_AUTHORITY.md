@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime (current):** `F:\AgentCore\runtime\bifrost` (not design authority; historical `H:\AgentRuntime\bifrost` is vacated for Bifrost — remaining H: vacation is Milestone M9)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-08-10 (`AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT`; PC-native SwarmRecall semantic-memory alignment)
+**Updated:** 2026-09-05 (`AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT`; Bifrost v2.0.0 and OpenClaw ownership alignment)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -16,7 +16,7 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 3. `BLUEPRINT.md` — locked goal, architecture, storage roles, lossless guarantees, and Milestone exit criteria (operator-approved; change requires explicit approval)
 4. `CONTEXT_BLOCK.md` — current mutable system state and implementation progress
 5. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance (derives from BLUEPRINT.md; BLUEPRINT wins on conflicts)
-6. Current Bifrost contracts and ops runbooks (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`, and `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`). Handoffs are point-in-time evidence unless this file explicitly classifies one as current; dates never confer authority or live readiness.
+6. Current Bifrost contracts and ops runbooks (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`, and `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, `docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md`). Handoffs are point-in-time evidence unless this file explicitly classifies one as current; dates never confer authority or live readiness.
 7. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine-fact authority (hardware, drives, installed software, runtime snapshots)
 
 No other root or docs file may silently override this chain. If a document conflicts with a higher level, the higher level wins and the document must be reconciled or reclassified.
@@ -118,6 +118,12 @@ Historical reports, artifacts, backups, inventories, registry snapshots, and rol
 | `SECURITY.md` | Secret and security policy |
 | `AGENTS.md` | Source-controlled agent operating contract |
 
+## Subordinate developer navigation (procedural; not authority)
+
+| File | Purpose |
+| -- | -- |
+| `GATEWAY_AND_BIFROST_DEVELOPER_GUIDE.md` | Developer navigation and operating procedure for `agentcore-gateway`, Bifrost, client routes, Code Mode, validation, and recovery. It is normal-workstream documentation; the authority chain, contracts, and current evidence override every example. |
+
 ## Current-state — mutable (accurate now; updated as cutover progresses)
 
 | File | Purpose |
@@ -160,7 +166,7 @@ Call arabold-docs **through** `agentcore-gateway` (no direct `user-arabold-docs`
 
 | Library | Version | Docs root |
 | -- | -- | -- |
-| `bifrost` | `2.0.0-prerelease1` | <https://docs.getbifrost.ai> |
+| `bifrost` | `2.0.0` | <https://docs.getbifrost.ai> |
 | `depwire` | `1.8.2` | <https://depwire.dev/> |
 | `tentra-mcp` | `1.3.3` | <https://github.com/rdanieli/tentra-mcp> |
 | `serena` | `1.5.4` | <https://oraios.github.io/serena/> (numbered paths) |
@@ -179,7 +185,7 @@ Call arabold-docs **through** `agentcore-gateway` (no direct `user-arabold-docs`
 Canonical matrix + drift notes: `.agentcore/docs/DOCS_INDEX.md`
 Evidence: `artifacts/bifrost-gateway-cutover-2026-07-12/ARABOLD_DOCS_CROSSREF_2026-07-12.md`
 
-The refreshed Bifrost corpus is still reported as unversioned by Arabold. Treat `2.0.0-prerelease1` as the installed-binary pin, not as documentation-server version metadata.
+Arabold resolves the Bifrost corpus as exact version `2.0.0`. Treat that as the installed-binary documentation pin; refresh failures are operational evidence and do not silently downgrade to unversioned or prerelease documentation.
 
 ## Unified IDE gateway install
 
@@ -259,10 +265,10 @@ All historical docs must not be run as instructions without current operator app
 - Portable Context Engine v0.2.4 is exact-installed and live-validated at artifact commit `789b42a12e55a98e71327a8ce6c49f30320f2143`; current acceptance is `audits/CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md`. The 2026-08-02 v0.2.0 report remains historical evidence only.
 - PostgreSQL 18 is reachable and production checkpoints are readable, but the registered automatic service `AgentCore-PostgreSQL18` is stopped while a separate launcher owns the live process. Commercial readiness requires one governed lifecycle owner plus restart proof.
 - The repo-owned workflow runtime is `scripts\.venv\Scripts\python.exe`. Run `scripts\bootstrap-runtime.ps1` to create/repair it. Bare system Python is a bootstrap source or emergency diagnostic, not the production operator contract.
-- Neutral Recall is healthy, but current global/per-project pool provisioning and consistent `pool_id` projection wiring require explicit live acceptance before cross-project semantic isolation is claimed.
+- Neutral Recall is healthy and live-proven under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: AgentCore has 11 project-specific identities, one shared global pool, and 11 private project pools; direct API and signed-gateway canaries deny cross-project and SwarmClaw access while preserving shared-pool retrieval.
 - `agentcore-memory` ten-tool surface is **live** (M3.002 / M4+; Cursor validated). Remaining memory-platform work is Milestone completion/ops hardening per `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` and BLUEPRINT M5–M8 exit criteria — not “platform not landed”
 - M6 PostgreSQL capability leases + Bifrost JIT VK bridge (`scripts/bifrost/jit_vk_bridge.py`) are **implemented** for exact OpenRouter tool groups; transitional `permitted_tools: ["*"]` wildcards remain on some non-OpenRouter servers until named inventories replace them
-- Cherry Studio: aligned 2026-07-20 with runtime repair (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`) — official x64 install, enrolled gateway, AgentCore Workspace Agent (`deepseek:deepseek-v4-pro`), Global Memory off, Home UI + chat proven, memory lifecycle + isolation validated. Re-run enroll only if Local Storage loses the gateway record.
+- Cherry Studio's July 2026 enrollment and lifecycle proof (`audits/CHERRY_GATEWAY_ENROLLMENT_2026-07-20.md`, `audits/CHERRY_RUNTIME_FAILURE_2026-07-20.md`, `docs/operations/CHERRY_STUDIO_AGENTCORE.md`) is historical credential-bearing evidence. The current client contract is disabled / `unverified`: no approved environment-backed, process-attested, native-token, or scoped-broker route exists. Preserve any legacy Local Storage state as drift; do not enroll, re-enroll, or materialize a virtual key until a governed secure route is approved.
 - Continual-learning Cursor plugin auto-trigger disabled; do not re-enable user-role followups — `docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`.
 - `depwire-cloud` and `github-mcp` remain deferred/`enabled=false` until healthy verification
 - Live IDE cutover completion evidence still incomplete for some clients (see Bifrost handoff / artifacts / IDE profiles)

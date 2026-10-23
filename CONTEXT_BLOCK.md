@@ -3,12 +3,12 @@ document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
 authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
-verified_at: 2026-08-10
+verified_at: 2026-09-08
 canonical_repository: D:\github\agentcore-control-plane
 locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
 current_acceptance: audits/RESTORE_POINT_RUNTIME_ACCEPTANCE_20260809-220421.md
-current_alignment_approval: AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT
+current_alignment_approval: AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT
 ---
 
 # AgentCore Canonical Context Block
@@ -17,24 +17,25 @@ Read `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` before this f
 
 Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory/context plane**, while **AgentCore PG18 remains the canonical exact-evidence, policy, recovery, and LangGraph checkpoint authority**. `agentcore-memory` is the AgentCore-governed access facade and lifecycle surface; it is not the top semantic-memory authority. `docs/current/PC_MEMORY_CONTEXT_WIRING_2026-08-05.md` records the reconciliation model. Do not collapse these into one database authority.
 
-## 0. Current platform posture — VERIFIED 2026-08-04
+## 0. Current platform posture — VERIFIED 2026-09-05
 
 | Area | Current fact | Evidence/status |
 | --- | --- | --- |
-| Repository | `D:\github\agentcore-control-plane`, branch `main`; CE024 canary runtime attested commit `8afd852aba86165edc9b8f55d88b3caa7a092f53` | Git; later documentation commits may advance HEAD; inherited Langfuse/M6-M8/IDE-rule/registry WIP remains unstaged and excluded |
-| Bifrost | Native `2.0.0-prerelease1` under `F:\AgentCore\runtime\bifrost`; scheduled owner `\AgentCore\AgentCore-Bifrost-Gateway`; `127.0.0.1:8080/health` healthy | Live status and gateway acceptance pass |
+| Repository | `D:\github\agentcore-control-plane`, active branch `setup/zoo-code-qdrant-nfa-20260820`; CE024 canary runtime attested commit `8afd852aba86165edc9b8f55d88b3caa7a092f53` | Git; current task and inherited Langfuse/M6-M8/IDE-rule/registry WIP remain dirty and must be staged separately |
+| Bifrost | Native `2.0.0` under `F:\AgentCore\runtime\bifrost`; scheduled owner `\AgentCore\AgentCore-Bifrost-Gateway`; `127.0.0.1:8080/health` healthy | Live status and gateway acceptance pass |
 | IDE MCP front door | Exactly one `agentcore-gateway` at `http://127.0.0.1:8080/mcp` | Cursor live config: one entry, environment-backed bearer, no MCP_DOCKER |
+| Pi parallel subagents | Host-native MCP companion; registry `pi-agents` dormant (`enabled=false`, empty profiles); not foreign Swarm | AUTH-2026-10-22-PI-SUBAGENT-PARALLEL-INFRASTRUCTURE; see docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md |
 | Gateway surface | Exact ten-tool `agentcore-memory` identity retained; ordinary profiles exclude the operator router | Live authenticated probes are required for mutable totals; do not copy a point-in-time aggregate tool count into client configuration |
 | AgentCore memory facade | source and live `agentcore-memory` `0.9.1`; PG18 reachable at `127.0.0.1:55433`; neutral SwarmRecall is the semantic target behind the bounded adapter | Every scoped call requires exact enrolled `project_key` + `project_root`; task sessions are also bound to client, agent, device, user, canonical repository, and worktree; ten-tool identity unchanged |
 | Project enrollment | `contracts/agentcore-project-enrollment.json`; default deny; exact key + exact repository/worktree path | Shared by Cursor bootstrap, memory facade, operator router, and child launcher; ordinary IDEs cannot mutate enrollment/router state |
-| Device identity | `legacy_compat`; writes require signed device assertion; unsigned reads remain temporarily permitted | `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md`; migration window ends 2026-08-09 |
+| Device identity | Stored policy remains `legacy_compat`, but its migration window expired; `memory_status` is the only unprotected tool and every other memory call now requires a signed device assertion | Live unsigned `retrieve_context` returned `device_assertion_required` on 2026-09-08; historical rollout evidence remains in `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` |
 | Cognee | `available`, version `1.3.0`, isolated native Windows venv under `F:\AgentCore\runtime\agentcore-memory\cognee` | Live `memory_status` after governed v0.9.1 promotion; canonical retrieval remains PostgreSQL-backed |
-| Neutral Recall | Machine-level neutral semantic plane healthy at `127.0.0.1:3300`; hot data under `H:\SwarmData\recall` | `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`; server-side AgentCore adapter only |
-| Context Engine | v0.2.4 exact-installed from artifact commit `789b42a12e55a98e71327a8ce6c49f30320f2143`; 127 tests; reproducible wheels; four-host manifest; signed lifecycle | `agentcore-context validate --live` passes gateway `v2.0.0-prerelease1`, memory `0.9.1`, exact ten tools; current acceptance audit is `audits/CONTEXT_ENGINE_0_2_4_AND_ALIGNMENT_ACCEPTANCE_2026-08-04.md` |
+| Neutral Recall | Machine-level neutral semantic plane healthy at `127.0.0.1:3300`; hot data under `H:\SwarmData\recall`; AgentCore uses 11 project identities, one shared global pool, and 11 private pools | `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`; live direct-API and signed-gateway isolation canaries passed 2026-09-08; server-side AgentCore adapter only |
+| Context Engine | v0.2.4 exact-installed from artifact commit `789b42a12e55a98e71327a8ce6c49f30320f2143`; 127 tests; reproducible wheels; four-host manifest; signed lifecycle | Prior acceptance targeted the prerelease gateway; recertification against Bifrost `v2.0.0` is required before claiming current Context Engine live acceptance |
 | LangGraph production | PG18 PostgresSaver is live; CE024 run `cdb3a8ae-346e-4798-9477-fcee962280f6`, thread `1af1a09d-8b9b-4cf0-bfa8-01e42b1eb7a5` completed | Exact `OK\n` canary, system-verified 3-byte/SHA-256 artifact manifest, isolated worktree, strict-schema critic pass, score 1.0, 13 checkpoints, `completed_at` populated; 105 workflow tests passed |
 | LangGraph Studio | Dev-only `127.0.0.1:2024`; Agent Server dev checkpointer; never production thread IDs | `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` |
 | Context Fabric | Repo-local hook/CLI; DB schema/search-index 2, integrity ok, hook installed/ready, capture `#123` at `97c872cd98e8`; shared Bifrost upstream is dormant because caller/project identity is not forwarded | Raw Windows drift is falsely HIGH under `core.autocrlf=true`; 683/709 mismatches are CRLF-only; final accepted-HEAD capture pending |
-| Arabold Docs | Required corpus indexed and retrieval-proven for Context Fabric, Cursor, Hindsight/cookbook, OmniRoute compression, Graphify, and CrewAI; Bifrost official corpus refreshed but remains unversioned in Arabold metadata | Live `list_libraries`, `find_version`, and targeted `search_docs`; installed Bifrost binary remains `2.0.0-prerelease1` |
+| Arabold Docs | Required corpus indexed and retrieval-proven for Context Fabric, Cursor, Hindsight/cookbook, OmniRoute compression, Graphify, and CrewAI; Bifrost resolves as exact version `2.0.0` | Live `list_libraries`, `find_version`, and targeted `search_docs`; the 2026-09-05 refresh failed on a missing upstream `/openapi/openapi.yaml` root and was retried from the official docs root |
 
 The Bifrost process is healthy now. Prior Cursor “Not connected” incidents with a healthy direct gateway are classified as intermittent IDE MCP discovery/session state, not evidence that the Bifrost server was down. Do not restart or redesign Bifrost until gateway and upstream probes fail.
 
@@ -68,7 +69,7 @@ agentcore-memory
 | --- | --- | --- |
 | Canonical truth and recovery | AgentCore | Live |
 | MCP aggregation and governance | Bifrost | Live |
-| Rolling context and host portability | Context Engine | v0.2.4 exact-installed and live-certified |
+| Rolling context and host portability | Context Engine | v0.2.4 exact-installed; Bifrost v2.0.0 recertification pending |
 | PC-native semantic memory/context | Neutral SwarmRecall | Live/healthy |
 | Project committed context and drift | Context Fabric | Adopted repo-locally; shared Bifrost exposure dormant |
 | Current upstream documentation | Arabold Docs | Required candidate corpus indexed and retrieval-proven; Bifrost corpus has an explicit metadata limitation |
@@ -116,15 +117,14 @@ The single `agentcore-gateway` MCP entry does not make Cursor model prompts trav
 ### True residuals
 
 1. `AgentCore-PostgreSQL18` is registered `Automatic` but stopped while a separate launcher owns the healthy PG18 process. Reconcile to one governed owner and prove reboot recovery.
-2. Neutral Recall has no live-proven global/per-project pool provisioning in the current acceptance evidence, and AgentCore projection calls must consistently carry the intended pool identity before project-pool isolation is claimed.
-3. Full `required` device enforcement for reads is deferred; signed writes are enforced.
-4. Cursor IDE MCP discovery has been intermittent even while direct Bifrost health and authenticated tools/list pass.
-5. The ChatGPT compatibility proxy expected on `127.0.0.1:18081` has no governed lifecycle owner and is currently down. Direct Bifrost remains the authoritative health surface.
-6. Context Fabric retains six historical failed-capture records. Its Windows drift metric is unusable under `core.autocrlf=true` until upstream/fork comparison uses Git clean-filter/object semantics; repo-local capture/query/health remain usable.
-7. Alignment-skill native copies are hash-matched but remain `installed_unverified` until fresh-task discovery is proven per host.
-8. SwarmClaw needs a separate Swarm-owned adapter/skill and live autonomous acceptance; no AgentCore skill is installed there.
-9. DeepSeek v4 Flash did not terminate reliably in this exact Deep Agents canary. Gemini 3.6 Flash is the currently proven worker for the certified path.
-10. Shared Bifrost project-bound developer upstreams are dormant until a per-session project identity can be injected. Native IDE tools and explicit-cwd local CLIs are the safe interim path.
+2. The stored device-policy label remains `legacy_compat` after its migration window expired even though runtime enforcement now requires signed assertions for all non-status calls; normalize the policy label only through the database governance gate.
+3. Cursor IDE MCP discovery has been intermittent even while direct Bifrost health and authenticated tools/list pass.
+4. The ChatGPT compatibility proxy expected on `127.0.0.1:18081` has no governed lifecycle owner and is currently down. Direct Bifrost remains the authoritative health surface.
+5. Context Fabric retains six historical failed-capture records. Its Windows drift metric is unusable under `core.autocrlf=true` until upstream/fork comparison uses Git clean-filter/object semantics; repo-local capture/query/health remain usable.
+6. Alignment-skill native copies are hash-matched but remain `installed_unverified` until fresh-task discovery is proven per host.
+7. SwarmClaw needs a separate Swarm-owned adapter/skill and live autonomous acceptance; no AgentCore skill is installed there.
+8. DeepSeek v4 Flash did not terminate reliably in this exact Deep Agents canary. Gemini 3.6 Flash is the currently proven worker for the certified path.
+9. Shared Bifrost project-bound developer upstreams are dormant until a per-session project identity can be injected. Native IDE tools and explicit-cwd local CLIs are the safe interim path.
 
 ## 4. Context Fabric disposition — ADOPTED
 
@@ -149,7 +149,7 @@ Required alignment corpus:
 
 | Library | Required version/status | Role |
 | --- | --- | --- |
-| Bifrost | installed `2.0.0-prerelease1`; official corpus unversioned | Current production gateway contract |
+| Bifrost | installed `2.0.0`; official corpus indexed as exact `2.0.0` | Current production gateway contract |
 | Cursor | `3.14.7` | Subagents, hooks, rules, MCP lifecycle |
 | Context Fabric | `1.0.7` | Capture/drift behavior |
 | Hindsight | `0.7.0` | Future learning/reflection evaluation only |
@@ -214,7 +214,7 @@ Approval: `AUTH-2026-08-04-AGENTCORE-LANGGRAPH-DOC-RECONCILIATION`.
 2. Repair and verify the repository-owned Python runtime.
 3. Context Engine v0.2.4 and the LangGraph CE024 canary are complete; retain exact release/canary evidence.
 4. Reconcile PG18 to one governed lifecycle owner.
-5. Prove neutral Recall pool/project isolation and run the separate SwarmClaw canary.
+5. Maintain the live-proven neutral Recall pool/project isolation boundary and keep the SwarmClaw credential/owner canary separate from AgentCore.
 6. Validate native alignment-skill discovery per supported host.
 7. Run protected-file, Bifrost, prompt, IDE-scope, ecosystem-separation, documentation-drift, secret/junk, and diff validators before every authority promotion.
 

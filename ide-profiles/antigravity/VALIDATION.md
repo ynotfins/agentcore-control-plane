@@ -4,8 +4,8 @@
 
 Run after installing or updating rules/MCP config for this IDE:
 
-1. The live MCP config contains exactly one AgentCore entry named `agentcore-gateway` (URL `http://127.0.0.1:8080/mcp`). The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; no Swarm, raw database, OpenRouter MCP, filesystem, or other direct per-tool entries are allowed.
-2. No resolved secret values appear anywhere in Git-tracked files (env references only; materialized VK allowed in the live config only where the profile documents no env-header support).
+1. The live MCP config contains exactly one AgentCore entry named `agentcore-gateway` (URL `http://127.0.0.1:18082/mcp`; auth mode `process_attested_proxy`). Each additional direct MCP entry requires an approved, documented exception with Bifrost parity failure, exact host/tool scope, security review, rollback, and no-duplicate proof. Merely observing or documenting an entry does not pass acceptance; unverified direct entries fail this check. No Swarm, raw database, OpenRouter MCP, filesystem, or duplicate AgentCore upstream is allowed.
+2. Authentication matches the profile: no Authorization value in the client file; the Bifrost-owned process-attested proxy admits only an exact approved Windows process ancestry. No resolved secret value appears in any Git-tracked file.
 3. The IDE lists gateway tools after restart (tools/list through `agentcore-gateway` succeeds).
 4. `agentcore-memory` responds through `memory_status`, with degraded component state clearly reported.
 5. The delivered rules match `ide-profiles/antigravity/GLOBAL_RULES.md` (semantic parity; record any product-specific omission in `IDE_PROFILE.yaml`).
@@ -23,4 +23,4 @@ Run after installing or updating rules/MCP config for this IDE:
 17. `ops\Test-AgentCoreDurabilityAndPlacement.ps1 -Mode Health` exits 0 (or warns only; no FAIL lines).
 18. The agentcore-memory tool surface is exactly ten tools: memory_status, startup_context, retrieve_context, append_event, propose_fact, expand_source, session_open, session_close, build_handoff, docs_search. Any deviation is a validation failure. Do not mark live_validated until all steps 1–18 pass with recorded evidence.
 
-Record results and date in `IDE_PROFILE.yaml` (`last_validation_date`). Current recorded validation: 2026-08-20.
+Record results and date in `IDE_PROFILE.yaml` (`last_validation_date`). Current recorded validation: 2026-09-08.

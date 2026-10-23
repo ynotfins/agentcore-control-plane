@@ -8,16 +8,17 @@ authorization, a timestamped backup, and post-change validation.
 ## Rules delivery
 
 1. Canonical semantics: `contracts/global-agent-policy.yaml` → rendered `ide-profiles/cursor/GLOBAL_RULES.md`.
-2. Delivery mechanism for this IDE: no (manual_import) — target: Cursor User Rules (app settings UI); project rules: <repo>\.cursor\rules\*.mdc and AGENTS.md.
-3. If delivery is `manual_import`/`generated_prompt`, hand the rendered GLOBAL_RULES.md content to the operator or paste it via the documented UI path. Do not skip rules silently.
+2. Account User Rules: no (manual_import); machine-local foundation: yes (direct_write; live edits remain approval-gated by policy) — targets: Cursor account User Rules (Customize > Rules, manual import); machine-local foundation C:\Users\ynotf\.cursor\rules\agentcore-foundation.mdc; project rules <repo>\.cursor\rules\*.mdc and AGENTS.md.
+3. Cursor Settings User Rules are plain text. Inspect and preserve their current UI content; compare it with the canonical policy before applying any accepted change. `ide-profiles/cursor/USER_RULES_REPLACEMENT.txt` is a proposal, not proof of installation. Install the full rendered policy as the backed-up machine-local `C:\Users\ynotf\.cursor\rules\agentcore-foundation.mdc`. Do not paste MDC frontmatter into the Settings field.
 
 ## MCP configuration
 
 1. Template: `ide-profiles/cursor/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/cursor.json`).
-2. Live target: `C:\Users\ynotf\.cursor\mcp.json` — exactly one AgentCore entry named `agentcore-gateway`. The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; do not remove it when present and do not infer support when the host cannot run Zoo-Code.
+2. Live target: `C:\Users\ynotf\.cursor\mcp.json` — exactly one AgentCore entry named `agentcore-gateway`. A host-native direct MCP companion is allowed only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback proof, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes. Historical Zoo-Code approval remains subject to this current policy.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
 4. Env handling: supports ${env:VAR} expansion in MCP headers.
 5. Restart behavior: MCP reload from settings UI; full restart after Windows env-var changes.
+6. Inspect the dated, sanitized live inventory at `audits/cursor-context/CURSOR_CONFIGURATION_RECONCILIATION_2026-09-14.md` before an MCP update. The gateway-only template is not a replacement for the full live file; observed direct entries are not approved exceptions.
 
 ## CLIENT-LOCAL EXECUTION SCOPE
 

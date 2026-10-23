@@ -1,0 +1,59 @@
+# Workstation Parallel Subagent Infrastructure (Pi)
+
+**Status:** Governed host-native companion (AUTH-2026-10-22-PI-SUBAGENT-PARALLEL-INFRASTRUCTURE)
+**Engine:** @earendil-works/pi-coding-agent v1.4.0
+**Machine spec:** C:\Users\ynotf\.pi\agent\SWARM_CAPABILITIES.md (not committed; workstation-local)
+**Bifrost registry:** `pi-agents` is `dormant_project_scoped` / `enabled=false` (not an active upstream)
+
+## Naming boundary
+
+"Pi subagent swarm" means this local parallel executor only. It is **not** the foreign Swarm
+ecosystem (SwarmClaw, SwarmVault, SwarmRecall execution). Do not bridge Pi into Swarm roots on H:.
+
+## Why host-native (not active Bifrost)
+
+Bifrost runs as scheduled task `\AgentCore\AgentCore-Bifrost-Gateway` with cwd under
+`F:\AgentCore\runtime\bifrost`. The Pi MCP bridge defaults subagent cwd to `cwd or process.cwd()`.
+Active Bifrost exposure without trustworthy per-call project cwd would execute under AgentCore hot
+runtime and violate drive isolation. Same pattern as dormant shared Depwire / Tentra / Context Fabric.
+
+## Access paths
+
+1. Host-native MCP companion `pi-agents` (stdio) exposing:
+   `pi_list_agents`, `pi_run_agent`, `pi_parallel_agents`, `pi_chain_workflow`
+2. CLI: `pi.cmd` on User PATH (engine home `C:\Users\ynotf\.pi\agent\`)
+
+## Roles and models
+
+| Role | Model | Access |
+| --- | --- | --- |
+| scout | openrouter/deepseek/deepseek-v4-pro-0813 | read-oriented recon |
+| planner | openrouter/deepseek/deepseek-v4-pro-0813 | read-only planning |
+| worker | openrouter/deepseek/deepseek-v4-pro-0813 | write-capable implementation |
+| reviewer | openrouter/deepseek/deepseek-v4-pro-0813 | read-only audit |
+| multimodal | openrouter/minimax/minimax-m3 | vision/UI |
+
+Credentials: Windows User-scope `OPENROUTER_API_KEY` only. No `.env` files.
+
+## Delegation law
+
+See `contracts/global-agent-policy.yaml` rule `workstation-parallel-subagents` and task gate `pi-agents`.
+Always pass an explicit enrolled project cwd on D:. Canonical portable templates live in `global-subagents/`.
+
+## Storage and database boundaries
+
+- No raw SQL to PostgreSQL 18 (`127.0.0.1:55433`)
+- No rogue vector/memory databases
+- Durable memory: `agentcore-gateway` to `agentcore-memory` only
+- Denied write roots: `F:\PostgreSQL18\data`, `F:\AgentCore`, `H:`, `E:` backup/archive
+
+## Portability
+
+Do not hardcode machine-local Windows paths into portable product repositories. Control-plane
+contracts may record workstation paths for this PC; product repos use relative/portable guidance.
+
+## Rollback
+
+- Remove host `pi-agents` MCP entries from IDE configs
+- Keep Bifrost registry `enabled=false` / empty capability profiles
+- Restore contracts from `.agentcore/rollback/20261023-214428-pi-parallel-subagent-infra/`

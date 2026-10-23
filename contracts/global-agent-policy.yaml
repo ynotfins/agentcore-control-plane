@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-09-05-universal-ide-bifrost-skills-alignment"
+policy_revision: "2026-10-22-pi-parallel-subagent-infrastructure-v1"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -18,12 +18,25 @@ mandatory_rules:
       D:\MCP-Control-Plane is evidence only.
 
   - id: single-gateway
-    title: One Bifrost gateway entry plus Zoo-Code exception
+    title: One AgentCore gateway entry with evidence-gated direct companions
     rule: >-
-      Non-Swarm IDEs use exactly one AgentCore MCP entry: agentcore-gateway at
-      `http://127.0.0.1:8080/mcp` with Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}.
+      Non-Swarm IDEs use exactly one AgentCore MCP entry: agentcore-gateway. Clients
+      that support environment-backed headers use `http://127.0.0.1:8080/mcp` with
+      Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}. Approved Trust Class A
+      clients without safe header expansion use the governed loopback compatibility
+      endpoint at `http://127.0.0.1:18082/mcp`; it must verify an exact approved Windows
+      process or process ancestor before it injects the User-scope builder identity,
+      and every unresolved, ambiguous, or unapproved caller must fail closed.
       AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT supersedes the Zoo-Code-only limit.
       Zoo-Code/Roo-Code remains a compatible VS Code-family extension, not a Bifrost upstream.
+      Under AUTH-2026-10-22-PI-SUBAGENT-PARALLEL-INFRASTRUCTURE, the workstation Pi MCP bridge
+      (`pi-agents`) is an approved host-native companion for parallel subagent execution. It must
+      not be enabled as an active Bifrost upstream: Bifrost scheduled-task cwd is
+      F:\AgentCore\runtime\bifrost, and the Pi bridge defaults to cwd or process.cwd(), so
+      gateway-spawned runs without an explicit enrolled project cwd would violate drive isolation.
+      Host-native IDE/stdio or `pi.cmd` invocation keeps cwd in the project workspace. Exact tools:
+      pi_list_agents, pi_run_agent, pi_parallel_agents, pi_chain_workflow. Pi does not duplicate
+      agentcore-memory, databases, Swarm, or administrative routes. 
       Another host-native direct MCP companion requires a documented Bifrost parity failure, exact
       host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore
       memory, database, Swarm, administrative, or upstream-registry routes. Existing host/plugin
@@ -38,6 +51,42 @@ mandatory_rules:
       material only. Do not inspect, back up, repair, restart, validate, or modify another IDE.
       Cross-IDE reconciliation is a separate AgentCore control-plane task that requires
       explicit operator authorization.
+
+  - id: ide-configuration-provenance
+    title: Per-IDE rule and configuration provenance
+    rule: >-
+      contracts/global-agent-policy.yaml owns shared agent semantics; each
+      ide-profiles/<ide>/IDE_PROFILE.yaml and IDE_CAPABILITY_MATRIX.yaml records that IDE's
+      delivery mechanisms, sanitized current observations, evidence path, and validation status.
+      Render GLOBAL_RULES.md and MCP templates from their owning contracts; never call a template
+      the live configuration or treat an observed direct MCP entry as an approved exception.
+      Record only safe names, transport, enabled state, environment-variable references, hashes,
+      and observation times; never copy live credential-bearing files or application databases
+      into Git. For Cursor, distinguish account-synced User Rules in Customize > Rules (UI-only,
+      unverified until inspected there) from the machine-local global foundation rule at
+      C:\Users\ynotf\.cursor\rules\agentcore-foundation.mdc, project
+      .cursor/rules/*.mdc, and the project-root AGENTS.md.
+      A generated replacement text file is not proof that account User Rules were installed.
+      Refresh the Cursor profile after a verified installation or configuration change without
+      upgrading old runtime/tool-call acceptance evidence merely from file inspection.
+
+  - id: client-trust-classes
+    title: Operator-defined AgentCore client trust classes
+    rule: >-
+      Trust Class A consists exactly of Cursor, Codex, Devin, Antigravity, ZCode,
+      MiniMax coding clients, and Open Interpreter. For these clients, every technically
+      compatible AgentCore-managed engineering capability is discoverable and executable
+      through the builder profile or the client's host-native tools; Code Mode and selective
+      signature loading minimize context without reducing authority. Trust Class A may perform
+      operator-authorized cross-repository, cross-drive, runtime, service, configuration, and
+      deployment work through host-native tools and owning workflows. Existing authority locks,
+      secret handling, database ownership, external-action intent, and the Swarm boundary remain
+      enforceable. Zoo-Code is a separate extension and is not ZCode. Trust Class B retains its
+      ordinary executable profile and discovers the broader catalog through the read-only
+      capability catalog; elevated execution uses the existing operator authority path and fails
+      closed without it. Shared implicit-project servers and whole-drive filesystem MCP roots
+      remain forbidden because they cannot carry trustworthy per-call project identity; this does
+      not restrict authorized Trust Class A host-native filesystem access.
 
   - id: swarm-isolation
     title: Swarm isolation
@@ -96,6 +145,24 @@ mandatory_rules:
       data-only tasks, emergency repair where delegation would increase risk, or when the required
       tool/auth path is unhealthy.
 
+  - id: workstation-parallel-subagents
+    title: Workstation parallel subagent infrastructure (Pi)
+    rule: >-
+      This workstation hosts a Pi parallel subagent engine (machine-local under the user profile
+      `.pi/agent` tree; authority doc docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md;
+      machine spec C:\Users\ynotf\.pi\agent\SWARM_CAPABILITIES.md). It is not the foreign Swarm
+      ecosystem (SwarmClaw/SwarmVault). Prefer host-native `pi-agents` MCP tools or `pi.cmd` when
+      parent-context pollution or parallelism justifies delegation: scout for broad recon and
+      compressed handoffs; planner for read-only multi-step design before edits; worker for bounded
+      mechanical implementation after a plan; reviewer for read-only git-diff quality/security audit;
+      multimodal (MiniMax-M3) for vision/UI/mockup work. Always pass an explicit project cwd bounded
+      to an enrolled repository/worktree on D:. Never write to F:\PostgreSQL18\data, F:\AgentCore,
+      H: (Swarm), or E: backup/archive roots. Never run raw SQL against PostgreSQL 18
+      (127.0.0.1:55433), never create `.env` files, and never invent independent vector/memory
+      stores; durable state stays agentcore-gateway to agentcore-memory. OpenRouter credentials use
+      Windows User-scope OPENROUTER_API_KEY only. Do not enable pi-agents as a Bifrost profile
+      upstream until per-call project cwd injection is proven.
+
   - id: durable-memory-context
     title: Effectively-unbounded durable memory
     rule: >-
@@ -145,11 +212,18 @@ mandatory_rules:
       On restart after an unclean exit: locate the latest open session for the same
       project/client/task, resume it safely, retrieve events after the last projection, rebuild
       startup context, and record a recovery event.
-      Cursor Stage B integrity harness (2026-07-24): project hooks (sessionStart, beforeSubmitPrompt,
-      preToolUse, beforeShellExecution, afterFileEdit, postToolUse, stop) registered via
-      scripts/agentcore_cursor/hook_dispatcher.py; Continue. hard gate and 26/26 acceptance suite PASS
-      (audits/cursor-context/CURSOR_STAGE_B_INTEGRITY_HARNESS_ACCEPTANCE_2026-07-24.md). Hooks fail open
-      on internal errors and never emit followup_message or continual-learning prompts.
+      Cursor Stage B integrity harness: project hooks (sessionStart, beforeSubmitPrompt,
+      preToolUse, beforeShellExecution, afterFileEdit, postToolUse, stop) are registered via
+      scripts/agentcore_cursor/hook_dispatcher.py. beforeSubmitPrompt must always return continue=true
+      and a visible continuity warning when workspace resolution, gateway, memory, continuity,
+      malformed input, or dispatcher work fails; it must never block prompt submission. After
+      workspace resolution and before bootstrap, network I/O, or bootstrap-artifact parsing, it
+      revokes authorization inherited from the prior turn. Malformed or unscoped dispatcher failure
+      sets a global unresolved deny latch. Write-capable tools and
+      mutating or ambiguous shell commands fail closed until durable prompt capture is proven for the
+      current workspace, session, conversation, and generation_id. Read-only tools and shell commands
+      may continue when their non-mutating classification is deterministic. Hooks never emit
+      followup_message or continual-learning prompts.
       Runbook: docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md.
       An IDE is not live_validated if it can see tools but does not complete the full memory
       lifecycle: session_open → startup_context → append_event → retrieve_context →
@@ -218,19 +292,30 @@ mandatory_rules:
   - id: arabold-docs
     title: Arabold exact-version documentation with mandatory local ingest
     rule: >-
-      Use arabold-docs (through the gateway) for exact-version dependency and API documentation
-      before dependency or external-API work. Machine-global store is
-      F:\AgentCore\runtime\docs-store (DOCS_MCP_STORE_PATH plus CATALOG.json plus official snapshots).
-      If library@version is absent from CATALOG.json / list_libraries / find_version, agents MUST
-      scrape_docs the official URL, wait until search_docs succeeds, write or update CATALOG.json and a
-      versioned snapshot under F:\AgentCore\runtime\docs-store\official\library\version\, then
-      answer from the local index. Context7 (gateway only) may answer the current turn for a public
-      library while that scrape job runs; Context7 answers are never the durable local corpus. Do not
-      treat Context7 as a completed ingest. Prefer find_version then scrape_docs over fetch_url for
-      new libraries. Do not scrape private or authenticated docs without approval, Swarm-owned product
-      trees, unrelated sites, latest when the project pin is exact, or a version already catalogued.
-      Pin refreshes only when the lockfile pin moves or a Milestone explicitly accepts a docs refresh.
-      Do not commit the F: store or scraped official corpora to Git.
+      At new-project bootstrap and before nontrivial project work, inventory every
+      direct external dependency in the active project's runtime, development, and build manifests,
+      plus directly used external SDKs, APIs, CLIs, schemas, and protocols. Exclude transitive and
+      project-local packages. Resolve each exact installed or locked version from lockfiles,
+      manifests, contracts, or authority; a version range alone is not an exact pin. Use the
+      current latest stable release only where no exact project version exists, and record the
+      resolved version. For every library@version, use arabold-docs through agentcore-gateway to
+      verify the shared CATALOG.json entry, find_version, and a real search_docs result. Durable
+      official documentation belongs in F:\AgentCore\runtime\docs-store: DOCS_MCP_STORE_PATH at
+      F:\AgentCore\runtime\docs-store\arabold, CATALOG.json, and versioned official snapshots
+      under F:\AgentCore\runtime\docs-store\official\library\version\. On a missing or invalid
+      entry, scrape_docs the official documentation applicable to that exact version, wait for
+      get_job_info to finish and search_docs to return real hits, then update CATALOG.json and the
+      versioned snapshot. Where a publisher has no versioned docs, record the official source and
+      its version limitation; never label unverified latest docs as exact-version coverage. A
+      missing, failed, or unverified ingest blocks work that relies on that dependency; report the
+      blocker and continue only unrelated version-independent work. At session start compare
+      project pins with the lightweight checkpoint; unchanged verified pins do not need re-scraping.
+      Re-ingest only on a changed pin, missing/invalid shared coverage, or an accepted Milestone
+      docs refresh. The project checkpoint records library, exact resolved version, official URL,
+      shared-catalog status, and last verification, not scraped docs; do not commit the F: corpus.
+      Context7 through the gateway may bridge a public-doc question during ingestion but is never
+      local coverage or completion evidence. Do not scrape private/authenticated docs without
+      approval, Swarm-owned product trees, unrelated sites, or registry latest over an exact pin.
 
   - id: tool-audits
     title: Milestone tool audits
@@ -306,13 +391,16 @@ mandatory_rules:
       agents honor it behaviorally.
 
   - id: write-boundaries
-    title: Project/worktree write boundaries
+    title: Trust-aware write boundaries
     rule: >-
-      Write only inside the assigned repo/worktree and role-appropriate runtime roots per
-      docs/DRIVE_WRITE_BOUNDARY_RULE.md. Never expose whole-drive filesystem roots. AgentCore
-      Bifrost/runtime state lives under F:\AgentCore\runtime (current). Never expand AgentCore
-      write authority into H: or E:\Swarm\...; H: is reserved for Swarm after M9 acceptance.
-      Never format or re-provision H:.
+      Trust Class A may write across repositories, drives, runtime roots, and client configuration
+      when the operator's task authorizes that work and the owning authority permits it. The
+      assigned repository remains the default scope, not a blanket host restriction. Trust Class B
+      writes remain limited to its enrolled project/worktree and role-appropriate runtime roots.
+      All classes must follow docs/DRIVE_WRITE_BOUNDARY_RULE.md for ownership, rollback, and
+      destructive actions. Never expose a whole-drive filesystem MCP root. AgentCore runtime state
+      lives under F:\AgentCore\runtime. AgentCore receives no SwarmClaw governance, credential, or
+      write authority; never format or re-provision H:.
 
   - id: local-application-storage
     title: Neutral local-application storage
@@ -349,6 +437,11 @@ mandatory_rules:
       Never pull/fetch/merge/rebase or force-push without explicit operator instruction.
       See docs/GIT_PUSH_ONLY_POLICY.md.
 
+  - id: workstation-package-managers
+    title: Workstation package managers (Windows dual-support)
+    rule: >-
+      This Windows workstation uses dual package-manager support, not a forced monolith. Corepack stays DISABLED: do not run corepack enable, and never put %LOCALAPPDATA%\Corepack\shims on PATH while Node's Corepack package is incomplete (Node 26.x on this PC). Lockfile wins: package-lock.json only → npm; pnpm-lock.yaml → pnpm (via npm-global pnpm under %AppData%\npm); yarn.lock → yarn if installed globally. If both npm and pnpm lockfiles exist, stop and ask. RGDS (D:\github\r3lentless-grind-design-system) and AgentCore design pins (docs/design/m3/package-pins.json) use npm workspaces / npm install --save-exact only — do not migrate them to pnpm mid-release. Preserve PNPM_HOME (%LOCALAPPDATA%\pnpm), the H:\DevCache\pnpm store, and Bifrost MCP launchers that pin %LOCALAPPDATA%\pnpm\bin\node.EXE. packageManager fields are documentation/CI hints on this PC and do not auto-switch versions without Corepack. Publish @r3lentless/* with npm; keep registry tokens in user npmrc / Windows User env — never Git. Authority: docs/operations/WORKSTATION_PACKAGE_MANAGERS.md; repair script: scripts/windows/Repair-WorkstationPackageManagers.ps1.
+
   - id: cursor-prompt-path-format
     title: Cursor prompt path and continuation format
     rule: >-
@@ -374,6 +467,7 @@ forbidden_routes:
   - AgentCore IDE continuity / memory sessions on Swarm-owned projects
   - 'treating H:\AgentRuntime or any H: path as AgentCore final runtime home'
   - port 65432 as a direct AgentCore or IDE route; the neutral Recall service may own that backend only behind agentcore-memory
+  - corepack enable / Corepack shims on PATH while Node Corepack package is incomplete
 
 task_class_gates:
   - tool_name: "agentcore-memory"
@@ -399,10 +493,10 @@ task_class_gates:
     rule: "Use only when a Milestone explicitly requires architecture or code-graph evidence, with an explicit project root."
   - tool_name: "filesystem"
     gate_type: "host_fallback"
-    rule: "Use only when the host lacks adequate native project-file access; restrict access to enrolled project roots, never whole drives or user profiles."
+    rule: "Trust Class A uses host-native filesystem capability for authorized cross-repository and cross-drive engineering. Shared filesystem MCP remains restricted to exact enrolled roots and is dormant until per-call identity is trustworthy; Trust Class B never receives whole-drive or user-profile MCP roots."
   - tool_name: "github"
     gate_type: "on_demand"
-    rule: "Use for remote repository search, issues, pull requests, review, or source provenance; read by default and mutate only inside the assigned repository and task."
+    rule: "Use for remote repository search, issues, pull requests, review, or source provenance. Trust Class A may mutate repositories authorized by the current task; Trust Class B follows its ordinary profile and uses operator authority for elevated mutations."
   - tool_name: "shadcn"
     gate_type: "project_conditional"
     rule: "Use only when the project uses shadcn/ui and needs component discovery, installation, or registry guidance."
@@ -414,10 +508,10 @@ task_class_gates:
     rule: "Use for bounded HTTP reads when browser interaction is unnecessary; never place credentials in URLs and respect allowlisted destinations."
   - tool_name: "wcgw"
     gate_type: "host_fallback"
-    rule: "Use for shell or computer operations only when the host lacks an equivalent native tool, with exact project and command scope."
+    rule: "Use only when the host lacks an equivalent native tool. Trust Class A may execute operator-authorized host and cross-project commands; Trust Class B remains exact-project scoped and requires operator authority for elevated host actions."
   - tool_name: "docker"
     gate_type: "project_conditional"
-    rule: "Use for the owning project's container build, logs, health, or lifecycle work; never expose the Docker socket to untrusted agents or change unrelated containers."
+    rule: "Trust Class A may inspect or manage containers authorized by the current engineering task through the owning workflow. Trust Class B remains owning-project scoped; never expose the Docker socket to untrusted agents."
   - tool_name: "postgresql"
     gate_type: "governed_read_only_facade"
     rule: "Use only through a governed read-only facade for approved schema, status, or query work with explicit database identity; writes stay in the owning migration workflow outside MCP, and IDEs never receive direct credentials."
@@ -439,6 +533,9 @@ task_class_gates:
   - tool_name: "context-fabric"
     gate_type: "mandatory_at_project_gates"
     rule: "Mandatory through the repository-local hook/CLI at project bootstrap and Milestone entry/exit when available; use capture, drift, and health checks. Its shared implicit-project Bifrost client remains dormant. It is non-canonical and is not required for routine Micro steps when no gate is active."
+  - tool_name: "pi-agents"
+    gate_type: "host_companion"
+    rule: "Approved host-native companion for parallel Pi subagents (scout/planner/worker/reviewer/multimodal). Use IDE-local MCP or pi.cmd with explicit enrolled project cwd; keep Bifrost registry entry dormant_project_scoped/enabled=false; never raw SQL, never F:/H:/E: writes, never Swarm routes, never alternate memory stores."
   - tool_name: "docs-guardian"
     gate_type: "mandatory_completion_gate"
     rule: "Mandatory final step after any material change; run foreground (run_in_background:false), reconcile documentation against verified source, and do not mark the task complete while Completion gate is BLOCKED."
@@ -452,3 +549,5 @@ references:
   memory_platform_plan: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
   dormant_mcp_catalog: docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md
   openrouter_mcp_runbook: docs/operations/OPENROUTER_MCP.md
+  workstation_package_managers: docs/operations/WORKSTATION_PACKAGE_MANAGERS.md
+  workstation_parallel_subagents: docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md

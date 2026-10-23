@@ -312,6 +312,13 @@
       "adapter": "stdio_envelope",
       "default_profile": "external",
       "reason": "Interim Framelink PAT stdio MCP; envelope injects outputSchema for get_figma_data."
+    },
+    "pi-agents": {
+      "adapter": "stdio_envelope",
+      "default_profile": "external",
+      "notes": [
+        "Host-native Pi parallel subagent bridge; dormant in Bifrost (enabled=false). Raw subagent output is external_untrusted."
+      ]
     }
   }
 }

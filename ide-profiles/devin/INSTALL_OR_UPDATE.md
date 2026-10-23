@@ -8,15 +8,15 @@ authorization, a timestamped backup, and post-change validation.
 ## Rules delivery
 
 1. Canonical semantics: `contracts/global-agent-policy.yaml` → rendered `ide-profiles/devin/GLOBAL_RULES.md`.
-2. Delivery mechanism for this IDE: no (manual_import) — target: Devin project instructions (.devin/AGENTS.md or project instructions panel; confirm with current Devin docs).
+2. Delivery mechanism for this IDE: no (manual_import) — target: unverified.
 3. If delivery is `manual_import`/`generated_prompt`, hand the rendered GLOBAL_RULES.md content to the operator or paste it via the documented UI path. Do not skip rules silently.
 
 ## MCP configuration
 
 1. Template: `ide-profiles/devin/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/devin.json`).
-2. Live target: `unverified (Devin project settings; typically .devin/mcp.json or project-level MCP config panel)` — exactly one AgentCore entry named `agentcore-gateway`. The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; do not remove it when present and do not infer support when the host cannot run Zoo-Code.
+2. Live target: `C:\Users\ynotf\AppData\Roaming\devin\mcp_config.json` — exactly one AgentCore entry named `agentcore-gateway`. A host-native direct MCP companion is allowed only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback proof, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes. Historical Zoo-Code approval remains subject to this current policy.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
-4. Env handling: unverified — may require literal VK materialization into live project config; never commit resolved secret values.
+4. Env handling: process-attested loopback proxy at http://127.0.0.1:18082/mcp; no bearer stored in live MCP JSON.
 5. Restart behavior: Restart Devin session or start new task after MCP config changes.
 
 ## CLIENT-LOCAL EXECUTION SCOPE

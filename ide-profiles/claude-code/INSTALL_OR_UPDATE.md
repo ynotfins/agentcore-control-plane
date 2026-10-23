@@ -14,7 +14,7 @@ authorization, a timestamped backup, and post-change validation.
 ## MCP configuration
 
 1. Template: `ide-profiles/claude-code/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/claude-code.json`).
-2. Live target: `C:\Users\ynotf\.claude.json` — exactly one AgentCore entry named `agentcore-gateway`. The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; do not remove it when present and do not infer support when the host cannot run Zoo-Code.
+2. Live target: `C:\Users\ynotf\.claude.json` — exactly one AgentCore entry named `agentcore-gateway`. A host-native direct MCP companion is allowed only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback proof, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes. Historical Zoo-Code approval remains subject to this current policy.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
 4. Env handling: supports ${env:VAR} style header expansion (per gateway-client contract).
 5. Restart behavior: restart Claude Code session after config or env-var changes.
