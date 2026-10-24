@@ -37,12 +37,13 @@
         "context7",
         "cursor-agent-mcp",
         "exa-research",
-        "firecrawl-research",
         "figma-framelink-mcp",
+        "firecrawl-research",
         "mcp-debugger",
         "mcp-prompt-optimizer",
         "morph-mcp",
         "nia",
+        "pi-agents",
         "playwright",
         "sequential-thinking",
         "serena",
@@ -4262,15 +4263,13 @@
     },
     "pi-agents": {
       "canonical_id": "pi-agents",
-      "display_name": "Pi Parallel Subagents (Host Companion)",
-      "purpose": "Host-native Pi coding-agent parallel subagent bridge for IDE delegation without polluting parent context.",
+      "display_name": "Pi Parallel Subagents",
+      "purpose": "Project-scoped Pi parallel subagents via HTTP session shim with enrolled cwd injection.",
       "owner": "agentcore",
       "pinned_version": "1.4.0",
-      "connection_type": "stdio",
-      "executable_or_url": "C:\\\\Program Files\\\\nodejs\\\\node.exe",
-      "arguments": [
-        "C:\\\\Users\\\\ynotf\\\\.pi\\\\agent\\\\mcp-bridge\\\\server.mjs"
-      ],
+      "connection_type": "http",
+      "executable_or_url": "http://127.0.0.1:18091/mcp",
+      "arguments": [],
       "env_var_names": [
         "OPENROUTER_API_KEY"
       ],
@@ -4285,7 +4284,9 @@
         "pi_chain_workflow"
       ],
       "denied_tools": [],
-      "capability_profiles": [],
+      "capability_profiles": [
+        "builder"
+      ],
       "logging_policy": {
         "log_invocations": true,
         "log_content": false,
@@ -4298,15 +4299,22 @@
           "spawn_failure"
         ]
       },
-      "rollback_route": "Remove pi-agents from IDE mcp.json; keep registry enabled=false; do not add to capability_profiles.",
-      "enabled": false,
+      "rollback_route": "Set enabled=false; remove pi-agents from builder.allowed_server_ids; re-render; stop listener on 18091. Host-native stdio remains the fallback.",
+      "enabled": true,
       "bifrost_client_name": "pi_agents",
-      "status": "dormant_project_scoped",
+      "status": "active",
       "notes": [
-        "AUTH-2026-10-22-PI-SUBAGENT-PARALLEL-INFRASTRUCTURE: approved host-native companion only. Not enabled as active Bifrost upstream because Bifrost cwd is F:\\AgentCore\\runtime\\bifrost and the Pi bridge defaults to caller cwd or process.cwd().",
+        "AUTH-2026-10-23-PI-BIFROST-HTTP-SHIM: HTTP shim on 127.0.0.1:18091 injects enrolled cwd. Sticky STDIO remains forbidden.",
         "Engine pin: @earendil-works/pi-coding-agent@1.4.0. OPENROUTER_API_KEY from Windows User env only.",
-        "Zero permanent capability_profile grants; IDE operators wire stdio locally when needed.",
+        "Direct-launch only via ops/bifrost/Start-AgentCorePiSessionShim.ps1. No AgentCore-Pi scheduled task.",
         "Not the foreign Swarm ecosystem (SwarmClaw/SwarmVault)."
+      ],
+      "is_code_mode_client": true,
+      "allowed_extra_headers": [
+        "x-agentcore-project",
+        "x-bf-session-id",
+        "x-session-id",
+        "x-bf-vk"
       ]
     }
   }

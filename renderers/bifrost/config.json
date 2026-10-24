@@ -553,6 +553,25 @@
         }
       },
       {
+        "name": "pi_agents",
+        "connection_type": "http",
+        "connection_string": "http://127.0.0.1:18091/mcp",
+        "tools_to_execute": [
+          "pi_list_agents",
+          "pi_run_agent",
+          "pi_parallel_agents",
+          "pi_chain_workflow"
+        ],
+        "auth_type": "none",
+        "is_code_mode_client": true,
+        "allowed_extra_headers": [
+          "x-agentcore-project",
+          "x-bf-session-id",
+          "x-session-id",
+          "x-bf-vk"
+        ]
+      },
+      {
         "name": "playwright",
         "connection_type": "stdio",
         "stdio_config": {
@@ -879,6 +898,15 @@
               "tracer",
               "nia_vault_list",
               "nia_vault_search"
+            ]
+          },
+          {
+            "mcp_client_name": "pi_agents",
+            "tools_to_execute": [
+              "pi_list_agents",
+              "pi_run_agent",
+              "pi_parallel_agents",
+              "pi_chain_workflow"
             ]
           },
           {

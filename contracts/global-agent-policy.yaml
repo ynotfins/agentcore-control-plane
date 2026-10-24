@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-10-22-pi-parallel-subagent-infrastructure-v1"
+policy_revision: "2026-10-23-pi-bifrost-http-shim-v1"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -29,14 +29,12 @@ mandatory_rules:
       and every unresolved, ambiguous, or unapproved caller must fail closed.
       AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT supersedes the Zoo-Code-only limit.
       Zoo-Code/Roo-Code remains a compatible VS Code-family extension, not a Bifrost upstream.
-      Under AUTH-2026-10-22-PI-SUBAGENT-PARALLEL-INFRASTRUCTURE, the workstation Pi MCP bridge
-      (`pi-agents`) is an approved host-native companion for parallel subagent execution. It must
-      not be enabled as an active Bifrost upstream: Bifrost scheduled-task cwd is
-      F:\AgentCore\runtime\bifrost, and the Pi bridge defaults to cwd or process.cwd(), so
-      gateway-spawned runs without an explicit enrolled project cwd would violate drive isolation.
-      Host-native IDE/stdio or `pi.cmd` invocation keeps cwd in the project workspace. Exact tools:
-      pi_list_agents, pi_run_agent, pi_parallel_agents, pi_chain_workflow. Pi does not duplicate
-      agentcore-memory, databases, Swarm, or administrative routes. 
+      Under AUTH-2026-10-23-PI-BIFROST-HTTP-SHIM, governed Pi access is the Bifrost HTTP session shim
+      (`pi-agents` on http://127.0.0.1:18091/mcp via agentcore-gateway). The shim injects the enrolled
+      project cwd per call. Sticky Bifrost STDIO remains forbidden. Host-native IDE/stdio or `pi.cmd`
+      is fallback only when the shim is down. Exact tools: pi_list_agents, pi_run_agent,
+      pi_parallel_agents, pi_chain_workflow. Pi does not duplicate agentcore-memory, databases, Swarm,
+      or administrative routes. 
       Another host-native direct MCP companion requires a documented Bifrost parity failure, exact
       host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore
       memory, database, Swarm, administrative, or upstream-registry routes. Existing host/plugin
@@ -151,7 +149,7 @@ mandatory_rules:
       This workstation hosts a Pi parallel subagent engine (machine-local under the user profile
       `.pi/agent` tree; authority doc docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md;
       machine spec C:\Users\ynotf\.pi\agent\SWARM_CAPABILITIES.md). It is not the foreign Swarm
-      ecosystem (SwarmClaw/SwarmVault). Prefer host-native `pi-agents` MCP tools or `pi.cmd` when
+      ecosystem (SwarmClaw/SwarmVault). Prefer Bifrost `pi-agents` through agentcore-gateway, or host-native `pi.cmd` fallback, when
       parent-context pollution or parallelism justifies delegation: scout for broad recon and
       compressed handoffs; planner for read-only multi-step design before edits; worker for bounded
       mechanical implementation after a plan; reviewer for read-only git-diff quality/security audit;
@@ -160,8 +158,7 @@ mandatory_rules:
       H: (Swarm), or E: backup/archive roots. Never run raw SQL against PostgreSQL 18
       (127.0.0.1:55433), never create `.env` files, and never invent independent vector/memory
       stores; durable state stays agentcore-gateway to agentcore-memory. OpenRouter credentials use
-      Windows User-scope OPENROUTER_API_KEY only. Do not enable pi-agents as a Bifrost profile
-      upstream until per-call project cwd injection is proven.
+      Windows User-scope OPENROUTER_API_KEY only. Do not enable sticky Bifrost STDIO for pi-agents; the HTTP shim is the only approved gateway path.
 
   - id: durable-memory-context
     title: Effectively-unbounded durable memory
@@ -535,7 +532,7 @@ task_class_gates:
     rule: "Mandatory through the repository-local hook/CLI at project bootstrap and Milestone entry/exit when available; use capture, drift, and health checks. Its shared implicit-project Bifrost client remains dormant. It is non-canonical and is not required for routine Micro steps when no gate is active."
   - tool_name: "pi-agents"
     gate_type: "host_companion"
-    rule: "Approved host-native companion for parallel Pi subagents (scout/planner/worker/reviewer/multimodal). Use IDE-local MCP or pi.cmd with explicit enrolled project cwd; keep Bifrost registry entry dormant_project_scoped/enabled=false; never raw SQL, never F:/H:/E: writes, never Swarm routes, never alternate memory stores."
+    rule: "Approved Bifrost HTTP-shim path for parallel Pi subagents (scout/planner/worker/reviewer/multimodal). Use agentcore-gateway pi-agents with x-agentcore-project or agentcore_project; host-native pi.cmd is fallback only; never sticky STDIO, never raw SQL, never F:/H:/E: writes, never Swarm routes, never alternate memory stores."
   - tool_name: "docs-guardian"
     gate_type: "mandatory_completion_gate"
     rule: "Mandatory final step after any material change; run foreground (run_in_background:false), reconcile documentation against verified source, and do not mark the task complete while Completion gate is BLOCKED."

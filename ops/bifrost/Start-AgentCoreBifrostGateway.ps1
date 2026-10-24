@@ -17,7 +17,9 @@ param(
   [ValidateSet('Authenticated', 'Unauthenticated')]
   [string]$TestReadiness = 'Authenticated',
   [switch]$SkipSerenaShim,
-  [switch]$RequireSerenaShim
+  [switch]$RequireSerenaShim,
+  [switch]$SkipPiShim,
+  [switch]$RequirePiShim
 )
 
 $ErrorActionPreference = 'Stop'
@@ -138,6 +140,29 @@ function Test-AuthenticatedGatewayReadiness {
   }
 }
 
+function Ensure-AgentCorePiShimReady {
+  if ($SkipPiShim -or $TestMode) { return }
+  $piStart = Join-Path $PSScriptRoot 'Start-AgentCorePiSessionShim.ps1'
+  if (-not (Test-Path -LiteralPath $piStart -PathType Leaf)) {
+    if ($RequirePiShim) { throw ("Missing Pi shim start script: {0}" -f $piStart) }
+    Write-Host '[Start] Pi shim start script absent; continuing without shim dependency.'
+    return
+  }
+  try {
+    & $piStart -ProbeOnly
+    Write-Host '[Start] Pi shim already ready on 127.0.0.1:18091'
+    return
+  } catch {
+    Write-Host ("[Start] Pi shim probe missed; attempting direct start ({0})" -f $_.Exception.Message)
+  }
+  try {
+    & $piStart
+    Write-Host '[Start] Pi shim readiness ensured on 127.0.0.1:18091'
+  } catch {
+    if ($RequirePiShim) { throw }
+    Write-Host ("[Start] WARN Pi shim start failed; Bifrost start continues: {0}" -f $_.Exception.Message)
+  }
+}
 function Ensure-AgentCoreSerenaShimReady {
   if ($SkipSerenaShim -or $TestMode) { return }
   $serenaStart = Join-Path $PSScriptRoot 'Start-AgentCoreSerenaSessionShim.ps1'
@@ -225,6 +250,7 @@ if ($ProbeOnly) {
   if (-not (Test-AuthenticatedGatewayReadiness)) { throw "Gateway did not reach authenticated readiness on ${HostAddress}:${Port}" }
   Write-Host "[Start] Authenticated gateway readiness confirmed on ${HostAddress}:${Port}"
   Ensure-AgentCoreSerenaShimReady
+  Ensure-AgentCorePiShimReady
   exit 0
 }
 
@@ -237,6 +263,7 @@ if ($TestMode) {
 }
 
 Ensure-AgentCoreSerenaShimReady
+Ensure-AgentCorePiShimReady
 
 $existing = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
   Where-Object { $_.LocalAddress -in @('127.0.0.1', '::1', '0.0.0.0') }

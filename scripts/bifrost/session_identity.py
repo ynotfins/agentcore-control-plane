@@ -21,7 +21,7 @@ ENROLLMENT_CONTRACT = REPO_ROOT / "contracts" / "agentcore-project-enrollment.js
 
 PROJECT_HEADER_NAMES = ("x-agentcore-project", "x-project-key")
 SESSION_HEADER_NAMES = ("x-bf-session-id", "x-session-id")
-PATH_ARG_NAMES = ("relative_path", "path", "project", "project_path", "root_path")
+PATH_ARG_NAMES = ("relative_path", "path", "project", "project_path", "root_path", "cwd")
 RESERVED_IDENTITY_ARG_NAMES = ("agentcore_project", "project_key")
 
 ERROR_NOT_ENROLLED = "PROJECT_NOT_ENROLLED"
@@ -193,6 +193,8 @@ def sanitize_tool_args_for_upstream(
     primary = primary_path.resolve()
     primary_norm = str(primary).lower()
     for name in PATH_ARG_NAMES:
+        if name == "cwd":
+            continue
         raw = sanitized.get(name)
         if not isinstance(raw, str) or not raw.strip():
             continue

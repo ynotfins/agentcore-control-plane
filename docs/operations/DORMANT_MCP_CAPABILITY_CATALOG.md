@@ -73,13 +73,13 @@ It does **not** authorize live IDE configuration changes. Each enrolled IDE keep
 | `depwire-cloud` | `disabled`/`deferred` | `https://api.depwire.dev/mcp` | Bearer | `DEPWIRE_API_KEY` | Cloud connection health gate | `enabled=false` |
 | `brightdata-research` | `catalogued_unverified` (`enabled=false`, profileless) | `@brightdata/mcp@2.11.1` | API token | `BRIGHTDATA_API_KEY` | Disposable-account startup and provider-zone side-effect review | Remain uninstalled, disabled, and profileless |
 | `serena` | `active` via HTTP session shim (`enabled=true`, Code Mode) | `http://127.0.0.1:18090/mcp` (`scripts/bifrost/serena_session_shim.py`) | none | none | Shim must be running; identity via `session_identity.py` default-deny | `enabled=false`; fall back to host-owned Serena |
-| `pi-agents` | `dormant_project_scoped` (`enabled=false`) | `@earendil-works/pi-coding-agent@1.4.0` + host `mcp-bridge/server.mjs` | `OPENROUTER_API_KEY` (User env) | Host-native stdio companion only; **not** in `allowed_server_ids` | `enabled=false`; see `WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md` |
+| `pi-agents` | `active` via HTTP session shim (`enabled=true`, Code Mode, builder) | `http://127.0.0.1:18091/mcp` (`scripts/bifrost/pi_session_shim.py`) | `OPENROUTER_API_KEY` (User env, inherited by Direct-launch child) | Shim must be running; identity via `session_identity.py` default-deny; enrolled cwd injection | `enabled=false` and remove from builder; host-native `pi.cmd` fallback |
 | `filesystem` / `depwire` / `tentra` / `context-fabric` | `dormant_project_scoped` | see registry | — | Phase 3b residual blockers: need per-session identity adapters; stay `enabled=false` | Host-owned Pattern A / repo-local CLI | Remain disabled; see `audits/bifrost/PHASE3B_PROJECT_SCOPED_RESIDUAL_BLOCKERS_2026-09-09.md` |
 
 **OpenRouter current evidence (verified 2026-09-08):** registered once; OAuth authorized + client `connected` (original bind evidence: `audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md`); registry `status` remains `dormant`; lifecycle `authenticated_dormant`; zero permanent builder exposure; JIT bridge proven for discovery (13 tools) + revoke-to-zero. Classification: `contracts/openrouter-tool-manifest.json`. Do not claim IDE model availability from MCP registration; do not add direct OpenRouter MCP IDE entries.
 
 
-**Pi parallel subagents (verified 2026-10-22):** host-native companion under `AUTH-2026-10-22-PI-SUBAGENT-PARALLEL-INFRASTRUCTURE`. Registry stays dormant because Bifrost cwd cannot supply project identity. Not foreign Swarm.
+**Pi parallel subagents (verified 2026-10-23):** Bifrost HTTP shim under `AUTH-2026-10-23-PI-BIFROST-HTTP-SHIM`. Direct-launch only; no scheduled task. Not foreign Swarm.
 **GitHub MCP note:** still deferred (`enabled=false`). Named inventory + Docker daemon health canary required before any enablement. Do not enable in this AUTH window.
 
 ---
