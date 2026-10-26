@@ -67,6 +67,7 @@ SECRET_ENV_NAMES = {
     "BIFROST_MCP_VK_OPERATOR",
     "BIFROST_MCP_VK_CHATGPT",
     "BIFROST_MCP_VK_OPENCLAW",
+    "BIFROST_MCP_VK_RAVEN",
 }
 
 
@@ -499,6 +500,13 @@ def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
             "is_active": True,
             "mcp_configs": profile_mcp_configs(registry, "openclaw"),
         },
+        {
+            "id": "vk-agentcore-raven",
+            "name": "raven",
+            "value": "env.BIFROST_MCP_VK_RAVEN",
+            "is_active": True,
+            "mcp_configs": profile_mcp_configs(registry, "raven"),
+        },
     ]
 
 
@@ -658,6 +666,7 @@ def build_sanitized_sidecar(
             "BIFROST_MCP_VK_OPERATOR",
             "BIFROST_MCP_VK_CHATGPT",
             "BIFROST_MCP_VK_OPENCLAW",
+            "BIFROST_MCP_VK_RAVEN",
         ],
         "oauth_state_note": (
             "Bifrost v2 persists oauth_config_id in config.db and ignores config-file "

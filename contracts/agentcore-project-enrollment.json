@@ -131,6 +131,13 @@
       "path_prefixes": [
         "I:\\LocalApps\\ZCode\\workspace"
       ]
+    },
+    {
+      "project_key": "raven",
+      "name": "Raven",
+      "paths": [
+        "D:\\raven"
+      ]
     }
   ],
   "approved_path_prefix_parents": [

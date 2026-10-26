@@ -1459,6 +1459,103 @@
             ]
           }
         ]
+      },
+      {
+        "id": "vk-agentcore-raven",
+        "name": "raven",
+        "value": "env.BIFROST_MCP_VK_RAVEN",
+        "is_active": true,
+        "mcp_configs": [
+          {
+            "mcp_client_name": "arabold_docs",
+            "tools_to_execute": [
+              "cancel_job",
+              "fetch_url",
+              "find_version",
+              "get_job_info",
+              "list_jobs",
+              "list_libraries",
+              "refresh_version",
+              "remove_docs",
+              "scrape_docs",
+              "search_docs"
+            ]
+          },
+          {
+            "mcp_client_name": "context7",
+            "tools_to_execute": [
+              "resolve-library-id",
+              "query-docs"
+            ]
+          },
+          {
+            "mcp_client_name": "mcp_prompt_optimizer",
+            "tools_to_execute": [
+              "analyze_prompt",
+              "optimize_prompt",
+              "auto_optimize",
+              "get_prompt_template",
+              "advanced_optimize",
+              "get_domain_template",
+              "list_domain_templates"
+            ]
+          },
+          {
+            "mcp_client_name": "morph_mcp",
+            "tools_to_execute": [
+              "edit_file",
+              "codebase_search",
+              "github_codebase_search",
+              "reflex_list",
+              "reflex_predict",
+              "reflex_summary",
+              "reflex_traces"
+            ]
+          },
+          {
+            "mcp_client_name": "playwright",
+            "tools_to_execute": [
+              "browser_click",
+              "browser_close",
+              "browser_console_messages",
+              "browser_drag",
+              "browser_drop",
+              "browser_evaluate",
+              "browser_file_upload",
+              "browser_fill_form",
+              "browser_find",
+              "browser_handle_dialog",
+              "browser_hover",
+              "browser_navigate",
+              "browser_navigate_back",
+              "browser_network_request",
+              "browser_network_requests",
+              "browser_press_key",
+              "browser_resize",
+              "browser_run_code_unsafe",
+              "browser_select_option",
+              "browser_snapshot",
+              "browser_tabs",
+              "browser_take_screenshot",
+              "browser_type",
+              "browser_wait_for"
+            ]
+          },
+          {
+            "mcp_client_name": "sequential_thinking",
+            "tools_to_execute": [
+              "sequentialthinking"
+            ]
+          },
+          {
+            "mcp_client_name": "skills_hub",
+            "tools_to_execute": [
+              "search_skills",
+              "get_skill_detail",
+              "list_installed_skills"
+            ]
+          }
+        ]
       }
     ]
   },
@@ -1521,7 +1618,8 @@
       "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
       "BIFROST_MCP_VK_OPERATOR",
       "BIFROST_MCP_VK_CHATGPT",
-      "BIFROST_MCP_VK_OPENCLAW"
+      "BIFROST_MCP_VK_OPENCLAW",
+      "BIFROST_MCP_VK_RAVEN"
     ],
     "oauth_state_note": "Bifrost v2 persists oauth_config_id in config.db and ignores config-file oauth_config_id. Runtime state file (F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json) present=False; it is runtime-only operator evidence and is never copied into rendered config. oauth_config (public params only) is embedded so the client can be created or reauthorized.",
     "provider_prompt_cache_policy": {

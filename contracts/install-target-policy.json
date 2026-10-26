@@ -62,5 +62,35 @@
       "direct neutral SwarmRecall PG/Meili",
       "inherited global DATABASE_URL"
     ]
+  },
+  "raven": {
+    "project_root": "D:\\raven",
+    "data_root": "I:\\LocalApps\\Raven",
+    "backup_root": "E:\\LocalApps\\Backups\\Raven",
+    "home_env_var": "RAVEN_HOME",
+    "forbidden": [
+      "C:\\Users\\ynotf\\.raven as data root or project enrollment",
+      "C:\\Users\\ynotf\\.dsh as project enrollment",
+      "direct AgentCore PG18",
+      "direct AgentCore PG16 legacy cluster",
+      "direct neutral SwarmRecall PG/Meili",
+      "direct SwarmVault",
+      "direct SwarmClaw"
+    ]
+  },
+  "dify": {
+    "project_root": "not_a_project_enrollment",
+    "data_root": "I:\\LocalApps\\Dify",
+    "backup_root": "E:\\LocalApps\\Backups\\Dify",
+    "notes": [
+      "Docker named volumes plus I:\\LocalApps\\Dify. Not an AgentCore project_key."
+    ],
+    "forbidden": [
+      "C:\\Users\\ynotf\\.dsh as project enrollment",
+      "direct AgentCore PG18",
+      "direct SwarmRecall",
+      "direct SwarmVault",
+      "direct SwarmClaw"
+    ]
   }
 }

@@ -115,7 +115,8 @@
             "zoo_code_mcp_json",
             "zcode_mcp_json",
             "openclaw_json",
-            "skip_openclaw"
+            "skip_openclaw",
+            "raven_pending"
           ]
         },
         "supports_env_headers": { "type": "boolean" },

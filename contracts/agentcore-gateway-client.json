@@ -262,6 +262,23 @@
         "No ClawX-native MCP configuration path or skill-delivery mechanism is certified; keep the host unverified until exact evidence exists.",
         "Do not inspect or edit secret-bearing live OpenClaw state during repository-only alignment."
       ]
+    },
+    "raven": {
+      "enabled": true,
+      "config_path": "not_applicable_raven_mcp_schema_pending_install",
+      "syntax": "raven_pending",
+      "supports_env_headers": true,
+      "gateway_url": "http://127.0.0.1:8080/mcp",
+      "gateway_auth_mode": "bearer_env",
+      "notes": [
+        "Enabled AgentCore-managed client with a dedicated raven capability profile and User-scope BIFROST_MCP_VK_RAVEN.",
+        "Preferred live route: http://127.0.0.1:8080/mcp with Authorization: Bearer ${BIFROST_MCP_VK_RAVEN}. Never write the resolved key into Git or Raven config.",
+        "supports_env_headers is the preferred posture pending Raven MCP schema verification at install. If Raven cannot expand env headers, do not paste a key; the process-attested :18082 path would be required after Raven.exe identity is known. Raven is not Trust Class A.",
+        "Exactly one MCP entry: agentcore-gateway. No raw OpenRouter MCP, no Swarm, no Bifrost admin, no agentcore-project-router, no cursor-agent-mcp.",
+        "C:\\Users\\ynotf\\.raven is not the data root and must not be enrolled. Durable Raven data is I:\\LocalApps\\Raven via RAVEN_HOME. Durable Dify data is I:\\LocalApps\\Dify plus Docker named volumes. Backups: E:\\LocalApps\\Backups\\Raven and E:\\LocalApps\\Backups\\Dify.",
+        "C:\\Users\\ynotf\\.dsh must not be enrolled.",
+        "Raven uses local EverOS memory. Do not attach Raven to AgentCore PG18, SwarmRecall, SwarmVault, or SwarmClaw."
+      ]
     }
   },
   "notes": [
@@ -271,6 +288,8 @@
     "The OpenClaw product root is D:\\github\\open--claw and Windows operations root is D:\\openclaw; never enroll C:\\Users\\ynotf\\.openclaw as a project.",
     "Swarm product installs remain untouched; Swarm MCP entries are removed from non-Swarm IDE baselines during cutover.",
     "Never commit resolved virtual key values.",
-    "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT supersedes the Zoo-Code-only limit: a host-native direct MCP companion requires a documented Bifrost parity failure, exact host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes."
+    "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT supersedes the Zoo-Code-only limit: a host-native direct MCP companion requires a documented Bifrost parity failure, exact host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes.",
+    "Raven is an enabled dedicated-profile client on http://127.0.0.1:8080/mcp with BIFROST_MCP_VK_RAVEN; it is not Trust Class A.",
+    "Never enroll C:\\Users\\ynotf\\.raven or C:\\Users\\ynotf\\.dsh; Raven data root is I:\\LocalApps\\Raven."
   ]
 }

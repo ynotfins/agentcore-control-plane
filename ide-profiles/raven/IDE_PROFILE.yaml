@@ -1,0 +1,52 @@
+ide_id: raven
+display_name: Raven
+installed_version: pending_install
+ownership: agentcore
+governed_product_root: 'D:\raven'
+data_root: 'I:\LocalApps\Raven'
+excluded_live_state_root: 'C:\Users\ynotf\.raven'
+installation_mode: pending_install
+rule_mechanism: pending_raven_mcp_schema
+mcp_schema: raven_pending
+mcp_transport: streamable-http
+env_var_handling: preferred-dollar-brace-expansion
+restart_behavior: pending_install
+editability:
+  global_rules: pending_install
+  project_rules: pending_install
+  mcp_config: pending_install
+certification: source_ready
+notes:
+  - Raven is an AgentCore-managed project and governed agentcore-gateway client, not Trust Class A.
+  - Durable data is I:\LocalApps\Raven via RAVEN_HOME. C:\Users\ynotf\.raven is not the data root and must not be enrolled.
+  - C:\Users\ynotf\.dsh must not be enrolled.
+  - Raven uses local EverOS memory. Do not attach AgentCore PG18, SwarmRecall, SwarmVault, or SwarmClaw.
+  - Use one agentcore-gateway entry at http://127.0.0.1:8080/mcp with Authorization Bearer ${BIFROST_MCP_VK_RAVEN}.
+  - If Raven cannot expand env headers, do not paste a key. The process-attested :18082 path would be required after Raven.exe identity is known.
+  - Live enrollment remains unverified until install and schema verification.
+dimensions:
+  application_launch:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  gateway_configuration:
+    status: source_ready
+    evidence_path: ide-profiles/raven/MCP_CONFIG_TEMPLATE.json
+    evidence_ts: '2026-10-26T00:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  native_memory_lifecycle:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  persistence_after_restart:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null

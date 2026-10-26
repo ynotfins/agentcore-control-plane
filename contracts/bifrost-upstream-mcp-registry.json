@@ -152,6 +152,26 @@
         "Dedicated virtual key: env.BIFROST_MCP_VK_OPENCLAW",
         "Excludes agentcore-project-router and cursor-agent-mcp."
       ]
+    },
+    "raven": {
+      "display_name": "Raven",
+      "purpose": "Dedicated AgentCore gateway surface for the Raven client without AgentCore or Swarm memory attachment.",
+      "allowed_server_ids": [
+        "arabold-docs",
+        "context7",
+        "mcp-prompt-optimizer",
+        "morph-mcp",
+        "playwright",
+        "sequential-thinking",
+        "skills-hub"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Dedicated virtual key: env.BIFROST_MCP_VK_RAVEN",
+        "OpenClaw-shaped exclusions: no agentcore-project-router, no cursor-agent-mcp, no Bifrost admin, no raw OpenRouter MCP, no Swarm.",
+        "Raven uses local EverOS memory. This profile excludes agentcore-memory and must not attach Raven to AgentCore PG18, SwarmRecall, SwarmVault, or SwarmClaw.",
+        "Not Trust Class A."
+      ]
     }
   },
   "servers": {
@@ -312,7 +332,8 @@
         "database-validator",
         "operator",
         "chatgpt",
-        "openclaw"
+        "openclaw",
+        "raven"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -540,7 +561,8 @@
         "reviewer",
         "docs-knowledge",
         "chatgpt",
-        "openclaw"
+        "openclaw",
+        "raven"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -726,7 +748,8 @@
       "denied_tools": [],
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "openclaw",
+        "raven"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -1347,7 +1370,8 @@
       },
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "openclaw",
+        "raven"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -2102,7 +2126,8 @@
       "capability_profiles": [
         "builder",
         "chatgpt",
-        "openclaw"
+        "openclaw",
+        "raven"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -2612,7 +2637,8 @@
       "denied_tools": [],
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "openclaw",
+        "raven"
       ],
       "is_code_mode_client": true,
       "logging_policy": {
@@ -3161,7 +3187,8 @@
         "docs-knowledge",
         "reviewer",
         "operator",
-        "openclaw"
+        "openclaw",
+        "raven"
       ],
       "logging_policy": {
         "log_invocations": true,
