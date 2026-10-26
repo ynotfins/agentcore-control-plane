@@ -172,6 +172,8 @@ function Get-Targets {
       'antigravity-alternate' = 'antigravity\mcp.json'
       zcode = 'zcode\config.json'
       minimax = 'minimax\mcp.json'
+      eigent = 'eigent\mcp.json'
+      zed = 'zed\settings.json'
       'open-interpreter-desktop' = 'open-interpreter-desktop\config.json'
       'open-interpreter-cli' = 'open-interpreter-cli\config.toml'
     }
@@ -198,9 +200,12 @@ function Get-Targets {
     (New-Target 'antigravity-primary' 'C:\Users\ynotf\.gemini\config\mcp_config.json' 'json'),
     (New-Target 'antigravity-alternate' 'C:\Users\ynotf\AppData\Roaming\Antigravity IDE\User\mcp.json' 'json'),
     (New-Target 'zcode' 'C:\Users\ynotf\.zcode\cli\config.json' 'json'),
-    (New-Target 'minimax' 'C:\Users\ynotf\.minimax\mcp\mcp.json' 'json'),
+    (New-Target 'minimax' 'C:\Users\ynotf\.minimax\mcp.json' 'json'),
+    (New-Target 'eigent' 'C:\Users\ynotf\.eigent\mcp.json' 'json'),
+    (New-Target 'zed' 'C:\Users\ynotf\AppData\Roaming\Zed\settings.json' 'json'),
     (New-Target 'open-interpreter-desktop' 'C:\Users\ynotf\AppData\Roaming\interpreter\config.json' 'json'),
-    (New-Target 'open-interpreter-cli' 'C:\Users\ynotf\.openinterpreter\config.toml' 'toml')
+    (New-Target 'open-interpreter-cli' 'C:\Users\ynotf\.openinterpreter\config.toml' 'toml'),
+    (New-Target 'opencode' 'C:\Users\ynotf\.config\opencode\opencode.json' 'json')
   )
 }
 
@@ -218,14 +223,15 @@ function Get-ReconciledJson([string]$Client, $Config, [string]$Original, [string
   switch ($Client) {
     'cursor' {
       Assert-Hashtable $Config.mcpServers 'cursor mcpServers'
-      if ($Config.mcpServers.Count -ne 1 -or -not $Config.mcpServers.Contains('agentcore-gateway')) {
-        throw 'Cursor must contain exactly one agentcore-gateway MCP server.'
+      if (-not $Config.mcpServers.Contains('agentcore-gateway')) {
+        throw 'Cursor must contain an agentcore-gateway MCP server.'
       }
       $gateway = $Config.mcpServers['agentcore-gateway']
       Assert-GatewayUrl $gateway 'url' 'Cursor'
       if ([string]$gateway.headers.Authorization -ne 'Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}') {
         throw 'Cursor agentcore-gateway must use the approved environment reference.'
       }
+      # Cursor may retain evidence-gated companion MCP entries; this reconciler never mutates them.
       return $Original
     }
     'devin' {
@@ -238,6 +244,35 @@ function Get-ReconciledJson([string]$Client, $Config, [string]$Original, [string
       [void]$gateway.Remove('headers')
       return Get-JsonText $Config
     }
+    'eigent' {
+      Assert-Hashtable $Config.mcpServers 'Eigent mcpServers'
+      $existingClaude = $Config.mcpServers['claude-context']
+      $servers = [ordered]@{
+        'agentcore-gateway' = [ordered]@{
+          url = $CompatGatewayUrl
+          timeout = 300
+        }
+      }
+      if ($null -ne $existingClaude) {
+        $servers['claude-context'] = $existingClaude
+      }
+      $Config.mcpServers = $servers
+      return Get-JsonText $Config
+    }
+    'zed' {
+      Assert-Hashtable $Config.context_servers 'Zed context_servers'
+      $existingClaude = $Config.context_servers['claude-context']
+      $servers = [ordered]@{
+        'agentcore-gateway' = [ordered]@{
+          url = $CompatGatewayUrl
+        }
+      }
+      if ($null -ne $existingClaude) {
+        $servers['claude-context'] = $existingClaude
+      }
+      $Config.context_servers = $servers
+      return Get-JsonText $Config
+    }
     { $_ -in @('antigravity-primary', 'antigravity-alternate') } {
       Assert-Hashtable $Config.mcpServers "$Client mcpServers"
       $gateway = $Config.mcpServers['agentcore-gateway']
@@ -248,41 +283,69 @@ function Get-ReconciledJson([string]$Client, $Config, [string]$Original, [string
     'zcode' {
       Assert-Hashtable $Config.mcp 'ZCode mcp'
       Assert-Hashtable $Config.mcp.servers 'ZCode mcp.servers'
-      $existingClaude = $Config.mcp.servers['claude-context']
-      $servers = [ordered]@{
-        'agentcore-gateway' = [ordered]@{
-          type = 'http'
-          url = $CompatGatewayUrl
-          timeoutMs = 300000
-          enabled = $true
-        }
+      if (-not $Config.mcp.servers.Contains('agentcore-gateway')) {
+        throw 'ZCode must contain an agentcore-gateway MCP server.'
       }
-      if ($null -ne $existingClaude) {
-        $servers['claude-context'] = $existingClaude
+      $gateway = $Config.mcp.servers['agentcore-gateway']
+      Assert-Hashtable $gateway 'ZCode agentcore-gateway'
+      $alreadyClean = (
+        [string]$gateway.type -eq 'http' -and
+        [string]$gateway.url -eq $CompatGatewayUrl -and
+        [string]$gateway.timeoutMs -eq '300000' -and
+        ($gateway.enabled -eq $true) -and
+        -not $gateway.Contains('headers')
+      )
+      if ($alreadyClean) {
+        return $Original
       }
-      $Config.mcp.servers = $servers
+      $Config.mcp.servers['agentcore-gateway'] = [ordered]@{
+        type = 'http'
+        url = $CompatGatewayUrl
+        timeoutMs = 300000
+        enabled = $true
+      }
+      # Preserve non-AgentCore companions (claude-context, figma, etc.).
       return Get-JsonText $Config
     }
     'minimax' {
       Assert-Hashtable $Config.mcpServers 'MiniMax mcpServers'
-      foreach ($name in @('matrix', 'cu', 'trash', 'agentcore-gateway')) {
-        if (-not $Config.mcpServers.Contains($name)) {
-          throw "MiniMax is missing required MCP server: $name"
-        }
+      # The effective MiniMax Code MCP config is C:\Users\ynotf\.minimax\mcp.json. The
+      # matrix, cu and trash servers are application builtins merged at runtime, so only
+      # agentcore-gateway is required to be present in the file itself.
+      if (-not $Config.mcpServers.Contains('agentcore-gateway')) {
+        throw 'MiniMax must contain an agentcore-gateway MCP server.'
       }
       $gateway = $Config.mcpServers['agentcore-gateway']
       $gateway.url = $CompatGatewayUrl
+      # MiniMax reads the MCP server timeout field in milliseconds; 300000 ms matches the
+      # contract timeout_seconds=300 and governs the uncapped settings-panel connect path.
+      $gateway.timeout = 300000
+      $gateway.enabled = $true
       [void]$gateway.Remove('headers')
       return Get-JsonText $Config
     }
     'open-interpreter-desktop' {
       Assert-Hashtable $Config.mcpServers 'Open Interpreter desktop mcpServers'
-      if ($Config.mcpServers.Count -ne 1 -or -not $Config.mcpServers.Contains('agentcore-gateway')) {
-        throw 'Open Interpreter desktop must contain exactly one agentcore-gateway MCP server.'
+      if (-not $Config.mcpServers.Contains('agentcore-gateway')) {
+        throw 'Open Interpreter desktop must contain an agentcore-gateway MCP server.'
       }
       $gateway = $Config.mcpServers['agentcore-gateway']
       $gateway.url = $CompatGatewayUrl
       [void]$gateway.Remove('headers')
+      # Preserve non-AgentCore companion MCP entries (for example GitHub).
+      return Get-JsonText $Config
+    }
+    'opencode' {
+      Assert-Hashtable $Config.mcp 'OpenCode mcp'
+      Assert-Hashtable $Config.mcp.servers 'OpenCode mcp.servers'
+      if (-not $Config.mcp.servers.Contains('agentcore-gateway')) {
+        throw 'OpenCode must contain an agentcore-gateway MCP server.'
+      }
+      $Config.mcp.servers['agentcore-gateway'] = [ordered]@{
+        type = 'remote'
+        url = $CompatGatewayUrl
+        enabled = $true
+      }
       return Get-JsonText $Config
     }
     default { throw "Unsupported JSON client: $Client" }

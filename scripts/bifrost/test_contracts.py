@@ -163,24 +163,26 @@ def main() -> int:
     matrix = yaml.safe_load(read("ide-profiles/IDE_CAPABILITY_MATRIX.yaml"))
     check(
         "ide:priority ordering truthful",
-        list((matrix.get("managed_ides") or {}).keys())[:2] == ["zed", "eigent"]
-        and matrix["managed_ides"]["zed"]["m8_enrollment"] == "unsupported_with_reason"
-        and matrix["managed_ides"]["eigent"]["m8_enrollment"] == "unsupported_with_reason",
+        list((matrix.get("managed_ides") or {}).keys())[:2] == ["zed", "eigent"],
     )
     zed_renderer = json.loads(read("renderers/gateway-clients/zed.json"))
     eigent_renderer = json.loads(read("renderers/gateway-clients/eigent.json"))
     antigravity_renderer = json.loads(read("renderers/gateway-clients/antigravity.json"))
+    zed_gateway = (zed_renderer.get("context_servers") or {}).get("agentcore-gateway") or {}
+    eigent_gateway = (eigent_renderer.get("mcpServers") or {}).get("agentcore-gateway") or {}
     check(
-        "ide:zed renderer intentionally inactive",
-        zed_renderer.get("context_servers") == {}
-        and zed_renderer.get("_agentcore", {}).get("gateway_enrollment_status") == "unsupported_with_reason"
-        and zed_renderer.get("_agentcore", {}).get("active_template") is False,
+        "ide:zed renderer Trust Class A active",
+        zed_gateway.get("url") == "http://127.0.0.1:18082/mcp"
+        and "headers" not in zed_gateway
+        and zed_renderer.get("_agentcore", {}).get("gateway_auth_mode") == "process_attested_proxy"
+        and zed_renderer.get("_agentcore", {}).get("active_template") is True,
     )
     check(
-        "ide:eigent renderer intentionally inactive",
-        eigent_renderer.get("mcpServers") == {}
-        and eigent_renderer.get("_agentcore", {}).get("gateway_enrollment_status") == "unsupported_with_reason"
-        and eigent_renderer.get("_agentcore", {}).get("active_template") is False,
+        "ide:eigent renderer Trust Class A active",
+        eigent_gateway.get("url") == "http://127.0.0.1:18082/mcp"
+        and "headers" not in eigent_gateway
+        and eigent_renderer.get("_agentcore", {}).get("gateway_auth_mode") == "process_attested_proxy"
+        and eigent_renderer.get("_agentcore", {}).get("active_template") is True,
     )
     antigravity_gateway = antigravity_renderer["mcpServers"]["agentcore-gateway"]
     check(
@@ -206,6 +208,53 @@ def main() -> int:
         "ide:antigravity renderer symbolic secret only",
         "headers" not in antigravity_gateway
         and "BIFROST_MCP_VIRTUAL_KEY" not in json.dumps(antigravity_gateway),
+    )
+    # MiniMax Code reads the MCP timeout field in milliseconds and floors it at 2000 ms.
+    # A cold connect through the process-attested proxy needs about 3500 ms, so a
+    # sub-10 s value aborts the agent-turn tool catalog build before the gateway binds.
+    # The agent-turn discovery path caps HTTP connects at 2000 ms regardless of this
+    # value, so the timeout governs the uncapped settings-panel connect path; the
+    # assertion below keeps the configured value sane and consistent everywhere.
+    minimax_timeout_floor_ms = 10000
+    minimax_renderer = json.loads(read("renderers/gateway-clients/minimax.json"))
+    minimax_template = json.loads(read("ide-profiles/minimax/MCP_CONFIG_TEMPLATE.json"))
+    minimax_contract = json.loads(read("contracts/agentcore-gateway-client.json"))
+    minimax_renderer_gateway = (minimax_renderer.get("mcpServers") or {}).get("agentcore-gateway") or {}
+    minimax_template_gateway = (minimax_template.get("mcpServers") or {}).get("agentcore-gateway") or {}
+    minimax_hint = (minimax_contract.get("client_render_hints") or {}).get("minimax") or {}
+    minimax_timeout = minimax_hint.get("connect_timeout_ms")
+    check(
+        "ide:minimax renderer connect timeout is milliseconds",
+        minimax_renderer_gateway.get("timeout", 0) >= minimax_timeout_floor_ms
+        and minimax_renderer.get("_agentcore", {}).get("timeout_unit") == "milliseconds"
+        and minimax_renderer_gateway.get("url") == "http://127.0.0.1:18082/mcp"
+        and "headers" not in minimax_renderer_gateway,
+    )
+    check(
+        "ide:minimax template connect timeout is milliseconds",
+        minimax_template_gateway.get("timeout", 0) >= minimax_timeout_floor_ms
+        and minimax_template_gateway.get("url") == "http://127.0.0.1:18082/mcp"
+        and "headers" not in minimax_template_gateway,
+    )
+    check(
+        "contract:minimax connect timeout agrees with renderer and template",
+        isinstance(minimax_timeout, int)
+        and minimax_timeout >= minimax_timeout_floor_ms
+        and minimax_timeout == minimax_renderer_gateway.get("timeout")
+        and minimax_timeout == minimax_template_gateway.get("timeout"),
+    )
+    check(
+        "contract:minimax config path is the effective MCP config file",
+        minimax_hint.get("config_path") == r"C:\Users\ynotf\.minimax\mcp.json"
+        and r"C:\Users\ynotf\.minimax\mcp\mcp.json"
+        in (minimax_hint.get("alternate_config_paths") or []),
+    )
+    reconciler_source = read("ops/bifrost/Reconcile-AgentCoreTrustAClients.ps1")
+    reconciler_timeout = re.search(r"\$gateway\.timeout\s*=\s*(\d+)", reconciler_source)
+    check(
+        "ops:minimax reconcile enforces the millisecond connect timeout",
+        reconciler_timeout is not None
+        and int(reconciler_timeout.group(1)) == minimax_timeout,
     )
     valid_modes = {"direct_write", "generated_prompt", "manual_import", "unsupported", "unverified"}
     for profile_dir in sorted(profile_dirs):

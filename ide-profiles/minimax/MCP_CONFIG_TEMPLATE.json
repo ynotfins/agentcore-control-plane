@@ -2,11 +2,8 @@
   "mcpServers": {
     "agentcore-gateway": {
       "type": "streamable-http",
-      "url": "http://127.0.0.1:8080/mcp",
-      "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-      },
-      "timeout": 300,
+      "url": "http://127.0.0.1:18082/mcp",
+      "timeout": 300000,
       "enabled": true,
       "configured": true
     }
@@ -15,6 +12,6 @@
     "renderer": "minimax",
     "source_contract": "contracts/agentcore-gateway-client.json"
   },
-  "_template_note": "Prefer streamable-http (MiniMax daemon uses Streamable HTTP). If live connection returns 401 virtual-key-required, MiniMax did not expand ${env:BIFROST_MCP_VIRTUAL_KEY} — materialize the User-scope VK into Authorization for the live mcp.json only (never commit the materialized value).",
+  "_template_note": "MiniMax uses the Bifrost-owned process-attested loopback proxy. Do not add an Authorization header or store a virtual key in this file. MiniMax reads the MCP server timeout field in milliseconds, so timeout must be 300000 ms. The agent-turn tool discovery path caps HTTP connects at 2000 ms regardless of this value.",
   "_cli_limitation": "PATH wrappers mavis.cmd/minimax.cmd point at nonexistent resources/resources/daemon/cli.js on MiniMax Code 3.0.53.91 — CLI route unsupported; use in-app mcp.json only."
 }

@@ -1,16 +1,16 @@
 {
   "mcpServers": {
     "agentcore-gateway": {
-      "type": "http",
-      "url": "http://127.0.0.1:8080/mcp",
-      "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-      },
-      "timeout": 300
+      "type": "streamable-http",
+      "url": "http://127.0.0.1:18082/mcp",
+      "timeout": 300000
     }
   },
   "_agentcore": {
     "renderer": "minimax",
-    "source_contract": "contracts/agentcore-gateway-client.json"
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "auth_mode": "process_attested_proxy",
+    "timeout_unit": "milliseconds",
+    "timeout_note": "MiniMax Code reads the MCP server timeout field in milliseconds, so the live value must stay at 300000 ms. The agent-turn tool discovery path caps HTTP connects at 2000 ms regardless of this value, so this timeout governs the uncapped settings-panel connect path only."
   }
 }

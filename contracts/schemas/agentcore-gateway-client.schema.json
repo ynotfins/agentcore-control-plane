@@ -113,10 +113,25 @@
             "devin_mcp_json",
             "opencode_jsonc",
             "zoo_code_mcp_json",
+            "zcode_mcp_json",
+            "openclaw_json",
             "skip_openclaw"
           ]
         },
         "supports_env_headers": { "type": "boolean" },
+        "gateway_url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/mcp$"
+        },
+        "gateway_auth_mode": {
+          "type": "string",
+          "enum": ["bearer_env", "process_attested_proxy", "live_materialized", "unverified"]
+        },
+        "connect_timeout_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 3600000
+        },
         "notes": {
           "type": "array",
           "items": { "type": "string" }

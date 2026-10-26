@@ -19,11 +19,14 @@
       "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Zed\\settings.json",
       "syntax": "zed_settings_json",
       "supports_env_headers": false,
+      "gateway_url": "http://127.0.0.1:18082/mcp",
+      "gateway_auth_mode": "process_attested_proxy",
       "notes": [
-        "Managed priority client; installed Zed 1.13.2 is verified, but AgentCore gateway enrollment and native memory lifecycle remain awaiting_operator_import until live proof exists",
-        "Zed remote MCP is configured under context_servers with url and headers",
-        "Zed does not document ${env:VAR} expansion in remote MCP headers; a governed live installer must materialize BIFROST_MCP_VIRTUAL_KEY from the Windows User environment into the live settings only",
-        "Zed personal instructions live at C:\\Users\\ynotf\\AppData\\Roaming\\Zed\\AGENTS.md and global skills share C:\\Users\\ynotf\\.agents\\skills"
+        "Managed priority client; installed Zed under %LOCALAPPDATA%\\Programs\\Zed\\Zed.exe is Trust Class A via the process-attested loopback proxy.",
+        "Zed remote MCP is configured under context_servers with url and no headers; never paste or persist an AgentCore virtual key.",
+        "Zed personal instructions live at C:\\Users\\ynotf\\AppData\\Roaming\\Zed\\AGENTS.md and global skills share C:\\Users\\ynotf\\.agents\\skills",
+        "A prior live Zed entry using a credential-bearing configuration is legacy drift; current enrollment is headerless :18082 only.",
+        "Live reconciliation uses ops/bifrost/Reconcile-AgentCoreTrustAClients.ps1 and never commits the resolved value."
       ]
     },
     "eigent": {
@@ -31,11 +34,14 @@
       "config_path": "C:\\Users\\ynotf\\.eigent\\mcp.json",
       "syntax": "eigent_mcp_json",
       "supports_env_headers": false,
+      "gateway_url": "http://127.0.0.1:18082/mcp",
+      "gateway_auth_mode": "process_attested_proxy",
       "notes": [
-        "Managed priority client; installed Eigent 1.0.2 is verified, but AgentCore gateway enrollment and native memory lifecycle remain awaiting_operator_import until live proof exists",
+        "Managed priority client; installed Eigent under %LOCALAPPDATA%\\Programs\\Eigent\\Eigent.exe is Trust Class A via the process-attested loopback proxy.",
         "Eigent persists standard mcpServers configuration at C:\\Users\\ynotf\\.eigent\\mcp.json and uses CAMEL MCPToolkit for remote URL connections",
-        "No environment-placeholder expansion is evidenced in the installed Eigent/CAMEL configuration path; a governed live installer must materialize BIFROST_MCP_VIRTUAL_KEY from the Windows User environment into the live file only",
-        "Eigent native skills live at C:\\Users\\ynotf\\.eigent\\skills; skill availability does not prove always-on global-rule delivery"
+        "Eigent native skills live at C:\\Users\\ynotf\\.eigent\\skills; skill availability does not prove always-on global-rule delivery",
+        "A prior live Eigent entry using a credential-bearing configuration is legacy drift; current enrollment is headerless :18082 only.",
+        "Live reconciliation uses ops/bifrost/Reconcile-AgentCoreTrustAClients.ps1 and never commits the resolved value."
       ]
     },
     "cursor": {
@@ -68,36 +74,51 @@
       ]
     },
     "claude-desktop": {
-      "enabled": true,
+      "enabled": false,
       "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Claude\\claude_desktop_config.json",
       "syntax": "claude_desktop_json",
       "supports_env_headers": false,
       "notes": [
-        "If env expansion unsupported, cutover may materialize VK from User env into live config only"
-      ]
+        "Claude Desktop has no approved environment-backed header expansion or process-attested AgentCore route. AgentCore gateway enrollment is unsupported/unverified until a credential-free, native-token, or scoped-broker path is approved.",
+        "A prior credential-bearing Claude Desktop entry was recorded on 2026-07-16. That state is legacy drift, not an approved current enrollment instruction; this task does not inspect or mutate it.",
+        "Never paste or persist an AgentCore virtual key in this client."
+      ],
+      "gateway_auth_mode": "unverified"
     },
     "minimax": {
       "enabled": true,
-      "config_path": "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json",
+      "config_path": "C:\\Users\\ynotf\\.minimax\\mcp.json",
+      "alternate_config_paths": [
+        "C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json"
+      ],
       "syntax": "minimax_mcp_json",
-      "supports_env_headers": true,
+      "supports_env_headers": false,
+      "gateway_url": "http://127.0.0.1:18082/mcp",
+      "gateway_auth_mode": "process_attested_proxy",
+      "connect_timeout_ms": 300000,
       "notes": [
         "MiniMax Code (D:\\Apps\\MiniMax Code or C:\\Users\\ynotf\\AppData\\Local\\Programs\\MiniMax Code)",
         "C:\\Users\\ynotf\\.mavis is a junction to C:\\Users\\ynotf\\.minimax (same MiniMax Code data root); not a separate Mavis application install",
-        "MiniMax Agent Classic is a separate product with its own profile (minimax-classic)"
+        "MiniMax Agent Classic is a separate product with its own profile (minimax-classic)",
+        "MiniMax Code uses the process-attested loopback builder compatibility proxy at http://127.0.0.1:18082/mcp so no virtual key is stored in its live JSON; unresolved or unapproved callers fail closed.",
+        "The effective MiniMax Code MCP server config file is C:\\Users\\ynotf\\.minimax\\mcp.json (LocalMcpService filePath = join(dataDir,'mcp.json')); C:\\Users\\ynotf\\.minimax\\mcp\\mcp.json is legacy and is read only to hide legacy proxy skill names, so it is listed as an alternate path and is not the reconciliation target.",
+        "MiniMax Code reads the MCP server timeout field in milliseconds, so connect_timeout_ms is expressed in milliseconds and 300000 ms is the value written to the live file.",
+        "MiniMax Code's agent-turn tool discovery caps the HTTP connect budget at 2000 ms (listToolsForTurn uses Math.min(configuredTimeout, turnDiscoveryTimeoutMs ?? 2000) and turnDiscoveryTimeoutMs is never assigned), so no timeout value can make the agent-turn catalog build exceed 2 s. The uncapped settings-panel test path honors 300000 ms. Binding the gateway tools in an agent session therefore also requires the process-attested proxy cold connect to fit inside 2 s."
       ]
     },
     "minimax-classic": {
-      "enabled": true,
+      "enabled": false,
       "config_path": "C:\\Users\\ynotf\\.minimax-agent\\AGENT.md",
       "syntax": "matrix_cloud_custom_mcp",
       "supports_env_headers": false,
       "notes": [
         "MiniMax Agent Classic App ID com.minimax.agent-classic",
         "Executable D:\\Apps\\MiniMaxAgent-Classic\\MiniMax Agent.exe with --user-data-dir=C:\\Users\\ynotf\\AppData\\Roaming\\MiniMaxAgent-Classic",
-        "No local mcp.json; enroll agentcore-gateway via Matrix cloud custom MCP UI per ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md",
-        "Materialize BIFROST_MCP_VIRTUAL_KEY bearer in protected live UI only"
-      ]
+        "MiniMax Agent Classic has no approved credential-free, native-token, environment-backed, or scoped-broker AgentCore route. AgentCore gateway enrollment is unsupported/unverified until a credential-free, native-token, or scoped-broker path is approved.",
+        "MiniMax Agent Classic enrollment was pending and no approved secure credential path was completed. Do not create a cloud custom-MCP entry for AgentCore until a governed secure route is approved.",
+        "Never paste or persist an AgentCore virtual key in this client."
+      ],
+      "gateway_auth_mode": "unverified"
     },
     "antigravity": {
       "enabled": true,
@@ -107,10 +128,25 @@
       ],
       "syntax": "antigravity_mcp_json",
       "supports_env_headers": false,
+      "gateway_url": "http://127.0.0.1:18082/mcp",
+      "gateway_auth_mode": "process_attested_proxy",
       "notes": [
         "Antigravity remote HTTP/SSE MCP entries use serverUrl; legacy url/httpUrl/type fields are not supported by the current Antigravity schema.",
-        "Antigravity supports custom headers, but env-placeholder expansion in mcp_config.json headers is not documented. Prefer a Bifrost-owned localhost adapter for header-hostile clients; otherwise a governed live installer may materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env into live app config only.",
+        "Antigravity uses the Bifrost-owned process-attested loopback builder compatibility proxy at http://127.0.0.1:18082/mcp; the proxy injects the User-scope key only after exact Windows process ancestry validation, and live client files contain no credential.",
         "Do not use a public tunnel for local desktop Antigravity. The ChatGPT Settings tunnel is only for a cloud ChatGPT client that must reach a local gateway."
+      ]
+    },
+    "zcode": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.zcode\\cli\\config.json",
+      "syntax": "zcode_mcp_json",
+      "supports_env_headers": false,
+      "gateway_url": "http://127.0.0.1:18082/mcp",
+      "gateway_auth_mode": "process_attested_proxy",
+      "notes": [
+        "ZCode 3.10.1 is distinct from Zoo-Code and stores MCP entries under mcp.servers.",
+        "Use type http, url http://127.0.0.1:18082/mcp, no headers, timeoutMs 300000, and enabled true; the loopback proxy injects the User-scope key only after exact Windows process ancestry validation.",
+        "Phase 2 replaced the seven direct MCP entries with one agentcore-gateway entry while preserving ZCode native editor, PTY, ripgrep, ugrep, hooks, and non-MCP configuration."
       ]
     },
     "open-interpreter": {
@@ -118,12 +154,14 @@
       "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\interpreter\\config.json",
       "syntax": "open_interpreter_json",
       "supports_env_headers": false,
+      "gateway_url": "http://127.0.0.1:18082/mcp",
+      "gateway_auth_mode": "process_attested_proxy",
       "notes": [
-        "Materialize VK into live config only when env headers unsupported"
+        "The desktop JSON uses the process-attested loopback builder compatibility proxy at http://127.0.0.1:18082/mcp; the CLI uses bearer_token_env_var with the direct gateway."
       ]
     },
     "cherry-studio": {
-      "enabled": true,
+      "enabled": false,
       "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\CherryStudio\\Local Storage\\leveldb",
       "alternate_config_paths": [
         "C:\\Users\\ynotf\\AppData\\Roaming\\CherryStudio\\Data\\agents.db",
@@ -133,13 +171,13 @@
       "supports_env_headers": false,
       "notes": [
         "Cherry persists MCP under redux key persist:cherry-studio → mcp.servers in Local Storage LevelDB",
-        "Cherry does not expand ${env:} headers; scripts/cherry/enroll_agentcore_gateway.py materializes BIFROST_MCP_VIRTUAL_KEY into the live store only",
         "Map contract timeout_seconds=300 to Cherry server.timeout=300",
-        "Use type streamableHttp and baseUrl http://127.0.0.1:8080/mcp",
-        "Governed Agent id agentcore-workspace-agent mounts only agentcore-gateway; client_key=cherry-studio agent_key=cherry-studio-assistant",
         "Sanitized renderer: renderers/gateway-clients/cherry-studio.json — never commit resolved VK",
-        "Fully quit Cherry before LevelDB enrollment; restart after enroll for tools/list"
-      ]
+        "Cherry Studio has no approved environment-backed header expansion or process-attested AgentCore route. AgentCore gateway enrollment is unsupported/unverified until a credential-free, native-token, or scoped-broker path is approved.",
+        "LEGACY EVIDENCE: A prior Cherry Studio LevelDB enrollment was validated in July 2026 using a materialized credential. That state is legacy drift, not an approved current enrollment instruction; this task does not inspect or mutate it.",
+        "Never paste or persist an AgentCore virtual key in this client."
+      ],
+      "gateway_auth_mode": "unverified"
     },
     "devin": {
       "enabled": true,
@@ -151,12 +189,14 @@
       ],
       "syntax": "devin_mcp_json",
       "supports_env_headers": false,
+      "gateway_url": "http://127.0.0.1:18082/mcp",
+      "gateway_auth_mode": "process_attested_proxy",
       "notes": [
         "Devin CLI v3000.3+ stores MCP in dedicated mcp_config files; older versions store mcpServers in config.json (auto-migrated on startup).",
         "Windows user scope: %APPDATA%\\devin\\mcp_config.json; per-project scopes live under .devin/ in the project root.",
-        "Remote MCP entry shape: {\"url\": \"...\", \"transport\": \"http\"}. No documented header support in remote URL config - Authorization must be materialized into the live mcp_config.json from the Windows User env.",
-        "STATUS 2026-08-16: registered for future enrollment; live cutover deliberately deferred. Operator is using Devin in the current project; do not touch live config without explicit operator instruction.",
-        "Future live installer (scripts/devin/enroll_agentcore_gateway.py, TBD) must materialize BIFROST_MCP_VIRTUAL_KEY from User env into the live file only, never commit the resolved value."
+        "Remote MCP entry shape: {\"url\": \"...\", \"transport\": \"http\"}. Devin uses the process-attested loopback builder compatibility proxy at http://127.0.0.1:18082/mcp so no key is stored in the live file.",
+        "STATUS 2026-09-08: live gateway enrollment verified; duplicate Playwright/GitHub/Vercel entries were reconciled while Devin-owned GitHub and Vercel integrations were preserved.",
+        "Live reconciliation uses ops/bifrost/Reconcile-AgentCoreTrustAClients.ps1 and never commits the resolved value."
       ]
     },
     "opencode": {
@@ -169,17 +209,19 @@
       ],
       "syntax": "opencode_jsonc",
       "supports_env_headers": false,
+      "gateway_url": "http://127.0.0.1:18082/mcp",
+      "gateway_auth_mode": "process_attested_proxy",
       "notes": [
-        "Confirmed live on this host at C:\\Users\\ynotf\\.config\\opencode\\opencode.json (378 bytes; uses XDG-style Windows path, not the docs' %APPDATA%\\opencode\\).",
-        "Morph integration is via the @morphllm/opencode-morph-plugin (shown as 'magic-compact' in the live config). Plugin provides Fast Apply + WarpGrep + GitHub search + 10,500 tok/s compaction + tool routing. Bifrost MCP entry for Morph is NOT used by OpenCode; plugin supersedes it.",
-        "Bifrost enrollment is for NON-MORPH tools only on OpenCode: agentcore-memory, sequential-thinking, skills-hub, etc. These are added under the same mcp key with type=remote and url=http://127.0.0.1:8080/mcp.",
-        "Remote MCP entry shape per docs: {\"mcp\": {\"<name>\": {\"type\": \"remote\", \"url\": \"...\", \"enabled\": true}}}. No documented header field; live materialization of BIFROST_MCP_VIRTUAL_KEY required if Authorization is needed.",
-        "STATUS 2026-08-16: registered. Live config currently has plugin: [\"magic-compact\"] plus existing mcp.context7 and mcp.MCP_DOCKER entries; do not modify the live config while magic-compact install is in progress.",
-        "Note: live config currently uses mcp.context7 - that route is on the AgentCore forbidden list (MASTER_CONFIG_AND_PROMPT sec 3) for the Bifrost baseline. Out of scope for the Morph rollout, but flagging for a future OpenCode governance pass."
+        "Managed client; npm-installed OpenCode binary at %APPDATA%\\npm\\node_modules\\opencode-ai\\bin\\opencode.exe is admitted via the process-attested loopback proxy.",
+        "Live config uses XDG-style Windows path C:\\Users\\ynotf\\.config\\opencode\\opencode.json with singleton provider schema (provider + enabled_providers).",
+        "AgentCore MCP entry is mcp.servers.agentcore-gateway at http://127.0.0.1:18082/mcp with no headers; never paste or persist an AgentCore virtual key.",
+        "A prior truncated or credential-bearing OpenCode AgentCore entry is legacy drift and must not be restored.",
+        "Preserve DeepInfra https://api.deepinfra.com/v1/openai and LM Studio http://127.0.0.1:1234/v1 provider settings; do not restore providers plural or https://deepinfra.com.",
+        "Live reconciliation uses ops/bifrost/Reconcile-AgentCoreTrustAClients.ps1 and never commits the resolved value."
       ]
     },
     "zoo-code": {
-      "enabled": true,
+      "enabled": false,
       "config_path": "C:\\Users\\ynotf\\AppData\\Roaming\\Cursor\\User\\globalStorage\\zoocodeorganization.zoo-code\\settings\\mcp_settings.json",
       "alternate_config_paths": [
         "<project>\\.roo\\mcp.json"
@@ -190,17 +232,45 @@
         "Zoo-Code (formerly Roo-Code / Cline fork) installed in Cursor only on this host, not Code/VSCode or Zed.",
         "Global MCP config: <globalStorage>/settings/mcp_settings.json.",
         "Per-project MCP: <project>/.roo/mcp.json (auto-detected).",
-        "Remote MCP entry shape supports custom headers: {\"mcpServers\": {\"<name>\": {\"url\": \"...\", \"headers\": {...}}}}. Live cutover will materialize BIFROST_MCP_VIRTUAL_KEY from the User env into the live mcp_settings.json file.",
-        "STATUS 2026-08-20: live global MCP cutover applied for agentcore-gateway in Cursor Zoo-Code storage; provider/account state remains Zoo-owned extension secret storage/UI state."
+        "LEGACY EVIDENCE: STATUS 2026-08-20: live global MCP cutover applied for agentcore-gateway in Cursor Zoo-Code storage; provider/account state remains Zoo-owned extension secret storage/UI state.",
+        "Zoo-Code has no approved environment-backed header expansion or process-attested AgentCore route. AgentCore gateway enrollment is unsupported/unverified until a credential-free, native-token, or scoped-broker path is approved.",
+        "A prior Zoo-Code global MCP entry was recorded on 2026-08-20 using a credential-bearing persisted configuration. That state is legacy drift, not an approved current enrollment instruction; this task does not inspect or mutate it.",
+        "Never paste or persist an AgentCore virtual key in this client."
+      ],
+      "gateway_auth_mode": "unverified"
+    },
+    "openclaw": {
+      "enabled": true,
+      "config_path": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
+      "syntax": "openclaw_json",
+      "supports_env_headers": true,
+      "notes": [
+        "AgentCore-owned under AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT; the current host-native OpenClaw config shape is verified.",
+        "Governed product root: D:\\github\\open--claw. Windows operations root: D:\\openclaw.",
+        "C:\\Users\\ynotf\\.openclaw is secret-bearing live mutable state and must not be enrolled as an AgentCore project root or edited by repository renderers.",
+        "Use one mcp.servers.agentcore-gateway entry with streamable-http transport, http://127.0.0.1:8080/mcp, and Authorization: Bearer ${BIFROST_MCP_VK_OPENCLAW}; the resolved value remains in the Windows User environment.",
+        "The dedicated openclaw Bifrost capability profile excludes agentcore-project-router and cursor-agent-mcp."
+      ]
+    },
+    "clawx": {
+      "enabled": false,
+      "config_path": "not_applicable_clawx_unverified",
+      "syntax": "skip_openclaw",
+      "supports_env_headers": false,
+      "notes": [
+        "ClawX is the AgentCore-owned OpenClaw host installed at C:\\Program Files\\ClawX; the installer directory is not a project root or writable configuration target.",
+        "No ClawX-native MCP configuration path or skill-delivery mechanism is certified; keep the host unverified until exact evidence exists.",
+        "Do not inspect or edit secret-bearing live OpenClaw state during repository-only alignment."
       ]
     }
   },
   "notes": [
     "Cursor's canonical active MCP file is C:\\Users\\ynotf\\.cursor\\mcp.json; project-level gateway entries are rollback-only or drift unless explicitly authorized.",
     "Project-specific behavior is selected through agentcore-project-router, not duplicate per-repo gateway entries.",
-    "Do not edit OpenClaw/ClawX as part of Bifrost IDE cutover.",
+    "OpenClaw and its ClawX host are AgentCore-owned; OpenClaw uses the verified host-native single-gateway shape and dedicated Bifrost virtual key, while ClawX remains disabled and unverified.",
+    "The OpenClaw product root is D:\\github\\open--claw and Windows operations root is D:\\openclaw; never enroll C:\\Users\\ynotf\\.openclaw as a project.",
     "Swarm product installs remain untouched; Swarm MCP entries are removed from non-Swarm IDE baselines during cutover.",
     "Never commit resolved virtual key values.",
-    "AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION: managed IDEs may also carry one Zoo-Code-owned direct MCP companion entry where the host supports Zoo-Code. This is not an AgentCore memory route, not a Bifrost replacement, and not permission for any other direct MCP baseline."
+    "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT supersedes the Zoo-Code-only limit: a host-native direct MCP companion requires a documented Bifrost parity failure, exact host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes."
   ]
 }
