@@ -1,8 +1,9 @@
 # Unified AgentCore Gateway Setup (All Non-Swarm IDEs)
 
 **Authority:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`
-**Endpoint:** `http://127.0.0.1:8080/mcp`
-**Auth:** Windows User env `BIFROST_MCP_VIRTUAL_KEY` (never print / never commit)
+**Direct endpoint:** `http://127.0.0.1:8080/mcp` for clients that can reference the Windows User environment securely
+**Compatibility endpoint:** `http://127.0.0.1:18082/mcp` for approved header-hostile Trust Class A clients
+**Auth:** Windows User env `BIFROST_MCP_VIRTUAL_KEY` (never print, commit, or persist in header-hostile client files)
 **Copy-paste agent prompt:** `docs/prompts/install-agentcore-gateway-in-ide.md`
 
 ---
@@ -29,7 +30,7 @@ If tools are missing / status is error:
 1. Confirm Bifrost is up: `http://127.0.0.1:8080/health` → 200.
 2. Confirm User env `BIFROST_MCP_VIRTUAL_KEY` exists (length ~80; do not print).
 3. **Fully quit Cursor** (all windows + tray) and relaunch so `${env:BIFROST_MCP_VIRTUAL_KEY}` expands. Cursor started before the VK was created will get empty Bearer → 401 → discovery failure.
-4. After relaunch, MCP tools should be prefixed like `arabold_docs-*`, `depwire-*`, `tentra-*`, etc.
+4. After relaunch, confirm the current builder tools from the live gateway; do not use historical server names as the acceptance list.
 
 `MCP_DOCKER` is not part of the normal Cursor baseline. The Docker profile
 `r3lentless_grind` overlapped Bifrost for Playwright/sequential thinking and
@@ -38,8 +39,8 @@ the timestamped Cursor MCP backup, not a second active gateway.
 
 The canonical active Cursor gateway entry belongs only in `C:\Users\ynotf\.cursor\mcp.json`.
 Repo-level `.cursor\mcp.json` / `.mcp.json` gateway duplicates are rollback or drift, not the
-normal topology. Use `agentcore_project_router` for per-project identity instead of duplicate
-gateway entries.
+normal topology. Exact enrollment, signed project identity, and the selected worktree enforce
+project continuity. `agentcore-project-router` remains an operator-only maintenance surface.
 
 ---
 
@@ -48,29 +49,30 @@ gateway entries.
 ```text
 IDE / agent host
   └─ ONE AgentCore MCP entry: agentcore-gateway
-       └─ http://127.0.0.1:8080/mcp + Bearer BIFROST_MCP_VIRTUAL_KEY
-            └─ Bifrost (F:\AgentCore\runtime\bifrost)
-                 └─ upstream STDIO/HTTP MCP clients from
-                    contracts/bifrost-upstream-mcp-registry.json
-  └─ OPTIONAL direct companion: zoo-code
-       └─ allowed only for Zoo-Code-owned side-panel workflow under AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION
+       ├─ header-capable: http://127.0.0.1:8080/mcp + environment-backed Bearer
+       └─ approved header-hostile Trust Class A: http://127.0.0.1:18082/mcp
+            └─ exact Windows process/ancestor attestation, then in-memory Bearer injection
+       └─ Bifrost (F:\AgentCore\runtime\bifrost)
+            └─ upstream STDIO/HTTP MCP clients from
+               contracts/bifrost-upstream-mcp-registry.json
+  └─ OPTIONAL host-native direct companion
+       └─ requires the parity, scope, security, and rollback evidence in the current global policy
 ```
 
 | Do | Don't |
 | -- | -- |
 | Put **only** `agentcore-gateway` as the AgentCore MCP baseline | Paste full Depwire/Serena/Arabold blocks into every IDE |
-| Preserve/add the direct `zoo-code` companion only where the host supports Zoo-Code | Treat Zoo-Code as a Bifrost replacement or a general permission for direct MCP servers |
+| Preserve a documented host-native companion only when current policy and parity evidence allow it | Treat a prior Zoo-Code exception as general permission for direct MCP servers |
 | Keep Swarm products on their own installs | Add SwarmRecall/SwarmVault to non-Swarm IDE baselines |
 | Add new MCPs in the **registry + Bifrost**, then re-render | Add new MCPs only in one IDE’s `mcp.json` |
 | Filter tools via Bifrost VK `tools_to_execute` / profiles | Rely on each IDE’s ad-hoc disable toggles as the source of truth |
-| Touch OpenClaw/ClawX | — leave them alone |
+| Treat OpenClaw/ClawX as AgentCore-owned clients governed by their declared profile and single `agentcore-gateway` route | Fold them into SwarmClaw governance or grant routes outside their enrolled AgentCore profile |
 
 ---
 
 ## Canonical config blocks (sanitized)
 
-Use `${env:BIFROST_MCP_VIRTUAL_KEY}` wherever the client expands env in headers.
-If a client **cannot** expand env headers, materialize the User-env value into the **live** config only (never Git).
+Use `${env:BIFROST_MCP_VIRTUAL_KEY}` or a native named-token field wherever the client expands Windows User environment references safely. Approved header-hostile Trust Class A clients use `http://127.0.0.1:18082/mcp` without a persisted authorization header. The proxy accepts only an exact approved Windows executable or process ancestor, injects the User-scope key in memory, and fails closed for missing, ambiguous, or unapproved callers. Resolve the route from `contracts/agentcore-gateway-client.json` `gateway_url` and `gateway_auth_mode`; do not infer it from `supports_env_headers` prose.
 
 ### Cursor — `C:\Users\ynotf\.cursor\mcp.json`
 
@@ -103,6 +105,22 @@ Get-ScheduledTask   -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway
 Get-ScheduledTaskInfo -TaskPath '\AgentCore\' -TaskName 'AgentCore-Bifrost-Gateway'
 ```
 
+The gateway task is currently triggered `AtLogOn` and runs as the owning user
+with an `Interactive`, `Limited` principal so it can consume User-scope secret
+environment variables. It is intended to remain running after login; true
+pre-login availability is not guaranteed by this topology.
+
+The watchdog allows 120 seconds for startup, requires two consecutive failed
+probes, starts a `Ready` or other non-`Running` task idempotently, and uses a
+controlled stop/start recycle when the task is `Running`. Stop/start failures use
+a bounded 60-second retry backoff. A maintenance marker suppresses automated
+launch and recycle.
+
+The `:18082` compatibility proxy is subordinate to core `:8080`. If proxy
+startup fails, the launcher records `BUILDER_COMPAT_PROXY_DEGRADED` but keeps
+core Bifrost running. Only clients assigned to `:18082` are degraded by that
+failure.
+
 Repository wrappers:
 
 ```powershell
@@ -121,20 +139,10 @@ F:\AgentCore\runtime\bifrost\logs\logs.db
 
 ### Claude Desktop — `%APPDATA%\Claude\claude_desktop_config.json`
 
-```json
-{
-  "mcpServers": {
-    "agentcore-gateway": {
-      "url": "http://127.0.0.1:8080/mcp",
-      "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-      }
-    }
-  }
-}
-```
-
-If Desktop ignores `${env:…}`, materialize Bearer in the live file only.
+Claude Desktop has no currently approved environment-backed or process-attested
+AgentCore gateway route. Do not materialize a virtual key into its live file.
+Treat any legacy credential-bearing entry as preserved drift until a separate
+backup-first cleanup or secure-route task is approved.
 
 ### Claude Code — `C:\Users\ynotf\.claude.json` (`mcpServers` section)
 
@@ -164,33 +172,35 @@ the secret in the Windows environment. `http_headers` is for static values, and
 the generic contract timeout maps to Codex's `startup_timeout_sec` and
 `tool_timeout_sec`. Re-check the installed Codex schema when its version changes.
 
-### MiniMax — `C:\Users\ynotf\.minimax\mcp\mcp.json`
+### MiniMax — `C:\Users\ynotf\.minimax\mcp.json`
 
 ```json
 {
   "mcpServers": {
     "agentcore-gateway": {
-      "type": "http",
-      "url": "http://127.0.0.1:8080/mcp",
-      "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-      }
+      "type": "streamable-http",
+      "url": "http://127.0.0.1:18082/mcp",
+      "timeout": 300000
     }
   }
 }
 ```
 
+MiniMax reads the MCP server `timeout` field in milliseconds, so this entry requires `timeout: 300000` ms. `C:\Users\ynotf\.minimax\mcp\mcp.json` is a legacy path that the app no longer reads for server configuration; it survives only to hide legacy proxy skill names.
+
+MiniMax Code's agent-turn tool discovery caps the HTTP connect budget at 2000 ms (`Math.min(configuredTimeout, turnDiscoveryTimeoutMs ?? 2000)`, and `turnDiscoveryTimeoutMs` is never assigned), so this timeout governs the uncapped settings-panel connect path only. Binding the gateway tools inside an agent session additionally requires the process-attested proxy cold connect to finish inside 2 s.
+
 ### Mavis — `C:\Users\ynotf\.mavis\mcp\mcp.json`
 
-Same shape as MiniMax / Cursor HTTP block above.
+`C:\Users\ynotf\.mavis` is the same MiniMax Code data root, not a separate client configuration.
 
 ### Antigravity / Gemini — path from contract (`~/.gemini/config/mcp_config.json` or Antigravity User `mcp.json`)
 
-Same HTTP + Bearer env header shape.
+Use `serverUrl: http://127.0.0.1:18082/mcp` with no persisted authorization header.
 
 ### Open Interpreter — `%APPDATA%\interpreter\config.json`
 
-Prefer env expansion if supported; otherwise materialize Bearer in live config only (`supports_env_headers: false` in contract).
+The desktop JSON uses `http://127.0.0.1:18082/mcp` without a persisted authorization header. The CLI TOML uses the direct `:8080` endpoint with `bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"`.
 
 Sanitized renderers: `renderers/gateway-clients/<ide>.json`.
 
@@ -201,12 +211,15 @@ Sanitized renderers: `renderers/gateway-clients/<ide>.json`.
 | Cursor | `C:\Users\ynotf\.cursor\mcp.json` | `mcpServers.agentcore-gateway` JSON, `type=http`, `url`, `headers` | Yes: `${env:BIFROST_MCP_VIRTUAL_KEY}` | `timeout: 300` | Fully quit all Cursor processes, relaunch, verify `user-agentcore-gateway` ready | Restore timestamped `mcp.json` backup |
 | Codex | `C:\Users\ynotf\.codex\config.toml` | `[mcp_servers.agentcore-gateway]`, `url`, `bearer_token_env_var` | Yes: named User env read by Codex | `startup_timeout_sec = 300`, `tool_timeout_sec = 300` | Restart Codex session/CLI host | Restore timestamped `config.toml` backup |
 | Claude Code | `C:\Users\ynotf\.claude.json` | JSON `mcpServers` entry | Yes where supported by installed client | Client default or renderer field | Restart Claude Code | Restore `.claude.json` backup |
-| Claude Desktop | `C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json` | JSON `mcpServers` entry | Contract marks unsupported; materialize live secret only as last resort | Client default | Fully quit/reopen Claude Desktop | Restore config backup |
-| MiniMax | `C:\Users\ynotf\.minimax\mcp\mcp.json` | JSON `mcpServers` entry | Yes | Client default or renderer field | Restart MiniMax | Restore config backup |
-| Mavis | `C:\Users\ynotf\.mavis\mcp\mcp.json` | JSON `mcpServers` entry | Yes | Client default or renderer field | Restart Mavis | Restore config backup |
-| Antigravity | `C:\Users\ynotf\.gemini\config\mcp_config.json` or `C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json` | JSON MCP config | Yes | Client default or renderer field | Restart Antigravity/Gemini host | Restore config backup |
-| Open Interpreter | `C:\Users\ynotf\AppData\Roaming\interpreter\config.json` | JSON app config | Contract marks unsupported; materialize live secret only as last resort | Client default | Restart Open Interpreter | Restore config backup |
-| Cherry Studio | `%APPDATA%\CherryStudio` Local Storage (`persist:cherry-studio`) | Streamable HTTP MCP server record | No `${env:}` — materialize Bearer from User env into live store only | 300s | Fully quit Cherry, run `scripts/cherry/enroll_agentcore_gateway.py`, relaunch | Restore `E:\AgentCore-Backups\cherry-*` |
+| Claude Desktop | `C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json` | No approved secure route | Unsupported until a credential-free or native-token route is proven | Client default | No enrollment action | Preserve legacy config; clean up only through a separate backup-first task |
+| MiniMax | `C:\Users\ynotf\.minimax\mcp.json` | JSON `mcpServers` entry at `:18082` | Process-attested proxy; no persisted bearer | `timeout: 300000` (milliseconds) | Restart MiniMax | Restore config backup |
+| Mavis | Junction to `C:\Users\ynotf\.minimax` | Same MiniMax Code configuration | Same as MiniMax | Same as MiniMax | Restart MiniMax | Restore config backup |
+| Antigravity | `C:\Users\ynotf\.gemini\config\mcp_config.json` or `C:\Users\ynotf\AppData\Roaming\Antigravity IDE\User\mcp.json` | JSON MCP config at `:18082` | Process-attested proxy; no persisted bearer | Client default or renderer field | Restart Antigravity host | Restore config backup |
+| Devin | `C:\Users\ynotf\AppData\Roaming\devin\mcp_config.json` | JSON `mcpServers` entry at `:18082` | Process-attested proxy; no persisted bearer | Client default | Restart Devin | Restore config backup |
+| ZCode | `C:\Users\ynotf\.zcode\cli\config.json` | JSON `mcp.servers` entry at `:18082` | Process-attested proxy; no persisted bearer | `timeoutMs: 300000` | Restart ZCode | Restore config backup |
+| Open Interpreter desktop | `C:\Users\ynotf\AppData\Roaming\interpreter\config.json` | JSON app config at `:18082` | Process-attested proxy; no persisted bearer | Client default | Restart Open Interpreter | Restore config backup |
+| Open Interpreter CLI | `C:\Users\ynotf\.openinterpreter\config.toml` | TOML direct entry at `:8080` | `bearer_token_env_var` | Client default | Restart CLI session | Restore config backup |
+| Cherry Studio | `%APPDATA%\CherryStudio` Local Storage (`persist:cherry-studio`) | No approved secure route | Unsupported until a credential-free or native-token route is proven | 300s | No enrollment action | Preserve legacy LevelDB; clean up only under `E:\AgentCore\Backups\<stamp>` |
 | LangGraph prod / Studio | shared Python adapter (not an IDE `mcp.json`) | `scripts/agentcore_workflow/mcp_client.py` → localhost gateway | Bearer from `BIFROST_MCP_VK_WORKFLOW` or `BIFROST_MCP_VIRTUAL_KEY` | 300s | Restart worker / Studio process | Disable workflow; gateway unchanged |
 
 For every client, validate Bifrost first with `ops\bifrost\Test-AgentCoreBifrostGateway.ps1`,
@@ -218,13 +231,13 @@ then validate IDE discovery and one safe read-only tool call through `agentcore-
 
 ## How to add a new MCP server (correct path)
 
-This path applies to AgentCore-governed MCP servers. The Zoo-Code direct MCP companion is the one approved per-IDE exception and must remain bounded to Zoo-Code side-panel functionality.
+This path applies to AgentCore-governed MCP servers. A host-native direct MCP companion is permitted only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback proof, and proof that the companion does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes. Zoo-Code's historical exception remains subject to this current policy.
 
 1. **Decide classification** in `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md` (global vs project-scoped, Swarm exclusion).
 2. **Edit** `contracts/bifrost-upstream-mcp-registry.json`:
    - Add server entry (`enabled`, `connection_type`, command/url, args, `bifrost_client_name`, rollback notes).
    - Add id to the right `capability_profiles.*.allowed_server_ids`.
-3. **Render** Bifrost config: `python scripts/bifrost/render_bifrost_config.py` (or approved ops script).
+3. **Render** Bifrost config: `scripts\.venv\Scripts\python.exe scripts/bifrost/render_bifrost_config.py` (or approved ops script).
 4. **Validate** contracts / validators.
 5. **Restart / reload** Bifrost (`ops/bifrost/Start-AgentCoreBifrostGateway.ps1` or Scheduled Task).
 6. **Do not** add the new server to Cursor/Claude/Codex `mcp.json` — IDEs keep the single `agentcore-gateway` entry.
@@ -241,7 +254,7 @@ Bifrost `version: 2` governance is **deny-by-default** for MCP tools: a client/t
 ### A. Disable an entire upstream (strongest)
 
 In `contracts/bifrost-upstream-mcp-registry.json` set `"enabled": false`, re-render, restart Bifrost.
-Used today for deferred servers (e.g. artiforge inactive PAT).
+Used today for disabled servers such as `mcp-debugger`.
 
 ### B. Keep server connected but hide all its tools from a profile
 
@@ -273,11 +286,13 @@ Empty list = deny all tools for that client on that VK (Bifrost v2 semantics).
 }
 ```
 
-### D. Allow all tools on one client
+### D. Require a named inventory before activation
 
-```json
-"tools_to_execute": ["*"]
-```
+Do not activate a new server or profile with `tools_to_execute: ["*"]`. Keep the
+server disabled while its exact `tools/list` inventory is captured, classify each
+tool, set `permitted_tools` to the approved names, then render and validate the
+matching `tools_to_execute` list. Existing wildcard placeholders are allowed only
+on disabled or dormant entries and are not an activation template.
 
 ### E. Use a narrower profile VK in an IDE
 
@@ -305,7 +320,7 @@ Gateway config keeps `mcp_disable_auto_tool_inject: true` so Bifrost does not in
 
 1. **One gateway entry per IDE** — minimizes MCP process sprawl.
 2. **Resolve project locally** through the IDE/workflow host. Serena, Depwire, Tentra, filesystem, and Context Fabric stay dormant in shared Bifrost profiles until a per-session project identity is injected; use native project tools or explicit-cwd local diagnostics.
-3. **Builder VK** for daily Cursor/Claude/Codex; use reviewer/docs VKs for constrained agents.
+3. **Builder VK** for Trust Class A. Header-capable clients use it by environment reference; approved header-hostile clients receive it only through the process-attested proxy. Use reviewer/docs VKs for constrained agents.
 4. **Arabold first** for library docs (`arabold_docs-search_docs` with pinned versions in `.agentcore/docs/DOCS_INDEX.md`).
 5. **Keep Bifrost under the approved AgentCore runtime:** (`F:\AgentCore\runtime\bifrost`); start via Scheduled Task `\AgentCore\AgentCore-Bifrost-Gateway` or `ops/bifrost/Launch-AgentCoreBifrostGateway.ps1`.
 6. After changing User env vars, **fully restart** every IDE that expands `${env:…}`.
@@ -316,6 +331,7 @@ Gateway config keeps `mcp_disable_auto_tool_inject: true` so Bifrost does not in
 
 ```powershell
 Invoke-WebRequest http://127.0.0.1:8080/health -UseBasicParsing
+Invoke-WebRequest http://127.0.0.1:18082/healthz -UseBasicParsing
 # User env present (do not print value):
 [Environment]::GetEnvironmentVariable('BIFROST_MCP_VIRTUAL_KEY','User').Length
 ```
@@ -327,7 +343,7 @@ Then fully quit/relaunch the IDE and confirm `agentcore-gateway` tools appear.
 ## See also
 
 - Architecture authority: `BLUEPRINT.md`
-- Mutable live posture: `CONTEXT_BLOCK.md` §0a
+- Mutable live posture: `CONTEXT_BLOCK.md` §0 ("Current posture")
 - Classification / profiles: `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`, `docs/bifrost/CAPABILITY_PROFILES.md`
 - OpenRouter MCP runbook: `docs/operations/OPENROUTER_MCP.md`
 - LangGraph + Studio runbook: `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`

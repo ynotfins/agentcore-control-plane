@@ -11,14 +11,14 @@
 | IDE overlay source | ide-profiles/minimax/IDE_PROFILE.yaml |
 | Model context profiles | contracts/model-context-profiles.json (model-aware; no durable-memory cap) |
 | Live global-rule target | C:\Users\ynotf\.minimax\AGENT.md |
-| Live MCP config target | C:\Users\ynotf\.minimax\mcp\mcp.json |
+| Live MCP config target | C:\Users\ynotf\.minimax\mcp.json |
 | Cursor may edit global rules | yes (direct_write; live edits remain approval-gated by policy) |
 | Cursor may edit MCP config | yes (direct_write; live edits remain approval-gated by policy) |
 | Installation mode | generated_prompt |
 | Backup required | yes |
 | Validation required | yes |
 | Restart required | yes |
-| Last validated | 2026-09-08 |
+| Last validated | 2026-10-25 |
 
 ## Mandatory rules
 
@@ -78,4 +78,5 @@
 - Limitation: Builtin matrix MCP command path also missing matrix-mcp-cli/index.js on this install.
 - Limitation: In-app MCP is product-supported (changelog 3.0.20+ / native exposure 3.0.28+); native 14-step lifecycle still requires operator MiniMax chat (not live_validated).
 - Limitation: C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax; not a separate Mavis app.
+- Limitation: MiniMax Code's agent-turn tool discovery caps the HTTP connect budget at 2000 ms (Math.min(configuredTimeout, turnDiscoveryTimeoutMs ?? 2000); turnDiscoveryTimeoutMs is never assigned), so no MCP timeout value can raise it. Binding the gateway tools in an agent session requires the process-attested proxy cold connect to fit inside that 2 s budget; the proxy's per-connection Get-CimInstance ancestry walk measured ~2.8 s on this host.
 - Parity gap: Rule persistence unverified by product docs; live AGENT.md matches ide-profiles/minimax/GLOBAL_RULES.md.

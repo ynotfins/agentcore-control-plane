@@ -1,15 +1,17 @@
 ide_id: minimax
 display_name: MiniMax Code
 swarm_managed: false
-installed_version: 3.0.53.91
+installed_version: 3.1.6.192
 live_global_rule_target: C:\Users\ynotf\.minimax\AGENT.md
-live_mcp_config_target: C:\Users\ynotf\.minimax\mcp\mcp.json
+live_mcp_config_target: C:\Users\ynotf\.minimax\mcp.json
 rule_mechanism: data-dir-root AGENT.md + per-rule rules/*.md (mechanism not officially
   documented; delivered through install prompt + live file)
 mcp_schema: minimax_mcp_json
 mcp_transport: streamable-http
-env_var_handling: '${env:BIFROST_MCP_VIRTUAL_KEY} often NOT expanded by MiniMax daemon
-  (401 observed 2026-07-14); materialize VK into live mcp.json Authorization header'
+env_var_handling: 'process-attested loopback proxy at http://127.0.0.1:18082/mcp;
+  no bearer stored in live mcp.json'
+gateway_url: http://127.0.0.1:18082/mcp
+gateway_auth_mode: process_attested_proxy
 restart_behavior: restart client after MCP config changes
 editability:
   global_rules: direct_write
@@ -19,7 +21,7 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-07-25'
+last_validation_date: '2026-10-25'
 mcp_template_source: renderers/gateway-clients/minimax.json
 m8_enrollment: configured_restart_required
 known_limitations:
@@ -32,25 +34,31 @@ known_limitations:
 - In-app MCP is product-supported (changelog 3.0.20+ / native exposure 3.0.28+); native
   14-step lifecycle still requires operator MiniMax chat (not live_validated).
 - C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax; not a separate Mavis app.
+- MiniMax Code's agent-turn tool discovery caps the HTTP connect budget at 2000 ms
+  (Math.min(configuredTimeout, turnDiscoveryTimeoutMs ?? 2000); turnDiscoveryTimeoutMs is never
+  assigned), so no MCP timeout value can raise it. Binding the gateway tools in an agent session
+  requires the process-attested proxy cold connect to fit inside that 2 s budget; the proxy's
+  per-connection Get-CimInstance ancestry walk measured ~2.8 s on this host.
 semantic_parity_gaps:
 - Rule persistence unverified by product docs; live AGENT.md matches ide-profiles/minimax/GLOBAL_RULES.md.
 enrollment_evidence:
   audit: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
+  connect_timeout_audit: audits/MINIMAX_CODE_MCP_CONNECT_TIMEOUT_2026-10-25.md
   prior_repair: audits/MINIMAX_CODE_REPAIR_2026-07-22.md
   prior_enrollment: audits/MINIMAX_CODE_GATEWAY_ENROLLMENT_2026-07-21.md
   lifecycle: audits/MINIMAX_CODE_MEMORY_LIFECYCLE_2026-07-22.json
   backup_root: E:\AgentCore-Backups\minimax-repair-20260725-phase4a
   prior_backup_root: E:\AgentCore-Backups\minimax-repair-20260722T205648Z
   bifrost_health: ok
-  phase4a_repair: materialized_vk_and_streamable_http
+  phase4a_repair: materialized_vk_and_streamable_http_superseded_by_phase2_process_proxy
 status_reconciliation:
   reconciled_at: '2026-07-25'
   source: audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md
   claim: MiniMax cli.js native invocation route is absent/broken
   finding: 'CLI wrappers point to nonexistent daemon\\cli.js (unsupported). In-app
-    mcp.json path exists; prior 401 was unexpanded ${env:} placeholder — repaired by
-    materializing User-scope BIFROST_MCP_VIRTUAL_KEY and setting type streamable-http.
-    Native 14-step still operator-gated.'
+    mcp.json path exists; prior 401 was unexpanded ${env:} placeholder. Phase 2
+    replaced the materialized bearer with the process-attested loopback proxy while
+    retaining streamable-http. Native 14-step still requires a fresh MiniMax task.'
   status_after_reconciliation: configured_restart_required
   cli_route_signal: MINIMAX_CODE_NATIVE_MCP_UNSUPPORTED_WITH_REASON
   in_app_route_signal: configured_restart_required
