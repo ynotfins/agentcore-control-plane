@@ -3,7 +3,7 @@ document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
 authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
-verified_at: 2026-09-08
+verified_at: 2026-10-26
 canonical_repository: D:\github\agentcore-control-plane
 locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
@@ -27,7 +27,7 @@ Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory
 | Pi parallel subagents | Bifrost HTTP shim `pi-agents` on 127.0.0.1:18091; builder/Code Mode; host-native fallback; not foreign Swarm | AUTH-2026-10-23-PI-BIFROST-HTTP-SHIM; see docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md |
 | Gateway surface | Exact ten-tool `agentcore-memory` identity retained; ordinary profiles exclude the operator router | Live authenticated probes are required for mutable totals; do not copy a point-in-time aggregate tool count into client configuration |
 | AgentCore memory facade | source and live `agentcore-memory` `0.9.1`; PG18 reachable at `127.0.0.1:55433`; neutral SwarmRecall is the semantic target behind the bounded adapter | Every scoped call requires exact enrolled `project_key` + `project_root`; task sessions are also bound to client, agent, device, user, canonical repository, and worktree; ten-tool identity unchanged |
-| Project enrollment | `contracts/agentcore-project-enrollment.json`; default deny; exact key + exact repository/worktree path | Shared by Cursor bootstrap, memory facade, operator router, and child launcher; ordinary IDEs cannot mutate enrollment/router state |
+| Project enrollment | `contracts/agentcore-project-enrollment.json`; default deny; exact key + exact repository/worktree path | Includes `open-design` at `D:\open-design` only (`AUTH-2026-10-26-OPEN-DESIGN-ENROLLMENT`) and `raven` at `D:\raven` (`AUTH-2026-10-26-RAVEN-CONTROL-PLANE-ENROLLMENT`). No AppData enrollment. No PG18 database for either product. Ordinary IDEs cannot mutate enrollment/router state. |
 | Device identity | Stored policy remains `legacy_compat`, but its migration window expired; `memory_status` is the only unprotected tool and every other memory call now requires a signed device assertion | Live unsigned `retrieve_context` returned `device_assertion_required` on 2026-09-08; historical rollout evidence remains in `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` |
 | Cognee | `available`, version `1.3.0`, isolated native Windows venv under `F:\AgentCore\runtime\agentcore-memory\cognee` | Live `memory_status` after governed v0.9.1 promotion; canonical retrieval remains PostgreSQL-backed |
 | Neutral Recall | Machine-level neutral semantic plane healthy at `127.0.0.1:3300`; hot data under `H:\SwarmData\recall`; AgentCore uses 11 project identities, one shared global pool, and 11 private pools | `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`; live direct-API and signed-gateway isolation canaries passed 2026-09-08; server-side AgentCore adapter only |
@@ -38,6 +38,11 @@ Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory
 | Arabold Docs | Required corpus indexed and retrieval-proven for Context Fabric, Cursor, Hindsight/cookbook, OmniRoute compression, Graphify, and CrewAI; Bifrost resolves as exact version `2.0.0` | Live `list_libraries`, `find_version`, and targeted `search_docs`; the 2026-09-05 refresh failed on a missing upstream `/openapi/openapi.yaml` root and was retried from the official docs root |
 
 The Bifrost process is healthy now. Prior Cursor “Not connected” incidents with a healthy direct gateway are classified as intermittent IDE MCP discovery/session state, not evidence that the Bifrost server was down. Do not restart or redesign Bifrost until gateway and upstream probes fail.
+
+### 2026-10-26 product enrollments
+
+- **Open Design:** enrolled project `open-design` = exact path `D:\open-design`. Not a Bifrost upstream. Product data stays under `%AppData%\Roaming\Open Design\...` and is not enrolled. Cursor-only host-native companion MCP `open-design` is an approved exception (`audits/OPEN_DESIGN_CONTROL_PLANE_ENROLLMENT_2026-10-26.md`, `audits/cursor-context/OPEN_DESIGN_MCP_EXCEPTION_2026-10-26.md`). Official plugins/skills only. Claude/Codex/MiniMax product-MCP attach is not approved.
+- **Raven:** source-enrolled at `D:\raven` as a dedicated AgentCore gateway client (not Trust Class A). Install may still be in progress. Uses dedicated VK reference `BIFROST_MCP_VK_RAVEN`. No AgentCore PG18, SwarmRecall, SwarmVault, or SwarmClaw attach. Live Bifrost apply/restart for the Raven profile remains operator-approved separately. Do not enroll `C:\Users\ynotf\.raven` or `C:\Users\ynotf\.dsh`.
 
 ## 1. Accepted architecture
 
@@ -244,3 +249,6 @@ Stop and request operator review for:
 - `audits/AGENTCORE_BIFROST_CONTEXT_ALIGNMENT_2026-08-02.md`
 - `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`
 - `docs/operations/AUTOMATIC_NEW_CHAT_RECOVERY.md`
+- `audits/OPEN_DESIGN_CONTROL_PLANE_ENROLLMENT_2026-10-26.md`
+- `audits/cursor-context/OPEN_DESIGN_MCP_EXCEPTION_2026-10-26.md`
+- `audits/RAVEN_CONTROL_PLANE_ENROLLMENT_2026-10-26.md`

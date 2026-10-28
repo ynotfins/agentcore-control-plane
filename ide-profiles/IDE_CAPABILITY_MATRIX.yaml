@@ -990,7 +990,7 @@ managed_candidates:
     display_name: Open Design
     ownership: agentcore_candidate
     certification: unverified
-    note: No native support or configuration path is verified.
+    note: 'Project enrolled AUTH-2026-10-26-OPEN-DESIGN-ENROLLMENT at D:\\open-design only. Not a Bifrost upstream. Cursor-only host-native product MCP companion is an approved exception; desktop must be running. No PG18. No AppData enrollment. Official plugins/skills only. See audits/OPEN_DESIGN_CONTROL_PLANE_ENROLLMENT_2026-10-26.md.'
   autogpt:
     display_name: AutoGPT
     ownership: agentcore_candidate
