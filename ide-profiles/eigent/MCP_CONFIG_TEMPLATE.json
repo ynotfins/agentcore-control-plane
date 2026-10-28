@@ -1,23 +1,24 @@
 {
   "mcpServers": {
-    "claude-context": {
-      "command": "C:\\Users\\ynotf\\.agentcore\\bin\\claude-context-mcp-launch.cmd",
-      "args": []
+    "agentcore-gateway": {
+      "url": "http://127.0.0.1:18082/mcp",
+      "timeout": 300,
+      "_note": "Headerless access uses the Bifrost-owned process-attested loopback proxy; no virtual key is stored in Eigent configuration."
     }
   },
   "_agentcore": {
     "renderer": "eigent",
     "source_contract": "contracts/agentcore-gateway-client.json",
-    "gateway_enrollment_status": "unsupported_with_reason",
-    "active_template": false,
-    "reason": "Eigent/CAMEL has no approved environment-backed header expansion or process-attested AgentCore route. Claude Context is a separate local stdio MCP using Windows User EVs via launcher.",
-    "legacy_state": "Existing credential-bearing live gateway configuration, when present, is legacy drift; preserve it for a separate backup-first cleanup.",
-    "required_next_architecture": "credential-free, native-token, or scoped broker",
-    "secret_policy": "Never paste or persist an AgentCore virtual key or embedding/vector secrets in this client.",
-    "claude_context": {
-      "package": "@zilliz/claude-context-mcp",
-      "launcher": "C:\\Users\\ynotf\\.agentcore\\claude-context-mcp-launch.cmd",
-      "required_user_env": ["OPENAI_API_KEY", "MILVUS_TOKEN"]
-    }
+    "gateway_enrollment_status": "process_attested_proxy",
+    "active_template": true,
+    "gateway_url": "http://127.0.0.1:18082/mcp",
+    "gateway_auth_mode": "process_attested_proxy",
+    "trusted_executable": "%LOCALAPPDATA%\\Programs\\Eigent\\Eigent.exe",
+    "notes": [
+      "Sanitized source template; no resolved virtual key, token, or credential is permitted in Git.",
+      "agentcore-gateway is the only AgentCore MCP entry. Do not add direct filesystem, Serena, memory, or other AgentCore upstream entries.",
+      "Loopback reachability and exact Windows process ancestry via Resolve-AgentCoreBuilderCaller.ps1 are required."
+    ],
+    "secret_policy": "Never paste or persist an AgentCore virtual key in this client."
   }
 }

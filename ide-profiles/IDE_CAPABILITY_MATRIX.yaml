@@ -47,23 +47,23 @@ certification_status_codes:
 managed_ides:
   zed:
     installed_version: 1.16.1
-    configuration_mode: unsupported
+    configuration_mode: generated_prompt
     rule_mechanism: Windows personal AGENTS.md + project AGENTS.md + global skills at C:\Users\ynotf\.agents\skills
     mcp_schema: zed_settings_json
-    mcp_transport: unsupported for AgentCore gateway pending an approved secure credential route
-    env_var_handling: no approved secure credential path; never paste or persist an AgentCore virtual key in client
-      storage
-    restart_behavior: No AgentCore enrollment or restart action is authorized by this profile; preserve legacy live
-      state for a separate backup-first cleanup
+    mcp_transport: http/streamable
+    env_var_handling: process-attested loopback proxy at http://127.0.0.1:18082/mcp; no bearer stored in live MCP JSON
+    gateway_url: http://127.0.0.1:18082/mcp
+    gateway_auth_mode: process_attested_proxy
+    restart_behavior: restart client after MCP config changes
     editability:
       global_rules: direct_write
       project_rules: direct_write
-      mcp_config: unsupported
-    last_validated: '2026-08-20'
-    m8_enrollment: unsupported_with_reason
-    m8_notes: Zed has no approved environment-backed header expansion or process-attested AgentCore route. Existing
-      or previously validated credential-bearing configuration is classified as legacy drift and is not an approved
-      route.
+      mcp_config: direct_write
+    last_validated: '2026-10-25'
+    m8_enrollment: configured_restart_required
+    m8_notes: Trust Class A source enrollment complete 2026-09-17. Live settings.json context_servers.agentcore-gateway
+      must point at http://127.0.0.1:18082/mcp with no headers. Live plaintext :8080 key sanitized 2026-10-25 via
+      Reconcile-AgentCoreTrustAClients.ps1. Restart Zed after reconcile. Never paste BIFROST_MCP_VIRTUAL_KEY.
     dimensions:
       application_launch:
         status: live_validated
@@ -71,66 +71,64 @@ managed_ides:
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
       gateway_configuration:
-        status: unsupported_with_reason
-        evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
-        evidence_ts: '2026-08-20T13:08:09-04:00'
+        status: configured_restart_required
+        evidence_path: audits/bifrost/GATEWAY_CONNECTION_STABILITY_2026-09-16.md
+        evidence_ts: '2026-09-17T21:00:00Z'
         superseded_by: null
       gateway_discovery:
-        status: unsupported_with_reason
-        evidence_path: artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
-        evidence_ts: '2026-08-20T13:08:09-04:00'
+        status: configured_restart_required
+        evidence_path: audits/bifrost/GATEWAY_CONNECTION_STABILITY_2026-09-16.md
+        evidence_ts: '2026-09-17T21:00:00Z'
         superseded_by: null
       native_memory_lifecycle:
-        status: unsupported_with_reason
+        status: awaiting_operator_import
         evidence_path: ide-profiles/zed/VALIDATION.md
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
       fresh_chat_recovery:
-        status: unsupported_with_reason
+        status: awaiting_operator_import
         evidence_path: ide-profiles/zed/VALIDATION.md
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
       persistence_after_restart:
-        status: unsupported_with_reason
+        status: awaiting_operator_import
         evidence_path: ide-profiles/zed/VALIDATION.md
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
       operator_gate:
-        status: unsupported_with_reason
+        status: awaiting_operator_import
         evidence_path: ide-profiles/zed/VALIDATION.md
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
-    legacy_m8_notes: PRIORITY MANAGED CLIENT INTAKE 2026-08-06; LIVE MCP CONFIGURATION 2026-08-20. Zed 1.16.1 is installed
-      and launches. Live settings now contain a single agentcore-gateway context server at http://127.0.0.1:8080/mcp,
-      and authenticated gateway initialize/tools-list succeeded. Full M8 enrollment remains pending until a fresh
-      Zed Agent task proves native memory lifecycle, recovery, and restart persistence.
+    legacy_m8_notes: PRIORITY MANAGED CLIENT INTAKE 2026-08-06; LIVE MCP CONFIGURATION 2026-08-20 used credential-bearing
+      :8080. Superseded by Trust Class A headerless :18082 enrollment (2026-09-17) and live sanitize (2026-10-25).
     legacy_gateway_state:
       classification: legacy_drift
       mutation_in_this_task: false
       note: A prior live Zed entry and authenticated discovery were recorded on 2026-08-20 using a credential-bearing
-        configuration. That state is legacy drift, not an approved current enrollment instruction; this task does
-        not inspect or mutate it.
+        configuration. That state is legacy drift and is superseded by process-attested :18082 enrollment.
       evidence_paths:
       - artifacts/task-runs/zed-zoocode-agentcore-enrollment-2026-08-20/ZED_ZOOCODE_AGENTCORE_ENROLLMENT_EVIDENCE.md
   eigent:
     installed_version: 1.0.2
-    configuration_mode: unsupported
-    rule_mechanism: native skills at C:\Users\ynotf\.eigent\skills; no always-on global instruction file verified
+    configuration_mode: generated_prompt
+    rule_mechanism: native skills at C:\Users\ynotf\.eigent\skills with per-user skills-config; no always-on global
+      instruction file verified
     mcp_schema: eigent_mcp_json
-    mcp_transport: unsupported for AgentCore gateway pending an approved secure credential route
-    env_var_handling: no approved secure credential path; never paste or persist an AgentCore virtual key in client
-      storage
-    restart_behavior: No AgentCore enrollment or restart action is authorized by this profile; preserve legacy live
-      state for a separate backup-first cleanup
+    mcp_transport: http/streamable
+    env_var_handling: process-attested loopback proxy at http://127.0.0.1:18082/mcp; no bearer stored in live MCP JSON
+    gateway_url: http://127.0.0.1:18082/mcp
+    gateway_auth_mode: process_attested_proxy
+    restart_behavior: restart client after MCP config changes
     editability:
       global_rules: manual_import
       project_rules: unverified
-      mcp_config: unsupported
-    last_validated: '2026-08-20'
-    m8_enrollment: unsupported_with_reason
-    m8_notes: Eigent/CAMEL has no approved environment-backed header expansion or process-attested AgentCore route.
-      Existing or previously validated credential-bearing configuration is classified as legacy drift and is not an
-      approved route.
+      mcp_config: direct_write
+    last_validated: '2026-10-25'
+    m8_enrollment: configured_restart_required
+    m8_notes: Trust Class A source enrollment complete 2026-09-17. Live mcp.json must point at
+      http://127.0.0.1:18082/mcp with no headers. Live plaintext :8080 key sanitized 2026-10-25 via
+      Reconcile-AgentCoreTrustAClients.ps1. Restart Eigent after reconcile. Never paste BIFROST_MCP_VIRTUAL_KEY.
     dimensions:
       application_launch:
         status: live_validated
@@ -138,45 +136,42 @@ managed_ides:
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
       gateway_configuration:
-        status: unsupported_with_reason
-        evidence_path: artifacts/task-runs/cursor-eigent-workspace-fix-2026-08-20/CURSOR_EIGENT_WORKSPACE_FIX_EVIDENCE.md
-        evidence_ts: '2026-08-20T13:45:11-04:00'
+        status: configured_restart_required
+        evidence_path: audits/bifrost/GATEWAY_CONNECTION_STABILITY_2026-09-16.md
+        evidence_ts: '2026-09-17T21:00:00Z'
         superseded_by: null
       gateway_discovery:
-        status: unsupported_with_reason
-        evidence_path: ide-profiles/eigent/VALIDATION.md
-        evidence_ts: '2026-08-06T08:45:00Z'
+        status: configured_restart_required
+        evidence_path: audits/bifrost/GATEWAY_CONNECTION_STABILITY_2026-09-16.md
+        evidence_ts: '2026-09-17T21:00:00Z'
         superseded_by: null
       native_memory_lifecycle:
-        status: unsupported_with_reason
+        status: awaiting_operator_import
         evidence_path: ide-profiles/eigent/VALIDATION.md
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
       fresh_chat_recovery:
-        status: unsupported_with_reason
+        status: awaiting_operator_import
         evidence_path: ide-profiles/eigent/VALIDATION.md
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
       persistence_after_restart:
-        status: unsupported_with_reason
+        status: awaiting_operator_import
         evidence_path: ide-profiles/eigent/VALIDATION.md
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
       operator_gate:
-        status: unsupported_with_reason
+        status: awaiting_operator_import
         evidence_path: ide-profiles/eigent/VALIDATION.md
         evidence_ts: '2026-08-06T08:45:00Z'
         superseded_by: null
-    legacy_m8_notes: PRIORITY MANAGED CLIENT INTAKE 2026-08-06; LIVE MCP CONFIGURATION AND PROJECT SPACE BINDING 2026-08-20.
-      Eigent 1.0.2 is installed and launches. C:\Users\ynotf\.eigent\mcp.json contains the single agentcore-gateway
-      entry, and active local Brain space space_90a538b17d7c4454be490de0e0110b5b is bound to D:\github\agentcore-control-plane.
-      Full M8 enrollment remains pending until a fresh Eigent workforce task proves gateway tool discovery, native
-      memory lifecycle, recovery, and restart persistence.
+    legacy_m8_notes: PRIORITY MANAGED CLIENT INTAKE 2026-08-06; LIVE MCP CONFIGURATION 2026-08-20 used credential-bearing
+      :8080. Superseded by Trust Class A headerless :18082 enrollment (2026-09-17) and live sanitize (2026-10-25).
     legacy_gateway_state:
       classification: legacy_drift
       mutation_in_this_task: false
       note: A prior live Eigent entry was recorded on 2026-08-20 using a credential-bearing configuration. That state
-        is legacy drift, not an approved current enrollment instruction; this task does not inspect or mutate it.
+        is legacy drift and is superseded by process-attested :18082 enrollment.
       evidence_paths:
       - artifacts/task-runs/cursor-eigent-workspace-fix-2026-08-20/CURSOR_EIGENT_WORKSPACE_FIX_EVIDENCE.md
   zoo-code:
@@ -983,9 +978,11 @@ managed_ides:
 managed_candidates:
   opencode:
     display_name: OpenCode
-    ownership: agentcore_candidate
-    certification: unsupported_with_reason
-    note: The installed remote-MCP shape has no approved environment-backed or process-attested AgentCore route. Do not persist a virtual key; any prior entry is legacy drift pending a secure broker or native-token design.
+    ownership: agentcore_managed
+    certification: configured_restart_required
+    gateway_url: http://127.0.0.1:18082/mcp
+    gateway_auth_mode: process_attested_proxy
+    note: Process-attested headerless :18082 enrollment 2026-10-25. Trusted executable is %APPDATA%\npm\node_modules\opencode-ai\bin\opencode.exe. Preserve singleton provider schema; never store a virtual key.
   open-design:
     display_name: Open Design
     ownership: agentcore_candidate
@@ -1014,7 +1011,7 @@ managed_candidates:
   zcode:
     display_name: ZCode
     ownership: agentcore
-    certification: live_validated
+    certification: configured_restart_required
     ide_profile: ide-profiles/zcode
     config_path: C:\Users\ynotf\.zcode\cli\config.json
     gateway_url: http://127.0.0.1:18082/mcp
@@ -1049,3 +1046,4 @@ mavis_alias_note: C:\Users\ynotf\.mavis is a junction to C:\Users\ynotf\.minimax
   a separate executable Mavis client and does not receive its own managed profile.
 discovery_note: 'Candidate hosts remain unverified until native support, exact paths, gateway discovery, Code Mode discovery,
   memory lifecycle, and restart behavior are proven. Do not invent support or promote a copied artifact to live_validated.'
+
