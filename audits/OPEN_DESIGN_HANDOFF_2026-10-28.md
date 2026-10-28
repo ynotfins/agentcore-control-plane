@@ -18,7 +18,8 @@ Full checklist: `D:\open-design\docs\PC_SETUP.md`.
 
 ## Git
 
-- Branch: `feat/open-design-enrollment` in this worktree.
+- Branch pushed: `feat/open-design-enrollment` @ `a13a9c0` (`origin/feat/open-design-enrollment`).
+- Open PR URL (not created): https://github.com/ynotfins/agentcore-control-plane/pull/new/feat/open-design-enrollment
 - Do not commit `.agentcore/rollback/**/cursor-mcp.json.pre-attach`.
 - Dirty `D:\github\agentcore-control-plane` main may still hold Raven work — leave it.
 
