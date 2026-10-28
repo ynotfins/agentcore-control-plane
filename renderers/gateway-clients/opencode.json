@@ -1,0 +1,27 @@
+{
+  "mcp": {
+    "servers": {
+      "agentcore-gateway": {
+        "type": "remote",
+        "url": "http://127.0.0.1:18082/mcp",
+        "enabled": true,
+        "_note": "Headerless Trust Class A via the Bifrost-owned process-attested loopback proxy; no virtual key is stored in OpenCode configuration."
+      }
+    }
+  },
+  "_agentcore": {
+    "renderer": "opencode",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "gateway_enrollment_status": "process_attested_proxy",
+    "active_template": true,
+    "gateway_url": "http://127.0.0.1:18082/mcp",
+    "gateway_auth_mode": "process_attested_proxy",
+    "trusted_executable": "%APPDATA%\\npm\\node_modules\\opencode-ai\\bin\\opencode.exe",
+    "notes": [
+      "Sanitized source template; no resolved virtual key, token, or credential is permitted in Git.",
+      "agentcore-gateway is the only AgentCore MCP entry under mcp.servers. Do not store bearer headers.",
+      "Preserve singleton provider schema and DeepInfra/LM Studio base URLs in live config; this template covers AgentCore MCP only."
+    ],
+    "secret_policy": "Never paste or persist an AgentCore virtual key in this client."
+  }
+}

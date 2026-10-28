@@ -1,0 +1,78 @@
+ide_id: opencode
+display_name: OpenCode
+swarm_managed: false
+installed_version: npm-opencode-ai
+live_global_rule_target: unverified
+live_mcp_config_target: C:\Users\ynotf\.config\opencode\opencode.json
+rule_mechanism: OpenCode project/global instruction files; AgentCore GLOBAL_RULES.md is guidance only
+mcp_schema: opencode_jsonc
+mcp_transport: http/streamable
+env_var_handling: process-attested loopback proxy at http://127.0.0.1:18082/mcp; no bearer stored in live MCP JSON
+gateway_url: http://127.0.0.1:18082/mcp
+gateway_auth_mode: process_attested_proxy
+restart_behavior: restart client after MCP config changes
+editability:
+  global_rules: unverified
+  project_rules: unverified
+  mcp_config: direct_write
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: "2026-10-25"
+mcp_template_source: renderers/gateway-clients/opencode.json
+known_limitations:
+- OpenCode uses headerless process-attested access via :18082; exact Windows process ancestry must resolve to
+  %APPDATA%\npm\node_modules\opencode-ai\bin\opencode.exe.
+- Preserve singleton provider schema (provider + enabled_providers). DeepInfra base URL must remain
+  https://api.deepinfra.com/v1/openai; LM Studio http://127.0.0.1:1234/v1.
+- A prior truncated or credential-bearing AgentCore MCP entry is legacy drift and must not be restored.
+semantic_parity_gaps:
+- Signed automatic AgentCore lifecycle capture is not yet certified for OpenCode.
+dimensions:
+  application_launch:
+    status: live_validated
+    evidence_path: contracts/agentcore-gateway-client.json
+    evidence_ts: "2026-10-25T22:00:00Z"
+    superseded_by: null
+  gateway_configuration:
+    status: configured_restart_required
+    evidence_path: contracts/agentcore-gateway-client.json
+    evidence_ts: "2026-10-25T22:00:00Z"
+    superseded_by: null
+  gateway_discovery:
+    status: configured_restart_required
+    evidence_path: contracts/agentcore-gateway-client.json
+    evidence_ts: "2026-10-25T22:00:00Z"
+    superseded_by: null
+  native_memory_lifecycle:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/opencode/VALIDATION.md
+    evidence_ts: "2026-10-25T22:00:00Z"
+    superseded_by: null
+  fresh_chat_recovery:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/opencode/VALIDATION.md
+    evidence_ts: "2026-10-25T22:00:00Z"
+    superseded_by: null
+  persistence_after_restart:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/opencode/VALIDATION.md
+    evidence_ts: "2026-10-25T22:00:00Z"
+    superseded_by: null
+  operator_gate:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/opencode/VALIDATION.md
+    evidence_ts: "2026-10-25T22:00:00Z"
+    superseded_by: null
+m8_enrollment: configured_restart_required
+gateway_enrollment_status: process_attested_proxy
+m8_notes: Trust Class A process-attested enrollment complete 2026-10-25. Live opencode.json mcp.servers.agentcore-gateway
+  must point at http://127.0.0.1:18082/mcp with no headers. Restart OpenCode after reconcile. Never paste BIFROST_MCP_VIRTUAL_KEY.
+legacy_gateway_state:
+  classification: legacy_drift
+  mutation_in_this_task: false
+  note: A prior live OpenCode AgentCore entry used a truncated URL and/or stored bearer. That state is legacy drift and is
+    superseded by process-attested :18082 enrollment.
+  evidence_paths:
+  - contracts/agentcore-gateway-client.json
