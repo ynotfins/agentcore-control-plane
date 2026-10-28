@@ -102,6 +102,7 @@ $durabilityHealth = New-DailyRepeatingTrigger -At ([datetime]"01:00") -Interval 
 $durabilityResource = New-ScheduledTaskTrigger -Daily -At 2:00am
 # Weekly deep: Sunday 05:30 (after WeeklyMaintenance 04:30, before daily resource 02:00 next day).
 $durabilityDeep = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 5:30am
+$secondaryHeadroom = New-ScheduledTaskTrigger -Daily -At 2:45am
 
 Register-AgentCoreTask -TaskName "PostgresRuntime" -ScriptName "Start-AgentCorePostgres.ps1" -Triggers @($postgresStartup) -ScriptArguments @("-StartIfStopped")
 Register-AgentCoreTask -TaskName "SwarmRecallMeilisearch" -ScriptName "Start-AgentCoreSwarmRecallComponent.ps1" -Triggers @($swarmRecallMeilisearchStartup) -ScriptArguments @("-Component Meilisearch", "-ConfigPath `"$ConfigPath`"")
@@ -127,6 +128,11 @@ Register-AgentCoreTask -TaskName "DurabilityDeepAudit" `
   -Triggers @($durabilityDeep) `
   -ScriptArguments @("-Mode Deep")
 
+Register-AgentCoreTask -TaskName "SecondaryBackupHeadroom" `
+  -ScriptName "Prune-AgentCoreSecondaryBackupDrive.ps1" `
+  -Triggers @($secondaryHeadroom) `
+  -ScriptArguments @("-Apply")
+
 if ($StartPostgresTask) {
   Start-ScheduledTask -TaskPath $TaskPath -TaskName "PostgresRuntime"
 }
@@ -141,13 +147,15 @@ if ($StartProjectionTask) {
   tasks = @(
     "PostgresRuntime", "SwarmRecallMeilisearch", "SwarmRecallApi",
     "NightlyBackup", "NightlyRestoreTest", "WeeklyMaintenance", "MemoryProjection",
-    "DurabilityHealthCheck", "DurabilityResourceAudit", "DurabilityDeepAudit"
+    "DurabilityHealthCheck", "DurabilityResourceAudit", "DurabilityDeepAudit",
+    "SecondaryBackupHeadroom"
   )
   durability_audit_tasks = @(
     @{ name="DurabilityHealthCheck";   mode="Health";   schedule="every 6h from 01:00"; script="Test-AgentCoreDurabilityAndPlacement.ps1" },
     @{ name="DurabilityResourceAudit"; mode="Resource"; schedule="daily at 02:00";       script="Test-AgentCoreDurabilityAndPlacement.ps1" },
     @{ name="DurabilityDeepAudit";     mode="Deep";     schedule="weekly Sunday 05:30";  script="Test-AgentCoreDurabilityAndPlacement.ps1" }
   )
+  secondary_headroom_task = @{ name="SecondaryBackupHeadroom"; schedule="daily at 02:45"; script="Prune-AgentCoreSecondaryBackupDrive.ps1 -Apply" }
   removed_monitors = @("DailyDriftCheck", "ContextFabricReadiness")
   removed_monitors_note = "Removed from scheduled registration in rollout P8; run as manual validators on demand. Unregister live tasks via elevated Unregister-ScheduledTask (operator action)."
   runtime_tasks = @("PostgresRuntime", "SwarmRecallMeilisearch", "SwarmRecallApi")

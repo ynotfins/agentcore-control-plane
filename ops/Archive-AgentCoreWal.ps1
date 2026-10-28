@@ -32,15 +32,10 @@ function Write-ArchiveLog {
 }
 
 function Copy-WalUnique {
-  param([string]$DestinationRoot, [switch]$Optional)
+  param([string]$DestinationRoot)
   if ([string]::IsNullOrWhiteSpace($DestinationRoot)) { return }
-  # Gracefully skip if the drive is not available (e.g. G: backup drive not mounted)
   $drive = [System.IO.Path]::GetPathRoot($DestinationRoot)
   if (-not (Test-Path -LiteralPath $drive -ErrorAction SilentlyContinue)) {
-    if ($Optional) {
-      Write-ArchiveLog -Level "warn" -Message "secondary archive drive not available, skipping: $DestinationRoot"
-      return
-    }
     throw "Archive destination drive not available: $drive"
   }
   New-Item -ItemType Directory -Path $DestinationRoot -Force | Out-Null
@@ -56,6 +51,31 @@ function Copy-WalUnique {
   Copy-Item -LiteralPath $SourcePath -Destination $target
 }
 
+function Copy-WalSecondary {
+  param([string]$DestinationRoot)
+  if ([string]::IsNullOrWhiteSpace($DestinationRoot)) { return }
+  try {
+    $drive = [System.IO.Path]::GetPathRoot($DestinationRoot)
+    if (-not (Test-Path -LiteralPath $drive -ErrorAction SilentlyContinue)) {
+      Write-ArchiveLog -Level "warn" -Message "secondary archive drive not available, skipping: $DestinationRoot"
+      return
+    }
+    $letter = $drive.Substring(0, 1)
+    $psdrive = Get-PSDrive -Name $letter -ErrorAction SilentlyContinue
+    if ($psdrive) {
+      $total = [int64]$psdrive.Used + [int64]$psdrive.Free
+      $usedPercent = if ($total -gt 0) { (100.0 * [int64]$psdrive.Used / $total) } else { 100 }
+      if ($usedPercent -ge 75 -or [int64]$psdrive.Free -lt 8GB) {
+        Write-ArchiveLog -Level "warn" -Message "secondary archive headroom exceeded (used=$([math]::Round($usedPercent,1))% free=$([int64]$psdrive.Free)), skipping"
+        return
+      }
+    }
+    Copy-WalUnique -DestinationRoot $DestinationRoot
+  } catch {
+    Write-ArchiveLog -Level "warn" -Message "secondary archive skipped: $($_.Exception.Message)"
+  }
+}
+
 function Invoke-Retention {
   param([string]$DestinationRoot)
   if ($RetentionDays -le 0 -or -not (Test-Path -LiteralPath $DestinationRoot)) { return }
@@ -67,10 +87,10 @@ try {
     throw "WAL source path missing: $SourcePath"
   }
   Copy-WalUnique -DestinationRoot $ArchiveRoot
-  Copy-WalUnique -DestinationRoot $SecondaryArchiveRoot -Optional
+  Copy-WalSecondary -DestinationRoot $SecondaryArchiveRoot
   Invoke-Retention -DestinationRoot $ArchiveRoot
   Invoke-Retention -DestinationRoot $SecondaryArchiveRoot
-  Write-ArchiveLog -Level "info" -Message "archived to primary and secondary roots"
+  Write-ArchiveLog -Level "info" -Message "archived to primary root; secondary copy is best-effort"
   exit 0
 } catch {
   Write-ArchiveLog -Level "error" -Message $_.Exception.Message

@@ -94,7 +94,7 @@
   },
   "skill_capsules": {
     "agentcore-project-lifecycle": {
-      "sha256": "3de60a3b0e892f2b335fb980f8f8285f717d2cb624217e4148b7ccc5939943d1",
+      "sha256": "b28ba50aaaa6a098b565c81d302224dad7094c1d7d7b91b5e44f8a2f0dc6861b",
       "instructions": "Classify the exact project, refuse Swarm-owned execution, use signed canonical memory and generated STATE projections, disclose tools progressively by task class, and close with verified evidence and a deterministic handoff."
     },
     "serena-semantic-code": {

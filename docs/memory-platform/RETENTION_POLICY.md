@@ -144,10 +144,11 @@ PostgreSQL logical and physical backups.
 | Property | Value |
 |----------|-------|
 | **Primary storage** | `E:\AgentCoreArchive\agentcore-memory\backups\pg18\` (logical pg_dump + physical pg_basebackup) |
-| **DR copy** | G: second-copy target (exact layout is backup-runner owned) |
-| **Retention duration** | Target: 7 daily backups + 4 weekly backups + 12 monthly backups |
-| **Deletion policy** | No automatic deletion is currently authorized. `ops/Backup-AgentCorePostgres.ps1` creates and verifies backups but does not rotate them. A future rotation runner must prove daily/weekly/monthly classification, both E:/G: copies, and restore-chain safety before deletion. |
-| **Script** | `ops/Backup-AgentCorePostgres.ps1` |
+| **DR copy** | `G:\AgentCoreArchive\agentcore-memory\backups\pg18\` on the 119 GB external NVMe second-copy volume |
+| **Retention duration** | 7 daily + 4 weekly + 12 monthly backup sets |
+| **Deletion policy** | `E:` backups are not auto-deleted. `G:` second copies are rotated by `ops/Prune-AgentCoreSecondaryBackupDrive.ps1` (daily task `\AgentCore\SecondaryBackupHeadroom`). `ops/Backup-AgentCorePostgres.ps1` skips the `G:` copy when used percent would reach 75 or free space would fall below 8 GB. |
+| **Script** | `ops/Backup-AgentCorePostgres.ps1`, `ops/Prune-AgentCoreSecondaryBackupDrive.ps1` |
+| **Policy** | `contracts/secondary-backup-drive-policy.json` |
 
 ---
 
@@ -158,10 +159,10 @@ PostgreSQL Write-Ahead Log segments (PITR enablement).
 | Property | Value |
 |----------|-------|
 | **Primary storage** | `E:\AgentCoreArchive\agentcore-memory\wal\pg18\` |
-| **DR copy** | G: second-copy target (exact layout is WAL-runner owned) |
-| **Retention duration** | Preserve continuously until a recovery-chain-aware retention runner is implemented and accepted. The design target is a validated PITR window backed by retained base backups, not an age-only WAL cutoff. |
-| **Deletion policy** | No automatic deletion is currently authorized. `ops/Archive-AgentCoreWal.ps1` defaults `RetentionDays=0` and rejects age-only deletion because it can break the WAL chain. |
-| **Script** | `ops/Archive-AgentCoreWal.ps1` |
+| **DR copy** | `G:\AgentCoreArchive\agentcore-memory\wal\pg18\` — best-effort only |
+| **Retention duration** | `E:` WAL is kept for PITR and is not age-deleted. `G:` WAL is kept from the oldest retained daily `G:` backup, not by a raw age cutoff. |
+| **Deletion policy** | `ops/Archive-AgentCoreWal.ps1` still rejects age-only WAL deletion (`RetentionDays=0`). A failed or skipped `G:` copy must not fail `archive_command`. `ops/Prune-AgentCoreSecondaryBackupDrive.ps1` may delete only `G:` WAL below that recovery-chain floor. |
+| **Script** | `ops/Archive-AgentCoreWal.ps1`, `ops/Prune-AgentCoreSecondaryBackupDrive.ps1` |
 | **Note** | WAL archiving must be active before any physical backup for PITR to function. |
 
 ---
@@ -205,6 +206,6 @@ This guarantee cannot be waived without a recorded architecture decision (ADR).
 | service_logs | F: | E: policy target | 30d target | Not currently |
 | temp_worktrees | I: | None | Task lifetime | On task complete |
 | workflow_evidence | PG F: | E: after 180d | 180d in PG | Never (soft) |
-| backups | E: | G: | 7d/4w/12m target | Not currently |
-| wal_archive | E: | G: | Recovery-chain governed | Never by age alone |
+| backups | E: | G: | 7d/4w/12m | G: only, via prune runner |
+| wal_archive | E: | G: | E: keep; G: from oldest retained daily | Never by age alone; G: chain-aware only |
 | quarantined_data | PG F: | E: manual | Indefinite | Never |

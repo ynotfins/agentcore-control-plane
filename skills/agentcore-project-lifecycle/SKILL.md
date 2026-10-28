@@ -54,6 +54,36 @@ Read [tool routing](references/TOOL_ROUTING.md) before structural, architectural
 
 Read [project gates](references/PROJECT_GATES.md) for new-project bootstrap and Milestone entry/exit requirements.
 
+## Govern Codex project access for automation work
+
+Automation governance must use least-privilege project access. Do not grant a broad Codex project access to every repository, drive, user profile, or runtime folder merely because an automation might exist there.
+
+- Default automation-governance access is the active governance project root plus `D:\launchers`.
+- Add an owning project or runtime folder to Codex access only after an automation from that owner is being inventoried, admitted, repaired, or retired.
+- Unknown, vendor, Windows, and third-party automations start as read-only inventory targets. Do not mutate them until the owner, trigger, command, account, logs, health check, dependency impact, and rollback path are known.
+- If the dedicated automation-governance project does not exist yet, keep this work inside `D:\github\agentcore-control-plane` and do not create a new canonical root without explicit operator approval.
+- When a folder is added for an automation, record why that folder is needed, whether access is read-only or write-capable in practice, the owning automation id, and the removal condition.
+- Remove or narrow project access after the automation is archived or moved back to its owning project workflow.
+
+## Govern script launchers and desktop automation
+
+AgentCore-managed work on this PC must reduce desktop intrusiveness and keep automation discoverable.
+
+- Do not create or preserve high-frequency interactive scheduled tasks that launch PowerShell, cmd, node, Python, or GUI helpers in the operator's desktop session. Always prefer a non-interactive Windows service, service-supervised worker, durable queue, or explicit user-launched command for persistent backends.
+- No-popup rule: background automation must not open standard console windows, steal focus, show modal prompts, or depend on a visible desktop during normal operation. For Task Scheduler jobs that do not require desktop interaction, prefer a non-interactive principal such as "run whether user is logged on or not" or a service account. Use `-WindowStyle Hidden`, `-NoProfile`, and `-NonInteractive` only as a compatibility layer, not as the whole reliability design.
+- No-output rule: automation must not write routine success or error output to the operator's screen. Redirect stdout, stderr, and PowerShell streams to a bounded log file, Event Log, or the owning service's log sink. Logs must rotate or trim, and recurring tasks must have an inspectable status path instead of requiring a popup or manual console check.
+- Before changing an automation, identify the owning task, process tree, command line, path, account context, ports, dependencies, logs, current health check, and rollback path. Do not classify or close a process by executable name alone.
+- Existing scheduled tasks, startup entries, Run registry entries, and watchdog scripts must be inventoried before mutation. Export or back up the owner definition first, then change only the approved owner and verify the underlying workflow still works.
+- User-authored or automation-launched scripts must remain in their owning project or runtime folder. Do not move project scripts into `D:\launchers` merely to centralize them.
+- Every AgentCore-created or AgentCore-managed script that can be launched by a user, scheduled task, startup entry, service wrapper, watchdog, or IDE hook must have a discoverable entry under `D:\launchers`: preferably a Windows shortcut or tiny launcher that points to the owning script, grouped in a labeled subfolder that names the source project/system. Include the owner, target path, purpose, launch mode, whether it is active automation or manual-only, and a status label such as `Active`, `Testing`, or `Archived`.
+- Every active AgentCore-managed automation must be recorded in the machine automation registry at `D:\launchers\AUTOMATION_REGISTRY.json` before it is created, enabled, repaired, or materially changed. The record must include a stable automation id, owner, owning root, launcher path, real target path, trigger type, trigger name, account context, schedule/frequency, launch mode, log path, health check, dependencies, ports, expected resource usage, rollback path, current status, last verification time, and operator-impact risk.
+- Maintain a human-readable automation map at `D:\launchers\AUTOMATION_MAP.md` that groups active automations by owning system and shows potential interference: shared ports, shared files, high-frequency schedules, desktop/UI interaction, keyboard/focus risk, network dependencies, service dependencies, and overlapping maintenance windows.
+- Before enabling or changing an automation, compare it against the registry and map for conflicts. Resolve or explicitly document conflicts before activation. A hidden window is not enough; the automation must be quiet, observable, recoverable, and non-disruptive to the operator's active desktop.
+- The registry and map are required tracking surfaces, not live-state proof. Reconcile them against Task Scheduler, services, startup folders, Run registry entries, IDE hooks, process listeners, and `D:\launchers` before claiming all active automations are known.
+- Do not attempt to shortcut every vendor, package-manager, virtualenv, `node_modules`, Windows system, or installed-application script. Treat those as dependencies unless they are directly used as an automation entrypoint.
+- Temporary or test automations must be self-limiting. If a task runs every few minutes, set a runtime limit, an expiration or explicit end condition, and a rollback/removal note. Default test automation should expire or disable itself within 24-48 hours unless promoted to an approved active automation.
+- New background automation must be quiet by default: no visible console windows, no focus stealing, no modal prompts, no desktop popups during normal operation, bounded logs, backoff on repeated failure, and a health/status surface the operator can inspect from Codex.
+
 ## Treat STATE correctly
 
 - PostgreSQL 18 through `agentcore-memory` is canonical for AgentCore project history.
@@ -84,4 +114,4 @@ Stop instead of guessing when:
 
 ## Completion contract
 
-Report the bounded assumptions, changed files or behavior, exact validation evidence, Git result, remaining risk, and the next safe action. Do not claim a host is installed or live-validated from a copied file alone.
+Report the bounded assumptions, changed files or behavior, automation/launcher inventory impact, exact validation evidence, Git result, remaining risk, and the next safe action. Do not claim a host is installed or live-validated from a copied file alone.

@@ -29,6 +29,15 @@ AgentCore and Swarm previously treated SwarmRecall as Swarm-owned exclusive infr
 - Context Engine is the first real governed LangGraph project (`agentcore-context-engine`).
 - Rollback: restore authority files from `E:\AgentCore-Backups\authority-unlock-AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE\` and Swarm copies under `E:\SwarmBackups\...`; disable Recall adapter; PG18 evidence/checkpoints remain authoritative.
 
+## Phase 2 implementation evidence (2026-09-08)
+
+- The existing single Recall deployment and its prior data/provenance were preserved.
+- SwarmClaw retains its own owner identity and credential. AgentCore does not receive or reuse it.
+- AgentCore has 11 project-specific identities and keys, one per enrolled project, plus 12 pools: one shared `agentcore-global-memory` pool and one private pool per project.
+- Native Recall membership and per-project credentials enforce the boundary. Each project can access its own private pool and the shared pool; cross-project private retrieval was adversarially denied.
+- `agentcore-memory` selects the key for the exact enrolled `project_key`, validates the two-pool topology, filters returned provenance again, and exposes no Recall secret to IDEs. Live `memory_status` reports Recall `configured: true` and 11 configured projects.
+- Non-secret topology lives at `H:\SwarmData\recall\agentcore-integration.json`; secret key material remains in Windows User environment storage. The full pre-change Swarm backup and restore test remain under `E:\SwarmBackups\phase2-20260908T012753Z`.
+
 ## Non-goals
 
 - Second Recall instance for AgentCore.

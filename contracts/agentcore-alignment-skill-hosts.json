@@ -1,97 +1,219 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "skill_name": "agentcore-project-lifecycle",
   "source": "skills/agentcore-project-lifecycle",
+  "certification_states": [
+    "source_ready",
+    "installed_unverified",
+    "configured_restart_required",
+    "live_validated",
+    "manual_import_pending",
+    "UI_only_pending",
+    "unverified",
+    "unsupported_with_reason"
+  ],
   "hosts": [
     {
       "host": "zed",
       "delivery": "native_skill",
       "target": "{userprofile}\\.agents\\skills\\agentcore-project-lifecycle",
-      "validation": "live_reload_supported_native_lifecycle_required"
+      "validation": "live_reload_supported_native_lifecycle_required",
+      "certification": "installed_unverified",
+      "installed_sha256": "d230ca65d0ca91a7afc2ef4e35c12fd5688b4c907b2bd52450198baec85904a2"
     },
     {
       "host": "eigent",
       "delivery": "native_skill_empirical",
       "target": "{userprofile}\\.eigent\\skills\\agentcore-project-lifecycle",
-      "validation": "configured_restart_required"
+      "validation": "configured_restart_required",
+      "certification": "installed_unverified",
+      "installed_sha256": "d230ca65d0ca91a7afc2ef4e35c12fd5688b4c907b2bd52450198baec85904a2"
     },
     {
       "host": "cursor",
       "delivery": "native_skill",
       "target": "{userprofile}\\.cursor\\skills\\agentcore-project-lifecycle",
-      "validation": "restart_or_fresh_task_required"
+      "validation": "restart_or_fresh_task_required",
+      "certification": "installed_unverified",
+      "installed_sha256": "d230ca65d0ca91a7afc2ef4e35c12fd5688b4c907b2bd52450198baec85904a2"
     },
     {
       "host": "codex",
       "delivery": "native_skill",
       "target": "{userprofile}\\.agents\\skills\\agentcore-project-lifecycle",
-      "validation": "fresh_task_required"
+      "validation": "fresh_task_required",
+      "certification": "installed_unverified",
+      "installed_sha256": "d230ca65d0ca91a7afc2ef4e35c12fd5688b4c907b2bd52450198baec85904a2"
     },
     {
       "host": "claude-code",
       "delivery": "native_skill",
       "target": "{userprofile}\\.claude\\skills\\agentcore-project-lifecycle",
-      "validation": "native_cli_required"
+      "validation": "native_cli_required",
+      "certification": "installed_unverified",
+      "installed_sha256": "d230ca65d0ca91a7afc2ef4e35c12fd5688b4c907b2bd52450198baec85904a2"
     },
     {
       "host": "minimax",
       "delivery": "native_skill_empirical",
       "target": "{userprofile}\\.minimax\\skills\\agentcore-project-lifecycle",
-      "validation": "configured_restart_required"
+      "validation": "configured_restart_required",
+      "certification": "installed_unverified",
+      "installed_sha256": "d230ca65d0ca91a7afc2ef4e35c12fd5688b4c907b2bd52450198baec85904a2"
     },
     {
       "host": "mavis",
       "delivery": "alias_of_minimax",
       "target": "{userprofile}\\.mavis\\skills\\agentcore-project-lifecycle",
-      "validation": "same_data_root_no_second_copy"
+      "validation": "same_data_root_no_second_copy",
+      "certification": "unverified"
     },
     {
       "host": "claude-desktop",
       "delivery": "generated_rule_adapter",
       "source": "ide-profiles/claude-desktop/GLOBAL_RULES.md",
-      "validation": "manual_import"
+      "validation": "manual_import",
+      "certification": "source_ready"
     },
     {
       "host": "antigravity",
       "delivery": "generated_rule_adapter",
       "source": "ide-profiles/antigravity/GLOBAL_RULES.md",
-      "validation": "unverified"
+      "validation": "unverified",
+      "certification": "source_ready"
     },
     {
       "host": "open-interpreter",
       "delivery": "generated_rule_adapter",
       "source": "ide-profiles/open-interpreter/GLOBAL_RULES.md",
-      "validation": "manual_import"
+      "validation": "manual_import",
+      "certification": "source_ready"
     },
     {
       "host": "cherry-studio",
       "delivery": "governed_prompt_adapter",
       "source": "docs/prompts/cherry-agentcore-workspace-agent.md",
-      "validation": "manual_import"
+      "validation": "manual_import",
+      "certification": "source_ready"
     },
     {
       "host": "minimax-classic",
       "delivery": "generated_rule_adapter",
       "source": "ide-profiles/minimax-classic/GLOBAL_RULES.md",
-      "validation": "ui_only"
+      "validation": "ui_only",
+      "certification": "source_ready"
+    },
+    {
+      "host": "zoo-code",
+      "delivery": "generated_rule_adapter",
+      "source": "ide-profiles/zoo-code/GLOBAL_RULES.md",
+      "validation": "unverified",
+      "certification": "source_ready"
+    },
+    {
+      "host": "devin",
+      "delivery": "generated_rule_adapter",
+      "source": "ide-profiles/devin/GLOBAL_RULES.md",
+      "validation": "manual_import",
+      "certification": "source_ready"
+    },
+    {
+      "host": "reasonix",
+      "delivery": "generated_rule_adapter",
+      "source": "ide-profiles/reasonix/GLOBAL_RULES.md",
+      "validation": "unverified",
+      "certification": "source_ready"
+    },
+    {
+      "host": "opencode",
+      "delivery": "policy_source_only",
+      "source": "contracts/global-agent-policy.yaml",
+      "validation": "unverified",
+      "certification": "unverified"
+    },
+    {
+      "host": "open-design",
+      "delivery": "policy_source_only",
+      "source": "contracts/global-agent-policy.yaml",
+      "validation": "unverified",
+      "certification": "unverified"
+    },
+    {
+      "host": "autogpt",
+      "delivery": "policy_source_only",
+      "source": "contracts/global-agent-policy.yaml",
+      "validation": "unverified",
+      "certification": "unverified"
+    },
+    {
+      "host": "agent-orchestrator",
+      "delivery": "policy_source_only",
+      "source": "contracts/global-agent-policy.yaml",
+      "validation": "unverified",
+      "certification": "unverified"
+    },
+    {
+      "host": "lobehub",
+      "delivery": "policy_source_only",
+      "source": "contracts/global-agent-policy.yaml",
+      "validation": "unverified",
+      "certification": "unverified"
+    },
+    {
+      "host": "openhands",
+      "delivery": "policy_source_only",
+      "source": "contracts/global-agent-policy.yaml",
+      "validation": "unverified",
+      "certification": "unverified"
+    },
+    {
+      "host": "zcode",
+      "delivery": "policy_source_only",
+      "source": "contracts/global-agent-policy.yaml",
+      "validation": "unverified",
+      "certification": "unverified"
+    },
+    {
+      "host": "openclaw",
+      "delivery": "policy_source_only",
+      "source": "contracts/global-agent-policy.yaml",
+      "validation": "unverified",
+      "certification": "unverified",
+      "ownership": "agentcore",
+      "governed_product_root": "D:\\github\\open--claw",
+      "windows_operations_root": "D:\\openclaw",
+      "excluded_live_state_root": "C:\\Users\\ynotf\\.openclaw"
+    },
+    {
+      "host": "clawx",
+      "delivery": "policy_source_only",
+      "source": "contracts/global-agent-policy.yaml",
+      "validation": "unverified",
+      "certification": "unverified",
+      "ownership": "agentcore",
+      "installer_root": "C:\\Program Files\\ClawX"
     },
     {
       "host": "langgraph-production",
       "delivery": "execution_catalog_capsule",
       "source": "contracts/context-engine-execution-catalog.json",
-      "validation": "workflow_canary_required"
+      "validation": "workflow_canary_required",
+      "certification": "source_ready"
     },
     {
       "host": "langgraph-studio",
       "delivery": "execution_catalog_capsule",
       "source": "contracts/context-engine-execution-catalog.json",
-      "validation": "dev_only"
+      "validation": "dev_only",
+      "certification": "source_ready"
     },
     {
       "host": "swarmclaw",
       "delivery": "foreign_swarm_adapter",
       "source": "D:\\github\\swarm-ecosystem-control",
-      "validation": "swarm_owned_no_agentcore_install"
+      "validation": "swarm_owned_no_agentcore_install",
+      "certification": "unsupported_with_reason",
+      "ownership": "foreign_swarm"
     }
   ]
 }

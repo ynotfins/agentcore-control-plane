@@ -8,6 +8,7 @@ Run:
 from __future__ import annotations
 
 import argparse
+import atexit
 import json
 import os
 import re
@@ -15,8 +16,11 @@ import shutil
 import subprocess
 import sys
 import time
+import tempfile
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 REPO = Path(__file__).resolve().parents[2]
 HOOK_CMD = REPO / ".cursor" / "hooks" / "agentcore-hook.cmd"
@@ -26,6 +30,12 @@ DISPATCHER = REPO / "scripts" / "agentcore_cursor" / "hook_dispatcher.py"
 _SCRIPTS = REPO / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
+
+_PROTOCOL_INTERLOCK_ROOT = Path(tempfile.mkdtemp(prefix="agentcore-hook-protocol-"))
+os.environ["AGENTCORE_CURSOR_GLOBAL_PROMPT_INTERLOCK_PATH"] = str(
+    _PROTOCOL_INTERLOCK_ROOT / "prompt-interlocks"
+)
+atexit.register(shutil.rmtree, _PROTOCOL_INTERLOCK_ROOT, True)
 
 from agentcore_cursor.hook_dispatcher import _dispatch  # noqa: E402
 from agentcore_cursor.hooks import _first_workspace_root  # noqa: E402
@@ -45,17 +55,22 @@ FIXTURES: dict[str, dict[str, Any]] = {
         "event": "beforeSubmitPrompt",
         "prompt": "Continue.",
         "conversation_id": "hook-test-conv",
+        "generation_id": "hook-test-generation",
         "workspace_roots": [str(REPO)],
     },
     "preToolUse": {
         "event": "preToolUse",
         "tool_name": "Read",
         "tool_input": {"path": str(REPO / "README.md")},
+        "conversation_id": "hook-test-conv",
+        "generation_id": "hook-test-generation",
         "workspace_roots": [str(REPO)],
     },
     "beforeShellExecution": {
         "event": "beforeShellExecution",
         "command": "git status",
+        "conversation_id": "hook-test-conv",
+        "generation_id": "hook-test-generation",
         "workspace_roots": [str(REPO)],
     },
     "afterFileEdit": {
@@ -217,11 +232,11 @@ def test_malformed_input() -> None:
         cwd=str(REPO),
     )
     doc = _parse_stdout(proc.stdout)
-    assert doc.get("continue") is False, "beforeSubmitPrompt without workspace must fail closed"
+    assert doc.get("continue") is True, "beforeSubmitPrompt without workspace must fail open"
     assert "workspace root" in str(doc.get("user_message") or "")
 
 
-def test_missing_gateway_degraded() -> None:
+def test_missing_gateway_does_not_block_prompt() -> None:
     env = {"BIFROST_MCP_VIRTUAL_KEY": "", "AGENT_CORE_POSTGRES_PASSWORD": ""}
     code, out, _ = _run_hook(
         "beforeSubmitPrompt",
@@ -231,10 +246,11 @@ def test_missing_gateway_degraded() -> None:
     if code != 0:
         raise RuntimeError(f"degraded beforeSubmitPrompt exit {code}")
     doc = _parse_stdout(out)
-    assert doc.get("continue") is False, "degraded beforeSubmitPrompt must fail closed"
-    message = str(doc.get("user_message") or "").lower()
-    assert "cost-control gate blocked" in message
-    assert "recover" in message or "gateway" in message
+    assert doc.get("continue") is True, "degraded beforeSubmitPrompt must fail open"
+    if doc.get("agentcore_continuity_degraded"):
+        message = str(doc.get("user_message") or "").lower()
+        assert "continuity warning" in message
+        assert "recover" in message or "gateway" in message
 
 
 def test_idempotency() -> None:
@@ -246,15 +262,15 @@ def test_idempotency() -> None:
         raise RuntimeError("idempotency run failed exit codes")
     d1 = _parse_stdout(out1)
     d2 = _parse_stdout(out2)
-    if d1.get("continue") is False or d2.get("continue") is False:
+    assert d1.get("continue") is True and d2.get("continue") is True
+    if d1.get("agentcore_continuity_degraded") or d2.get("agentcore_continuity_degraded"):
         messages = " ".join(
             str(doc.get("user_message") or "").lower() for doc in (d1, d2)
         )
-        assert "cost-control gate blocked" in messages
+        assert "continuity warning" in messages
         return
     e1 = d1.get("agentcore_prompt_capture") or {}
     e2 = d2.get("agentcore_prompt_capture") or {}
-    assert d1.get("continue") is True and d2.get("continue") is True
     assert e1.get("event_id"), "first prompt capture did not return durable event_id"
     assert e2.get("event_id") == e1.get("event_id"), "duplicate prompt created a second event"
     assert e2.get("idempotent_replay") is True, "duplicate prompt was not reported as replay"
@@ -307,18 +323,25 @@ def test_structured_workspace_roots_supported() -> None:
         {"workspace_roots": [{"label": "agentcore-control-plane"}]},
         {"workspace_roots": [{"workspaceName": "agentcore-control-plane"}]},
         {"workspaceRoot": {"workspace_name": "agentcore-control-plane"}},
-        {"workspace_roots": ["."]},
-        {"workspace_roots": ["relative\\not-a-root"]},
         {"workspace_roots": ["relative\\not-a-root", str(REPO)]},
     ]
     for payload in payloads:
         assert _first_workspace_root(payload) == expected
-
     assert (
         _first_workspace_root({"workspace_roots": [{"path": "d:github\\agentcore-control-plane"}]})
         == expected
     )
 
+
+def test_relative_workspace_root_requires_exact_enrolled_cwd(monkeypatch) -> None:
+    monkeypatch.chdir(REPO)
+    assert _first_workspace_root({"workspace_roots": ["."]}) == REPO.resolve()
+
+    monkeypatch.chdir(REPO / "scripts")
+    with pytest.raises(ValueError, match="workspace root must be absolute"):
+        _first_workspace_root({"workspace_roots": ["."]})
+    with pytest.raises(ValueError, match="workspace root must be absolute"):
+        _first_workspace_root({"workspace_roots": ["relative\\not-a-root"]})
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -352,8 +375,8 @@ def main() -> int:
     test_malformed_input()
     print("    PASS")
 
-    print("  special: missing gateway degraded")
-    test_missing_gateway_degraded()
+    print("  special: missing gateway does not block prompt")
+    test_missing_gateway_does_not_block_prompt()
     print("    PASS")
 
     print("  special: idempotency")

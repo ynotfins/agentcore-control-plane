@@ -15,6 +15,8 @@ AgentCore needs a single workstation MCP aggregation plane for non-Swarm IDEs so
 3. Runtime root: **`H:\AgentRuntime\bifrost`** (bin, config.json, sqlite config/logs stores, state, backups).
 4. Config authority remains **`D:\github\agentcore-control-plane`** (contracts + renderers). Live config is rendered to H:.
 5. MCP client auth mode: **headers** virtual-key auth (`mcp_server_auth_mode: headers`). IDEs send `Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}` to `http://127.0.0.1:8080/mcp`.
+
+   **Phase 2 transport amendment (2026-09-08):** this remains the direct route for clients that securely reference the Windows User environment. Approved header-hostile Trust Class A clients use a Bifrost-owned loopback compatibility endpoint at `http://127.0.0.1:18082/mcp`. It validates an exact approved Windows process or ancestor before injecting the User-scope virtual key in memory; persisted client configuration contains no key and every unresolved, ambiguous, or unapproved caller fails closed. `contracts/agentcore-gateway-client.json` `gateway_url` and `gateway_auth_mode` select the route.
 6. Persistence: **config.json + sqlite** (`config_store` / `logs_store`), not Docker.
 7. **No Docker** for the Bifrost Gateway runtime itself.
 8. Bind to localhost only (`127.0.0.1:8080`).

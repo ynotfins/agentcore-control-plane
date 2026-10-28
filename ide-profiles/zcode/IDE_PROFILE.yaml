@@ -66,7 +66,7 @@ dimensions:
     evidence_path: audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md
     evidence_ts: '2026-10-21T22:06:00Z'
     superseded_by: null
-m8_enrollment: live_validated
+m8_enrollment: configured_restart_required
 gateway_enrollment_status: process_attested_proxy
 m8_notes: >-
   Trust Class A source enrollment complete 2026-10-21. Live C:\Users\ynotf\.zcode\cli\config.json
@@ -86,3 +86,4 @@ legacy_gateway_state:
     the G:\Zcode tree remains as read-only legacy evidence pending operator cleanup.
   evidence_paths:
   - audits/ZCODE_AGENTCORE_ENROLLMENT_2026-10-21.md
+

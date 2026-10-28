@@ -7,6 +7,13 @@ Generated: 2026-06-26
 > `agentcore-memory`; `global-memory-gateway` references below are historical
 > memory rollout terminology unless a future migration explicitly reintroduces
 > that name.
+>
+> **Runtime validation override (2026-09-08):** PG16, direct SwarmRecall/SwarmVault,
+> and retired projection-state validation described below are historical. The current
+> aggregate gate is `ops\Test-AgentCoreRuntimeSuite.ps1`: PG18 `agent_core` on
+> `127.0.0.1:55433`, Bifrost through PowerShell 7, and the current four generated
+> projections. Context Fabric readiness is included only when
+> `-IncludeContextFabricReadiness` is supplied.
 
 Purpose: preserve the current AgentCore database, storage, SwarmVault, SwarmRecall, and multi-agent governance context for Cursor, Codex, OpenClaw/ClawX, Open Interpreter, MiniMax, and future controller agents.
 

@@ -1,5 +1,7 @@
 # Dependency Graph
 
+> **HISTORICAL DIRECT-MCP SNAPSHOT — SUPERSEDED.** The graph below predates the Bifrost single-gateway cutover and must not be used to configure a client. Current dependency authority is `contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, and `docs/bifrost/MCP_CLASSIFICATION_MATRIX.md`. As verified on 2026-09-08, ordinary AgentCore clients enter through one `agentcore-gateway`; raw Swarm product MCP entries are excluded, and neutral Recall is server-side behind `agentcore-memory`.
+
 ```mermaid
 flowchart LR
   "Cursor Global" -->|configured_server| "arabold-docs"

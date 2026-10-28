@@ -53,7 +53,7 @@ Known current AgentCore variables include:
 - Source repos: `D:\github`
 - Hot runtime data: `F:\AgentCore` (database/vector/index tier)
 - Gateway/agent runtime: `F:\AgentCore\runtime` (live Bifrost under `F:\AgentCore\runtime\bifrost`; historical `H:\AgentRuntime` is not the final AgentCore home)
-- Archive/cold + backups: `E:\AgentCore\...` only (second backup copy: `G:`)
+- Archive/cold + backups: `E:\AgentCore\...` only (second backup copy: `G:`, 119 GB NVMe, keep under 75% used / 8 GB free; prune with `ops/Prune-AgentCoreSecondaryBackupDrive.ps1`)
 - Disposable scratch: `I:` — portable media: `J:`
 - `H:` is reserved for Swarm after M9 acceptance; do not expand AgentCore write authority there
 
@@ -67,7 +67,7 @@ Do not place runtime databases, logs, backups, incident data, or private respons
 
 ## Gateway Contract
 
-- Normal IDE agents reach memory through one MCP entry: `agentcore-gateway` (`http://127.0.0.1:8080/mcp`) → `agentcore-memory`.
+- Normal IDE agents reach memory through one MCP entry named `agentcore-gateway` → `agentcore-memory`. Header-capable clients use the direct `http://127.0.0.1:8080/mcp` endpoint with an environment-backed bearer; approved header-hostile Trust Class A clients use the process-attested `http://127.0.0.1:18082/mcp` endpoint without storing the bearer.
 - Any database ingest path must use `agent_ingest` through Windows environment variables via approved ops/admin runners only:
   - `AGENT_CORE_PGUSER=agent_ingest`
   - `AGENT_CORE_PGPASSWORD=${env:AGENT_CORE_AGENT_INGEST_PASSWORD}`

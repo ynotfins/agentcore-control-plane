@@ -130,12 +130,12 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
         type = 'daily_repeating'
         start_delay_seconds = 60
         repetition_interval_seconds = 60
-        repetition_duration_seconds = 86400
+        repetition_duration_seconds = 0
       }
       settings = [ordered]@{
         allow_start_if_on_batteries = $true
         dont_stop_if_going_on_batteries = $true
-        execution_time_limit_seconds = 60
+        execution_time_limit_seconds = 180
         restart_count = 0
         start_when_available = $true
         multiple_instances = 'IgnoreNew'
@@ -187,11 +187,14 @@ function New-InstallerRepeatingDailyTrigger($Spec) {
   if ($Spec.type -ne 'daily_repeating') { throw "Unsupported watchdog task trigger type: $($Spec.type)" }
   $startAt = (Get-Date).AddSeconds([int]$Spec.start_delay_seconds)
   $dailyParameters = [ordered]@{ Daily = $true; At = $startAt }
+  $durationSeconds = [int]$Spec.repetition_duration_seconds
   $repetitionParameters = [ordered]@{
     Once = $true
     At = $startAt
     RepetitionInterval = [TimeSpan]::FromSeconds([int]$Spec.repetition_interval_seconds)
-    RepetitionDuration = [TimeSpan]::FromSeconds([int]$Spec.repetition_duration_seconds)
+  }
+  if ($durationSeconds -gt 0) {
+    $repetitionParameters.RepetitionDuration = [TimeSpan]::FromSeconds($durationSeconds)
   }
   if ($TestMode) {
     Add-TestScheduledTaskCall 'watchdog' 'New-ScheduledTaskTrigger' ([ordered]@{
@@ -202,7 +205,8 @@ function New-InstallerRepeatingDailyTrigger($Spec) {
       Once = $true
       At = $startAt.ToUniversalTime().ToString('o')
       RepetitionIntervalSeconds = [int]$Spec.repetition_interval_seconds
-      RepetitionDurationSeconds = [int]$Spec.repetition_duration_seconds
+      RepetitionDurationSeconds = $durationSeconds
+      StopAtDurationEnd = $false
     })
     $dailyTrigger = [pscustomobject]@{ Repetition = $null }
     $repetitionTrigger = [pscustomobject]@{ Repetition = [pscustomobject]@{
@@ -211,9 +215,20 @@ function New-InstallerRepeatingDailyTrigger($Spec) {
     } }
   } else {
     $dailyTrigger = New-ScheduledTaskTrigger @dailyParameters
+    if ($durationSeconds -le 0) {
+      # The cmdlet requires a duration to build the repetition, then we clear it.
+      $repetitionParameters.RepetitionDuration = [TimeSpan]::FromDays(1)
+    }
     $repetitionTrigger = New-ScheduledTaskTrigger @repetitionParameters
   }
   $dailyTrigger.Repetition = $repetitionTrigger.Repetition
+  # A one-day duration with StopAtDurationEnd drops the next day's trigger on Windows.
+  # Duration 0 means repeat indefinitely. Test mode records that choice and does not
+  # mutate the placeholder trigger object.
+  if ((-not $TestMode) -and $durationSeconds -le 0 -and $dailyTrigger.Repetition) {
+    $dailyTrigger.Repetition.Duration = ''
+    $dailyTrigger.Repetition.StopAtDurationEnd = $false
+  }
   return $dailyTrigger
 }
 

@@ -283,7 +283,7 @@ def compliant_watchdog_task_state() -> dict[str, object]:
             "Enabled": True,
             "Hidden": True,
             "MultipleInstances": "IgnoreNew",
-            "ExecutionTimeLimit": "PT1M",
+            "ExecutionTimeLimit": "PT3M",
         },
         "Actions": {
             "Arguments": (
@@ -343,6 +343,13 @@ def test_watchdog_debounces_failures_and_recycles_once_per_incident(tmp_path: Pa
     assert first.returncode == 0, first.stderr
     assert "WATCHDOG_FAILURE count=1" in first.stdout
     assert "WATCHDOG_TEST_RECYCLE count=2" in second.stdout
+
+    listening = tmp_path / "listening"
+    first_open = run_watchdog(listening, "Unhealthy", started_at, "-TestTcpResult", "Open")
+    second_open = run_watchdog(listening, "Unhealthy", started_at, "-TestTcpResult", "Open")
+    assert first_open.returncode == 0, first_open.stderr
+    assert "WATCHDOG_DEGRADED" in first_open.stdout
+    assert "WATCHDOG_TEST_RECYCLE" not in second_open.stdout
     assert "WATCHDOG_RECYCLE_BACKOFF" in third.stdout
     assert "WATCHDOG_RECYCLE_BACKOFF" in fourth.stdout
 
@@ -433,7 +440,7 @@ def test_watchdog_expires_orphaned_stop_and_start_markers_quickly(tmp_path: Path
     assert not start_expired_marker.exists()
 
 
-def test_watchdog_expires_stale_maintenance_marker_and_honors_exact_120_second_grace(
+def test_watchdog_expires_stale_maintenance_marker_and_honors_startup_grace(
     tmp_path: Path,
 ) -> None:
     runtime_root = tmp_path / "runtime"
@@ -457,22 +464,22 @@ def test_watchdog_expires_stale_maintenance_marker_and_honors_exact_120_second_g
     assert "WATCHDOG_FAILURE count=1" in stale.stdout
     assert not marker.exists()
 
-    at_119 = run_watchdog(
-        tmp_path / "grace-119",
+    inside_grace = run_watchdog(
+        tmp_path / "grace-inside",
         "Unhealthy",
         "2026-08-08T00:00:00Z",
         "-NowUtc",
-        "2026-08-08T00:01:59Z",
+        "2026-08-08T00:04:59Z",
     )
-    at_120 = run_watchdog(
-        tmp_path / "grace-120",
+    at_grace_end = run_watchdog(
+        tmp_path / "grace-end",
         "Unhealthy",
         "2026-08-08T00:00:00Z",
         "-NowUtc",
-        "2026-08-08T00:02:00Z",
+        "2026-08-08T00:05:00Z",
     )
-    assert "WATCHDOG_SKIP startup_grace" in at_119.stdout
-    assert "WATCHDOG_FAILURE count=1" in at_120.stdout
+    assert "WATCHDOG_SKIP startup_grace" in inside_grace.stdout
+    assert "WATCHDOG_FAILURE count=1" in at_grace_end.stdout
 
     marker.write_text("operator_hold", encoding="utf-8")
     os.utime(marker, (created_at, created_at))
@@ -1035,7 +1042,7 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
     assert specs["watchdog"]["settings"] == {
         "allow_start_if_on_batteries": True,
         "dont_stop_if_going_on_batteries": True,
-        "execution_time_limit_seconds": 60,
+        "execution_time_limit_seconds": 180,
         "restart_count": 0,
         "start_when_available": True,
         "multiple_instances": "IgnoreNew",
@@ -1109,7 +1116,7 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
     assert by_scope_and_command[("watchdog", "New-ScheduledTaskSettingsSet")] == {
         "AllowStartIfOnBatteries": True,
         "DontStopIfGoingOnBatteries": True,
-        "ExecutionTimeLimitSeconds": 60,
+        "ExecutionTimeLimitSeconds": 180,
         "RestartCount": 0,
         "Hidden": True,
         "StartWhenAvailable": True,
@@ -1141,7 +1148,8 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         "Once": True,
         "At": daily["parameters"]["At"],
         "RepetitionIntervalSeconds": 60,
-        "RepetitionDurationSeconds": 86400,
+        "RepetitionDurationSeconds": 0,
+        "StopAtDurationEnd": False,
     }
     trigger_at = datetime.fromisoformat(daily["parameters"]["At"].replace("Z", "+00:00"))
     assert started_at + timedelta(seconds=55) <= trigger_at
@@ -1173,7 +1181,7 @@ def test_verifier_reports_actionable_watchdog_stale_task_failures(tmp_path: Path
     assert "FAIL  watchdog scheduled task is non-interactive" in result.stdout
     assert "FAIL  watchdog uses debounced failure threshold 2; rerun the installer elevated" in result.stdout
     assert "FAIL  watchdog multiple-instance policy is IgnoreNew; rerun the installer elevated" in result.stdout
-    assert "FAIL  watchdog execution time limit is 60 seconds; rerun the installer elevated" in result.stdout
+    assert "FAIL  watchdog execution time limit is 180 seconds; rerun the installer elevated" in result.stdout
     assert "FAIL  watchdog repetition interval is 60 seconds; rerun the installer elevated" in result.stdout
     assert "FAIL  watchdog runs under SYSTEM/service context; rerun the installer elevated" in result.stdout
     assert "FAIL  watchdog logon type is ServiceAccount; rerun the installer elevated" in result.stdout
@@ -1206,7 +1214,7 @@ def test_verifier_accepts_compliant_watchdog_task_profile(tmp_path: Path) -> Non
     assert result.returncode == 0, result.stdout
     assert "PASS  watchdog scheduled task enabled" in result.stdout
     assert "PASS  watchdog multiple-instance policy is IgnoreNew" in result.stdout
-    assert "PASS  watchdog execution time limit is 60 seconds" in result.stdout
+    assert "PASS  watchdog execution time limit is 180 seconds" in result.stdout
     assert "PASS  watchdog repetition interval is 60 seconds" in result.stdout
     assert "PASS  watchdog runs under SYSTEM/service context" in result.stdout
     assert "RESULT: PASSED" in result.stdout

@@ -39,7 +39,21 @@ Resolution order: `localStorage['rgds-theme']` → `?theme=` → `data-theme` de
 
 ---
 
-## 3. Rainbow pulse (Theme 4)
+## 3. Interactive hover state (all four themes)
+
+- Tokens: `md.sys.state.hover.*` (`tokens/sys/state.json` + per-theme overrides)
+- CSS vars: `--md-sys-state-hover-tint`, `--md-sys-state-hover-tint-amount`, `--md-sys-state-hover-border`, `--md-sys-state-hover-saturate`
+- Behavior: cards, primary/secondary buttons, icon targets, and theme controls brighten via `color-mix` + subtle saturate on `:hover` / `:focus-within`
+- Theme tuning:
+  - Primary Light — blue vibrancy lift
+  - Secondary Light — yellow/warm lift + stronger featured stroke feel
+  - Primary Dark — ngrok-style near-white slate lift (~7%)
+  - Secondary Dark — warm orange lift over deep black
+- Must honor `prefers-reduced-motion` (shortened transitions)
+
+---
+
+## 4. Rainbow pulse (Theme 4)
 
 - Token: `md.custom.rainbowPulse` (`tokens/custom/rainbow-pulse.json`)
 - Utility class: `.md-rainbow-pulse`
@@ -49,7 +63,7 @@ Resolution order: `localStorage['rgds-theme']` → `?theme=` → `data-theme` de
 
 ---
 
-## 4. Layout & components
+## 5. Layout & components
 
 - Aesthetic: Apple-like, clean vector, generous whitespace
 - Large cards, large buttons (≥52px tall), 64px icon targets
@@ -59,7 +73,7 @@ Resolution order: `localStorage['rgds-theme']` → `?theme=` → `data-theme` de
 
 ---
 
-## 5. Bootstrap & Bifrost
+## 6. Bootstrap & Bifrost
 
 - Pins: `docs/design/m3/package-pins.json` — install with `--save-exact`
 - Bifrost: Figma MCP for validation (`search_design_system`, `get_design_context`). **Do not** host RGDS tokens as a Bifrost upstream.
@@ -67,7 +81,7 @@ Resolution order: `localStorage['rgds-theme']` → `?theme=` → `data-theme` de
 
 ---
 
-## 6. Anti-patterns
+## 7. Anti-patterns
 
 - Inline hex / raw spacing in components
 - Unpinned “latest” Tailwind/Radix/Lucide installs
@@ -75,13 +89,14 @@ Resolution order: `localStorage['rgds-theme']` → `?theme=` → `data-theme` de
 - Per-page color maps or `tailwind.config.js` color overrides
 - JS theme systems beyond toggling `data-theme`
 - Calling RGDS “NFA Design System” or “AgentCore Design System” in new authority text
+- Hardcoded hover rgba/hex outside `md.sys.state.hover` tokens
 
 ---
 
-## 7. Change control
+## 8. Change control
 
-- Token PR: old → new, affected components, screenshots in **all four** themes
+- Token PR: old → new, affected components, screenshots in **all four** themes (include hover states)
 - Brand hex swap: edit `tokens/ref/palette.json` (+ regenerate CSS); no component edits
 - New component: document HTML/CSS/ARIA for all four themes
 
-*Locked: 2026-09-22. Official name: R3lentless-Grind Design System (RGDS). Review trigger: brand seed finalization, new framework adoption, or operator instruction.*
+*Locked: 2026-09-22. Official name: R3lentless-Grind Design System (RGDS). Hover state layer added same day. Review trigger: brand seed finalization, new framework adoption, or operator instruction.*

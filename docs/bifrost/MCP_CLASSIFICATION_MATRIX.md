@@ -1,16 +1,17 @@
 # MCP Classification Matrix — Bifrost Upstream
 
 **Authority:** `contracts/bifrost-upstream-mcp-registry.json`
-**Updated:** 2026-08-02
+**Updated:** 2026-09-08
 **Scope:** Non-Swarm AgentCore gateway only. Swarm* excluded.
 **Dormant catalog:** `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`
 **Architecture authority:** `BLUEPRINT.md` (this matrix must not invent alternate memory identities or Swarm wiring)
 
 | Canonical ID | Bifrost client name | Connection | Scope | Write class | Status | Profiles |
 | -- | -- | -- | -- | -- | -- | -- |
-| arabold-docs | arabold_docs | stdio | global | read_only | active | builder, reviewer, docs-knowledge, database-validator, operator |
+| agentcore-capability-catalog | agentcore_capability_catalog | stdio | global | read_only | active (exact 2-tool discovery surface) | builder, reviewer, docs-knowledge, database-validator, operator, chatgpt |
+| arabold-docs | arabold_docs | stdio | global | read_only | active | builder, reviewer, docs-knowledge, database-validator, operator, chatgpt, openclaw |
 | serena | serena | stdio | project | bounded_write | **dormant — explicit project router required** | none |
-| sequential-thinking | sequential_thinking | stdio | global | read_only | active | builder, reviewer, docs-knowledge |
+| sequential-thinking | sequential_thinking | stdio | global | read_only | active | builder, reviewer, docs-knowledge, chatgpt, openclaw |
 | cursor-agent-mcp | cursor_agent_mcp | stdio | global | write_capable | active | builder |
 | context-fabric | context_fabric | router | project | bounded_write | **local project only; shared route dormant** | none |
 | mcp-debugger | mcp_debugger | stdio | project | admin | **disabled** | builder (when enabled; attach denied for reviewer) |
@@ -18,12 +19,21 @@
 | depwire-cloud | depwire_cloud | http | global | read_only | **disabled/deferred** | builder, operator (when enabled) |
 | tentra | tentra | stdio | project | bounded_write | **dormant — explicit project launch required** | none |
 | obsidian-vault | obsidian_vault | stdio | global | bounded_write | **disabled** (zero tools in default baseline) | preserved app/vault outside default MCP surface |
-| playwright | playwright | stdio | global | bounded_write | active | builder |
+| playwright | playwright | stdio | global | bounded_write | active, Code Mode, 24 executable, zero auto | builder, openclaw |
 | filesystem | filesystem | router | project | bounded_write | **dormant — native IDE filesystem preferred** | none |
 | github-mcp | github_mcp | stdio | global | write_capable | **deferred/disabled** | builder, operator (when enabled) |
-| agentcore-memory | agentcore_memory | stdio | global | read_only | active (exact 10-tool surface live) | builder, reviewer, database-validator, operator |
+| agentcore-memory | agentcore_memory | stdio | global | read_only | active (exact 10-tool surface live) | builder, reviewer, database-validator, operator, chatgpt, openclaw |
 | agentcore-project-router | agentcore_project_router | stdio | global | bounded_write | active (exact 4-tool surface) | operator only |
-| skills-hub | skills_hub | stdio | global | read_only | active (exact 3-tool read surface live) | builder |
+| skills-hub | skills_hub | stdio | global | read_only | active (exact 3-tool read surface live) | builder, chatgpt, openclaw |
+| mcp-prompt-optimizer | mcp_prompt_optimizer | stdio | global | bounded_write | active (7 tools) | builder, openclaw |
+| morph-mcp | morph_mcp | stdio | global | bounded_write | active, Code Mode (7 tools) | builder, openclaw |
+| context7 | context7 | stdio | global | read_only | active gateway-only (2 tools) | builder, reviewer, docs-knowledge, operator, openclaw |
+| nia | nia | http | global | bounded_write | active (20 discovered / 12 executable) | builder, docs-knowledge, operator, openclaw |
+| exa-research | exa_research | stdio | global | read_only | active, Code Mode (2 tools) | builder |
+| tavily-research | tavily_research | stdio | global | read_only | active, Code Mode (5 tools) | builder |
+| firecrawl-research | firecrawl_research | stdio | global | bounded_write | active, Code Mode (8 tools) | builder |
+| apify-research | apify_research | stdio | global | bounded_write | active, Code Mode (5 of 9 discovered tools) | builder |
+| brightdata-research | brightdata_research | stdio | global | bounded_write | catalogued_unverified; disabled | none |
 
 ## OpenRouter MCP — registered dormant
 
@@ -45,7 +55,7 @@
 
 | Name / path | Reason |
 | -- | -- |
-| swarmrecall / SwarmRecall | Separate Swarm ecosystem |
+| raw swarmrecall / SwarmRecall MCP | Neutral service is reachable only through the server-side `agentcore-memory` adapter; raw IDE enrollment remains forbidden |
 | swarmvault / SwarmVault | Separate Swarm ecosystem |
 | swarmclaw / SwarmClaw / AgentSwarm | Separate Swarm ecosystem |
 | `F:\AgentCore\agentmemory` | Swarm memory root; rejected by project router |
@@ -62,4 +72,5 @@
 - Architectural exact tool counts: `agentcore-memory` = 10, `agentcore-project-router` = 4, `skills-hub` = 3 read-only tools (`install_skill` denied). Third-party counts (Arabold, OpenRouter) reflect point-in-time upstream discovery and evolve independently.
 - Output schema passthrough: stdio upstreams pass through or use the envelope adapter (`contracts/mcp-tool-output-schemas.json`); Bifrost does not synthesize proxy schemas.
 - OpenRouter is registered dormant: zero tools exposed without an active M6 capability lease + `scripts/bifrost/jit_vk_bridge.py`. See `docs/operations/OPENROUTER_MCP.md`. LangGraph clients use the same localhost gateway path (`docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`).
-- Swarm exposure remains strictly zero across all non-Swarm IDE baselines.
+- Swarm product exposure remains strictly zero across all non-Swarm IDE baselines. The neutral Recall adapter is internal to `agentcore-memory` and does not expose a Swarm MCP or credential to IDEs.
+- Live verification on 2026-09-08 reported 17 healthy Bifrost clients and 165 raw discovered tools. The builder surface was 60 eager tools plus 51 executable Code Mode tools.

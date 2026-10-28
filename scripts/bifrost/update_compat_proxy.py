@@ -5,7 +5,7 @@ from pathlib import Path
 
 PROXY_PATH = Path(r"C:\Users\ynotf\.config\tunnel-client\agentcore-mcp-compat-proxy.cjs")
 
-PROXY_CODE = """const http = require("node:http");
+PROXY_CODE = r"""const http = require("node:http");
 
 const listenHost = process.env.AGENTCORE_COMPAT_HOST || "127.0.0.1";
 const listenPort = Number(process.env.AGENTCORE_COMPAT_PORT || "18081");
@@ -63,6 +63,9 @@ const authorizationServerMetadata = {
 };
 
 function sendJson(res, status, payload) {
+  if (res.headersSent || res.writableEnded) {
+    return false;
+  }
   const body = JSON.stringify(payload);
   res.writeHead(status, {
     "content-type": "application/json",
@@ -70,15 +73,20 @@ function sendJson(res, status, payload) {
     "cache-control": "no-store",
   });
   res.end(body);
+  return true;
 }
 
 function sendText(res, status, text) {
+  if (res.headersSent || res.writableEnded) {
+    return false;
+  }
   res.writeHead(status, {
     "content-type": "text/plain; charset=utf-8",
     "content-length": Buffer.byteLength(text),
     "cache-control": "no-store",
   });
   res.end(text);
+  return true;
 }
 
 function stripHopByHopHeaders(headers) {
@@ -105,6 +113,21 @@ function stripHopByHopHeaders(headers) {
   }
 
   return clean;
+}
+
+function failUpstream(res, error) {
+  const message = error && error.message ? error.message : String(error);
+  console.error(JSON.stringify({
+    level: "error",
+    message: "upstream_error",
+    error: message,
+    headers_sent: Boolean(res.headersSent),
+  }));
+  if (!sendText(res, 502, "AgentCore MCP proxy upstream error: " + message)) {
+    if (!res.writableEnded) {
+      try { res.destroy(error); } catch (_err) { /* keep listening */ }
+    }
+  }
 }
 
 const server = http.createServer((req, res) => {
@@ -158,20 +181,37 @@ const server = http.createServer((req, res) => {
       hostname: targetUrl.hostname,
       port: targetUrl.port || 80,
       method: req.method,
-      path: targetUrl.pathname,
+      path: targetUrl.pathname + targetUrl.search,
       headers: upstreamHeaders,
     },
     (proxyResponse) => {
+      if (res.headersSent || res.writableEnded) {
+        proxyResponse.resume();
+        return;
+      }
       res.writeHead(proxyResponse.statusCode || 502, proxyResponse.headers);
       proxyResponse.pipe(res);
     },
   );
 
   proxyRequest.on("error", (error) => {
-    sendText(res, 502, `AgentCore MCP proxy upstream error: ${error.message}`);
+    failUpstream(res, error);
+  });
+
+  req.on("error", (error) => {
+    failUpstream(res, error);
+    proxyRequest.destroy();
   });
 
   req.pipe(proxyRequest);
+});
+
+server.on("error", (error) => {
+  console.error(JSON.stringify({
+    level: "error",
+    message: "listen_error",
+    error: String(error && error.message ? error.message : error),
+  }));
 });
 
 server.listen(listenPort, listenHost, () => {
@@ -186,10 +226,12 @@ server.listen(listenPort, listenHost, () => {
 });
 """
 
+
 def main() -> None:
     PROXY_PATH.parent.mkdir(parents=True, exist_ok=True)
     PROXY_PATH.write_text(PROXY_CODE, encoding="utf-8")
     print(f"Updated {PROXY_PATH}")
+
 
 if __name__ == "__main__":
     main()

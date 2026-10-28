@@ -36,6 +36,7 @@ import server
 NFA_KEY = "nfa-platform"
 STAGING = r"D:\agentcore-worktrees\nfa-platform\goal-staging-001"
 SIBLING = r"D:\agentcore-worktrees\nfa-platform\goal-staging-002"
+NON_PREFIX_SIBLING = r"D:\agentcore-worktrees\unrelated-project\goal-staging-002"
 
 
 def _temp_identity(tmp_path: Path):
@@ -115,7 +116,12 @@ def test_unsigned_call_tool_fails_closed(monkeypatch):
 def test_goal_staging_path_is_enrolled_exactly():
     enrolled = require_enrolled_path(STAGING)
     assert enrolled["project_key"] == NFA_KEY
-    assert match_enrolled_path(SIBLING) is None
+    # SIBLING is a child of the opt-in nfa-platform path_prefix
+    # (D:\agentcore-worktrees\nfa-platform) and now matches through
+    # path_prefix matching, not exact-path enrollment.
+    assert require_enrolled_path(SIBLING)["project_key"] == NFA_KEY
+    # A sibling outside that prefix stays denied.
+    assert match_enrolled_path(NON_PREFIX_SIBLING) is None
     args = default_session_open_arguments(NFA_KEY, STAGING)
     assert args["client_key"] == CLIENT_KEY
     assert args["agent_key"] == DEFAULT_AGENT_KEY

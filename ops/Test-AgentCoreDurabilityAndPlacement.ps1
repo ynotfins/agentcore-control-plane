@@ -310,6 +310,24 @@ if ($swarmCheck -and $swarmCheck.ok) {
   Warn "swarm-exclusion" "Swarm exclusion check failed: $($swarmCheck.error)"
 }
 
+# 7b. G: second-copy headroom (small DR volume; full G: must not fail WAL archive)
+Write-Host "`n7b. G: second-copy headroom..."
+$gDrive = Get-PSDrive -Name G -ErrorAction SilentlyContinue
+if (-not $gDrive) {
+  Warn "g-headroom" "G: not mounted — second backup copy unavailable"
+} else {
+  $gTotal = [int64]$gDrive.Used + [int64]$gDrive.Free
+  $gUsedPct = if ($gTotal -gt 0) { [math]::Round(100.0 * [int64]$gDrive.Used / $gTotal, 1) } else { 100 }
+  $gFreeGb = [math]::Round([int64]$gDrive.Free / 1GB, 2)
+  if ($gUsedPct -ge 90 -or $gFreeGb -lt 4) {
+    Fail "g-headroom" "G: used ${gUsedPct}% free ${gFreeGb} GB — prune second copies (ops/Prune-AgentCoreSecondaryBackupDrive.ps1)"
+  } elseif ($gUsedPct -ge 75 -or $gFreeGb -lt 8) {
+    Warn "g-headroom" "G: used ${gUsedPct}% free ${gFreeGb} GB — below 75%/8 GB policy"
+  } else {
+    Ok "g-headroom" "G: used ${gUsedPct}% free ${gFreeGb} GB"
+  }
+}
+
 # ═════════════════════════════════════════════════════════════════════════════
 # RESOURCE CHECKS (Resource and Deep modes)
 # ═════════════════════════════════════════════════════════════════════════════
@@ -595,8 +613,21 @@ except Exception as e:
       $info = Get-PSDrive -Name $d -ErrorAction SilentlyContinue
       if ($info -and $info.Free) {
         $freeMb = [math]::Round($info.Free / 1MB)
-        if ($freeMb -ge $MinFreeMb) { Ok "free-space-${d}" "${d}: Free ${freeMb} MB (>= threshold $MinFreeMb MB)" }
-        else                        { Warn "free-space-${d}" "${d}: Free ${freeMb} MB — below threshold $MinFreeMb MB" }
+        if ($d -eq "G") {
+          $gTotalMb = if ($info.Used -or $info.Free) { [math]::Round(([int64]$info.Used + [int64]$info.Free) / 1MB) } else { 0 }
+          $gUsedPct = if ($gTotalMb -gt 0) { [math]::Round(100.0 * ([int64]$info.Used / 1MB) / $gTotalMb, 1) } else { 100 }
+          if ($gUsedPct -ge 90 -or $freeMb -lt 4096) {
+            Fail "free-space-G" "G: used ${gUsedPct}% free ${freeMb} MB — second-copy drive is too full"
+          } elseif ($gUsedPct -ge 75 -or $freeMb -lt $MinFreeMb) {
+            Warn "free-space-G" "G: used ${gUsedPct}% free ${freeMb} MB — below 75%/8 GB second-copy policy"
+          } else {
+            Ok "free-space-G" "G: used ${gUsedPct}% free ${freeMb} MB"
+          }
+        } elseif ($freeMb -ge $MinFreeMb) {
+          Ok "free-space-${d}" "${d}: Free ${freeMb} MB (>= threshold $MinFreeMb MB)"
+        } else {
+          Warn "free-space-${d}" "${d}: Free ${freeMb} MB — below threshold $MinFreeMb MB"
+        }
       }
     }
   }
@@ -648,7 +679,7 @@ except Exception as e:
   Write-Host "`n20. Scheduled-task health..."
   $taskNames = @("NightlyBackup","NightlyRestoreTest","WeeklyMaintenance","MemoryProjection",
                  "PostgresRuntime","AgentCore-Bifrost-Gateway","DurabilityHealthCheck",
-                 "DurabilityResourceAudit","DurabilityDeepAudit")
+                 "DurabilityResourceAudit","DurabilityDeepAudit","SecondaryBackupHeadroom")
   foreach ($tn in $taskNames) {
     $ti = Get-ScheduledTaskInfo -TaskPath "\AgentCore\" -TaskName $tn -ErrorAction SilentlyContinue
     if ($ti) {

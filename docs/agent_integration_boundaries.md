@@ -1,11 +1,12 @@
 # Agent Integration Boundaries
 
-> **Updated pointer (2026-07-14).** The privacy-zone framework (Zones A/B/C) below remains current
-> policy intent. Two corrections apply throughout: (1) every `global-memory-gateway` reference reads
-> as the current governed route `agentcore-gateway` → `agentcore-memory`; (2) the Swarm component
-> boundaries (swarmclaw/swarmvault/swarmrelay/swarmrecall/swarmdock/swarmfeed) are
-> **Swarm-ecosystem-only** — they are not part of the non-Swarm IDE baseline and must not be
-> required by non-Swarm agents.
+> **Updated pointer (2026-09-08).** The privacy-zone framework (Zones A/B/C) below remains current
+> policy intent. Three corrections apply throughout: (1) every `global-memory-gateway` reference reads
+> as the current governed route `agentcore-gateway` → `agentcore-memory`; (2) SwarmClaw, SwarmVault,
+> SwarmRelay, SwarmDock, and SwarmFeed remain Swarm-ecosystem-only; (3) the one local SwarmRecall
+> deployment is neutral machine-level semantic infrastructure, reachable by AgentCore only through
+> project-specific server-side identities in `agentcore-memory`. Raw Recall MCP/API credentials remain
+> excluded from non-Swarm IDEs. See `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md`.
 
 Generated: 2026-06-24
 

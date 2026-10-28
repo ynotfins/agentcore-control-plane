@@ -75,6 +75,7 @@ classes:
     rollback_required: false
     generated_file_owner: null
     paths:
+      - GATEWAY_AND_BIFROST_DEVELOPER_GUIDE.md
       - scripts/**
       - tests/**
       - docs/**

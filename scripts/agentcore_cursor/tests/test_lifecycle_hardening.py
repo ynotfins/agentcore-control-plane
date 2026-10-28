@@ -40,6 +40,28 @@ class _Gateway:
 
 
 class CursorLifecycleHardeningTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._prompt_interlock = patch.object(
+            hooks, "_set_prompt_interlock", return_value=True
+        )
+        self._prompt_interlock_failsafe = patch.object(
+            hooks, "_set_prompt_interlock_failsafe", return_value=True
+        )
+        self._global_prompt_interlock = patch.object(
+            hooks, "set_global_prompt_interlock", return_value=True
+        )
+        self._global_prompt_interlock_check = patch.object(
+            hooks, "_global_prompt_interlock_blocks", return_value=False
+        )
+        self._prompt_interlock.start()
+        self._prompt_interlock_failsafe.start()
+        self._global_prompt_interlock.start()
+        self._global_prompt_interlock_check.start()
+        self.addCleanup(self._prompt_interlock.stop)
+        self.addCleanup(self._prompt_interlock_failsafe.stop)
+        self.addCleanup(self._global_prompt_interlock.stop)
+        self.addCleanup(self._global_prompt_interlock_check.stop)
+
     def _bootstrap_patches(self, root: Path, gateway: _Gateway):
         return (
             patch.object(bootstrap, "resolve_workspace", return_value=root),
@@ -61,7 +83,7 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertFalse(result.status_flags["startup_context_automatically_injected"])
 
-    def test_before_submit_blocks_when_bootstrap_is_not_healthy(self) -> None:
+    def test_before_submit_allows_prompt_when_bootstrap_is_not_healthy(self) -> None:
         rejected = bootstrap.BootstrapResult(
             ok=False,
             project_key="agentcore-control-plane",
@@ -75,13 +97,15 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
             result = hooks.handle_before_submit(
                 {
                     "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "generation_id": "generation-current",
                     "prompt": "operator request",
                 }
             )
 
-        self.assertFalse(result["continue"])
+        self.assertTrue(result["continue"])
+        self.assertTrue(result["agentcore_continuity_degraded"])
 
-    def test_before_submit_blocks_when_prompt_gate_artifact_cannot_be_updated(self) -> None:
+    def test_before_submit_allows_prompt_when_prompt_gate_artifact_cannot_be_updated(self) -> None:
         data = {
             "result": {
                 "ok": True,
@@ -103,13 +127,15 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
             result = hooks.handle_before_submit(
                 {
                     "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "generation_id": "generation-current",
                     "prompt": "operator request",
                 }
             )
 
-        self.assertFalse(result["continue"])
+        self.assertTrue(result["continue"])
+        self.assertTrue(result["agentcore_continuity_degraded"])
 
-    def test_before_submit_cost_control_blocks_degraded_bootstrap(self) -> None:
+    def test_before_submit_warns_on_degraded_bootstrap(self) -> None:
         rejected = bootstrap.BootstrapResult(
             ok=False,
             project_key="agentcore-control-plane",
@@ -123,15 +149,16 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
             result = hooks.handle_before_submit(
                 {
                     "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "generation_id": "generation-current",
                     "prompt": "operator request",
                 }
             )
 
-        self.assertFalse(result["continue"])
-        self.assertIn("cost-control gate blocked", result["user_message"])
+        self.assertTrue(result["continue"])
+        self.assertIn("continuity warning", result["user_message"])
         self.assertIn("agentcore-gateway/auth health", result["user_message"])
 
-    def test_before_submit_cost_control_blocks_unhealthy_recovery(self) -> None:
+    def test_before_submit_warns_on_unhealthy_recovery(self) -> None:
         data = {
             "result": {
                 "ok": True,
@@ -149,11 +176,12 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
             result = hooks.handle_before_submit(
                 {
                     "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "generation_id": "generation-current",
                     "prompt": "operator request",
                 }
             )
 
-        self.assertFalse(result["continue"])
+        self.assertTrue(result["continue"])
         self.assertIn("projection_stale", result["user_message"])
 
     def test_before_submit_allows_healthy_unrelated_prompt(self) -> None:
@@ -178,6 +206,7 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
             result = hooks.handle_before_submit(
                 {
                     "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "generation_id": "generation-current",
                     "prompt": "ordinary unrelated request",
                 }
             )
@@ -206,6 +235,7 @@ class CursorLifecycleHardeningTests(unittest.TestCase):
             result = hooks.handle_before_submit(
                 {
                     "workspace_roots": [r"D:\github\agentcore-control-plane"],
+                    "generation_id": "generation-current",
                     "prompt": "ordinary request after successful recovery",
                 }
             )

@@ -48,7 +48,12 @@ from device_identity import (
     verify_tool_identity,
 )
 from knowledge_memory import get_knowledge_memory_port
-from neutral_recall import project_curated_fact, recall_configured, recall_health, search_semantic
+from neutral_recall import (
+    project_curated_fact,
+    recall_health,
+    recall_topology_status,
+    search_semantic,
+)
 from recovery import (
     EXCLUDED_NORMAL_TRUST_CLASSES,
     ModelContextProfile,
@@ -1025,6 +1030,7 @@ def memory_health() -> dict[str, Any]:
 
 def memory_status() -> dict[str, Any]:
     health = memory_health()
+    recall_topology = recall_topology_status()
     migrations: list[str] = []
     try:
         with db() as conn, conn.cursor() as cur:
@@ -1063,8 +1069,9 @@ def memory_status() -> dict[str, Any]:
             "cognee": knowledge_status,
             "neutral_shared_swarmrecall": {
                 "classification": "machine_level_neutral_semantic_plane",
-                "configured": recall_configured(),
+                "configured": recall_topology["configured"],
                 "health": recall_health(),
+                "topology": recall_topology,
                 "approval_id": "AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE",
                 "note": "Server-side adapter only; raw Recall MCP excluded from IDE baselines.",
             },
@@ -1691,7 +1698,7 @@ def retrieve_context(args: dict[str, Any]) -> dict[str, Any]:
         active_limit = max(1, min(requested_limit, MAX_ACTIVE_CONTEXT_LIMIT))
         items = all_items[:active_limit]
         retrieval_results = hybrid_retrieval(args, conn)
-    return {
+    result = {
         "ok": True,
         "project_key": args["project_key"],
         "budget_name": assembler_budget,
@@ -1702,6 +1709,35 @@ def retrieve_context(args: dict[str, Any]) -> dict[str, Any]:
         "durable_memory_limit": None,
         "durable_memory_contract": "effectively_unbounded_by_model_token_limits",
     }
+    query = str(args.get("query") or "").strip()
+    if query:
+        try:
+            recall_result = search_semantic(
+                query,
+                project_key=str(args["project_key"]),
+                limit=min(active_limit, 10),
+                min_score=0.3,
+            )
+        except Exception as exc:  # noqa: BLE001 - semantic projection is degraded-safe.
+            _log(f"neutral Recall retrieval degraded: {exc.__class__.__name__}")
+            recall_result = {
+                "ok": False,
+                "degraded": True,
+                "error": exc.__class__.__name__,
+                "results": [],
+            }
+        neutral_recall = {
+            "ok": bool(recall_result.get("ok")),
+            "degraded": bool(recall_result.get("degraded")),
+            "source": "neutral_shared_swarmrecall",
+            "authority": "noncanonical_semantic_projection",
+            "results": recall_result.get("results", []),
+        }
+        for key in ("filtered_count", "error", "skipped", "isolation_enforced"):
+            if key in recall_result:
+                neutral_recall[key] = recall_result[key]
+        result["neutral_recall"] = neutral_recall
+    return result
 
 
 def get_project_capability_profile(

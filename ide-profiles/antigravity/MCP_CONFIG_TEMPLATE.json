@@ -1,10 +1,7 @@
 {
   "mcpServers": {
     "agentcore-gateway": {
-      "serverUrl": "http://127.0.0.1:8080/mcp",
-      "headers": {
-        "Authorization": "Bearer ${BIFROST_MCP_VIRTUAL_KEY}"
-      }
+      "serverUrl": "http://127.0.0.1:18082/mcp"
     }
   },
   "_agentcore": {
@@ -16,7 +13,7 @@
     "source_contract": "contracts/agentcore-gateway-client.json",
     "notes": [
       "Antigravity remote MCP schema uses serverUrl, not url/httpUrl/type.",
-      "Antigravity MCP docs do not document env expansion in mcp_config.json headers; live installer must prove expansion, use a Bifrost local adapter, or materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env only into live app config."
+      "Headerless access uses the Bifrost-owned process-attested loopback proxy; unresolved, ambiguous, or unapproved callers fail closed."
     ]
   },
   "_template_note": "DERIVED from renderers/gateway-clients/antigravity.json (source contract: contracts/agentcore-gateway-client.json). Do not hand-edit; regenerate from the contract."

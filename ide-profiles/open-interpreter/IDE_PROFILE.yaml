@@ -1,13 +1,19 @@
 ide_id: open-interpreter
 display_name: Open Interpreter (CLI)
+gui_display_name: Open Interpreter desktop GUI
 swarm_managed: false
-installed_version: 0.0.10
+installed_version: 0.0.40
 live_global_rule_target: C:\Users\ynotf\.openinterpreter\AGENT.md
 live_mcp_config_target: C:\Users\ynotf\.openinterpreter\config.toml
-rule_mechanism: CLI home AGENT.md + project AGENTS.md (manual/best-effort); GUI customInstructions are a separate unsupported MCP surface
+live_gui_mcp_config_target: C:\Users\ynotf\AppData\Roaming\interpreter\config.json
+alternate_mcp_config_targets:
+- C:\Users\ynotf\AppData\Roaming\interpreter\config.json
+rule_mechanism: CLI home AGENT.md + project AGENTS.md (manual/best-effort); GUI customInstructions are a separate instruction-delivery surface; GUI MCP uses Roaming\\interpreter\\config.json and the process-attested http://127.0.0.1:18082/mcp route
 mcp_schema: open_interpreter_toml_mcp_servers
 mcp_transport: http
 env_var_handling: bearer_token_env_var = BIFROST_MCP_VIRTUAL_KEY (supported; do not materialize into Git)
+gateway_url: http://127.0.0.1:8080/mcp
+gateway_auth_mode: bearer_env
 restart_behavior: restart interpreter session / daemon after config changes
 editability:
   global_rules: direct_write
@@ -17,25 +23,31 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-07-25'
-mcp_template_source: renderers/gateway-clients/open-interpreter.json
+last_validation_date: '2026-09-08'
+mcp_template_source: renderers/gateway-clients/open-interpreter-cli.toml
 known_limitations:
-- 'Two products exist: CLI Open Interpreter 0.0.10 (~/.openinterpreter/config.toml) and GUI Interpreter 0.2.183 (Roaming\\interpreter\\config.json). Only CLI has persistent Bifrost MCP today.'
-- 'GUI has no mcpServers schema in live config — unsupported_with_reason for gateway MCP.'
+- 'Two products exist: CLI Open Interpreter 0.0.40 (~/.openinterpreter/config.toml) and GUI Interpreter 0.2.183 (Roaming\\interpreter\\config.json).'
+- 'The CLI uses direct :8080 bearer_token_env_var authentication. The GUI uses the process-attested :18082 route without a stored bearer.'
 - 'Full 14-step memory lifecycle not re-run in Phase 4B; memory_status native call proven.'
 semantic_parity_gaps:
-- 'GLOBAL_RULES.md profile header still mentions stale Roaming paths until next render_ide_rules.py regeneration from this IDE_PROFILE.yaml.'
+- 'The GUI route is configured but still needs a fresh in-app task discovery proof.'
 enrollment_evidence:
   audit: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
   backup_root: E:\AgentCore-Backups\oi-repair-20260725
   rescue_dir: ops/maintenance/interpreter-rescue-20260724-0548
-status_reconciliation:
+historical_status_reconciliation:
+  classification: superseded_historical_evidence
   reconciled_at: '2026-07-25'
   source: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
   claim: Open Interpreter persistence failure
   finding: 'False disappearance — GUI vs CLI conflation. CLI config.toml retained agentcore-gateway; GUI never had MCP. CLI mcp list + memory_status + daemon-kill persistence proven 2026-07-25.'
   status_after_reconciliation: configured_restart_required
-  next_step: 'Optional operator 14-step lifecycle via CLI; do not enroll GUI MCP until product exposes a supported schema.'
+  superseded_at: '2026-09-08'
+  superseded_by:
+  - contracts/agentcore-gateway-client.json
+  - ide-profiles/IDE_CAPABILITY_MATRIX.yaml
+  - ops/bifrost/Reconcile-AgentCoreTrustAClients.ps1
+  current_resolution: 'CLI uses direct :8080 with bearer_token_env_var; GUI uses process-attested :18082 with no stored bearer. Both still require fresh native lifecycle acceptance.'
 dimensions:
   application_launch:
     status: live_validated
@@ -73,8 +85,8 @@ dimensions:
     evidence_ts: '2026-07-25T00:00:00Z'
     superseded_by: null
   gui_mcp:
-    status: unsupported_with_reason
-    evidence_path: audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md
-    evidence_ts: '2026-07-25T00:00:00Z'
+    status: configured_restart_required
+    evidence_path: ops/bifrost/Reconcile-AgentCoreTrustAClients.ps1
+    evidence_ts: '2026-09-08T00:00:00Z'
     superseded_by: null
 m8_enrollment: configured_restart_required

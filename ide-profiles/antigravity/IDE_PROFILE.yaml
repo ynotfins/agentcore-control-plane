@@ -11,7 +11,9 @@ alternate_mcp_config_targets:
 rule_mechanism: unverified
 mcp_schema: antigravity_mcp_json
 mcp_transport: http/streamable
-env_var_handling: custom headers are supported; env-placeholder expansion in mcp_config.json headers is unverified, so prefer a Bifrost local adapter or governed live materialization from Windows User env when required
+env_var_handling: process-attested loopback proxy at http://127.0.0.1:18082/mcp; no bearer stored in live MCP JSON
+gateway_url: http://127.0.0.1:18082/mcp
+gateway_auth_mode: process_attested_proxy
 restart_behavior: restart client after MCP config changes
 editability:
   global_rules: unverified
@@ -21,16 +23,15 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-08-20'
+last_validation_date: '2026-09-08'
 mcp_template_source: renderers/gateway-clients/antigravity.json
 known_limitations:
 - Antigravity remote MCP uses serverUrl. Legacy url/httpUrl/type/timeout entries
   are rejected by the current schema and can crash-loop the MCP agent.
 - Two candidate MCP config paths exist; both were aligned on 2026-08-20, but
   the running client still needs a restart/fresh task proof.
-- Header environment placeholders in Antigravity mcp_config.json are not yet
-  proven by official docs or a fresh runtime task; do not introduce a public
-  tunnel for local desktop Antigravity to work around this.
+- Header environment placeholders are unnecessary for the current local route;
+  exact Windows process ancestry is required by the loopback proxy.
 - Global-rule mechanism unverified.
 - Zoo Code extension is installed under Antigravity as 3.78.0; Cursor has newer
   3.79.100392 present. Provider/account state is extension-owned and must be
@@ -74,8 +75,8 @@ dimensions:
     evidence_ts: '2026-07-14T00:00:00Z'
     superseded_by: null
 m8_enrollment: configured_restart_required
-m8_notes: 'LIVE CONFIGURATION 2026-08-20. Antigravity User mcp.json and Gemini backing mcp_config.json contain a
-  single active agentcore-gateway entry at http://127.0.0.1:8080/mcp. Zoo Code extension 3.78.0 is installed in
+m8_notes: 'LIVE CONFIGURATION RECONCILED 2026-09-08. Antigravity IDE User mcp.json and Gemini backing mcp_config.json contain a
+  single active agentcore-gateway entry at http://127.0.0.1:18082/mcp without stored headers. Zoo Code extension 3.78.0 is installed in
   Antigravity and its extension-owned MCP settings were preseeded with agentcore-gateway. Antigravity User settings
   now point zoo-code.autoImportSettingsPath to C:\Users\ynotf\Downloads\roo-code-settings.json, the same saved setup
   Cursor uses. That saved setup selects Zoo Gateway with deepseek/deepseek-v4-pro-0813 and has no custom modes.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://design-tokens.github.io/community-group/format/",
-  "$description": "Theme 3 — Primary Dark. ngrok-inspired slate/charcoal, high-contrast text boxes, sharp premium vector borders. No rainbow.",
+  "$description": "Theme 3 — Primary Dark. ngrok-inspired slate/charcoal with hover brighten (white/slate overlay).",
   "$extensions": { "agentcore.dataTheme": "primary-dark", "agentcore.seedStatus": "TEMPORARY_PLACEHOLDER" },
   "md": {
     "sys": {
@@ -26,11 +26,19 @@
         "surfaceContainerHighest": { "$value": "{md.ref.palette.slate.12}", "$type": "color" },
         "outline": { "$value": "{md.ref.palette.neutral.60}", "$type": "color" },
         "outlineVariant": { "$value": "{md.ref.palette.slate.16}", "$type": "color" }
+      },
+      "state": {
+        "hover": {
+          "surfaceTint": { "$value": "oklch(100% 0 0)", "$type": "color", "$description": "ngrok-style white lift" },
+          "surfaceTintAmount": { "$value": "7%", "$type": "percentage" },
+          "borderColor": { "$value": "{md.ref.palette.neutral.80}", "$type": "color" },
+          "saturate": { "$value": "1.06", "$type": "number" }
+        }
       }
     },
     "custom": {
       "border": {
-        "premium": { "$value": "1.5px solid {md.sys.color.outline}", "$type": "string", "$description": "Sharp vector border for layout boxes" }
+        "premium": { "$value": "1.5px solid {md.sys.color.outline}", "$type": "string" }
       },
       "stroke": { "featured": { "$value": "{md.ref.palette.neutral.60}", "$type": "color" } },
       "icon": {

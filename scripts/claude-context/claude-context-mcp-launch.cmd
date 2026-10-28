@@ -17,11 +17,14 @@ if not defined MILVUS_TOKEN (
   exit /b 1
 )
 
-where claude-context-mcp >nul 2^>^&1
-if %ERRORLEVEL%==0 (
-  claude-context-mcp
-  exit /b %ERRORLEVEL%
-)
+where claude-context-mcp.cmd >nul 2^>^&1
+if errorlevel 1 goto npx_fallback
 
-npx --yes @zilliz/claude-context-mcp@latest
-exit /b %ERRORLEVEL%
+call claude-context-mcp.cmd
+set "AgentCoreExitCode=%ERRORLEVEL%"
+endlocal & exit /b %AgentCoreExitCode%
+
+:npx_fallback
+call npx.cmd --yes @zilliz/claude-context-mcp@0.1.15
+set "AgentCoreExitCode=%ERRORLEVEL%"
+endlocal & exit /b %AgentCoreExitCode%

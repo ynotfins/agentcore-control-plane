@@ -6,19 +6,19 @@ Reusable operator/agent prompt for **any** supported non-Swarm IDE on this PC.
 **Endpoint:** `http://127.0.0.1:8080/mcp`
 **Auth env:** `BIFROST_MCP_VIRTUAL_KEY` (never print the value)
 **Display name in IDEs:** `agentcore-gateway`
-**Allowed direct companion exception:** `zoo-code` only, under `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`
+**Host-native exception rule:** Zoo-Code/Roo-Code may be installed directly only in compatible VS Code-family hosts. Any direct MCP beside `agentcore-gateway` requires a proven Bifrost parity gap, bounded scope, and rollback.
 
 ---
 
 ## Prompt (copy into the current IDE agent)
 
 ```text
-You are the agent inside one supported non-Swarm IDE on CHAOSCENTRAL. Your job is to enroll this IDE and ONLY this IDE in AgentCore. Do not touch any other IDE.
+You are the agent inside one supported AgentCore IDE or autonomous runtime on CHAOSCENTRAL. Your job is to enroll this host and ONLY this host in AgentCore. Do not touch another host. SwarmClaw, SwarmRecall, and SwarmVault remain outside AgentCore. OpenClaw/ClawX is AgentCore-owned.
 
 Step 0 — Identify yourself
-Identify which IDE you are running in. Choose exactly one from:
-Zed, Eigent, Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio, Zoo-Code.
-If you cannot identify your IDE with confidence, stop and report unsupported_with_reason.
+Identify which host you are running in. Choose exactly one from:
+Cursor, Codex, Devin, Eigent, Zed, Zcode, MiniMax Code/Mavis, Reasonix, OpenCode, Open Design, AutoGPT, Agent Orchestrator, Cherry Studio, LobeHub, OpenHands, Antigravity, Open Interpreter, OpenClaw/ClawX, Claude Code, Claude Desktop, MiniMax Agent Classic, Zoo-Code/Roo-Code.
+If you cannot identify your host with confidence, stop and report unsupported_with_reason.
 
 Step 1 — Read your profile and authority
 Read these files using @ + full absolute Windows paths:
@@ -28,6 +28,8 @@ Read these files using @ + full absolute Windows paths:
 - @D:\github\agentcore-control-plane\contracts\agentcore-gateway-client.json
 - @D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json
 - @D:\github\agentcore-control-plane\contracts\bifrost-upstream-mcp-registry.json
+- @D:\github\agentcore-control-plane\contracts\agentcore-alignment-skill-hosts.json
+- @D:\github\agentcore-control-plane\docs-lock.json
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\GLOBAL_RULES.md
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\INSTALL_OR_UPDATE.md
 - @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\VALIDATION.md
@@ -44,19 +46,20 @@ Step 3 — Prove Bifrost is healthy before touching the IDE
 - Confirm direct MCP initialize + notifications/initialized + tools/list succeed through the gateway.
 If any check fails, stop and report the exact failure. Do not edit the IDE config while Bifrost is down.
 
-Step 4 — Install global rules per your IDE's editability
+Step 4 — Install global rules and skills per your host's editability
 Read IDE_PROFILE.yaml editability and installation_mode, then:
 - direct_write: back up the live target, then write the rendered GLOBAL_RULES.md content to the documented live path.
 - manual_import: present the rendered GLOBAL_RULES.md to the operator and ask them to paste/import it; do not skip.
 - UI_only: follow MCP_ENROLLMENT_UI.md for the operator-driven UI/API enrollment.
 - unsupported/unverified: stop and report the state; do not act.
 Preserve the IDE's native safety, sandbox, approval, account, and UI settings.
+Install the approved Bifrost skills through the host's native mechanism when supported: agentcore-project-lifecycle, agentcore-tool-discovery, morph-source-workflows, zoo-roo-code-workflows, nia, and langfuse. Otherwise install the generated rule/runtime adapter and report the actual certification state.
 
-Step 5 — Configure the AgentCore MCP entry plus the Zoo-Code exception
+Step 5 — Configure the AgentCore MCP entry and proven host-native exceptions
 Add or merge only one AgentCore baseline entry named agentcore-gateway:
   url: http://127.0.0.1:8080/mcp
   Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
-Use the schema-correct MCP_CONFIG_TEMPLATE for your IDE. For clients that cannot expand ${env:}, materialize the bearer from Windows User env into the live config only (never commit it). Remove any direct duplicate baseline MCP entries now served by Bifrost. Preserve or add the Zoo-Code-owned direct MCP companion when the host supports Zoo-Code and the operator wants Zoo-Code available in that IDE. For Cursor, remove MCP_DOCKER unless the operator explicitly approves a documented unique-capability exception. Do not paste the full upstream registry. Do not add Swarm MCP, OpenRouter MCP direct, raw database tools, filesystem baselines, or any direct MCP server other than Zoo-Code.
+Use the schema-correct MCP_CONFIG_TEMPLATE for your host. Header-capable clients use the direct `:8080` endpoint with an environment-backed bearer. Approved Trust Class A clients that cannot expand environment headers use the Bifrost-owned process-attested `http://127.0.0.1:18082/mcp` endpoint without storing a bearer; unresolved, ambiguous, or unapproved callers fail closed. Other clients follow their exact profile-specific enrollment gate. Remove direct duplicate AgentCore upstreams while preserving documented host/plugin-owned integrations. Install Zoo-Code/Roo-Code directly only in compatible VS Code-family hosts. Any direct MCP beside agentcore-gateway requires a native smoke test proving a necessary capability or material performance characteristic is lost through Bifrost, plus bounded scope and rollback. Do not add Swarm MCP, raw database credentials, or whole-drive filesystem baselines.
 
 Step 6 — Restart/reload the IDE
 Fully restart or reload the IDE so environment references and the new MCP config are visible. The required restart behavior is in your IDE_PROFILE.yaml.
@@ -64,14 +67,15 @@ Fully restart or reload the IDE so environment references and the new MCP config
 Step 7 — Validate syntax and discovery
 - Validate JSON/TOML syntax of the live config.
 - Confirm the IDE lists agentcore-gateway as connected/ready.
-- Confirm any direct MCP entry other than `agentcore-gateway` is only the Zoo-Code companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`.
+- Confirm direct MCP entries besides `agentcore-gateway` are documented host/plugin integrations or approved parity exceptions, never duplicate AgentCore upstreams.
 - Confirm tools/list through the gateway includes exactly ten agentcore_memory-* tools: memory_status, startup_context, retrieve_context, append_event, propose_fact, expand_source, session_open, session_close, build_handoff, docs_search.
+- Call listToolFiles, read the smallest relevant tool file or docs, and execute one safe read-only Code Mode canary. Retain only a compact server/tool-name inventory in context.
 - Confirm an ordinary IDE profile exposes zero agentcore_project_router-* tools. The four router controls are operator-only maintenance tools.
 - Confirm no Swarm, raw SQL/database, whole-drive filesystem, or Bifrost admin tools are exposed.
 
 Step 8 — Native memory lifecycle validation (do not skip)
 1. Confirm the exact repository/worktree path appears in `@D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json`. Stop with `project_not_enrolled` when absent or `swarm_project_refused` for Swarm ownership; do not broaden the contract from the IDE.
-2. Call session_open with the exact enrolled project_key + project_root and a stable session_key that includes your IDE id and today's date. Supply the same exact project_key + project_root on every subsequent project-scoped memory call.
+2. Call session_open with the exact enrolled project_key + project_root and a stable task session_key. Reuse it across new chats for the same task; do not derive it from the date or conversation ID. Supply the same exact project_key + project_root on every subsequent project-scoped memory call.
 3. startup_context with the selected model context profile (use standard-context if your model is unknown; never lower the IDE's configured hard context window).
 4. append_event documenting this enrollment/validation run with a deterministic idempotency key.
 5. Repeat the same append_event and confirm idempotent_replay=true.
@@ -93,24 +97,13 @@ Report one of: live_validated, configured_restart_required, awaiting_operator_im
 
 ---
 
-## Supported IDE matrix
+## Host dispatch authority
 
-| Client | Profile | Configuration mode | Native validation status |
-| --- | --- | --- | --- |
-| Zed | `ide-profiles/zed/` | generated_prompt | awaiting_operator_import (launch + native skill root verified) |
-| Eigent | `ide-profiles/eigent/` | generated_prompt | awaiting_operator_import (launch + MCP/skill persistence paths verified) |
-| Cursor | `ide-profiles/cursor/` | generated_prompt | live_validated (2026-07-16) |
-| Codex | `ide-profiles/codex/` | generated_prompt | configured_restart_required |
-| Claude Code | `ide-profiles/claude-code/` | generated_prompt | awaiting_operator_import |
-| Claude Desktop | `ide-profiles/claude-desktop/` | generated_prompt | configured_restart_required |
-| MiniMax Code | `ide-profiles/minimax/` | generated_prompt | configured_restart_required (native acceptance pending) |
-| MiniMax Agent Classic | `ide-profiles/minimax-classic/` | UI_only | awaiting_operator_cloud_mcp_enrollment |
-| Antigravity | `ide-profiles/antigravity/` | unverified | awaiting_operator_import |
-| Open Interpreter | `ide-profiles/open-interpreter/` | generated_prompt | awaiting_operator_import |
-| Cherry Studio | `ide-profiles/cherry-studio/` | UI_only | live_validated (2026-07-20) |
-| Zoo-Code | `ide-profiles/zoo-code/` | direct_write | configured in Cursor extension storage; direct companion exception approved |
+The complete current host list, profile path, configuration mode, and evidence-backed status is maintained in section 8 of `@D:\github\agentcore-control-plane\MASTER_CONFIG_AND_PROMPT.md` and `@D:\github\agentcore-control-plane\ide-profiles\IDE_CAPABILITY_MATRIX.yaml`. Do not duplicate or infer a newer status here.
 
-`@C:\Users\ynotf\.mavis` is a junction to `@C:\Users\ynotf\.minimax` (same MiniMax Code data root) and is not a separate managed client.
+Supported certification values are `source_ready`, `installed_unverified`, `configured_restart_required`, `live_validated`, `manual_import_pending`, `UI_only_pending`, and `unsupported_with_reason`.
+
+`@C:\Users\ynotf\.mavis` is a junction to `@C:\Users\ynotf\.minimax` and is not a separate managed client. Zoo-Code/Roo-Code is a client extension, not a Bifrost MCP upstream.
 
 ---
 

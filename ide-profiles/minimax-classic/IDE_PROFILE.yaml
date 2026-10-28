@@ -1,43 +1,38 @@
-
-
 ide_id: minimax-classic
 display_name: MiniMax Agent Classic
 swarm_managed: false
 installed_version: 1.0.0.5
 live_global_rule_target: C:\Users\ynotf\.minimax-agent\AGENT.md
 live_mcp_config_target: cloud:matrix/api/v1/mcp/add_or_edit_server (no local mcp.json)
-rule_mechanism: workspace AGENT.md at C:\Users\ynotf\.minimax-agent\AGENT.md (parent
-  of workingDirectory projects/)
+rule_mechanism: workspace AGENT.md at C:\Users\ynotf\.minimax-agent\AGENT.md (parent of workingDirectory projects/)
 mcp_schema: matrix_cloud_custom_mcp
-mcp_transport: http-via-matrix-cloud-catalog
-env_var_handling: unknown — Classic stores custom MCP via Matrix cloud API (server_name,
-  base_url, mcp_server_type=UserCustomized); materialize bearer in UI if env expansion
-  unsupported
-restart_behavior: restart Classic after MCP catalog or rules change
+mcp_transport: unsupported for AgentCore gateway pending an approved secure credential route
+env_var_handling: no approved secure credential path; never paste or persist an AgentCore virtual key in client
+  storage
+restart_behavior: No AgentCore enrollment or restart action is authorized by this profile; preserve legacy live
+  state for a separate backup-first cleanup
 editability:
   global_rules: direct_write
   project_rules: unsupported
-  mcp_config: manual_import
-installation_mode: generated_prompt
+  mcp_config: unsupported
+installation_mode: unsupported
 backup_required: true
 validation_required: true
-restart_required: true
+restart_required: false
 last_validation_date: '2026-07-25'
 mcp_template_source: ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md
-m8_enrollment: awaiting_operator_cloud_mcp_enrollment
+m8_enrollment: unsupported_with_reason
 known_limitations:
-- No local mcp.json; custom MCP is enrolled through MiniMax Matrix cloud API (list_added_server
-  / add_or_edit_server).
-- Electron App ID com.minimax.agent-classic; user-data C:\Users\ynotf\AppData\Roaming\MiniMaxAgent-Classic.
-- Default workingDirectory is C:\Users\ynotf\.minimax-agent\projects; global rules
-  live at C:\Users\ynotf\.minimax-agent\AGENT.md.
-- Same binary as MiniMax Agent 1.0.0.5 (App ID com.minimax.agent) but isolated user-data
-  dir via --user-data-dir.
-- Native MCP acceptance requires operator UI enrollment and a fresh Classic chat;
-  cannot be proven by PowerShell HTTP alone.
+- MiniMax Agent Classic has no approved credential-free, native-token, environment-backed, or scoped-broker AgentCore
+  route. Repository templates intentionally contain no active AgentCore gateway entry.
+- MiniMax Agent Classic enrollment was pending and no approved secure credential path was completed. Do not create
+  a cloud custom-MCP entry for AgentCore until a governed secure route is approved.
+- No local mcp.json exists; the Matrix cloud custom-MCP mechanism cannot be used for AgentCore until an approved
+  secure credential route exists.
+- Electron App ID com.minimax.agent-classic uses isolated user data at C:\Users\ynotf\AppData\Roaming\MiniMaxAgent-Classic.
+- Global rules remain at C:\Users\ynotf\.minimax-agent\AGENT.md; rules delivery does not imply gateway enrollment.
 semantic_parity_gaps:
-- Cloud MCP schema does not use the minimax_mcp_json local file format used by MiniMax
-  Code.
+- Cloud MCP schema does not use the minimax_mcp_json local file format used by MiniMax Code.
 enrollment_evidence:
   audit: audits/MINIMAX_CLASSIC_ENROLLMENT_2026-07-24.md
   prior_repair: audits/MINIMAX_CLASSIC_REPAIR_2026-07-22.md
@@ -45,10 +40,6 @@ enrollment_evidence:
   executable: D:\Apps\MiniMaxAgent-Classic\MiniMax Agent.exe
   app_id: com.minimax.agent-classic
   phase4e_signal: MINIMAX_CLASSIC_UI_ENROLLMENT_PENDING
-status_reconciliation:
-  reconciled_at: '2026-07-25'
-  finding: No local mcp.json; Matrix UI enrollment still required; no public tunnel created.
-  status_after_reconciliation: awaiting_operator_cloud_mcp_enrollment
 dimensions:
   application_launch:
     status: live_validated
@@ -56,32 +47,48 @@ dimensions:
     evidence_ts: '2026-07-22T00:00:00Z'
     superseded_by: null
   gateway_configuration:
-    status: awaiting_operator_cloud_mcp_enrollment
+    status: unsupported_with_reason
     evidence_path: ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md
     evidence_ts: '2026-07-22T00:00:00Z'
     superseded_by: null
   gateway_discovery:
-    status: awaiting_operator_cloud_mcp_enrollment
+    status: unsupported_with_reason
     evidence_path: ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md
     evidence_ts: '2026-07-22T00:00:00Z'
     superseded_by: null
   native_memory_lifecycle:
-    status: awaiting_operator_cloud_mcp_enrollment
+    status: unsupported_with_reason
     evidence_path: ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md
     evidence_ts: '2026-07-22T00:00:00Z'
     superseded_by: null
   fresh_chat_recovery:
-    status: awaiting_operator_cloud_mcp_enrollment
+    status: unsupported_with_reason
     evidence_path: ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md
     evidence_ts: '2026-07-22T00:00:00Z'
     superseded_by: null
   persistence_after_restart:
-    status: awaiting_operator_cloud_mcp_enrollment
+    status: unsupported_with_reason
     evidence_path: ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md
     evidence_ts: '2026-07-22T00:00:00Z'
     superseded_by: null
   operator_gate:
-    status: awaiting_operator_cloud_mcp_enrollment
+    status: unsupported_with_reason
     evidence_path: ide-profiles/minimax-classic/MCP_ENROLLMENT_UI.md
     evidence_ts: '2026-07-22T00:00:00Z'
     superseded_by: null
+gateway_enrollment_status: unsupported_with_reason
+gateway_auth_mode: unverified
+m8_notes: MiniMax Agent Classic has no approved credential-free, native-token, environment-backed, or scoped-broker
+  AgentCore route. Existing or previously validated credential-bearing configuration is classified as legacy drift
+  and is not an approved route.
+legacy_status_reconciliation:
+  reconciled_at: '2026-07-25'
+  finding: No local mcp.json; Matrix UI enrollment still required; no public tunnel created.
+  status_after_reconciliation: awaiting_operator_cloud_mcp_enrollment
+legacy_gateway_state:
+  classification: legacy_drift
+  mutation_in_this_task: false
+  note: MiniMax Agent Classic enrollment was pending and no approved secure credential path was completed. Do not
+    create a cloud custom-MCP entry for AgentCore until a governed secure route is approved.
+  evidence_paths:
+  - audits/MINIMAX_CLASSIC_REPAIR_2026-07-22.md

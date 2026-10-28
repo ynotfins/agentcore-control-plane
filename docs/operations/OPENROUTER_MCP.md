@@ -4,8 +4,8 @@
 **Registry ID:** `openrouter`  
 **Bifrost client name:** `openrouter`  
 **Status:** OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY  
-**Last tool inventory:** authenticated live discovery = **20 tools** (SHA-256 `83d1a8d3b4e259ebec5fb511a02fdc664670516bceb2b45da010871ad3ada52e`); registry `permitted_tools` = **18** classified tools; `denied_tools` keep `send-message` / `generate-image`  
-**Updated:** 2026-07-20  
+**Last tool inventory:** authenticated live discovery = **22 raw tools**; registry `permitted_tools` = **18** classified tools; permanent builder exposure = **0**. OpenRouter remains dormant and appears only through an exact M6 lease and JIT virtual-key grant.
+**Updated:** 2026-09-08
 
 > **Handoff & Verification Status (2026-07-20 bind + classification):**  
 > - **BIFROST_ENCRYPTION_KEY:** Present in Windows User-scope; launcher copies into Bifrost process.  

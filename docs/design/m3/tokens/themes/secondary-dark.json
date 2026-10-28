@@ -1,6 +1,6 @@
 {
   "$schema": "https://design-tokens.github.io/community-group/format/",
-  "$description": "Theme 4 — Secondary Dark. Speakeasy-like deep black, orange secondary stack, blue/green accents, rainbowPulse on featured.",
+  "$description": "Theme 4 — Secondary Dark. Speakeasy deep black + orange accents + hover brighten + rainbowPulse.",
   "$extensions": { "agentcore.dataTheme": "secondary-dark", "agentcore.seedStatus": "TEMPORARY_PLACEHOLDER" },
   "md": {
     "sys": {
@@ -28,6 +28,14 @@
         "surfaceContainerHighest": { "$value": "oklch(14% 0 0)", "$type": "color" },
         "outline": { "$value": "{md.ref.palette.orange.40}", "$type": "color" },
         "outlineVariant": { "$value": "{md.ref.palette.inkBlack.6}", "$type": "color" }
+      },
+      "state": {
+        "hover": {
+          "surfaceTint": { "$value": "{md.ref.palette.orange.80}", "$type": "color" },
+          "surfaceTintAmount": { "$value": "9%", "$type": "percentage" },
+          "borderColor": { "$value": "{md.ref.palette.orange.50}", "$type": "color" },
+          "saturate": { "$value": "1.12", "$type": "number" }
+        }
       }
     },
     "custom": {

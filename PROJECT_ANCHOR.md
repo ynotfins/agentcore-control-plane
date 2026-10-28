@@ -10,6 +10,7 @@
 > **Operator approval (2026-08-04):** `AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE` — I: is the neutral `LocalApps` hot-data tier and AgentCore staging moves to `F:\AgentCore\staging`.
 > **Operator approval (2026-08-10):** `AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT` — SwarmRecall is the PC-native semantic memory/context plane; AgentCore remains the governed gateway, exact-evidence, recovery, policy, and LangGraph checkpoint authority.
 > **Operator approval (2026-08-20):** `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION` — Zoo-Code may be added as a bounded IDE-local direct MCP companion where a host supports it; `agentcore-gateway` remains the only AgentCore memory/governance MCP front door.
+> **Operator approval (2026-09-05):** `AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT` — Bifrost is pinned to v2.0.0; OpenClaw is AgentCore-owned and uses `agentcore-gateway`; and a host-native direct MCP companion is permitted only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore memory, database, Swarm, or administrative routes. SwarmClaw, SwarmRecall, and SwarmVault remain outside AgentCore execution authority. Any future Swarm-to-OpenClaw adapter receives no AgentCore virtual key, memory session, database or Recall credential, or AgentCore write root.
 
 ---
 
@@ -40,7 +41,7 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 
 ## 0. Bifrost Gateway Override (2026-07-12, operator-approved)
 
-> **LIVE-STATE OVERRIDE for AgentCore / non-Swarm IDEs.** Bifrost native Gateway (`bifrost-http.exe`, pinned **v2.0.0-prerelease1**) is the AgentCore workstation MCP gateway. AgentCore IDEs and explicitly enrolled non-Swarm clients connect to **one AgentCore endpoint only**:
+> **LIVE-STATE OVERRIDE for AgentCore / non-Swarm IDEs.** Bifrost native Gateway (`bifrost-http.exe`, pinned **v2.0.0**) is the AgentCore workstation MCP gateway. AgentCore IDEs and explicitly enrolled non-Swarm clients connect to **one AgentCore endpoint only**:
 >
 > ```text
 > agentcore-gateway  http://127.0.0.1:8080/mcp
@@ -49,7 +50,7 @@ AgentCore and Swarm are **independent control planes**. They share a machine, no
 >
 > Upstream MCP servers are registered behind Bifrost via `contracts/bifrost-upstream-mcp-registry.json` and rendered into the live Bifrost config under `F:\AgentCore\runtime\bifrost\`. IDEs must not embed the full per-server baseline.
 >
-> **Zoo-Code direct MCP companion exception (AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION):** IDEs may also carry one Zoo-Code-owned direct MCP server entry when the host supports Zoo-Code and the operator wants the Zoo-Code side-panel workflow. That exception is not an AgentCore memory route, not a Bifrost replacement, not permission to paste the upstream registry, and not permission to add Swarm, raw database, OpenRouter MCP, filesystem, or other direct MCP baselines.
+> **Host-native companion exception (superseding the Zoo-Code-only limit under AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT):** Zoo-Code/Roo-Code remains a compatible VS Code-family extension, not a Bifrost upstream. Another direct MCP companion is permitted only when a host-native smoke test proves Bifrost loses a necessary capability or material performance characteristic, the exact host/tool scope and security review are recorded, rollback is proven, and the route does not duplicate AgentCore memory, databases, Swarm, administrative tools, or the upstream registry.
 >
 > **Memory path (AgentCore / enrolled non-Swarm):**
 >
@@ -124,7 +125,7 @@ Mutable path details, transitional leftover locations, and acceptance evidence l
 | LangGraph Studio (dev-only) | `127.0.0.1:2024` — not a persistent Windows service; not production checkpointer |
 | Obsidian REST | `https://127.0.0.1:27124` (application vault; outside default MCP surface) |
 
-Swarm ports, Swarm databases, Swarm vault roots, OpenClaw/ClawX gateways, and Swarm MCP endpoints are **not** AgentCore constitution endpoints. Collision-avoidance pointers live in the foreign-boundary capsule and Swarm’s own control plane.
+Swarm ports, Swarm databases, Swarm vault roots, and Swarm MCP endpoints are **not** AgentCore constitution endpoints. OpenClaw and its ClawX host are AgentCore-owned and use `agentcore-gateway`. Collision-avoidance pointers live in the foreign-boundary capsule and Swarm’s own control plane.
 
 **Forbidden:**
 
@@ -149,6 +150,8 @@ IDE agent
      +-- neutral SwarmRecall: PC-native semantic memory/context plane
      +-- AgentCore PG18: canonical exact evidence/recovery/policy/LangGraph checkpoints
 ```
+
+Clients that support environment-backed authentication use the direct `:8080` route. Under `AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT`, approved Trust Class A clients that cannot safely expand headers use the Bifrost-owned `http://127.0.0.1:18082/mcp` compatibility route. That route stores no credential in the client configuration and admits a headerless caller only after exact approved Windows process-ancestry validation; unresolved, ambiguous, and unapproved callers fail closed.
 
 The `agentcore-memory` server id is stable. It is the AgentCore-governed access facade and lifecycle surface, **not** the PC-native semantic-memory authority. The PC-native semantic memory/context authority is neutral SwarmRecall. The full ten-tool memory platform landed with M3.002 and is live-validated (Cursor enrolled 2026-07-17).
 
@@ -176,7 +179,8 @@ No SQL, DDL, database-admin, backup-admin, or Bifrost-admin tools are exposed to
 - `agent_core` = governed canonical AgentCore PostgreSQL/pgvector DB for exact evidence, identity, provenance, leases, and LangGraph checkpoints (not direct IDE SQL).
 - Portable Context Engine = `D:\github\agentcore-context-engine` — session/context orchestration above `agentcore-memory` and neutral Recall; does not replace Cognee or PG18 evidence.
 - Neutral shared SwarmRecall (API + PG16/pgvector + Meilisearch) = PC-native semantic memory/context data plane (AUTH-2026-08-01; reaffirmed 2026-08-10).
-- SwarmVault / SwarmClaw / SwarmDock / SwarmFeed / SwarmRelay / OpenClaw / ClawX = **Swarm-owned** — not part of the AgentCore IDE mandatory MCP baseline.
+- SwarmVault / SwarmClaw / SwarmDock / SwarmFeed / SwarmRelay = **Swarm-owned** — not part of the AgentCore IDE mandatory MCP baseline.
+- OpenClaw / ClawX = **AgentCore-owned** — routed through `agentcore-gateway`; not part of the Swarm ecosystem baseline.
 
 ---
 
@@ -185,7 +189,8 @@ No SQL, DDL, database-admin, backup-admin, or Bifrost-admin tools are exposed to
 AgentCore may retain only minimum collision-avoidance facts:
 
 - Swarm is an independent ecosystem centered on SwarmClaw.
-- Intended Swarm components include SwarmClaw, SwarmRecall, SwarmVault, SwarmDock, SwarmFeed, and Swarm-owned OpenClaw agents. SwarmRelay is intended to be installed but disabled until separately approved by the Swarm build.
+- Intended Swarm components include SwarmClaw, SwarmRecall, SwarmVault, SwarmDock, and SwarmFeed. SwarmRelay is intended to be installed but disabled until separately approved by the Swarm build.
+- OpenClaw and its ClawX host are AgentCore-owned and are not Swarm components. A future Swarm-to-OpenClaw adapter receives no AgentCore virtual key, memory session, database or Recall credential, or AgentCore write root.
 - Swarm owns its own runtime, databases, RAG, memory, vaults, indexes, credentials, MCP servers, agents, services, schedules, backups, and recovery. Exclusive Swarm hot ownership of `H:` is the **target after M9 acceptance**. Swarm cold/backup under `E:\Swarm\...` is operator-intent / external target (AgentCore does not implement Swarm layout).
 - Cloud models are allowed for Swarm when they provide the best capability; that does not authorize Swarm local DB/RAG/memory/index/state onto AgentCore drives.
 - AgentCore must not prescribe or modify Swarm’s native internal setup.
@@ -198,7 +203,7 @@ AgentCore may retain only minimum collision-avoidance facts:
 ```text
 agentcore-gateway   # sole AgentCore MCP entry
                     # upstream registry lives behind Bifrost
-zoo-code            # optional bounded IDE-local direct MCP companion exception only
+host-native         # optional bounded companion only after a documented Bifrost parity failure
 ```
 
 Canonical upstream set (behind the gateway, not pasted into each IDE) is defined in `contracts/bifrost-upstream-mcp-registry.json`. The ordinary builder profile exposes shared identity-safe services only and includes zero project-router controls. `agentcore-project-router` is operator-only. Implicit-project Serena, Depwire, Tentra, filesystem, and Context Fabric upstreams remain dormant in shared profiles; local non-MCP workflow commands may use repo-local explicit-cwd paths after exact enrollment validation, while production and Studio MCP clients route through `scripts/agentcore_workflow/mcp_client.py` to `agentcore-gateway`. Deferred/disabled until healthy: `depwire-cloud`, `github-mcp`.
@@ -212,7 +217,6 @@ Ollama remains optional — not a mandatory MCP baseline server. Swarm MCP serve
 ## 9. Forbidden Active Routes
 
 ```text
-context7
 raw mem0
 direct composio
 Hostinger
@@ -235,7 +239,7 @@ H: as AgentCore final runtime/data home
 
 - No `.env` files anywhere in the AgentCore system.
 - Windows User-scope environment variables only.
-- Bifrost config uses `env.NAME` references; IDE gateway clients use `${env:BIFROST_MCP_VIRTUAL_KEY}` (or materialize into live config only when the client cannot expand env headers — never commit the resolved value).
+- Bifrost config uses `env.NAME` references. Header-capable IDE gateway clients use `${env:BIFROST_MCP_VIRTUAL_KEY}`. Approved header-hostile Trust Class A clients use the process-attested `:18082` compatibility route; do not materialize the builder virtual key into their live configuration. Other clients retain their documented profile-specific enrollment gate.
 - Never store or print raw secret values. Docs may name env var names and paths only.
 - Live IDE configs are app-owned; changes flow through renderers + `docs/prompts/install-agentcore-gateway-in-ide.md` / cutover ops with backup first.
 

@@ -5,12 +5,13 @@
 ide_id: cursor
 display_name: Cursor
 swarm_managed: false
-installed_version: unverified
-live_global_rule_target: 'Cursor User Rules (app settings UI); project rules: <repo>\.cursor\rules\*.mdc
-  and AGENTS.md'
+installed_version: 3.19.19 (running Cursor.exe product version, observed 2026-09-14)
+live_global_rule_target: 'Cursor account User Rules (Customize > Rules, manual import);
+  machine-local foundation C:\Users\ynotf\.cursor\rules\agentcore-foundation.mdc;
+  project rules <repo>\.cursor\rules\*.mdc and AGENTS.md'
 live_mcp_config_target: C:\Users\ynotf\.cursor\mcp.json
-rule_mechanism: native project rules (.cursor/rules/*.mdc, AGENTS.md) + app-settings
-  User Rules
+rule_mechanism: account User Rules (plain text, UI-only) + machine-local global
+  .mdc rule + native project rules (.cursor/rules/*.mdc, AGENTS.md)
 mcp_schema: cursor_mcp_json
 mcp_transport: http/streamable
 env_var_handling: supports ${env:VAR} expansion in MCP headers
@@ -18,6 +19,7 @@ restart_behavior: MCP reload from settings UI; full restart after Windows env-va
   changes
 editability:
   global_rules: manual_import
+  machine_local_global_rules: direct_write
   project_rules: direct_write
   mcp_config: direct_write
 installation_mode: generated_prompt
@@ -27,8 +29,32 @@ restart_required: true
 last_validation_date: '2026-07-13'
 mcp_template_source: renderers/gateway-clients/cursor.json
 known_limitations:
-- Normal Cursor agents cannot edit global User Rules. Operator-approved AgentCore maintenance may install the single foundation rule at C:\Users\ynotf\.cursor\rules\agentcore-foundation.mdc with backup, validation, and restart.
+- Account-synced User Rules require a verified Customize > Rules UI change; a local file cannot prove or replace their content.
+- The machine-local foundation rule is installed separately with backup, validation, and a fresh Cursor session; ordinary agents do not hand-edit its generated content.
 semantic_parity_gaps: []
+current_observation:
+  observed_on: '2026-09-14'
+  evidence_path: audits/cursor-context/CURSOR_CONFIGURATION_RECONCILIATION_2026-09-14.md
+  machine_local_foundation:
+    status: file_verified
+    policy_revision: 2026-09-14-cursor-configuration-provenance-v2
+    sha256: 96379E45FC24E89A510389C74ABFE6E4A05DA42CC8F56B75747A18189176CE72
+  account_user_rules:
+    status: unverified_ui_only
+    prepared_replacement: ide-profiles/cursor/USER_RULES_REPLACEMENT.txt
+  mcp_config:
+    status: file_observed_no_new_native_tool_proof
+    sha256: 5195A9EB1B4172F331A5E55ECF888EDFC7E0285FB1FC68B79DAC0D9671CD7972
+    agentcore_entries: [agentcore-gateway]
+    other_entries: [google-sheets, google-drive, dart]
+    direct_external_routes: approval_unverified
+    config_acceptance: fail_unapproved_direct_entries
+  user_settings:
+    status: selected_keys_observed
+    sha256: B558D02A9BB7E3A1A430AFD6B46E4C2641C24D71D24438322C61C23E95F3FFEA
+  cursor_documentation:
+    exact_running_version_status: missing
+    arabold_best_match: 3.14.7
 dimensions:
   application_launch:
     status: live_validated

@@ -19,7 +19,7 @@ Agents may write by default only to roles-appropriate roots:
 Agents must not write outside these roots unless the user explicitly instructs them for the current task:
 
 - `C:` (OS, apps, live IDE configs — app-owned; changes only through approved prompts/ops with backup)
-- `G:` (second backup copy target only)
+- `G:` (second backup copy target only; 119 GB external NVMe). Approved backup/WAL jobs may write `G:\AgentCoreArchive\agentcore-memory\...` and the prune runner may delete only those second copies. Keep used percent under 75 and at least 8 GB free. A full `G:` must not fail PostgreSQL `archive_command`. Do not park projects or unbounded WAL mirrors here.
 - `H:` (reserved for Swarm after M9 acceptance — never AgentCore final runtime/data home; never format or re-provision)
 - `J:` (portable media)
 - `E:\Swarm\...` (Swarm cold/backup — outside AgentCore write authority)
@@ -37,6 +37,7 @@ Examples that require stopping:
 
 - `F:\AgentCore` is missing, read-only, unavailable, full, or has permission errors.
 - An approved `E:\AgentCore\...` backup root is missing when writing backups, exports, or snapshots.
+- `G:` is at or above 75% used or under 8 GB free — skip the `G:` copy, keep the `E:` original, and run `ops/Prune-AgentCoreSecondaryBackupDrive.ps1`. Do not stop live WAL archive for a `G:` failure.
 - An IDE reinstall recreates default workspace paths under `C:`.
 - A package/tool tries to write project state outside the assigned worktree without explicit user approval.
 - A tool attempts to place AgentCore canonical runtime, Bifrost state, or durable rollback material on `H:`.

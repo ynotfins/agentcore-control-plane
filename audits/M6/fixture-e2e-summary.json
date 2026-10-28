@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-07-27T04:52:41.196335+00:00",
+  "timestamp": "2026-08-03T10:38:06.788723+00:00",
   "results": [
     {
       "id": "01",
       "status": "PASS",
       "name": "start_via_cli",
-      "fact": "started thread=a7526fe0 checkpoints=10 completed=True judge=proceed"
+      "fact": "started thread=57eb3377 checkpoints=77 completed=True judge=proceed"
     },
     {
       "id": "02",
       "status": "PASS",
       "name": "status_reports_checkpoint",
-      "fact": "run=93b59b82 thread=a7526fe0 checkpoints=10 blockers=1"
+      "fact": "run=803694ed thread=57eb3377 checkpoints=77 blockers=0"
     },
     {
       "id": "03",
@@ -23,19 +23,19 @@
       "id": "03",
       "status": "PASS",
       "name": "kill_resume",
-      "fact": "checkpoints pre=10 post=10 idempotent=True"
+      "fact": "checkpoints pre=77 post=77 idempotent=True"
     },
     {
       "id": "05",
       "status": "PASS",
       "name": "human_interrupt_pending",
-      "fact": "pause_id=66112713 visible_via_cli=True"
+      "fact": "pause_id=167c3e20 visible_via_cli=True"
     },
     {
       "id": "06",
       "status": "PASS",
       "name": "approve_resume",
-      "fact": "pause=66112713 resolution=approved decision=approve cli_rc=0"
+      "fact": "pause=167c3e20 resolution=approved decision=approve cli_rc=0"
     },
     {
       "id": "07",
@@ -47,7 +47,7 @@
       "id": "08",
       "status": "PASS",
       "name": "project_isolation",
-      "fact": "a_in_a=True a_in_b=False tools_a=1 tools_b=0"
+      "fact": "a_in_a=True a_in_b=False tools_a=7 tools_b=0"
     },
     {
       "id": "09",
@@ -65,7 +65,7 @@
       "id": "12",
       "status": "PASS",
       "name": "high_risk_ab_decision",
-      "fact": "high_ab=True critical_ab=True ab_id=a8dd87df"
+      "fact": "high_ab=True critical_ab=True ab_id=caf1daf6"
     },
     {
       "id": "13",
@@ -77,7 +77,7 @@
       "id": "10",
       "status": "PASS",
       "name": "tool_lease_lifecycle",
-      "fact": "during=jit_leased after=dormant lease_id=84fa9734"
+      "fact": "during=jit_leased after=dormant lease_id=fd9c95f7"
     },
     {
       "id": "14",
@@ -95,7 +95,7 @@
       "id": "17",
       "status": "PASS",
       "name": "state_matches_postgres",
-      "fact": "project_a wf_runs=71 wf_evidence=17"
+      "fact": "project_a wf_runs=130 wf_evidence=252"
     },
     {
       "id": "19",

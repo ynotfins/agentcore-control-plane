@@ -26,4 +26,7 @@ deepagents==0.6.12
 # Official LangChain OpenRouter integration used by the live worker path
 langchain-openrouter==0.2.6
 
+# Langfuse observability + prompt management (operator opt-in via env flags)
+langfuse==4.14.2
+
 langchain-mcp-adapters==0.3.0

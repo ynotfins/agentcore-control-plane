@@ -1,8 +1,9 @@
-# DERIVED from renderers/gateway-clients/open-interpreter.json (source contract:
+# DERIVED from renderers/gateway-clients/open-interpreter-cli.toml (source contract:
 # contracts/agentcore-gateway-client.json). Do not hand-edit; regenerate from
 # the contract.
 # Merge into C:\Users\ynotf\.openinterpreter\config.toml only through the
-# approved backup-first installer flow.
+# approved backup-first installer flow. Interpreter Desktop uses the separate
+# process-attested JSON route at http://127.0.0.1:18082/mcp.
 
 [mcp_servers.agentcore-gateway]
 url = "http://127.0.0.1:8080/mcp"
@@ -11,9 +12,8 @@ enabled = true
 startup_timeout_sec = 300
 tool_timeout_sec = 300
 
-# Optional direct companion exception:
-# Open Interpreter may include exactly one additional Zoo-Code-owned direct MCP
-# entry only when the host supports Zoo-Code and the operator wants the Zoo-Code
-# side-panel workflow. This is not an AgentCore memory route, not a Bifrost
-# replacement, and not permission for direct OpenRouter MCP, filesystem,
-# database, Swarm, or other direct per-tool MCP entries.
+# A host-native direct MCP companion is allowed only after a documented Bifrost
+# parity failure, exact host/tool scope, security review, rollback proof, and
+# proof that it does not duplicate AgentCore memory, database, Swarm,
+# administrative, or upstream-registry routes. Historical Zoo-Code approval is
+# subject to this current policy and is not a blanket exception.

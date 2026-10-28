@@ -10,6 +10,8 @@ import os
 import re
 import shlex
 import sys
+import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -352,22 +354,20 @@ _UNHEALTHY_PROMPT_CONTINUITY = {
 }
 
 
-def _cost_control_prompt_block(result_block: Any) -> str | None:
+def _prompt_continuity_issue(result_block: Any) -> str | None:
     if not isinstance(result_block, dict):
         return (
-            "AgentCore cost-control gate blocked this prompt before model submission: "
             "durable session recovery did not return a structured health result. "
             "Run `python -m agentcore cursor recover`, verify agentcore-gateway/auth health, "
-            "then resubmit."
+            "then retry durable capture."
         )
 
     if not result_block.get("ok"):
         error = str(result_block.get("error") or "unknown bootstrap failure")[:180]
         return (
-            "AgentCore cost-control gate blocked this prompt before model submission: "
             f"durable project session is unhealthy ({error}). "
             "Run `python -m agentcore cursor recover`, verify agentcore-gateway/auth health, "
-            "then resubmit."
+            "then retry durable capture."
         )
 
     flags = result_block.get("status_flags") or {}
@@ -383,33 +383,47 @@ def _cost_control_prompt_block(result_block: Any) -> str | None:
         for flag, detail in required_flags.items():
             if flags.get(flag) is False:
                 return (
-                    "AgentCore cost-control gate blocked this prompt before model submission: "
                     f"{detail}. "
-                    "Verify agentcore-gateway/auth health, then resubmit."
+                    "Verify agentcore-gateway/auth health, then retry durable capture."
                 )
         if not startup_ok:
             return (
-                "AgentCore cost-control gate blocked this prompt before model submission: "
                 "session recovery did not complete startup_context. "
-                "Run `python -m agentcore cursor recover`, then resubmit."
+                "Run `python -m agentcore cursor recover`, then retry durable capture."
             )
 
     continuity = str(result_block.get("continuity_status") or "").strip().lower()
     if continuity in _UNHEALTHY_PROMPT_CONTINUITY:
         return (
-            "AgentCore cost-control gate blocked this prompt before model submission: "
             f"session recovery is `{continuity}`. "
             "Run `python -m agentcore cursor recover` or resume the correct session, "
-            "then resubmit."
+            "then retry durable capture."
         )
     if continuity and continuity not in _HEALTHY_PROMPT_CONTINUITY:
         return (
-            "AgentCore cost-control gate blocked this prompt before model submission: "
             f"session recovery returned unrecognized continuity_status `{continuity}`. "
             "Run `python -m agentcore cursor status`, verify the intended session, "
-            "then resubmit."
+            "then retry durable capture."
         )
     return None
+
+
+def _allow_prompt_with_continuity_warning(
+    detail: str,
+    *,
+    prompt_evidence: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Fail open for model submission while keeping mutation gates unarmed."""
+    return {
+        "continue": True,
+        "user_message": (
+            f"AgentCore continuity warning: {detail} "
+            "Prompt submission will continue; write-capable tools remain protected "
+            "until durable prompt capture recovers."
+        ),
+        "agentcore_prompt_capture": prompt_evidence or {},
+        "agentcore_continuity_degraded": True,
+    }
 
 
 def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
@@ -426,31 +440,54 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
         or payload.get("composer_id")
         or os_environ_get("AGENTCORE_CURSOR_CONVERSATION_ID")
     )
+    generation_id = str(payload.get("generation_id") or "").strip()
     try:
         root_path = _first_workspace_root(payload)
     except (OSError, ValueError) as exc:
-        return {
-            "continue": False,
-            "user_message": f"AgentCore rejected the workspace root: {exc}",
-        }
+        set_global_prompt_interlock(
+            blocked=True,
+            unresolved_reason="unverified_workspace_before_submit",
+        )
+        return _allow_prompt_with_continuity_warning(
+            f"the workspace root could not be verified ({exc})."
+        )
     if root_path is None:
-        return {
-            "continue": False,
-            "user_message": "AgentCore cannot bind this prompt without an explicit workspace root.",
-        }
+        set_global_prompt_interlock(
+            blocked=True,
+            unresolved_reason="missing_workspace_before_submit",
+        )
+        return _allow_prompt_with_continuity_warning(
+            "the prompt could not be bound to an explicit workspace root."
+        )
     workspace = str(root_path)
 
     # A previous turn must never authorize tools for this prompt. Disarm before
     # bootstrap, network I/O, parsing, or any other fallible operation.
+    primary_interlock = _set_prompt_interlock(root_path, blocked=True)
+    fail_safe_interlock = _set_prompt_interlock_failsafe(root_path, blocked=True)
+    global_interlock = set_global_prompt_interlock(
+        blocked=True,
+        root_path=root_path,
+    )
     boot_path = root_path / ".agentcore" / "runtime" / "cursor-bootstrap.json"
-    if boot_path.exists() and not _set_prompt_capture_flag(root_path, captured=False):
-        return {
-            "continue": False,
-            "user_message": (
-                "AgentCore could not disarm the prior prompt gate. "
-                "Recover the Cursor session, then resubmit safely."
-            ),
-        }
+    disarmed = not boot_path.exists() or _set_prompt_capture_flag(
+        root_path, captured=False
+    )
+    if not primary_interlock and not fail_safe_interlock and not global_interlock:
+        return _allow_prompt_with_continuity_warning(
+            "no prompt interlock could be persisted. "
+            "Recover the Cursor session before using write-capable tools."
+        )
+    if not disarmed:
+        return _allow_prompt_with_continuity_warning(
+            "the prior prompt-capture gate could not be disarmed. "
+            "Recover the Cursor session before using write-capable tools."
+        )
+    if prompt and not generation_id:
+        return _allow_prompt_with_continuity_warning(
+            "Cursor did not provide a generation_id for this prompt. "
+            "Prompt submission will continue without write authorization."
+        )
 
     data = load_bootstrap_json(root_path)
     result_block = (data or {}).get("result") if isinstance(data, dict) else None
@@ -462,33 +499,22 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
         )
         result_block = boot.as_dict()
     if isinstance(result_block, dict) and result_block.get("ambiguity"):
-        return {
-            "continue": False,
-            "user_message": (
-                "AgentCore: multiple open task sessions. "
-                "Run `python -m agentcore cursor status` and resume one session "
-                "before continuing."
-            ),
-        }
+        return _allow_prompt_with_continuity_warning(
+            "multiple open task sessions were found. "
+            "Run `python -m agentcore cursor status` and resume the intended session."
+        )
 
     if prompt:
-        block_reason = _cost_control_prompt_block(result_block)
-        if block_reason:
-            return {
-                "continue": False,
-                "user_message": block_reason,
-            }
+        continuity_issue = _prompt_continuity_issue(result_block)
+        if continuity_issue:
+            return _allow_prompt_with_continuity_warning(continuity_issue)
 
     session_id = (result_block or {}).get("session_id") if isinstance(result_block, dict) else None
     project_key = (result_block or {}).get("project_key") if isinstance(result_block, dict) else None
     if prompt and (not session_id or not project_key):
-        return {
-            "continue": False,
-            "user_message": (
-                "AgentCore durable session identity is incomplete. "
-                "Recover the session, then resubmit."
-            ),
-        }
+        return _allow_prompt_with_continuity_warning(
+            "durable session identity is incomplete. Recover the Cursor session."
+        )
     prompt_evidence: dict[str, Any] = {}
     if session_id and prompt and project_key:
         append_result = append_prompt(
@@ -507,13 +533,10 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
             isinstance(append_result, dict) and append_result.get("ok") is True and event_id
         )
         if not accepted:
-            return {
-                "continue": False,
-                "user_message": (
-                    "AgentCore failed to durably capture the operator prompt. "
-                    "Fix gateway/memory health, then resubmit."
-                ),
-            }
+            return _allow_prompt_with_continuity_warning(
+                "the operator prompt could not be captured durably. "
+                "Restore gateway/memory health and retry durable capture."
+            )
         prompt_evidence = {
             "event_id": event_id,
             "idempotent_replay": bool(append_result.get("idempotent_replay")),
@@ -525,14 +548,52 @@ def handle_before_submit(payload: dict[str, Any]) -> dict[str, Any]:
             prompt_sha256=hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
             session_id=str(session_id),
             conversation_id=str(conversation_id or ""),
+            generation_id=generation_id,
         ):
-            return {
-                "continue": False,
-                "user_message": (
-                    "AgentCore captured the prompt but could not arm the local tool gate. "
-                    "Recover the Cursor session, then resubmit safely."
-                ),
-            }
+            return _allow_prompt_with_continuity_warning(
+                "the prompt was captured durably, but the local tool gate could not be armed. "
+                "Recover the Cursor session before using write-capable tools.",
+                prompt_evidence=prompt_evidence,
+            )
+        primary_interlock = _set_prompt_interlock(
+            root_path,
+            blocked=False,
+            event_id=event_id,
+            session_id=str(session_id),
+            conversation_id=str(conversation_id or ""),
+            generation_id=generation_id,
+        )
+        fail_safe_interlock = False
+        if primary_interlock:
+            fail_safe_interlock = _set_prompt_interlock_failsafe(
+                root_path,
+                blocked=False,
+                event_id=event_id,
+                session_id=str(session_id),
+                conversation_id=str(conversation_id or ""),
+                generation_id=generation_id,
+            )
+        global_interlock = False
+        if primary_interlock and fail_safe_interlock:
+            global_interlock = set_global_prompt_interlock(
+                blocked=False,
+                root_path=root_path,
+                event_id=event_id,
+                session_id=str(session_id),
+                conversation_id=str(conversation_id or ""),
+                generation_id=generation_id,
+            )
+        if not primary_interlock or not fail_safe_interlock or not global_interlock:
+            _set_prompt_capture_flag(root_path, captured=False)
+            _set_prompt_interlock(root_path, blocked=True)
+            _set_prompt_interlock_failsafe(root_path, blocked=True)
+            set_global_prompt_interlock(blocked=True, root_path=root_path)
+            return _allow_prompt_with_continuity_warning(
+                "the prompt was captured durably, but the local prompt interlock "
+                "could not be released. Recover the Cursor session before using "
+                "write-capable tools.",
+                prompt_evidence=prompt_evidence,
+            )
 
     return {"continue": True, "agentcore_prompt_capture": prompt_evidence}
 
@@ -550,6 +611,67 @@ def _is_write_operation(tool_name: str, tool_input: dict[str, Any]) -> bool:
     if any(k in name for k in ("write", "edit", "create", "delete", "replace", "modify")):
         return True
     return False
+
+
+def _is_pathless_external_design_tool(
+    tool_name: str, tool_input: dict[str, Any]
+) -> bool:
+    """True for remote design-canvas tools (Figma MCP) with no workspace file path.
+
+    Stage B file-scope gating cannot resolve a local path for these tools; they
+    mutate the operator's Figma cloud document, not the Git worktree. Allowing
+    them still requires the normal write session/intent gates.
+    """
+    name = re.sub(r"[^a-z0-9]+", "", (tool_name or "").lower())
+    if "figma" in name:
+        return True
+
+    nested = tool_input.get("arguments")
+    flat: dict[str, Any] = dict(tool_input)
+    if isinstance(nested, dict):
+        flat.update(nested)
+    nested_name = re.sub(
+        r"[^a-z0-9]+",
+        "",
+        str(tool_input.get("toolName") or tool_input.get("tool_name") or "").lower(),
+    )
+    effective = nested_name or name
+
+    figma_named = {
+        "createnewfile",
+        "usefigma",
+        "generatefigmadesign",
+        "generatediagram",
+        "getdesigncontext",
+        "getscreenshot",
+        "getmetadata",
+        "getfigjam",
+        "searchdesignsystem",
+        "creategenerativeplugin",
+        "createshader",
+        "addcodeconnectmap",
+        "sendcodeconnectmappings",
+    }
+    if effective not in figma_named and not effective.endswith("createnewfile"):
+        # MCP wrappers sometimes prefix: mcp_create_new_file, plugin_figma_create_new_file
+        if not any(effective.endswith(n) for n in figma_named):
+            return False
+
+    if effective.endswith("createnewfile") or effective == "createnewfile":
+        plan_key = flat.get("planKey") or flat.get("plan_key")
+        editor = flat.get("editorType") or flat.get("editor_type")
+        file_name = flat.get("fileName") or flat.get("file_name")
+        # Figma create_new_file always carries planKey + editorType + fileName.
+        return bool(
+            (isinstance(plan_key, str) and plan_key.strip())
+            or (
+                isinstance(editor, str)
+                and editor.strip()
+                and isinstance(file_name, str)
+                and file_name.strip()
+            )
+        )
+    return True
 
 
 def _tool_mutation_targets(tool_name: str, tool_input: dict[str, Any]) -> list[str] | None:
@@ -640,6 +762,23 @@ def _authority_path_class(root_path: Path, target_p: Path) -> str | None:
 def _has_authority_approval() -> bool:
     capability = os.environ.get("AGENTCORE_AUTHORITY_CAPABILITY")
     approval_id = os.environ.get("AGENTCORE_AUTHORITY_APPROVAL_ID")
+    if sys.platform == "win32" and (not capability or not approval_id):
+        try:
+            import winreg
+
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as key:
+                if not capability:
+                    try:
+                        capability, _ = winreg.QueryValueEx(key, "AGENTCORE_AUTHORITY_CAPABILITY")
+                    except OSError:
+                        pass
+                if not approval_id:
+                    try:
+                        approval_id, _ = winreg.QueryValueEx(key, "AGENTCORE_AUTHORITY_APPROVAL_ID")
+                    except OSError:
+                        pass
+        except Exception:
+            pass
     return (
         capability == "authority_maintainer"
         and bool(approval_id)
@@ -714,11 +853,30 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
             current_conversation_id = str(
                 payload.get("conversation_id") or payload.get("composer_id") or ""
             )
+            current_generation_id = str(payload.get("generation_id") or "")
+            if _global_prompt_interlock_blocks(root_path, capture):
+                return {
+                    "permission": "deny",
+                    "user_message": (
+                        "AgentCore Stage B Deny: prompt continuity authorization is "
+                        "missing, unresolved, or stale"
+                    ),
+                }
+            if _prompt_interlock_blocks(root_path, capture):
+                return {
+                    "permission": "deny",
+                    "user_message": (
+                        "AgentCore Stage B Deny: current prompt capture is degraded; "
+                        "write-capable tools remain protected"
+                    ),
+                }
             if (
                 not isinstance(capture, dict)
                 or not str(capture.get("event_id") or "").strip()
                 or not re.fullmatch(r"[0-9a-f]{64}", str(capture.get("prompt_sha256") or ""))
                 or str(capture.get("session_id") or "") != current_session_id
+                or not current_generation_id
+                or str(capture.get("generation_id") or "") != current_generation_id
                 or (
                     current_conversation_id
                     and str(capture.get("conversation_id") or "") != current_conversation_id
@@ -763,6 +921,14 @@ def handle_pre_tool(payload: dict[str, Any]) -> dict[str, Any]:
             # 8. Target path outside assigned worktree
             targets = _tool_mutation_targets(tool_name, tool_input)
             if not targets:
+                if _is_pathless_external_design_tool(tool_name, tool_input):
+                    return {
+                        "permission": "allow",
+                        "agent_message": (
+                            "Allowed pathless external design tool (Figma MCP); "
+                            "no workspace file path to gate."
+                        ),
+                    }
                 return {
                     "permission": "deny",
                     "user_message": "AgentCore Stage B Deny: mutation path set is not completely resolvable",
@@ -933,6 +1099,7 @@ def _set_prompt_capture_flag(
     prompt_sha256: str = "",
     session_id: str = "",
     conversation_id: str = "",
+    generation_id: str = "",
 ) -> bool:
     boot_path = root_path / ".agentcore" / "runtime" / "cursor-bootstrap.json"
     if not boot_path.is_file():
@@ -947,6 +1114,7 @@ def _set_prompt_capture_flag(
                 not event_id.strip()
                 or not re.fullmatch(r"[0-9a-f]{64}", prompt_sha256)
                 or not session_id.strip()
+                or not generation_id.strip()
             ):
                 return False
             blob["current_prompt_capture"] = {
@@ -954,6 +1122,7 @@ def _set_prompt_capture_flag(
                 "prompt_sha256": prompt_sha256,
                 "session_id": session_id.strip(),
                 "conversation_id": conversation_id.strip(),
+                "generation_id": generation_id.strip(),
             }
         else:
             blob.pop("current_prompt_capture", None)
@@ -965,6 +1134,202 @@ def _set_prompt_capture_flag(
         return True
     except (OSError, TypeError, ValueError, json.JSONDecodeError):
         return False
+
+
+def _prompt_interlock_path(root_path: Path) -> Path:
+    return root_path / ".agentcore" / "runtime" / "cursor-prompt-interlock.json"
+
+
+def _prompt_interlock_failsafe_path(root_path: Path) -> Path:
+    return root_path / ".agentcore" / "runtime" / "cursor-prompt-interlock.fail-safe.json"
+
+
+GLOBAL_PROMPT_INTERLOCK_PATH = Path(
+    os.environ.get("AGENTCORE_CURSOR_GLOBAL_PROMPT_INTERLOCK_PATH")
+    or Path(os.environ.get("LOCALAPPDATA") or tempfile.gettempdir())
+    / "AgentCore"
+    / "cursor"
+    / "prompt-interlocks"
+)
+
+
+def _global_project_key(root_path: Path) -> str:
+    canonical = str(root_path.resolve()).replace("/", "\\").lower()
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def set_global_prompt_interlock(
+    *,
+    blocked: bool,
+    root_path: Path | None = None,
+    event_id: str = "",
+    session_id: str = "",
+    conversation_id: str = "",
+    generation_id: str = "",
+    unresolved_reason: str = "",
+) -> bool:
+    """Persist conflict-safe project authorization or an unresolved failure."""
+    base = GLOBAL_PROMPT_INTERLOCK_PATH
+    nonce = hashlib.sha256(
+        f"{os.getpid()}:{time.time_ns()}".encode("ascii")
+    ).hexdigest()
+    tmp: Path | None = None
+    try:
+        base.mkdir(parents=True, exist_ok=True)
+        if not base.is_dir():
+            return False
+        if root_path is None:
+            if not blocked:
+                return False
+            unresolved = base / "unresolved"
+            unresolved.mkdir(parents=True, exist_ok=True)
+            path = unresolved / f"{nonce}.json"
+            payload = {
+                "version": 1,
+                "id": nonce,
+                "reason": (unresolved_reason or "unscoped_before_submit_failure")[:160],
+            }
+        else:
+            key = _global_project_key(root_path)
+            if not blocked and (not event_id or not session_id or not generation_id):
+                return False
+            path = base / f"{key}.json"
+            payload = {
+                "version": 1,
+                "root": str(root_path.resolve()),
+                "blocked": blocked,
+                "event_id": event_id if not blocked else "",
+                "session_id": session_id if not blocked else "",
+                "conversation_id": conversation_id if not blocked else "",
+                "generation_id": generation_id if not blocked else "",
+            }
+        tmp = path.with_name(f"{path.name}.{nonce}.tmp")
+        tmp.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+        os.replace(tmp, path)
+        return True
+    except (OSError, ValueError, json.JSONDecodeError):
+        try:
+            if tmp is not None:
+                tmp.unlink(missing_ok=True)
+        except OSError:
+            pass
+        return False
+
+
+def _global_prompt_interlock_blocks(root_path: Path, capture: Any) -> bool:
+    base = GLOBAL_PROMPT_INTERLOCK_PATH
+    if not base.is_dir():
+        return True
+    unresolved = base / "unresolved"
+    try:
+        if unresolved.exists() and (
+            not unresolved.is_dir() or any(unresolved.iterdir())
+        ):
+            return True
+        path = base / f"{_global_project_key(root_path)}.json"
+        if not path.is_file():
+            return True
+        project = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        return True
+    if not isinstance(project, dict) or project.get("version") != 1:
+        return True
+    if project.get("blocked") is not False or not isinstance(capture, dict):
+        return True
+    return any(
+        str(project.get(key) or "") != str(capture.get(key) or "")
+        for key in ("event_id", "session_id", "conversation_id", "generation_id")
+    )
+
+
+def _set_prompt_interlock(
+    root_path: Path,
+    *,
+    blocked: bool,
+    event_id: str = "",
+    session_id: str = "",
+    conversation_id: str = "",
+    generation_id: str = "",
+) -> bool:
+    """Persist a cross-process deny latch around beforeSubmitPrompt recovery."""
+    path = _prompt_interlock_path(root_path)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "blocked": blocked,
+            "event_id": event_id if not blocked else "",
+            "session_id": session_id if not blocked else "",
+            "conversation_id": conversation_id if not blocked else "",
+            "generation_id": generation_id if not blocked else "",
+        }
+        tmp.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+        os.replace(tmp, path)
+        return True
+    except OSError:
+        try:
+            tmp.unlink(missing_ok=True)
+        except OSError:
+            pass
+        return False
+
+
+def _set_prompt_interlock_failsafe(
+    root_path: Path,
+    *,
+    blocked: bool,
+    event_id: str = "",
+    session_id: str = "",
+    conversation_id: str = "",
+    generation_id: str = "",
+) -> bool:
+    """Independent companion latch used when the primary latch cannot be updated."""
+    path = _prompt_interlock_failsafe_path(root_path)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "blocked": blocked,
+            "event_id": event_id if not blocked else "",
+            "session_id": session_id if not blocked else "",
+            "conversation_id": conversation_id if not blocked else "",
+            "generation_id": generation_id if not blocked else "",
+        }
+        tmp.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+        os.replace(tmp, path)
+        return True
+    except OSError:
+        try:
+            tmp.unlink(missing_ok=True)
+        except OSError:
+            pass
+        return False
+
+
+def _prompt_interlock_blocks(
+    root_path: Path,
+    capture: Any,
+) -> bool:
+    for path in (
+        _prompt_interlock_path(root_path),
+        _prompt_interlock_failsafe_path(root_path),
+    ):
+        if not path.is_file():
+            continue
+        try:
+            interlock = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, json.JSONDecodeError):
+            return True
+        if not isinstance(interlock, dict) or interlock.get("blocked") is not False:
+            return True
+        if not isinstance(capture, dict):
+            return True
+        if any(
+            str(interlock.get(key) or "") != str(capture.get(key) or "")
+            for key in ("event_id", "session_id", "conversation_id", "generation_id")
+        ):
+            return True
+    return False
 
 
 def _shell_file_mutation_targets(command: str) -> tuple[bool, list[str] | None]:
@@ -1151,6 +1516,9 @@ def handle_before_shell(payload: dict[str, Any]) -> dict[str, Any]:
                 decision = handle_pre_tool(
                     {
                         "workspace_roots": [workspace],
+                        "conversation_id": payload.get("conversation_id")
+                        or payload.get("composer_id"),
+                        "generation_id": payload.get("generation_id"),
                         "tool_name": "write_file",
                         "tool_input": {"path": str(target_path)},
                     }

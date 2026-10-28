@@ -7,6 +7,13 @@
 > below were removed/deferred (2026-06-30); memory routes through `agentcore-gateway` →
 > `agentcore-memory`, not `global-memory-gateway`. SwarmRecall/Meilisearch task ownership below
 > is Swarm-ecosystem operations. Read for ops facts; verify against live scheduled tasks.
+>
+> **Current aggregate validator (2026-09-08):** `ops\Test-AgentCoreRuntimeSuite.ps1`
+> checks AgentCore PostgreSQL 18 at `127.0.0.1:55433`, the current Bifrost gateway through
+> PowerShell 7, and the four current PG18-backed projections. It does not validate legacy
+> AgentCore PG16, raw SwarmRecall, or SwarmVault. Context Fabric readiness is opt-in with
+> `-IncludeContextFabricReadiness`; live client adoption is opt-in with
+> `-IncludeLiveClientAdoption`.
 
 Generated: 2026-06-27
 
@@ -49,8 +56,13 @@ These runtime scheduled tasks are current-user logon tasks with limited run leve
 - `ops\Stop-AgentCoreSwarmRecallRuntime.ps1`
   - stops only process command lines matching the approved SwarmRecall config
 - `ops\Test-AgentCoreRuntimeSuite.ps1`
-  - validates Postgres readiness, SwarmRecall, SwarmVault, memory projection, and context-fabric readiness
+  - validates PostgreSQL 18 `agent_core` readiness on `127.0.0.1:55433`, the current Bifrost gateway through PowerShell 7, and current PG18-backed projection content/revision/read-only state
+  - does not access legacy AgentCore PG16, SwarmRecall credentials, SwarmVault, or retired projection-state directories
+  - add `-IncludeContextFabricReadiness` only when the broad Context Fabric readiness scan is required
   - add `-IncludeLiveClientAdoption` when you need the full rollout gate, including proof that clients restarted onto the governed config set
+- `ops\Test-AgentCoreMemoryProjection.ps1`
+  - validates `.agentcore\STATE.md`, `.agentcore\DECISIONS.md`, `.agentcore\CONTEXT_INDEX.md`, and `C:\Users\ynotf\.agentcore\GLOBAL_STATE.md` against current PG18 projection revisions
+  - verifies embedded content hashes, read-only attributes, source revisions, and malformed-output sentinels without rewriting a projection
 - `ops\Test-AgentCoreLiveClientAdoption.ps1`
   - validates live client config adoption for Codex, Cursor, Open Interpreter, OpenClaw, MiniMax, and Mavis
   - checks required governed servers, forbidden retired servers, and whether the running client processes were started after config rollout
@@ -89,8 +101,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\ChaosCentral-Current-Buil
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Start-AgentCorePostgres.ps1 -StartIfStopped
-powershell -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1 -IncludeLiveClientAdoption
+pwsh -NoProfile -NonInteractive -File D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1
+pwsh -NoProfile -NonInteractive -File D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1 -IncludeContextFabricReadiness
+pwsh -NoProfile -NonInteractive -File D:\github\agentcore-control-plane\ops\Test-AgentCoreRuntimeSuite.ps1 -IncludeLiveClientAdoption
+pwsh -NoProfile -NonInteractive -File D:\github\agentcore-control-plane\ops\Test-AgentCoreMemoryProjection.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Test-AgentCoreSwarmRecall.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Test-AgentCoreSwarmVault.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File D:\github\agentcore-control-plane\ops\Test-AgentCoreContextWindowPolicy.ps1
@@ -149,6 +163,7 @@ Managed tasks:
 - `\AgentCore\NightlyBackup`
 - `\AgentCore\NightlyRestoreTest`
 - `\AgentCore\WeeklyMaintenance`
+- `\AgentCore\SecondaryBackupHeadroom` (daily 02:45; `ops/Prune-AgentCoreSecondaryBackupDrive.ps1 -Apply`; `G:` second copies only)
 - `\AgentCore\SwarmRecallApi`
 - `\AgentCore\SwarmRecallMeilisearch`
 

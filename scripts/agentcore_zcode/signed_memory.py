@@ -13,7 +13,7 @@ Invoke from the scripts directory (repo runtime venv):
 
 Or from the repo root:
 
-    python scripts/zcode_signed_memory.py sign --tool append_event ...
+    python -m agentcore_zcode.signed_memory sign --tool append_event ...
 """
 
 from __future__ import annotations
@@ -223,3 +223,4 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

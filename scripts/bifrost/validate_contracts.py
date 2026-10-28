@@ -18,6 +18,8 @@ REGISTRY = REPO_ROOT / "contracts" / "bifrost-upstream-mcp-registry.json"
 REGISTRY_SCHEMA = REPO_ROOT / "contracts" / "schemas" / "bifrost-upstream-mcp-registry.schema.json"
 GATEWAY = REPO_ROOT / "contracts" / "agentcore-gateway-client.json"
 GATEWAY_SCHEMA = REPO_ROOT / "contracts" / "schemas" / "agentcore-gateway-client.schema.json"
+ALIGNMENT_HOSTS = REPO_ROOT / "contracts" / "agentcore-alignment-skill-hosts.json"
+IDE_MATRIX = REPO_ROOT / "ide-profiles" / "IDE_CAPABILITY_MATRIX.yaml"
 
 HYPHEN_OK = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 UNDERSCORE_ONLY = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -42,6 +44,28 @@ TRACKED_SECRET_ALLOWLIST: dict[str, tuple[str, ...]] = {
         "sk-or-v1-" + "abcdefghijklmnopqrstuvwxyz123456",
     ),
 }
+REQUIRED_TASK2_HOSTS = {
+    "cursor",
+    "codex",
+    "devin",
+    "eigent",
+    "zed",
+    "minimax",
+    "mavis",
+    "reasonix",
+    "opencode",
+    "open-design",
+    "autogpt",
+    "agent-orchestrator",
+    "cherry-studio",
+    "lobehub",
+    "openhands",
+    "antigravity",
+    "zcode",
+    "open-interpreter",
+    "openclaw",
+    "clawx",
+}
 
 
 def load(path: Path) -> Any:
@@ -61,6 +85,7 @@ def validate_schema(instance: Any, schema: dict[str, Any], label: str) -> list[s
 
 def semantic_registry_checks(registry: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+    profiles = registry.get("capability_profiles") or {}
     if registry.get("gateway_id") != "agentcore-gateway":
         errors.append("gateway_id must be agentcore-gateway")
 
@@ -109,20 +134,48 @@ def semantic_registry_checks(registry: dict[str, Any]) -> list[str]:
                 f"an explicit allowlist from the discovered tool inventory"
             )
 
+        if key == "clasp-mcp":
+            upstream_tools = {
+                "list_projects",
+                "pull_files",
+                "clone_project",
+                "create_project",
+                "push_files",
+            }
+            for tool in sorted(upstream_tools.intersection(permitted)):
+                errors.append(
+                    f"servers.{key}: clasp tool {tool!r} requires an isolation adapter "
+                    "that prevents implicit parent discovery and validates provider-returned "
+                    "Windows filenames before filesystem access"
+                )
+
         # Tool group consistency: every tool in a group must appear in permitted_tools or denied_tools.
         tool_groups = server.get("tool_groups") or {}
         all_declared = set(permitted) | set(denied)
         if all_declared and tool_groups:
             for gname, gdef in tool_groups.items():
+                requires_approval = bool(
+                    (gdef.get("lease_defaults") or {}).get("requires_approval")
+                )
+                permanent_profiles = [
+                    pid
+                    for pid, profile in profiles.items()
+                    if key in (profile.get("allowed_server_ids") or [])
+                ]
                 for t in gdef.get("tools") or []:
                     if t not in all_declared:
                         errors.append(
                             f"servers.{key}.tool_groups.{gname}: "
                             f"tool {t!r} not in permitted_tools or denied_tools"
                         )
+                    if requires_approval and t in permitted and permanent_profiles:
+                        errors.append(
+                            f"servers.{key}.tool_groups.{gname}: approval-required tool "
+                            f"{t!r} cannot be granted permanently through profiles "
+                            f"{permanent_profiles!r}; deny it or remove the permanent server grant"
+                        )
 
     # Profile references
-    profiles = registry.get("capability_profiles") or {}
     for pid, profile in profiles.items():
         for sid in profile.get("allowed_server_ids") or []:
             if sid not in registry.get("servers", {}):
@@ -249,6 +302,186 @@ def tracked_secret_checks() -> list[str]:
                 continue
             errors.append(f"tracked-secrets: {rel}: possible {label} literal")
             break
+
+    return errors
+
+
+def task2_contract_profile_checks(gateway: dict[str, Any]) -> list[str]:
+    """Enforce the universal host, Code Mode, and evidence alignment contract."""
+    import yaml  # noqa: PLC0415
+
+    errors: list[str] = []
+    policy = yaml.safe_load(
+        (REPO_ROOT / "contracts" / "global-agent-policy.yaml").read_text(encoding="utf-8")
+    )
+    matrix = yaml.safe_load(IDE_MATRIX.read_text(encoding="utf-8"))
+    host_manifest = load(ALIGNMENT_HOSTS)
+
+    rules = {rule["id"]: str(rule["rule"]) for rule in policy.get("mandatory_rules", [])}
+    discovery = rules.get("session-tool-discovery", "")
+    code_mode_sequence = ("listToolFiles", "readToolFile", "getToolDocs", "executeToolCode")
+    positions = [discovery.find(name) for name in code_mode_sequence]
+    if any(position < 0 for position in positions) or positions != sorted(positions):
+        errors.append(
+            "GLOBAL_POLICY: session-tool-discovery must contain ordered Code Mode sequence "
+            "listToolFiles -> readToolFile -> getToolDocs -> executeToolCode"
+        )
+    for phrase in ("Code Mode", "operational issue", "duplicate"):
+        if phrase not in discovery:
+            errors.append(f"GLOBAL_POLICY: session-tool-discovery missing {phrase!r}")
+
+    required_task_gates = {
+        "agentcore-memory",
+        "sequential-thinking",
+        "serena",
+        "depwire",
+        "tentra",
+        "filesystem",
+        "github",
+        "playwright",
+        "shadcn",
+        "posthog",
+        "fetch",
+        "wcgw",
+        "docker",
+        "postgresql",
+        "sqlite",
+        "ref",
+        "agentmail",
+        "morph",
+    }
+    task_gates = {gate.get("tool_name") for gate in policy.get("task_class_gates", [])}
+    missing_task_gates = sorted(required_task_gates - task_gates)
+    if missing_task_gates:
+        errors.append(f"GLOBAL_POLICY: missing primary tool-routing gates {missing_task_gates}")
+
+    managed = matrix.get("managed_ides") or {}
+    candidates = matrix.get("managed_candidates") or {}
+    represented_hosts = set(managed) | set(candidates)
+    if matrix.get("mavis_alias_note"):
+        represented_hosts.add("mavis")
+    missing_matrix_hosts = sorted(REQUIRED_TASK2_HOSTS - represented_hosts)
+    if missing_matrix_hosts:
+        errors.append(f"MATRIX: missing managed/candidate hosts {missing_matrix_hosts}")
+
+    manifest_hosts = {entry.get("host") for entry in host_manifest.get("hosts", [])}
+    missing_manifest_hosts = sorted(REQUIRED_TASK2_HOSTS - manifest_hosts)
+    if missing_manifest_hosts:
+        errors.append(f"ALIGNMENT_HOSTS: missing hosts {missing_manifest_hosts}")
+
+    swarm_clients = matrix.get("swarm_managed_clients") or {}
+    expected_host_certification = {
+        "openclaw": "configured_restart_required",
+        "clawx": "unverified",
+    }
+    for host in ("openclaw", "clawx"):
+        if host in swarm_clients:
+            errors.append(f"MATRIX: {host} must not remain in swarm_managed_clients")
+        candidate = candidates.get(host) or {}
+        if candidate.get("ownership") != "agentcore":
+            errors.append(f"MATRIX: {host} ownership must be agentcore")
+        expected_certification = expected_host_certification[host]
+        if candidate.get("certification") != expected_certification:
+            errors.append(
+                f"MATRIX: {host} certification must be {expected_certification}"
+            )
+        for dimension, details in (candidate.get("dimensions") or {}).items():
+            if details.get("status") == "live_validated" and not (
+                details.get("evidence_path") and details.get("evidence_ts")
+            ):
+                errors.append(
+                    f"MATRIX: {host} {dimension}=live_validated requires evidence_path and evidence_ts"
+                )
+        manifest_entry = next(
+            (entry for entry in host_manifest.get("hosts", []) if entry.get("host") == host),
+            {},
+        )
+        if manifest_entry.get("ownership") != "agentcore":
+            errors.append(f"ALIGNMENT_HOSTS: {host} ownership must be agentcore")
+    openclaw = candidates.get("openclaw") or {}
+    expected_roots = {
+        "governed_product_root": r"D:\github\open--claw",
+        "windows_operations_root": r"D:\openclaw",
+        "excluded_live_state_root": r"C:\Users\ynotf\.openclaw",
+        "gateway_url": "http://127.0.0.1:8080/mcp",
+        "gateway_auth_mode": "dedicated_bearer_env",
+        "capability_profile": "openclaw",
+    }
+    for field, expected in expected_roots.items():
+        if openclaw.get(field) != expected:
+            errors.append(f"MATRIX: openclaw {field} must be {expected}")
+    if (candidates.get("clawx") or {}).get("installer_root") != r"C:\Program Files\ClawX":
+        errors.append(r"MATRIX: clawx installer_root must be C:\Program Files\ClawX")
+
+    client_hints = gateway.get("client_render_hints") or {}
+    openclaw_hint = client_hints.get("openclaw") or {}
+    expected_openclaw_hint = {
+        "enabled": True,
+        "config_path": r"C:\Users\ynotf\.openclaw\openclaw.json",
+        "syntax": "openclaw_json",
+        "supports_env_headers": True,
+    }
+    for field, expected in expected_openclaw_hint.items():
+        if openclaw_hint.get(field) != expected:
+            errors.append(f"gateway-client: openclaw {field} must be {expected!r}")
+
+    clawx_hint = client_hints.get("clawx") or {}
+    if clawx_hint.get("enabled") is not False or clawx_hint.get("syntax") != "skip_openclaw":
+        errors.append("gateway-client: clawx must remain a disabled unverified skip_openclaw hint")
+
+    stale_openclaw = "OpenClaw/ClawX are Swarm-managed"
+    if stale_openclaw.lower() in json.dumps(policy).lower():
+        errors.append("GLOBAL_POLICY: stale OpenClaw/ClawX Swarm classification")
+
+    devin_paths = [
+        REPO_ROOT / "ide-profiles" / "devin" / "MCP_CONFIG_TEMPLATE.json",
+        REPO_ROOT / "renderers" / "gateway-clients" / "devin.json",
+    ]
+    for path in devin_paths:
+        artifact = load(path)
+        servers = [k for k in (artifact.get("mcpServers") or {}).keys() if k != "claude-context"]
+        if servers != ["agentcore-gateway"]:
+            errors.append(f"{path.relative_to(REPO_ROOT)}: Devin AgentCore template must be gateway-only")
+    devin_text_paths = [
+        *devin_paths,
+        REPO_ROOT / "ide-profiles" / "devin" / "IDE_PROFILE.yaml",
+    ]
+    for path in devin_text_paths:
+        body = path.read_text(encoding="utf-8", errors="replace").lower()
+        for forbidden in ("public tunnel", "tunnel http", "install directly", "paste_project_root_here"):
+            if forbidden in body:
+                errors.append(f"{path.relative_to(REPO_ROOT)}: stale Devin route {forbidden!r}")
+
+    reasonix_profile = REPO_ROOT / "ide-profiles" / "reasonix" / "IDE_PROFILE.yaml"
+    reasonix_rules = REPO_ROOT / "ide-profiles" / "reasonix" / "GLOBAL_RULES.md"
+    reasonix = yaml.safe_load(reasonix_profile.read_text(encoding="utf-8"))
+    if "hindsight" in (
+        reasonix_profile.read_text(encoding="utf-8", errors="replace")
+        + reasonix_rules.read_text(encoding="utf-8", errors="replace")
+    ).lower():
+        errors.append("Reasonix: unsupported Hindsight claim remains")
+    if reasonix.get("m8_enrollment") == "live_validated" or any(
+        dimension.get("status") == "live_validated"
+        for dimension in (reasonix.get("dimensions") or {}).values()
+    ):
+        errors.append("Reasonix: live_validated claim remains without accepted evidence")
+
+    for profile_path in sorted((REPO_ROOT / "ide-profiles").glob("*/IDE_PROFILE.yaml")):
+        profile = yaml.safe_load(profile_path.read_text(encoding="utf-8")) or {}
+        for dimension, details in (profile.get("dimensions") or {}).items():
+            evidence_path = details.get("evidence_path") if isinstance(details, dict) else None
+            if evidence_path and not (REPO_ROOT / evidence_path).is_file():
+                errors.append(
+                    f"{profile_path.relative_to(REPO_ROOT)}: {dimension} evidence_path does not exist: "
+                    f"{evidence_path}"
+                )
+    for host, host_data in managed.items():
+        for dimension, details in (host_data.get("dimensions") or {}).items():
+            evidence_path = details.get("evidence_path") if isinstance(details, dict) else None
+            if evidence_path and not (REPO_ROOT / evidence_path).is_file():
+                errors.append(
+                    f"MATRIX: {host}.{dimension} evidence_path does not exist: {evidence_path}"
+                )
 
     return errors
 
@@ -583,7 +816,13 @@ def strict_master_config_audit(registry: dict[str, Any]) -> list[str]:
         errors.append("MASTER_CONFIG: missing CURSOR CONTINUATION PROMPT section")
 
     # 16. Supported clients list must be current and not generic
-    if "Zed, Eigent, Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio" not in content:
+    required_client_inventory = (
+        "Cursor, Codex, Devin, Eigent, Zed, Zcode, MiniMax Code/Mavis, Reasonix, OpenCode, "
+        "Open Design, AutoGPT, Agent Orchestrator, Cherry Studio, LobeHub, OpenHands, "
+        "Antigravity, Open Interpreter, OpenClaw/ClawX, Claude Code, Claude Desktop, "
+        "MiniMax Agent Classic, Zoo-Code/Roo-Code"
+    )
+    if required_client_inventory not in content:
         errors.append("MASTER_CONFIG: supported client list missing or stale")
 
     # 17. Cherry Studio and MiniMax Classic must be present in the matrix
@@ -618,6 +857,7 @@ def main() -> int:
     errors.extend(validate_schema(gateway, gateway_schema, "gateway-client"))
     errors.extend(semantic_registry_checks(registry))
     errors.extend(authority_policy_checks(registry))
+    errors.extend(task2_contract_profile_checks(gateway))
     errors.extend(strict_master_config_audit(registry))
     errors.extend(authority_lock_checks())
     errors.extend(output_schema_checks())

@@ -10,7 +10,9 @@ services:
     environment:
       ANALYTICS_OPT_OUT: "true"
       LLM_API_KEY: "${OPENROUTER_API_KEY}"
-      LLM_MODEL: "openrouter/deepseek/deepseek-v4-pro"
+      # Primary: OpenRouter Z.ai GLM-5.3 (verified https://openrouter.ai/z-ai/glm-5.3)
+      # LiteLLM/OpenHands prefix form. Secondary (SDK/settings switch): openrouter/deepseek/deepseek-v4.1-flash
+      LLM_MODEL: "openrouter/z-ai/glm-5.3"
       LLM_BASE_URL: "https://openrouter.ai/api/v1"
     volumes:
       - "I:/LocalApps/OpenHands/state:/home/openhands/.openhands"

@@ -15,13 +15,15 @@ param(
   [string]$GatewayUrl = 'http://127.0.0.1:8080',
   [string]$TaskName = 'AgentCore-Bifrost-Gateway',
   [string]$TaskPath = '\AgentCore\',
-  [int]$StartupGraceSeconds = 120,
+  [int]$StartupGraceSeconds = 300,
   [int]$MaintenanceMarkerTtlSeconds = 900,
   [ValidateRange(30, 900)]
   [int]$StopRequestedMarkerTtlSeconds = 120,
   [ValidateRange(30, 900)]
   [int]$StartRequestedMarkerTtlSeconds = 180,
   [int]$FailureThreshold = 2,
+  [ValidateRange(2, 30)]
+  [int]$ListeningFailureThreshold = 5,
   [ValidateRange(1, 3600)]
   [int]$RecycleRetryBackoffSeconds = 60,
   [switch]$TestMode,
@@ -31,6 +33,8 @@ param(
   [string]$TestRecycleOutcome = 'None',
   [ValidateSet('Running', 'Ready', 'Disabled', 'Unknown')]
   [string]$TestGatewayTaskState = 'Running',
+  [ValidateSet('Closed', 'Open')]
+  [string]$TestTcpResult = 'Closed',
   [string]$GatewayStartedAtUtc = '',
   [string]$NowUtc = ''
 )
@@ -113,6 +117,45 @@ function Test-GatewayHealth {
   }
 }
 
+function Format-WatchdogReason([string]$Text) {
+  $clean = (($Text ?? '') -replace '[\r\n]+', ' ').Trim()
+  if ($clean.Length -gt 240) { $clean = $clean.Substring(0, 240) }
+  return $clean
+}
+
+function Test-GatewayTcpOpen {
+  if ($TestMode) { return $TestTcpResult -eq 'Open' }
+  try {
+    $uri = [Uri]$GatewayUrl
+    $client = [System.Net.Sockets.TcpClient]::new()
+    try {
+      $connect = $client.BeginConnect($uri.Host, $uri.Port, $null, $null)
+      if (-not $connect.AsyncWaitHandle.WaitOne(1000, $false)) { return $false }
+      $client.EndConnect($connect)
+      return $true
+    } finally {
+      $client.Dispose()
+    }
+  } catch {
+    return $false
+  }
+}
+
+function Get-GatewayTaskState {
+  if ($TestMode) { return $TestGatewayTaskState }
+  try {
+    $task = Get-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -ErrorAction Stop
+    if ($task) { return [string]$task.State }
+  } catch {
+    Write-WatchdogLog ("WATCHDOG_TASK_QUERY_FAILED reason={0}" -f (Format-WatchdogReason $_.Exception.Message))
+  }
+  $scheduledName = ($TaskPath.TrimEnd('\') + '\' + $TaskName)
+  $output = & schtasks.exe /Query /TN $scheduledName /FO LIST 2>&1 | Out-String
+  if ($output -match '(?im)^Status:\s+(\S+)') { return $Matches[1] }
+  Write-WatchdogLog ("WATCHDOG_TASK_QUERY_FAILED reason={0}" -f (Format-WatchdogReason $output))
+  return 'Unknown'
+}
+
 function Get-MaintenanceMarkerValue {
   if (-not (Test-Path -LiteralPath $maintenanceMarker)) { return '' }
   try {
@@ -149,12 +192,7 @@ function Invoke-ControlledRecycle([int]$FailureCount) {
     Write-WatchdogLog 'WATCHDOG_RECYCLE_SKIPPED maintenance_marker_before_stop'
     return [pscustomobject]@{ success = $true; outcome = 'maintenance_marker_before_stop' }
   }
-  $task = if ($TestMode) {
-    [pscustomobject]@{ State = $TestGatewayTaskState }
-  } else {
-    Get-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -ErrorAction SilentlyContinue
-  }
-  $taskState = if ($task) { [string]$task.State } else { 'Unknown' }
+  $taskState = Get-GatewayTaskState
   if ($taskState -eq 'Running') {
     if ($TestMode -and $TestRecycleOutcome -eq 'StopFailure') {
       Write-WatchdogLog "WATCHDOG_RECYCLE_STOP_FAILED count=$FailureCount"
@@ -173,8 +211,7 @@ function Invoke-ControlledRecycle([int]$FailureCount) {
   }
   if (-not $TestMode) {
     for ($attempt = 0; $attempt -lt 30; $attempt++) {
-      $task = Get-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -ErrorAction SilentlyContinue
-      if (-not $task -or $task.State -ne 'Running') { break }
+      if ((Get-GatewayTaskState) -ne 'Running') { break }
       Start-Sleep -Seconds 1
     }
   }
@@ -195,7 +232,15 @@ function Invoke-ControlledRecycle([int]$FailureCount) {
     Write-WatchdogLog "WATCHDOG_RECYCLE_STARTED count=$FailureCount"
     return [pscustomobject]@{ success = $true; outcome = 'started' }
   } catch {
-    Write-WatchdogLog "WATCHDOG_RECYCLE_START_FAILED count=$FailureCount"
+    $reason = Format-WatchdogReason $_.Exception.Message
+    Write-WatchdogLog "WATCHDOG_RECYCLE_START_FAILED count=$FailureCount reason=$reason"
+    $scheduledName = ($TaskPath.TrimEnd('\') + '\' + $TaskName)
+    $runOutput = & schtasks.exe /Run /TN $scheduledName 2>&1 | Out-String
+    if ($LASTEXITCODE -eq 0) {
+      Write-WatchdogLog "WATCHDOG_RECYCLE_STARTED count=$FailureCount via=schtasks"
+      return [pscustomobject]@{ success = $true; outcome = 'started' }
+    }
+    Write-WatchdogLog ("WATCHDOG_RECYCLE_START_FAILED count=$FailureCount reason={0}" -f (Format-WatchdogReason $runOutput))
     return [pscustomobject]@{ success = $false; outcome = 'start_failed' }
   }
 }
@@ -231,8 +276,14 @@ if (Test-GatewayHealth) {
 
 $state.consecutive_failures = [int]$state.consecutive_failures + 1
 Save-WatchdogState $state
-if ($state.consecutive_failures -lt $FailureThreshold) {
+$tcpOpen = Test-GatewayTcpOpen
+$failureThreshold = if ($tcpOpen) { [int]$ListeningFailureThreshold } else { [int]$FailureThreshold }
+if ($tcpOpen) {
+  Write-WatchdogLog "WATCHDOG_DEGRADED count=$($state.consecutive_failures) threshold=$failureThreshold reason=http_unhealthy_port_open"
+} else {
   Write-WatchdogLog "WATCHDOG_FAILURE count=$($state.consecutive_failures)"
+}
+if ($state.consecutive_failures -lt $failureThreshold) {
   exit 0
 }
 if ($state.recycle_attempted) {

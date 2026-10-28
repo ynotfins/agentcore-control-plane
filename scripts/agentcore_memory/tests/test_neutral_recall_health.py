@@ -21,6 +21,7 @@ class _Response:
 
 
 def test_health_rejects_http_200_with_degraded_database(monkeypatch) -> None:
+    monkeypatch.setenv("AGENTCORE_RECALL_API_URL", "http://127.0.0.1:3300")
     monkeypatch.setattr(
         neutral_recall.urllib.request,
         "urlopen",
@@ -37,6 +38,7 @@ def test_health_rejects_http_200_with_degraded_database(monkeypatch) -> None:
 
 
 def test_health_accepts_http_200_with_healthy_services(monkeypatch) -> None:
+    monkeypatch.setenv("AGENTCORE_RECALL_API_URL", "http://127.0.0.1:3300")
     monkeypatch.setattr(
         neutral_recall.urllib.request,
         "urlopen",

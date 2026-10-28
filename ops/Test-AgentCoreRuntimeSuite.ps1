@@ -1,8 +1,9 @@
 param(
-  [string]$PostgresBin = "F:\AgentCore\postgres_runtime_engine\pgsql\bin",
-  [string]$SwarmRecallConfigPath = "F:\AgentCore\agentmemory\swarmrecall\config\agentcore.swarmrecall.local.json",
-  [string]$SwarmVaultRepoRoot = "D:\github\vendor\swarm\swarmvault",
-  [string]$SwarmVaultRoot = "F:\AgentCore\agentmemory\swarmvault",
+  [string]$PostgresBin = "F:\PostgreSQL18\bin",
+  [int]$PostgresPort = 55433,
+  [string]$ProjectRoot = "D:\github\agentcore-control-plane",
+  [string]$PowerShell7Path = "C:\Program Files\PowerShell\7\pwsh.exe",
+  [switch]$IncludeContextFabricReadiness,
   [switch]$IncludeLiveClientAdoption
 )
 
@@ -57,27 +58,26 @@ $repoOps = Split-Path -Parent $PSCommandPath
 
 $pgIsReady = Join-Path $PostgresBin "pg_isready.exe"
 if (Test-Path -LiteralPath $pgIsReady) {
-  $pgOutput = Invoke-AgentCoreNative -Command $pgIsReady -Arguments @("-h", "127.0.0.1", "-p", "55432")
+  $pgOutput = Invoke-AgentCoreNative -Command $pgIsReady -Arguments @("-h", "127.0.0.1", "-p", [string]$PostgresPort, "-d", "agent_core")
   Add-AgentCoreResult $results "postgres readiness" ($pgOutput.ExitCode -eq 0) $pgOutput.Output
 } else {
   Add-AgentCoreResult $results "postgres readiness" $false "pg_isready.exe not found at $pgIsReady"
 }
 
-$recallOutput = Invoke-AgentCoreNative -Command "powershell.exe" -Arguments @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $repoOps "Test-AgentCoreSwarmRecall.ps1"), "-ConfigPath", $SwarmRecallConfigPath)
-Add-AgentCoreResult $results "swarmrecall validator" ($recallOutput.ExitCode -eq 0) $recallOutput.Output
+$bifrostOutput = Invoke-AgentCoreNative -Command $PowerShell7Path -Arguments @("-NoProfile", "-NonInteractive", "-File", (Join-Path $repoOps "bifrost\Test-AgentCoreBifrostGateway.ps1"), "-RepoRoot", $ProjectRoot)
+Add-AgentCoreResult $results "bifrost gateway validator" ($bifrostOutput.ExitCode -eq 0) $bifrostOutput.Output
 
-$vaultOutput = Invoke-AgentCoreNative -Command "powershell.exe" -Arguments @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $repoOps "Test-AgentCoreSwarmVault.ps1"), "-RepoRoot", $SwarmVaultRepoRoot, "-VaultRoot", $SwarmVaultRoot)
-Add-AgentCoreResult $results "swarmvault validator" ($vaultOutput.ExitCode -eq 0) $vaultOutput.Output
-
-$projectionOutput = Invoke-AgentCoreNative -Command "powershell.exe" -Arguments @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $repoOps "Test-AgentCoreMemoryProjection.ps1"))
+$projectionOutput = Invoke-AgentCoreNative -Command "powershell.exe" -Arguments @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $repoOps "Test-AgentCoreMemoryProjection.ps1"), "-ProjectRoot", $ProjectRoot)
 Add-AgentCoreResult $results "memory projection validator" ($projectionOutput.ExitCode -eq 0) $projectionOutput.Output
 
-$contextFabricOutput = Invoke-AgentCoreNative -Command "powershell.exe" -Arguments @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $repoOps "Test-AgentCoreContextFabricReadiness.ps1"))
-Add-AgentCoreResult $results "context-fabric readiness" ($contextFabricOutput.ExitCode -eq 0) $contextFabricOutput.Output
+if ($IncludeContextFabricReadiness) {
+  $contextFabricOutput = Invoke-AgentCoreNative -Command $PowerShell7Path -Arguments @("-NoProfile", "-NonInteractive", "-File", (Join-Path $repoOps "Test-AgentCoreContextFabricReadiness.ps1"))
+  Add-AgentCoreResult $results "context-fabric readiness" ($contextFabricOutput.ExitCode -eq 0) $contextFabricOutput.Output
+}
 
 $liveClientAdoptionPassed = $true
 if ($IncludeLiveClientAdoption) {
-  $liveClientAdoptionOutput = Invoke-AgentCoreNative -Command "powershell.exe" -Arguments @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Join-Path $repoOps "Test-AgentCoreLiveClientAdoption.ps1"))
+  $liveClientAdoptionOutput = Invoke-AgentCoreNative -Command $PowerShell7Path -Arguments @("-NoProfile", "-NonInteractive", "-File", (Join-Path $repoOps "Test-AgentCoreLiveClientAdoption.ps1"))
   $liveClientAdoptionPassed = ($liveClientAdoptionOutput.ExitCode -eq 0)
   Add-AgentCoreResult $results "live client adoption" $liveClientAdoptionPassed $liveClientAdoptionOutput.Output
 }

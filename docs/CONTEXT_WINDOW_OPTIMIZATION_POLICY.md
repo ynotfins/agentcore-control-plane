@@ -39,6 +39,8 @@ Historical client server lists and budgets lived in `contracts\master-mcp-server
 
 Codex has the tightest default budget and should stay near its master-contract server list unless a task-specific connector is required. OpenClaw has a user-approved `eye2byte` exception and should not be reduced to exact Cursor parity.
 
+The verified 2026-09-08 builder surface is 60 eager tools plus 51 executable Code Mode tools. Compact JSON serialization of the eager schemas measured 15,245 `o200k_base` tokens, compared with 15,425 before Phase 2. The gateway had 17 healthy clients and 165 raw discovered upstream tools; raw count is not the IDE context cost because Code Mode withholds the six heavy clients' schemas until requested.
+
 ## Monitor Duties
 
 `agentcore-context-window-optimizer` runs every two hours during stabilization and must:

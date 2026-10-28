@@ -9,14 +9,15 @@ Distinguish **full tool availability** from **active exposure to the model**:
 - Every approved tool remains available for immediate activation (catalogued in `contracts/bifrost-upstream-mcp-registry.json`).
 - Dormant / deferred / future capabilities are indexed in `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md` with **zero default exposure**.
 - Only tools needed for the current project and current Milestone are actively exposed to the model.
-- The full builder catalog (~127 tools) must not remain permanently loaded into every model turn.
+- The full builder executable surface (currently 111 tools including Code Mode-disclosed tools) must not remain permanently loaded into every model turn.
 - A project begins with the safe **Bootstrap** profile (`NEW_PROJECT_BOOTSTRAP.md`), never unrestricted administrative or destructive authority.
 
 ## Implementation status (important)
 
 **M6 runtime leases are live** (PostgreSQL `wf_` / capability-lease tables + `scripts/bifrost/jit_vk_bridge.py`). Policy still governs audits and project manifests; runtime enforcement is no longer “future only”:
 
-- OpenRouter MCP tools are grantable only via exact named groups + JIT VK `mcp_configs` mutation; revoke/expiry removes them. See `docs/operations/OPENROUTER_MCP.md`.
+- OpenRouter MCP tools are grantable only via exact named groups + the OpenRouter-specific JIT VK `mcp_configs` bridge; revoke/expiry removes them. Other servers do not inherit this bridge merely because they are catalogued. See `docs/operations/OPENROUTER_MCP.md`.
+- Trust Class B clients receive broad read-only discovery through `agentcore-capability-catalog`; elevated execution follows the existing canonical admin/operator authority path. Catalog visibility does not itself grant or lease an upstream tool.
 - `TOOL_MANIFEST.yaml` still records per-project desired state; agents honor Milestone attach lists.
 - Some Bifrost registry `permitted_tools: ["*"]` wildcards remain a **documented transitional state** for non-OpenRouter servers until named inventories replace them.
 - Do not create a competing YAML/JSON lease database or parallel Tool Lifecycle Manager.

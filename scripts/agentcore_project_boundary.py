@@ -12,6 +12,14 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACT = REPO_ROOT / "contracts" / "agentcore-project-enrollment.json"
 CONTRACT_ENV = "AGENTCORE_PROJECT_ENROLLMENT_CONTRACT"
 
+# Path-prefix matching is opt-in and additive to exact-path enrollment. A
+# prefix is only usable once its normalized value is listed in the contract's
+# top-level "approved_path_prefix_parents" allowlist. load_enrollment_contract()
+# validates every declared prefix at load time so an unauthorized, wildcard,
+# or too-shallow prefix fails closed before any match is ever attempted.
+PATH_PREFIX_WILDCARD_MARKERS = ("*", "?", "<", ">", "|")
+MIN_PATH_PREFIX_PARTS = 3
+
 
 class ProjectBoundaryError(ValueError):
     """Raised before persistence or project-scoped process activation."""
@@ -26,12 +34,54 @@ def _normal_path(value: str | Path) -> str:
     return ntpath.normcase(ntpath.normpath(text)).rstrip("\\")
 
 
+def _path_parts(normalized: str) -> list[str]:
+    return [part for part in normalized.split("\\") if part]
+
+
+def _validate_path_prefixes(contract: dict[str, Any]) -> None:
+    """Fail closed on load for any unauthorized, wildcard, or shallow prefix."""
+    approved_raw = contract.get("approved_path_prefix_parents", [])
+    if not isinstance(approved_raw, list):
+        raise ProjectBoundaryError("invalid_project_enrollment_contract")
+
+    approved_normalized: set[str] = set()
+    for parent in approved_raw:
+        if not isinstance(parent, str) or not parent.strip():
+            raise ProjectBoundaryError("invalid_approved_path_prefix_parent")
+        if any(marker in parent for marker in PATH_PREFIX_WILDCARD_MARKERS):
+            raise ProjectBoundaryError("wildcard_path_prefix_parent_refused")
+        normalized_parent = _normal_path(parent)
+        if _foreign_reason(normalized_parent, contract):
+            raise ProjectBoundaryError("swarm_project_refused")
+        if len(_path_parts(normalized_parent)) < MIN_PATH_PREFIX_PARTS:
+            raise ProjectBoundaryError("shallow_path_prefix_parent_refused")
+        approved_normalized.add(normalized_parent)
+
+    for project in contract.get("projects", []):
+        prefixes = project.get("path_prefixes", [])
+        if not isinstance(prefixes, list):
+            raise ProjectBoundaryError("invalid_project_enrollment_contract")
+        for prefix in prefixes:
+            if not isinstance(prefix, str) or not prefix.strip():
+                raise ProjectBoundaryError("invalid_project_path_prefix")
+            if any(marker in prefix for marker in PATH_PREFIX_WILDCARD_MARKERS):
+                raise ProjectBoundaryError("wildcard_path_prefix_refused")
+            normalized_prefix = _normal_path(prefix)
+            if _foreign_reason(normalized_prefix, contract):
+                raise ProjectBoundaryError("swarm_project_refused")
+            if len(_path_parts(normalized_prefix)) < MIN_PATH_PREFIX_PARTS:
+                raise ProjectBoundaryError("shallow_path_prefix_refused")
+            if normalized_prefix not in approved_normalized:
+                raise ProjectBoundaryError("unapproved_path_prefix_refused")
+
+
 def load_enrollment_contract() -> dict[str, Any]:
     data = json.loads(_contract_path().read_text(encoding="utf-8"))
     if data.get("schema_version") != 1 or data.get("default_policy") != "deny":
         raise ProjectBoundaryError("invalid_project_enrollment_contract")
     if not isinstance(data.get("projects"), list):
         raise ProjectBoundaryError("invalid_project_enrollment_contract")
+    _validate_path_prefixes(data)
     return data
 
 
@@ -59,6 +109,13 @@ def match_enrolled_path(value: str | Path) -> dict[str, Any] | None:
     for project in contract["projects"]:
         if any(normalized == _normal_path(path) for path in project.get("paths", [])):
             return project
+    # Opt-in path-prefix matching. Every prefix reaching this point was already
+    # proven authorized, wildcard-free, and non-shallow by load_enrollment_contract().
+    for project in contract["projects"]:
+        for prefix in project.get("path_prefixes", []):
+            normalized_prefix = _normal_path(prefix)
+            if normalized == normalized_prefix or normalized.startswith(normalized_prefix + "\\"):
+                return project
     return None
 
 
@@ -107,6 +164,7 @@ def validate_project_identity(args: dict[str, Any]) -> dict[str, Any]:
         reason = _foreign_reason(path, contract)
         if reason:
             raise ProjectBoundaryError(reason)
+
     matches = [require_enrolled_path(path) for path in supplied_paths]
     project_keys = {str(project["project_key"]) for project in matches}
     if len(project_keys) != 1:

@@ -1,11 +1,11 @@
 # MASTER_CONFIG_AND_PROMPT.md — AgentCore Universal IDE Self-Enrollment Package
 
-**Updated:** 2026-08-20 — Zoo-Code direct MCP companion exception under `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; AgentCore gateway contract unchanged.
+**Updated:** 2026-09-05 — Bifrost v2.0.0 expanded capability and OpenClaw ownership alignment under `AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT`.
 **Repository:** `@D:\github\agentcore-control-plane`
 **Authority:** `PROJECT_ANCHOR.md` → `DOC_AUTHORITY.md` → `BLUEPRINT.md` → `CONTEXT_BLOCK.md` → current contracts/runbooks
 **Contracts:** `contracts/agentcore-gateway-client.json`, `contracts/bifrost-upstream-mcp-registry.json`, `contracts/global-agent-policy.yaml`, `contracts/model-context-profiles.json`
 
-This file is the thin, self-sufficient root setup guide for every supported AgentCore / enrolled non-Swarm IDE on `CHAOSCENTRAL`. It contains architecture, authority order, security boundaries, memory lifecycle, the bounded Zoo-Code direct MCP companion exception, and **one** embedded self-enrollment prompt. Client-specific schemas, long procedures, and historical evidence live in `ide-profiles/`, `renderers/gateway-clients/`, and `docs/`.
+This file is the thin, self-sufficient root setup guide for every supported AgentCore / enrolled non-Swarm IDE and autonomous runtime on `CHAOSCENTRAL`. It contains architecture, authority order, security boundaries, memory lifecycle, tool discovery and routing, skill delivery, the bounded Zoo-Code/Roo-Code extension exception, and **one** embedded self-enrollment prompt. Client-specific schemas, long procedures, and historical evidence live in `ide-profiles/`, `renderers/gateway-clients/`, and `docs/`.
 
 **Cursor path rule:** Every Cursor instruction that names a file or folder MUST use `@` + the full absolute Windows path (for example `@D:\github\agentcore-control-plane\BLUEPRINT.md`). Never use shortened repo-relative paths. Never abbreviate a user-profile path with an ellipsis; always write the full `@C:\Users\ynotf\...` form when a user-profile path is required.
 
@@ -27,14 +27,15 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 
 **Hard rules**
 
-- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on Swarm-owned runtime, memory, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
+- AgentCore must not read, write, index, ingest, summarize, administer, repair, or depend on SwarmClaw or SwarmVault runtime, databases, vaults, repositories, MCP servers, credentials, services, schedules, agents, or backups.
 - Swarm must not reach AgentCore runtime, AgentCore Memory, Bifrost, `agentcore-gateway`, AgentCore databases, repositories, IDE profiles, credentials, staging, or backups.
 - Neutral shared SwarmRecall is the sole bounded exception under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: it is the **PC-native semantic memory/context plane**. AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own adapter. It is semantic memory/context, never canonical evidence, checkpoints, policy, or execution state.
 - No canonical resource may be jointly owned.
 - Third-party local apps must not place durable databases, vector stores, indexes, app data, runtime state, or persistent caches on `C:` or `D:`. Source repos may live on `D:`; durable local-app data defaults to `I:\LocalApps\<AppName>` and backups to `E:\LocalApps\Backups\<AppName>`.
 - `I:\LocalApps` is neutral application storage, not AgentCore or Swarm. Each application owns separate data, database, index, credential, service, log, backup, and recovery boundaries; no application receives raw access to another application's database.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
-- Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
+- Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, or shared storage is **historical evidence only**.
+- OpenClaw and its ClawX host are AgentCore-owned and use `agentcore-gateway`. A future Swarm-to-OpenClaw adapter receives no AgentCore virtual key, memory session, database or Recall credential, or AgentCore write root.
 
 ---
 
@@ -61,12 +62,14 @@ Do **not** infer current Context Engine acceptance from the 2026-08-02 v0.2.0 re
 
 ---
 
-## 2. Architecture — one AgentCore gateway plus Zoo-Code exception
+## 2. Architecture — one AgentCore gateway plus host-native exceptions
 
 ```text
-Supported AgentCore / enrolled non-Swarm IDE
-  (Zed, Eigent, Cursor, Codex, Claude Code/Desktop, MiniMax Code, MiniMax Agent Classic,
-   Antigravity, Open Interpreter CLI, Cherry Studio, Zoo-Code where supported)
+Supported AgentCore / enrolled non-Swarm IDE or autonomous runtime
+  (Cursor, Codex, Devin, Eigent, Zed, Zcode, MiniMax Code/Mavis, Reasonix,
+   OpenCode, Open Design, AutoGPT, Agent Orchestrator, Cherry Studio, LobeHub,
+   OpenHands, Antigravity, Open Interpreter CLI, OpenClaw/ClawX,
+   Claude Code/Desktop, MiniMax Agent Classic, Zoo-Code/Roo-Code where supported)
   -> ONE AgentCore MCP entry: agentcore-gateway
        url:  http://127.0.0.1:8080/mcp
        auth: Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
@@ -75,10 +78,10 @@ Supported AgentCore / enrolled non-Swarm IDE
   -> agentcore-memory access facade
      +-- neutral SwarmRecall: PC-native semantic memory/context
      +-- AgentCore PG18: exact evidence, recovery, policy, LangGraph checkpoints
-  -> OPTIONAL companion: zoo-code direct MCP, only for Zoo-Code-owned side-panel workflow
+  -> OPTIONAL host-native companion or extension, only after a proven Bifrost parity gap
 ```
 
-Never paste the full upstream registry into an IDE. Never add a second AgentCore MCP front door. The only allowed direct MCP companion is Zoo-Code, approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`, and only where the host supports Zoo-Code. Shared gateway tools must be global/read-only or carry explicit project/session identity. Implicit project-bound upstreams remain dormant; native IDE tools and explicit-cwd local CLIs provide project-local execution.
+Never paste the full upstream registry into an IDE. Never add a second AgentCore MCP front door. Zoo-Code/Roo-Code is a VS Code-family client extension, not a Bifrost upstream; install it directly only in compatible extension hosts. A direct MCP server beside `agentcore-gateway` requires a host-native smoke test proving a necessary capability or material performance characteristic is lost through Bifrost, plus rollback evidence and no duplicate memory or database route. Shared gateway tools must be read-only/global or carry explicit project/session identity. Project-bound servers without trustworthy gateway identity use native IDE tools, exact-project local processes, or explicit-cwd CLIs.
 
 ### Responsibility model and separate transport planes
 
@@ -89,6 +92,7 @@ Never paste the full upstream registry into an IDE. Never add a second AgentCore
 - **Context Fabric:** project-local committed snapshot, decision projection, bounded briefing, and drift warning; rebuildable and non-canonical.
 - **Arabold Docs:** local, version-labelled official-document corpus used before version-sensitive implementation.
 - **AgentCore lifecycle skill:** `@D:\github\agentcore-control-plane\skills\agentcore-project-lifecycle\SKILL.md` is the governed semantic task/memory/STATE/tool-routing contract. Host delivery status is defined only by `@D:\github\agentcore-control-plane\contracts\agentcore-alignment-skill-hosts.json`; file presence never upgrades a host beyond `installed_unverified`.
+- **Tool availability:** all healthy approved non-destructive tools are discoverable to builder-class agents. Small foundational tools remain classic; heavy servers use Bifrost Code Mode so their full schemas are loaded only when selected.
 
 MCP tool traffic is `IDE -> agentcore-gateway/Bifrost -> approved MCP upstreams`. Model inference is a separate path. Do not claim an IDE prompt receives OmniRoute compression merely because the IDE uses Bifrost for MCP. OmniRoute, Graphify, Hindsight, and CrewAI remain disabled, benchmark-gated candidates until an approved ADR and acceptance suite promotes one.
 
@@ -98,7 +102,7 @@ The AgentCore authority-maintainer owns architecture, protected contracts, live 
 
 LangGraph operator commands use the repository-owned runtime at `@D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe` from the `@D:\github\agentcore-control-plane\scripts` working directory. Create or repair it with `@D:\github\agentcore-control-plane\scripts\bootstrap-runtime.ps1`. Bare system Python is not the production operator contract.
 
-If a client cannot expand `${env:…}` (observed: MiniMax Code daemon → 401), materialize the User-scope `BIFROST_MCP_VIRTUAL_KEY` into the **live** config only — never commit the resolved value.
+If an approved Trust Class A client cannot expand `${env:…}` (observed: MiniMax Code daemon → 401), use the Bifrost-owned process-attested compatibility endpoint `http://127.0.0.1:18082/mcp`. Do not materialize the builder virtual key into that client's live configuration. The compatibility endpoint fails closed unless the caller presents the existing bearer or resolves to an exact approved Windows process ancestry.
 
 `agentcore-gateway` is for AgentCore and explicitly enrolled non-Swarm work only. It is not a Swarm IDE front door and must not be used to persist Swarm project history.
 
@@ -118,7 +122,7 @@ Only the authority-maintainer path may add a project/worktree entry.
 - New installs and app repairs go through AgentCore install intake. Do not run arbitrary installer commands from a project terminal when the app may create a database, vector store, service, MCP server, or persistent runtime state.
 - Third-party app data defaults to `I:\LocalApps\<AppName>`; third-party app backups default to `E:\LocalApps\Backups\<AppName>`. A source-local compatibility junction is allowed only after a rollback backup and exact-path validation.
 - Forbidden active routes: raw Mem0, direct Composio, Hostinger, direct AgentCore/IDE SQL to neutral Recall at `:65432`, whole-drive filesystem MCP roots, Postgres credentials in IDE configs, `global-memory-gateway` as a default route. The service-owned `:65432` backend is permitted only behind the bounded `agentcore-memory` projection adapter.
-- OpenClaw/ClawX are Swarm-managed and outside AgentCore Bifrost IDE enrollment.
+- OpenClaw/ClawX are AgentCore-managed and use `agentcore-gateway`. SwarmClaw, SwarmRecall, and SwarmVault remain outside AgentCore IDE enrollment.
 - Do **not** place Swarm MCP servers or Swarm component configuration in this file, in IDE profiles, or in AgentCore gateway client renderers.
 
 ### AGENTCORE PROJECT SCOPE (LOCKED)
@@ -138,7 +142,7 @@ AgentCore-controlled IDE agents work **only** on:
 
 ### HARD STOP — Swarm-owned selection
 
-If the selected repository, worktree, product, or runtime is Swarm-owned (including SwarmClaw, SwarmVault, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, ClawX, the Swarm-owned Recall source/runtime repository, `@D:\github\swarm-ecosystem-control`, `@D:\github\vendor\swarm\*`, or Swarm data under `H:` / `E:\Swarm\...`):
+If the selected repository, worktree, product, or runtime is Swarm-owned (including SwarmClaw, SwarmVault, SwarmDock, SwarmFeed, SwarmRelay, the Swarm-owned Recall source/runtime repository, `@D:\github\swarm-ecosystem-control`, `@D:\github\vendor\swarm\*`, or Swarm data under `H:` / `E:\Swarm\...`):
 
 1. **Refuse** AgentCore project activation for that path.
 2. **Do not** call `project_activate`, `session_open`, `append_event`, or other AgentCore memory writes for Swarm work.
@@ -193,7 +197,47 @@ Before asking the operator to repeat project history, query `agentcore-memory`. 
 
 ---
 
-## 5. Project/worktree and context-management rules
+## 5. Tool discovery and required use
+
+Full availability must not mean full schema injection. At the start of every session or task, call `listToolFiles` (or `tools/list` when Code Mode is unavailable), retain a compact server/tool-name inventory, and load only the selected tool file or documentation. Refresh the inventory at every Milestone entry and when the gateway reports a registry change. At Milestone exit, record the tools used and release or allow JIT leases to expire; do not reload the full catalog merely because work completed.
+
+Bifrost Code Mode sequence:
+
+1. `listToolFiles` to discover available server and tool stubs.
+2. `readToolFile` for the smallest relevant stub.
+3. `getToolDocs` only when the signature is insufficient.
+4. `executeToolCode` for the bounded operation.
+
+Use the primary capabilities as follows:
+
+| Capability | Use it when | Boundary |
+| --- | --- | --- |
+| `agentcore-memory` / local durable memory | Every enrolled project session: startup, recovery, accepted evidence, handoff, clean close | Gateway only; no raw SQL or raw Recall |
+| Sequential Thinking | Architecture, migration, recovery, concurrency, major refactor, or cross-system decisions | Small classic tool; do not log hidden reasoning |
+| Serena | Symbol/reference-sensitive edits, rename/delete work, or reference debugging when native source tools are insufficient | Exact project-owned process; never shared implicit project state |
+| Depwire | Before and after structural dependency or module-boundary changes | Exact project cwd |
+| Tentra | A Milestone explicitly requires architecture or code-graph evidence | Explicit project root |
+| Filesystem | The host lacks adequate native project-file access | Enrolled project roots only; no whole drives or user-profile-wide roots |
+| GitHub | Remote repository search, issues, pull requests, review, or source provenance | Read by default; mutation only inside the assigned repository/task |
+| Playwright | Browser/UI/E2E acceptance and reproducible web interaction | Code Mode; unsafe arbitrary code and unrestricted upload denied |
+| Shadcn | A project uses shadcn/ui and needs component discovery, installation, or registry guidance | Project dependency and registry scope only |
+| PostHog | Analytics events, feature flags, experiments, or observability work explicitly uses PostHog | Read/configure by project; no unrelated telemetry export |
+| Fetch | A bounded HTTP read is sufficient and browser interaction is unnecessary | No credentials in URLs; respect allowlisted destinations |
+| wcgw | Shell/computer operations are needed and the host lacks an equivalent native tool | Exact project and command scope; no whole-machine authority |
+| Docker | Container build, logs, health, or lifecycle work for the owning project | No Docker-socket exposure to untrusted agents; no unrelated container changes |
+| PostgreSQL MCP | Approved schema/status/query work requires database semantics | Governed read-only facade only, explicit database identity, never direct IDE credentials; writes use the owning migration workflow outside MCP |
+| SQLite MCP | Approved local database inspection or migration validation | Governed read-only facade and exact file path; writes use the owning application/migration workflow outside normal IDE MCP |
+| Ref tool | The admitted Ref server provides a verified documentation/reference result unavailable from Arabold or Context7 | Use only after exact server identity and tool inventory are admitted |
+| AgentMail | Building or operating an agent-owned mailbox, drafts, threads, or attachments | Read/draft by default; sending and destructive mailbox operations require task authorization |
+| Morph | External GitHub/source-pattern discovery, precise repository search, or surgical application of an approved edit | Discovery broad; edits bounded to approved files; never architecture authority |
+
+Every MCP admission must inventory all tools and classify each as `allow`, `JIT/operator`, or `deny`. Restrict individual tools inside the Bifrost MCP client or virtual-key profile whenever possible instead of hiding the entire healthy server. A server remains dormant or `catalogued_unverified` only when identity, scope, health, licensing, authentication, storage, or performance cannot be proven.
+
+The currently requested admission candidates are Shadcn, PostHog, Fetch, wcgw, Docker, PostgreSQL, SQLite, Ref, and AgentMail. Do not describe a candidate as installed until its exact package or endpoint, version, license, complete tool inventory, health probe, and rollback pass.
+
+---
+
+## 6. Project/worktree and context-management rules
 
 - Ordinary agents and implementation workers do not directly edit documentation. Submit a bounded proposal and evidence to the read-only documentation guard; only the AgentCore documentation maintainer may apply a change, and on write it must internally obtain `ACCEPT` for the actual proposed diff rather than trusting a caller-supplied verdict. Protected files still require live authority-maintainer capability, a matching explicit `AUTH-YYYY-MM-DD-*` approval, rollback, validators, and independent review. Generated `STATE.md`, `DECISIONS.md`, `CONTEXT_INDEX.md`, and global-state projections remain projection-worker-only. Follow `@D:\github\agentcore-control-plane\docs\agent-policy\DOCUMENTATION_GOVERNANCE.md`.
 - Write only inside the assigned AgentCore / enrolled non-Swarm repo/worktree and role-appropriate AgentCore runtime roots per `@D:\github\agentcore-control-plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md`.
@@ -206,9 +250,9 @@ Before asking the operator to repeat project history, query `agentcore-memory`. 
 
 ---
 
-## 6. Global-rule installation requirements
+## 7. Global-rule and skill installation requirements
 
-Attaching this file and running the embedded prompt must install or generate the matching IDE's complete AgentCore global rules. The canonical semantic policy is `@D:\github\agentcore-control-plane\contracts\global-agent-policy.yaml`. Rendered per-IDE rules live in `@D:\github\agentcore-control-plane\ide-profiles\<ide>\GLOBAL_RULES.md`.
+Attaching this file and running the embedded prompt must install or generate the matching IDE's complete AgentCore global rules and approved skills. The canonical semantic policy is `@D:\github\agentcore-control-plane\contracts\global-agent-policy.yaml`. Rendered per-IDE rules live in `@D:\github\agentcore-control-plane\ide-profiles\<ide>\GLOBAL_RULES.md`.
 
 Delivery depends on the IDE's declared editability (read from `@D:\github\agentcore-control-plane\ide-profiles\<ide>\IDE_PROFILE.yaml`):
 
@@ -220,29 +264,42 @@ Delivery depends on the IDE's declared editability (read from `@D:\github\agentc
 
 Preserve client-native safety, sandbox, approval, account, and UI settings. Do not overwrite non-AgentCore app preferences. Do not install Swarm MCP entries or Swarm “continuity” rules into AgentCore IDE profiles.
 
+Install the approved Bifrost skill set through the host's native mechanism when one is proven: `agentcore-project-lifecycle`, `agentcore-tool-discovery`, `morph-source-workflows`, `zoo-roo-code-workflows`, `nia`, and `langfuse`. For hosts without native skill support, install the equivalent generated global rule or runtime adapter and report the exact certification state. File presence alone is `installed_unverified`.
+
 The documentation guard and maintainer are Codex-owned workers, not additional IDE MCP entries. An IDE that cannot call them must hand off the proposed documentation diff, target path, authority citations, and evidence to the AgentCore authority maintainer rather than editing documentation directly.
 
 ---
 
-## 7. Client identification and profile selection
+## 8. Client identification and profile selection
 
 Supported AgentCore / enrolled non-Swarm clients (last client-specific evidence dates are recorded per profile; context-hook certification does not by itself prove current IDE MCP discovery or current Context Engine release acceptance):
 
 | Client | Profile directory | Configuration mode | Native validation status |
 | --- | --- | --- | --- |
-| Zed | `ide-profiles/zed/` | generated_prompt | priority managed client; application launch and native skill root verified, but gateway enrollment and native memory lifecycle are `awaiting_operator_import` |
-| Eigent | `ide-profiles/eigent/` | generated_prompt | priority managed client; application launch, MCP persistence schema, and native skill root verified, but gateway enrollment, always-on rule delivery, and native memory lifecycle are `awaiting_operator_import` |
 | Cursor | `ide-profiles/cursor/` | generated_prompt | `live_validated_native_hooks_signed_gateway`; Stage B and signed write path proven. IDE MCP discovery can still require a client reconnect while Bifrost remains healthy. |
 | Codex (OpenAI Codex / ChatGPT desktop Codex view) | `ide-profiles/codex/` | generated_prompt | `live_validated_native_hooks`; MCP UI enrollment/discovery remains a separate client-specific proof. |
+| Devin | `ide-profiles/devin/` | generated_prompt | gateway configured; profile and native lifecycle reconciliation required |
+| Eigent | `ide-profiles/eigent/` | unsupported | disabled / `unverified`; no approved secure credential route. Prior credential-bearing configuration is historical drift, not an enrollment instruction. |
+| Zed | `ide-profiles/zed/` | unsupported | disabled / `unverified`; no approved secure credential route. Prior credential-bearing configuration is historical drift, not an enrollment instruction. |
+| ZCode | contract-defined client route | direct JSON | enabled at `http://127.0.0.1:18082/mcp` through the process-attested proxy; live configuration reconciled, fresh-task lifecycle acceptance pending. ZCode is distinct from Zoo-Code. |
+| MiniMax Code / Mavis alias | `ide-profiles/minimax/` | generated_prompt | gateway configured; in-app route only, fresh-task lifecycle pending |
+| Reasonix | `ide-profiles/reasonix/` | reconciliation required | live config conflicts with AgentCore policy; do not claim gateway or Hindsight acceptance |
+| OpenCode | profile pending; client hint exists | unsupported | disabled / `unverified`; no approved environment-backed or process-attested secure route. Any prior AgentCore entry is legacy drift. |
+| Open Design | profile pending | unverified | installed product observed; no proven MCP or rule delivery |
+| AutoGPT | `ide-profiles/autogpt/` | unverified | source checkout observed; no proven live runtime or gateway config |
+| Agent Orchestrator | runbook only | inherited child-host configuration | no independent MCP schema; validate the child harnesses it launches |
+| Cherry Studio | `ide-profiles/cherry-studio/` | unsupported | disabled / `unsupported_with_reason` pending a credential-free, native-token, or scoped-broker route. July credential-bearing enrollment is historical evidence only. |
+| LobeHub | profile pending | UI/database-managed | installed desktop and self-hosted runtime observed; current gateway record unverified |
+| OpenHands | profile pending | Docker/runtime adapter | containers currently stopped; primary live state has no gateway enrollment |
+| Antigravity | `ide-profiles/antigravity/` | generated_prompt | enabled at `http://127.0.0.1:18082/mcp` through the process-attested proxy; credential-free live configuration validated 2026-09-08, fresh in-app lifecycle acceptance pending. |
+| Open Interpreter **CLI** | `ide-profiles/open-interpreter/` | generated_prompt | enabled at direct `http://127.0.0.1:8080/mcp` with `bearer_token_env_var`; no credential is stored in the client file; full native lifecycle pending. |
+| Open Interpreter **GUI** (`Interpreter.exe`) | `ide-profiles/open-interpreter/` | generated prompt / JSON app config | enabled at `http://127.0.0.1:18082/mcp` through the process-attested proxy with no stored bearer; fresh in-app acceptance pending. |
+| OpenClaw | `ide-profiles/openclaw/` | manual_import | enabled in the client contract with its dedicated direct `:8080` profile and environment-backed `BIFROST_MCP_VK_OPENCLAW`; source ready, live activation and lifecycle remain unverified. |
+| ClawX | `ide-profiles/openclaw/` host | unverified | installed AgentCore-owned OpenClaw host; no ClawX-native MCP configuration or skill-delivery mechanism is certified. |
 | Claude Code | `ide-profiles/claude-code/` | generated_prompt | `live_validated_native_hooks`; MCP enrollment/discovery remains a separate client-specific proof. |
-| Claude Desktop | `ide-profiles/claude-desktop/` | generated_prompt | configured_restart_required |
-| MiniMax Code | `ide-profiles/minimax/` | generated_prompt | configured_restart_required — in-app MCP supported (VK materialize + streamable-http); **CLI wrappers unsupported** (`daemon\cli.js` missing); native chat lifecycle operator-gated (`audits/MINIMAX_CODE_NATIVE_ACCEPTANCE_2026-07-24.md`) |
-| MiniMax Agent Classic | `ide-profiles/minimax-classic/` | UI_only | awaiting_operator_cloud_mcp_enrollment — Matrix custom-MCP UI only; **no public tunnel** (`audits/MINIMAX_CLASSIC_ENROLLMENT_2026-07-24.md`) |
-| Antigravity | `ide-profiles/antigravity/` | unverified | awaiting_operator_import — stop if unverified |
-| Open Interpreter **CLI** | `ide-profiles/open-interpreter/` | generated_prompt | configured_restart_required — gateway persistence/discovery proven (`~/.openinterpreter/config.toml`); full 14-step still operator-gated (`audits/OPEN_INTERPRETER_PERSISTENCE_2026-07-24.md`) |
-| Open Interpreter **GUI** (`Interpreter.exe`) | n/a (not a separate profile) | unsupported | `unsupported_with_reason` — no MCP schema in `%APPDATA%\interpreter\config.json` |
-| Cherry Studio | `ide-profiles/cherry-studio/` | UI_only / scripts | configured_restart_required — target Agent + session schema proven; native UI 14-step operator-gated; do **not** claim premature full `live_validated` (`audits/CHERRY_TARGET_AGENT_REPAIR_2026-07-24.md`) |
-| Zoo-Code | `ide-profiles/zoo-code/` | direct_write | live global MCP configured in Cursor extension storage; native AgentCore memory lifecycle remains `awaiting_operator_import`; direct Zoo-Code companion is allowed only by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; Qdrant codebase indexing runtime is active as `REBUILDABLE_DERIVED_CODE_INDEX` under `I:\LocalApps\ZooCode\qdrant` |
+| Claude Desktop | `ide-profiles/claude-desktop/` | unsupported | disabled / `unverified`; no approved secure credential route. Prior credential-bearing configuration is historical drift. |
+| MiniMax Agent Classic | `ide-profiles/minimax-classic/` | unsupported | disabled / `unverified`; no approved credential-free, native-token, environment-backed, or scoped-broker route. Do not create a cloud custom-MCP entry. |
+| Zoo-Code / Roo-Code | `ide-profiles/zoo-code/` | compatible VS Code-family extension hosts only | installed and working in Cursor; not an MCP upstream and not portable to every IDE |
 
 `@C:\Users\ynotf\.mavis` is a junction to `@C:\Users\ynotf\.minimax` (same MiniMax Code data root). It is not a separate executable Mavis client and does not receive its own managed profile. **MiniMax Code and MiniMax Agent Classic are distinct products** with distinct profiles, paths, and enrollment mechanisms; do not conflate them.
 
@@ -257,7 +314,7 @@ The agent must:
 
 ---
 
-## 8. Exact gateway contract and Zoo-Code exception
+## 9. Exact gateway contract and host-native exceptions
 
 The canonical gateway connection is defined in `@D:\github\agentcore-control-plane\contracts\agentcore-gateway-client.json`:
 
@@ -269,11 +326,11 @@ The canonical gateway connection is defined in `@D:\github\agentcore-control-pla
 
 Cursor canonical path: `@C:\Users\ynotf\.cursor\mcp.json`. Every other client uses its own documented path from `@D:\github\agentcore-control-plane\ide-profiles\<ide>\IDE_PROFILE.yaml`.
 
-Adding future AgentCore MCP servers: add once to `@D:\github\agentcore-control-plane\contracts\bifrost-upstream-mcp-registry.json`, pin version, classify, render Bifrost config, validate, restart Bifrost, test. Leave IDE configs unchanged unless the gateway connection itself changes. The Zoo-Code direct MCP companion is the single approved exception: it is installed directly in supporting IDEs so the Zoo-Code side panel can operate locally, and it must not be added to Bifrost as a substitute for the AgentCore gateway. Never add Swarm MCP servers to the AgentCore registry as IDE defaults.
+Adding future AgentCore MCP servers: add once to `@D:\github\agentcore-control-plane\contracts\bifrost-upstream-mcp-registry.json`, pin version, inventory and classify every tool, render Bifrost config, validate, restart Bifrost, and run a safe canary. Leave IDE configs unchanged unless the gateway connection itself changes. Install Zoo-Code/Roo-Code directly only in compatible VS Code-family hosts. Any other direct MCP exception requires a proven Bifrost parity gap, a narrower host-native scope, and rollback evidence. Never add Swarm MCP servers to the AgentCore registry as IDE defaults.
 
 ---
 
-## 9. Backup, secrets, and safe handling
+## 10. Backup, secrets, and safe handling
 
 Before any live IDE config change:
 
@@ -291,7 +348,7 @@ After any change:
 
 ---
 
-## 10. Direct diagnostic versus native-validation distinction
+## 11. Direct diagnostic versus native-validation distinction
 
 **Direct diagnostic** (HTTP against Bifrost) proves the gateway and registry are healthy. It does **not** prove the IDE itself enrolled correctly. Allowed diagnostics:
 
@@ -323,13 +380,13 @@ to make an unsupported host appear automatic.
 
 ---
 
-## 11. Manual, UI-only, and unsupported stopping states
+## 12. Manual, UI-only, and unsupported stopping states
 
 Stop and report the accurate state when:
 
 - **manual_import** — rules or MCP config must be imported by the operator; the agent cannot safely complete the step unattended. Provide the exact rendered artifact and instructions.
 - **UI_only** — the product has no file-based config; enrollment happens through the product's UI/API (e.g., MiniMax Classic Matrix cloud). Provide `@D:\github\agentcore-control-plane\ide-profiles\<ide>\MCP_ENROLLMENT_UI.md` and ask the operator to run it. **Never create a public tunnel** to reach `127.0.0.1`.
-- **unsupported_with_reason** — the product does not support the required MCP baseline or cannot be identified. State the reason (examples: MiniMax Code CLI `daemon\cli.js` missing; Open Interpreter GUI has no MCP schema).
+- **unsupported_with_reason** — the product does not support the required MCP baseline, lacks an approved secure route, or cannot be identified. State the exact reason; do not revive credential-bearing historical configuration.
 - **unverified** — the live config path or rule mechanism is not evidenced on this machine. Do not guess.
 - **awaiting_operator_import** / **awaiting_operator_cloud_mcp_enrollment** — configuration artifact is ready; operator action and a fresh IDE chat are required to promote to `live_validated`.
 - **project_not_enrolled** — the selected exact repository/worktree path is absent from the governed enrollment contract; request authority-maintainer enrollment before memory use.
@@ -337,16 +394,16 @@ Stop and report the accurate state when:
 
 ---
 
-## 12. Global IDE setup prompt (copy into the current IDE agent and run)
+## 13. Global IDE and runtime setup prompt (copy into the current agent and run)
 
 ```text
-You are the agent inside one supported AgentCore / enrolled non-Swarm IDE on CHAOSCENTRAL. Your job is to enroll this IDE and ONLY this IDE in AgentCore. Do not touch any other IDE. Do not enroll Swarm work into AgentCore.
+You are the agent inside one supported AgentCore / enrolled non-Swarm IDE or autonomous runtime on CHAOSCENTRAL. Your job is to enroll this host and ONLY this host in AgentCore. Do not touch another host. Do not enroll Swarm work into AgentCore.
 
 Step 0 — Identify yourself
-Identify which IDE you are running in. Choose exactly one from:
-Zed, Eigent, Cursor, Codex, Claude Code, Claude Desktop, MiniMax Code, MiniMax Agent Classic, Antigravity, Open Interpreter, Cherry Studio, Zoo-Code.
-If you cannot identify your IDE with confidence, stop and report unsupported_with_reason.
-If you are Open Interpreter GUI (Interpreter.exe) rather than CLI, stop with unsupported_with_reason (no MCP schema).
+Identify which host you are running in. Choose exactly one from:
+Cursor, Codex, Devin, Eigent, Zed, Zcode, MiniMax Code/Mavis, Reasonix, OpenCode, Open Design, AutoGPT, Agent Orchestrator, Cherry Studio, LobeHub, OpenHands, Antigravity, Open Interpreter, OpenClaw/ClawX, Claude Code, Claude Desktop, MiniMax Agent Classic, Zoo-Code/Roo-Code.
+If you cannot identify your host with confidence, stop and report unsupported_with_reason.
+If you are Open Interpreter, identify whether you are the CLI or the desktop GUI. The CLI uses the direct environment-backed `:8080` route; the GUI uses the process-attested `:18082` route. Do not apply one product's configuration schema to the other.
 
 Step 1 — Read your profile and authority
 Read these files using @ + full absolute Windows paths:
@@ -363,6 +420,7 @@ Read these files using @ + full absolute Windows paths:
 - @D:\github\agentcore-control-plane\docs\adr\ADR-2026-08-02-agentcore-bifrost-context-alignment.md
 - @D:\github\agentcore-control-plane\skills\agentcore-project-lifecycle\SKILL.md
 - @D:\github\agentcore-control-plane\contracts\agentcore-alignment-skill-hosts.json
+- @D:\github\agentcore-control-plane\docs-lock.json
 If your IDE is UI_only, also read @D:\github\agentcore-control-plane\ide-profiles\<your-ide>\MCP_ENROLLMENT_UI.md.
 Also read the ecosystem separation section at the top of @D:\github\agentcore-control-plane\MASTER_CONFIG_AND_PROMPT.md and the HARD STOP for Swarm-owned selection.
 
@@ -378,19 +436,22 @@ If any check fails, stop and report the exact failure. Do not edit the IDE confi
 
 Also distinguish gateway health from IDE discovery. A healthy direct gateway plus a disconnected IDE MCP session is a client discovery/reconnect issue; do not restart or redesign Bifrost until the gateway/upstream probes fail.
 
-Step 4 — Install global rules per your IDE's editability
+Step 4 — Install global rules and skills per your host's editability
 Read IDE_PROFILE.yaml editability and installation_mode, then:
 - direct_write: back up the live target, then write the rendered GLOBAL_RULES.md content to the documented live path.
 - manual_import: present the rendered GLOBAL_RULES.md to the operator and ask them to paste/import it; do not skip.
 - UI_only: follow MCP_ENROLLMENT_UI.md for the operator-driven UI/API enrollment.
 - unsupported/unverified: stop and report the state; do not act.
 Preserve the IDE's native safety, sandbox, approval, account, and UI settings. Do not add Swarm MCP or Swarm continuity rules.
+Install the approved Bifrost skills through the host's native skill mechanism when supported: agentcore-project-lifecycle, agentcore-tool-discovery, morph-source-workflows, zoo-roo-code-workflows, nia, and langfuse. If native skills are unsupported, install the equivalent generated global rule or runtime adapter. Do not report native skill support from a copied file alone.
 
-Step 5 — Configure the AgentCore MCP entry plus the Zoo-Code exception
-Add or merge only one AgentCore baseline entry named agentcore-gateway:
-  url: http://127.0.0.1:8080/mcp
-  Authorization: Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}
-Use the schema-correct MCP_CONFIG_TEMPLATE for your IDE. For clients that cannot expand ${env:}, materialize the bearer from Windows User env into the live config only (never commit it). Remove any direct duplicate baseline MCP entries now served by Bifrost. Preserve or add the Zoo-Code-owned direct MCP companion when the host supports Zoo-Code and the operator wants Zoo-Code available in that IDE. For Cursor, remove MCP_DOCKER unless the operator explicitly approves a documented unique-capability exception. Do not paste the full upstream registry. Do not add Swarm MCP, OpenRouter MCP direct, raw database tools, filesystem baselines, or any direct MCP server other than Zoo-Code. Do not create a public tunnel for localhost MCP.
+Step 5 — Configure the AgentCore MCP entry and any proven host-native exception
+Resolve this host's entry from @D:\github\agentcore-control-plane\contracts\agentcore-gateway-client.json before editing anything. If `enabled` is false or `gateway_auth_mode` is `unverified`, stop with the contract's reason; do not enroll, re-enroll, or materialize a virtual key.
+For an enabled client, add or merge one AgentCore baseline entry named agentcore-gateway using the exact contract-selected route:
+- direct clients use http://127.0.0.1:8080/mcp and an environment-backed bearer supported by that client's schema;
+- clients whose `gateway_auth_mode` is `process_attested_proxy` use their `gateway_url` http://127.0.0.1:18082/mcp without headers or a stored bearer;
+- Open Interpreter CLI uses direct `:8080` with `bearer_token_env_var`, while Open Interpreter GUI uses process-attested `:18082`.
+Use the schema-correct MCP_CONFIG_TEMPLATE for your host. Remove direct duplicate AgentCore upstreams now served by Bifrost while preserving documented host/plugin-owned integrations. Install Zoo-Code/Roo-Code directly only when this is a compatible VS Code-family extension host. Any direct MCP server beside agentcore-gateway requires a host-native smoke test proving Bifrost loses a necessary capability or material performance characteristic, plus a narrow scope and rollback. Do not paste the full upstream registry. Do not add Swarm MCP, direct raw database credentials, or whole-drive filesystem baselines. Do not create a public tunnel for localhost MCP.
 
 Step 6 — Restart/reload the IDE
 Fully restart or reload the IDE so environment references and the new MCP config are visible. The required restart behavior is in your IDE_PROFILE.yaml.
@@ -398,10 +459,12 @@ Fully restart or reload the IDE so environment references and the new MCP config
 Step 7 — Validate syntax and discovery
 - Validate JSON/TOML syntax of the live config.
 - Confirm the IDE lists agentcore-gateway as connected/ready.
-- Confirm any direct MCP entry other than `agentcore-gateway` is only the Zoo-Code companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`.
+- Confirm every direct MCP entry other than `agentcore-gateway` is a documented host/plugin-owned integration or an approved parity exception; no duplicate AgentCore upstream is allowed.
 - Confirm tools/list through the gateway includes exactly ten agentcore_memory-* tools: memory_status, startup_context, retrieve_context, append_event, propose_fact, expand_source, session_open, session_close, build_handoff, docs_search.
+- Call listToolFiles and verify Code Mode discovery. Use readToolFile or getToolDocs for one heavy server and execute one safe read-only Code Mode canary.
+- Build a compact inventory of every available server/tool name without injecting every tool schema into the conversation. Never infer that a hidden Code Mode server is absent.
 - For ordinary IDE profiles, confirm zero agentcore_project_router-* tools. The operator maintenance profile alone may expose exactly four: project_list, project_activate, project_status, project_clear.
-- Confirm no Swarm, raw SQL/database, whole-drive filesystem, or Bifrost admin tools are exposed.
+- Confirm no Swarm, raw credential, whole-drive filesystem, or Bifrost admin tools are exposed. Project-scoped read-only database tools may appear only after their exact identity and policy are admitted.
 
 Step 8 — Native memory lifecycle validation (do not skip)
 Use only an AgentCore / enrolled non-Swarm project. If the selected path is Swarm-owned, stop with swarm_project_refused.
@@ -417,6 +480,7 @@ Use only an AgentCore / enrolled non-Swarm project. If the selected path is Swar
 10. Resume: session_open with the same session_key and confirm the same session_id is returned with prior events accessible.
 11. Project isolation: open a separate session with a different explicit AgentCore / enrolled non-Swarm project identity, retrieve_context, and prove no cross-project leak without changing shared router state.
 12. Re-confirm exactly ten agentcore-memory tools.
+13. Apply the required-use matrix from section 5: use Sequential Thinking for architecture/recovery, Serena for reference-sensitive source work when native tools are insufficient, Depwire before/after structural dependency changes, Tentra only for required graph evidence, Playwright for UI/E2E, and AgentCore memory for session continuity. Do not call tools merely to satisfy a checklist.
 All steps must pass before you mark a hook-capable IDE `live_validated` for
 automatic lifecycle. A generic MCP-only client must instead be recorded as
 `companion_only_not_automatic` unless current native middleware evidence proves
@@ -431,7 +495,7 @@ Report one of: live_validated, configured_restart_required, awaiting_operator_im
 
 ---
 
-## 13. Validation and references
+## 14. Validation and references
 
 Run these validators after any change to this package or its contracts:
 
@@ -464,7 +528,7 @@ Key references:
 
 ---
 
-## 14. Historical reference (do not execute as current baseline)
+## 15. Historical reference (do not execute as current baseline)
 
 Before the Bifrost cutover, each IDE carried a full direct MCP server list. That model drifted and is superseded by the single `agentcore-gateway` entry. Pre-cutover direct-server blocks are preserved only as rollback evidence under `E:\AgentCore-Backups\` and archived handoffs; they are not the current active setup path.
 
@@ -478,7 +542,7 @@ The `experiments/bifrost-go-sdk-smoke/` directory is an isolated Go SDK proof-of
 
 ---
 
-## 15. New Project mandatory steps
+## 16. New Project mandatory steps
 
 Every new AgentCore-managed project runs Milestone 0 per `@D:\github\agentcore-control-plane\docs\agent-policy\NEW_PROJECT_BOOTSTRAP.md` before broad implementation. Swarm repositories are not AgentCore-managed projects and must not be bootstrapped through this path.
 

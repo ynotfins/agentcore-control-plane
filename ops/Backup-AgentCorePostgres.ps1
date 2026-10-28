@@ -223,11 +223,23 @@ $manifestPath = Join-Path $runRoot "backup-manifest.json"
 $manifest | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $manifestPath -Encoding utf8
 
 if (Test-Path -LiteralPath (Split-Path -Qualifier $SecondaryRoot)) {
-  New-Item -ItemType Directory -Path $SecondaryRoot -Force | Out-Null
-  $secondaryRunRoot = Join-Path $SecondaryRoot $stamp
-  Copy-Item -LiteralPath $runRoot -Destination $secondaryRunRoot -Recurse -Force
-  $manifest.secondary_path = $secondaryRunRoot
-  $manifest | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $manifestPath -Encoding utf8
+  $secondaryDriveLetter = (Split-Path -Qualifier $SecondaryRoot).TrimEnd(":").TrimEnd("\")
+  $secondaryDrive = Get-PSDrive -Name $secondaryDriveLetter -ErrorAction SilentlyContinue
+  $secondarySize = [int64]((Get-ChildItem -LiteralPath $runRoot -Recurse -File -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum)
+  $secondaryTotal = if ($secondaryDrive) { [int64]$secondaryDrive.Used + [int64]$secondaryDrive.Free } else { 0 }
+  $secondaryUsedPercent = if ($secondaryTotal -gt 0) { 100.0 * ([int64]$secondaryDrive.Used + $secondarySize) / $secondaryTotal } else { 100 }
+  $secondaryHasHeadroom = $secondaryDrive -and $secondaryUsedPercent -lt 75 -and ([int64]$secondaryDrive.Free - $secondarySize) -ge 8GB
+  if ($secondaryHasHeadroom) {
+    New-Item -ItemType Directory -Path $SecondaryRoot -Force | Out-Null
+    $secondaryRunRoot = Join-Path $SecondaryRoot $stamp
+    Copy-Item -LiteralPath $runRoot -Destination $secondaryRunRoot -Recurse -Force
+    $manifest.secondary_path = $secondaryRunRoot
+    $manifest | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $manifestPath -Encoding utf8
+  } else {
+    $manifest.secondary_path = $null
+    $manifest | Add-Member -NotePropertyName secondary_skip_reason -NotePropertyValue "G: second-copy headroom exceeded; primary E: backup kept" -Force
+    $manifest | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $manifestPath -Encoding utf8
+  }
 }
 
 $manifest | ConvertTo-Json -Depth 12

@@ -1,35 +1,34 @@
-
-
 ide_id: claude-desktop
 display_name: Claude Desktop
 swarm_managed: false
 installed_version: unverified
-live_global_rule_target: none (no file-based global rules; app-level preferences/project
-  instructions only)
+live_global_rule_target: none (no file-based global rules; app-level preferences/project instructions only)
 live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json
 rule_mechanism: app-level preferences / per-project instructions (no rules file)
 mcp_schema: claude_desktop_json
-mcp_transport: http/streamable
-env_var_handling: no env expansion in headers — VK must be materialized into live
-  config during approved cutover only
-restart_behavior: full app restart required after claude_desktop_config.json changes
+mcp_transport: unsupported for AgentCore gateway pending an approved secure credential route
+env_var_handling: no approved secure credential path; never paste or persist an AgentCore virtual key in client
+  storage
+restart_behavior: No AgentCore enrollment or restart action is authorized by this profile; preserve legacy live
+  state for a separate backup-first cleanup
 editability:
   global_rules: manual_import
   project_rules: unsupported
-  mcp_config: direct_write
-installation_mode: generated_prompt
+  mcp_config: unsupported
+installation_mode: unsupported
 backup_required: true
 validation_required: true
-restart_required: true
+restart_required: false
 last_validation_date: unverified
 mcp_template_source: renderers/gateway-clients/claude-desktop.json
 known_limitations:
-- 'No env-header expansion: resolved VK may exist in the live config only (never in
-  Git).'
+- Claude Desktop has no approved environment-backed header expansion or process-attested AgentCore route. Repository
+  templates intentionally contain no active AgentCore gateway entry.
+- A prior credential-bearing Claude Desktop entry was recorded on 2026-07-16. That state is legacy drift, not an
+  approved current enrollment instruction; this task does not inspect or mutate it.
 - No file-based rules mechanism; semantic rules delivered via pasted instructions.
 semantic_parity_gaps:
-- Rules delivery is manual; parity depends on operator pasting the rendered GLOBAL_RULES
-  content.
+- Rules delivery is manual; parity depends on operator pasting the rendered GLOBAL_RULES content.
 dimensions:
   application_launch:
     status: unverified
@@ -37,33 +36,45 @@ dimensions:
     evidence_ts: null
     superseded_by: null
   gateway_configuration:
-    status: configured_restart_required
+    status: unsupported_with_reason
     evidence_path: docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md
     evidence_ts: '2026-07-16T00:00:00Z'
     superseded_by: null
   gateway_discovery:
-    status: unverified
+    status: unsupported_with_reason
     evidence_path: null
     evidence_ts: null
     superseded_by: null
   native_memory_lifecycle:
-    status: unverified
+    status: unsupported_with_reason
     evidence_path: null
     evidence_ts: null
     superseded_by: null
   fresh_chat_recovery:
-    status: unverified
+    status: unsupported_with_reason
     evidence_path: null
     evidence_ts: null
     superseded_by: null
   persistence_after_restart:
-    status: unverified
+    status: unsupported_with_reason
     evidence_path: null
     evidence_ts: null
     superseded_by: null
   operator_gate:
-    status: unverified
+    status: unsupported_with_reason
     evidence_path: null
     evidence_ts: null
     superseded_by: null
-m8_enrollment: configured_restart_required
+m8_enrollment: unsupported_with_reason
+gateway_enrollment_status: unsupported_with_reason
+gateway_auth_mode: unverified
+m8_notes: Claude Desktop has no approved environment-backed header expansion or process-attested AgentCore route.
+  Existing or previously validated credential-bearing configuration is classified as legacy drift and is not an
+  approved route.
+legacy_gateway_state:
+  classification: legacy_drift
+  mutation_in_this_task: false
+  note: A prior credential-bearing Claude Desktop entry was recorded on 2026-07-16. That state is legacy drift,
+    not an approved current enrollment instruction; this task does not inspect or mutate it.
+  evidence_paths:
+  - docs/handoffs/AGENTCORE_FULL_CHAT_HANDOFF_2026-07-22.md

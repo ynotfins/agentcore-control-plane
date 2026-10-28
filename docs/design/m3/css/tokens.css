@@ -58,6 +58,13 @@
   --md-custom-icon-a: var(--md-sys-color-primary);
   --md-custom-icon-b: var(--md-sys-color-tertiary);
   --md-custom-icon-c: var(--md-sys-color-secondary);
+
+  /* State — hover (theme overrides below) */
+  --md-sys-state-hover-tint: oklch(100% 0 0);
+  --md-sys-state-hover-tint-amount: 10%;
+  --md-sys-state-hover-border: var(--md-sys-color-outline);
+  --md-sys-state-hover-saturate: 1.08;
+  --md-sys-state-hover-elevation: var(--md-sys-elevation-level3);
 }
 
 /* Theme 1 — Primary Light */
@@ -84,6 +91,10 @@
   --md-custom-icon-c: oklch(84% 0.16 95);
   --md-custom-stroke-featured: transparent;
   --md-custom-rainbow-enabled: 0;
+  --md-sys-state-hover-tint: oklch(58% 0.17 250);
+  --md-sys-state-hover-tint-amount: 12%;
+  --md-sys-state-hover-border: oklch(50% 0.16 250);
+  --md-sys-state-hover-saturate: 1.12;
 }
 
 /* Theme 2 — Secondary Light */
@@ -109,6 +120,10 @@
   --md-custom-icon-c: oklch(60% 0.17 145);
   --md-custom-stroke-featured: oklch(84% 0.16 95);
   --md-custom-rainbow-enabled: 0;
+  --md-sys-state-hover-tint: oklch(84% 0.16 95);
+  --md-sys-state-hover-tint-amount: 14%;
+  --md-sys-state-hover-border: oklch(84% 0.16 95);
+  --md-sys-state-hover-saturate: 1.14;
 }
 
 /* Theme 3 — Primary Dark (ngrok-like) */
@@ -134,6 +149,10 @@
   --md-custom-icon-c: oklch(92% 0.003 260);
   --md-custom-stroke-featured: oklch(66% 0.006 260);
   --md-custom-rainbow-enabled: 0;
+  --md-sys-state-hover-tint: oklch(100% 0 0);
+  --md-sys-state-hover-tint-amount: 7%;
+  --md-sys-state-hover-border: oklch(84% 0.004 260);
+  --md-sys-state-hover-saturate: 1.06;
 }
 
 /* Theme 4 — Secondary Dark (speakeasy + rainbowPulse) */
@@ -159,4 +178,8 @@
   --md-custom-icon-c: oklch(82% 0.08 145);
   --md-custom-stroke-featured: oklch(68% 0.18 55);
   --md-custom-rainbow-enabled: 1;
+  --md-sys-state-hover-tint: oklch(88% 0.10 55);
+  --md-sys-state-hover-tint-amount: 9%;
+  --md-sys-state-hover-border: oklch(68% 0.18 55);
+  --md-sys-state-hover-saturate: 1.12;
 }

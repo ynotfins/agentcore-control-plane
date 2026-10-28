@@ -9,12 +9,14 @@ Canonical repository URL: `https://github.com/ynotfins/swarm-ecosystem.git`
 **Operator amendment:** `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`  
 ADR: `docs/adr/ADR-2026-08-01-neutral-shared-swarmrecall-context-engine.md`
 
+The 2026-09-08 identity and pool detail below is an implementation reconciliation under that existing approval; it preserves the one neutral deployment and separate ecosystem credentials.
+
 ## Operator-Locked Ownership Model
 
 Lock approval: `AUTH-2026-08-06-PC-MEMORY-RUNTIME-OWNERSHIP`
 
 1. **SwarmClaw/Sally** MUST own Swarm operation, canonical Swarm agents, sessions, tasks, schedules, approvals, recovery, restart recovery, and lifecycle.
-2. **SwarmRecall** (one deployment) MUST remain neutral machine-level semantic memory — neither AgentCore-owned nor Swarm-owned exclusive runtime. Separately credentialed bounded clients MUST be issued for each ecosystem.
+2. **SwarmRecall** (one deployment) MUST remain neutral machine-level semantic memory — neither AgentCore-owned nor Swarm-owned exclusive runtime. SwarmClaw retains its independent Recall owner, agent identity, and credential. AgentCore uses a separate local-operator owner with one agent and one credential per enrolled project; every AgentCore project agent belongs only to the shared AgentCore global-memory pool and its own private project pool.
 3. **SwarmVault** MUST own the Swarm document/wiki/graph/RAG corpus and bounded context packs.
 4. **AgentCore** MUST own exact IDE prompts, evidence, identity, provenance, recovery, Bifrost and agentcore-gateway, and LangGraph production checkpoints in AgentCore PG18.
 5. Enrolled IDEs MUST use only `agentcore-gateway` → `agentcore-memory` → neutral SwarmRecall for curated semantic projection/retrieval.
@@ -48,7 +50,7 @@ AgentCore and Swarm remain independent control planes for **execution runtimes**
 
 - One SwarmRecall API + PostgreSQL 16/pgvector + Meilisearch deployment serves cross-client curated semantic memory.
 - Classification: **neutral infrastructure** — not AgentCore-owned runtime, not Swarm-owned runtime.
-- AgentCore access: server-side adapter inside `agentcore-memory` only (via `agentcore-gateway` for IDEs).
+- AgentCore access: server-side adapter inside `agentcore-memory` only (via `agentcore-gateway` for IDEs). The adapter resolves the authenticated AgentCore project to its dedicated Recall credential and searches only the shared AgentCore global-memory pool plus that project's private pool.
 - Swarm access: SwarmClaw bounded REST/SDK adapter only — SwarmClaw must not call Bifrost.
 - Ordinary IDE baselines must never install raw SwarmRecall MCP tools or Recall credentials.
 - Exact AgentCore evidence and LangGraph checkpoints remain on PG18. SwarmClaw transcripts/tasks remain SQLite. SwarmVault remains Swarm-owned.
@@ -66,7 +68,7 @@ AgentCore and Swarm remain independent control planes for **execution runtimes**
 
 - AgentCore PG18, Bifrost, Cognee, and IDE gateway contracts remain AgentCore-exclusive.
 - SwarmClaw operational data and SwarmVault remain Swarm-exclusive.
-- Neutral Recall/PG16/Meili may be used by both clients with separately issued API keys.
+- Neutral Recall/PG16/Meili may be used by both ecosystems with separate owners, agent identities, and API keys. AgentCore project identities are additionally separated from one another by exact pool membership.
 - AgentCore hot namespace remains `F:\AgentCore\...` for AgentCore runtime; Swarm hot operational data remains on `H:`; cold backups under `E:\` with non-overlapping namespaces. Neutral Recall may continue in-place on the verified live loopback stack (`:3300` / `:65432` / `:7700`) after reclassification.
 
-Last verification timestamp: `2026-08-01T21:21:18Z`
+Last verification timestamp: `2026-09-08`

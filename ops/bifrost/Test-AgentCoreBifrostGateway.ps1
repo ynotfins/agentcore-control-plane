@@ -150,7 +150,7 @@ function Test-WatchdogScheduledTask {
     Assert-OrWarn ($watchdogArguments -match '-StopRequestedMarkerTtlSeconds\s+120') 'watchdog uses stop_requested TTL 120s; rerun the installer elevated to replace stale task arguments' $RequireWatchdogEnabled.IsPresent
     Assert-OrWarn ($watchdogArguments -match '-StartRequestedMarkerTtlSeconds\s+180') 'watchdog uses start_requested TTL 180s; rerun the installer elevated to replace stale task arguments' $RequireWatchdogEnabled.IsPresent
     Assert-OrWarn ([string]$watchdogTask.Settings.MultipleInstances -eq 'IgnoreNew') 'watchdog multiple-instance policy is IgnoreNew; rerun the installer elevated to replace stale overlap-prone settings' $RequireWatchdogEnabled.IsPresent
-    Assert-OrWarn ((Convert-TaskDurationToSeconds $watchdogTask.Settings.ExecutionTimeLimit) -eq 60) 'watchdog execution time limit is 60 seconds; rerun the installer elevated to replace stale unbounded settings' $RequireWatchdogEnabled.IsPresent
+    Assert-OrWarn ((Convert-TaskDurationToSeconds $watchdogTask.Settings.ExecutionTimeLimit) -eq 180) 'watchdog execution time limit is 180 seconds; rerun the installer elevated to replace stale unbounded settings' $RequireWatchdogEnabled.IsPresent
     Assert-OrWarn ((Get-TaskRepetitionIntervalSeconds $watchdogTask) -eq 60) 'watchdog repetition interval is 60 seconds; rerun the installer elevated to replace stale trigger cadence' $RequireWatchdogEnabled.IsPresent
     $watchdogUser = [string]$watchdogTask.Principal.UserId
     Assert-OrWarn ($watchdogUser -in @('SYSTEM', 'NT AUTHORITY\SYSTEM')) 'watchdog runs under SYSTEM/service context; rerun the installer elevated to replace stale user-bound tasks' $RequireWatchdogEnabled.IsPresent

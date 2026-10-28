@@ -1,15 +1,17 @@
 ---
-description: Mandatory local official-docs ingest (arabold on F:); Context7 same-turn bridge only; session-start tools/list required
+description: Exact-version official docs for all direct external dependencies in the shared AgentCore library
 alwaysApply: true
 ---
 
-# Session start (mandatory for every chat and task)
+# Session start
 
-Call `listToolFiles` (or `tools/list`) against `agentcore-gateway` **before planning or executing any work**. Build a compact internal inventory of every available tool and its server prefix. Never assume a tool is absent — verify from the live list. Do not dump the full list into your response; reference tools by name. The gateway surface is the authoritative capability boundary for this session.
+Use `listToolFiles` (or `tools/list`) through `agentcore-gateway` to discover the needed Arabold tools. Keep the inventory compact; do not paste schemas into the chat.
 
 # Docs-first: arabold local ingest (machine-global)
 
-Official library/SDK/API/CLI docs for every used `library@version` must live in the machine-global store:
+At bootstrap and before nontrivial project work, inventory every direct external dependency in the active project's runtime, development, and build manifests, plus directly used SDKs/APIs/CLIs. Exclude transitive and project-local packages. Resolve exact installed or locked versions first; a version range is not an exact pin. Use latest stable only when no exact project version exists, and record the resolved version.
+
+Official docs for every resolved `library@version` must live in the shared machine-global store:
 
 - Index DB: `F:\AgentCore\runtime\docs-store\arabold` (`DOCS_MCP_STORE_PATH`)
 - Catalog: `F:\AgentCore\runtime\docs-store\CATALOG.json`
@@ -17,20 +19,22 @@ Official library/SDK/API/CLI docs for every used `library@version` must live in 
 
 All IDEs reach this store through Bifrost `arabold-docs` on `http://127.0.0.1:8080/mcp`. Do not commit the F: store to Git.
 
-## On miss (mandatory)
+## Verify or ingest
 
-If `library@version` is absent from `CATALOG.json` / `list_libraries` / `find_version` and the agent needs those docs:
+For every pair, verify the matching `CATALOG.json` entry, `find_version`, and real `search_docs` hits. On each new session, compare project pins with its lightweight checkpoint. Keep unchanged, verified snapshots; on a changed pin, missing, or invalid coverage:
 
-1. `scrape_docs` the official source for that exact version
-2. Wait until `search_docs` hits (poll `get_job_info`)
-3. Update `CATALOG.json` and the versioned snapshot
-4. Answer from the local index
+1. `scrape_docs` the official source applicable to that exact version.
+2. Wait for `get_job_info` to finish and confirm `search_docs` returns real hits.
+3. Update `CATALOG.json` and the versioned official snapshot; answer from the local index.
+4. Record library, resolved version, official URL, shared-catalog status, and last verification in a lightweight project docs checkpoint. Do not copy the scraped corpus into the project.
 
 Context7 (gateway only) may answer **this turn** for a **public** library while the scrape job runs. Context7 answers are never the durable local corpus and never satisfy an Arabold checkpoint.
+
+If the publisher has no versioned docs, record the limitation instead of claiming exact-version coverage. Missing, failed, or unverified ingestion blocks work that relies on that dependency; continue only unrelated version-independent work and report the blocker.
 
 ## Do not
 
 - Scrape private/authenticated docs without approval, Swarm-owned trees, unrelated sites, or "latest" when the pin is exact
-- Refresh to latest unless the lockfile pin moved or a Milestone accepts a docs refresh
+- Refresh unchanged verified pins without reason, or substitute registry latest for an exact project pin
 - Paste Context7 into IDE `mcp.json`
 - Dump live `tools/list` into `AGENTS.md` — use `TOOL_MANIFEST.yaml` + `.agentcore/runtime/gateway-tool-inventory.md`

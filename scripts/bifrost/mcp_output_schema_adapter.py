@@ -19,7 +19,8 @@ Design constraints:
 
 Usage (as rendered into Bifrost stdio_config):
   python -u mcp_output_schema_adapter.py --server <canonical_id> \
-      [--contract <path>] -- <upstream_command> [upstream_args...]
+      [--contract <path>] [--allow-env NAME] [--alias-env CHILD=PARENT] \
+      -- <upstream_command> [upstream_args...]
 
 Offline check:
   python mcp_output_schema_adapter.py --self-test
@@ -29,11 +30,12 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -55,6 +57,29 @@ WINDOWS_REQUIRED_ENV_NAMES = (
     "APPDATA",
     "LOCALAPPDATA",
 )
+ENV_NAME_PATTERN = re.compile(r"[A-Z_][A-Z0-9_]*\Z")
+
+
+def _read_windows_user_environment(name: str) -> str | None:
+    """Read one explicitly requested value from the current user's environment."""
+    if os.name != "nt":
+        return None
+
+    try:
+        import winreg
+
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            "Environment",
+            access=winreg.KEY_QUERY_VALUE,
+        ) as environment_key:
+            value, value_type = winreg.QueryValueEx(environment_key, name)
+    except (ImportError, OSError):
+        return None
+
+    if value_type not in (winreg.REG_SZ, winreg.REG_EXPAND_SZ):
+        return None
+    return value if isinstance(value, str) else None
 
 
 def build_child_environment(
@@ -62,15 +87,45 @@ def build_child_environment(
     *,
     declared_env_names: list[str],
     static_env: dict[str, str],
+    user_env_resolver: Callable[[str], str | None] | None = None,
+    env_aliases: Mapping[str, str] | None = None,
 ) -> dict[str, str]:
     """Return the minimal environment permitted to one STDIO upstream child."""
     parent_by_name = {name.upper(): value for name, value in parent_env.items()}
-    allowed_names = [*WINDOWS_REQUIRED_ENV_NAMES, *declared_env_names]
-    child_env = {
-        name: parent_by_name[name]
-        for name in allowed_names
-        if parent_by_name.get(name)
+    declared_by_name = {name.upper() for name in declared_env_names}
+    reserved_child_names = {
+        *(name.upper() for name in WINDOWS_REQUIRED_ENV_NAMES),
+        *declared_by_name,
+        *(name.upper() for name in static_env),
     }
+    for child_name in env_aliases or {}:
+        if child_name.upper() in reserved_child_names:
+            raise ValueError(
+                "env alias child conflicts with existing child environment: "
+                f"{child_name}"
+            )
+    allowed_names = dict.fromkeys([*WINDOWS_REQUIRED_ENV_NAMES, *declared_env_names])
+    child_env: dict[str, str] = {}
+    for name in allowed_names:
+        normalized_name = name.upper()
+        if normalized_name in parent_by_name:
+            value = parent_by_name[normalized_name]
+        elif normalized_name in declared_by_name and user_env_resolver is not None:
+            value = user_env_resolver(name)
+        else:
+            value = None
+        if value:
+            child_env[name] = value
+    for child_name, parent_name in (env_aliases or {}).items():
+        normalized_parent_name = parent_name.upper()
+        if normalized_parent_name in parent_by_name:
+            value = parent_by_name[normalized_parent_name]
+        elif user_env_resolver is not None:
+            value = user_env_resolver(parent_name)
+        else:
+            value = None
+        if value:
+            child_env[child_name] = value
     child_env.update(static_env)
     return child_env
 
@@ -81,6 +136,7 @@ def launch_upstream(
     declared_env_names: list[str],
     static_env: dict[str, str],
     parent_env: Mapping[str, str] | None = None,
+    env_aliases: Mapping[str, str] | None = None,
 ) -> subprocess.Popen[str]:
     """Launch an upstream child with its reviewed Windows environment only."""
     return subprocess.Popen(  # noqa: S603 - command comes from the rendered registry
@@ -96,6 +152,10 @@ def launch_upstream(
             os.environ if parent_env is None else parent_env,
             declared_env_names=declared_env_names,
             static_env=static_env,
+            user_env_resolver=(
+                _read_windows_user_environment if parent_env is None else None
+            ),
+            env_aliases=env_aliases,
         ),
     )
 
@@ -245,7 +305,7 @@ def _parse_options(options: list[str]) -> dict[str, Any]:
             parsed[token.lstrip("-")] = options[index + 1]
             index += 2
             continue
-        if token in ("--allow-env", "--static-env"):
+        if token in ("--allow-env", "--alias-env", "--static-env"):
             if index + 1 >= len(options):
                 raise SystemExit(f"{token} requires a value")
             parsed.setdefault(token.lstrip("-"), []).append(options[index + 1])
@@ -271,6 +331,34 @@ def _parse_static_env(values: list[str]) -> dict[str, str]:
             raise SystemExit("--static-env requires NAME=VALUE")
         static_env[name] = env_value
     return static_env
+
+
+def _parse_env_aliases(
+    values: list[str],
+    *,
+    reserved_child_names: list[str] | tuple[str, ...] = (),
+) -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    reserved = {name.upper() for name in reserved_child_names}
+    for value in values:
+        child_name, separator, parent_name = value.partition("=")
+        if (
+            not separator
+            or not ENV_NAME_PATTERN.fullmatch(child_name)
+            or not ENV_NAME_PATTERN.fullmatch(parent_name)
+        ):
+            raise SystemExit(
+                "--alias-env requires CHILD=PARENT with uppercase environment identifiers"
+            )
+        if child_name in aliases:
+            raise SystemExit(f"duplicate --alias-env child: {child_name}")
+        if child_name in reserved:
+            raise SystemExit(
+                "--alias-env child conflicts with existing child environment: "
+                f"{child_name}"
+            )
+        aliases[child_name] = parent_name
+    return aliases
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -316,10 +404,21 @@ def main(argv: list[str] | None = None) -> int:
         except (AttributeError, ValueError):
             pass
 
+    declared_env_names = list(options.get("allow-env") or [])
+    static_env = _parse_static_env(list(options.get("static-env") or []))
+    env_aliases = _parse_env_aliases(
+        list(options.get("alias-env") or []),
+        reserved_child_names=[
+            *WINDOWS_REQUIRED_ENV_NAMES,
+            *declared_env_names,
+            *static_env,
+        ],
+    )
     proc = launch_upstream(
         child_argv,
-        declared_env_names=list(options.get("allow-env") or []),
-        static_env=_parse_static_env(list(options.get("static-env") or [])),
+        declared_env_names=declared_env_names,
+        static_env=static_env,
+        env_aliases=env_aliases,
     )
 
     relay = Relay(server_id, resolver)

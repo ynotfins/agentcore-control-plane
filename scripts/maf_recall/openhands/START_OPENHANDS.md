@@ -10,6 +10,11 @@ Verified live target:
 - Image: `ghcr.io/openhands/agent-canvas:1.13.0`
 - State bind: `I:\LocalApps\OpenHands\state`
 - Project bind: `D:\OpenHandsProjects`
+- LLM: OpenRouter only via `OPENROUTER_API_KEY` User env
+  - Primary `LLM_MODEL`: `openrouter/z-ai/glm-5.3` (OpenRouter id `z-ai/glm-5.3`)
+  - Secondary (SDK/settings profile): `openrouter/deepseek/deepseek-v4.1-flash` (OpenRouter id `deepseek/deepseek-v4.1-flash`)
+  - `LLM_BASE_URL`: `https://openrouter.ai/api/v1`
+- Media (image/video): **not** routed through OpenHands — ClawTeam `KIE_API_KEY` + ComfyUI only
 
 Rules:
 

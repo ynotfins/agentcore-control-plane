@@ -24,6 +24,14 @@
         "surfaceContainerHighest": { "$value": "{md.ref.palette.neutral.90}", "$type": "color" },
         "outline": { "$value": "{md.ref.palette.neutralVariant.50}", "$type": "color" },
         "outlineVariant": { "$value": "{md.ref.palette.neutralVariant.80}", "$type": "color" }
+      },
+      "state": {
+        "hover": {
+          "surfaceTint": { "$value": "{md.ref.palette.blue.50}", "$type": "color" },
+          "surfaceTintAmount": { "$value": "12%", "$type": "percentage" },
+          "borderColor": { "$value": "{md.ref.palette.blue.40}", "$type": "color" },
+          "saturate": { "$value": "1.12", "$type": "number" }
+        }
       }
     },
     "custom": {

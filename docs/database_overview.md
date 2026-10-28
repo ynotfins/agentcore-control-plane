@@ -170,7 +170,9 @@ WAL archiving:
 
 - `archive_mode = on`
 - archive command: `D:\github\agentcore-control-plane\ops\Archive-AgentCoreWal.ps1`
-- target: `E:\AgentCoreArchive\backups_cold\pgvector\wal`
+- primary target: `E:\AgentCoreArchive\agentcore-memory\wal\pg18`
+- secondary copy: `G:\AgentCoreArchive\agentcore-memory\wal\pg18` (best-effort; skipped when `G:` is over 75% used or under 8 GB free; must not fail `archive_command`)
+- `G:` prune: `\AgentCore\SecondaryBackupHeadroom` → `ops/Prune-AgentCoreSecondaryBackupDrive.ps1`
 
 Projection schedule:
 

@@ -10,7 +10,7 @@ For gateway, MCP registry, client enrollment, Code Mode, capability-profile, or 
 
 ## Operating Rules
 
-- **Bifrost MCP contract ownership (operator decision 2026-09-08):** Cursor is the sole primary owner of the Bifrost MCP contract plane in this repository. Cursor owns `contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `scripts/bifrost/render_bifrost_config.py` and Bifrost validators/tests, `renderers/bifrost/*`, `ops/bifrost` live apply/restart/acceptance for the MCP gateway, and related Bifrost MCP commits on the AgentCore base branch. Codex's role for Bifrost MCP is independent reviewer / challenge only. Do not create dual-primary ownership of this plane.
+- **Bifrost MCP contract ownership (operator decision 2026-09-08):** Cursor is the sole primary owner of the Bifrost MCP contract plane in this repository. Cursor owns `contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `scripts/bifrost/render_bifrost_config.py` and Bifrost validators/tests, `renderers/bifrost/`*, `ops/bifrost` live apply/restart/acceptance for the MCP gateway, and related Bifrost MCP commits on the AgentCore base branch. Codex's role for Bifrost MCP is independent reviewer / challenge only. Do not create dual-primary ownership of this plane.
 - **Execution ownership (non-Bifrost):** Outside the Bifrost MCP contract plane above, the AgentCore authority-maintainer (Codex for current alignment and production-hardening work) owns architecture, protected authority outside Bifrost MCP desired-state, security boundaries that are not Bifrost MCP desired-state, final validation of non-Bifrost work, and Git integration policy. For Bifrost MCP desired-state changes, Cursor owns implementation and live acceptance; Codex challenges. For other non-trivial work, give Cursor a bounded goal, exact authority paths, scope, acceptance contract, and stop gates.
 - **Agent routing is mandatory, not optional:** For non-Bifrost non-trivial code changes, Codex remains the framing engineer for problem statement, root-cause analysis, design choices, task decomposition, acceptance criteria, and independent review. AgentCore implementation workers write routine feature code, focused bug fixes, tests, and refactors inside a bounded prompt. Morph is used for external GitHub/source-pattern discovery and surgical `edit_file` application when it materially improves correctness, migration safety, or edit precision. Do not let Morph or an implementation worker create architecture authority, expand scope, weaken policy, or decide the global solution. Bifrost MCP desired-state is Cursor-owned per the ownership rule above.
 - **Direct Codex editing exception:** Outside Bifrost MCP desired-state, Codex may edit directly only for trivial fixes, test harness corrections, glue around a worker-produced patch, emergency recovery, or when the required worker/Morph tool is unavailable or fails to produce a usable patch. Record that reason in the work summary and keep the edit narrowly scoped. Codex must not become a second primary editor of Bifrost MCP contracts/renderers/ops while the Cursor-sole-primary rule is in force.
@@ -32,6 +32,8 @@ For gateway, MCP registry, client enrollment, Code Mode, capability-profile, or 
 - On every new project/repo, the agent MUST create `AGENTS.md` and `CLAUDE.md` at the project root if missing (seed from the Root Agent Rules Template in `MASTER_CONFIG_AND_PROMPT.md`), and must read/verify both at the start of every session and update them when project rules or wiring change.
 - **Documentation governance:** ordinary agents and implementation workers do not directly edit documentation. They submit bounded proposals to the read-only documentation guard, and only the documentation maintainer worker may perform an ordinary documentation mutation after it internally obtains `ACCEPT` for the actual diff; caller-supplied verdicts are not authorization. Protected documents still require live authority-maintainer capability, matching explicit approval, rollback, validators, and independent review; generated STATE/DECISIONS/CONTEXT_INDEX projections remain projection-worker-only. Follow `docs/agent-policy/DOCUMENTATION_GOVERNANCE.md`.
 
+
+
 ## Tool Routing (non-Swarm / control-plane work)
 
 - **IDE MCP primary:** use the single Bifrost `agentcore-gateway` entry defined by `PROJECT_ANCHOR.md` and `contracts/agentcore-gateway-client.json`. Do not paste the full upstream registry into each IDE.
@@ -49,6 +51,8 @@ For gateway, MCP registry, client enrollment, Code Mode, capability-profile, or 
 - **Project continuity:** Context Fabric is repo-local through its Git hook/CLI only; its shared Bifrost upstream is dormant because Context Fabric tools do not carry caller/project identity. Do not initialize under Swarm or runtime memory roots.
 - **Connected app workflows:** keep Composio quarantined until explicitly re-enabled.
 
+
+
 ## Swarm / neutral-memory boundary
 
 SwarmVault and SwarmClaw remain a **separate Swarm ecosystem** for execution. Ordinary IDE baselines must not require Swarm MCP entries. Neutral shared SwarmRecall may be used only through `agentcore-memory` (server-side). Do not paste raw SwarmRecall MCP into Cursor/Codex/Claude/MiniMax/Mavis/Antigravity/Open Interpreter. OpenClaw/ClawX are AgentCore-owned and use `agentcore-gateway`; SwarmClaw uses its own Recall adapter. A future Swarm-to-OpenClaw adapter receives no AgentCore virtual key, memory session, database or Recall credential, or AgentCore write root.
@@ -59,6 +63,8 @@ SwarmVault and SwarmClaw remain a **separate Swarm ecosystem** for execution. Or
 - MCP and inference are separate planes. An IDE's `agentcore-gateway` MCP entry does not prove its model requests traverse Bifrost. Do not claim OmniRoute compression applies unless the model request is explicitly routed through a validated Bifrost inference path and OmniRoute.
 - OmniRoute, Graphify, Hindsight, and CrewAI are disabled, benchmark-gated evaluation candidates. Do not install, register, start, or make them Context Engine dependencies without an approved ADR, official pin, isolation/fidelity/quality tests, and rollback.
 - Cursor project subagents live under `.cursor/agents/`, stay focused, default to `model: inherit`, and cannot create architecture authority. Read-only reviewers must not modify files or certify their own implementation.
+
+
 
 ## Stop Policy
 
@@ -72,6 +78,8 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, and `sequential-thinking`: do
 - Progressive tool disclosure per `docs/agent-policy/TOOL_LIFECYCLE_POLICY.md`: only currently needed tools exposed; tool audits at every Milestone entry and exit. M6 PostgreSQL leases + Bifrost JIT VK bridge are live for OpenRouter tool groups; `TOOL_MANIFEST.yaml` still records project desired state. Do not expose OpenRouter MCP directly in IDEs — gateway + lease only (`docs/operations/OPENROUTER_MCP.md`).
 - Multi-Agent Self-Verification & A/B Judge: For complex, architecture-impacting, or high-risk tasks, follow `.cursor/rules/self-verification-ab-judge.mdc`. Launch `best-of-n-runner` for A/B candidate exploration and `code-reviewer`/`bugbot` in a fresh context window as an independent judge.
 
+
+
 ## Database Contract
 
 - Canonical Git source repo: `D:\github\agentcore-control-plane`
@@ -79,6 +87,8 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, and `sequential-thinking`: do
 - **Memory/database implementation authority:** `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`
 - Normal non-Swarm IDE memory identity: `agentcore-memory` via gateway (no direct SQL; no Postgres credentials in IDE configs)
 - Trusted direct SQL is limited to explicitly approved ingest/admin runners.
+
+
 
 ## Learned User Preferences
 
@@ -92,7 +102,10 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, and `sequential-thinking`: do
 - Treat dual-root AgentCore/Swarm Cursor workspaces as read-only integration surfaces; assign each write-capable session to exactly one repository/worktree and do not weaken Stage B hooks to allow cross-repo writes.
 - Prefer agents to finish setup end-to-end and resolve low-level mechanisms from authority, docs, code, and tests; ask the operator only for irreversible, external, security-sensitive, or genuinely ambiguous decisions.
 
+
+
 ## Learned Workspace Facts
+- **Workstation package managers (2026-09-22):** Corepack DISABLED on this PC. Dual-support: lockfile wins (npm vs pnpm vs yarn). RGDS and AgentCore `docs/design/m3/package-pins.json` use npm exact installs. pnpm via `npm install -g pnpm` → `%AppData%\npm`. Authority: `docs/operations/WORKSTATION_PACKAGE_MANAGERS.md`.
 
 - `BLUEPRINT.md` is the locked implementation authority for all memory-platform Milestones. Read the generated project `STATE.md` and current handoff/evidence for the active Milestone, branch, commit, and runtime status.
 - LangGraph checkpoint tables live in the `public` schema of `agent_core` DB: `public.checkpoints`, `public.checkpoint_blobs`, `public.checkpoint_writes` — created by `PostgresSaver.setup()`; there is no separate `checkpoints` schema.
@@ -105,4 +118,5 @@ For `agentcore-gateway` / Bifrost, `arabold-docs`, and `sequential-thinking`: do
 - The OpenRouter MCP server (`https://mcp.openrouter.ai/mcp`) is registered behind Bifrost (completion: `OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY`). Registry `status` remains `dormant` (zero default exposure); lifecycle after OAuth bind is `authenticated_dormant`. Tools appear only while an M6 lease + JIT VK bridge grants exact `openrouter-*` names. IDE-facing endpoint stays `http://127.0.0.1:8080/mcp`. See `docs/operations/OPENROUTER_MCP.md`.
 - Cursor continual-learning must not auto-inject user-role prompts or auto-edit `AGENTS.md`. Stage B integrity hooks (`scripts/agentcore_cursor/hook_dispatcher.py`) fail open and never emit followup_message or continual-learning prompts. Cursor prompts that instruct file reads must use `@` + full absolute Windows paths; completed handoffs needing more Cursor work must include a ready-to-paste `CURSOR CONTINUATION PROMPT` section. LLM clients (Cursor, Cherry Studio, agent-orchestrator, Pinokio) must avoid direct upstream/OpenRouter **MCP** entries and route tools through `agentcore-gateway` only.
 - `F:` is AgentCore hot runtime/data and `H:` is Swarm hot runtime/data; keep the ecosystems operationally independent. Portable Context Engine at `D:\github\agentcore-context-engine` is host-local adapters only—no new MCP entry; durable memory stays behind `agentcore-gateway` → `agentcore-memory`. LangGraph remains AgentCore workflow authority and must not be replaced or coupled to SwarmClaw.
-- **Design system policy (every UI project):** all UI work follows the **R3lentless-Grind Design System (RGDS)** — authority `docs/design/DESIGN_SYSTEM.md` and tree `docs/design/m3/`. RGDS is the master organizational standard (not an NFA- or AgentCore-branded product DS). Architecture: Material 3 two-tier tokens (`md.ref.*` / `md.sys.*`), four themes (`primary-light`, `secondary-light`, `primary-dark`, `secondary-dark`) via `data-theme` on `<html>`, Theme 4 `md.custom.rainbowPulse` on featured surfaces only, Apple-like large cards/buttons/64px icon targets, multi-color icons for featured only. No inline hex, no raw spacing outside tokens, no unpinned “latest” frontend installs (use `docs/design/m3/package-pins.json`), no `tailwind.config.js` color overrides, no JS theme switching beyond toggling `data-theme`. Bifrost provides Figma validation MCP only — it does not host RGDS tokens. Brand seeds are temporary placeholders in `tokens/ref/palette.json`. Gallery: `docs/design/m3/preview.html`. Enforcement: `.cursorrules` + `.cursor/rules/design-system-m3.mdc`.
+- **Design system policy (every UI project):** all UI work follows the **R3lentless-Grind Design System (RGDS)** — authority `docs/design/DESIGN_SYSTEM.md` and tree `docs/design/m3/`. RGDS is the master organizational standard (not an NFA- or AgentCore-branded product DS). Architecture: Material 3 two-tier tokens (`md.ref.`* / `md.sys.*`), four themes (`primary-light`, `secondary-light`, `primary-dark`, `secondary-dark`) via `data-theme` on `<html>`, Theme 4 `md.custom.rainbowPulse` on featured surfaces only, Apple-like large cards/buttons/64px icon targets, multi-color icons for featured only. No inline hex, no raw spacing outside tokens, no unpinned “latest” frontend installs (use `docs/design/m3/package-pins.json`), no `tailwind.config.js` color overrides, no JS theme switching beyond toggling `data-theme`. Bifrost provides Figma validation MCP only — it does not host RGDS tokens. Brand seeds are temporary placeholders in `tokens/ref/palette.json`. Gallery: `docs/design/m3/preview.html`. Enforcement: `.cursorrules` + `.cursor/rules/design-system-m3.mdc`.
+

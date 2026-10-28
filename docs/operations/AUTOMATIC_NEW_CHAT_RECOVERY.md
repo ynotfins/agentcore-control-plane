@@ -1,6 +1,6 @@
 # Automatic Cursor New-Chat Recovery
 
-**Status:** Stage B accepted — seven lifecycle hooks registered; `Continue.` gate and 26/26 integrity suite passed on 2026-07-24
+**Status:** Stage B accepted; prompt submission is fail open and mutation authorization is fail closed
 **Authority:** `PROJECT_ANCHOR.md` · `BLUEPRINT.md` · `docs/operations/AGENTCORE_CONTINUAL_LEARNING.md`
 
 ## Goal
@@ -29,9 +29,9 @@ Cursor hook (project .cursor/hooks.json)
 | Event | Purpose | Fail mode |
 | --- | --- | --- |
 | `sessionStart` | Activate project, resume session_key, inject bounded `additional_context` | Fail open (env flags only) |
-| `beforeSubmitPrompt` | Redact secrets, append operator prompt with idempotency key | Allow after DB or local spool acceptance |
-| `preToolUse` | Enforce deterministic pre-tool boundaries | Fail open on internal hook error; explicit policy denials remain authoritative |
-| `beforeShellExecution` | Block known destructive or secret-printing shell patterns | Deterministic deny for matched policy; otherwise allow |
+| `beforeSubmitPrompt` | Revoke prior-turn authorization, redact secrets, and append the operator prompt with an idempotency key | Always `continue: true`; workspace, gateway, memory, continuity, malformed-input, and dispatcher failures return a visible warning |
+| `preToolUse` | Enforce deterministic pre-tool boundaries | Read-only calls may continue; write-capable or unclassified mutation paths fail closed until current-turn durable capture is proven |
+| `beforeShellExecution` | Block destructive/secret-printing patterns and gate filesystem mutations | Read-only commands may continue; mutating or ambiguous commands fail closed until current-turn durable capture is proven |
 | `afterFileEdit` | Record bounded file-change evidence | Fail open on hook error |
 | `postToolUse` | Record bounded tool outcome evidence | Fail open on hook error |
 | `stop` | Persist the final-review envelope without resubmitting a prompt | Returns `{}`; never emits `followup_message` |
@@ -44,6 +44,30 @@ Cursor hook (project .cursor/hooks.json)
 | agent_key | `cursor-composer` |
 | context_profile | `standard-context` |
 | gateway | `http://127.0.0.1:8080/mcp` |
+
+## Prompt submission and mutation interlock
+
+`beforeSubmitPrompt` is an observability and continuity hook. It must never stop
+the operator from sending a prompt. It returns `continue: true` and a warning if
+the workspace cannot be verified, the gateway or memory facade is unavailable,
+continuity is stale or ambiguous, input is malformed, or the dispatcher fails.
+
+After workspace resolution, and before bootstrap, network I/O, or
+bootstrap-artifact parsing, the hook revokes authorization from the preceding
+turn. Malformed or unscoped dispatcher failure sets a global unresolved deny
+latch. A new authorization is released only after the prompt has a durable event
+and the local and global interlocks match the current:
+
+- workspace root;
+- session id;
+- conversation id;
+- `generation_id`.
+
+Until all four identities match, `preToolUse` denies write-capable tools and
+`beforeShellExecution` denies mutating or ambiguously classified shell commands.
+Deterministically read-only tools and commands remain usable for diagnosis and
+recovery. A warning under the submitted prompt therefore means the prompt ran,
+while state-changing tools remain protected until continuity recovers.
 
 ## Operator CLI
 
@@ -63,9 +87,13 @@ Set-Location 'D:\github\agentcore-control-plane\scripts'
 
 When `agentcore-gateway` is temporarily unavailable:
 
-- Prompt capture spools to `F:\AgentCore\runtime\clients\cursor\spool\pending\`
+- Failed prompt capture is not currently spooled; the hook reports
+  `canonical_write_unavailable` or the specific continuity failure.
 - Hook diagnostics log to `F:\AgentCore\runtime\clients\cursor\logs\hooks\`
 - Hooks never fabricate user-role messages or call continual-learning
+- `beforeSubmitPrompt` still allows the prompt and reports the degradation.
+- Write-capable tools and mutating or ambiguous shell commands remain denied
+  until durable capture for the current turn is confirmed.
 
 ## Safe registration or repair process
 

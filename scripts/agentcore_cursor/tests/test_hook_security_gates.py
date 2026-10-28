@@ -12,6 +12,13 @@ from agentcore_cursor import hooks
 from agentcore_cursor.session_scope import SessionScope
 
 
+@pytest.fixture(autouse=True)
+def _isolate_global_interlock(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(
+        hooks, "GLOBAL_PROMPT_INTERLOCK_PATH", tmp_path / "global-interlock.json"
+    )
+
+
 def _armed_workspace(root: Path, *, declared: list[Path] | None = None) -> None:
     subprocess.run(
         ["git", "init", "--quiet", str(root)],
@@ -39,6 +46,7 @@ def _armed_workspace(root: Path, *, declared: list[Path] | None = None) -> None:
                     "prompt_sha256": "a" * 64,
                     "session_id": "session-current",
                     "conversation_id": "conversation-current",
+                    "generation_id": "generation-current",
                 },
             }
         ),
@@ -52,6 +60,14 @@ def _armed_workspace(root: Path, *, declared: list[Path] | None = None) -> None:
         acceptance=["authorized target only"],
         declared_files=[str(path.resolve()) for path in (declared or [])],
     ).save_atomic()
+    assert hooks.set_global_prompt_interlock(
+        blocked=False,
+        root_path=root,
+        event_id="event-current",
+        session_id="session-current",
+        conversation_id="conversation-current",
+        generation_id="generation-current",
+    )
 
 
 def test_before_submit_clears_stale_gate_before_append_failure(tmp_path: Path) -> None:
@@ -64,6 +80,7 @@ def test_before_submit_clears_stale_gate_before_append_failure(tmp_path: Path) -
             {
                 "workspace_roots": [str(tmp_path)],
                 "conversation_id": "conversation-current",
+                    "generation_id": "generation-current",
                 "prompt": "new prompt",
             }
         )
@@ -72,7 +89,8 @@ def test_before_submit_clears_stale_gate_before_append_failure(tmp_path: Path) -
             encoding="utf-8"
         )
     )
-    assert result["continue"] is False
+    assert result["continue"] is True
+    assert result["agentcore_continuity_degraded"] is True
     assert artifact["result"]["status_flags"]["current_prompt_captured_before_tools"] is False
     assert "current_prompt_capture" not in artifact
 
@@ -87,10 +105,12 @@ def test_before_submit_requires_durable_event_id(
             {
                 "workspace_roots": [str(tmp_path)],
                 "conversation_id": "conversation-current",
+                    "generation_id": "generation-current",
                 "prompt": "new prompt",
             }
         )
-    assert result["continue"] is False
+    assert result["continue"] is True
+    assert result["agentcore_continuity_degraded"] is True
 
 
 def test_apply_patch_checks_every_mutated_path(tmp_path: Path) -> None:
@@ -107,6 +127,7 @@ def test_apply_patch_checks_every_mutated_path(tmp_path: Path) -> None:
             {
                 "workspace_roots": [str(tmp_path)],
                 "conversation_id": "conversation-current",
+                    "generation_id": "generation-current",
                 "tool_name": "ApplyPatch",
                 "tool_input": {
                     "patch": (
@@ -137,6 +158,7 @@ def test_move_tool_checks_source_and_destination(tmp_path: Path) -> None:
             {
                 "workspace_roots": [str(tmp_path)],
                 "conversation_id": "conversation-current",
+                    "generation_id": "generation-current",
                 "tool_name": "filesystem-move_file",
                 "tool_input": {"source": str(source), "destination": str(destination)},
             }
@@ -168,6 +190,7 @@ def test_governed_mutable_file_requires_authority_approval(tmp_path: Path) -> No
             {
                 "workspace_roots": [str(tmp_path)],
                 "conversation_id": "conversation-current",
+                    "generation_id": "generation-current",
                 "tool_name": "write_file",
                 "tool_input": {"path": str(governed)},
             }
@@ -190,7 +213,12 @@ def test_governed_mutable_file_requires_authority_approval(tmp_path: Path) -> No
 def test_ambiguous_shell_mutation_forms_fail_closed(command: str, tmp_path: Path) -> None:
     _armed_workspace(tmp_path, declared=[tmp_path / "safe.txt"])
     result = hooks.handle_before_shell(
-        {"workspace_roots": [str(tmp_path)], "command": command}
+        {
+            "workspace_roots": [str(tmp_path)],
+            "conversation_id": "conversation-current",
+            "generation_id": "generation-current",
+            "command": command,
+        }
     )
     assert result["permission"] == "deny"
 
@@ -200,6 +228,8 @@ def test_remove_item_checks_every_positional_target(tmp_path: Path) -> None:
     result = hooks.handle_before_shell(
         {
             "workspace_roots": [str(tmp_path)],
+            "conversation_id": "conversation-current",
+            "generation_id": "generation-current",
             "command": "rm safe.txt undeclared.txt",
         }
     )
@@ -251,6 +281,7 @@ def test_before_submit_bootstraps_when_runtime_artifact_is_absent(tmp_path: Path
             {
                 "workspace_roots": [str(tmp_path)],
                 "conversation_id": "conversation-new",
+                "generation_id": "generation-new",
                 "prompt": "new prompt",
             }
         )

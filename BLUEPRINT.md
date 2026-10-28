@@ -5,7 +5,7 @@
 > **Machine:** `CHAOSCENTRAL`
 > **Operator:** Tony Valentine (`ynotf`)
 > **Scope:** Non-Swarm AgentCore platform only
-> **Last updated:** 2026-08-10 (`AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT`; PC-native SwarmRecall semantic-memory alignment)
+> **Last updated:** 2026-09-05 (`AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT`; Bifrost v2.0.0 expanded capability and OpenClaw ownership alignment)
 >
 > This file is the stable blueprint for the memory/context/database build.
 > It defines the goal, architecture, storage roles, immutable guarantees, and Milestone exit criteria.
@@ -41,7 +41,7 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 - The sole shared exception is neutral SwarmRecall under `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`: it is the **PC-native semantic memory/context plane**. AgentCore reaches it server-side through `agentcore-memory`; SwarmClaw reaches it through its own bounded adapter. It owns semantic projections only, never AgentCore evidence/checkpoints or Swarm execution state.
 - No canonical resource may be jointly owned. Neutral Recall is non-canonical and independently recoverable from its own governed source rows.
 - Cross-ecosystem detail belongs in an operator-carried neutral boundary contract, not in either ecosystem’s automatically ingested context.
-- Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, OpenClaw, or shared storage is **historical evidence only**.
+- Any historical document that describes AgentCore-owned SwarmRecall, SwarmVault, SwarmClaw, or shared storage is **historical evidence only**.
 
 ```mermaid
 flowchart LR
@@ -105,7 +105,7 @@ The platform must:
 - Use Cognee only for curated semantic and relationship memory.
 - Use LangGraph for durable autonomous workflows and checkpoints.
 - Expose memory through the existing Bifrost gateway (`agentcore-gateway`).
-- Keep SwarmVault, SwarmClaw, SwarmDock, SwarmFeed, SwarmRelay, OpenClaw, and ClawX as Swarm-owned execution surfaces. Use one **neutral shared SwarmRecall** PC-native semantic memory/context plane (AUTH-2026-08-01) via `agentcore-memory` server-side only for AgentCore/enrolled non-Swarm clients; portable Context Engine at `D:\github\agentcore-context-engine`.
+- Keep SwarmVault, SwarmClaw, SwarmDock, SwarmFeed, and SwarmRelay as Swarm-owned execution surfaces. OpenClaw and its ClawX host are AgentCore-owned and use `agentcore-gateway`; a future Swarm-to-OpenClaw adapter receives no AgentCore credentials, memory session, database access, or AgentCore write root. Use one **neutral shared SwarmRecall** PC-native semantic memory/context plane (AUTH-2026-08-01) via `agentcore-memory` server-side only for AgentCore/enrolled non-Swarm clients; portable Context Engine at `D:\github\agentcore-context-engine`.
 - Use Arabold Docs as the local, version-labelled cache of official upstream documentation before version-sensitive implementation decisions.
 - Use Context Fabric as a project-local committed-state and drift-warning plane; it is rebuildable and subordinate to this authority chain and PostgreSQL.
 - Deep Agents (`deepagents==0.6.12`, MIT) may be used as an optional worker harness inside LangGraph nodes; it is not a canonical memory, workflow, policy, or tool authority. See `docs/decisions/ADR-DEEP-AGENTS-WORKER-HARNESS.md`.
@@ -251,7 +251,7 @@ Inference today: host/application -> its approved model-provider path
 Future experiment only: host/application -> Bifrost inference governance -> OmniRoute -> OpenRouter
 ```
 
-Using `agentcore-gateway` does not prove that an IDE's model prompts pass through Bifrost or OmniRoute. The Zoo-Code direct MCP companion exception does not prove model routing through Bifrost and does not replace AgentCore memory/governance. Any inference-route change requires an explicit client/provider contract, fidelity and failure tests, and rollback.
+Using `agentcore-gateway` does not prove that an IDE's model prompts pass through Bifrost or OmniRoute. A host-native direct companion does not prove model routing through Bifrost and does not replace AgentCore memory/governance. It requires a documented Bifrost parity failure, exact host/tool scope, security review, rollback, and no duplicate memory, database, Swarm, or administrative route. Any inference-route change requires an explicit client/provider contract, fidelity and failure tests, and rollback.
 
 ### Benchmark-gated intelligence extensions
 
@@ -330,7 +330,7 @@ Use Lossless Claw as a reference for:
 - exact `grep` / `describe` / `expand`-style recall;
 - lossless pointers from summaries back to originals.
 
-Do not import OpenClaw-specific runtime assumptions into the AgentCore platform. Do not treat SwarmClaw/OpenClaw as AgentCore subsystems.
+OpenClaw and its ClawX host are AgentCore subsystems and use the AgentCore gateway contract. Do not treat SwarmClaw, SwarmRecall, or SwarmVault as AgentCore subsystems.
 
 ### Vector and index policy
 
@@ -901,7 +901,7 @@ Changes requiring explicit operator approval:
 - Replacing Cognee in v1
 - Adding another canonical vector, graph, queue, lock, or state system
 - Changing Bifrost identities
-- Adding a second normal AgentCore MCP front door, except the approved Zoo-Code IDE-local direct MCP companion exception (`AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`)
+- Adding a second normal AgentCore MCP front door. A host-native direct companion is allowed only under `AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT` after a documented Bifrost parity failure, exact host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore memory, database, Swarm, or administrative routes.
 - Combining AgentCore with Swarm
 - Restoring AgentCore IDE continuity on Swarm projects
 - Formatting a drive outside the authorized AgentCore E:/F:/I: correction scope

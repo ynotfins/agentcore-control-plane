@@ -4,47 +4,49 @@
 ide_id: devin
 display_name: Devin (Cognition AI)
 swarm_managed: false
-installed_version: unverified
-live_global_rule_target: 'Devin project instructions (.devin/AGENTS.md or project instructions panel; confirm with current Devin docs)'
-live_mcp_config_target: 'unverified (Devin project settings; typically .devin/mcp.json or project-level MCP config panel)'
-rule_mechanism: 'Project instructions file (AGENTS.md / instructions panel); no always-on global rule mechanism verified. Deliver GLOBAL_RULES.md content as project instructions.'
+installed_version: 3000.6.2
+live_global_rule_target: unverified
+live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\devin\mcp_config.json
+rule_mechanism: 'unverified; deliver only the generated GLOBAL_RULES.md artifact until exact native Devin behavior is proven'
 mcp_schema: devin_mcp_json
-mcp_transport: 'http/streamable (agentcore-gateway); stdio for project-local direct servers'
-env_var_handling: 'unverified — may require literal VK materialization into live project config; never commit resolved secret values'
+mcp_transport: 'http through process-attested loopback compatibility proxy'
+env_var_handling: 'process-attested loopback proxy at http://127.0.0.1:18082/mcp; no bearer stored in live MCP JSON'
+gateway_url: http://127.0.0.1:18082/mcp
+gateway_auth_mode: process_attested_proxy
 restart_behavior: 'Restart Devin session or start new task after MCP config changes'
 editability:
   global_rules: manual_import
-  project_rules: direct_write
-  mcp_config: direct_write
+  project_rules: unverified
+  mcp_config: manual_import
 installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: 'never'
+last_validation_date: '2026-09-08'
 mcp_template_source: 'renderers/gateway-clients/devin.json'
 known_limitations:
-  - 'Devin may run in a cloud sandbox or local container; agentcore-gateway at http://127.0.0.1:8080/mcp is reachable only when Devin runs on the same host. For cloud-hosted Devin tasks, a tunnel or public Bifrost endpoint is required.'
-  - 'Project-scoped tools (filesystem, serena, depwire, tentra) MUST be installed directly in the Devin project MCP config — they are dormant in the shared Bifrost gateway because they require per-session project identity injection. Do not wait for Bifrost to expose them.'
-  - 'Devin is NOT restricted to local MCPs. Any MCP server useful for the project may be installed directly in the Devin project config alongside agentcore-gateway. Do not remove or suppress any MCP server the operator has installed.'
-  - 'github-mcp should be installed directly in the Devin project config (GITHUB_TOKEN from env) — Bifrost github-mcp is deferred/Docker-gated.'
-  - 'Always-on global rule delivery is unverified; GLOBAL_RULES.md is manual-import guidance delivered as project instructions.'
-  - 'agentcore-memory session lifecycle (session_open, startup_context, append_event, session_close) must be completed in every Devin task for memory continuity across sessions.'
+  - 'The global-rule import mechanism remains unverified; the native user MCP config path is live-validated.'
+  - 'The AgentCore baseline contains only agentcore-gateway. Direct filesystem, GitHub, Serena, Depwire, Tentra, database, Recall, or other AgentCore upstream entries are forbidden.'
+  - 'Documented Devin-native or plugin-owned integrations may remain only when they do not duplicate an AgentCore upstream, memory route, or database tool.'
+  - 'A cloud Devin environment that cannot reach the loopback gateway remains unsupported_with_reason until a separately approved private connectivity design exists; never expose Bifrost externally.'
+  - 'After gateway connection, use listToolFiles, readToolFile, optional getToolDocs, and executeToolCode for hidden Code Mode capabilities.'
+  - 'The agentcore-memory lifecycle must be proven in a fresh task before any live_validated claim.'
 semantic_parity_gaps:
-  - 'Project-router-controlled servers (filesystem, serena, depwire, tentra) are not exposed through shared Bifrost; Devin must install them directly per task.'
-  - 'Memory lifecycle for Devin cloud tasks requires verified agentcore-gateway reachability and project enrollment in contracts/agentcore-project-enrollment.json.'
+  - 'The native config path, headerless process-attested route, and CLI config parsing are verified; fresh-task Code Mode discovery and memory lifecycle remain pending.'
+  - 'Project-sensitive work uses host-native source tools or explicit-cwd local diagnostics only when the execution environment and project identity are proven; no direct AgentCore MCP duplicate is authorized.'
 dimensions:
   application_launch:
-    status: awaiting_operator_import
-    evidence_path: ide-profiles/devin/VALIDATION.md
-    evidence_ts: '2026-08-30T00:00:00Z'
+    status: live_validated
+    evidence_path: ops/Test-AgentCoreLiveClientAdoption.ps1
+    evidence_ts: '2026-09-08T00:00:00Z'
     superseded_by: null
   gateway_configuration:
-    status: awaiting_operator_import
-    evidence_path: ide-profiles/devin/VALIDATION.md
-    evidence_ts: '2026-08-30T00:00:00Z'
+    status: live_validated
+    evidence_path: ops/Test-AgentCoreLiveClientAdoption.ps1
+    evidence_ts: '2026-09-08T00:00:00Z'
     superseded_by: null
   gateway_discovery:
-    status: awaiting_operator_import
+    status: configured_restart_required
     evidence_path: ide-profiles/devin/VALIDATION.md
     evidence_ts: '2026-08-30T00:00:00Z'
     superseded_by: null
@@ -59,7 +61,7 @@ dimensions:
     evidence_ts: '2026-08-30T00:00:00Z'
     superseded_by: null
   persistence_after_restart:
-    status: awaiting_operator_import
+    status: configured_restart_required
     evidence_path: ide-profiles/devin/VALIDATION.md
     evidence_ts: '2026-08-30T00:00:00Z'
     superseded_by: null
@@ -68,4 +70,4 @@ dimensions:
     evidence_path: ide-profiles/devin/VALIDATION.md
     evidence_ts: '2026-08-30T00:00:00Z'
     superseded_by: null
-m8_enrollment: awaiting_operator_import
+m8_enrollment: configured_restart_required

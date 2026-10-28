@@ -153,9 +153,9 @@ Get-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'DailyDriftCheck' | Select S
 | **Component** | Nightly PostgreSQL backup |
 | **Mechanism** | Windows Scheduled Task |
 | **Task path** | `\AgentCore\NightlyBackup` |
-| **Schedule** | Nightly at 02:00 local time |
+| **Schedule** | Nightly at 03:00 local time |
 | **Script** | `ops/Backup-AgentCorePostgres.ps1` |
-| **Output** | `E:\DatabaseBackups\` (logical) + `G:\DatabaseBackups\` (DR mirror) |
+| **Output** | `E:\AgentCoreArchive\agentcore-memory\backups\pg18` (primary) + `G:\AgentCoreArchive\agentcore-memory\backups\pg18` (DR copy, skipped if `G:` lacks headroom) |
 | **Log location** | `F:\AgentCore\runtime\service-logs\backup-*.log` |
 
 **Start (manual trigger):**
@@ -178,6 +178,27 @@ Get-ChildItem 'E:\DatabaseBackups\' -Filter '*.dump' | Sort-Object LastWriteTime
 ```
 
 **Restart-on-failure policy:** Single retry on failure (1-hour delay). Alert operator if second attempt also fails.
+
+---
+
+### SecondaryBackupHeadroom
+
+| Property | Value |
+|----------|-------|
+| **Component** | `G:` second-copy headroom / recovery-chain prune |
+| **Mechanism** | Windows Scheduled Task |
+| **Task path** | `\AgentCore\SecondaryBackupHeadroom` |
+| **Schedule** | Daily at 02:45 local time |
+| **Script** | `ops/Prune-AgentCoreSecondaryBackupDrive.ps1 -Apply` |
+| **Scope** | Only `G:\AgentCoreArchive\agentcore-memory\backups\pg18` and `G:\AgentCoreArchive\agentcore-memory\wal\pg18` |
+| **Policy** | `contracts/secondary-backup-drive-policy.json` (75% used / 8 GB free; keep 7 daily + 4 weekly + 12 monthly; WAL floor = oldest retained daily backup) |
+
+**Start (manual trigger):**
+```powershell
+Start-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'SecondaryBackupHeadroom'
+# Or dry-run:
+powershell -ExecutionPolicy Bypass -File 'D:\github\agentcore-control-plane\ops\Prune-AgentCoreSecondaryBackupDrive.ps1'
+```
 
 ---
 

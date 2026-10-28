@@ -18,7 +18,7 @@ _SCRIPTS = Path(__file__).resolve().parents[1]
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from agentcore_cursor.hooks import HANDLERS  # noqa: E402
+from agentcore_cursor.hooks import HANDLERS, set_global_prompt_interlock  # noqa: E402
 
 RUNTIME_ROOT = Path(os.environ.get("AGENTCORE_RUNTIME_ROOT", r"F:\AgentCore\runtime"))
 LOG_ROOT = Path(
@@ -144,7 +144,7 @@ def _emit(payload: dict[str, Any]) -> None:
 
 
 def _controlled_error(event: str, exc: BaseException) -> dict[str, Any]:
-    """Return a safe response; lifecycle and mutation gates fail closed."""
+    """Return a safe response; prompt submission fails open, mutations fail closed."""
     msg = f"{type(exc).__name__}: {str(exc)[:180]}"
     if event == "sessionStart":
         return {
@@ -154,7 +154,19 @@ def _controlled_error(event: str, exc: BaseException) -> dict[str, Any]:
             }
         }
     if event == "beforeSubmitPrompt":
-        return {"continue": False, "user_message": f"AgentCore hook blocked: {msg}"}
+        set_global_prompt_interlock(
+            blocked=True,
+            unresolved_reason=f"dispatcher_exception:{type(exc).__name__}",
+        )
+        return {
+            "continue": True,
+            "user_message": (
+                f"AgentCore continuity warning: hook failure ({msg}). "
+                "Prompt submission will continue; write-capable tools remain protected."
+            ),
+            "agentcore_prompt_capture": {},
+            "agentcore_continuity_degraded": True,
+        }
     if event in ("preToolUse", "beforeShellExecution"):
         return {"permission": "deny", "user_message": f"AgentCore hook blocked: {msg}"}
     if event in ("sessionEnd", "stop", "afterFileEdit", "postToolUse"):
@@ -169,7 +181,19 @@ def _dispatch(event: str, payload: dict[str, Any]) -> dict[str, Any]:
         if event == "sessionStart":
             return {"env": {"AGENTCORE_BOOTSTRAP_OK": "0"}}
         if event == "beforeSubmitPrompt":
-            return {"continue": False, "user_message": "AgentCore hook received malformed input"}
+            set_global_prompt_interlock(
+                blocked=True,
+                unresolved_reason="malformed_before_submit_input",
+            )
+            return {
+                "continue": True,
+                "user_message": (
+                    "AgentCore continuity warning: hook input was malformed. "
+                    "Prompt submission will continue; write-capable tools remain protected."
+                ),
+                "agentcore_prompt_capture": {},
+                "agentcore_continuity_degraded": True,
+            }
         if event in ("preToolUse", "beforeShellExecution"):
             return {"permission": "deny", "user_message": "AgentCore hook received malformed input"}
         return {}

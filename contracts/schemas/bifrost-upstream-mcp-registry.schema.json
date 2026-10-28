@@ -145,6 +145,236 @@
         "redact_secrets": { "type": "boolean" }
       }
     },
+    "admission_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact",
+        "source",
+        "license",
+        "tool_inventory",
+        "authentication",
+        "storage",
+        "code_mode",
+        "protected_resources",
+        "default_disposition",
+        "canary",
+        "database_allowlist",
+        "evidence_sources",
+        "unresolved_gaps"
+      ],
+      "properties": {
+        "artifact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "identifier", "version", "digest"],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "npm_package",
+                "python_package",
+                "container_image",
+                "remote_endpoint",
+                "repo_owned",
+                "local_wrapper",
+                "unresolved"
+              ]
+            },
+            "identifier": { "type": "string", "minLength": 1 },
+            "version": { "type": "string", "minLength": 1 },
+            "digest": {
+              "type": ["string", "null"],
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary_url", "documentation_url", "verification"],
+          "properties": {
+            "primary_url": { "type": "string", "minLength": 1 },
+            "documentation_url": { "type": "string", "minLength": 1 },
+            "verification": {
+              "type": "string",
+              "enum": ["arabold_exact", "operator_verified", "registry_verified", "unresolved"]
+            }
+          }
+        },
+        "license": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["spdx", "status", "source_url"],
+          "properties": {
+            "spdx": { "type": "string", "minLength": 1 },
+            "status": {
+              "type": "string",
+              "enum": ["verified", "unresolved", "not_applicable"]
+            },
+            "source_url": { "type": "string", "minLength": 1 }
+          }
+        },
+        "tool_inventory": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "source", "tools", "reported_tool_count"],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["verified", "partial", "reported_unverified", "unresolved", "not_applicable"]
+            },
+            "source": { "type": "string", "minLength": 1 },
+            "tools": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            },
+            "reported_tool_count": { "type": ["integer", "null"], "minimum": 0 }
+          }
+        },
+        "authentication": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "status", "credential_storage", "env_var_names", "dsn_references"],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["none", "headers", "oauth", "per_user_oauth", "per_user_headers", "unresolved"]
+            },
+            "status": {
+              "type": "string",
+              "enum": ["verified", "pending_review", "unresolved", "not_required"]
+            },
+            "credential_storage": {
+              "type": "string",
+              "enum": ["none", "windows_user_env", "bifrost_oauth_store", "provider_managed", "unresolved"]
+            },
+            "env_var_names": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+              "uniqueItems": true
+            },
+            "dsn_references": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["classification", "status", "candidate_roots", "forbidden_roots"],
+          "properties": {
+            "classification": {
+              "type": "string",
+              "enum": [
+                "none",
+                "project_local",
+                "agentcore_runtime",
+                "remote_provider",
+                "container_managed",
+                "unrestricted_host",
+                "unresolved"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "enum": ["verified", "pending_review", "unresolved", "not_applicable", "rejected"]
+            },
+            "candidate_roots": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            },
+            "forbidden_roots": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            }
+          }
+        },
+        "code_mode": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["decision", "rationale"],
+          "properties": {
+            "decision": {
+              "type": "string",
+              "enum": ["classic", "enabled", "required_if_admitted", "not_applicable", "rejected", "unresolved"]
+            },
+            "rationale": { "type": "string", "minLength": 1 }
+          }
+        },
+        "protected_resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["classes", "default_access", "policy"],
+          "properties": {
+            "classes": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            },
+            "default_access": {
+              "type": "string",
+              "enum": ["none", "read_only", "bounded_write", "jit", "operator_only", "rejected"]
+            },
+            "policy": { "type": "string", "minLength": 1 }
+          }
+        },
+        "default_disposition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "replacement_route", "activation_requirements"],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": ["active_profile", "dormant_zero_profile", "deferred_fail_closed", "catalogued_zero_profile", "rejected"]
+            },
+            "replacement_route": { "type": "string", "minLength": 1 },
+            "activation_requirements": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            }
+          }
+        },
+        "canary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "probes"],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["passed", "required_before_activation", "not_applicable", "rejected"]
+            },
+            "probes": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            }
+          }
+        },
+        "database_allowlist": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "evidence_sources": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "unresolved_gaps": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
     "upstream_server": {
       "type": "object",
       "additionalProperties": false,
@@ -202,6 +432,17 @@
           },
           "uniqueItems": true
         },
+        "env_aliases": {
+          "type": "object",
+          "description": "Child environment variable names mapped to reviewed parent environment variable names. Values remain names only; the stdio adapter resolves secret values at process launch.",
+          "propertyNames": {
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          }
+        },
         "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
         "health_check_type": {
           "type": "string",
@@ -243,9 +484,21 @@
           "pattern": "^[a-z][a-z0-9_]*$",
           "description": "Bifrost MCP client name. Underscores only; no hyphens or spaces."
         },
+        "admission_evidence": {
+          "$ref": "#/$defs/admission_evidence"
+        },
         "is_code_mode_client": {
           "type": "boolean",
           "description": "When true, render this upstream as a Bifrost Code Mode MCP client. Use only for heavy global clients after exact tool inventory and rollback are documented."
+        },
+        "allowed_extra_headers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Per-request headers forwarded to HTTP/SSE MCP servers."
+        },
+        "is_ping_available": {
+          "type": "boolean",
+          "description": "Whether Bifrost should issue MCP ping probes to this client."
         },
         "headers": {
           "type": "object",
@@ -274,7 +527,9 @@
             "quarantine",
             "dormant",
             "dormant_project_scoped",
-            "developer_preview_oauth_pending"
+            "developer_preview_oauth_pending",
+            "catalogued_unverified",
+            "rejected"
           ],
           "description": "Lifecycle posture. dormant_project_scoped = registered but not default-exposed pending project lease. developer_preview_oauth_pending = registered remote MCP awaiting OAuth proof."
         },
@@ -305,7 +560,7 @@
               },
               "access_policy": {
                 "type": "string",
-                "enum": ["jit_short", "operator_scope", "billable_approval"]
+                "enum": ["default_profile", "jit_short", "operator_scope", "billable_approval"]
               },
               "description": { "type": "string" },
               "content_trust_class": {
@@ -347,6 +602,24 @@
           },
           "then": {
             "required": ["wrapper_script"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": ["catalogued_unverified", "rejected"]
+              }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["admission_evidence"],
+            "properties": {
+              "enabled": { "const": false },
+              "capability_profiles": { "maxItems": 0 },
+              "permitted_tools": { "maxItems": 0 }
+            }
           }
         }
       ]

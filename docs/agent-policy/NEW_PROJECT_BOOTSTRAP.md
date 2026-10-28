@@ -21,7 +21,7 @@ Every managed project starts from one governed Bootstrap Milestone (M0) that est
 6. **Inspect** manifests, lockfiles, repository state, and Git history.
 7. **Run Context Fabric locally** through the repository hook/CLI for capture and drift/reality checks.
 8. **Discover architecture** with native IDE semantic/source tools; use an explicit project-owned Serena process only when needed, and run Depwire/Tentra diagnostics with an explicit cwd.
-9. **Resolve exact dependency versions** and ensure every used lockfile/manifest pin has a local official docs catalog row: check `F:\AgentCore\runtime\docs-store\CATALOG.json` and arabold list_libraries / find_version; on miss, scrape_docs the official source, wait until search_docs hits, write the versioned snapshot under F:\AgentCore\runtime\docs-store\official\{library}\{version}\, then query locally. Context7 (gateway only) may bridge the current turn for public libraries while the scrape runs.
+9. **Inventory and ingest direct external dependencies** from active runtime, development, and build manifests, plus directly used external SDKs/APIs/CLIs. Exclude transitive and project-local packages. Resolve exact installed or locked versions first; a version range is not an exact pin. Use latest stable only when no exact project version exists and record the resolved version. For every `library@version`, verify the shared `F:\AgentCore\runtime\docs-store\CATALOG.json` entry, Arabold `find_version`, and real `search_docs` hits. On missing or invalid coverage, scrape the official source for that version, wait for `get_job_info` to finish, write/update the catalog and `F:\AgentCore\runtime\docs-store\official\{library}\{version}\` snapshot, then search locally. Record when the publisher has no versioned docs; do not claim exact-version coverage from unverified latest docs. Context7 through the gateway may bridge a public-doc question while scraping but is not completion evidence.
 10. **Create from templates** (`templates/project-governance/.agentcore/`):
    - `PROJECT_CHARTER.md`
    - `MILESTONES.md` + `milestones/M0-bootstrap.md`
@@ -32,7 +32,7 @@ Every managed project starts from one governed Bootstrap Milestone (M0) that est
    - `ACCEPTANCE_TESTS.md`
 11. **Select tools**: record `core_active` and Milestone-0/Milestone-1 tools in `TOOL_MANIFEST.yaml` per `TOOL_LIFECYCLE_POLICY.md`.
 12. **Establish a restore point** (clean commit or tagged state).
-13. **Complete M0 acceptance checks** (all governance files exist and validate; original prompt preserved; Context Fabric checkpoint recorded; Arabold checkpoint means a CATALOG.json row exists for every dependency pin the project actually uses).
+13. **Complete M0 acceptance checks** (all governance files exist and validate; original prompt preserved; Context Fabric checkpoint recorded; Arabold checkpoint means verified shared coverage for every direct external dependency, or an explicit blocker for missing/failed coverage; the project records only a lightweight docs checkpoint with library, exact resolved version, official URL, shared-catalog status, and last verification, never scraped third-party docs).
 14. **Perform the first tool audit** and record it in `TOOL_MANIFEST.yaml`.
 15. **Disable Bootstrap-only tools** not needed for Milestone 1 (recorded as `dormant` in the manifest; runtime enforcement arrives with memory-platform M6).
 

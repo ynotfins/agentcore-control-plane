@@ -31,6 +31,8 @@ SCRIPT_PATH = Path(__file__).resolve()
 REPO_ROOT = SCRIPT_PATH.parents[2]
 CURSOR_GLOBAL_RULE = Path(r"C:\Users\ynotf\.cursor\rules\agentcore-foundation.mdc")
 CURSOR_GENERATED_RULE = REPO_ROOT / "ide-profiles" / "cursor" / "GLOBAL_RULES.md"
+GLOBAL_AGENT_POLICY = REPO_ROOT / "contracts" / "global-agent-policy.yaml"
+CURSOR_IDE_PROFILE = REPO_ROOT / "ide-profiles" / "cursor" / "IDE_PROFILE.yaml"
 
 REQUIRED_CAPABILITY = "authority_maintainer"
 APPROVAL_ID_PATTERN = re.compile(r"^AUTH-[0-9]{4}-[0-9]{2}-[0-9]{2}-[A-Z0-9_-]+$")
@@ -167,11 +169,25 @@ def _validate_yaml(path: Path, expected_projects: list[Path] | None = None) -> N
         raise ValueError(f"{path} has an invalid language_backend")
 
 
-def _atomic_write(path: Path, content: str) -> None:
+_UNCHECKED = object()
+
+
+def _optional_bytes(path: Path) -> bytes | None:
+    try:
+        return path.read_bytes()
+    except FileNotFoundError:
+        return None
+
+
+def _atomic_write(
+    path: Path, content: str | bytes, *, expected_before: bytes | None | object = _UNCHECKED
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.serena-maintenance.tmp")
     try:
-        temporary.write_text(content, encoding="utf-8", newline="")
+        temporary.write_bytes(content.encode("utf-8") if isinstance(content, str) else content)
+        if expected_before is not _UNCHECKED and _optional_bytes(path) != expected_before:
+            raise RuntimeError(f"{path} changed before atomic replace")
         os.replace(temporary, path)
     finally:
         if temporary.exists():
@@ -181,27 +197,56 @@ def _atomic_write(path: Path, content: str) -> None:
 def _cursor_global_rule_content() -> str:
     if not CURSOR_GENERATED_RULE.is_file():
         raise FileNotFoundError(CURSOR_GENERATED_RULE)
+    generated = CURSOR_GENERATED_RULE.read_text(encoding="utf-8")
+    try:
+        import yaml
+    except ImportError as exc:  # pragma: no cover - environment-specific guard
+        raise RuntimeError("PyYAML is required for Cursor rule validation") from exc
+    policy = yaml.safe_load(GLOBAL_AGENT_POLICY.read_text(encoding="utf-8"))
+    if not isinstance(policy, dict) or not isinstance(policy.get("policy_revision"), str):
+        raise ValueError(f"{GLOBAL_AGENT_POLICY} has no policy revision")
+    profile = yaml.safe_load(CURSOR_IDE_PROFILE.read_text(encoding="utf-8"))
+    scripts_root = str(REPO_ROOT / "scripts")
+    if scripts_root not in sys.path:
+        sys.path.insert(0, scripts_root)
+    from render_ide_rules import render
+
+    rendered_revisions = re.findall(r"\(policy_revision ([^)]+)\)", generated)
+    if rendered_revisions != [policy["policy_revision"]]:
+        raise ValueError(
+            f"{CURSOR_GENERATED_RULE} policy revision does not match {GLOBAL_AGENT_POLICY}"
+        )
+    if generated != render(profile, policy):
+        raise ValueError(f"{CURSOR_GENERATED_RULE} is stale for the current policy and Cursor profile")
+    if "STAGING ONLY" in generated:
+        raise ValueError(f"{CURSOR_GENERATED_RULE} is a staging rule")
     frontmatter = """\
 ---
-description: AgentCore foundation and Serena-centered powerhouse toolchain for Cursor.
+description: Current AgentCore foundation policy for Cursor.
 globs: ["**/*"]
 alwaysApply: true
 ---
 
 """
-    return frontmatter + CURSOR_GENERATED_RULE.read_text(encoding="utf-8")
+    return frontmatter + generated
 
 
-def _validate_cursor_global_rule(path: Path) -> None:
+def _cursor_nfa_appendix(text: str) -> str:
+    marker = "\n## NFA Platform documentation integrity rule\n"
+    if marker not in text:
+        if "## NFA Platform documentation integrity rule" in text:
+            raise ValueError("Cursor NFA appendix has an unexpected heading format")
+        return ""
+    if text.count(marker) != 1:
+        raise ValueError("Cursor NFA appendix appears more than once")
+    return text[text.index(marker) :]
+
+
+def _validate_cursor_global_rule(path: Path, appendix: str | None = None) -> None:
     text = path.read_text(encoding="utf-8")
-    required = (
-        text.startswith("---\n"),
-        "alwaysApply: true" in text,
-        "policy_revision 2026-07-26" in text,
-        "Serena-centered powerhouse toolchain" in text,
-        "STAGING ONLY" not in text,
-    )
-    if not all(required):
+    if appendix is None:
+        appendix = _cursor_nfa_appendix(text)
+    if text != _cursor_global_rule_content() + appendix:
         raise ValueError(f"{path} does not contain the current active Cursor foundation rule")
     if re.search(r"sk-[A-Za-z0-9_-]{20,}|BEGIN (RSA|OPENSSH|PRIVATE) KEY", text):
         raise ValueError(f"{path} contains a secret-like literal")
@@ -210,13 +255,12 @@ def _validate_cursor_global_rule(path: Path) -> None:
 def install_cursor_rule(*, approval_id: str, dry_run: bool = False) -> dict[str, object]:
     """Install the generated Cursor foundation rule through one audited target."""
 
-    content = _cursor_global_rule_content()
+    current_bytes = _optional_bytes(CURSOR_GLOBAL_RULE)
+    current = current_bytes.decode("utf-8").replace("\r\n", "\n") if current_bytes is not None else ""
+    appendix = _cursor_nfa_appendix(current)
+    content = _cursor_global_rule_content() + appendix
+    content_bytes = content.encode("utf-8")
     if dry_run:
-        current = (
-            CURSOR_GLOBAL_RULE.read_text(encoding="utf-8")
-            if CURSOR_GLOBAL_RULE.is_file()
-            else ""
-        )
         return {
             "ok": True,
             "dry_run": True,
@@ -229,17 +273,20 @@ def install_cursor_rule(*, approval_id: str, dry_run: bool = False) -> dict[str,
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     backup_dir = BACKUP_ROOT / f"cursor-global-rule-{timestamp}"
     backup_dir.mkdir(parents=True, exist_ok=False)
-    before = (
-        _sha256(CURSOR_GLOBAL_RULE)
-        if CURSOR_GLOBAL_RULE.is_file()
-        else None
-    )
+    before = hashlib.sha256(current_bytes).hexdigest() if current_bytes is not None else None
     backup_file = backup_dir / "agentcore-foundation.mdc.before"
+    verified_backup: bytes | None = None
+    replaced = False
     try:
-        if CURSOR_GLOBAL_RULE.is_file():
+        if current_bytes is not None:
             shutil.copy2(CURSOR_GLOBAL_RULE, backup_file)
-        _atomic_write(CURSOR_GLOBAL_RULE, content)
-        _validate_cursor_global_rule(CURSOR_GLOBAL_RULE)
+            copied = backup_file.read_bytes()
+            if len(copied) != len(current_bytes) or hashlib.sha256(copied).hexdigest() != before:
+                raise RuntimeError("Cursor rule backup is incomplete or changed")
+            verified_backup = copied
+        _atomic_write(CURSOR_GLOBAL_RULE, content_bytes, expected_before=current_bytes)
+        replaced = True
+        _validate_cursor_global_rule(CURSOR_GLOBAL_RULE, appendix)
         manifest = {
             "operation": "cursor_global_rule_install",
             "approval_id": approval_id,
@@ -257,11 +304,20 @@ def install_cursor_rule(*, approval_id: str, dry_run: bool = False) -> dict[str,
             encoding="utf-8",
         )
         return {"ok": True, **manifest}
-    except Exception:
-        if backup_file.is_file():
-            _atomic_write(CURSOR_GLOBAL_RULE, backup_file.read_text(encoding="utf-8"))
-        elif before is None and CURSOR_GLOBAL_RULE.exists():
-            CURSOR_GLOBAL_RULE.unlink()
+    except Exception as exc:
+        if replaced:
+            if _optional_bytes(CURSOR_GLOBAL_RULE) != content_bytes:
+                exc.add_note("Cursor rule changed after install; rollback skipped")
+            else:
+                try:
+                    if current_bytes is None:
+                        CURSOR_GLOBAL_RULE.unlink()
+                    elif verified_backup is not None:
+                        _atomic_write(
+                            CURSOR_GLOBAL_RULE, verified_backup, expected_before=content_bytes
+                        )
+                except Exception as rollback_exc:
+                    exc.add_note(f"Cursor rule rollback failed: {rollback_exc}")
         raise
 
 

@@ -1,42 +1,20 @@
 {
   "mcpServers": {
     "agentcore-gateway": {
-      "url": "http://127.0.0.1:8080/mcp",
+      "url": "http://127.0.0.1:18082/mcp",
       "timeout": 300,
-      "headers": {
-        "Authorization": "Bearer PASTE_BIFROST_VK_HERE"
-      },
-      "_note": "Replace PASTE_BIFROST_VK_HERE with Windows User env BIFROST_MCP_VIRTUAL_KEY. Never commit resolved value."
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "PASTE_PROJECT_ROOT_HERE"],
-      "_note": "Project-local. Replace PASTE_PROJECT_ROOT_HERE with project root (e.g. /path/to/repo). Install directly — not via Bifrost."
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_TOKEN": "PASTE_GITHUB_TOKEN_HERE"
-      },
-      "_note": "Project-local. Replace PASTE_GITHUB_TOKEN_HERE with a GitHub PAT. Not via Bifrost."
-    },
-    "serena": {
-      "command": "node",
-      "args": ["PASTE_SERENA_ENTRY_POINT_HERE"],
-      "_note": "Optional. Project-local serena for semantic code intelligence. Replace with path to serena MCP entry point if installed. Not via Bifrost."
+      "_note": "Headerless access uses the Bifrost-owned process-attested loopback proxy; no virtual key is stored in Devin configuration."
     }
   },
   "_agentcore": {
     "renderer": "devin",
     "source_contract": "contracts/agentcore-gateway-client.json",
     "notes": [
-      "Sanitized template — never commit resolved VK, tokens, or secrets.",
-      "agentcore-gateway provides 46 tools: arabold-docs, context7, sequential-thinking, agentcore-memory, playwright, morph-mcp, mcp-prompt-optimizer, skills-hub, cursor-agent-mcp, agentcore-project-router.",
-      "filesystem, github, serena, depwire, tentra are project-scoped; install directly in Devin project config.",
-      "Devin is NOT restricted to these servers. Install any additional MCP servers the project needs.",
-      "For cloud-hosted Devin: tunnel http://127.0.0.1:8080/mcp to the host machine."
+      "Sanitized source template; no resolved virtual key, token, or credential is permitted in Git.",
+      "agentcore-gateway is the only AgentCore MCP entry. Do not add direct filesystem, GitHub, Serena, Depwire, Tentra, database, Recall, or other AgentCore upstream entries.",
+      "Preserve a documented Devin-native or plugin-owned integration only when it does not duplicate an AgentCore upstream, memory route, or database tool.",
+      "Loopback reachability is required. A cloud-hosted Devin environment without a separately approved private connectivity design remains unsupported_with_reason; never expose Bifrost publicly."
     ]
   },
-  "_template_note": "DERIVED from renderers/gateway-clients/devin.json. Replace PASTE_* placeholders. Never commit resolved secrets."
+  "_template_note": "DERIVED from renderers/gateway-clients/devin.json. Replace only the PASTE_BIFROST_VK_HERE placeholder during approved live enrollment. Never commit resolved secrets."
 }

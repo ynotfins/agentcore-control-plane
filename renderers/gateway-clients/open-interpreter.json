@@ -2,10 +2,7 @@
   "mcpServers": {
     "agentcore-gateway": {
       "type": "http",
-      "url": "http://127.0.0.1:8080/mcp",
-      "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-      },
+      "url": "http://127.0.0.1:18082/mcp",
       "timeout": 300
     }
   },
@@ -13,7 +10,8 @@
     "renderer": "open-interpreter",
     "source_contract": "contracts/agentcore-gateway-client.json",
     "notes": [
-      "Live cutover may materialize BIFROST_MCP_VIRTUAL_KEY when env expansion is unsupported."
+      "This JSON renderer is for Interpreter Desktop and uses the process-attested loopback proxy without a stored bearer.",
+      "The separate Open Interpreter CLI TOML route uses bearer_token_env_var against :8080."
     ]
   }
 }
