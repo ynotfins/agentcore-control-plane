@@ -1,8 +1,8 @@
 param(
   [string]$TaskPath = "\AgentCore\",
   [string]$TaskName = "KnowledgeCorpusSync",
-  [string]$At = "3:00am",
-  [string]$RepoRoot = "D:\agentcore-worktrees\agentcore-control-plane\qa-quarantine-worker"
+  [string]$At = "4:30am",
+  [string]$RepoRoot = "D:\agentcore-worktrees\agentcore-control-plane\main"
 )
 
 $ErrorActionPreference = "Stop"
