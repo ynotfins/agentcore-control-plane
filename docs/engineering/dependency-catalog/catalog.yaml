@@ -289,7 +289,89 @@ dependencies:
       Not yet required. Evaluate only if agentcore-memory needs an HTTP surface
       beyond Bifrost stdio. Brings uvicorn dependency. Review against alternative
       of plain http.server with custom routing.
-    last_review: "2026-07-16"
+      Official FastAPI docs may be indexed in Arabold without adopting FastAPI
+      as an AgentCore runtime dependency.
+    last_review: "2026-10-29"
+
+  - package: sentence-transformers
+    ecosystem: python
+    status: approved
+    purpose: Local dense embeddings for knowledge-corpus ingest (nomic-embed-text-v1.5)
+    version_policy: ">=3.0,<4.0"
+    tested_version: "3.4.1"
+    source: https://pypi.org/project/sentence-transformers/
+    repository: https://github.com/UKPLab/sentence-transformers
+    documentation: https://www.sbert.net/
+    license: Apache-2.0
+    provenance: UKPLab / Hugging Face ecosystem; Apache-2.0
+    security_notes: >
+      Runs offline after model download into F:\AgentCore\runtime\models.
+      HashEmbedder remains emergency fallback only.
+    alternatives_considered: "Ollama nomic-embed-text (idle on this PC), OpenAI cloud embeddings (rejected for this plane)"
+    approval_reason: >
+      AUTH 2026-10-29 for Agent Knowledge Library. Vectors store only in PG18 pgvector;
+      package is ingest-runtime only under F:\AgentCore\runtime\knowledge-corpus.
+    last_review: "2026-10-29"
+
+  - package: tree-sitter
+    ecosystem: python
+    status: approved
+    purpose: AST-scoped chunking for boilerplate code ingest
+    version_policy: ">=0.22,<0.25"
+    tested_version: "0.24.0"
+    source: https://pypi.org/project/tree-sitter/
+    repository: https://github.com/tree-sitter/py-tree-sitter
+    documentation: https://github.com/tree-sitter/py-tree-sitter
+    license: MIT
+    provenance: tree-sitter project; MIT
+    security_notes: Local parsing only; no network.
+    alternatives_considered: "regex scope chunking (fallback remains)"
+    approval_reason: "AUTH 2026-10-29; Windows cp313 wheel verified with tree-sitter-python/typescript."
+    last_review: "2026-10-29"
+
+  - package: tree-sitter-python
+    ecosystem: python
+    status: approved
+    purpose: Python grammar for knowledge-corpus AST chunking
+    version_policy: ">=0.23,<0.25"
+    tested_version: "0.23.6"
+    source: https://pypi.org/project/tree-sitter-python/
+    repository: https://github.com/tree-sitter/tree-sitter-python
+    documentation: https://github.com/tree-sitter/tree-sitter-python
+    license: MIT
+    provenance: tree-sitter; MIT
+    security_notes: Local grammar only.
+    alternatives_considered: "tree-sitter-languages (no Python 3.13 wheels)"
+    approval_reason: "AUTH 2026-10-29; preferred over tree-sitter-languages on Python 3.13."
+    last_review: "2026-10-29"
+
+  - package: tree-sitter-typescript
+    ecosystem: python
+    status: approved
+    purpose: TypeScript/TSX grammars for knowledge-corpus AST chunking
+    version_policy: ">=0.23,<0.25"
+    tested_version: "0.23.2"
+    source: https://pypi.org/project/tree-sitter-typescript/
+    repository: https://github.com/tree-sitter/tree-sitter-typescript
+    documentation: https://github.com/tree-sitter/tree-sitter-typescript
+    license: MIT
+    provenance: tree-sitter; MIT
+    security_notes: Local grammar only.
+    alternatives_considered: "tree-sitter-languages (no Python 3.13 wheels)"
+    approval_reason: "AUTH 2026-10-29; preferred over tree-sitter-languages on Python 3.13."
+    last_review: "2026-10-29"
+
+  - package: tree-sitter-languages
+    ecosystem: python
+    status: rejected
+    purpose: Prebuilt Tree-sitter grammar pack
+    version_policy: n/a
+    source: https://pypi.org/project/tree-sitter-languages/
+    license: Apache-2.0
+    rejection_reason: >
+      No Python 3.13 wheels on this workstation. Prefer tree-sitter-python and
+      tree-sitter-typescript instead.
+    last_review: "2026-10-29"
 
   - package: detect-secrets
     ecosystem: python
