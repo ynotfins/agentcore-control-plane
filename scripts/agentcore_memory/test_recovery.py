@@ -311,7 +311,12 @@ def test_existing_ten_tool_surface_gains_recovery_without_new_server() -> None:
         "recovery_mode",
         "continuation_cursor",
         "page_size",
+        "framework",
+        "asset_type",
+        "language",
     } <= set(retrieve_properties)
+    docs_properties = tools["docs_search"]["inputSchema"]["properties"]
+    assert {"framework", "asset_type", "language"} <= set(docs_properties)
     assert "project_key" in tools["expand_source"]["inputSchema"]["properties"]
     assert tools["expand_source"]["inputSchema"]["required"] == [
         "project_key",

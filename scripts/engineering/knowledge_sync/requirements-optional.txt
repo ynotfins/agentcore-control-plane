@@ -1,0 +1,9 @@
+# Runtime pins for the Code QA gate. Install into scripts/.venv only.
+# tree-sitter-languages is rejected (no Python 3.13 wheels).
+# tree-sitter-dart 0.1.0 needs language ABI 15; tree-sitter 0.24.0 is ABI 13-14.
+# Flutter .dart files therefore fail closed until a later AUTH'd tree-sitter bump.
+tree-sitter==0.24.0
+tree-sitter-python==0.23.6
+tree-sitter-typescript==0.23.2
+tree-sitter-dart==0.1.0
+tree-sitter-kotlin==1.1.0
