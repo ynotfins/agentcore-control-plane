@@ -39,6 +39,7 @@ def upsert_chunk(
     trust_class: str,
     chunk: Chunk,
     dry_run: bool = False,
+    extra_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     source_kind = resolve_source_kind(asset_type, caps)
     vectors = embedder.embed([chunk.body[:8000]])
@@ -55,7 +56,9 @@ def upsert_chunk(
         "embedding_model": embedder.model_id,
         "embedding_dim": embedder.dim,
         "content_sha256": content_sha256(chunk.body),
+        "version": version,
         **chunk.extra_metadata,
+        **(extra_metadata or {}),
     }
     provenance = {
         "maintainer": "operator",

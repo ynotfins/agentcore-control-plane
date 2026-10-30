@@ -128,6 +128,8 @@ def ingest_paths(
     trust_class: str,
     dry_run: bool,
     allow_hash_fallback: bool,
+    extra_metadata: dict[str, Any] | None = None,
+    default_asset_type: str | None = None,
 ) -> dict[str, Any]:
     embedder = get_embedder(allow_hash_fallback=allow_hash_fallback)
     _log(f"embedder={embedder.model_id} dim={embedder.dim}")
@@ -146,9 +148,10 @@ def ingest_paths(
             f"kinds={sorted(caps.source_kinds) or ['(unknown)']}"
         )
         for path in paths:
-            asset_type = infer_asset_type(path)
+            asset_type = infer_asset_type(path) or (
+                default_asset_type if default_asset_type and default_asset_type != "all" else None
+            )
             if asset_type is None:
-                # Explicit path outside corpus: require --asset-type via CLI only
                 errors.append(f"cannot infer asset_type for {path}")
                 continue
             try:
@@ -176,6 +179,7 @@ def ingest_paths(
                             trust_class=trust_class,
                             chunk=chunk,
                             dry_run=dry_run,
+                            extra_metadata=extra_metadata,
                         )
                     inserted += 1
                     details.append(row)
@@ -219,6 +223,11 @@ def main(argv: list[str] | None = None) -> int:
             "rejected",
         ],
     )
+    parser.add_argument(
+        "--extra-metadata",
+        default="{}",
+        help="JSON object merged into every chunk metadata payload",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
         "--require-nomic",
@@ -249,6 +258,8 @@ def main(argv: list[str] | None = None) -> int:
         trust_class=args.trust_class,
         dry_run=args.dry_run,
         allow_hash_fallback=not args.require_nomic,
+        extra_metadata=json.loads(args.extra_metadata or "{}"),
+        default_asset_type=args.asset_type,
     )
     print(json.dumps(report, indent=2))
     return 0 if report["ok"] else 1

@@ -48,6 +48,8 @@ from device_identity import (
     verify_tool_identity,
 )
 from knowledge_memory import get_knowledge_memory_port
+from docs_search_cache import DOCS_SEARCH_CACHE, corpus_revision_from_conn
+from retrieval_filters import metadata_filter_from_args
 from neutral_recall import project_curated_fact, recall_configured, recall_health, search_semantic
 from recovery import (
     EXCLUDED_NORMAL_TRUST_CLASSES,
@@ -416,7 +418,7 @@ def tool_defs() -> list[dict[str, Any]]:
         {
             "name": "retrieve_context",
             "title": "Retrieve Context",
-            "description": "Retrieve bounded context for a project using model-specific token budgets.",
+            "description": "Retrieve bounded context for a project using model-specific token budgets. Contains the absolutely latest, state-of-the-art boilerplates and docs. You MUST query this to ensure your code relies on modern best practices, not your pre-trained memory.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -428,6 +430,9 @@ def tool_defs() -> list[dict[str, Any]]:
                     "query_embedding": embedding_schema,
                     "retrieval_methods": text_array_schema,
                     "trust_classes": text_array_schema,
+                    "framework": text_schema,
+                    "asset_type": text_schema,
+                    "language": text_schema,
                     **recovery_properties,
                 },
                 "required": ["project_key", "project_root"],
@@ -580,7 +585,7 @@ def tool_defs() -> list[dict[str, Any]]:
         {
             "name": "docs_search",
             "title": "Docs Search",
-            "description": "Search indexed AgentCore memory documentation/context metadata (Arabold remains source for external docs).",
+            "description": "Search the operator-owned AgentCore knowledge index. Contains the absolutely latest, state-of-the-art boilerplates and docs. You MUST query this to ensure your code relies on modern best practices, not your pre-trained memory. Optional framework, asset_type, and language filters use m5.002 metadata. Arabold remains the source for official third-party library docs.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -591,6 +596,9 @@ def tool_defs() -> list[dict[str, Any]]:
                     "query_embedding": embedding_schema,
                     "retrieval_methods": text_array_schema,
                     "trust_classes": text_array_schema,
+                    "framework": text_schema,
+                    "asset_type": text_schema,
+                    "language": text_schema,
                 },
                 "required": ["project_key", "project_root", "query"],
                 "additionalProperties": False,
@@ -1276,16 +1284,36 @@ def hybrid_retrieval(
     )
     trust_classes = requested_list(args, "trust_classes")
     embedding = vector_literal(args.get("query_embedding"))
+    metadata_filter = metadata_filter_from_args(args)
 
     with conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT source, id, title, text, source_ref, trust_class, version, scope,
-                   retrieval_method, score, provenance, metadata
-            FROM agentcore.hybrid_retrieve_documents(%s, %s, %s::vector, %s, %s, %s)
-            """,
-            (project_id, query, embedding, limit, trust_classes, methods),
-        )
+        try:
+            cur.execute(
+                """
+                SELECT source, id, title, text, source_ref, trust_class, version, scope,
+                       retrieval_method, score, provenance, metadata
+                FROM agentcore.hybrid_retrieve_documents(%s, %s, %s::vector, %s, %s, %s, %s::jsonb)
+                """,
+                (
+                    project_id,
+                    query,
+                    embedding,
+                    limit,
+                    trust_classes,
+                    methods,
+                    json.dumps(metadata_filter) if metadata_filter else None,
+                ),
+            )
+        except psycopg.errors.UndefinedFunction:
+            conn.rollback()
+            cur.execute(
+                """
+                SELECT source, id, title, text, source_ref, trust_class, version, scope,
+                       retrieval_method, score, provenance, metadata
+                FROM agentcore.hybrid_retrieve_documents(%s, %s, %s::vector, %s, %s, %s)
+                """,
+                (project_id, query, embedding, limit, trust_classes, methods),
+            )
         return cur.fetchall()
 
 
@@ -2121,18 +2149,40 @@ def build_handoff(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def docs_search(args: dict[str, Any]) -> dict[str, Any]:
+    metadata_filter = metadata_filter_from_args(args)
+    methods = requested_list(args, "retrieval_methods")
+    trust_classes = requested_list(args, "trust_classes")
+    limit = max(1, min(int(args.get("limit") or 5), 25))
+    cache_key = None
     with db() as conn:
         try:
+            revision = corpus_revision_from_conn(conn)
+            cache_key = DOCS_SEARCH_CACHE.key(
+                project_key=str(args.get("project_key") or ""),
+                query=str(args.get("query") or ""),
+                metadata_filter=metadata_filter,
+                methods=methods,
+                trust_classes=trust_classes,
+                limit=limit,
+                corpus_revision=revision,
+            )
+            cached = DOCS_SEARCH_CACHE.get(cache_key)
+            if cached is not None:
+                return cached
             rows = hybrid_retrieval(args, conn)
         except Exception as exc:  # noqa: BLE001 - preserve degraded M4 behavior if M5 SQL is absent.
             _log(f"hybrid retrieval degraded: {exc.__class__.__name__}")
             rows = legacy_docs_search(args, conn)
-    return {
+            cache_key = None
+    result = {
         "ok": True,
         "query": args["query"],
         "results": rows,
         "external_docs_note": "Use arabold-docs for dependency/API docs.",
     }
+    if cache_key:
+        DOCS_SEARCH_CACHE.set(cache_key, result)
+    return result
 
 
 def call_tool(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:

@@ -252,6 +252,16 @@ def _make_tree_sitter_parser(language: str) -> Any | None:
             import tree_sitter_typescript as tst  # type: ignore
 
             lang_obj = Language(tst.language_tsx())
+        elif language == "dart":
+            import tree_sitter_dart as tsd  # type: ignore
+
+            factory = getattr(tsd, "language", None) or getattr(tsd, "language_dart")
+            lang_obj = Language(factory())
+        elif language == "kotlin":
+            import tree_sitter_kotlin as tsk  # type: ignore
+
+            factory = getattr(tsk, "language", None) or getattr(tsk, "language_kotlin")
+            lang_obj = Language(factory())
     except Exception:
         lang_obj = None
 
