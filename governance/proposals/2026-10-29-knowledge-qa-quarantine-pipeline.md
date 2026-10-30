@@ -62,7 +62,7 @@ Locked files (`BLUEPRINT.md`, memory-platform docs, Bifrost registry) stay uncha
 ## Automation
 
 Script: `ops/Invoke-AgentCoreKnowledgeCorpusSync.ps1` (dry-run default).  
-Scheduled task `\AgentCore\KnowledgeCorpusSync` stays unregistered until GitHub PR #2 (ingest runner) merges into `main` and this branch rebases onto that tip. Nightly 04:00, hidden, logs only, no desktop popup.
+Scheduled task `\AgentCore\KnowledgeCorpusSync` is registered hidden at 03:00 with `-Apply` after PR #2 merged and this branch rebased. Tree-sitter is pinned at 0.25.2 so Flutter Dart parses. Chunks store the latest release tag or commit date for “latest” filters.
 
 Seed remotes are enrolled as `boilerplate` with `auto_promote: false` and tight include globs: Flutter samples, Android Compose samples, Refine, create-t3-app, and shadcn/ui. First ingest still holds.
 

@@ -225,8 +225,10 @@ def evaluate_breaking_change(
     reasons: list[str] = []
     if not qa_ok:
         reasons.append("qa_failed")
-    if not enrolled or first_ingest:
+    if not enrolled:
         reasons.append("first_or_unenrolled_remote")
+    elif first_ingest:
+        pass
     if major_jump:
         reasons.append("major_version_jump")
     if changed_file_count > max_changed_files:

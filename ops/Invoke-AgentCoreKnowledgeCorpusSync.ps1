@@ -6,9 +6,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSCommandPath | Split-Path -Parent
-$python = Join-Path $repoRoot "scripts\.venv\Scripts\python.exe"
-if (-not (Test-Path -LiteralPath $python)) {
-  throw "Runtime python missing: $python"
+$candidates = @(
+  (Join-Path $repoRoot "scripts\.venv\Scripts\python.exe"),
+  "D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe",
+  "F:\AgentCore\runtime\knowledge-corpus\Scripts\python.exe"
+)
+$python = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+if (-not $python) {
+  throw "Runtime python missing. Install the knowledge-sync pins into scripts\.venv."
 }
 
 $logRoot = "E:\AgentCoreArchive\agentcore-memory\service-logs\knowledge-sync"
@@ -16,16 +21,16 @@ New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $log = Join-Path $logRoot "sync-$stamp.log"
 
-$args = @(
+$workerArgs = @(
   "-m", "scripts.engineering.knowledge_sync.sync_worker",
   "--catalog", $CatalogPath
 )
-if ($Apply) { $args += "--apply" }
-if ($Rollback) { $args += @("--rollback", $Rollback) }
+if ($Apply) { $workerArgs += "--apply" }
+if ($Rollback) { $workerArgs += @("--rollback", $Rollback) }
 
 $psi = @{
   FilePath = $python
-  ArgumentList = $args
+  ArgumentList = $workerArgs
   WorkingDirectory = $repoRoot
   RedirectStandardOutput = $log
   RedirectStandardError = ($log + ".err")
@@ -43,5 +48,6 @@ if ($proc.ExitCode -ne 0) {
   apply = [bool]$Apply
   rollback = $Rollback
   log = $log
-  note = "Dry-run unless -Apply. Scheduled registration is operator-only."
+  python = $python
+  note = "Nightly registration uses -Apply at 03:00."
 } | ConvertTo-Json

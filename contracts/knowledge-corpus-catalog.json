@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "purpose": "Allowlisted remotes for the AgentCore knowledge-corpus quarantine sync. First ingest always holds. Whole-framework dumps stay rejected.",
+  "purpose": "Allowlisted remotes for the AgentCore knowledge-corpus quarantine sync. Enrolled remotes may promote after QA. Whole-framework dumps stay rejected.",
   "quarantine_root": "E:\\AgentCoreArchive\\agentcore-memory\\knowledge-quarantine",
   "promoted_root": "E:\\AgentCoreArchive\\agentcore-memory\\knowledge-corpus",
   "hold_root": "E:\\AgentCoreArchive\\agentcore-memory\\quarantine\\knowledge-sync",
   "state_path": "E:\\AgentCoreArchive\\agentcore-memory\\knowledge-quarantine\\sync-state.json",
   "log_root": "E:\\AgentCoreArchive\\agentcore-memory\\service-logs\\knowledge-sync",
-  "max_changed_files": 40,
+  "max_changed_files": 80,
   "auto_promote_default": false,
   "remotes": [
     {
@@ -14,7 +14,7 @@
       "url": "https://github.com/flutter/samples.git",
       "ref": "refs/heads/main",
       "enrolled": true,
-      "auto_promote": false,
+      "auto_promote": true,
       "asset_type": "boilerplate",
       "framework": "flutter",
       "language": "dart",
@@ -26,14 +26,14 @@
         "simplistic_editor/**/*.dart",
         "google_maps/**/*.dart"
       ],
-      "max_changed_files": 40
+      "max_changed_files": 80
     },
     {
       "id": "android-compose-samples",
       "url": "https://github.com/android/compose-samples.git",
       "ref": "refs/heads/main",
       "enrolled": true,
-      "auto_promote": false,
+      "auto_promote": true,
       "asset_type": "boilerplate",
       "framework": "android",
       "language": "kotlin",
@@ -45,14 +45,14 @@
         "JetNews/**/*.kt",
         "Jetsnack/**/*.kt"
       ],
-      "max_changed_files": 40
+      "max_changed_files": 80
     },
     {
       "id": "refine-examples",
       "url": "https://github.com/refinedev/refine.git",
       "ref": "refs/heads/main",
       "enrolled": true,
-      "auto_promote": false,
+      "auto_promote": true,
       "asset_type": "boilerplate",
       "framework": "refine",
       "language": "typescript",
@@ -64,14 +64,14 @@
         "examples/blog-material-ui/**/*.ts",
         "examples/blog-material-ui/**/*.md"
       ],
-      "max_changed_files": 40
+      "max_changed_files": 80
     },
     {
       "id": "create-t3-app",
       "url": "https://github.com/t3-oss/create-t3-app.git",
       "ref": "refs/heads/main",
       "enrolled": true,
-      "auto_promote": false,
+      "auto_promote": true,
       "asset_type": "boilerplate",
       "framework": "nextjs",
       "language": "typescript",
@@ -84,14 +84,14 @@
         "cli/template/**/*.tsx",
         "cli/template/**/*.md"
       ],
-      "max_changed_files": 40
+      "max_changed_files": 80
     },
     {
       "id": "shadcn-ui",
       "url": "https://github.com/shadcn-ui/ui.git",
       "ref": "refs/heads/main",
       "enrolled": true,
-      "auto_promote": false,
+      "auto_promote": true,
       "asset_type": "boilerplate",
       "framework": "react",
       "language": "typescript",
@@ -102,7 +102,7 @@
         "apps/v4/registry/new-york-v4/ui/**/*.tsx",
         "apps/v4/registry/new-york-v4/ui/**/*.ts"
       ],
-      "max_changed_files": 40
+      "max_changed_files": 80
     }
   ]
 }

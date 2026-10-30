@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import json
-import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -19,6 +19,22 @@ except ImportError:  # pytest loading this file as a loose module
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CATALOG = REPO_ROOT / "contracts" / "knowledge-corpus-catalog.json"
+ASSET_FOLDERS = {
+    "boilerplate": "boilerplates",
+    "docs": "docs",
+    "agent_rule": "agent-rules",
+    "openapi": "openapi",
+}
+DEFAULT_DENY_GLOBS = (
+    "**/node_modules/**",
+    "node_modules/**",
+    "**/.git/**",
+    "**/.venv/**",
+    "**/dist/**",
+    "**/build/**",
+)
+DENY_DIR_NAMES = {"node_modules", ".git", ".venv", "dist", "build"}
+TAG_RE = re.compile(r"refs/tags/(.+)$")
 
 
 def _now() -> str:
@@ -68,19 +84,79 @@ def parse_major(version: str | None) -> str | None:
     return parts[0] if parts and parts[0].isdigit() else None
 
 
-def filter_changed_files(files: list[Path], include_globs: list[str], root: Path) -> tuple[list[Path], list[str]]:
+def _semver_key(tag: str) -> tuple[int, ...]:
+    cleaned = tag.lstrip("v")
+    parts: list[int] = []
+    for item in re.split(r"[.\-+]", cleaned):
+        if item.isdigit():
+            parts.append(int(item))
+        else:
+            break
+    return tuple(parts) if parts else (0,)
+
+
+def latest_release_tag(url: str) -> str | None:
+    result = run_git(["ls-remote", "--tags", "--refs", url])
+    if result.returncode != 0:
+        return None
+    tags: list[str] = []
+    for line in (result.stdout or "").splitlines():
+        match = TAG_RE.search(line.strip())
+        if match:
+            tags.append(match.group(1))
+    if not tags:
+        return None
+    versioned = [tag for tag in tags if parse_major(tag)]
+    chosen = versioned or tags
+    return sorted(chosen, key=_semver_key)[-1]
+
+
+def commit_date(src: Path) -> str | None:
+    result = run_git(["log", "-1", "--format=%cI"], cwd=src)
+    value = (result.stdout or "").strip()
+    return value or None
+
+
+def source_recency(url: str, src: Path, sha: str) -> dict[str, Any]:
+    tag = latest_release_tag(url)
+    date = commit_date(src)
+    version = tag or (date[:10] if date else sha[:12])
+    return {
+        "source_release_tag": tag,
+        "source_commit_sha": sha,
+        "source_commit_date": date,
+        "version": version,
+        "recency_key": date or version,
+        "is_latest": True,
+    }
+
+
+def filter_changed_files(
+    files: list[Path],
+    include_globs: list[str],
+    root: Path,
+    deny_globs: list[str] | None = None,
+) -> tuple[list[Path], list[str]]:
     allowed: list[Path] = []
     unexpected: list[str] = []
+    deny = list(deny_globs or DEFAULT_DENY_GLOBS)
     for path in files:
         rel = path.relative_to(root).as_posix()
+        if ".." in Path(rel).parts:
+            unexpected.append(rel)
+            continue
+        denied = any(part in DENY_DIR_NAMES for part in Path(rel).parts) or any(
+            Path(rel).match(pattern) or fnmatch.fnmatch(rel, pattern) for pattern in deny
+        )
         matched = any(
             Path(rel).match(pattern) or fnmatch.fnmatch(rel, pattern)
             for pattern in include_globs
         )
+        if matched and denied:
+            unexpected.append(rel)
+            continue
         if matched:
             allowed.append(path)
-        else:
-            unexpected.append(rel)
     return allowed, unexpected
 
 
@@ -92,17 +168,21 @@ def write_hold(hold_root: Path, remote_id: str, payload: dict[str, Any]) -> Path
     return dest
 
 
-def maybe_ingest(promoted_paths: list[Path], remote: dict[str, Any], dry_run: bool) -> dict[str, Any]:
+def maybe_ingest(
+    promoted_paths: list[Path],
+    remote: dict[str, Any],
+    dry_run: bool,
+    recency: dict[str, Any],
+) -> dict[str, Any]:
     ingest = REPO_ROOT / "scripts" / "engineering" / "knowledge_corpus" / "ingest.py"
     if not ingest.is_file():
         return {
             "ok": False,
             "skipped": True,
             "reason": "ingest_runner_absent_on_this_branch",
-            "hint": "DB agent ingest lives on feat/local-agent-knowledge-corpus",
         }
     if dry_run:
-        return {"ok": True, "dry_run": True, "files": [str(p) for p in promoted_paths]}
+        return {"ok": True, "dry_run": True, "files": [str(p) for p in promoted_paths], "recency": recency}
     cmd = [
         sys.executable,
         "-m",
@@ -113,6 +193,10 @@ def maybe_ingest(promoted_paths: list[Path], remote: dict[str, Any], dry_run: bo
         str(remote.get("asset_type") or "docs"),
         "--trust-class",
         "system_verified",
+        "--version",
+        str(recency.get("version") or "unknown"),
+        "--extra-metadata",
+        json.dumps(recency),
     ]
     for path in promoted_paths:
         cmd.extend(["--path", str(path)])
@@ -122,6 +206,7 @@ def maybe_ingest(promoted_paths: list[Path], remote: dict[str, Any], dry_run: bo
         "returncode": result.returncode,
         "stdout": (result.stdout or "")[-2000:],
         "stderr": (result.stderr or "")[-2000:],
+        "recency": recency,
     }
 
 
@@ -175,8 +260,9 @@ def sync_remote(
     include = list(remote.get("include_globs") or ["**/*"])
     allowed, unexpected = filter_changed_files(files, include, src)
     qa = qa_paths(allowed, root=src)
+    recency = source_recency(str(remote["url"]), src, sha)
     pinned_major = parse_major(str(remote.get("pinned_version") or ""))
-    observed_major = parse_major(str(remote.get("observed_version") or prior.get("version") or ""))
+    observed_major = parse_major(str(recency.get("source_release_tag") or prior.get("version") or ""))
     major_jump = bool(pinned_major and observed_major and pinned_major != observed_major)
     decision = evaluate_breaking_change(
         enrolled=bool(remote.get("enrolled")),
@@ -192,6 +278,7 @@ def sync_remote(
         "id": remote_id,
         "sha": sha,
         "qa_ok": qa.ok,
+        "recency": recency,
         "findings": [f.__dict__ for f in qa.findings],
         **decision,
     }
@@ -201,7 +288,8 @@ def sync_remote(
         payload["applied"] = False
         return payload
 
-    promoted_root = Path(catalog["promoted_root"]) / str(remote.get("asset_type") or "docs") / remote_id
+    folder = ASSET_FOLDERS.get(str(remote.get("asset_type") or "docs"), "docs")
+    promoted_root = Path(catalog["promoted_root"]) / folder / remote_id
     promoted_root.mkdir(parents=True, exist_ok=True)
     copied: list[Path] = []
     for path in allowed:
@@ -209,13 +297,16 @@ def sync_remote(
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(path.read_bytes())
         copied.append(dest)
-    ingest = maybe_ingest(copied, remote, dry_run=False)
+    ingest = maybe_ingest(copied, remote, dry_run=False, recency=recency)
     payload["ingest"] = ingest
     if ingest.get("ok"):
         state.setdefault("remotes", {})[remote_id] = {
             "last_good_sha": sha,
             "promoted_at": datetime.now(timezone.utc).isoformat(),
             "file_count": len(copied),
+            "version": recency.get("version"),
+            "source_release_tag": recency.get("source_release_tag"),
+            "source_commit_date": recency.get("source_commit_date"),
         }
         payload["applied"] = True
     else:

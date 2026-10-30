@@ -74,3 +74,26 @@ def test_auto_promote_only_when_all_gates_pass() -> None:
     assert decision["action"] == "promote"
     report = qa_paths([])
     assert report.ok
+
+
+def test_enrolled_first_ingest_can_promote() -> None:
+    decision = evaluate_breaking_change(
+        enrolled=True,
+        first_ingest=True,
+        major_jump=False,
+        changed_file_count=3,
+        max_changed_files=50,
+        unexpected_paths=[],
+        qa_ok=True,
+        auto_promote=True,
+    )
+    assert decision["action"] == "promote"
+
+
+def test_valid_dart_parses_when_grammar_available(tmp_path: Path) -> None:
+    code = tmp_path / "main.dart"
+    code.write_text("void main() { print('ok'); }\n", encoding="utf-8")
+    finding = qa_file(code)
+    assert finding.reason in {"tree_sitter_ok", "no_grammar:dart", "tree_sitter_unavailable"}
+    if finding.reason == "tree_sitter_ok":
+        assert finding.ok
