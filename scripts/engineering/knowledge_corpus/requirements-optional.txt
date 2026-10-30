@@ -1,0 +1,8 @@
+# AUTH-installed 2026-10-29 into F:\AgentCore\runtime\knowledge-corpus
+sentence-transformers>=3.0,<4.0
+einops>=0.8,<1.0
+tree-sitter>=0.22,<0.25
+tree-sitter-python>=0.23,<0.25
+tree-sitter-typescript>=0.23,<0.25
+PyYAML>=6.0,<7.0
+# Note: tree-sitter-languages has no Python 3.13 wheels; use per-language packages.
