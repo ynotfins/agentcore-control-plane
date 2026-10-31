@@ -19,8 +19,42 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-10-21'
+last_validation_date: '2026-10-31'
 mcp_template_source: renderers/gateway-clients/zcode.json
+host_native_companions:
+  approval: AUTH-2026-10-31-ZCODE_DIRECT_MCP_COMPANIONS
+  evidence_path: audits/ZCODE_DIRECT_MCP_COMPANIONS_2026-10-31.md
+  status: configured_restart_required
+  launcher_root: I:\LocalApps\ZCode\mcp
+  live_config_backup: C:\Users\ynotf\.zcode\cli\config.json.bak-20261031-051205
+  servers:
+  - name: playwright
+    package: '@playwright/mcp'
+    pin: '0.0.78'
+    tools: 24
+  - name: sequential-thinking
+    package: '@modelcontextprotocol/server-sequential-thinking'
+    pin: '2.0.0'
+    tools: 1
+  - name: filesystem
+    package: '@modelcontextprotocol/server-filesystem'
+    pin: '2.1.0'
+    tools: 14
+    roots: ['D:\', 'E:\', 'C:\Users\ynotf']
+  - name: github
+    package: '@modelcontextprotocol/server-github'
+    pin: '2025.4.8'
+    tools: 26
+    credential_env: GITHUB_PERSONAL_ACCESS_TOKEN
+  - name: postgres
+    package: '@modelcontextprotocol/server-postgres'
+    pin: '0.6.2'
+    tools: 1
+    credential_env: AGENT_CORE_POSTGRES_PASSWORD
+    dsn: postgresql://postgres@127.0.0.1:55433/agent_core
+    hardening: default_transaction_read_only=on
+  note: >-
+    Host-scoped only. agentcore-gateway remains the only AgentCore memory/governance MCP front door.
 known_limitations:
 - ZCode uses headerless Trust Class A via :18082; exact Windows process ancestry must resolve to
   C:\Program Files\ZCode\ZCode.exe.

@@ -10,6 +10,7 @@
 > **Operator approval (2026-08-04):** `AUTH-2026-08-04-NEUTRAL-LOCAL-APPLICATION-STORAGE` — I: is the neutral `LocalApps` hot-data tier and AgentCore staging moves to `F:\AgentCore\staging`.
 > **Operator approval (2026-08-10):** `AUTH-2026-08-10-SWARMRECALL-NATIVE-CONTEXT-DOC-ALIGNMENT` — SwarmRecall is the PC-native semantic memory/context plane; AgentCore remains the governed gateway, exact-evidence, recovery, policy, and LangGraph checkpoint authority.
 > **Operator approval (2026-08-20):** `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION` — Zoo-Code may be added as a bounded IDE-local direct MCP companion where a host supports it; `agentcore-gateway` remains the only AgentCore memory/governance MCP front door.
+> **Operator approval (2026-10-31):** `AUTH-2026-10-31-ZCODE_DIRECT_MCP_COMPANIONS` — ZCode may run five named, version-pinned host-native MCP companions (`playwright` 0.0.78, `sequential-thinking` 2.0.0, `filesystem` 2.1.0, `github` 2025.4.8, `postgres` 0.6.2) with whole-drive filesystem roots (`D:\`, `E:\`, `C:\Users\ynotf`) and read-only raw SQL on PG18 `agent_core`; `agentcore-gateway` remains the only AgentCore memory/governance MCP front door, and the exception is scoped to this host and recorded in `audits/ZCODE_DIRECT_MCP_COMPANIONS_2026-10-31.md`.
 
 ---
 
