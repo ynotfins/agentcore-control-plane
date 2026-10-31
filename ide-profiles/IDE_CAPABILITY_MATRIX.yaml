@@ -29,6 +29,17 @@ direct_mcp_companion_policy:
       approval: AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION
       status: subject_to_current_policy
       note: Historical approval is not a blanket or sole active exception; current evidence-gated requirements apply.
+    zcode:
+      approval: AUTH-2026-10-31-ZCODE_DIRECT_MCP_COMPANIONS
+      status: active
+      evidence_path: audits/ZCODE_DIRECT_MCP_COMPANIONS_2026-10-31.md
+      scope: >-
+        Five named stdio companions in ZCode only (playwright 0.0.78, sequential-thinking 2.0.0,
+        filesystem 2.1.0, github 2025.4.8, postgres 0.6.2). agentcore-gateway remains the only
+        AgentCore memory/governance front door.
+      note: >-
+        Operator-approved 2026-10-31. Grants whole-drive filesystem roots (D:\, E:\, C:\Users\ynotf)
+        and raw read-only SQL for this host only; does not amend single-gateway for other IDEs.
 enrollment_status_codes:
   live_validated: MCP verified, tools confirmed, identity isolated, rolling context proven live
   configured_restart_required: Config written to live path; IDE/session restart required to activate
