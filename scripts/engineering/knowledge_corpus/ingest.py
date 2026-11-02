@@ -237,12 +237,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     roots: list[Path] = []
-    if args.asset_type == "all":
+    if args.path:
+        roots.extend(Path(p) for p in args.path)
+    elif args.asset_type == "all":
         roots.extend(ASSET_DIRS.values())
     else:
         roots.append(ASSET_DIRS[args.asset_type])
-    for p in args.path:
-        roots.append(Path(p))
 
     files = iter_files(roots)
     _log(f"corpus_root={CORPUS_ROOT} files={len(files)}")

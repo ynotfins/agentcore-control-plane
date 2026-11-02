@@ -7,9 +7,9 @@ param(
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSCommandPath | Split-Path -Parent
 $candidates = @(
-  (Join-Path $repoRoot "scripts\.venv\Scripts\python.exe"),
-  "D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe",
-  "F:\AgentCore\runtime\knowledge-corpus\Scripts\python.exe"
+    "F:\AgentCore\runtime\knowledge-corpus\Scripts\python.exe",
+    (Join-Path $repoRoot "scripts\.venv\Scripts\python.exe"),
+    "D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe"
 )
 $python = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 if (-not $python) {

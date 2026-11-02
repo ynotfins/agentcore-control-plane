@@ -19,6 +19,11 @@ except ImportError:  # pytest loading this file as a loose module
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CATALOG = REPO_ROOT / "contracts" / "knowledge-corpus-catalog.json"
+INGEST_PYTHON_CANDIDATES = (
+    Path(r"F:\AgentCore\runtime\knowledge-corpus\Scripts\python.exe"),
+    REPO_ROOT / "scripts" / ".venv" / "Scripts" / "python.exe",
+    Path(r"D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe"),
+)
 ASSET_FOLDERS = {
     "boilerplate": "boilerplates",
     "docs": "docs",
@@ -183,8 +188,9 @@ def maybe_ingest(
         }
     if dry_run:
         return {"ok": True, "dry_run": True, "files": [str(p) for p in promoted_paths], "recency": recency}
+    python = next((str(path) for path in INGEST_PYTHON_CANDIDATES if path.is_file()), sys.executable)
     cmd = [
-        sys.executable,
+        python,
         "-m",
         "scripts.engineering.knowledge_corpus.ingest",
         "--framework",
@@ -269,7 +275,7 @@ def sync_remote(
     pinned_major = parse_major(str(remote.get("pinned_version") or ""))
     observed_major = parse_major(str(recency.get("source_release_tag") or prior.get("version") or ""))
     major_jump = bool(pinned_major and observed_major and pinned_major != observed_major)
-    qa_ok = not hard_fail and bool(passing_paths)
+    qa_ok = bool(passing_paths)
     decision = evaluate_breaking_change(
         enrolled=bool(remote.get("enrolled")),
         first_ingest=not bool(prior.get("last_good_sha")),
