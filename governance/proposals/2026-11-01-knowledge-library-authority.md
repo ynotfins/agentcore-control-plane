@@ -1,8 +1,8 @@
 # Proposal: lock the knowledge-library laws and point every agent at them
 
 **Date:** 2026-11-01  
-**Status:** new files written on `feat/knowledge-library-authority`. Locked/governed files **not** edited.  
-**Approval id when unlocking:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`
+**Status:** applied 2026-11-01 after operator UNLOCK. Four laws added to `operator_locked`. Pointers landed in `DOC_AUTHORITY.md`, `AGENTS.md`, `contracts/global-agent-policy.yaml`, and `DOCUMENTATION_READ_ORDER.md`.  
+**Approval:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`
 
 ## Already written (normal workstream — no UNLOCK)
 

@@ -31,6 +31,10 @@ classes:
       - AUTHORITY_LOCK.md
       - contracts/authority-lock.yaml
       - docs/boundaries/SWARM_FOREIGN_BOUNDARY.md
+      - docs/knowledge-library/LIBRARY_CONSTITUTION.md
+      - docs/knowledge-library/AGENT_USE_LAW.md
+      - docs/knowledge-library/PROMOTION_AND_TRUST.md
+      - docs/knowledge-library/LIBRARY_AGENT_CHARTER.md
   governed_mutable:
     permitted_writer_capability: authority_maintainer
     required_approval_identifier: true

@@ -1,7 +1,7 @@
 # Library Agent Charter
 
-**Status:** stable law.  
-**Approval intent:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`  
+**Status:** operator-locked.  
+**Approval:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`  
 **Agent name:** Library agent (`agentcore` knowledge-library)  
 **Bootstrap prompt:** `docs/prompts/library-agent-goal-mode.md`
 

@@ -1,7 +1,7 @@
 # Promotion and Trust Law — Knowledge Library
 
-**Status:** stable law.  
-**Approval intent:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`
+**Status:** operator-locked.  
+**Approval:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`
 
 Agents trust the library because **only QA-passing, allowlisted files** reach `retrieval_documents`. Last-good always remains queryable.
 

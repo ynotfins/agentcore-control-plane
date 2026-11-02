@@ -17,12 +17,14 @@ Hardcoded read sequence for a managed project:
 11. Manifests and lockfiles (package.json/lock, pyproject/uv.lock, etc.)
 12. Context Fabric current state (capture/drift)
 13. Arabold exact-version docs index (`.agentcore/docs/DOCS_INDEX.md` or project equivalent)
-14. Relevant implementation files
+14. Knowledge library query (`docs_search` / `retrieve_context` with `framework` + `asset_type`) when the work is Flutter, Android Compose, Refine, Next.js, React/shadcn, or FastAPI structure. Laws: `docs/knowledge-library/`. A miss is `LIBRARY MISS` — do not invent from training memory.
+15. Relevant implementation files
 
 Rules:
 
 - Agents must **not** load every historical document automatically. Historical/superseded documents (per `DOC_AUTHORITY.md` classification and in-file banners) are read only when a specific fact requires them.
 - Add explicit deferred commitments to `docs/current/MASTER_TODO.md` only under `DEFERRED_COMMITMENT_POLICY.md`; active project Milestones and checklists take precedence.
 - For control-plane memory/database work, the additional authority chain is `CONTEXT_BLOCK.md` → `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`. Historical implementation handoffs are consulted only for a specifically cited evidence question.
+- For Flutter / Android / Refine / Next.js / React / FastAPI structure, the knowledge-library laws in `docs/knowledge-library/` are stable authority subordinate to BLUEPRINT M5. Nightly corpus sync must not rewrite those laws.
 - Machine facts (hardware, drives, installed software) come from `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md`, never from ad-hoc memory.
 - When authoring **Cursor prompts** that list authority or evidence files, write each path as `@` + full absolute Windows path (for example `@D:\github\agentcore-control-plane\PROJECT_ANCHOR.md`, `@C:\Users\ynotf\.cursor\plans\<plan>.plan.md`). Do not use shortened relative paths. If further Cursor work remains, end with a ready-to-paste `CURSOR CONTINUATION PROMPT` section.

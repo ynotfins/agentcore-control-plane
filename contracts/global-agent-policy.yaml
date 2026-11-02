@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-10-23-pi-bifrost-http-shim-v1"
+policy_revision: "2026-11-01-knowledge-library-authority-v1"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -314,6 +314,23 @@ mandatory_rules:
       local coverage or completion evidence. Do not scrape private/authenticated docs without
       approval, Swarm-owned product trees, unrelated sites, or registry latest over an exact pin.
 
+  - id: knowledge-library
+    title: Operator knowledge library before framework scaffolding
+    rule: >-
+      The operator-owned knowledge library is M5 hybrid retrieval on PostgreSQL 18
+      retrieval_documents plus cold files on E:\AgentCoreArchive\agentcore-memory\knowledge-corpus.
+      Agents reach it only through agentcore-gateway → agentcore-memory docs_search or
+      retrieve_context. Before scaffolding or inventing structure for Flutter, Android Compose,
+      Refine, Next.js/T3, React/shadcn, or FastAPI, query with framework and
+      asset_type=boilerplate and base the work on those hits. Official library@version API facts
+      remain arabold-docs. A corpus miss is LIBRARY MISS and blocks that sub-task; do not invent
+      from training memory. Quarantine and hold files are investigation only. Nightly
+      KnowledgeCorpusSync may update enrolled remotes, promoted files, and the index; it must
+      never rewrite docs/knowledge-library laws or other operator-locked governing documents.
+      Do not add a second knowledge MCP, raw-SQL agent_core from the IDE, or dump a whole
+      framework repository into the corpus. Laws: docs/knowledge-library/LIBRARY_CONSTITUTION.md,
+      AGENT_USE_LAW.md, PROMOTION_AND_TRUST.md, LIBRARY_AGENT_CHARTER.md.
+
   - id: tool-audits
     title: Milestone tool audits
     rule: >-
@@ -544,6 +561,8 @@ references:
   gateway_client: contracts/agentcore-gateway-client.json
   model_context_profiles: contracts/model-context-profiles.json
   memory_platform_plan: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
+  knowledge_library_constitution: docs/knowledge-library/LIBRARY_CONSTITUTION.md
+  knowledge_library_use_law: docs/knowledge-library/AGENT_USE_LAW.md
   dormant_mcp_catalog: docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md
   openrouter_mcp_runbook: docs/operations/OPENROUTER_MCP.md
   workstation_package_managers: docs/operations/WORKSTATION_PACKAGE_MANAGERS.md

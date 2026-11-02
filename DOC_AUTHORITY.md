@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime (current):** `F:\AgentCore\runtime\bifrost` (not design authority; historical `H:\AgentRuntime\bifrost` is vacated for Bifrost — remaining H: vacation is Milestone M9)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-09-05 (`AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT`; Bifrost v2.0.0 and OpenClaw ownership alignment)
+**Updated:** 2026-11-01 (`AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`; knowledge-library laws locked. Prior: `AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT`; Bifrost v2.0.0 and OpenClaw ownership alignment)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 
@@ -18,6 +18,8 @@ This file is the document hierarchy. It tells a new agent what to read, what is 
 5. `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md` — detailed Milestone execution guidance (derives from BLUEPRINT.md; BLUEPRINT wins on conflicts)
 6. Current Bifrost contracts and ops runbooks (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/`, `docs/operations/OPENROUTER_MCP.md`, `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `docs/operations/AUTONOMOUS_WORKFLOW_QUICKSTART.md`, and `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, `docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md`). Handoffs are point-in-time evidence unless this file explicitly classifies one as current; dates never confer authority or live readiness.
 7. `D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md` — machine-fact authority (hardware, drives, installed software, runtime snapshots)
+
+Knowledge-library laws (`docs/knowledge-library/LIBRARY_CONSTITUTION.md`, `AGENT_USE_LAW.md`, `PROMOTION_AND_TRUST.md`, `LIBRARY_AGENT_CHARTER.md`) derive from BLUEPRINT M5. They govern the operator-owned corpus behind existing `docs_search` / `retrieve_context`. They do not create a new MCP server, database, or memory plane. `PROJECT_ANCHOR.md` and `BLUEPRINT.md` win on conflicts.
 
 No other root or docs file may silently override this chain. If a document conflicts with a higher level, the higher level wins and the document must be reconciled or reclassified.
 
@@ -54,6 +56,14 @@ Historical reports, artifacts, backups, inventories, registry snapshots, and rol
 - `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` — point-in-time Context Engine v0.2.0/native-host/RUN11 acceptance; it does **not** certify current v0.2.4
 - `audits/AGENTCORE_LANGGRAPH_AUTHORITY_RECONCILIATION_2026-08-04.md` — current release/runtime/documentation reconciliation and launch gates
 - `docs/adr/ADR-2026-08-02-agentcore-bifrost-context-alignment.md` — current responsibility model, transport-plane separation, and future-extension gates
+
+**For scaffold, UI, framework-structure, or knowledge-library work, additionally attach:**
+
+- `docs/knowledge-library/LIBRARY_CONSTITUTION.md` — what the operator corpus is (E: files + PG18 `retrieval_documents` via gateway)
+- `docs/knowledge-library/AGENT_USE_LAW.md` — mandatory `docs_search` / `retrieve_context` filters before inventing structure
+- `docs/knowledge-library/PROMOTION_AND_TRUST.md` — last-good, QA promote, nightly task
+- `docs/knowledge-library/LIBRARY_AGENT_CHARTER.md` — Library agent owner and stop gates
+- `docs/prompts/library-agent-goal-mode.md` — only when running the Library agent
 
 **For any new install, app repair, local database/vector store, MCP server, IDE plugin, skill, runtime, Windows service, or scheduled task, additionally attach:**
 
@@ -117,6 +127,10 @@ Historical reports, artifacts, backups, inventories, registry snapshots, and rol
 | `docs/bifrost/*.md` | Classification, profiles, Tentra local mode, Depwire reconciliation, migration/rollback |
 | `SECURITY.md` | Secret and security policy |
 | `AGENTS.md` | Source-controlled agent operating contract |
+| `docs/knowledge-library/LIBRARY_CONSTITUTION.md` | Operator-owned knowledge library constitution (M5 hybrid retrieval; not a new MCP or database) |
+| `docs/knowledge-library/AGENT_USE_LAW.md` | Mandatory corpus query before Flutter / Android / Refine / Next.js / React / FastAPI scaffold |
+| `docs/knowledge-library/PROMOTION_AND_TRUST.md` | Last-good promote/hold law and nightly sync boundary |
+| `docs/knowledge-library/LIBRARY_AGENT_CHARTER.md` | Library agent ownership, write roots, and stop gates |
 
 ## Subordinate developer navigation (procedural; not authority)
 

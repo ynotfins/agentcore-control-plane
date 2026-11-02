@@ -1,7 +1,7 @@
 # Agent Use Law — Knowledge Library
 
-**Status:** stable law. Every AgentCore / enrolled non-Swarm agent must obey this.  
-**Approval intent:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`
+**Status:** operator-locked. Every AgentCore / enrolled non-Swarm agent must obey this.  
+**Approval:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`
 
 Agents may not invent architecture, UI structure, or boilerplate from training memory when this library or Arabold already holds the pattern.
 

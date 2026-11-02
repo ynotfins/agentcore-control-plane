@@ -1,7 +1,7 @@
 # AgentCore Knowledge Library — Constitution
 
-**Status:** stable law. Do not edit without explicit operator `UNLOCK` of this file after it is operator-locked.  
-**Approval intent:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`  
+**Status:** operator-locked. Do not edit without explicit operator `UNLOCK` of this file.  
+**Approval:** `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`  
 **Owner:** AgentCore control plane (`D:\github\agentcore-control-plane`)  
 **Live ops root:** `D:\agentcore-worktrees\agentcore-control-plane\main`
 
@@ -89,7 +89,7 @@ Enrolled starter frameworks: `flutter`, `android`, `refine`, `nextjs`, `react`, 
 
 ## 5. Change policy
 
-This constitution, the use law, the trust law, and the Library agent charter are intended to be **operator-locked**. Wording fixes must not change meaning.
+This constitution, the use law, the trust law, and the Library agent charter are **operator-locked**. Wording fixes must not change meaning. Nightly corpus sync does not unlock or rewrite them.
 
 Mutable operational files (not this constitution):
 

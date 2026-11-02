@@ -1,0 +1,47 @@
+[
+  {
+    "Path": "DOC_AUTHORITY.md",
+    "SHA256": "44AD37B2252D9C06C3C73BF503B36EF3922B7C600EAC3256D02738AA73A5425D",
+    "ReadOnly": false
+  },
+  {
+    "Path": "AGENTS.md",
+    "SHA256": "113A47E11451CF6B069048185E1EB50C31ED97D86AEE790AC00F78C558A63921",
+    "ReadOnly": false
+  },
+  {
+    "Path": "contracts\\authority-lock.yaml",
+    "SHA256": "56F609DDD1916262B05851C589BC46069C84B7F82C24977027DA044001585304",
+    "ReadOnly": false
+  },
+  {
+    "Path": "contracts\\global-agent-policy.yaml",
+    "SHA256": "139406B2B0E3881AAF289E743C7CFA959C9A22B869863B076F2A4B2F13A16DFC",
+    "ReadOnly": false
+  },
+  {
+    "Path": "docs\\agent-policy\\DOCUMENTATION_READ_ORDER.md",
+    "SHA256": "003ED24EB23B8C854EC4C5D4CF1A2397C59509396698779628D5C97067F0C18D",
+    "ReadOnly": false
+  },
+  {
+    "Path": "docs\\knowledge-library\\LIBRARY_CONSTITUTION.md",
+    "SHA256": "BFEF219BCF1138E90B520D882789450C958650E80263C931F7143EDCC0276E24",
+    "ReadOnly": false
+  },
+  {
+    "Path": "docs\\knowledge-library\\AGENT_USE_LAW.md",
+    "SHA256": "72C6EEB2B84852D6C242CE1BD9ABF16389B708E03EBEBFEA23A725CF5EEB4886",
+    "ReadOnly": false
+  },
+  {
+    "Path": "docs\\knowledge-library\\PROMOTION_AND_TRUST.md",
+    "SHA256": "347F9FAE9FBD2F883FA73871327C1D063A2946F2903F70BB352587468635EFE9",
+    "ReadOnly": false
+  },
+  {
+    "Path": "docs\\knowledge-library\\LIBRARY_AGENT_CHARTER.md",
+    "SHA256": "FBB3C950F005FFE70BE0FBEDC10514B950E1FE5345484AC975F6E037EFAA46DF",
+    "ReadOnly": false
+  }
+]
