@@ -1,0 +1,25 @@
+---
+description: Query the AgentCore knowledge library before scaffolding or inventing framework structure
+alwaysApply: true
+---
+
+# Knowledge library first
+
+The operator-owned knowledge library is live behind `agentcore-gateway` → `agentcore-memory`.
+
+Before scaffolding or inventing structure for Flutter, Android Compose, Refine, Next.js/T3, React/shadcn, or FastAPI:
+
+1. Call `docs_search` or `retrieve_context` with `asset_type=boilerplate` and the matching `framework`.
+2. Base the work on those hits.
+3. If there are no hits, write `LIBRARY MISS: <framework> boilerplate` and stop that sub-task. Do not invent from training memory.
+
+Official library/API version facts still go through `arabold-docs` (`search_docs` / `find_version`). A miss is `DOCS MISSING: <package>`. Context7 is a same-turn public bridge only.
+
+Laws (control-plane worktree or merged main):
+
+- `docs/knowledge-library/LIBRARY_CONSTITUTION.md`
+- `docs/knowledge-library/AGENT_USE_LAW.md`
+- `docs/knowledge-library/PROMOTION_AND_TRUST.md`
+- `docs/knowledge-library/LIBRARY_AGENT_CHARTER.md`
+
+Do not add a second knowledge MCP. Do not raw-SQL `agent_core` from the IDE.
