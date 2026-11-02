@@ -172,6 +172,7 @@ def maybe_ingest(
     remote: dict[str, Any],
     dry_run: bool,
     recency: dict[str, Any],
+    ingest_root: Path | None = None,
 ) -> dict[str, Any]:
     ingest = REPO_ROOT / "scripts" / "engineering" / "knowledge_corpus" / "ingest.py"
     if not ingest.is_file():
@@ -197,8 +198,11 @@ def maybe_ingest(
         "--extra-metadata",
         json.dumps(recency),
     ]
-    for path in promoted_paths:
-        cmd.extend(["--path", str(path)])
+    if ingest_root is not None:
+        cmd.extend(["--path", str(ingest_root)])
+    else:
+        for path in promoted_paths[:40]:
+            cmd.extend(["--path", str(path)])
     result = subprocess.run(cmd, cwd=str(REPO_ROOT), check=False, capture_output=True, text=True)
     return {
         "ok": result.returncode == 0,
@@ -305,7 +309,9 @@ def sync_remote(
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(path.read_bytes())
         copied.append(dest)
-    ingest = maybe_ingest(copied, remote, dry_run=False, recency=recency)
+    ingest = maybe_ingest(
+        copied, remote, dry_run=False, recency=recency, ingest_root=promoted_root
+    )
     payload["ingest"] = ingest
     if ingest.get("ok"):
         state.setdefault("remotes", {})[remote_id] = {
