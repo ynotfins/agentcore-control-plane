@@ -1,0 +1,27 @@
+[
+  {
+    "Path": "DOC_AUTHORITY.md",
+    "SHA256": "FD04B439A74A6167617B9551A4ED6F8C4458BEAE5466E55C6C33C13C0FA60AEF",
+    "ReadOnly": false
+  },
+  {
+    "Path": "AGENTS.md",
+    "SHA256": "E8180C763AB348AC1AFE5C45A03686E39FE6AF30FF5181253E20EE8A76F41E5E",
+    "ReadOnly": false
+  },
+  {
+    "Path": "contracts\\authority-lock.yaml",
+    "SHA256": "90CE8CF3AA4C00C1F85AC143BFDF517448CBC2858E9E7B8303562957EA32B9F4",
+    "ReadOnly": false
+  },
+  {
+    "Path": "contracts\\global-agent-policy.yaml",
+    "SHA256": "7B7E1B4440EF82D77427F14788BA2BE91946193D883B6E2DA1E19407490A8AE7",
+    "ReadOnly": false
+  },
+  {
+    "Path": "docs\\agent-policy\\DOCUMENTATION_READ_ORDER.md",
+    "SHA256": "27A6ECAA33F01479C69E83D57802B73CEB880CB87F8B1BAF4D840111A9160552",
+    "ReadOnly": false
+  }
+]
