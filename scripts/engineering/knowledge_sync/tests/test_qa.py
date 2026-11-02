@@ -9,7 +9,7 @@ HERE = Path(__file__).resolve().parents[1]
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
-from qa import evaluate_breaking_change, qa_file, qa_paths
+from qa import evaluate_breaking_change, partition_qa, qa_file, qa_paths
 
 
 def test_markdown_requires_heading_and_existing_local_link(tmp_path: Path) -> None:
@@ -74,6 +74,34 @@ def test_auto_promote_only_when_all_gates_pass() -> None:
     assert decision["action"] == "promote"
     report = qa_paths([])
     assert report.ok
+
+
+def test_partition_skips_soft_markdown_and_holds_secrets(tmp_path: Path) -> None:
+    good = tmp_path / "ok.md"
+    good.write_text("# Ok\n", encoding="utf-8")
+    soft = tmp_path / "soft.md"
+    soft.write_text("no heading\n", encoding="utf-8")
+    leak = tmp_path / "leak.md"
+    leak.write_text("# Leak\napi_key = 'sk-abcdefghijklmnopqrstuvwxyz'\n", encoding="utf-8")
+    report = qa_paths([good, soft, leak])
+    passing, skipped, hard = partition_qa(report)
+    assert [Path(item.path).name for item in passing] == ["ok.md"]
+    assert [Path(item.path).name for item in skipped] == ["soft.md"]
+    assert [Path(item.path).name for item in hard] == ["leak.md"]
+
+
+def test_first_ingest_ignores_changed_file_bound() -> None:
+    decision = evaluate_breaking_change(
+        enrolled=True,
+        first_ingest=True,
+        major_jump=False,
+        changed_file_count=200,
+        max_changed_files=80,
+        unexpected_paths=[],
+        qa_ok=True,
+        auto_promote=True,
+    )
+    assert decision["action"] == "promote"
 
 
 def test_enrolled_first_ingest_can_promote() -> None:

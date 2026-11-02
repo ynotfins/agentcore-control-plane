@@ -33,7 +33,7 @@ def test_include_globs_skip_unmatched_and_flag_denied(tmp_path: Path) -> None:
         src,
     )
     assert denied == []
-    assert any("node_modules" in item for item in unexpected_denied)
+    assert unexpected_denied == []
 
 
 def test_major_parse() -> None:

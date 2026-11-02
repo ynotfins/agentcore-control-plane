@@ -200,6 +200,35 @@ def qa_file(path: Path, *, root: Path | None = None) -> QAFinding:
     return QAFinding(str(path), True, "text_ok")
 
 
+HARD_FAIL_REASONS = frozenset(
+    {
+        "secret_pattern",
+        "binary_or_media",
+        "not_utf8",
+        "not_a_file",
+    }
+)
+
+
+def is_hard_fail(reason: str) -> bool:
+    return reason in HARD_FAIL_REASONS or reason.startswith("secret")
+
+
+def partition_qa(report: QAReport) -> tuple[list[QAFinding], list[QAFinding], list[QAFinding]]:
+    """Split findings into passing, soft-skip, and hard-fail."""
+    passing: list[QAFinding] = []
+    soft: list[QAFinding] = []
+    hard: list[QAFinding] = []
+    for finding in report.findings:
+        if finding.ok:
+            passing.append(finding)
+        elif is_hard_fail(finding.reason):
+            hard.append(finding)
+        else:
+            soft.append(finding)
+    return passing, soft, hard
+
+
 def qa_paths(paths: list[Path], *, root: Path | None = None) -> QAReport:
     report = QAReport(ok=True)
     for path in paths:
@@ -221,7 +250,12 @@ def evaluate_breaking_change(
     qa_ok: bool,
     auto_promote: bool,
 ) -> dict[str, Any]:
-    """Return a hold/promote decision. Last-good wins on any hold reason."""
+    """Return a hold/promote decision. Last-good wins on any hold reason.
+
+    Include-glob matches are the size bound for a remote. First ingest may
+    exceed max_changed_files so a bounded sample repo can land. Later updates
+    still hold if the passing set jumps the bound.
+    """
     reasons: list[str] = []
     if not qa_ok:
         reasons.append("qa_failed")
@@ -231,7 +265,7 @@ def evaluate_breaking_change(
         pass
     if major_jump:
         reasons.append("major_version_jump")
-    if changed_file_count > max_changed_files:
+    if changed_file_count > max_changed_files and not first_ingest:
         reasons.append("changed_file_bound")
     if unexpected_paths:
         reasons.append("unexpected_path")
