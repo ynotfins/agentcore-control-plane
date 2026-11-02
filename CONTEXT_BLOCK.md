@@ -73,7 +73,7 @@ agentcore-memory
 | PC-native semantic memory/context | Neutral SwarmRecall | Live/healthy |
 | Project committed context and drift | Context Fabric | Adopted repo-locally; shared Bifrost exposure dormant |
 | Current upstream documentation | Arabold Docs | Required candidate corpus indexed and retrieval-proven; Bifrost corpus has an explicit metadata limitation |
-| Semantic code intelligence | Native IDE/project-local tools; Serena catalogued | Shared Bifrost Serena dormant until explicit per-session routing exists |
+| Semantic code intelligence | Serena live as Code Mode under serena/ | Navigation tools default; remaining Serena tools available immediately — request them now; do not skip because they are not auto-run. Pass agentcore_project. |
 | Production autonomy | LangGraph | CE024 controlled production canary certified; operational residuals remain before unattended commercial launch |
 | Bounded implementation/review | Cursor project subagents | Seven project roles present with current frontmatter, including authority-drift, Bifrost diagnosis, and MCP-contract roles |
 
@@ -124,7 +124,7 @@ The single `agentcore-gateway` MCP entry does not make Cursor model prompts trav
 6. Alignment-skill native copies are hash-matched but remain `installed_unverified` until fresh-task discovery is proven per host.
 7. SwarmClaw needs a separate Swarm-owned adapter/skill and live autonomous acceptance; no AgentCore skill is installed there.
 8. DeepSeek v4 Flash did not terminate reliably in this exact Deep Agents canary. Gemini 3.6 Flash is the currently proven worker for the certified path.
-9. Shared Bifrost project-bound developer upstreams are dormant until a per-session project identity can be injected. Native IDE tools and explicit-cwd local CLIs are the safe interim path.
+9. Serena is live as Code Mode and takes identity from agentcore_project (or x-agentcore-project on header-capable paths). Depwire, Tentra, filesystem, and Context Fabric stay explicit-cwd / repo-local; their implicit-project shared Bifrost clients remain dormant.
 
 ## 4. Context Fabric disposition — ADOPTED
 

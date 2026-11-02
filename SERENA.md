@@ -3,7 +3,7 @@
 **Authority:** `D:\github\agentcore-control-plane`
 **Scope:** AgentCore-managed developer tooling and the optional neutral dual-control-plane
 Cursor workspace for read-only collision/boundary audits only
-**Runtime:** Serena `1.5.4.dev0` catalogued; shared Bifrost upstream dormant pending explicit per-session project routing
+**Runtime:** Serena `1.5.4.dev0` live through the HTTP session shim at `127.0.0.1:18090` and Bifrost Code Mode (`serena/` virtual files)
 **Last verified:** 2026-08-02
 
 This document describes how Serena is configured, routed, isolated, validated,
@@ -56,7 +56,7 @@ Under ADR-2026-09-09 (`docs/adr/ADR-2026-09-09-serena-http-session-shim.md`), Se
 2. **Dynamic Header Forwarding:** Bifrost forwards `x-agentcore-project`, `x-bf-session-id`, `x-session-id`, and `x-bf-vk` via `allowed_extra_headers`.
 3. **Enrollment Boundary Enforcement:** The shim validates the target repository strictly against `contracts/agentcore-project-enrollment.json` via `scripts/bifrost/session_identity.py` (default-deny; Swarm refuse with `swarm_project_refused`). Missing or unknown identity returns `PROJECT_NOT_ENROLLED` and **never** falls back to `agentcore-control-plane`.
 4. **Isolated Subprocesses:** For each enrolled project, the shim manages an isolated Serena child process (`serena start-mcp-server --transport stdio --context ide --project <enrolled_path>`). Concurrent IDE sessions editing different repositories are completely isolated with zero cross-project symbol or file leakage.
-5. **Code Mode Placement:** Serena is admitted with `is_code_mode_client: true`. Its 21 tool definitions stay out of eager LLM context and are accessed on demand via `listToolFiles` -> `servers/serena.pyi` -> `executeToolCode`.
+5. **Code Mode Placement:** Serena is admitted with `is_code_mode_client: true`. Its 21 tool definitions stay out of eager LLM context and are accessed on demand via `listToolFiles` -> `servers/serena/*.pyi` -> `executeToolCode`. Code Mode does not forward `x-agentcore-project`; every `executeToolCode` Serena call must pass `agentcore_project` set to the enrolled `project_key`. The shim strips that reserved argument before the child sees it.
 
 **Permanent Rule (No Sticky STDIO):** Never enable Serena on a shared sticky STDIO connection. Bifrost's STDIO transport cannot inject a working directory or caller identity per turn, and machine-global `active-project.json` is strictly retired as an isolation boundary.
 
@@ -165,9 +165,9 @@ and normal AgentCore sessions must refuse Swarm-owned selection with
 Use this sequence for a nontrivial task:
 
 1. Resolve the exact repository/worktree through the host and read its authority files.
-2. Use the IDE's native semantic/source tools or an explicit-cwd local Serena diagnostic only when the host owns that process.
+2. Use Serena through agentcore-gateway Code Mode. Discover with listToolFiles, then readToolFile or executeToolCode. Pass agentcore_project on every Serena call. Use a host-owned explicit-cwd Serena process only as a diagnostic fallback.
 3. Complete AgentCore `session_open` and `startup_context` before tool work.
-4. If a host-local Serena process is explicitly available, call `initial_instructions` once for that process/session.
+4. If the task needs a write, rename, insert, or Serena-memory tool, request it now with listToolFiles. Do not skip those tools because they are not auto-run.
 5. Start with `get_symbols_overview` for the relevant source file.
 6. Use `find_symbol` to locate the precise symbol and, only when needed, read
    its body.
@@ -202,7 +202,7 @@ Use the tools by task class rather than loading every server on every turn:
 
 - **Sequential Thinking:** plan, critique, tradeoff, recovery, migration, and
   cross-system decisions.
-- **Serena:** optional host-local symbols, references, diagnostics, and semantic refactors when an explicit project-owned process is available; not a shared gateway dependency.
+- **Serena:** live Code Mode semantic intelligence under serena/. Default to navigation tools. Remaining tools are available immediately; request them now. Pass agentcore_project on every executeToolCode call. Do not add a second Serena MCP.
 - **Arabold Docs:** exact current documentation and version-specific API/SDK
   behavior before external package or protocol work.
 - **Context Fabric:** repo-local capture, drift, health, and decision checkpoints at bootstrap and Milestone entry/exit.
@@ -220,12 +220,12 @@ All normal AgentCore / enrolled non-Swarm IDE clients use the same gateway contr
 
 `http://127.0.0.1:8080/mcp`
 
-They do not add a direct Serena entry. Shared Serena is not exposed through normal Bifrost profiles until a per-session project identity is part of the routing contract.
+They do not add a direct Serena entry. Serena is live through Code Mode. Pass `agentcore_project` on every Serena `executeToolCode` call.
 
 | IDE/client | Gateway configuration | Serena usage |
 | --- | --- | --- |
-| Cursor | `C:\Users\ynotf\.cursor\mcp.json` | One `agentcore-gateway` entry; use native source tools or an explicit host-local Serena process. |
-| Codex | `C:\Users\ynotf\.codex\config.toml` | Use the gateway plus native source tools; do not add direct Serena or depend on the operator router. |
+| Cursor | `C:\Users\ynotf\.cursor\mcp.json` | One `agentcore-gateway` entry; use Serena via Code Mode with `agentcore_project`. |
+| Codex | `C:\Users\ynotf\.codex\config.toml` | Use the gateway plus Serena via Code Mode; do not add direct Serena or depend on the operator router. |
 | Claude Code | `C:\Users\ynotf\.claude.json` | Use the gateway; preserve client-local scope. |
 | Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | Use the gateway; follow its env-header limitation. |
 | MiniMax Code / Mavis | `C:\Users\ynotf\.minimax\mcp\mcp.json` | Use the gateway; Mavis is the same data root, not a second baseline. |
@@ -305,8 +305,8 @@ Then verify:
    `KeyError: 'languages'`, fatal exceptions, and uncontrolled restart loops.
 
 Do not use the machine-global project-router state as a concurrent-session
-boundary and do not re-enable the dormant shared Bifrost Serena client merely
-to satisfy a tool-discovery check.
+boundary and do not add a second Serena MCP or treat Code Mode discovery
+failure as permission to paste Serena into IDE configs.
 
 ## Validation and acceptance
 
@@ -333,8 +333,8 @@ Native IDE acceptance additionally proves the IDE itself can:
 - see the gateway after restart;
 - keep machine-global project-router mutation absent from ordinary profiles;
 - refuse Swarm-owned selection in any governed project-local Serena launch;
-- use native semantic/source tooling by default and treat Serena as an optional
-  explicit-project local process, never a shared implicit-project dependency;
+- use Serena via Code Mode with `agentcore_project`, never a second IDE Serena MCP
+  and never a shared sticky STDIO process;
 - keep Git and writes scoped to the active AgentCore / enrolled non-Swarm
   repository;
 - preserve the AgentCore memory lifecycle on allowed projects only;

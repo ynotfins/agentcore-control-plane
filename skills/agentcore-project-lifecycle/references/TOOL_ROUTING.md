@@ -7,7 +7,7 @@ Use this matrix after the exact AgentCore project and task class are known. Tool
 | Startup, resume, recovery, handoff | `agentcore-memory` through `agentcore-gateway` | session identity, retrieved event IDs, expanded source, handoff | chat summary, raw SQL, raw Recall |
 | Architecture, migration, concurrency, recovery, major refactor | `sequential-thinking` through gateway | bounded decision analysis | unsupported intuition-only decision |
 | External dependency/API/protocol/version | `arabold-docs` through gateway, then current official primary docs | version and source citation | stale model memory |
-| Symbol/reference-sensitive code work | host-native semantic tools; explicit project-owned Serena only when needed | symbols, references, implementations, diagnostics | shared implicit-project Serena or broad text search alone |
+| Symbol/reference-sensitive code work | Serena via agentcore-gateway Code Mode; pass agentcore_project; request remaining Serena tools immediately if needed | symbols, references, implementations, diagnostics | shared implicit-project Serena or broad text search alone |
 | Structural dependency change | local Depwire with exact cwd before and after | impact graph and post-change graph | shared implicit-project Depwire |
 | Milestone bootstrap/entry/exit | repo-local Context Fabric capture, drift, health | checkpoint and normalized drift | Context Fabric as canonical memory |
 | Architecture/code graph required by Milestone | local Tentra with explicit project root | bounded graph evidence | shared implicit-project Tentra |

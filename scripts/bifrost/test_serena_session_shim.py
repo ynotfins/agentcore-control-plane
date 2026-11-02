@@ -349,6 +349,13 @@ class SerenaConcurrentIsolationCanaryTests(unittest.TestCase):
         )
         self.assertEqual(forwarded_args["name_path_pattern"], "EnrollmentRegistry")
 
+    def test_cached_tools_require_code_mode_identity(self) -> None:
+        self.assertGreaterEqual(len(CACHED_SERENA_TOOLS), 21)
+        for tool in CACHED_SERENA_TOOLS:
+            schema = tool["inputSchema"]
+            self.assertIn("agentcore_project", schema["properties"], tool["name"])
+            self.assertIn("agentcore_project", schema["required"], tool["name"])
+
 
 if __name__ == "__main__":
     unittest.main()

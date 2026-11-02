@@ -290,6 +290,24 @@ def _build_durable_handoff(root_path: Path) -> dict[str, Any]:
     )
 
 
+def _bind_serena_session(session_id: str, project_key: str) -> None:
+    """Best-effort Serena shim bind. Fail open if the shim is down."""
+    if not session_id.strip() or not project_key.strip():
+        return
+    try:
+        import urllib.request
+
+        req = urllib.request.Request(
+            "http://127.0.0.1:18090/session/bind",
+            data=json.dumps({"session_id": session_id, "project_key": project_key}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        urllib.request.urlopen(req, timeout=1.5)
+    except Exception:
+        return
+
+
 def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
     conversation_id = (
         payload.get("session_id")
@@ -338,6 +356,27 @@ def handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
     env["AGENTCORE_CONTEXT_ENGINE"] = "1" if result.ok else "0"
 
     out: dict[str, Any] = {"env": env}
+    project_key = result.project_key or ""
+    session_id = result.session_id or (str(conversation_id) if conversation_id else "")
+    if project_key and session_id:
+        _bind_serena_session(session_id, project_key)
+    if project_key:
+        additional = (
+            additional
+            + "\n\nSERENA ROUTING: every executeToolCode Serena call must pass "
+            + f'agentcore_project="{project_key}". Remaining Serena tools are '
+            + "available now — request them immediately via listToolFiles; do "
+            + "not skip them because they are not auto-run."
+        ).strip()
+    if root_path is not None:
+        try:
+            from agentcore_cursor.docs_checkpoint import format_docs_checkpoint_reminder
+
+            reminder = format_docs_checkpoint_reminder(root_path).strip()
+        except Exception:
+            reminder = ""
+        if reminder:
+            additional = (additional + "\n\n" + reminder).strip()
     if additional:
         out["additional_context"] = additional[:120000]
     return out

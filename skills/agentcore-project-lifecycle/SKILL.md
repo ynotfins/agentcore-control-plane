@@ -32,7 +32,7 @@ Expose and invoke only the capabilities required for the current task and Milest
 
 - Use `sequential-thinking` before architecture, migration, concurrency, recovery, major refactor, or cross-system decisions.
 - Use `arabold-docs` before changing or relying on external packages, SDKs, APIs, CLIs, schemas, protocols, or versions. Fall back only to current official primary documentation.
-- Use host-native semantic/source tools first. Use Serena only through an explicit project-owned local process when native tools are insufficient; never activate the shared machine-global project router for ordinary IDE work.
+- Use Serena through agentcore-gateway Code Mode for symbol, reference, implementation, declaration, overview, pattern, and diagnostic work. Remaining Serena tools are available immediately; request them now if needed; do not skip them because they are not auto-run. Pass agentcore_project on every Serena executeToolCode call. Never activate the shared machine-global project router for ordinary IDE work.
 - Run Depwire with the exact project cwd before and after structural changes.
 - Use Tentra only through a governed explicit-project local workflow when the active Milestone requires architecture or code-graph evidence.
 - Use Context Fabric through its repository-local hook or CLI at bootstrap and Milestone entry/exit. It is non-canonical.

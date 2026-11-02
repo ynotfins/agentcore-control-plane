@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-10-23-pi-bifrost-http-shim-v1"
+policy_revision: "2026-11-01-serena-live-tool-gates-v1"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -119,15 +119,25 @@ mandatory_rules:
     title: Concurrent-safe project-local toolchain
     rule: >-
       For every nontrivial implementation, debugging, refactor, architecture, or recovery task,
-      resolve the exact workspace through the IDE/workflow host and follow the wiring/runbook in
-      D:\github\agentcore-control-plane\SERENA.md. Use native project-scoped semantic/source tools
-      by default. Serena may run only as an explicit project-owned local process; Depwire and
-      Tentra use explicit-cwd local diagnostics; Context Fabric uses its repository-local hook/CLI.
-      Their implicit-project shared Bifrost clients remain dormant until trustworthy per-session
-      project identity is carried on every call. Use sequential-thinking for planning and critique,
-      arabold-docs for exact-version external documentation. Do not use machine-global project-router activation as an IDE continuity
-      or concurrency boundary. Swarm runtime remains outside AgentCore and must be refused with
-      swarm_project_refused.
+      resolve the exact workspace through the IDE/workflow host and follow
+      D:\github\agentcore-control-plane\SERENA.md. Serena is live behind agentcore-gateway as
+      Code Mode virtual files under serena/. Discover with listToolFiles, then readToolFile
+      or executeToolCode. Default to navigation tools (find_symbol, find_referencing_symbols,
+      find_declaration, find_implementations, get_symbols_overview, search_for_pattern,
+      get_diagnostics_for_file). Write, rename, insert, and Serena-memory tools are
+      available immediately: if the task needs one, request it now with listToolFiles
+      then executeToolCode. Do not skip those tools because they are not auto-run.
+      Pass agentcore_project set to the enrolled project_key on every Serena
+      executeToolCode call. Do not auto-run Serena writes. Do not add a second
+      Serena MCP. Never claim Serena verification when it did not run. Depwire and
+      Tentra stay explicit-cwd local diagnostics; Context Fabric stays the repository-local
+      hook/CLI. Those implicit-project shared Bifrost clients remain dormant. Use
+      sequential-thinking before planning, architecture, critique, and non-trivial multi-step
+      work. Use arabold-docs for exact-version official documentation; durable docs stay in
+      F:\AgentCore\runtime\docs-store and each project keeps .agentcore/docs-checkpoint.json;
+      missing or mismatched coverage must scrape_docs. Do not use machine-global
+      project-router activation as an IDE continuity or concurrency boundary. Swarm runtime
+      remains outside AgentCore and must be refused with swarm_project_refused.
 
   - id: orchestration-worker-routing
     title: Codex orchestration and worker routing
@@ -472,13 +482,13 @@ task_class_gates:
     rule: "Use through agentcore-gateway for enrolled project startup, recovery, accepted evidence, handoff, and clean close; never use raw SQL or raw Recall."
   - tool_name: "arabold-docs"
     gate_type: "mandatory"
-    rule: "Mandatory before using/changing external packages, SDKs, APIs, CLIs, schemas, protocols or versions."
+    rule: "Mandatory before using or changing external packages, SDKs, APIs, CLIs, schemas, protocols, or versions. Durable official docs stay in F:\\AgentCore\\runtime\\docs-store. Each project keeps a lightweight .agentcore/docs-checkpoint.json. Missing or version-mismatched coverage must scrape_docs, wait for get_job_info, then confirm search_docs. Do not copy the F: corpus into Git."
   - tool_name: "serena"
-    gate_type: "conditional"
-    rule: "Use only as an explicit project-owned local process when native IDE semantic/source tools are insufficient. Shared Bifrost Serena remains dormant. Read SERENA.md and never claim Serena verification when it did not run."
+    gate_type: "mandatory"
+    rule: "Mandatory for symbol navigation, references, implementations, declarations, overviews, pattern search, and file diagnostics on nontrivial code work. Serena is live as Code Mode under serena/. Default to the navigation tools. Write, rename, insert, and memory tools are available immediately — request them now with listToolFiles then executeToolCode when needed; do not skip them because they are not auto-run. Pass agentcore_project on every Serena executeToolCode call. Do not add a second Serena MCP. Read SERENA.md and never claim Serena verification when it did not run."
   - tool_name: "sequential-thinking"
     gate_type: "mandatory"
-    rule: "Mandatory before architecture, migration, concurrency, recovery, major refactor or cross-system decisions."
+    rule: "Mandatory before planning, architecture, migration, concurrency, recovery, major refactor, cross-system decisions, and any non-trivial multi-step implementation. Skip only a single-file typo, a yes/no status read, or a command the operator already specified exactly."
   - tool_name: "depwire"
     gate_type: "mandatory"
     rule: "Mandatory before and after structural changes through an explicit-cwd local invocation; its shared implicit-project Bifrost client remains dormant."

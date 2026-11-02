@@ -56,7 +56,7 @@ Profiles select which upstream MCP servers (and, where implemented, which tools)
 - Swarm servers are not members of any non-Swarm profile.
 - Deferred servers (`depwire-cloud`, `github-mcp`) are not active until `enabled: true` after health gates.
 - Disabled servers (`mcp-debugger`, `artiforge`) are not active until their account/runtime health gates pass.
-- Implicit project-bound servers (`serena`, `depwire`, `tentra`, `filesystem`, `context-fabric`) are dormant in shared profiles until a per-session project identity is enforced. Native IDE tools, repo-local hooks, and explicit-cwd CLIs are the interim path.
+- Serena is live as Code Mode behind the HTTP session shim. Code Mode calls must pass `agentcore_project`. Depwire, Tentra, filesystem, and Context Fabric stay explicit-cwd / repo-local; their implicit-project shared Bifrost clients remain dormant.
 - `agentcore-project-router` mutation is operator-only and must not be treated as a multi-IDE isolation boundary.
 - `openrouter` is registered **dormant** and must NOT be added to any profile's `allowed_server_ids`. Tools require a live M6 capability lease plus Bifrost VK grant via `scripts/bifrost/jit_vk_bridge.py`. See `docs/operations/OPENROUTER_MCP.md`. The server's `capability_profiles: ["operator"]` field is a JIT-eligibility reference only — not a permanent exposure grant.
 - Classified OpenRouter groups (zero default exposure): `openrouter-discovery-read` (includes `get-preset`, `list-presets`), `openrouter-account`, `openrouter-media-generation` (`generate-speech`), `openrouter-transcription` (`transcribe-audio`), `openrouter-billable` (`send-message`/`generate-image` remain denied).

@@ -594,6 +594,28 @@ CACHED_SERENA_TOOLS = [
 ]
 
 
+def _with_code_mode_identity(tools):
+    annotated = []
+    identity_prop = {
+        "type": "string",
+        "description": "Enrolled project_key from AGENTCORE_PROJECT_KEY. Required for Code Mode executeToolCode because Bifrost does not forward x-agentcore-project on that path. Stripped before the Serena child.",
+    }
+    for tool in tools:
+        schema = dict(tool.get("inputSchema") or {"type": "object", "properties": {}})
+        props = dict(schema.get("properties") or {})
+        props["agentcore_project"] = identity_prop
+        schema["properties"] = props
+        required = list(schema.get("required") or [])
+        if "agentcore_project" not in required:
+            required.append("agentcore_project")
+        schema["required"] = required
+        annotated.append({**tool, "inputSchema": schema})
+    return annotated
+
+
+CACHED_SERENA_TOOLS = _with_code_mode_identity(CACHED_SERENA_TOOLS)
+
+
 class SerenaShimManager:
     """Singleton managing project resolution, session bindings, and child processes."""
 

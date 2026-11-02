@@ -1,0 +1,26 @@
+---
+description: When agents must use sequential-thinking, Serena, and arabold-docs
+alwaysApply: true
+---
+
+# Required foundation tools
+
+These three tools are live through `agentcore-gateway`. Do not skip them because host search, training memory, or a dormant Serena sentence from an older file feels faster. Shared Bifrost Serena is **not** dormant.
+
+Discover Code Mode tools with `listToolFiles` then `readToolFile` then `executeToolCode`. Do not add a second Serena, sequential-thinking, or arabold MCP entry to any IDE.
+
+## sequential-thinking
+
+Call sequential-thinking through the gateway before planning, architecture, migration, concurrency, recovery, major refactor, tool-route choices, and non-trivial multi-step work. Skip only a typo, a yes/no status read, or an exact operator command.
+
+## Serena
+
+Serena is live as Code Mode files under serena/. All 21 tools exist. Default to navigation tools. The remaining tools are available immediately.
+
+If the task needs a write, rename, insert, or Serena-memory tool, request it now with listToolFiles. Do not skip those tools because they are not auto-run. Not auto-run means do not fire writes without a reason, not that those tools are unavailable.
+
+Pass agentcore_project on every Serena executeToolCode call.
+
+## arabold-docs
+
+Durable official docs stay on F:\\AgentCore\\runtime\\docs-store. Project record only: .agentcore/docs-checkpoint.json. Missing docs must scrape_docs. Do not copy the F: corpus into Git.

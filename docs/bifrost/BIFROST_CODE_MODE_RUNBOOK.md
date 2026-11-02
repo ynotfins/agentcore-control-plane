@@ -37,6 +37,7 @@ Binding level `tool` is preferred for large catalogs; `server` remains a valid o
 
 ## Active Code Mode Clients (Rendered into VFS)
 
+- `serena` — 21 executable semantic tools behind the HTTP session shim; every executeToolCode call must pass `agentcore_project`
 - `morph_mcp` — 7 executable source-discovery/edit tools
 - `playwright` — 24 executable browser automation tools; no automatic execution allowlist
 - `exa_research` — 2 executable web research tools

@@ -9,7 +9,11 @@ Call `listToolFiles` (or `tools/list`) against `agentcore-gateway` **before plan
 
 # Docs-first: arabold local ingest (machine-global)
 
-Official library/SDK/API/CLI docs for every used `library@version` must live in the machine-global store:
+At bootstrap, session start, and before nontrivial project work, inventory every direct external dependency in the active project's runtime, development, and build manifests, plus directly used SDKs/APIs/CLIs. Exclude transitive and project-local packages. Resolve exact installed or locked versions first; a version range is not an exact pin. Use latest stable only when no exact project version exists, and record the resolved version.
+
+Use arabold-docs for every library, SDK, API, CLI, schema, protocol, or version fact. Training memory is not coverage. If the docs are missing, `scrape_docs` immediately.
+
+Official docs for every resolved `library@version` must live in the shared machine-global store:
 
 - Index DB: `F:\AgentCore\runtime\docs-store\arabold` (`DOCS_MCP_STORE_PATH`)
 - Catalog: `F:\AgentCore\runtime\docs-store\CATALOG.json`
@@ -21,10 +25,10 @@ All IDEs reach this store through Bifrost `arabold-docs` on `http://127.0.0.1:80
 
 If `library@version` is absent from `CATALOG.json` / `list_libraries` / `find_version` and the agent needs those docs:
 
-1. `scrape_docs` the official source for that exact version
-2. Wait until `search_docs` hits (poll `get_job_info`)
-3. Update `CATALOG.json` and the versioned snapshot
-4. Answer from the local index
+1. `scrape_docs` the official source applicable to that exact version.
+2. Wait for `get_job_info` to finish and confirm `search_docs` returns real hits.
+3. Update `CATALOG.json` and the versioned official snapshot; answer from the local index.
+4. Record library, resolved version, official URL, shared-catalog status, and last verification in `.agentcore/docs-checkpoint.json`. Do not copy the scraped corpus into the project. Verify with `python -m agentcore_cursor.docs_checkpoint` or a docs-version sub-agent. A sessionStart hook reminds agents when the checkpoint is missing or the F: catalog does not match.
 
 Context7 (gateway only) may answer **this turn** for a **public** library while the scrape job runs. Context7 answers are never the durable local corpus and never satisfy an Arabold checkpoint.
 

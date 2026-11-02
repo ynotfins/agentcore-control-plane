@@ -319,7 +319,7 @@ Gateway config keeps `mcp_disable_auto_tool_inject: true` so Bifrost does not in
 ## Optimize for AgentCore workflow
 
 1. **One gateway entry per IDE** — minimizes MCP process sprawl.
-2. **Resolve project locally** through the IDE/workflow host. Serena, Depwire, Tentra, filesystem, and Context Fabric stay dormant in shared Bifrost profiles until a per-session project identity is injected; use native project tools or explicit-cwd local diagnostics.
+2. **Resolve project locally** through the IDE/workflow host. Serena is live as Code Mode: pass `agentcore_project` on every `executeToolCode` Serena call. Depwire, Tentra, filesystem, and Context Fabric stay explicit-cwd / repo-local; their implicit-project shared Bifrost clients remain dormant.
 3. **Builder VK** for Trust Class A. Header-capable clients use it by environment reference; approved header-hostile clients receive it only through the process-attested proxy. Use reviewer/docs VKs for constrained agents.
 4. **Arabold first** for library docs (`arabold_docs-search_docs` with pinned versions in `.agentcore/docs/DOCS_INDEX.md`).
 5. **Keep Bifrost under the approved AgentCore runtime:** (`F:\AgentCore\runtime\bifrost`); start via Scheduled Task `\AgentCore\AgentCore-Bifrost-Gateway` or `ops/bifrost/Launch-AgentCoreBifrostGateway.ps1`.
