@@ -13,12 +13,17 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from .qa import evaluate_breaking_change, qa_paths
+    from .qa import evaluate_breaking_change, partition_qa, qa_paths
 except ImportError:  # pytest loading this file as a loose module
-    from qa import evaluate_breaking_change, qa_paths
+    from qa import evaluate_breaking_change, partition_qa, qa_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CATALOG = REPO_ROOT / "contracts" / "knowledge-corpus-catalog.json"
+INGEST_PYTHON_CANDIDATES = (
+    Path(r"F:\AgentCore\runtime\knowledge-corpus\Scripts\python.exe"),
+    REPO_ROOT / "scripts" / ".venv" / "Scripts" / "python.exe",
+    Path(r"D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe"),
+)
 ASSET_FOLDERS = {
     "boilerplate": "boilerplates",
     "docs": "docs",
@@ -152,8 +157,7 @@ def filter_changed_files(
             Path(rel).match(pattern) or fnmatch.fnmatch(rel, pattern)
             for pattern in include_globs
         )
-        if matched and denied:
-            unexpected.append(rel)
+        if denied:
             continue
         if matched:
             allowed.append(path)
@@ -173,6 +177,7 @@ def maybe_ingest(
     remote: dict[str, Any],
     dry_run: bool,
     recency: dict[str, Any],
+    ingest_root: Path | None = None,
 ) -> dict[str, Any]:
     ingest = REPO_ROOT / "scripts" / "engineering" / "knowledge_corpus" / "ingest.py"
     if not ingest.is_file():
@@ -183,8 +188,9 @@ def maybe_ingest(
         }
     if dry_run:
         return {"ok": True, "dry_run": True, "files": [str(p) for p in promoted_paths], "recency": recency}
+    python = next((str(path) for path in INGEST_PYTHON_CANDIDATES if path.is_file()), sys.executable)
     cmd = [
-        sys.executable,
+        python,
         "-m",
         "scripts.engineering.knowledge_corpus.ingest",
         "--framework",
@@ -198,8 +204,11 @@ def maybe_ingest(
         "--extra-metadata",
         json.dumps(recency),
     ]
-    for path in promoted_paths:
-        cmd.extend(["--path", str(path)])
+    if ingest_root is not None:
+        cmd.extend(["--path", str(ingest_root)])
+    else:
+        for path in promoted_paths[:40]:
+            cmd.extend(["--path", str(path)])
     result = subprocess.run(cmd, cwd=str(REPO_ROOT), check=False, capture_output=True, text=True)
     return {
         "ok": result.returncode == 0,
@@ -260,25 +269,34 @@ def sync_remote(
     include = list(remote.get("include_globs") or ["**/*"])
     allowed, unexpected = filter_changed_files(files, include, src)
     qa = qa_paths(allowed, root=src)
+    passing, soft_skip, hard_fail = partition_qa(qa)
+    passing_paths = [Path(item.path) for item in passing]
     recency = source_recency(str(remote["url"]), src, sha)
     pinned_major = parse_major(str(remote.get("pinned_version") or ""))
     observed_major = parse_major(str(recency.get("source_release_tag") or prior.get("version") or ""))
     major_jump = bool(pinned_major and observed_major and pinned_major != observed_major)
+    qa_ok = bool(passing_paths)
     decision = evaluate_breaking_change(
         enrolled=bool(remote.get("enrolled")),
         first_ingest=not bool(prior.get("last_good_sha")),
         major_jump=major_jump,
-        changed_file_count=len(allowed),
+        changed_file_count=len(passing_paths),
         max_changed_files=int(remote.get("max_changed_files") or catalog.get("max_changed_files") or 50),
         unexpected_paths=unexpected,
-        qa_ok=qa.ok,
+        qa_ok=qa_ok,
         auto_promote=bool(remote.get("auto_promote", catalog.get("auto_promote_default", False))),
     )
     payload = {
         "id": remote_id,
         "sha": sha,
-        "qa_ok": qa.ok,
+        "qa_ok": qa_ok,
+        "qa_all_files_ok": qa.ok,
+        "passing_file_count": len(passing_paths),
+        "soft_skip_count": len(soft_skip),
+        "hard_fail_count": len(hard_fail),
         "recency": recency,
+        "soft_skip": [item.__dict__ for item in soft_skip[:50]],
+        "hard_fail": [item.__dict__ for item in hard_fail],
         "findings": [f.__dict__ for f in qa.findings],
         **decision,
     }
@@ -292,12 +310,14 @@ def sync_remote(
     promoted_root = Path(catalog["promoted_root"]) / folder / remote_id
     promoted_root.mkdir(parents=True, exist_ok=True)
     copied: list[Path] = []
-    for path in allowed:
+    for path in passing_paths:
         dest = promoted_root / path.relative_to(src)
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(path.read_bytes())
         copied.append(dest)
-    ingest = maybe_ingest(copied, remote, dry_run=False, recency=recency)
+    ingest = maybe_ingest(
+        copied, remote, dry_run=False, recency=recency, ingest_root=promoted_root
+    )
     payload["ingest"] = ingest
     if ingest.get("ok"):
         state.setdefault("remotes", {})[remote_id] = {

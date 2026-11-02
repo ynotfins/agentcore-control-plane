@@ -2179,6 +2179,12 @@ def docs_search(args: dict[str, Any]) -> dict[str, Any]:
         "query": args["query"],
         "results": rows,
         "external_docs_note": "Use arabold-docs for dependency/API docs.",
+        "library_note": (
+            "AgentCore knowledge library is live on PG18. Prefer this search "
+            "(framework=flutter|android|refine|nextjs|react|fastapi, "
+            "asset_type=boilerplate) before pretrained memory. Official third-party "
+            "API docs stay in arabold-docs."
+        ),
     }
     if cache_key:
         DOCS_SEARCH_CACHE.set(cache_key, result)

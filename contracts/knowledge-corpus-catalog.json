@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "purpose": "Allowlisted remotes for the AgentCore knowledge-corpus quarantine sync. Enrolled remotes may promote after QA. Whole-framework dumps stay rejected.",
+  "purpose": "Allowlisted remotes for the AgentCore knowledge-corpus quarantine sync. Enrolled remotes promote QA-passing files; secret/binary hits still hold the remote. Whole-framework dumps stay rejected.",
   "quarantine_root": "E:\\AgentCoreArchive\\agentcore-memory\\knowledge-quarantine",
   "promoted_root": "E:\\AgentCoreArchive\\agentcore-memory\\knowledge-corpus",
   "hold_root": "E:\\AgentCoreArchive\\agentcore-memory\\quarantine\\knowledge-sync",
   "state_path": "E:\\AgentCoreArchive\\agentcore-memory\\knowledge-quarantine\\sync-state.json",
   "log_root": "E:\\AgentCoreArchive\\agentcore-memory\\service-logs\\knowledge-sync",
-  "max_changed_files": 80,
-  "auto_promote_default": false,
+  "max_changed_files": 400,
+  "auto_promote_default": true,
   "remotes": [
     {
       "id": "flutter-samples",
@@ -26,7 +26,7 @@
         "simplistic_editor/**/*.dart",
         "google_maps/**/*.dart"
       ],
-      "max_changed_files": 80
+      "max_changed_files": 400
     },
     {
       "id": "android-compose-samples",
@@ -45,7 +45,7 @@
         "JetNews/**/*.kt",
         "Jetsnack/**/*.kt"
       ],
-      "max_changed_files": 80
+      "max_changed_files": 400
     },
     {
       "id": "refine-examples",
@@ -64,7 +64,7 @@
         "examples/blog-material-ui/**/*.ts",
         "examples/blog-material-ui/**/*.md"
       ],
-      "max_changed_files": 80
+      "max_changed_files": 400
     },
     {
       "id": "create-t3-app",
@@ -84,7 +84,7 @@
         "cli/template/**/*.tsx",
         "cli/template/**/*.md"
       ],
-      "max_changed_files": 80
+      "max_changed_files": 400
     },
     {
       "id": "shadcn-ui",
@@ -102,7 +102,7 @@
         "apps/v4/registry/new-york-v4/ui/**/*.tsx",
         "apps/v4/registry/new-york-v4/ui/**/*.ts"
       ],
-      "max_changed_files": 80
+      "max_changed_files": 400
     }
   ]
 }
