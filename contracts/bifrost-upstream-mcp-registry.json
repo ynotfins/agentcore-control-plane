@@ -141,7 +141,6 @@
         "agentcore-memory",
         "arabold-docs",
         "context7",
-        "depwire",
         "figma-framelink-mcp",
         "github-mcp",
         "mcp-prompt-optimizer",
@@ -156,6 +155,39 @@
       "notes": [
         "Dedicated virtual key: env.BIFROST_MCP_VK_OPENCLAW",
         "Excludes agentcore-project-router and cursor-agent-mcp."
+      ]
+    },
+    "ide": {
+      "display_name": "IDE",
+      "purpose": "Process-attested IDE compatibility surface that mirrors the builder engineering toolset without operator/project-router exposure.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "agentcore-memory",
+        "apify-research",
+        "arabold-docs",
+        "context7",
+        "cursor-agent-mcp",
+        "depwire",
+        "exa-research",
+        "figma-framelink-mcp",
+        "firecrawl-research",
+        "github-mcp",
+        "mcp-debugger",
+        "mcp-prompt-optimizer",
+        "morph-mcp",
+        "nia",
+        "pi-agents",
+        "playwright",
+        "sequential-thinking",
+        "serena",
+        "skills-hub",
+        "tavily-research",
+        "tentra"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Dedicated virtual key: env.BIFROST_MCP_VK_IDE",
+        "Use for governed IDE/proxy clients that should mirror the builder MCP surface without sharing the builder key literal."
       ]
     }
   },
@@ -900,7 +932,7 @@
       "denied_tools": [],
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "ide"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -914,7 +946,7 @@
           "spawn_failure"
         ]
       },
-      "rollback_route": "Remove depwire from builder/openclaw, set enabled=false, re-render Bifrost config, and rely on the exact-cwd local CLI until project isolation is stronger.",
+      "rollback_route": "Remove depwire from builder/ide, set enabled=false, re-render Bifrost config, and rely on the exact-cwd local CLI until project isolation is stronger.",
       "enabled": true,
       "bifrost_client_name": "depwire",
       "status": "active",
@@ -997,7 +1029,7 @@
           "policy": "Use the local CLI with an explicit cwd; remote clone and write-capable MCP tools are not default IDE routes."
         },
         "default_disposition": {
-          "state": "scoped_active_builder_openclaw_only",
+          "state": "scoped_active_builder_ide_only",
           "replacement_route": "Run depwire 1.8.2 locally with the exact project cwd if the scoped gateway exposure must be rolled back.",
           "activation_requirements": [
             "Trustworthy per-session project identity before broader/shared exposure"
@@ -1018,12 +1050,12 @@
           "Shared MCP per-session project identity"
         ],
         "operator_notes": [
-          "2026-11-05: Follow-up safety fix \u2014 active/live with pinned node.exe launcher, but exposure is limited to builder/openclaw until project isolation is stronger."
+          "2026-11-05: Follow-up safety fix \u2014 active/live with pinned node.exe launcher, but virtual-key exposure is limited to builder+ide until project isolation is stronger."
         ]
       },
       "notes": [
         "Launch the packaged dist/index.js through the pinned Windows node.exe so Bifrost stdio spawn is CreateProcess-safe.",
-        "Project-scoped and write-capable: active/live only for builder/openclaw, not operator-wide or shared, until project isolation is stronger.",
+        "Project-scoped and write-capable: active/live only for builder+ide, not openclaw, operator, or broader shared exposure, until project isolation is stronger.",
         "Telemetry remains enabled; do not set DEPWIRE_NO_TELEMETRY."
       ]
     },
