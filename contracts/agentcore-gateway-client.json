@@ -245,7 +245,7 @@
       "syntax": "openclaw_json",
       "supports_env_headers": true,
       "notes": [
-        "AgentCore-owned under AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT; the current host-native OpenClaw config shape is verified.",
+        "AgentCore-owned under AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE; the current host-native OpenClaw config shape is verified.",
         "Governed product root: D:\\github\\open--claw. Windows operations root: D:\\openclaw.",
         "C:\\Users\\ynotf\\.openclaw is secret-bearing live mutable state and must not be enrolled as an AgentCore project root or edited by repository renderers.",
         "Use one mcp.servers.agentcore-gateway entry with streamable-http transport, http://127.0.0.1:8080/mcp, and Authorization: Bearer ${BIFROST_MCP_VK_OPENCLAW}; the resolved value remains in the Windows User environment.",
@@ -271,6 +271,6 @@
     "The OpenClaw product root is D:\\github\\open--claw and Windows operations root is D:\\openclaw; never enroll C:\\Users\\ynotf\\.openclaw as a project.",
     "Swarm product installs remain untouched; Swarm MCP entries are removed from non-Swarm IDE baselines during cutover.",
     "Never commit resolved virtual key values.",
-    "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT supersedes the Zoo-Code-only limit: a host-native direct MCP companion requires a documented Bifrost parity failure, exact host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes."
+    "AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE supersedes the Zoo-Code-only limit: a host-native direct MCP companion requires a documented Bifrost parity failure, exact host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes."
   ]
 }

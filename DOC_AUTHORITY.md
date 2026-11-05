@@ -3,7 +3,7 @@
 **Source authority:** `D:\github\agentcore-control-plane`
 **Bifrost runtime (current):** `F:\AgentCore\runtime\bifrost` (not design authority; historical `H:\AgentRuntime\bifrost` is vacated for Bifrost — remaining H: vacation is Milestone M9)
 **Compatibility/live-ops evidence only:** `D:\MCP-Control-Plane`
-**Updated:** 2026-11-01 (`AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY`; knowledge-library laws locked. Prior: `AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT`; Bifrost v2.0.0 and OpenClaw ownership alignment)
+**Updated:** 2026-11-04 (`AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE`; locked-doc hardening, Open Design re-land, OmniRoute enrollment, :18082 ADR Phase-2 restore, paperclip backup enroll. Prior: `AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT` superseded for current alignment; `AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT` remains historical evidence only; `AUTH-2026-11-01-KNOWLEDGE-LIBRARY-AUTHORITY` knowledge-library laws remain locked.)
 
 This file is the document hierarchy. It tells a new agent what to read, what is authoritative, and what must not be followed as current instructions.
 

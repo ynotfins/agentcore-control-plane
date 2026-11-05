@@ -58,7 +58,7 @@ SwarmVault and SwarmClaw remain a **separate Swarm ecosystem** for execution. Or
 
 - Bifrost owns MCP aggregation/governance; AgentCore owns canonical truth/recovery; the portable Context Engine owns rolling-context orchestration; neutral Recall owns semantic projections; Context Fabric owns project-local committed-state/drift evidence; Arabold owns the local official-doc cache.
 - MCP and inference are separate planes. An IDE's `agentcore-gateway` MCP entry does not prove its model requests traverse Bifrost. Do not claim OmniRoute compression applies unless the model request is explicitly routed through a validated Bifrost inference path and OmniRoute.
-- OmniRoute, Graphify, Hindsight, and CrewAI are disabled, benchmark-gated evaluation candidates. Do not install, register, start, or make them Context Engine dependencies without an approved ADR, official pin, isolation/fidelity/quality tests, and rollback.
+- OmniRoute 3.8.49 is enrolled as a Job-B loopback companion under AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE (127.0.0.1:20128, data I:\LocalApps\OmniRoute); it is not the IDE MCP front door. Graphify, Hindsight, and CrewAI remain disabled, benchmark-gated evaluation candidates. Do not register them as Context Engine dependencies without an approved ADR, official pin, isolation/fidelity/quality tests, and rollback.
 - Cursor project subagents live under `.cursor/agents/`, stay focused, default to `model: inherit`, and cannot create architecture authority. Read-only reviewers must not modify files or certify their own implementation.
 
 ## Stop Policy

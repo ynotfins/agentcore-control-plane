@@ -16,7 +16,7 @@ authorization, a timestamped backup, and post-change validation.
 1. Template: `ide-profiles/antigravity/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/antigravity.json`).
 2. Live target: `C:\Users\ynotf\.gemini\config\mcp_config.json` — exactly one AgentCore entry named `agentcore-gateway`. A host-native direct MCP companion is allowed only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback proof, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes. Historical Zoo-Code approval remains subject to this current policy.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
-4. Env handling: process-attested loopback proxy at http://127.0.0.1:18082/mcp; no bearer stored in live MCP JSON.
+4. Env handling: custom headers are supported; env-placeholder expansion in mcp_config.json headers is unverified, so prefer a Bifrost local adapter or governed live materialization from Windows User env when required.
 5. Restart behavior: restart client after MCP config changes.
 
 ## CLIENT-LOCAL EXECUTION SCOPE

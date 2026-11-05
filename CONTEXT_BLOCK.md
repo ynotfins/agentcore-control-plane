@@ -3,12 +3,12 @@ document: CONTEXT_BLOCK.md
 project: AgentCore Global Memory, Context, Database, and Governance Platform
 authority: current-state-and-implementation-progress (level 4 in DOC_AUTHORITY.md hierarchy)
 status: current
-verified_at: 2026-09-08
+verified_at: 2026-11-04
 canonical_repository: D:\github\agentcore-control-plane
 locked_blueprint: BLUEPRINT.md
 implementation_authority: docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md
 current_acceptance: audits/RESTORE_POINT_RUNTIME_ACCEPTANCE_20260809-220421.md
-current_alignment_approval: AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT
+current_alignment_approval: AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE
 ---
 
 # AgentCore Canonical Context Block
@@ -27,7 +27,7 @@ Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory
 | Pi parallel subagents | Bifrost HTTP shim `pi-agents` on 127.0.0.1:18091; builder/Code Mode; host-native fallback; not foreign Swarm | AUTH-2026-10-23-PI-BIFROST-HTTP-SHIM; see docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md |
 | Gateway surface | Exact ten-tool `agentcore-memory` identity retained; ordinary profiles exclude the operator router | Live authenticated probes are required for mutable totals; do not copy a point-in-time aggregate tool count into client configuration |
 | AgentCore memory facade | source and live `agentcore-memory` `0.9.1`; PG18 reachable at `127.0.0.1:55433`; neutral SwarmRecall is the semantic target behind the bounded adapter | Every scoped call requires exact enrolled `project_key` + `project_root`; task sessions are also bound to client, agent, device, user, canonical repository, and worktree; ten-tool identity unchanged |
-| Project enrollment | `contracts/agentcore-project-enrollment.json`; default deny; exact key + exact repository/worktree path | Shared by Cursor bootstrap, memory facade, operator router, and child launcher; ordinary IDEs cannot mutate enrollment/router state |
+| Project enrollment | `contracts/agentcore-project-enrollment.json`; default deny; exact key + exact repository/worktree path | Includes `open-design` at `D:\open-design` only (`AUTH-2026-10-26-OPEN-DESIGN-ENROLLMENT`). OmniRoute runtime data at `I:\LocalApps\OmniRoute` is not a memory project enrollment. Ordinary IDEs cannot mutate enrollment/router state. |
 | Device identity | Stored policy remains `legacy_compat`, but its migration window expired; `memory_status` is the only unprotected tool and every other memory call now requires a signed device assertion | Live unsigned `retrieve_context` returned `device_assertion_required` on 2026-09-08; historical rollout evidence remains in `audits/CONTEXT_ENGINE_FINAL_ACCEPTANCE_2026-08-02.md` |
 | Cognee | `available`, version `1.3.0`, isolated native Windows venv under `F:\AgentCore\runtime\agentcore-memory\cognee` | Live `memory_status` after governed v0.9.1 promotion; canonical retrieval remains PostgreSQL-backed |
 | Neutral Recall | Machine-level neutral semantic plane healthy at `127.0.0.1:3300`; hot data under `H:\SwarmData\recall`; AgentCore uses 11 project identities, one shared global pool, and 11 private pools | `AUTH-2026-08-01-NEUTRAL-MEMORY-CONTEXT-ENGINE`; live direct-API and signed-gateway isolation canaries passed 2026-09-08; server-side AgentCore adapter only |
@@ -36,6 +36,13 @@ Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory
 | LangGraph Studio | Dev-only `127.0.0.1:2024`; Agent Server dev checkpointer; never production thread IDs | `docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md` |
 | Context Fabric | Repo-local hook/CLI; DB schema/search-index 2, integrity ok, hook installed/ready, capture `#123` at `97c872cd98e8`; shared Bifrost upstream is dormant because caller/project identity is not forwarded | Raw Windows drift is falsely HIGH under `core.autocrlf=true`; 683/709 mismatches are CRLF-only; final accepted-HEAD capture pending |
 | Arabold Docs | Required corpus indexed and retrieval-proven for Context Fabric, Cursor, Hindsight/cookbook, OmniRoute compression, Graphify, and CrewAI; Bifrost resolves as exact version `2.0.0` | Live `list_libraries`, `find_version`, and targeted `search_docs`; the 2026-09-05 refresh failed on a missing upstream `/openapi/openapi.yaml` root and was retried from the official docs root |
+
+
+### 2026-11-04 product / runtime enrollments
+
+- **Open Design:** enrolled project `open-design` = exact path `D:\open-design`. Not a Bifrost upstream. Product data stays under `%AppData%\Roaming\Open Design\...` and is not enrolled. Cursor-only host-native companion MCP `open-design` is an approved exception (`audits/OPEN_DESIGN_CONTROL_PLANE_ENROLLMENT_2026-10-26.md`, `audits/cursor-context/OPEN_DESIGN_MCP_EXCEPTION_2026-10-26.md`). Official plugins/skills only. Claude/Codex/MiniMax product-MCP attach is not approved.
+- **OmniRoute:** live Job-B MCP client + local inference companion under `AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE`. Data root `I:\LocalApps\OmniRoute` (DATA_DIR `...\data\.omniroute`). Loopback `127.0.0.1:20128` (BelowNormal). MCP to Bifrost via User env `BIFROST_MCP_VK_OMNIROUTE` → `http://127.0.0.1:8080/mcp`. Does not replace `agentcore-gateway` as the IDE MCP front door. See `docs/adr/ADR-2026-11-04-omniroute-job-b-enrollment.md`.
+- **Raven VK:** removed from live Bifrost governance (2026-11-04). Do not re-mint without separate AUTH. Paths `D:\raven` / `I:\LocalApps\Raven` untouched by this hardening.
 
 The Bifrost process is healthy now. Prior Cursor “Not connected” incidents with a healthy direct gateway are classified as intermittent IDE MCP discovery/session state, not evidence that the Bifrost server was down. Do not restart or redesign Bifrost until gateway and upstream probes fail.
 
@@ -153,7 +160,7 @@ Required alignment corpus:
 | Cursor | `3.14.7` | Subagents, hooks, rules, MCP lifecycle |
 | Context Fabric | `1.0.7` | Capture/drift behavior |
 | Hindsight | `0.7.0` | Future learning/reflection evaluation only |
-| OmniRoute | `3.8.49` | Future inference compression/routing evaluation only |
+| OmniRoute | `3.8.49` | Live Job-B companion on `127.0.0.1:20128` (data `I:\LocalApps\OmniRoute`); MCP via Bifrost VK `BIFROST_MCP_VK_OMNIROUTE` |
 | Graphify | `0.9.22` | Future structural code-atlas evaluation only |
 | CrewAI | `1.15.10` | Future bounded LangGraph worker evaluation only |
 
@@ -163,12 +170,12 @@ Only successfully indexed official sources may be marked current in `DOC_AUTHORI
 
 | Candidate | Permitted future role | Forbidden assumption |
 | --- | --- | --- |
-| OmniRoute | Inference-path RTK + Caveman compression/provider routing behind Bifrost governance | It is not the current MCP aggregator and does not automatically see Cursor model prompts |
+| OmniRoute | Job-B MCP client + optional inference compression/routing behind Bifrost governance | Not the IDE MCP aggregator; IDEs keep `agentcore-gateway`. Model prompts traverse OmniRoute only when explicitly routed |
 | Graphify | Project-local structural code atlas via a governed Bifrost upstream | It cannot replace exact source reads, Serena, or Git freshness checks |
 | Hindsight | Derived learning/reflection using isolated project/agent banks | It cannot become canonical/lossless memory or silently retain untrusted raw data |
 | CrewAI | A/B-tested bounded worker inside selected LangGraph nodes | It cannot become a second top-level workflow/checkpoint authority |
 
-No component above is installed, started, enrolled, or added to the Context Engine by this alignment. OmniRoute `3.8.49` is present as a global npm package but is not accepted as a production runtime route. Graphify and Hindsight commands were not found at preflight.
+No component above is installed, started, enrolled, or added to the Context Engine by this alignment. OmniRoute `3.8.49` is enrolled as a Job-B loopback companion (`127.0.0.1:20128`, BelowNormal) under `AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE`; it is not the IDE MCP front door. Graphify/Hindsight remain separately gated.
 
 ## 7. Execution ownership
 

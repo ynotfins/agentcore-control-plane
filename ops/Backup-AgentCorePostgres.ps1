@@ -5,7 +5,7 @@ param(
   [string]$SecondaryRoot = "G:\AgentCoreArchive\agentcore-memory\backups\pg18",
   [string]$HostName = "127.0.0.1",
   [int]$Port = 55433,
-  [string[]]$Databases = @("agent_core", "cognee_core"),
+  [string[]]$Databases = @("agent_core", "cognee_core", "paperclip"),
   [string]$AdminUser = "postgres",
   [string]$RepoRoot = "D:\github\agentcore-control-plane",
   [string]$BifrostRuntimeConfig = "F:\AgentCore\runtime\bifrost\config.json",
@@ -135,7 +135,7 @@ if (-not $SkipBaseBackup) {
 $inventorySql = @"
 SELECT jsonb_build_object(
   'generated_at', now(),
-  'databases', (SELECT jsonb_agg(datname ORDER BY datname) FROM pg_database WHERE datname = ANY(ARRAY['agent_core','cognee_core'])),
+  'databases', (SELECT jsonb_agg(datname ORDER BY datname) FROM pg_database WHERE datname = ANY(ARRAY['agent_core','cognee_core','paperclip'])),
   'agentcore_roles', (SELECT jsonb_agg(rolname ORDER BY rolname) FROM pg_roles WHERE rolname LIKE 'agentcore_%'),
   'agent_core_extensions', (SELECT jsonb_agg(extname || '=' || extversion ORDER BY extname) FROM pg_extension),
   'schemas', (SELECT jsonb_agg(nspname ORDER BY nspname) FROM pg_namespace WHERE nspname IN ('agentcore','public'))
