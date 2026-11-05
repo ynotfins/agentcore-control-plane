@@ -84,6 +84,20 @@ def render(profile: dict, policy: dict) -> str:
     lines.append("| -- | -- |")
     for label, getter in HEADER_KEYS:
         lines.append(f"| {label} | {_markdown_table_value(getter(profile))} |")
+    if profile["ide_id"] == "cursor":
+        current = profile.get("current_observation") or {}
+        lines.append(
+            "| Machine-local foundation editability | "
+            f"{_editability_answer(profile, 'machine_local_global_rules')} |"
+        )
+        lines.append(
+            "| Account User Rules observation | "
+            f"{(current.get('account_user_rules') or {}).get('status', 'unverified')} |"
+        )
+        lines.append(
+            "| Current configuration evidence | "
+            f"{current.get('evidence_path', 'unverified')} |"
+        )
     lines.append("")
     lines.append("## Mandatory rules")
     lines.append("")
@@ -126,16 +140,53 @@ def render_install(profile: dict, policy: dict) -> str:
         "## Rules delivery",
         "",
         f"1. Canonical semantics: `contracts/global-agent-policy.yaml` → rendered `ide-profiles/{ide}/GLOBAL_RULES.md`.",
-        f"2. Delivery mechanism for this IDE: {_editability_answer(profile, 'global_rules')} — target: {profile.get('live_global_rule_target', 'unverified')}.",
-        "3. If delivery is `manual_import`/`generated_prompt`, hand the rendered GLOBAL_RULES.md content to the operator or paste it via the documented UI path. Do not skip rules silently.",
+        (
+            "2. Account User Rules: " + _editability_answer(profile, "global_rules")
+            + "; machine-local foundation: "
+            + _editability_answer(profile, "machine_local_global_rules")
+            + " — targets: " + str(profile.get("live_global_rule_target", "unverified")) + "."
+            if ide == "cursor"
+            else f"2. Delivery mechanism for this IDE: {_editability_answer(profile, 'global_rules')} — target: {profile.get('live_global_rule_target', 'unverified')}."
+        ),
+        (
+            "3. Cursor Settings User Rules are plain text. Inspect and preserve their current "
+            "UI content; compare it with the canonical policy before applying any accepted "
+            "change. `ide-profiles/cursor/USER_RULES_REPLACEMENT.txt` is a proposal, not proof "
+            "of installation. Install the full rendered policy as "
+            "the backed-up machine-local `C:\\Users\\ynotf\\.cursor\\rules\\agentcore-foundation.mdc`. "
+            "Do not paste MDC frontmatter into the Settings field."
+            if ide == "cursor"
+            else "3. If delivery is `manual_import`/`generated_prompt`, hand the rendered "
+            "GLOBAL_RULES.md content to the operator or paste it via the documented UI path. "
+            "Do not skip rules silently."
+        ),
         "",
         "## MCP configuration",
         "",
         f"1. Template: `ide-profiles/{ide}/{mcp_template}` (derived from `renderers/gateway-clients/{ide}.json`).",
-        f"2. Live target: `{profile.get('live_mcp_config_target', 'unverified')}` — exactly one AgentCore entry named `agentcore-gateway`. The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; do not remove it when present and do not infer support when the host cannot run Zoo-Code.",
-        "3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).",
+        *(
+            [
+                "2. AgentCore gateway enrollment is `unsupported_with_reason`; the template is deliberately inactive and contains no gateway endpoint or Authorization value.",
+                "3. Do not paste or persist an AgentCore virtual key. Preserve any existing credential-bearing entry as legacy drift for a separate backup-first cleanup task.",
+            ]
+            if profile.get("gateway_enrollment_status") == "unsupported_with_reason"
+            else [
+                f"2. Live target: `{profile.get('live_mcp_config_target', 'unverified')}` — exactly one AgentCore entry named `agentcore-gateway`. A host-native direct MCP companion is allowed only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback proof, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes. Historical Zoo-Code approval remains subject to this current policy.",
+                "3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).",
+            ]
+        ),
         f"4. Env handling: {profile.get('env_var_handling', 'unverified')}.",
         f"5. Restart behavior: {profile.get('restart_behavior', 'unverified')}.",
+        *(
+            [
+                "6. Inspect the dated, sanitized live inventory at `"
+                + str((profile.get("current_observation") or {}).get("evidence_path", "unverified"))
+                + "` before an MCP update. The gateway-only template is not a replacement for "
+                "the full live file; observed direct entries are not approved exceptions."
+            ]
+            if ide == "cursor"
+            else []
+        ),
         "",
         "## CLIENT-LOCAL EXECUTION SCOPE",
         "",
@@ -159,6 +210,29 @@ def render_install(profile: dict, policy: dict) -> str:
 
 def render_validation(profile: dict, policy: dict) -> str:
     ide = profile["ide_id"]
+    gateway_url = str(profile.get("gateway_url", "http://127.0.0.1:8080/mcp"))
+    auth_mode = str(profile.get("gateway_auth_mode", "bearer_env"))
+    auth_expectation = (
+        "no Authorization value in the client file; the Bifrost-owned process-attested proxy admits only an exact approved Windows process ancestry"
+        if auth_mode == "process_attested_proxy"
+        else "environment-backed bearer authentication; no resolved secret in Git"
+    )
+    if profile.get("gateway_enrollment_status") == "unsupported_with_reason":
+        return "\n".join([
+            f"# Validation — {profile.get('display_name', ide)}",
+            "",
+            "> **DERIVED FILE — do not hand-edit.** Generated by `scripts/render_ide_rules.py`.",
+            "",
+            "AgentCore gateway enrollment is **unsupported/unverified** for this client.",
+            "",
+            "1. The repository MCP template is inactive and contains no `agentcore-gateway` entry, endpoint, Authorization header, or virtual-key placeholder.",
+            "2. The client profile and capability matrix report `m8_enrollment: unsupported_with_reason`.",
+            "3. Repository instructions do not tell an agent or operator to paste or persist an AgentCore virtual key.",
+            "4. Any previously recorded credential-bearing live entry is classified as `legacy_drift` and is not inspected or mutated by this source validation.",
+            "5. Future enrollment requires an approved credential-free, native-token, environment-backed, or scoped-broker route plus a separate backup-first client task.",
+            "6. Run `python scripts/bifrost/test_client_secret_policy.py` and `python scripts/render_ide_rules.py --check`.",
+            "",
+        ])
     lines = [
         f"# Validation — {profile.get('display_name', ide)}",
         "",
@@ -166,8 +240,8 @@ def render_validation(profile: dict, policy: dict) -> str:
         "",
         "Run after installing or updating rules/MCP config for this IDE:",
         "",
-        "1. The live MCP config contains exactly one AgentCore entry named `agentcore-gateway` (URL `http://127.0.0.1:8080/mcp`). The only allowed additional direct MCP entry is the Zoo-Code-owned companion approved by `AUTH-2026-08-20-ZOO_CODE_DIRECT_MCP_EXCEPTION`; no Swarm, raw database, OpenRouter MCP, filesystem, or other direct per-tool entries are allowed.",
-        "2. No resolved secret values appear anywhere in Git-tracked files (env references only; materialized VK allowed in the live config only where the profile documents no env-header support).",
+        f"1. The live MCP config contains exactly one AgentCore entry named `agentcore-gateway` (URL `{gateway_url}`; auth mode `{auth_mode}`). Each additional direct MCP entry requires an approved, documented exception with Bifrost parity failure, exact host/tool scope, security review, rollback, and no-duplicate proof. Merely observing or documenting an entry does not pass acceptance; unverified direct entries fail this check. No Swarm, raw database, OpenRouter MCP, filesystem, or duplicate AgentCore upstream is allowed.",
+        f"2. Authentication matches the profile: {auth_expectation}. No resolved secret value appears in any Git-tracked file.",
         "3. The IDE lists gateway tools after restart (tools/list through `agentcore-gateway` succeeds).",
         "4. `agentcore-memory` responds through `memory_status`, with degraded component state clearly reported.",
         "5. The delivered rules match `ide-profiles/" + ide + "/GLOBAL_RULES.md` (semantic parity; record any product-specific omission in `IDE_PROFILE.yaml`).",

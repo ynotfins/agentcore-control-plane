@@ -1,18 +1,23 @@
 {
   "context_servers": {
     "agentcore-gateway": {
-      "url": "http://127.0.0.1:8080/mcp",
-      "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-      }
+      "url": "http://127.0.0.1:18082/mcp",
+      "_note": "Headerless access uses the Bifrost-owned process-attested loopback proxy; no virtual key is stored in Zed configuration."
     }
   },
   "_agentcore": {
     "renderer": "zed",
     "source_contract": "contracts/agentcore-gateway-client.json",
+    "gateway_enrollment_status": "process_attested_proxy",
+    "active_template": true,
+    "gateway_url": "http://127.0.0.1:18082/mcp",
+    "gateway_auth_mode": "process_attested_proxy",
+    "trusted_executable": "%LOCALAPPDATA%\\Programs\\Zed\\Zed.exe",
     "notes": [
-      "Sanitized merge fragment; never commit or print the resolved virtual key.",
-      "Zed does not document env-placeholder expansion. A governed live installer must materialize the Windows User env value into settings.json only."
-    ]
+      "Sanitized source template; no resolved virtual key, token, or credential is permitted in Git.",
+      "agentcore-gateway is the only AgentCore MCP entry under context_servers. Do not store bearer headers.",
+      "Loopback reachability and exact Windows process ancestry via Resolve-AgentCoreBuilderCaller.ps1 are required."
+    ],
+    "secret_policy": "Never paste or persist an AgentCore virtual key in this client."
   }
 }

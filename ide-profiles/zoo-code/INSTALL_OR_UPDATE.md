@@ -14,8 +14,8 @@ authorization, a timestamped backup, and post-change validation.
 ## MCP configuration
 
 1. Template: `ide-profiles/zoo-code/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/zoo-code.json`).
-2. Live target: `C:\Users\ynotf\AppData\Roaming\Cursor\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json` — exactly one AgentCore entry named `agentcore-gateway`. A host-native direct MCP companion is allowed only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback proof, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes. Historical Zoo-Code approval remains subject to this current policy.
-3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
+2. AgentCore gateway enrollment is `unsupported_with_reason`; the template is deliberately inactive and contains no gateway endpoint or Authorization value.
+3. Do not paste or persist an AgentCore virtual key. Preserve any existing credential-bearing entry as legacy drift for a separate backup-first cleanup task.
 4. Env handling: no approved secure credential path; never paste or persist an AgentCore virtual key in client storage.
 5. Restart behavior: No AgentCore enrollment or restart action is authorized by this profile; preserve legacy live state for a separate backup-first cleanup.
 

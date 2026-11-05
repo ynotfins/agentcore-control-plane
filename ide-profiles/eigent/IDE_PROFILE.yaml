@@ -1,17 +1,17 @@
-# IDE profile — source-controlled facts for this managed client.
-# Do not guess values: use 'unverified' until evidence exists.
-
 ide_id: eigent
 display_name: Eigent
 swarm_managed: false
 installed_version: 1.0.2
 live_global_rule_target: C:\Users\ynotf\.eigent\skills\agentcore-project-lifecycle\SKILL.md
 live_mcp_config_target: C:\Users\ynotf\.eigent\mcp.json
-rule_mechanism: native skills at C:\Users\ynotf\.eigent\skills with per-user skills-config; no always-on global instruction file verified
+rule_mechanism: native skills at C:\Users\ynotf\.eigent\skills with per-user skills-config; no always-on global
+  instruction file verified
 mcp_schema: eigent_mcp_json
-mcp_transport: http/streamable through CAMEL MCPToolkit
-env_var_handling: no env-placeholder expansion evidenced; materialize BIFROST_MCP_VIRTUAL_KEY from Windows User env into live config only
-restart_behavior: restart Eigent after MCP or Windows environment changes; fresh workforce task required for native validation
+mcp_transport: http/streamable
+env_var_handling: process-attested loopback proxy at http://127.0.0.1:18082/mcp; no bearer stored in live MCP JSON
+gateway_url: http://127.0.0.1:18082/mcp
+gateway_auth_mode: process_attested_proxy
+restart_behavior: restart client after MCP config changes
 editability:
   global_rules: manual_import
   project_rules: unverified
@@ -20,14 +20,15 @@ installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-08-20'
+last_validation_date: '2026-10-25'
 mcp_template_source: renderers/gateway-clients/eigent.json
 known_limitations:
-- Eigent is installed and launches; C:\Users\ynotf\.eigent\mcp.json contains the single agentcore-gateway entry and the active local Brain space is bound to D:\github\agentcore-control-plane.
-- The installed build supports native skills, but no always-on global rule mechanism is verified; GLOBAL_RULES.md therefore remains manual-import guidance.
-- Eigent/CAMEL accepts literal remote MCP headers; committed templates remain symbolic and a governed live installer must materialize the Windows User environment value without printing it.
+- Eigent uses headerless Trust Class A via :18082; exact Windows process ancestry must resolve to
+  %LOCALAPPDATA%\Programs\Eigent\Eigent.exe.
+- Always-on global rule delivery remains manual-import; GLOBAL_RULES.md is guidance, not an auto-injected host rule.
+- A prior credential-bearing live gateway entry is legacy drift and must not be restored.
 semantic_parity_gaps:
-- Always-on global rule delivery and signed automatic AgentCore lifecycle capture are not yet certified for Eigent.
+- Signed automatic AgentCore lifecycle capture is not yet certified for Eigent.
 dimensions:
   application_launch:
     status: live_validated
@@ -35,14 +36,14 @@ dimensions:
     evidence_ts: '2026-08-06T08:45:00Z'
     superseded_by: null
   gateway_configuration:
-    status: live_validated
-    evidence_path: artifacts/task-runs/cursor-eigent-workspace-fix-2026-08-20/CURSOR_EIGENT_WORKSPACE_FIX_EVIDENCE.md
-    evidence_ts: '2026-08-20T13:45:11-04:00'
+    status: configured_restart_required
+    evidence_path: audits/bifrost/GATEWAY_CONNECTION_STABILITY_2026-09-16.md
+    evidence_ts: '2026-09-17T21:00:00Z'
     superseded_by: null
   gateway_discovery:
-    status: awaiting_operator_import
-    evidence_path: ide-profiles/eigent/VALIDATION.md
-    evidence_ts: '2026-08-06T08:45:00Z'
+    status: configured_restart_required
+    evidence_path: audits/bifrost/GATEWAY_CONNECTION_STABILITY_2026-09-16.md
+    evidence_ts: '2026-09-17T21:00:00Z'
     superseded_by: null
   native_memory_lifecycle:
     status: awaiting_operator_import
@@ -64,4 +65,14 @@ dimensions:
     evidence_path: ide-profiles/eigent/VALIDATION.md
     evidence_ts: '2026-08-06T08:45:00Z'
     superseded_by: null
-m8_enrollment: awaiting_operator_import
+m8_enrollment: configured_restart_required
+gateway_enrollment_status: process_attested_proxy
+m8_notes: Trust Class A source enrollment complete 2026-09-17. Live mcp.json must point at
+  http://127.0.0.1:18082/mcp with no headers. Restart Eigent after reconcile. Never paste BIFROST_MCP_VIRTUAL_KEY.
+legacy_gateway_state:
+  classification: legacy_drift
+  mutation_in_this_task: false
+  note: A prior live Eigent entry was recorded on 2026-08-20 using a credential-bearing configuration. That state
+    is legacy drift and is superseded by process-attested :18082 enrollment.
+  evidence_paths:
+  - artifacts/task-runs/cursor-eigent-workspace-fix-2026-08-20/CURSOR_EIGENT_WORKSPACE_FIX_EVIDENCE.md

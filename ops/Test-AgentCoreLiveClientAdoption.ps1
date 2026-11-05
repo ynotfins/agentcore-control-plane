@@ -12,6 +12,22 @@ $gatewayContract = Get-Content -LiteralPath $gatewayContractPath -Raw | ConvertF
 $gatewayName = [string]$gatewayContract.name
 $gatewayUrl = [string]$gatewayContract.url
 
+function Get-ClientGatewayExpectation {
+  param([string]$ContractKey)
+  $hintProperty = $gatewayContract.client_render_hints.PSObject.Properties[$ContractKey]
+  if ($null -eq $hintProperty) {
+    throw "Missing gateway client render hint for '$ContractKey'."
+  }
+  $hint = $hintProperty.Value
+  $expectedUrl = if ($hint.gateway_url) { [string]$hint.gateway_url } else { $gatewayUrl }
+  $authMode = if ($hint.gateway_auth_mode) { [string]$hint.gateway_auth_mode } else { 'bearer_env' }
+  return [pscustomobject]@{
+    url = $expectedUrl
+    auth_mode = $authMode
+    require_auth = ($authMode -ne 'process_attested_proxy')
+  }
+}
+
 function Add-Result {
   param(
     [System.Collections.Generic.List[object]]$Results,
@@ -76,6 +92,7 @@ function Test-SecretLiteralPresence {
 function Test-ClientConfig {
   param(
     [string]$Name,
+    [string]$ContractKey,
     [string]$Path,
     [string]$ProcessPattern,
     [string[]]$AllowedExtraServers = @(),
@@ -84,6 +101,7 @@ function Test-ClientConfig {
   )
 
   $results = [System.Collections.Generic.List[object]]::new()
+  $expectation = Get-ClientGatewayExpectation -ContractKey $ContractKey
   $exists = Test-Path -LiteralPath $Path
   if (-not $exists) {
     $required = [bool]$RequireConfiguredClients
@@ -123,16 +141,18 @@ function Test-ClientConfig {
       $text = Get-Content -LiteralPath $Path -Raw
       $sectionPattern = "(?ms)^\[mcp_servers\.$([regex]::Escape($gatewayName))\]\s*(.*?)(?=^\[|\z)"
       $section = [regex]::Match($text, $sectionPattern).Groups[1].Value
-      $urlOk = $section -match "url\s*=\s*`"$([regex]::Escape($gatewayUrl))`""
+      $urlOk = $section -match "url\s*=\s*`"$([regex]::Escape($expectation.url))`""
       $authOk = $section -match "bearer_token_env_var\s*="
-      Add-Result $results "$Name gateway contract" ($urlOk -and $authOk) "expected_url=$gatewayUrl; bearer_token_env_var_present=$authOk"
+      $authModeOk = if ($expectation.require_auth) { $authOk } else { -not $authOk }
+      Add-Result $results "$Name gateway contract" ($urlOk -and $authModeOk) "expected_url=$($expectation.url); auth_mode=$($expectation.auth_mode); bearer_token_env_var_present=$authOk"
     } else {
       $container = if ($jsonConfig.mcpServers) { $jsonConfig.mcpServers } elseif ($jsonConfig.servers) { $jsonConfig.servers } elseif ($jsonConfig.context_servers) { $jsonConfig.context_servers } elseif ($jsonConfig.mcp_servers) { $jsonConfig.mcp_servers } elseif ($jsonConfig.mcp -and $jsonConfig.mcp.servers) { $jsonConfig.mcp.servers } else { $jsonConfig.mcp }
       $entry = $container.PSObject.Properties[$gatewayName].Value
       $url = if ($entry.url) { [string]$entry.url } elseif ($entry.serverUrl) { [string]$entry.serverUrl } elseif ($entry.baseUrl) { [string]$entry.baseUrl } elseif ($entry.httpUrl) { [string]$entry.httpUrl } else { "" }
       $headers = if ($entry.headers) { $entry.headers } elseif ($entry.http_headers) { $entry.http_headers } else { $null }
       $authPresent = [bool]($headers -and ($headers.PSObject.Properties.Name -contains "Authorization" -or $headers.PSObject.Properties.Name -contains "authorization"))
-      Add-Result $results "$Name gateway contract" ($url -eq $gatewayUrl -and $authPresent) "url=$url; expected_url=$gatewayUrl; authorization_present=$authPresent; authorization_value=redacted"
+      $authModeOk = if ($expectation.require_auth) { $authPresent } else { -not $authPresent }
+      Add-Result $results "$Name gateway contract" ($url -eq $expectation.url -and $authModeOk) "url=$url; expected_url=$($expectation.url); auth_mode=$($expectation.auth_mode); authorization_present=$authPresent; authorization_value=redacted"
     }
   }
   Add-Result $results "$Name forbidden direct servers absent" ($presentForbidden.Count -eq 0) ("present=" + (Join-Names $presentForbidden))
@@ -183,21 +203,22 @@ $forbiddenAgentCoreDirect = @(
 $results = [System.Collections.Generic.List[object]]::new()
 
 $jsonClients = @(
-  @{ name = "Cursor"; path = "C:\Users\ynotf\.cursor\mcp.json"; process = "Cursor"; allowed = @() },
-  @{ name = "Zoo Code"; path = "C:\Users\ynotf\AppData\Roaming\Cursor\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json"; process = "Cursor"; allowed = @("zoo-code") },
-  @{ name = "Zed"; path = "C:\Users\ynotf\AppData\Roaming\Zed\settings.json"; process = "Zed"; allowed = @() },
-  @{ name = "Eigent"; path = "C:\Users\ynotf\.eigent\mcp.json"; process = "eigent"; allowed = @() },
-  @{ name = "MiniMax"; path = "C:\Users\ynotf\.minimax\mcp\mcp.json"; process = "MiniMax"; allowed = @("matrix", "cu", "trash") },
-  @{ name = "Mavis"; path = "C:\Users\ynotf\.mavis\mcp\mcp.json"; process = "Mavis"; allowed = @("matrix", "cu", "trash") },
-  @{ name = "Antigravity Gemini"; path = "C:\Users\ynotf\.gemini\config\mcp_config.json"; process = "Antigravity"; allowed = @("notebooks", "visualization", "data-agent-kit") },
-  @{ name = "Antigravity Roaming"; path = "C:\Users\ynotf\AppData\Roaming\Antigravity\User\mcp.json"; process = "Antigravity"; allowed = @() },
-  @{ name = "Antigravity IDE Roaming"; path = "C:\Users\ynotf\AppData\Roaming\Antigravity IDE\User\mcp.json"; process = "Antigravity"; allowed = @() },
-  @{ name = "Open Interpreter"; path = "C:\Users\ynotf\AppData\Roaming\interpreter\config.json"; process = "Interpreter|Open Interpreter"; allowed = @() },
-  @{ name = "Claude Desktop"; path = "C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json"; process = "Claude"; allowed = @() }
+  @{ name = "Cursor"; contract_key = "cursor"; path = "C:\Users\ynotf\.cursor\mcp.json"; process = "Cursor"; allowed = @() },
+  @{ name = "Zoo Code"; contract_key = "zoo-code"; path = "C:\Users\ynotf\AppData\Roaming\Cursor\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json"; process = "Cursor"; allowed = @("zoo-code") },
+  @{ name = "Zed"; contract_key = "zed"; path = "C:\Users\ynotf\AppData\Roaming\Zed\settings.json"; process = "Zed"; allowed = @() },
+  @{ name = "Eigent"; contract_key = "eigent"; path = "C:\Users\ynotf\.eigent\mcp.json"; process = "eigent"; allowed = @() },
+  @{ name = "MiniMax"; contract_key = "minimax"; path = "C:\Users\ynotf\.minimax\mcp\mcp.json"; process = "MiniMax"; allowed = @("matrix", "cu", "trash") },
+  @{ name = "Mavis"; contract_key = "minimax"; path = "C:\Users\ynotf\.mavis\mcp\mcp.json"; process = "Mavis"; allowed = @("matrix", "cu", "trash") },
+  @{ name = "Antigravity Gemini"; contract_key = "antigravity"; path = "C:\Users\ynotf\.gemini\config\mcp_config.json"; process = "Antigravity"; allowed = @("notebooks", "visualization", "data-agent-kit") },
+  @{ name = "Antigravity IDE Roaming"; contract_key = "antigravity"; path = "C:\Users\ynotf\AppData\Roaming\Antigravity IDE\User\mcp.json"; process = "Antigravity"; allowed = @() },
+  @{ name = "ZCode"; contract_key = "zcode"; path = "C:\Users\ynotf\.zcode\cli\config.json"; process = "ZCode"; allowed = @() },
+  @{ name = "Open Interpreter"; contract_key = "open-interpreter"; path = "C:\Users\ynotf\AppData\Roaming\interpreter\config.json"; process = "Interpreter|Open Interpreter"; allowed = @() },
+  @{ name = "Devin"; contract_key = "devin"; path = "C:\Users\ynotf\AppData\Roaming\devin\mcp_config.json"; process = "Devin"; allowed = @("devin/github-mcp-server", "devin/vercel") },
+  @{ name = "Claude Desktop"; contract_key = "claude-desktop"; path = "C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json"; process = "Claude"; allowed = @("GitKraken") }
 )
 
 foreach ($client in $jsonClients) {
-  $clientResults = Test-ClientConfig -Name $client.name -Path $client.path -ProcessPattern $client.process -AllowedExtraServers $client.allowed -ForbiddenServers $forbiddenAgentCoreDirect
+  $clientResults = Test-ClientConfig -Name $client.name -ContractKey $client.contract_key -Path $client.path -ProcessPattern $client.process -AllowedExtraServers $client.allowed -ForbiddenServers $forbiddenAgentCoreDirect
   foreach ($item in $clientResults) { $results.Add($item) | Out-Null }
 }
 
@@ -213,12 +234,38 @@ $codexAllowedExtras = @(
   "devin"
 )
 $codexForbidden = @($forbiddenAgentCoreDirect | Where-Object { $_ -notin @("MCP_DOCKER", "mcp_docker") })
-$codexResults = Test-ClientConfig -Name "Codex" -Path $codexConfig -ProcessPattern "^codex$" -AllowedExtraServers $codexAllowedExtras -ForbiddenServers $codexForbidden -TomlConfig
+$codexResults = Test-ClientConfig -Name "Codex" -ContractKey "codex" -Path $codexConfig -ProcessPattern "^codex$" -AllowedExtraServers $codexAllowedExtras -ForbiddenServers $codexForbidden -TomlConfig
 foreach ($item in $codexResults) { $results.Add($item) | Out-Null }
 
 if (Test-Path -LiteralPath $codexConfig) {
   $codexList = & codex mcp list 2>&1
   Add-Result $results "Codex CLI mcp list" ($LASTEXITCODE -eq 0) (($codexList | ForEach-Object { [string]$_ }) -join "`n")
+}
+
+$proxyUrls = @(
+  $gatewayContract.client_render_hints.PSObject.Properties.Value |
+    Where-Object { $_.gateway_auth_mode -eq 'process_attested_proxy' } |
+    ForEach-Object { [string]$_.gateway_url } |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    Sort-Object -Unique
+)
+foreach ($proxyUrl in $proxyUrls) {
+  $proxyBase = $proxyUrl.Substring(0, $proxyUrl.Length - '/mcp'.Length)
+  $healthStatus = 0
+  try {
+    $healthStatus = [int](Invoke-WebRequest -Uri "$proxyBase/healthz" -UseBasicParsing -TimeoutSec 5).StatusCode
+  } catch {
+    if ($_.Exception.Response) { $healthStatus = [int]$_.Exception.Response.StatusCode }
+  }
+  Add-Result $results "Builder compatibility proxy health" ($healthStatus -eq 200) "url=$proxyBase/healthz; status=$healthStatus"
+
+  $deniedStatus = 0
+  try {
+    $deniedStatus = [int](Invoke-WebRequest -Uri $proxyUrl -Method Post -ContentType 'application/json' -Body '{}' -UseBasicParsing -TimeoutSec 10).StatusCode
+  } catch {
+    if ($_.Exception.Response) { $deniedStatus = [int]$_.Exception.Response.StatusCode }
+  }
+  Add-Result $results "Builder compatibility proxy untrusted caller denied" ($deniedStatus -eq 403) "url=$proxyUrl; headerless_status=$deniedStatus"
 }
 
 $results | ConvertTo-Json -Depth 6
