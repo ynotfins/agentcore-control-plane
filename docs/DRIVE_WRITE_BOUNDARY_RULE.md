@@ -80,3 +80,7 @@ Before any persistent write, agents must read (repo copies — never the `D:\MCP
 - `D:\github\agentcore-control-plane\PROJECT_ANCHOR.md` (§2 drive roles, §13 hard gates)
 - `D:\github\agentcore-control-plane\docs\DRIVE_WRITE_BOUNDARY_RULE.md` (this file)
 - For memory/database writes: `docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md`
+
+## Native-layout apps
+
+Some third-party apps may follow their official docs for install/data/DB layout under the exception in `docs/install-platform/INSTALLATION_POLICY.md` (Tony, Nov 4 2026). Registry: `docs/install-platform/NATIVE_LAYOUT_EXCEPTIONS.md`. `H:` remains Swarm-only (SwarmClaw ecosystem); other apps must not use `H:`.

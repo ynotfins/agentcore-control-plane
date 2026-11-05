@@ -81,3 +81,22 @@ Stop before mutation if any of these are true:
 - The project root cannot be proven.
 - The app's storage behavior cannot be identified.
 - A rollback backup cannot be created.
+
+## Native-layout apps exception (Tony, Nov 4 2026)
+
+`AUTH-2026-11-05-EXECUTE-ALL` (standing execute-all authorization from Tony Valentine).
+
+Exception (Tony, Nov 4 2026): Native-layout apps. Any app whose official docs require or recommend a specific install path, data location or database setup runs the way its docs say, even if that conflicts with the ChaosCentral drive allocation rules (I: for app data, F: for AgentCore/PG18, no databases on C:). This covers:
+1. Paperclip: use its database the way the Paperclip docs recommend (its own embedded/default Postgres and default data home), not forced onto PG18 or another drive.
+2. SwarmClaw and its whole ecosystem (SwarmClaw, SwarmRecall, SwarmVault and their runtime): self-managed on their own drive, with their own memory, not shared with agentcore memory and not managed by other bots.
+3. Any other app whose docs require a native layout, decided case by case. Each one gets a one-line entry in the control plane listing the app, the paths it uses and the doc link.
+Still required for every exception: never use H:, never affect nfa-platform or its sister projects, loopback-only unless I approve exposure, keep the app's data covered by backups, and never print secrets.
+
+### How to read "never use H:" with Swarm
+
+`H:` is SwarmClaw's dedicated drive under existing PC policy (`PROJECT_ANCHOR.md` Ecosystem and Drive Separation / drive roles; Swarm authority `D:\github\swarm-ecosystem-control`). "Never use H:" in this exception means **no other app or bot** may use `H:`. Only the SwarmClaw ecosystem (SwarmClaw, SwarmRecall, SwarmVault and their runtime) lives there and manages itself. That is not a conflict with the verbatim exception text above.
+
+### Registry (one line per native-layout exception app)
+
+Authoritative table: `docs/install-platform/NATIVE_LAYOUT_EXCEPTIONS.md`.
+
