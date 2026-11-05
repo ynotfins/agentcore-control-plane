@@ -38,7 +38,7 @@ Rules:
 1. **Git contracts are design authority.** Do not hand-edit H: live config as the long-term source of truth.
 2. **IDEs receive only the gateway client entry** — not the upstream registry.
 3. Secrets use Windows User env names (`env.NAME` in Bifrost; `${env:NAME}` in IDE clients). Never commit resolved values.
-4. Live IDE cutover may materialize `BIFROST_MCP_VIRTUAL_KEY` into a live config **only** when the client cannot expand env headers — still never commit that live file.
+4. Header-capable clients reference `BIFROST_MCP_VIRTUAL_KEY` from the Windows User environment. Under the Phase 2 transport amendment, approved header-hostile Trust Class A clients use the process-attested `http://127.0.0.1:18082/mcp` endpoint and must not persist the key. Other clients require an explicit governed exception before any credential materialization; never commit a resolved key.
 5. Validators (`scripts/bifrost/validate_contracts.py`) must fail on contract/schema drift.
 
 ## Consequences

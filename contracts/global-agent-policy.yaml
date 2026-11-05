@@ -27,7 +27,7 @@ mandatory_rules:
       endpoint at `http://127.0.0.1:18082/mcp`; it must verify an exact approved Windows
       process or process ancestor before it injects the User-scope builder identity,
       and every unresolved, ambiguous, or unapproved caller must fail closed.
-      AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT supersedes the Zoo-Code-only limit.
+      AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE supersedes the Zoo-Code-only limit.
       Zoo-Code/Roo-Code remains a compatible VS Code-family extension, not a Bifrost upstream.
       Under AUTH-2026-10-23-PI-BIFROST-HTTP-SHIM, governed Pi access is the Bifrost HTTP session shim
       (`pi-agents` on http://127.0.0.1:18091/mcp via agentcore-gateway). The shim injects the enrolled
@@ -388,7 +388,7 @@ mandatory_rules:
       docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md. Do not paste dormant upstreams into
       per-IDE mcp.json. A host-native direct MCP companion is allowed only after the parity,
       exact-scope, security-review, rollback, and no-duplicate gates in
-      AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT. Do not duplicate openrouter,
+      AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE. Do not duplicate openrouter,
       obsidian-vault, filesystem, or any other service already governed through
       agentcore-gateway. Do not extend wildcard permitted_tools grants to new servers. Context7 is
       gateway-only (arabold-first same-turn public bridge); Hostinger remains forbidden. Never paste

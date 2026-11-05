@@ -131,6 +131,13 @@
       "path_prefixes": [
         "I:\\LocalApps\\ZCode\\workspace"
       ]
+    },
+    {
+      "project_key": "open-design",
+      "name": "Open Design",
+      "paths": [
+        "D:\\\\open-design"
+      ]
     }
   ],
   "approved_path_prefix_parents": [

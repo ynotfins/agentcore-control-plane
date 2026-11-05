@@ -8,7 +8,7 @@ authorization, a timestamped backup, and post-change validation.
 ## Rules delivery
 
 1. Canonical semantics: `contracts/global-agent-policy.yaml` → rendered `ide-profiles/cursor/GLOBAL_RULES.md`.
-2. Account User Rules: no (manual_import); machine-local foundation: yes (direct_write; live edits remain approval-gated by policy) — targets: Cursor account User Rules (Customize > Rules, manual import); machine-local foundation C:\Users\ynotf\.cursor\rules\agentcore-foundation.mdc; project rules <repo>\.cursor\rules\*.mdc and AGENTS.md.
+2. Account User Rules: no (manual_import); machine-local foundation: unverified — targets: Cursor User Rules (app settings UI); project rules: <repo>\.cursor\rules\*.mdc and AGENTS.md.
 3. Cursor Settings User Rules are plain text. Inspect and preserve their current UI content; compare it with the canonical policy before applying any accepted change. `ide-profiles/cursor/USER_RULES_REPLACEMENT.txt` is a proposal, not proof of installation. Install the full rendered policy as the backed-up machine-local `C:\Users\ynotf\.cursor\rules\agentcore-foundation.mdc`. Do not paste MDC frontmatter into the Settings field.
 
 ## MCP configuration
@@ -18,7 +18,7 @@ authorization, a timestamped backup, and post-change validation.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
 4. Env handling: supports ${env:VAR} expansion in MCP headers.
 5. Restart behavior: MCP reload from settings UI; full restart after Windows env-var changes.
-6. Inspect the dated, sanitized live inventory at `audits/cursor-context/CURSOR_CONFIGURATION_RECONCILIATION_2026-09-14.md` before an MCP update. The gateway-only template is not a replacement for the full live file; observed direct entries are not approved exceptions.
+6. Inspect the dated, sanitized live inventory at `unverified` before an MCP update. The gateway-only template is not a replacement for the full live file; observed direct entries are not approved exceptions.
 
 ## CLIENT-LOCAL EXECUTION SCOPE
 
