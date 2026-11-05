@@ -138,10 +138,19 @@ function Stop-AgentCoreBifrostGateway {
   # This preflight is deliberately the first operation. A foreign listener
   # must cause zero state mutation: no marker write and no scheduled-task stop.
   $preflight = Get-AgentCoreGatewayProcessSnapshot -ExpectedPort $Port
-  Assert-AgentCorePortOwnership -Listeners $preflight.Listeners -ProcessTable $preflight.Processes `
-    -ExpectedExe $expectedExe -ExpectedRuntimeRoot $RuntimeRoot -ExpectedHostAddress $HostAddress `
-    -ExpectedPort $Port -ExpectedLauncherScript $expectedLauncher
-
+  # Prefer live-parent ownership; if the Launch parent is already gone (orphaned
+  # bifrost-http after task crash), fall back to exact identity ownership so Stop
+  # can still clear the port instead of refusing forever.
+  try {
+    Assert-AgentCorePortOwnership -Listeners $preflight.Listeners -ProcessTable $preflight.Processes `
+      -ExpectedExe $expectedExe -ExpectedRuntimeRoot $RuntimeRoot -ExpectedHostAddress $HostAddress `
+      -ExpectedPort $Port -ExpectedLauncherScript $expectedLauncher
+  } catch {
+    Write-Host "[Stop] Parent-ownership preflight failed ($($_.Exception.Message)); falling back to identity ownership."
+    Assert-AgentCorePortIdentityOwnership -Listeners $preflight.Listeners -ProcessTable $preflight.Processes `
+      -ExpectedExe $expectedExe -ExpectedRuntimeRoot $RuntimeRoot -ExpectedHostAddress $HostAddress `
+      -ExpectedPort $Port
+  }
   $maintenanceMarker = Join-Path $RuntimeRoot 'state\bifrost-maintenance.marker'
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $maintenanceMarker) | Out-Null
   Set-Content -LiteralPath $maintenanceMarker -Value 'stop_requested' -Encoding utf8
