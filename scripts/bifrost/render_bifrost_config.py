@@ -64,6 +64,7 @@ SECRET_ENV_NAMES = {
     "BIFROST_MCP_VK_REVIEWER",
     "BIFROST_MCP_VK_DATABASE_VALIDATOR",
     "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
+    "BIFROST_MCP_VK_IDE",
     "BIFROST_MCP_VK_OPERATOR",
     "BIFROST_MCP_VK_CHATGPT",
     "BIFROST_MCP_VK_OPENCLAW",
@@ -465,6 +466,27 @@ def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
             "mcp_configs": profile_mcp_configs(registry, "reviewer"),
         },
         {
+            "id": "vk-agentcore-ide",
+            "name": "ide",
+            "value": "env.BIFROST_MCP_VK_IDE",
+            "is_active": True,
+            "mcp_configs": profile_mcp_configs(registry, "ide"),
+            "provider_configs": [
+                {
+                    "provider": "openai",
+                    "allowed_models": ["*"],
+                    "key_ids": ["*"],
+                    "weight": 1,
+                },
+                {
+                    "provider": "openrouter",
+                    "allowed_models": ["*"],
+                    "key_ids": ["*"],
+                    "weight": 1,
+                },
+            ],
+        },
+        {
             "id": "vk-agentcore-database-validator",
             "name": "database-validator",
             "value": "env.BIFROST_MCP_VK_DATABASE_VALIDATOR",
@@ -655,6 +677,7 @@ def build_sanitized_sidecar(
             "BIFROST_MCP_VK_REVIEWER",
             "BIFROST_MCP_VK_DATABASE_VALIDATOR",
             "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
+            "BIFROST_MCP_VK_IDE",
             "BIFROST_MCP_VK_OPERATOR",
             "BIFROST_MCP_VK_CHATGPT",
             "BIFROST_MCP_VK_OPENCLAW",
