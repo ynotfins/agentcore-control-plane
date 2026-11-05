@@ -855,12 +855,7 @@
           "get_diagnostics_for_file",
           "rename_symbol",
           "safe_delete_symbol",
-          "write_memory",
-          "read_memory",
           "list_memories",
-          "delete_memory",
-          "rename_memory",
-          "edit_memory",
           "open_dashboard"
         ],
         "auth_type": "none",
@@ -1350,12 +1345,7 @@
               "get_diagnostics_for_file",
               "rename_symbol",
               "safe_delete_symbol",
-              "write_memory",
-              "read_memory",
               "list_memories",
-              "delete_memory",
-              "rename_memory",
-              "edit_memory",
               "open_dashboard"
             ]
           },
@@ -1842,12 +1832,7 @@
               "get_diagnostics_for_file",
               "rename_symbol",
               "safe_delete_symbol",
-              "write_memory",
-              "read_memory",
               "list_memories",
-              "delete_memory",
-              "rename_memory",
-              "edit_memory",
               "open_dashboard"
             ]
           },
@@ -2132,12 +2117,7 @@
               "get_diagnostics_for_file",
               "rename_symbol",
               "safe_delete_symbol",
-              "write_memory",
-              "read_memory",
               "list_memories",
-              "delete_memory",
-              "rename_memory",
-              "edit_memory",
               "open_dashboard"
             ]
           }
