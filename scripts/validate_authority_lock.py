@@ -45,12 +45,16 @@ def load_yaml(path: Path) -> dict[str, Any]:
     return data
 
 
+def is_windows_abs(path: str) -> bool:
+    return bool(re.match(r"^[A-Za-z]:\\", path))
+
+
 def rel_exists(rel: str) -> bool:
-    if re.match(r"^[A-Za-z]:\\", rel):
+    if is_windows_abs(rel):
         return True
     if "*" in rel:
         return True
-    return (REPO_ROOT / rel.replace("/", "\\")).exists()
+    return (REPO_ROOT / Path(rel.replace("\\", "/"))).exists()
 
 
 def validate_authority_lock() -> list[str]:
@@ -141,6 +145,8 @@ def validate_foreign_boundaries() -> list[str]:
 
     authority_pointer = capsule.get("authority_pointer") or []
     for path in authority_pointer:
+        if is_windows_abs(path) and sys.platform != "win32":
+            continue
         if not Path(path).exists():
             errors.append(f"foreign-boundaries: authority pointer missing on disk: {path}")
 
