@@ -123,19 +123,19 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
     watchdog = [ordered]@{
       action = [ordered]@{
         executable = $PowerShellPath
-        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`" -FailureThreshold 2 -RecycleRetryBackoffSeconds 60 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
+        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`" -FailureThreshold 2 -ListeningFailureThreshold 2 -StartupGraceSeconds 60 -RecycleRetryBackoffSeconds 30 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
         working_directory = $RuntimeRoot
       }
       trigger = [ordered]@{
         type = 'daily_repeating'
         start_delay_seconds = 60
         repetition_interval_seconds = 60
-        repetition_duration_seconds = 86400
+        repetition_duration_seconds = 0
       }
       settings = [ordered]@{
         allow_start_if_on_batteries = $true
         dont_stop_if_going_on_batteries = $true
-        execution_time_limit_seconds = 60
+        execution_time_limit_seconds = 180
         restart_count = 0
         start_when_available = $true
         multiple_instances = 'IgnoreNew'
@@ -183,15 +183,35 @@ function New-InstallerLogonTrigger($Spec) {
   return New-ScheduledTaskTrigger @parameters
 }
 
+
+function New-InstallerBootTrigger([int]$DelaySeconds = 30) {
+  $parameters = [ordered]@{ AtStartup = $true }
+  if ($DelaySeconds -gt 0) {
+    # RandomDelay is accepted by New-ScheduledTaskTrigger -AtStartup on supported hosts
+    try { $parameters.RandomDelay = [TimeSpan]::FromSeconds($DelaySeconds) } catch {}
+  }
+  if ($TestMode) {
+    Add-TestScheduledTaskCall 'gateway' 'New-ScheduledTaskTrigger' ([ordered]@{ AtStartup = $true; DelaySeconds = $DelaySeconds })
+    return [pscustomobject]@{ trigger = 'boot' }
+  }
+  $t = New-ScheduledTaskTrigger -AtStartup
+  if ($DelaySeconds -gt 0) {
+    try { $t.Delay = "PT${DelaySeconds}S" } catch {}
+  }
+  return $t
+}
 function New-InstallerRepeatingDailyTrigger($Spec) {
   if ($Spec.type -ne 'daily_repeating') { throw "Unsupported watchdog task trigger type: $($Spec.type)" }
   $startAt = (Get-Date).AddSeconds([int]$Spec.start_delay_seconds)
   $dailyParameters = [ordered]@{ Daily = $true; At = $startAt }
+  $durationSeconds = [int]$Spec.repetition_duration_seconds
   $repetitionParameters = [ordered]@{
     Once = $true
     At = $startAt
     RepetitionInterval = [TimeSpan]::FromSeconds([int]$Spec.repetition_interval_seconds)
-    RepetitionDuration = [TimeSpan]::FromSeconds([int]$Spec.repetition_duration_seconds)
+  }
+  if ($durationSeconds -gt 0) {
+    $repetitionParameters.RepetitionDuration = [TimeSpan]::FromSeconds($durationSeconds)
   }
   if ($TestMode) {
     Add-TestScheduledTaskCall 'watchdog' 'New-ScheduledTaskTrigger' ([ordered]@{
@@ -202,7 +222,8 @@ function New-InstallerRepeatingDailyTrigger($Spec) {
       Once = $true
       At = $startAt.ToUniversalTime().ToString('o')
       RepetitionIntervalSeconds = [int]$Spec.repetition_interval_seconds
-      RepetitionDurationSeconds = [int]$Spec.repetition_duration_seconds
+      RepetitionDurationSeconds = $durationSeconds
+      StopAtDurationEnd = $false
     })
     $dailyTrigger = [pscustomobject]@{ Repetition = $null }
     $repetitionTrigger = [pscustomobject]@{ Repetition = [pscustomobject]@{
@@ -211,9 +232,20 @@ function New-InstallerRepeatingDailyTrigger($Spec) {
     } }
   } else {
     $dailyTrigger = New-ScheduledTaskTrigger @dailyParameters
+    if ($durationSeconds -le 0) {
+      # The cmdlet requires a duration to build the repetition, then we clear it.
+      $repetitionParameters.RepetitionDuration = [TimeSpan]::FromDays(1)
+    }
     $repetitionTrigger = New-ScheduledTaskTrigger @repetitionParameters
   }
   $dailyTrigger.Repetition = $repetitionTrigger.Repetition
+  # A one-day duration with StopAtDurationEnd drops the next day's trigger on Windows.
+  # Duration 0 means repeat indefinitely. Test mode records that choice and does not
+  # mutate the placeholder trigger object.
+  if ((-not $TestMode) -and $durationSeconds -le 0 -and $dailyTrigger.Repetition) {
+    $dailyTrigger.Repetition.Duration = ''
+    $dailyTrigger.Repetition.StopAtDurationEnd = $false
+  }
   return $dailyTrigger
 }
 
@@ -267,23 +299,25 @@ function New-InstallerScheduledTasks($TaskSpecs) {
   if (-not (Test-Path -LiteralPath $watchdogScript)) { throw "Watchdog script missing: $watchdogScript" }
 
   $gatewayAction = New-InstallerScheduledTaskAction $TaskSpecs.gateway.action 'gateway'
-  $gatewayTrigger = New-InstallerLogonTrigger $TaskSpecs.gateway.trigger
+  $gatewayLogonTrigger = New-InstallerLogonTrigger $TaskSpecs.gateway.trigger
+  $gatewayBootTrigger = New-InstallerBootTrigger 30
   $gatewaySettings = New-InstallerScheduledTaskSettings $TaskSpecs.gateway.settings 'gateway'
   $watchdogAction = New-InstallerScheduledTaskAction $TaskSpecs.watchdog.action 'watchdog'
-  $watchdogTrigger = New-InstallerRepeatingDailyTrigger $TaskSpecs.watchdog.trigger
+  $watchdogDailyTrigger = New-InstallerRepeatingDailyTrigger $TaskSpecs.watchdog.trigger
+  $watchdogBootTrigger = New-InstallerBootTrigger 45
   $watchdogSettings = New-InstallerScheduledTaskSettings $TaskSpecs.watchdog.settings 'watchdog'
   $gatewayPrincipal = New-InstallerScheduledTaskPrincipal $TaskSpecs.gateway.principal 'gateway'
   $watchdogPrincipal = New-InstallerScheduledTaskPrincipal $TaskSpecs.watchdog.principal 'watchdog'
 
   if ($TestMode) {
     return [pscustomobject]@{
-      gateway = [pscustomobject]@{ action = $gatewayAction; trigger = $gatewayTrigger; settings = $gatewaySettings; principal = $gatewayPrincipal }
-      watchdog = [pscustomobject]@{ action = $watchdogAction; trigger = $watchdogTrigger; settings = $watchdogSettings; principal = $watchdogPrincipal }
+      gateway = [pscustomobject]@{ action = $gatewayAction; trigger = @($gatewayLogonTrigger, $gatewayBootTrigger); settings = $gatewaySettings; principal = $gatewayPrincipal }
+      watchdog = [pscustomobject]@{ action = $watchdogAction; trigger = @($watchdogDailyTrigger, $watchdogBootTrigger); settings = $watchdogSettings; principal = $watchdogPrincipal }
     }
   }
   return [pscustomobject]@{
-    gateway = New-ScheduledTask -Action $gatewayAction -Trigger $gatewayTrigger -Settings $gatewaySettings -Principal $gatewayPrincipal
-    watchdog = New-ScheduledTask -Action $watchdogAction -Trigger $watchdogTrigger -Settings $watchdogSettings -Principal $watchdogPrincipal
+    gateway = New-ScheduledTask -Action $gatewayAction -Trigger @($gatewayLogonTrigger, $gatewayBootTrigger) -Settings $gatewaySettings -Principal $gatewayPrincipal
+    watchdog = New-ScheduledTask -Action $watchdogAction -Trigger @($watchdogDailyTrigger, $watchdogBootTrigger) -Settings $watchdogSettings -Principal $watchdogPrincipal
   }
 }
 
