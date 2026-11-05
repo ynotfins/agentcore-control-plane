@@ -49,7 +49,12 @@
       "type": "object",
       "description": "Wiring for the MCP outputSchema / structuredContent normalizer that render_bifrost_config.py injects in front of each stdio upstream. Adds no MCP route and no tool; per-server applicability is declared in the contract referenced by `contract`.",
       "additionalProperties": false,
-      "required": ["enabled", "interpreter", "script", "contract"],
+      "required": [
+        "enabled",
+        "interpreter",
+        "script",
+        "contract"
+      ],
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -72,7 +77,9 @@
         },
         "notes": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -105,44 +112,81 @@
         "default_tools_policy"
       ],
       "properties": {
-        "display_name": { "type": "string", "minLength": 1 },
-        "purpose": { "type": "string", "minLength": 1 },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
         "allowed_server_ids": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
           "uniqueItems": true
         },
         "default_tools_policy": {
           "type": "string",
-          "enum": ["allow_permitted", "deny_by_default", "profile_override"]
+          "enum": [
+            "allow_permitted",
+            "deny_by_default",
+            "profile_override"
+          ]
         },
         "notes": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
     "retry_policy": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["max_attempts", "backoff_seconds"],
+      "required": [
+        "max_attempts",
+        "backoff_seconds"
+      ],
       "properties": {
-        "max_attempts": { "type": "integer", "minimum": 0, "maximum": 10 },
-        "backoff_seconds": { "type": "number", "minimum": 0 },
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "backoff_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
         "retry_on": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
     "logging_policy": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["log_invocations", "log_content", "redact_secrets"],
+      "required": [
+        "log_invocations",
+        "log_content",
+        "redact_secrets"
+      ],
       "properties": {
-        "log_invocations": { "type": "boolean" },
-        "log_content": { "type": "boolean" },
-        "redact_secrets": { "type": "boolean" }
+        "log_invocations": {
+          "type": "boolean"
+        },
+        "log_content": {
+          "type": "boolean"
+        },
+        "redact_secrets": {
+          "type": "boolean"
+        }
       }
     },
     "upstream_server": {
@@ -177,13 +221,30 @@
           "pattern": "^[a-z0-9][a-z0-9_-]*$",
           "description": "Hyphenated AgentCore registry ID."
         },
-        "display_name": { "type": "string", "minLength": 1 },
-        "purpose": { "type": "string", "minLength": 1 },
-        "owner": { "type": "string", "minLength": 1 },
-        "pinned_version": { "type": "string", "minLength": 1 },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pinned_version": {
+          "type": "string",
+          "minLength": 1
+        },
         "connection_type": {
           "type": "string",
-          "enum": ["stdio", "http", "sse", "router"]
+          "enum": [
+            "stdio",
+            "http",
+            "sse",
+            "router"
+          ]
         },
         "executable_or_url": {
           "type": "string",
@@ -192,7 +253,9 @@
         },
         "arguments": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "env_var_names": {
           "type": "array",
@@ -202,42 +265,75 @@
           },
           "uniqueItems": true
         },
-        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        },
         "health_check_type": {
           "type": "string",
-          "enum": ["mcp_ping", "process", "http_get", "tcp", "none"]
+          "enum": [
+            "mcp_ping",
+            "process",
+            "http_get",
+            "tcp",
+            "none"
+          ]
         },
         "project_scope": {
           "type": "string",
-          "enum": ["global", "project"]
+          "enum": [
+            "global",
+            "project"
+          ]
         },
         "write_classification": {
           "type": "string",
-          "enum": ["read_only", "bounded_write", "write_capable", "admin"]
+          "enum": [
+            "read_only",
+            "bounded_write",
+            "write_capable",
+            "admin"
+          ]
         },
         "permitted_tools": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "denied_tools": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "capability_profiles": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
           "minItems": 0,
           "uniqueItems": true,
           "description": "Profiles eligible for JIT lease grants. Empty array means dormant (no permanent tool exposure). Not added to capability_profiles[*].allowed_server_ids unless JIT lease is active."
         },
-        "logging_policy": { "$ref": "#/$defs/logging_policy" },
-        "retry_policy": { "$ref": "#/$defs/retry_policy" },
+        "logging_policy": {
+          "$ref": "#/$defs/logging_policy"
+        },
+        "retry_policy": {
+          "$ref": "#/$defs/retry_policy"
+        },
         "rollback_route": {
           "type": "string",
           "minLength": 1,
           "description": "Documented recovery path if this upstream must be disabled."
         },
-        "enabled": { "type": "boolean" },
+        "enabled": {
+          "type": "boolean"
+        },
         "bifrost_client_name": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]*$",
@@ -249,12 +345,20 @@
         },
         "headers": {
           "type": "object",
-          "additionalProperties": { "type": "string" },
+          "additionalProperties": {
+            "type": "string"
+          },
           "description": "Static HTTP headers using env.VAR references only."
         },
         "auth_type": {
           "type": "string",
-          "enum": ["none", "headers", "oauth", "per_user_oauth", "per_user_headers"]
+          "enum": [
+            "none",
+            "headers",
+            "oauth",
+            "per_user_oauth",
+            "per_user_headers"
+          ]
         },
         "wrapper_script": {
           "type": "string",
@@ -262,9 +366,13 @@
         },
         "notes": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "deferred": { "type": "boolean" },
+        "deferred": {
+          "type": "boolean"
+        },
         "status": {
           "type": "string",
           "enum": [
@@ -274,21 +382,39 @@
             "quarantine",
             "dormant",
             "dormant_project_scoped",
-            "developer_preview_oauth_pending"
+            "developer_preview_oauth_pending",
+            "catalogued_unverified",
+            "rejected"
           ],
-          "description": "Lifecycle posture. dormant_project_scoped = registered but not default-exposed pending project lease. developer_preview_oauth_pending = registered remote MCP awaiting OAuth proof."
+          "description": "Lifecycle posture. dormant_project_scoped = registered but not default-exposed pending project lease. developer_preview_oauth_pending = registered remote MCP awaiting OAuth proof. catalogued_unverified = inventoried but not yet admission-validated. rejected = evaluated and declined for Bifrost admission (kept for audit)."
         },
         "oauth_config": {
           "type": "object",
           "description": "OAuth 2.0/2.1 config for upstream HTTP/SSE clients. Never include tokens, client_secret, access codes, or any secret values.",
           "additionalProperties": false,
           "properties": {
-            "server_url":        { "type": "string", "description": "OAuth discovery root (used with .well-known endpoints and DCR)." },
-            "client_id":        { "type": "string" },
-            "authorize_url":    { "type": "string" },
-            "token_url":        { "type": "string" },
-            "registration_url": { "type": "string" },
-            "scopes":           { "type": "array", "items": { "type": "string" } }
+            "server_url": {
+              "type": "string",
+              "description": "OAuth discovery root (used with .well-known endpoints and DCR)."
+            },
+            "client_id": {
+              "type": "string"
+            },
+            "authorize_url": {
+              "type": "string"
+            },
+            "token_url": {
+              "type": "string"
+            },
+            "registration_url": {
+              "type": "string"
+            },
+            "scopes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         },
         "tool_groups": {
@@ -296,21 +422,38 @@
           "description": "Named tool groups consumed by the M6 capability lease system. Keys are group IDs referenced in capability_lease.tool_group_id.",
           "additionalProperties": {
             "type": "object",
-            "required": ["tools", "access_policy"],
+            "required": [
+              "tools",
+              "access_policy"
+            ],
             "additionalProperties": false,
             "properties": {
               "tools": {
                 "type": "array",
-                "items": { "type": "string", "minLength": 1 }
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
               },
               "access_policy": {
                 "type": "string",
-                "enum": ["jit_short", "operator_scope", "billable_approval"]
+                "enum": [
+                  "jit_short",
+                  "operator_scope",
+                  "billable_approval",
+                  "default_profile"
+                ]
               },
-              "description": { "type": "string" },
+              "description": {
+                "type": "string"
+              },
               "content_trust_class": {
                 "type": "string",
-                "enum": ["raw_untrusted", "promoted", "trusted"]
+                "enum": [
+                  "raw_untrusted",
+                  "promoted",
+                  "trusted"
+                ]
               },
               "upload_policy": {
                 "type": "object",
@@ -318,11 +461,18 @@
                 "properties": {
                   "forbid": {
                     "type": "array",
-                    "items": { "type": "string", "minLength": 1 }
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
                   },
                   "trust_class_on_result": {
                     "type": "string",
-                    "enum": ["raw_untrusted", "promoted", "trusted"]
+                    "enum": [
+                      "raw_untrusted",
+                      "promoted",
+                      "trusted"
+                    ]
                   }
                 }
               },
@@ -330,23 +480,60 @@
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
-                  "max_duration_seconds": { "type": "integer", "minimum": 1 },
-                  "max_invocations":      { "type": "integer", "minimum": 1 },
-                  "requires_approval":    { "type": "boolean" }
+                  "max_duration_seconds": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "max_invocations": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "requires_approval": {
+                    "type": "boolean"
+                  }
                 }
               }
             }
+          }
+        },
+        "admission_evidence": {
+          "type": "object",
+          "description": "Optional audit trail for MCP admission decisions (dates, operator notes, evidence paths).",
+          "additionalProperties": true
+        },
+        "env_aliases": {
+          "type": "object",
+          "description": "Optional map of canonical env var name -> alternate names accepted on this host.",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "allowed_extra_headers": {
+          "type": "array",
+          "description": "Optional allowlist of extra HTTP header names clients may send to this upstream.",
+          "items": {
+            "type": "string",
+            "minLength": 1
           }
         }
       },
       "allOf": [
         {
           "if": {
-            "properties": { "connection_type": { "const": "router" } },
-            "required": ["connection_type"]
+            "properties": {
+              "connection_type": {
+                "const": "router"
+              }
+            },
+            "required": [
+              "connection_type"
+            ]
           },
           "then": {
-            "required": ["wrapper_script"]
+            "required": [
+              "wrapper_script"
+            ]
           }
         }
       ]
