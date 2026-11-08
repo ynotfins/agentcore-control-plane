@@ -116,7 +116,8 @@
             "zcode_mcp_json",
             "openclaw_json",
             "skip_openclaw",
-            "raven_pending"
+            "raven_pending",
+            "grokbot_json"
           ]
         },
         "supports_env_headers": { "type": "boolean" },

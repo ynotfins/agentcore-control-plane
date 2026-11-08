@@ -1,0 +1,38 @@
+---
+description: Global subagent and model routing — cheap workers for boilerplate; keep premium models for hard decisions.
+alwaysApply: true
+---
+
+# Subagent + model routing (all projects)
+
+Parent agents (Sol / Grok / Opus) must delegate easy work. Do not burn the parent on boilerplate, mechanical edits, command follow-through, or routine search.
+
+Settings "Explore subagent model" affects Explore ONLY. For other Task subagents, parent MUST pass explicit model (or use an agent YAML that pins model).
+
+## Default cheap model
+| Role | Model | When |
+| --- | --- | --- |
+| Boilerplate / mechanical / follow a written plan | composer-2.5 | Default cheap coding worker |
+| Explore / search | composer-2.5 (or Explore default) | Never Grok/Sol/Opus for Explore |
+| Avoid for "cheap" | composer-2.5-fast, Grok Fast | Fast variants cost MORE |
+
+## When to use which subagent
+| Task | Subagent | Model |
+| --- | --- | --- |
+| Where is X / map repo | explore | composer-2.5 |
+| Boilerplate, stubs, renames, glue, apply bounded plan | cheap-implementer else generalPurpose | composer-2.5 |
+| Tests only | test-writer | composer-2.5 (unless hard design) |
+| Docs after MATERIAL change only | docs-guardian | inherit/mid — cadence unchanged |
+| Review finished diff | code-reviewer | mid/parent |
+| Architecture, auth, Bifrost/MCP, security, migrations | PARENT / specialist | premium — do not downgrade |
+
+Parent Task calls for easy work MUST set model: composer-2.5 (omission inherits Sol/Grok).
+
+## Cloud agents
+Use only when operator asks for isolated VM work without local secrets/Bifrost. Cloud = Max Mode + API pricing; Explore/Browser may auto-pick models; no local Bifrost. Not better for cheap boilerplate on this PC. Default local + composer-2.5.
+
+## Git
+After completed validated task slice: commit/push task-owned files only. Never git add -A on a dirty mega-tree.
+
+## Anti-patterns
+Parent writing boilerplate; Explore on Grok 4.6; Composer Fast to "save money"; cloud for Bifrost/live Windows ops; docs-guardian after every tiny edit.

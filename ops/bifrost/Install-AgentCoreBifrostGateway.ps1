@@ -123,7 +123,7 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
     watchdog = [ordered]@{
       action = [ordered]@{
         executable = $PowerShellPath
-        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`" -FailureThreshold 2 -RecycleRetryBackoffSeconds 60 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
+        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`" -FailureThreshold 2 -ListeningFailureThreshold 2 -StartupGraceSeconds 60 -RecycleRetryBackoffSeconds 30 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
         working_directory = $RuntimeRoot
       }
       trigger = [ordered]@{
@@ -183,6 +183,23 @@ function New-InstallerLogonTrigger($Spec) {
   return New-ScheduledTaskTrigger @parameters
 }
 
+
+function New-InstallerBootTrigger([int]$DelaySeconds = 30) {
+  $parameters = [ordered]@{ AtStartup = $true }
+  if ($DelaySeconds -gt 0) {
+    # RandomDelay is accepted by New-ScheduledTaskTrigger -AtStartup on supported hosts
+    try { $parameters.RandomDelay = [TimeSpan]::FromSeconds($DelaySeconds) } catch {}
+  }
+  if ($TestMode) {
+    Add-TestScheduledTaskCall 'gateway' 'New-ScheduledTaskTrigger' ([ordered]@{ AtStartup = $true; DelaySeconds = $DelaySeconds })
+    return [pscustomobject]@{ trigger = 'boot' }
+  }
+  $t = New-ScheduledTaskTrigger -AtStartup
+  if ($DelaySeconds -gt 0) {
+    try { $t.Delay = "PT${DelaySeconds}S" } catch {}
+  }
+  return $t
+}
 function New-InstallerRepeatingDailyTrigger($Spec) {
   if ($Spec.type -ne 'daily_repeating') { throw "Unsupported watchdog task trigger type: $($Spec.type)" }
   $startAt = (Get-Date).AddSeconds([int]$Spec.start_delay_seconds)
@@ -282,23 +299,25 @@ function New-InstallerScheduledTasks($TaskSpecs) {
   if (-not (Test-Path -LiteralPath $watchdogScript)) { throw "Watchdog script missing: $watchdogScript" }
 
   $gatewayAction = New-InstallerScheduledTaskAction $TaskSpecs.gateway.action 'gateway'
-  $gatewayTrigger = New-InstallerLogonTrigger $TaskSpecs.gateway.trigger
+  $gatewayLogonTrigger = New-InstallerLogonTrigger $TaskSpecs.gateway.trigger
+  $gatewayBootTrigger = New-InstallerBootTrigger 30
   $gatewaySettings = New-InstallerScheduledTaskSettings $TaskSpecs.gateway.settings 'gateway'
   $watchdogAction = New-InstallerScheduledTaskAction $TaskSpecs.watchdog.action 'watchdog'
-  $watchdogTrigger = New-InstallerRepeatingDailyTrigger $TaskSpecs.watchdog.trigger
+  $watchdogDailyTrigger = New-InstallerRepeatingDailyTrigger $TaskSpecs.watchdog.trigger
+  $watchdogBootTrigger = New-InstallerBootTrigger 45
   $watchdogSettings = New-InstallerScheduledTaskSettings $TaskSpecs.watchdog.settings 'watchdog'
   $gatewayPrincipal = New-InstallerScheduledTaskPrincipal $TaskSpecs.gateway.principal 'gateway'
   $watchdogPrincipal = New-InstallerScheduledTaskPrincipal $TaskSpecs.watchdog.principal 'watchdog'
 
   if ($TestMode) {
     return [pscustomobject]@{
-      gateway = [pscustomobject]@{ action = $gatewayAction; trigger = $gatewayTrigger; settings = $gatewaySettings; principal = $gatewayPrincipal }
-      watchdog = [pscustomobject]@{ action = $watchdogAction; trigger = $watchdogTrigger; settings = $watchdogSettings; principal = $watchdogPrincipal }
+      gateway = [pscustomobject]@{ action = $gatewayAction; trigger = @($gatewayLogonTrigger, $gatewayBootTrigger); settings = $gatewaySettings; principal = $gatewayPrincipal }
+      watchdog = [pscustomobject]@{ action = $watchdogAction; trigger = @($watchdogDailyTrigger, $watchdogBootTrigger); settings = $watchdogSettings; principal = $watchdogPrincipal }
     }
   }
   return [pscustomobject]@{
-    gateway = New-ScheduledTask -Action $gatewayAction -Trigger $gatewayTrigger -Settings $gatewaySettings -Principal $gatewayPrincipal
-    watchdog = New-ScheduledTask -Action $watchdogAction -Trigger $watchdogTrigger -Settings $watchdogSettings -Principal $watchdogPrincipal
+    gateway = New-ScheduledTask -Action $gatewayAction -Trigger @($gatewayLogonTrigger, $gatewayBootTrigger) -Settings $gatewaySettings -Principal $gatewayPrincipal
+    watchdog = New-ScheduledTask -Action $watchdogAction -Trigger @($watchdogDailyTrigger, $watchdogBootTrigger) -Settings $watchdogSettings -Principal $watchdogPrincipal
   }
 }
 

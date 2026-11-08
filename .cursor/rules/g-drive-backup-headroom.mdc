@@ -1,0 +1,21 @@
+---
+description: G: is a small second-backup drive. Never let WAL or backup copies fill it to 100%.
+alwaysApply: true
+---
+
+# G: second-backup headroom
+
+`G:` is the **second backup copy** only (currently a 119 GB external NVMe labeled "Fast NVME External"). It is not live PostgreSQL, not the primary archive, and not a project disk.
+
+- Primary backups and WAL live on `E:\AgentCoreArchive\agentcore-memory\...` (terabytes free).
+- Live cluster data lives on `F:\PostgreSQL18\data`.
+- A full `G:` must never fail `archive_command`. Secondary copies are best-effort.
+
+## Hard rules
+
+1. Do not write unbounded WAL or extra project trees onto `G:`.
+2. Before copying to `G:`, require used percent under 75 and at least 8 GB free.
+3. If `G:` is full or over policy, skip the `G:` copy, keep the `E:` original, and run `ops/Prune-AgentCoreSecondaryBackupDrive.ps1`.
+4. Prune only `G:\AgentCoreArchive\agentcore-memory\backups\pg18` and `G:\AgentCoreArchive\agentcore-memory\wal\pg18`. Never delete `E:` or `F:` WAL/data.
+5. Keep the newest 7 daily `G:` backups plus WAL from the oldest retained daily backup. Weekly/monthly `G:` backup sets may remain; WAL on `G:` does not keep months of history.
+6. Policy contract: `contracts/secondary-backup-drive-policy.json`. Nightly automation: `\AgentCore\SecondaryBackupHeadroom`.

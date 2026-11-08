@@ -312,8 +312,23 @@ while ($true) {
   $exitCode = 1
   try {
     Write-AgentCoreLog "Starting bifrost-http process..."
-    & $exe @bifrostArgs 1>> $stdoutLog 2>> $stderrLog
-    $exitCode = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+    $proc = Start-Process -FilePath $exe -ArgumentList $bifrostArgs -WorkingDirectory $RuntimeRoot `
+      -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
+    try {
+      $proc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::BelowNormal
+      Write-AgentCoreLog "PROCESS_PRIORITY class=BelowNormal pid=$($proc.Id)"
+    } catch {
+      Write-AgentCoreLog "PROCESS_PRIORITY_SET_FAILED pid=$($proc.Id) reason=$($_.Exception.Message)"
+    }
+    try {
+      Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match 'node' -and ([string]$_.CommandLine -match 'agentcore-builder-compat-proxy\.cjs') } |
+        ForEach-Object {
+          try { (Get-Process -Id $_.ProcessId -ErrorAction Stop).PriorityClass = 'BelowNormal' } catch {}
+        }
+    } catch {}
+    Wait-Process -Id $proc.Id
+    $exitCode = if ($null -ne $proc.ExitCode) { [int]$proc.ExitCode } else { 0 }
   } catch {
     $exitCode = 1
     Write-AgentCoreLog "bifrost-http launch failed: $($_.Exception.Message)"

@@ -15,7 +15,7 @@ param(
   [string]$GatewayUrl = 'http://127.0.0.1:8080',
   [string]$TaskName = 'AgentCore-Bifrost-Gateway',
   [string]$TaskPath = '\AgentCore\',
-  [int]$StartupGraceSeconds = 300,
+  [int]$StartupGraceSeconds = 60,
   [int]$MaintenanceMarkerTtlSeconds = 900,
   [ValidateRange(30, 900)]
   [int]$StopRequestedMarkerTtlSeconds = 120,
@@ -23,9 +23,9 @@ param(
   [int]$StartRequestedMarkerTtlSeconds = 180,
   [int]$FailureThreshold = 2,
   [ValidateRange(2, 30)]
-  [int]$ListeningFailureThreshold = 5,
+  [int]$ListeningFailureThreshold = 2,
   [ValidateRange(1, 3600)]
-  [int]$RecycleRetryBackoffSeconds = 60,
+  [int]$RecycleRetryBackoffSeconds = 30,
   [switch]$TestMode,
   [ValidateSet('Healthy', 'Unhealthy')]
   [string]$TestHealthResult = 'Healthy',

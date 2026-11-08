@@ -1,0 +1,17 @@
+{
+  "mcp": {
+    "servers": {
+      "agentcore-gateway": {
+        "url": "http://127.0.0.1:8080/mcp",
+        "transport": "streamable-http",
+        "connectionTimeoutMs": 300000,
+        "requestTimeoutMs": 300000,
+        "headers": {
+          "Authorization": "Bearer ${BIFROST_MCP_VK_GROKBOT}"
+        }
+      }
+    }
+  },
+  "alternate_tailnet_mcp_url": "https://chaoscentral.tailb71e7e.ts.net/mcp",
+  "notes": "Bifrost listens on 127.0.0.1:8080 only. Tailscale Serve already proxies /mcp on the tailnet. Grok cloud MCP needs Funnel or Cloudflare Tunnel."
+}

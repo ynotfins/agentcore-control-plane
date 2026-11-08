@@ -1,0 +1,30 @@
+{
+  "client": "grokbot",
+  "version": "0.79.3",
+  "configPath": "C:\\Users\\ynotf\\.grokbot\\settings.json",
+  "status": "source_ready_live_unverified",
+  "merge": {
+    "mcp": {
+      "servers": {
+        "agentcore-gateway": {
+          "url": "http://127.0.0.1:8080/mcp",
+          "transport": "streamable-http",
+          "connectionTimeoutMs": 300000,
+          "requestTimeoutMs": 300000,
+          "headers": {
+            "Authorization": "Bearer ${BIFROST_MCP_VK_GROKBOT}"
+          }
+        }
+      }
+    }
+  },
+  "notes": [
+    "Local template uses loopback. Grok Bot cloud MCP must use Tailscale MagicDNS http://chaoscentral.tailb71e7e.ts.net:8080/mcp or an approved Cloudflare Tunnel hostname — never a public marketing domain without Access.",
+    "Never paste the resolved virtual key into chat."
+  ],
+  "removeDirectServerNames": [
+    "swarmrecall",
+    "swarmvault",
+    "filesystem"
+  ]
+}

@@ -1,0 +1,68 @@
+---
+description: When agents must use sequential-thinking, Serena, and arabold-docs
+alwaysApply: true
+---
+
+# Required foundation tools
+
+These three tools are live through `agentcore-gateway`. Do not skip them because host search, training memory, or a "dormant Serena" sentence from an older file feels faster. Shared Bifrost Serena is **not** dormant.
+
+Discover Code Mode tools with `listToolFiles` → `readToolFile` → `executeToolCode`. Do not add a second Serena, sequential-thinking, or arabold MCP entry to any IDE.
+
+## sequential-thinking — mandatory before you decide
+
+Call `sequential-thinking` through the gateway before:
+
+- planning or decomposing a non-trivial task
+- architecture, migration, concurrency, recovery, or major refactor
+- choosing between implementations, tools, or routes
+- debugging after the first failed hypothesis
+- any cross-system or security-sensitive change
+
+Skip only for a single-file typo, a yes/no status read, or a command the operator already specified exactly. One thought is enough; do not skip because the answer feels obvious.
+
+## Serena — live; navigation first; remaining tools available now
+
+Serena is live as Code Mode files under `serena/`. All 21 tools exist. Default to the navigation set so schemas stay small. The remaining tools are still available immediately.
+
+If the task needs a write, rename, insert, or Serena-memory tool, request it **now** with `listToolFiles` → `readToolFile` → `executeToolCode`. Do not skip Serena because those tools are not auto-run. Not auto-run means “do not fire writes without a reason,” not “those tools are unavailable.”
+
+On every Serena `executeToolCode` call, pass `agentcore_project` set to the enrolled `project_key` (from `AGENTCORE_PROJECT_KEY`). Code Mode does not forward project headers by itself.
+
+**Use by default (do not substitute host Grep/Glob for these):**
+
+- `find_symbol`, `find_referencing_symbols`, `find_declaration`, `find_implementations`
+- `get_symbols_overview`, `search_for_pattern`, `get_diagnostics_for_file`
+
+**Available immediately — request now when needed:**
+
+- edits: `replace_content`, `replace_in_files`, `replace_symbol_body`, `insert_after_symbol`, `insert_before_symbol`
+- refactors: `rename_symbol`, `safe_delete_symbol`
+- Serena memory/dashboard: `read_memory`, `list_memories`, `write_memory`, `edit_memory`, `rename_memory`, `delete_memory`, `open_dashboard`
+
+**Must use Serena when:**
+
+- locating a symbol, reference, implementation, or declaration
+- checking a file's diagnostics before claiming a fix
+- a rename or symbol-body edit is safer than a text patch
+
+Do not auto-run Serena write tools. Never claim Serena verification unless a Serena tool actually ran. If Code Mode discovery fails, repair the gateway — do not paste Serena into IDE `mcp.json`.
+
+## arabold-docs — official versioned docs on F:
+
+Durable official docs stay in the machine-global store, not in Git:
+
+- Index: `F:\AgentCore\runtime\docs-store\arabold`
+- Catalog: `F:\AgentCore\runtime\docs-store\CATALOG.json`
+- Snapshots: `F:\AgentCore\runtime\docs-store\official\<library>\<version>\`
+- Project record only: `.agentcore/docs-checkpoint.json`
+
+**Must use arabold-docs when:**
+
+- a library, SDK, API, CLI, schema, protocol, or version fact is needed
+- adding, upgrading, or configuring a direct dependency
+- the project checkpoint is missing, stale, or a pin changed
+
+**If docs are missing:** `scrape_docs` the official source for that exact version, wait for `get_job_info`, confirm `search_docs` hits, then update the F: catalog and the project checkpoint. Do not copy the F: corpus into the repo. Context7 may answer only this turn for a public library while scrape runs; it does not satisfy the checkpoint.
+
+A sessionStart hook reminds agents about checkpoint drift. A sub-agent or `python -m agentcore_cursor.docs_checkpoint` must verify pins against the F: catalog. Missing or mismatched coverage blocks work that depends on that library.

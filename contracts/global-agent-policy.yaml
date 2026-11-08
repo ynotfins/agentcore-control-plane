@@ -72,19 +72,21 @@ mandatory_rules:
     title: Operator-defined AgentCore client trust classes
     rule: >-
       Trust Class A consists exactly of Cursor, Codex, Devin, Antigravity, ZCode,
-      MiniMax coding clients, and Open Interpreter. For these clients, every technically
-      compatible AgentCore-managed engineering capability is discoverable and executable
-      through the builder profile or the client's host-native tools; Code Mode and selective
-      signature loading minimize context without reducing authority. Trust Class A may perform
-      operator-authorized cross-repository, cross-drive, runtime, service, configuration, and
-      deployment work through host-native tools and owning workflows. Existing authority locks,
-      secret handling, database ownership, external-action intent, and the Swarm boundary remain
-      enforceable. Zoo-Code is a separate extension and is not ZCode. Trust Class B retains its
-      ordinary executable profile and discovers the broader catalog through the read-only
-      capability catalog; elevated execution uses the existing operator authority path and fails
-      closed without it. Shared implicit-project servers and whole-drive filesystem MCP roots
-      remain forbidden because they cannot carry trustworthy per-call project identity; this does
-      not restrict authorized Trust Class A host-native filesystem access.
+      MiniMax coding clients, Open Interpreter, and xAI Grok Bot (desktop). For these clients,
+      every technically compatible AgentCore-managed engineering capability is discoverable and
+      executable through the builder profile, the client's dedicated Trust Class A profile, or
+      the client's host-native tools; Code Mode and selective signature loading minimize context
+      without reducing authority. Trust Class A may perform operator-authorized cross-repository,
+      cross-drive, runtime, service, configuration, and deployment work through host-native tools
+      and owning workflows. Existing authority locks, secret handling, database ownership,
+      external-action intent, and the Swarm boundary remain enforceable. Zoo-Code is a separate
+      extension and is not ZCode. Grok Bot uses dedicated env BIFROST_MCP_VK_GROKBOT and must not
+      share the Cursor builder key casually across every Bot on the shared cloud computer. Trust
+      Class B retains its ordinary executable profile and discovers the broader catalog through
+      the read-only capability catalog; elevated execution uses the existing operator authority
+      path and fails closed without it. Shared implicit-project servers and whole-drive filesystem
+      MCP roots remain forbidden because they cannot carry trustworthy per-call project identity;
+      this does not restrict authorized Trust Class A host-native filesystem access.
 
   - id: swarm-isolation
     title: Swarm isolation

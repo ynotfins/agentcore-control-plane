@@ -57,9 +57,17 @@ Profiles select which upstream MCP servers (and, where implemented, which tools)
 - **Policy:** allow_permitted
 - **VK:** `BIFROST_MCP_VK_OPENCLAW`
 
+## grokbot
+
+- **Purpose:** Trust Class A xAI Grok Bot desktop surface; builder-equivalent without `cursor-agent-mcp`.
+- **Servers:** builder set minus `cursor-agent-mcp` (includes agentcore-memory, arabold-docs, sequential-thinking, research/browser Code Mode clients, etc.)
+- **Policy:** allow_permitted
+- **VK:** `BIFROST_MCP_VK_GROKBOT`
+- **Notes:** Account-wide MCP is shared across Bots; configure primary Bot first. Cloud MCP needs Tailscale MagicDNS or an approved private tunnel.
+
 ## Trust classes
 
-- **Trust Class A:** exactly Cursor, Codex, Devin, Antigravity, ZCode, MiniMax coding clients, and Open Interpreter. These clients use the builder profile and host-native capability under the existing authority, secret, database, and Swarm boundaries. Header-capable clients reference the builder key at `:8080`; approved header-hostile clients use the process-attested `:18082` route selected by `gateway_url` and `gateway_auth_mode`, with no persisted bearer. ZCode is distinct from Zoo-Code.
+- **Trust Class A:** exactly Cursor, Codex, Devin, Antigravity, ZCode, MiniMax coding clients, Open Interpreter, and xAI Grok Bot (desktop). These clients use the builder profile or a dedicated Trust Class A profile and host-native capability under the existing authority, secret, database, and Swarm boundaries. Header-capable clients reference their env-backed key at `:8080`; approved header-hostile clients use the process-attested `:18082` route selected by `gateway_url` and `gateway_auth_mode`, with no persisted bearer. ZCode is distinct from Zoo-Code. Grok Bot uses `BIFROST_MCP_VK_GROKBOT`, not the shared Cursor builder key.
 - **Trust Class B:** retains its normal executable profile and receives the two-tool `agentcore-capability-catalog` discovery surface. Elevated execution uses the existing operator authority path and fails closed without it.
 
 ## Rules
