@@ -90,5 +90,5 @@ if ($PSCmdlet.ShouldProcess($TargetRoot, "deploy canonical cheap-workers MCP pac
 
     Write-Output "DEPLOYED: $TargetRoot"
     Write-Output "ROLLBACK: $backupPath"
-    Write-Output "RESTART REQUIRED: open a fresh Codex task so the MCP process loads version 0.4.0."
+    Write-Output "RESTART REQUIRED: open a fresh Codex task so the MCP process loads version 0.4.1."
 }

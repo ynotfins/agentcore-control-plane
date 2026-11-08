@@ -737,6 +737,194 @@ def main() -> int:
     check("context-block:bifrost composition", "agentcore-gateway" in context_block)
     check("context-block:never format H:", "never be formatted" in context_block or "never format" in context_block.lower())
 
+    # --- task-scoped global agent policy (AUTH-2026-11-06) ---
+    if policy:
+        # locate mandatory rule id 'authority'
+        authority_rule = None
+        for rule in policy.get("mandatory_rules", []):
+            if rule.get("id") == "authority":
+                authority_rule = rule
+                break
+        check("policy:authority rule id exists", authority_rule is not None)
+
+        if authority_rule:
+            # baseline order: PROJECT_ANCHOR.md then DOC_AUTHORITY.md
+            rule_text = authority_rule.get("rule", "")
+            check(
+                "policy:authority baseline PROJECT_ANCHOR.md then DOC_AUTHORITY.md",
+                ("PROJECT_ANCHOR.md" in rule_text
+                 and "DOC_AUTHORITY.md" in rule_text
+                 and rule_text.index("PROJECT_ANCHOR.md") < rule_text.index("DOC_AUTHORITY.md")),
+                "baseline order missing or reversed",
+            )
+            # must point to docs/agent-policy/DOCUMENTATION_READ_ORDER.md
+            check(
+                "policy:authority references DOCUMENTATION_READ_ORDER.md",
+                "docs/agent-policy/DOCUMENTATION_READ_ORDER.md" in rule_text,
+            )
+            # task-triggered expansion wording present
+            task_trigger_phrases = [
+                "task-triggered",
+                "task document triggers",
+                "document reading order triggered by the task document",
+                "reads doc order triggered by the task",
+            ]
+            check(
+                "policy:authority task-triggered expansion",
+                any(phrase in rule_text for phrase in task_trigger_phrases),
+                "task-triggered expansion wording missing",
+            )
+
+            pre_task_terms = (
+                "AGENTS.md",
+                "CLAUDE.md",
+                "repository",
+                "worktree",
+                "branch",
+                "HEAD",
+                "approved base",
+                "dirty state",
+                "ownership",
+                "enrollment",
+                "AgentCore/Swarm boundary",
+                "target protection",
+                "matching approval",
+                "Ask-mode Foundation Report",
+                "drift",
+            )
+            missing_pre_task = [term for term in pre_task_terms if term not in rule_text]
+            check(
+                "policy:authority pre-task safeguards",
+                not missing_pre_task,
+                f"missing pre-task terms: {missing_pre_task}",
+            )
+
+            read_order_policy_path = REPO / "docs/agent-policy/DOCUMENTATION_READ_ORDER.md"
+            project_execution_path = REPO / "contracts/project-execution-policy.json"
+            check("policy:read-order file exists", read_order_policy_path.is_file())
+            check("policy:project-execution contract exists", project_execution_path.is_file())
+            if project_execution_path.is_file():
+                execution_policy = json.loads(project_execution_path.read_text(encoding="utf-8"))
+                read_order_contract = execution_policy.get("read_order") or {}
+                check(
+                    "policy:project-execution task_scoped mode",
+                    read_order_contract.get("mode") == "task_scoped",
+                )
+                trigger_ids = {
+                    trigger.get("id")
+                    for trigger in read_order_contract.get("task_triggers", [])
+                    if isinstance(trigger, dict)
+                }
+                check(
+                    "policy:project-execution trigger set",
+                    {
+                        "architecture_governance",
+                        "bifrost_gateway",
+                        "memory_database",
+                        "new_project_bootstrap",
+                        "documentation_mutation",
+                        "dependency_external_api",
+                        "ui_scaffolding",
+                        "implementation",
+                        "historical_evidence",
+                    } == trigger_ids,
+                    f"unexpected trigger ids: {sorted(trigger_ids)}",
+                )
+
+            agents_contract = read("AGENTS.md")
+            check(
+                "policy:foundation report defined by AGENTS",
+                "Ask-mode Foundation Report" in agents_contract
+                and "first task" in agents_contract.lower(),
+            )
+
+            # reject old unconditional full chain: BLUEPRINT.md + CONTEXT_BLOCK.md
+            # directly in global startup sequence (i.e. without task-scoped guard)
+            old_chain = (
+                "BLUEPRINT.md" in rule_text
+                and "CONTEXT_BLOCK.md" in rule_text
+                and "Optional" not in rule_text
+                and "task" not in rule_text.lower()
+            )
+            check(
+                "policy:authority rejects unconditional full startup chain",
+                not old_chain,
+                "old unconditional BLUEPRINT.md + CONTEXT_BLOCK.md chain found",
+            )
+
+        # Every GLOBAL_RULES.md (non-Swarm) must render task-scoped baseline/trigger
+        authority_baseline_snippet = "PROJECT_ANCHOR.md"
+        authority_trigger_snippet = "DOCUMENTATION_READ_ORDER.md"
+        for profile_dir in sorted(profile_dirs):
+            rendered = read(f"ide-profiles/{profile_dir.name}/GLOBAL_RULES.md")
+            check(
+                f"ide:task-scoped-baseline:{profile_dir.name}",
+                authority_baseline_snippet in rendered,
+                "missing task-scoped baseline PROJECT_ANCHOR.md",
+            )
+            check(
+                f"ide:task-scoped-trigger:{profile_dir.name}",
+                authority_trigger_snippet in rendered,
+                "missing DOCUMENTATION_READ_ORDER.md trigger",
+            )
+            missing_rendered_terms = [
+                term
+                for term in (
+                    "AGENTS.md",
+                    "CLAUDE.md",
+                    "worktree",
+                    "approved base",
+                    "dirty state",
+                    "ownership",
+                    "enrollment",
+                    "AgentCore/Swarm boundary",
+                    "target protection",
+                    "matching approval",
+                    "Ask-mode Foundation Report",
+                    "drift",
+                )
+                if term not in rendered
+            ]
+            check(
+                f"ide:pre-task-safeguards:{profile_dir.name}",
+                not missing_rendered_terms,
+                f"missing pre-task terms: {missing_rendered_terms}",
+            )
+            # reject old unconditional chain in rendered rules
+            rendered_has_old_chain = (
+                "BLUEPRINT.md" in rendered
+                and "CONTEXT_BLOCK.md" in rendered
+                and authority_trigger_snippet not in rendered
+            )
+            check(
+                f"ide:no-old-chain:{profile_dir.name}",
+                not rendered_has_old_chain,
+                "old unconditional BLUEPRINT.md + CONTEXT_BLOCK.md in GLOBAL_RULES.md",
+            )
+
+        # rules/canonical/GLOBAL_AGENT_RULES.md must contain task-scoped wording
+        canonical_rules = read("rules/canonical/GLOBAL_AGENT_RULES.md")
+        check(
+            "canonical:task-scoped-baseline",
+            authority_baseline_snippet in canonical_rules,
+            "canonical GLOBAL_AGENT_RULES.md missing task-scoped baseline",
+        )
+        check(
+            "canonical:task-scoped-trigger",
+            authority_trigger_snippet in canonical_rules,
+            "canonical GLOBAL_AGENT_RULES.md missing DOCUMENTATION_READ_ORDER.md trigger",
+        )
+        canonical_has_old_chain = (
+            "BLUEPRINT.md" in canonical_rules
+            and "CONTEXT_BLOCK.md" in canonical_rules
+            and authority_trigger_snippet not in canonical_rules
+        )
+        check(
+            "canonical:no-old-chain",
+            not canonical_has_old_chain,
+            "old unconditional chain in canonical GLOBAL_AGENT_RULES.md",
+        )
+
     # --- report ---
     print(f"PASS {len(PASSES)} checks")
     if FAILURES:

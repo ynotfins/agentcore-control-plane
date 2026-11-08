@@ -9,7 +9,7 @@ Repository-owned MCP server for bounded delegation from Codex to fixed OpenRoute
 - DeepSeek V4 Flash Latest: fast scouting and triage.
 - Morph Fast Apply: merges lazy edits returned by edit workers.
 - `documentation_guard_worker`: read-only drift review with a `BLOCK`, `REVISE`, or `ACCEPT` verdict.
-- `documentation_maintainer_edit_worker`: the only cheap-worker documentation write path; defaults to dry-run.
+- `documentation_maintainer_edit_worker`: the only cheap-worker documentation write path; defaults to dry-run. Supports an optional deterministic mode: when `candidate_content`, `baseline_sha256`, and `expected_sha256` are supplied together (all-or-none), the maintainer verifies exact baseline and candidate hashes, builds and internally guards the exact diff, skips the generative editor and Morph, rechecks before atomic replacement, backs up, and verifies the written hash. Mismatches, non-`ACCEPT` guard verdicts, or concurrency conflicts fail closed; practical recovery preserves apparent external edits and reports unresolved recovery honestly. A deterministic dry-run returns the exact diff without writing. Generative mode remains the default when the deterministic fields are absent.
 
 Codex remains the architect, authority owner, and final verifier. Model identity is never authorization.
 
@@ -21,7 +21,7 @@ Codex remains the architect, authority owner, and final verifier. Model identity
 - Writes use a same-directory exclusive temporary file, flush it, then rename it over the target. Node 24 on Windows was live-proven to replace an existing target without a delete gap.
 - Every write has a rollback backup and a post-write hash check. A process killed before rename can leave an inert dot-prefixed temporary file; it never replaces the target partially.
 - Ordinary code-edit workers reject documentation files. The documentation maintainer rejects source files and generated `.agentcore` projections.
-- The documentation maintainer internally sends the actual proposed diff to the guard and writes only on the directly returned `ACCEPT`; a caller cannot supply the verdict. Protected anchor documentation additionally requires live `authority_maintainer` capability and a matching `AUTH-YYYY-MM-DD-*` approval environment.
+- The documentation maintainer internally sends the actual proposed diff to the guard and writes only on the directly returned `ACCEPT`; a caller cannot supply the verdict. In deterministic mode the diff is built from the supplied hashes and content rather than from a generative model, but the guard review and `ACCEPT` requirement are unchanged. Protected anchor documentation additionally requires live `authority_maintainer` capability and a matching `AUTH-YYYY-MM-DD-*` approval environment.
 
 Cross-process compare-and-swap is not available through the Windows filesystem API. The double hash check narrows that race, while the repository's worktree discipline and Git review remain the final concurrency boundary.
 

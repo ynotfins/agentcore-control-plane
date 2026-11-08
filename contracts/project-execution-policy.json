@@ -76,20 +76,36 @@
     "commit_and_push_per_policy",
     "next_milestone_entry_packet_generated"
   ],
-  "read_order": [
-    "global PROJECT_ANCHOR.md + DOC_AUTHORITY.md",
-    "docs/agent-policy/ + docs/current/MASTER_TODO.md working ledger",
-    "project AGENTS.md + CLAUDE.md",
-    ".agentcore/PROJECT_CHARTER.md",
-    ".agentcore/MILESTONES.md",
-    "current milestone file/checklist",
-    ".agentcore/TOOL_MANIFEST.yaml",
-    "project state and decisions",
-    "manifests and lockfiles",
-    "Context Fabric current state",
-    "Arabold exact-version docs index",
-    "relevant implementation files"
-  ],
+  "read_order": {
+    "mode": "task_scoped",
+    "mandatory_self_checks": [
+      {"id": "SC-01", "instruction": "Discover and read every applicable AGENTS.md and CLAUDE.md before task work."},
+      {"id": "SC-02", "instruction": "Verify the exact repository, worktree, branch, HEAD, approved base, and dirty state."},
+      {"id": "SC-03", "instruction": "Determine task mode, project ownership and enrollment, and the AgentCore or Swarm boundary."},
+      {"id": "SC-04", "instruction": "Classify every target's authority and protection class and confirm matching authorization before writes."},
+      {"id": "SC-05", "instruction": "Run the Ask-mode Foundation Report when this is the first task in the repository."},
+      {"id": "SC-06", "instruction": "Compare requested scope, authority, current state, and evidence and stop on unresolved drift or conflict."}
+    ],
+    "mandatory_authority_baseline": ["PROJECT_ANCHOR.md", "DOC_AUTHORITY.md"],
+    "task_triggers": [
+      {"id": "architecture_governance", "when": "The task changes architecture, milestones, governance, or protected authority.", "documents": ["BLUEPRINT.md", "CONTEXT_BLOCK.md", "docs/agent-policy/"]},
+      {"id": "bifrost_gateway", "when": "The task concerns Bifrost, MCP registry, gateway clients, client enrollment, Code Mode, capability profiles, or Bifrost runtime.", "documents": ["contracts/bifrost-upstream-mcp-registry.json", "contracts/agentcore-gateway-client.json", "GATEWAY_AND_BIFROST_DEVELOPER_GUIDE.md"]},
+      {"id": "memory_database", "when": "The task concerns AgentCore memory or database implementation.", "documents": ["CONTEXT_BLOCK.md", "docs/memory-platform/MEMORY_PLATFORM_EXECUTION_PLAN.md"]},
+      {"id": "new_project_bootstrap", "when": "The task bootstraps a new managed project or performs the first repository task.", "documents": ["docs/agent-policy/", "docs/current/MASTER_TODO.md", "project AGENTS.md and CLAUDE.md", ".agentcore project governance files"]},
+      {"id": "documentation_mutation", "when": "The task proposes or applies documentation changes.", "documents": ["docs/agent-policy/DOCUMENTATION_GOVERNANCE.md", "AUTHORITY_LOCK.md", "contracts/authority-lock.yaml"]},
+      {"id": "dependency_external_api", "when": "The task depends on an external library, API, CLI, schema, or protocol.", "documents": ["project manifests and lockfiles", "Arabold exact-version documentation index"]},
+      {"id": "ui_scaffolding", "when": "The task scaffolds or structures Flutter, Android Compose, Refine, Next.js, React/shadcn, or FastAPI.", "documents": ["docs/knowledge-library/", "knowledge library query for framework and asset_type"]},
+      {"id": "implementation", "when": "The task requires source implementation after applicable authority is loaded.", "documents": ["project state and decisions", "relevant manifests and lockfiles", "relevant implementation files"]},
+      {"id": "historical_evidence", "when": "A specific current fact question cannot be answered from current authority.", "documents": ["specifically cited historical or superseded evidence required for the current fact question"]}
+    ],
+    "safeguards": [
+      {"id": "SG-01", "rule": "Load only the matching task-triggered documents beyond the mandatory authority baseline; never load the full corpus automatically."},
+      {"id": "SG-02", "rule": "Historical or superseded evidence is never automatic and never overrides current authority."},
+      {"id": "SG-03", "rule": "Documentation mutation requires documentation governance, matching approval, rollback evidence, guard acceptance, and the documentation maintainer."},
+      {"id": "SG-04", "rule": "Generated state and decision projections remain projection-worker-only."},
+      {"id": "SG-05", "rule": "Do not expand task scope or claim merge, deployment, or adoption without the required new approval and evidence."}
+    ]
+  },
   "bootstrap": {
     "milestone_id": "M0",
     "must_pass_before_broad_implementation": true,

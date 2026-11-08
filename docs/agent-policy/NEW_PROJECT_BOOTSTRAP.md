@@ -16,7 +16,11 @@ Every managed project starts from one governed Bootstrap Milestone (M0) that est
    explicit identity to `agentcore-memory`; ordinary IDE profiles do not mutate machine-global
    project-router state.
 3. **Load global context** through `agentcore-memory` (startup context; degraded-mode tolerated until the memory platform lands).
-4. **Read in order** (see `DOCUMENTATION_READ_ORDER.md`): global `PROJECT_ANCHOR.md` + `DOC_AUTHORITY.md`, global agent policy (`docs/agent-policy/`), project `AGENTS.md`/`CLAUDE.md`, existing project docs.
+4. **Apply the task-scoped read order** (see `DOCUMENTATION_READ_ORDER.md`):
+   - Read the mandatory authority baseline: `PROJECT_ANCHOR.md` then `DOC_AUTHORITY.md`.
+   - Run `SC-01`, `SC-02`, `SC-03`, `SC-04`, `SC-05`, and `SC-06`: discover applicable `AGENTS.md` and `CLAUDE.md`; verify the exact repository, worktree, branch, HEAD, approved base, and dirty state; classify task mode, ownership and enrollment, the AgentCore or Swarm boundary, target authority and protection, and matching authorization; produce the Ask-mode Foundation Report for the first repository task; stop on unresolved scope, authority, state, or evidence drift.
+   - Match `new_project_bootstrap`, then read its ordered documents: `docs/agent-policy/`; `docs/current/MASTER_TODO.md`; project `AGENTS.md` and `CLAUDE.md`; `.agentcore` project governance files.
+   - Preserve `SG-01`, `SG-02`, `SG-03`, `SG-04`, and `SG-05`; this bootstrap does not weaken M0, enrollment, Context Fabric, Arabold, tool-profile, evidence, documentation-governance, generated-projection, approval, rollback, or exit requirements.
 5. **Preserve the operator's original project prompt** verbatim in `PROJECT_CHARTER.md` (or reference it through an immutable evidence identifier once the memory platform provides one).
 6. **Inspect** manifests, lockfiles, repository state, and Git history.
 7. **Run Context Fabric locally** through the repository hook/CLI for capture and drift/reality checks.

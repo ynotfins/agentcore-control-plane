@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { constants as fsConstants } from "node:fs";
-import { copyFile, mkdir, open, readFile, realpath, rename, stat, unlink } from "node:fs/promises";
+import { copyFile, mkdir, open, readFile, realpath, rename, stat, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -18,6 +18,15 @@ const DOCUMENTATION_GUARD_MODEL = Object.freeze({
   defaultPurpose: "independent documentation drift and authority review"
 });
 const inFlightEditPaths = new Set();
+
+const SHA256_HEX_RE = /^[a-f0-9]{64}$/;
+
+function assertSha256(value, name) {
+  if (typeof value !== "string" || !SHA256_HEX_RE.test(value)) {
+    throw new Error(`${name} must be a 64-character hex SHA-256 hash.`);
+  }
+  return value.toLowerCase();
+}
 
 const EDIT_TOOL = {
   type: "function",
@@ -44,6 +53,17 @@ const EDIT_TOOL = {
 
 function hashText(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function hashBuffer(buffer) {
+  return createHash("sha256").update(buffer).digest("hex");
+}
+
+function assertNoNulBytes(buffer, name) {
+  if (buffer.includes(0)) {
+    throw new Error(`Binary files are not supported by edit workers (${name}).`);
+  }
+  return buffer;
 }
 
 function nonEmptyString(value, name) {
@@ -298,14 +318,18 @@ function normalizeMergedText(originalCode, mergedCode) {
   return hadBom ? `\uFEFF${normalized}` : normalized;
 }
 
-async function createBackup(backupRoot, targetPath, relativePath, originalHash) {
+async function createBackup(backupRoot, targetPath, relativePath, originalHash, originalBytes) {
   const safeName = relativePath.replace(/[\\/:*?"<>|]/g, "__");
   const backupPath = path.join(
     backupRoot,
     `${Date.now()}-${originalHash.slice(0, 12)}-${randomUUID()}-${safeName}.bak`
   );
   await mkdir(backupRoot, { recursive: true });
-  await copyFile(targetPath, backupPath, fsConstants.COPYFILE_EXCL);
+  if (originalBytes) {
+    await writeFile(backupPath, originalBytes, { flag: "wx" });
+  } else {
+    await copyFile(targetPath, backupPath, fsConstants.COPYFILE_EXCL);
+  }
   return backupPath;
 }
 
@@ -436,10 +460,357 @@ export async function runGuardedEdit({
   }
 }
 
+async function runDeterministicDocumentationEdit({
+  workspaceRoot,
+  targetPath,
+  instruction,
+  context,
+  candidateContent,
+  baselineSha256,
+  expectedSha256,
+  dryRun = false,
+  maxFileBytes,
+  backupRoot,
+  approvalReference,
+  dependencies = {}
+}) {
+  const b64 = assertSha256(baselineSha256, "baselineSha256");
+  const e64 = assertSha256(expectedSha256, "expectedSha256");
+
+  const effectiveMaxFileBytes = maxFileBytes ?? DEFAULT_MAX_FILE_BYTES;
+  if (!Number.isInteger(effectiveMaxFileBytes) || effectiveMaxFileBytes < 1) {
+    throw new Error("maxFileBytes must be a positive integer.");
+  }
+
+  const editable = await resolveEditableFile(
+    workspaceRoot,
+    targetPath,
+    effectiveMaxFileBytes,
+    (resolvedTarget) => assertDocumentationWorkerTarget({
+      targetPath: resolvedTarget,
+      dryRun,
+      approvalReference
+    })
+  );
+
+  const lockKey = process.platform === "win32"
+    ? editable.resolvedTarget.toLowerCase()
+    : editable.resolvedTarget;
+  if (inFlightEditPaths.has(lockKey)) {
+    throw new Error("Target file is already being edited by another worker.");
+  }
+  inFlightEditPaths.add(lockKey);
+
+  try {
+    // read original as Buffer, reject binary, compare baseline
+    const originalBuffer = assertNoNulBytes(
+      await readFile(editable.resolvedTarget),
+      "original"
+    );
+    const actualBaseline = hashBuffer(originalBuffer);
+    if (actualBaseline !== b64) {
+      throw new Error(
+        `Baseline hash mismatch: expected ${b64} but file hashes to ${actualBaseline}.`
+      );
+    }
+
+    // validate candidate size and NUL
+    if (typeof candidateContent !== "string") {
+      throw new Error("candidateContent must be a string.");
+    }
+    const candidateBuf = Buffer.from(candidateContent, "utf8");
+    if (candidateBuf.length > effectiveMaxFileBytes) {
+      throw new Error(
+        `Candidate content exceeds the edit-worker size limit of ${effectiveMaxFileBytes} bytes.`
+      );
+    }
+    assertNoNulBytes(candidateBuf, "candidateContent");
+    const actualExpected = hashBuffer(candidateBuf);
+    if (actualExpected !== e64) {
+      throw new Error(
+        `Expected hash mismatch: expected ${e64} but candidate hashes to ${actualExpected}.`
+      );
+    }
+
+    // build exact createTwoFilesPatch diff
+    const originalCode = originalBuffer.toString("utf8");
+    const changed = candidateContent !== originalCode;
+    const diff = changed
+      ? createTwoFilesPatch(editable.relative, editable.relative, originalCode, candidateContent, "before", "after")
+      : "";
+    assertSafeOutboundText([instruction, context, originalCode, candidateContent, diff]);
+
+    // no-op candidate
+    if (!changed) {
+      return {
+        model: "deterministic-documentation-maintainer",
+        providerModel: null,
+        changed: false,
+        written: false,
+        baselineSha256: b64,
+        expectedSha256: e64,
+        writtenSha256: null,
+        diff: "",
+        gateEvidence: null,
+        backupPath: null,
+        usage: null
+      };
+    }
+
+    // dry-run: return exact diff, no write, no guard, no backup
+    if (dryRun) {
+      return {
+        model: "deterministic-documentation-maintainer",
+        providerModel: null,
+        changed: true,
+        written: false,
+        baselineSha256: b64,
+        expectedSha256: e64,
+        writtenSha256: null,
+        diff,
+        gateEvidence: null,
+        backupPath: null,
+        usage: null
+      };
+    }
+
+    // actual mode: reviewDocumentationChange on the exact diff; require ACCEPT
+    const reviewChange = dependencies.reviewDocumentationChange ?? reviewDocumentationChange;
+    const evidence = await reviewChange({
+      targetPath: editable.resolvedTarget,
+      instruction,
+      context,
+      approvalReference,
+      diff
+    });
+    const verdict = String(evidence?.verdict ?? "").toUpperCase();
+    if (verdict !== "ACCEPT") {
+      throw new Error(
+        `Documentation guard returned ${verdict || "an invalid verdict"}; no documentation was written.`
+      );
+    }
+
+    // re-read raw target before backup/replacement; require baseline hash
+    const preWriteBuffer = assertNoNulBytes(
+      await readFile(editable.resolvedTarget),
+      "pre-write"
+    );
+    const preWriteHash = hashBuffer(preWriteBuffer);
+    if (preWriteHash !== b64) {
+      throw new Error(
+        `Baseline hash mismatch before write: expected ${b64} but file hashes to ${preWriteHash}; no worker output was written.`
+      );
+    }
+
+    // recheck candidate hash
+    const candidateBufRecheck = Buffer.from(candidateContent, "utf8");
+    const candidateHashRecheck = hashBuffer(candidateBufRecheck);
+    if (candidateHashRecheck !== e64) {
+      throw new Error(
+        `Candidate hash mismatch before write: expected ${e64} but recheck hashes to ${candidateHashRecheck}.`
+      );
+    }
+
+    // create exact backup
+    const backupPath = await createBackup(
+      backupRoot ?? path.join(os.homedir(), ".codex", "backups", "cheap-workers", "edits"),
+      editable.resolvedTarget,
+      editable.relative,
+      b64,
+      originalBuffer
+    );
+
+    // write candidateContent
+    const replaceFile = dependencies.replaceFile ?? atomicReplaceText;
+    await replaceFile(editable.resolvedTarget, candidateContent);
+
+    // post-write verification
+    const verifyWritten = dependencies.verifyWrittenContent;
+    let writtenHash;
+    try {
+      let writtenBuffer;
+      if (typeof verifyWritten === "function") {
+        writtenBuffer = await verifyWritten(editable.resolvedTarget);
+      } else {
+        writtenBuffer = await readFile(editable.resolvedTarget);
+      }
+      assertNoNulBytes(writtenBuffer, "post-write");
+      writtenHash = hashBuffer(writtenBuffer);
+    } catch (verifyErr) {
+      // route verifyWrittenContent error into recovery
+      writtenHash = null;
+      // store original verification error message for final failure
+      const verifyMsg = verifyErr?.message ?? String(verifyErr);
+      let actualBuffer;
+      try {
+        actualBuffer = await readFile(editable.resolvedTarget);
+      } catch {
+        actualBuffer = null;
+      }
+      const actualHash = actualBuffer ? hashBuffer(actualBuffer) : null;
+
+      if (actualHash && actualHash !== b64 && actualHash !== e64) {
+        throw new Error(`external_change_preserved: post-write verification failed (expected ${e64}, got ${actualHash}). Original verification error: ${verifyMsg}. Backup at ${backupPath}. Actual bytes preserved.`);
+      }
+
+      // attempt recovery via restoreFile
+      const originalText = originalBuffer.toString("utf8");
+      const restoreFile = dependencies.restoreFile;
+      try {
+        if (typeof restoreFile === "function") {
+          await restoreFile(editable.resolvedTarget, originalText);
+        } else {
+          await atomicReplaceText(editable.resolvedTarget, originalText);
+        }
+      } catch (restoreErr) {
+        let reReadHash = null;
+        try {
+          const reReadBuf = await readFile(editable.resolvedTarget);
+          reReadHash = reReadBuf ? hashBuffer(reReadBuf) : null;
+        } catch {}
+        throw new Error(
+          `Recovery failed: restoreFile threw (${restoreErr?.message ?? String(restoreErr)}). ` +
+          `Actual hash: ${reReadHash ?? "unreadable"}. Backup at ${backupPath}. recovery_status=recovery_failed`
+        );
+      }
+
+      // verify restoration
+      let restoredBuf;
+      try {
+        restoredBuf = await readFile(editable.resolvedTarget);
+      } catch (readErr) {
+        throw new Error(
+          `Recovery failed: unable to re-read target after restore (${readErr?.message ?? String(readErr)}). ` +
+          `Backup at ${backupPath}. recovery_status=recovery_failed`
+        );
+      }
+      const restoredHash = hashBuffer(restoredBuf);
+      if (restoredHash !== b64) {
+        // target is neither baseline nor expected
+        if (restoredHash !== e64) {
+          throw new Error(`external_change_preserved: restore verification failed (expected ${b64}, got ${restoredHash}). Original verification error: ${verifyMsg}. Backup at ${backupPath}. Actual bytes preserved.`);
+        }
+        // restored to expected (should not happen, but guard)
+        throw new Error(
+          `Recovery failed: restore produced expected hash ${e64} instead of baseline ${b64}. ` +
+          `Original verification error: ${verifyMsg}. Backup at ${backupPath}. recovery_status=recovery_failed`
+        );
+      }
+
+      throw new Error(
+        `Post-write verification failed: file restored to baseline ${b64}. ` +
+        `Original verification error: ${verifyMsg}. Backup at ${backupPath}.`
+      );
+    }
+
+    if (writtenHash !== e64) {
+      // store original verification error context
+      const verifyMsg = `Post-write verification failed: expected ${e64}, got ${writtenHash}.`;
+      let actualBuffer;
+      try {
+        actualBuffer = await readFile(editable.resolvedTarget);
+      } catch {
+        actualBuffer = null;
+      }
+      const actualHash = actualBuffer ? hashBuffer(actualBuffer) : null;
+
+      if (actualHash && actualHash !== b64 && actualHash !== e64) {
+        throw new Error(`external_change_preserved: ${verifyMsg} Backup at ${backupPath}. Actual bytes preserved.`);
+      }
+
+      // attempt recovery via restoreFile
+      const originalText = originalBuffer.toString("utf8");
+      const restoreFile = dependencies.restoreFile;
+      try {
+        if (typeof restoreFile === "function") {
+          await restoreFile(editable.resolvedTarget, originalText);
+        } else {
+          await atomicReplaceText(editable.resolvedTarget, originalText);
+        }
+      } catch (restoreErr) {
+        let reReadHash = null;
+        try {
+          const reReadBuf = await readFile(editable.resolvedTarget);
+          reReadHash = reReadBuf ? hashBuffer(reReadBuf) : null;
+        } catch {}
+        throw new Error(
+          `Recovery failed: restoreFile threw (${restoreErr?.message ?? String(restoreErr)}). ` +
+          `Actual hash: ${reReadHash ?? "unreadable"}. Backup at ${backupPath}. recovery_status=recovery_failed`
+        );
+      }
+
+      // verify restoration
+      let restoredBuf;
+      try {
+        restoredBuf = await readFile(editable.resolvedTarget);
+      } catch (readErr) {
+        throw new Error(
+          `Recovery failed: unable to re-read target after restore (${readErr?.message ?? String(readErr)}). ` +
+          `Backup at ${backupPath}. recovery_status=recovery_failed`
+        );
+      }
+      const restoredHash = hashBuffer(restoredBuf);
+      if (restoredHash !== b64) {
+        if (restoredHash !== e64) {
+          throw new Error(`external_change_preserved: restore verification failed (expected ${b64}, got ${restoredHash}). ${verifyMsg} Backup at ${backupPath}. Actual bytes preserved.`);
+        }
+        throw new Error(
+          `Recovery failed: restore produced expected hash ${e64} instead of baseline ${b64}. ` +
+          `${verifyMsg} Backup at ${backupPath}. recovery_status=recovery_failed`
+        );
+      }
+
+      throw new Error(
+        `${verifyMsg} File restored to baseline ${b64}. Backup at ${backupPath}.`
+      );
+    }
+
+    return {
+      model: "deterministic-documentation-maintainer",
+      providerModel: null,
+      changed: true,
+      written: true,
+      baselineSha256: b64,
+      expectedSha256: e64,
+      writtenSha256: writtenHash,
+      diff,
+      gateEvidence: { ...evidence, verdict },
+      backupPath,
+      usage: null
+    };
+  } finally {
+    inFlightEditPaths.delete(lockKey);
+  }
+}
+
 export async function runGuardedDocumentationEdit({
   approvalReference,
+  candidateContent,
+  baselineSha256,
+  expectedSha256,
   ...editArgs
 }) {
+  const hasDeterministic = candidateContent !== undefined || baselineSha256 !== undefined || expectedSha256 !== undefined;
+  if (hasDeterministic) {
+    const missing = [];
+    if (candidateContent === undefined) missing.push("candidateContent");
+    if (baselineSha256 === undefined) missing.push("baselineSha256");
+    if (expectedSha256 === undefined) missing.push("expectedSha256");
+    if (missing.length) {
+      throw new Error(
+        `Deterministic documentation edit requires candidateContent, baselineSha256, and expectedSha256. Missing: ${missing.join(", ")}.`
+      );
+    }
+    return runDeterministicDocumentationEdit({
+      ...editArgs,
+      approvalReference,
+      candidateContent,
+      baselineSha256,
+      expectedSha256,
+      dependencies: editArgs.dependencies ?? {}
+    });
+  }
+
   const reviewChange = editArgs.dependencies?.reviewDocumentationChange ?? reviewDocumentationChange;
   return runGuardedEdit({
     ...editArgs,

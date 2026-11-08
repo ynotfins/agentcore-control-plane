@@ -99,7 +99,10 @@ const editWorkerSchema = {
 
 const documentationEditSchema = {
   ...editWorkerSchema,
-  approval_reference: z.string().optional().describe("Authority approval identifier required for protected documentation, for example AUTH-2026-08-06-DOCUMENTATION_GUARD.")
+  approval_reference: z.string().optional().describe("Authority approval identifier required for protected documentation, for example AUTH-2026-08-06-DOCUMENTATION_GUARD."),
+  candidate_content: z.string().optional().describe("Optional exact candidate file content to write. When supplied, baseline_sha256 and expected_sha256 must also be supplied; all three are required together or none of them. The worker writes candidate_content verbatim only when the current file's SHA-256 equals baseline_sha256 and the resulting file SHA-256 equals expected_sha256."),
+  baseline_sha256: z.string().regex(/^[0-9a-f]{64}$/).optional().describe("Optional SHA-256 of the file content immediately before the write. Must be exactly 64 lowercase hex characters. Required together with candidate_content and expected_sha256; supplying any one without the others is rejected."),
+  expected_sha256: z.string().regex(/^[0-9a-f]{64}$/).optional().describe("Optional SHA-256 that the file must have after writing candidate_content. Must be exactly 64 lowercase hex characters. Required together with candidate_content and baseline_sha256; supplying any one without the others is rejected.")
 };
 
 function selectModel(priority = "balanced") {
@@ -184,7 +187,7 @@ function resultText(result) {
 
 const server = new McpServer({
   name: "codex-cheap-workers",
-  version: "0.4.0"
+  version: "0.4.1"
 });
 
 function registerWorkerTool(name, description, model, systemPrompt = WORKER_SYSTEM, mode = "read-only") {
@@ -245,6 +248,9 @@ server.tool(
       instruction: args.instruction,
       context: args.context,
       approvalReference: args.approval_reference,
+      candidateContent: args.candidate_content,
+      baselineSha256: args.baseline_sha256,
+      expectedSha256: args.expected_sha256,
       model: MODELS.pro,
       dryRun: args.dry_run ?? true,
       maxTokens: args.max_tokens,
@@ -253,10 +259,13 @@ server.tool(
     const usage = result.usage ? `\nUsage: ${JSON.stringify(result.usage)}` : "";
     const backup = result.backupPath ? `\nBackup: ${result.backupPath}` : "";
     const diff = result.diff ? `\n\nDiff:\n${result.diff}` : "\n\nNo file changes were produced.";
+    const hashes = (result.baselineSha256 || result.expectedSha256 || result.writtenSha256)
+      ? `\nBaseline SHA-256: ${result.baselineSha256 ?? ""}\nExpected SHA-256: ${result.expectedSha256 ?? ""}\nWritten SHA-256: ${result.writtenSha256 ?? ""}`
+      : "";
     return {
       content: [{
         type: "text",
-        text: `Role: documentation maintainer\nModel route: ${MODELS.pro.label} (${MODELS.pro.id})\nProvider response model: ${result.providerModel}\nChanged: ${result.changed}\nWritten: ${result.written}${backup}${usage}${diff}`
+        text: `Role: documentation maintainer\nModel route: ${MODELS.pro.label} (${MODELS.pro.id})\nProvider response model: ${result.providerModel}\nChanged: ${result.changed}\nWritten: ${result.written}${backup}${hashes}${usage}${diff}`
       }]
     };
   }

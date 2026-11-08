@@ -63,7 +63,118 @@
     "micro_required_fields": { "type": "array", "items": { "type": "string" }, "minItems": 6 },
     "entry_gate": { "type": "array", "items": { "type": "string" }, "minItems": 11 },
     "exit_gate": { "type": "array", "items": { "type": "string" }, "minItems": 11 },
-    "read_order": { "type": "array", "items": { "type": "string" }, "minItems": 12, "maxItems": 12 },
+    "read_order": {
+      "type": "object",
+      "required": [
+        "mode", "mandatory_self_checks", "mandatory_authority_baseline",
+        "task_triggers", "safeguards"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "const": "task_scoped" },
+        "mandatory_self_checks": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "required": ["id", "instruction"],
+            "properties": {
+              "id": { "type": "string" },
+              "instruction": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          },
+          "allOf": [
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SC-01" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SC-02" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SC-03" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SC-04" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SC-05" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SC-06" } } }, "minContains": 1, "maxContains": 1 }
+          ]
+        },
+        "mandatory_authority_baseline": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            { "const": "PROJECT_ANCHOR.md" },
+            { "const": "DOC_AUTHORITY.md" }
+          ],
+          "items": false
+        },
+        "task_triggers": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "items": {
+            "type": "object",
+            "required": ["id", "when", "documents"],
+            "properties": {
+              "id": { "type": "string" },
+              "when": { "type": "string", "minLength": 1 },
+              "documents": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "string", "minLength": 1 }
+              }
+            },
+            "additionalProperties": false
+          },
+          "allOf": [
+            {
+              "contains": {
+                "required": ["id", "documents"],
+                "properties": {
+                  "id": { "const": "architecture_governance" },
+                  "documents": {
+                    "type": "array",
+                    "minItems": 3,
+                    "prefixItems": [
+                      { "const": "BLUEPRINT.md" },
+                      { "const": "CONTEXT_BLOCK.md" }
+                    ],
+                    "items": { "type": "string", "minLength": 1 }
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "bifrost_gateway" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "memory_database" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "new_project_bootstrap" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "documentation_mutation" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "dependency_external_api" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "ui_scaffolding" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "implementation" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "historical_evidence" } } }, "minContains": 1, "maxContains": 1 }
+          ]
+        },
+        "safeguards": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "required": ["id", "rule"],
+            "properties": {
+              "id": { "type": "string" },
+              "rule": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          },
+          "allOf": [
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SG-01" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SG-02" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SG-03" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SG-04" } } }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "required": ["id"], "properties": { "id": { "const": "SG-05" } } }, "minContains": 1, "maxContains": 1 }
+          ]
+        }
+      }
+    },
     "bootstrap": {
       "type": "object",
       "required": ["milestone_id", "must_pass_before_broad_implementation", "preserve_operator_prompt_verbatim", "idempotent", "forbidden_targets"],

@@ -38,17 +38,16 @@ AgentCore and Swarm are **independent execution control planes**. They share a m
 
 ---
 
-## 1. Authority order (locked)
+## 1. Task-scoped authority order (locked)
 
-Read and follow in this order. Nothing below overrides anything above it.
+The mandatory authority baseline is always:
 
-1. `@D:\github\agentcore-control-plane\PROJECT_ANCHOR.md` — immutable constitution
-2. `@D:\github\agentcore-control-plane\DOC_AUTHORITY.md` — document hierarchy and classification
-3. `@D:\github\agentcore-control-plane\BLUEPRINT.md` — locked implementation blueprint
-4. `@D:\github\agentcore-control-plane\CONTEXT_BLOCK.md` — current mutable posture
-5. `@D:\github\agentcore-control-plane\docs\memory-platform\MEMORY_PLATFORM_EXECUTION_PLAN.md` — memory/database implementation authority
-6. Current contracts and runbooks — `@D:\github\agentcore-control-plane\contracts\agentcore-gateway-client.json`, `@D:\github\agentcore-control-plane\contracts\bifrost-upstream-mcp-registry.json`, `@D:\github\agentcore-control-plane\contracts\global-agent-policy.yaml`, `@D:\github\agentcore-control-plane\contracts\model-context-profiles.json`, `@D:\github\agentcore-control-plane\docs\operations\AUTONOMOUS_WORKFLOW_AND_STUDIO.md`, `@D:\github\agentcore-control-plane\docs\operations\AUTONOMOUS_WORKFLOW_QUICKSTART.md`, `@D:\github\agentcore-control-plane\docs\operations\OPENROUTER_MCP.md`, `@D:\github\agentcore-control-plane\docs\operations\DORMANT_MCP_CAPABILITY_CATALOG.md`
-7. Machine-fact authority — `@D:\ChaosCentral-Current-Build\DOC_AUTHORITY.md`
+1. `@D:\github\agentcore-control-plane\PROJECT_ANCHOR.md` - immutable constitution
+2. `@D:\github\agentcore-control-plane\DOC_AUTHORITY.md` - document hierarchy and classification
+
+Before task work, discover every applicable `AGENTS.md` and `CLAUDE.md`, verify the exact repository, worktree, branch, HEAD, approved base, and dirty state, classify ownership, enrollment, the AgentCore/Swarm boundary, target protection, and matching approval, run the Ask-mode Foundation Report for a first repository task, and stop on unresolved scope, authority, state, or evidence drift.
+
+After the baseline, follow the matching task triggers in `@D:\github\agentcore-control-plane\docs\agent-policy\DOCUMENTATION_READ_ORDER.md` and `@D:\github\agentcore-control-plane\contracts\project-execution-policy.json`. `BLUEPRINT.md`, `CONTEXT_BLOCK.md`, the memory-platform plan, Bifrost contracts and runbooks, machine-fact authority, manifests, implementation files, and historical evidence are read only when the active task trigger requires them. Historical or superseded evidence is never automatic and never overrides current authority.
 
 For any new app install, app repair, database/vector-store setup, MCP server, IDE plugin, skill, runtime, Windows service, or scheduled task, also read `@D:\github\agentcore-control-plane\docs\install-platform\INSTALLATION_POLICY.md`, `@D:\github\agentcore-control-plane\docs\install-platform\INSTALL_NEW_THING.md`, `@D:\github\agentcore-control-plane\docs\install-platform\SCENARIO_CATALOG.yaml`, and `@D:\github\agentcore-control-plane\contracts\install-target-policy.json` before changing anything.
 
