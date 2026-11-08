@@ -9,6 +9,7 @@ param(
   [string]$TaskPath = '\AgentCore\',
   [string]$HostAddress = '127.0.0.1',
   [int]$Port = 8080,
+  [int]$BuilderCompatPort = 18082,
   [string]$VirtualKeyEnvName = 'BIFROST_MCP_VIRTUAL_KEY',
   [switch]$Direct,
   [switch]$ProbeOnly,
@@ -242,6 +243,68 @@ function Wait-ForGatewayReadiness {
   throw "Gateway did not reach authenticated readiness on ${HostAddress}:${Port}"
 }
 
+function Test-BuilderCompatProxyHealth {
+  try {
+    return ((Invoke-WebRequest -Uri "http://127.0.0.1:$BuilderCompatPort/healthz" -UseBasicParsing -TimeoutSec 2).StatusCode -eq 200)
+  } catch {
+    return $false
+  }
+}
+
+function Ensure-BuilderCompatProxyForStart {
+  # The gateway supervisor (Launch-AgentCoreBifrostGateway.ps1) ensures the
+  # builder compatibility proxy on every supervised start. This covers the Start
+  # paths that return early when the gateway is already listening, so every
+  # supported gateway start path leaves :18082 healthy (headerless Trust Class A
+  # clients depend on it). Loopback only; a foreign process on the port fails
+  # closed instead of being killed.
+  if ($TestMode) { return }
+  if (Test-BuilderCompatProxyHealth) {
+    Write-Host "[Start] Builder compatibility proxy healthy on port $BuilderCompatPort"
+    return
+  }
+  $proxyScript = Join-Path $PSScriptRoot 'agentcore-builder-compat-proxy.cjs'
+  $callerResolver = Join-Path $PSScriptRoot 'Resolve-AgentCoreBuilderCaller.ps1'
+  $node = 'C:\Users\ynotf\AppData\Local\pnpm\bin\node.exe'
+  if (-not (Test-Path -LiteralPath $proxyScript -PathType Leaf) -or
+      -not (Test-Path -LiteralPath $callerResolver -PathType Leaf) -or
+      -not (Test-Path -LiteralPath $node -PathType Leaf)) {
+    throw 'Builder compatibility proxy runtime is incomplete.'
+  }
+  if ([string]::IsNullOrWhiteSpace($env:BIFROST_MCP_VIRTUAL_KEY)) {
+    $userKey = [Environment]::GetEnvironmentVariable('BIFROST_MCP_VIRTUAL_KEY', 'User')
+    if ([string]::IsNullOrWhiteSpace($userKey)) {
+      throw 'Builder compatibility proxy identity is unavailable.'
+    }
+    $env:BIFROST_MCP_VIRTUAL_KEY = $userKey
+  }
+  $listener = Get-NetTCPConnection -LocalPort $BuilderCompatPort -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($listener) {
+    $owner = Get-CimInstance Win32_Process -Filter "ProcessId=$($listener.OwningProcess)" -ErrorAction Stop
+    if (([string]$owner.CommandLine).IndexOf($proxyScript, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
+      throw "Port $BuilderCompatPort is owned by a non-AgentCore process; refusing to start the builder compatibility proxy."
+    }
+    # Our proxy owns the port but has not answered /healthz yet; give it a deadline.
+  }
+  $env:AGENTCORE_BUILDER_COMPAT_PORT = [string]$BuilderCompatPort
+  if (-not $listener) {
+    $logDir = Join-Path $RuntimeRoot 'logs'
+    New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+    Start-Process -FilePath $node -ArgumentList @($proxyScript) -WorkingDirectory $PSScriptRoot `
+      -WindowStyle Hidden -RedirectStandardOutput (Join-Path $logDir 'builder-compat.stdout.log') `
+      -RedirectStandardError (Join-Path $logDir 'builder-compat.stderr.log') | Out-Null
+  }
+  $deadline = (Get-Date).AddSeconds(15)
+  do {
+    Start-Sleep -Milliseconds 250
+    if (Test-BuilderCompatProxyHealth) {
+      Write-Host "[Start] Builder compatibility proxy healthy on port $BuilderCompatPort"
+      return
+    }
+  } while ((Get-Date) -lt $deadline)
+  throw "Builder compatibility proxy did not become healthy on port $BuilderCompatPort."
+}
+
 if (-not $TestMode -and -not (Test-Path -LiteralPath $exePath)) {
   throw "Missing binary: $exePath"
 }
@@ -249,6 +312,9 @@ if (-not $TestMode -and -not (Test-Path -LiteralPath $exePath)) {
 if ($ProbeOnly) {
   if (-not (Test-AuthenticatedGatewayReadiness)) { throw "Gateway did not reach authenticated readiness on ${HostAddress}:${Port}" }
   Write-Host "[Start] Authenticated gateway readiness confirmed on ${HostAddress}:${Port}"
+  # Probe only: report builder compatibility proxy health without mutating state.
+  $builderCompatHealthy = Test-BuilderCompatProxyHealth
+  Write-Host "[Start] Builder compatibility proxy healthz healthy=$builderCompatHealthy port=$BuilderCompatPort"
   Ensure-AgentCoreSerenaShimReady
   Ensure-AgentCorePiShimReady
   exit 0
@@ -268,7 +334,10 @@ Ensure-AgentCorePiShimReady
 $existing = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
   Where-Object { $_.LocalAddress -in @('127.0.0.1', '::1', '0.0.0.0') }
 if ($existing) {
-  if (Complete-StartWhenReady) { return }
+  if (Complete-StartWhenReady) {
+    Ensure-BuilderCompatProxyForStart
+    return
+  }
   throw "Existing listener on ${HostAddress}:${Port} did not pass authenticated gateway readiness."
 }
 
@@ -276,6 +345,7 @@ if (-not $Direct) {
   Start-ScheduledTask -TaskPath $TaskPath -TaskName $TaskName -ErrorAction Stop
   Write-Host "[Start] Started scheduled task $TaskPath$TaskName"
   Wait-ForGatewayReadiness -CheckScheduledTask
+  Ensure-BuilderCompatProxyForStart
   return
 }
 
@@ -283,3 +353,4 @@ $launchScript = Join-Path $PSScriptRoot 'Launch-AgentCoreBifrostGateway.ps1'
 Start-Process -FilePath 'pwsh.exe' -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $launchScript, '-RuntimeRoot', $RuntimeRoot, '-HostAddress', $HostAddress, '-Port', [string]$Port) -WorkingDirectory $RuntimeRoot -WindowStyle Hidden | Out-Null
 Write-Host '[Start] Launched Bifrost via foreground launcher directly'
 Wait-ForGatewayReadiness
+Ensure-BuilderCompatProxyForStart

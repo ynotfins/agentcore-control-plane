@@ -6,7 +6,10 @@
   Timestamped backups beside each live file. OpenCode: Responses-capable KIE
   provider via @ai-sdk/openai + env KIE_API_KEY. Zed: openai_compatible.kie with
   chat_completions disabled (Responses). Does not write API keys into files.
-  Eigent has no local provider config file on this workstation; skipped.
+  OpenCode auth.json receives only an env reference ({env:KIE_API_KEY}); a
+  literal-shaped kie key already on disk is scrubbed to the env reference without
+  ever printing the old value. Eigent has no local provider config file on this
+  workstation; skipped.
 #>
 [CmdletBinding()]
 param(
@@ -97,11 +100,17 @@ print(f"opencode_enabled={','.join(oc['enabled_providers'])}")
 print(f"opencode_has_kie={('kie' in oc['provider'])}")
 print(f"opencode_mcp_url={oc.get('mcp', {}).get('servers', {}).get('agentcore-gateway', {}).get('url')}")
 
-# OpenCode auth credential (required for picker visibility alongside env apiKey)
+# OpenCode auth credential (picker visibility) — env reference ONLY.
+# Secret hygiene invariant: the resolved KIE_API_KEY value must never be written
+# into auth.json. See scripts/bifrost/test_client_secret_policy.py for the
+# enforcing test. The provider block above already carries
+# options.apiKey = "{env:KIE_API_KEY}"; OpenCode resolves the env at runtime.
 import os
-kie_key = os.environ.get("KIE_API_KEY") or ""
-if not kie_key.strip():
+import re
+if not os.environ.get("KIE_API_KEY", "").strip():
     raise SystemExit("KIE_API_KEY missing in process environment")
+env_ref = "{env:KIE_API_KEY}"
+env_ref_pattern = re.compile(r"^\{env:[A-Za-z_][A-Za-z0-9_]*\}$")
 auth_path = Path(r"C:\Users\ynotf\.local\share\opencode\auth.json")
 auth_path.parent.mkdir(parents=True, exist_ok=True)
 auth = {}
@@ -109,10 +118,17 @@ if auth_path.exists():
     auth = json.loads(auth_path.read_text(encoding="utf-8"))
     auth_bak = backup(auth_path)
     print(f"opencode_auth_backup={auth_bak}")
+existing = auth.get("kie") if isinstance(auth, dict) else None
+existing_key = existing.get("key") if isinstance(existing, dict) else None
+# Scrub path: if the on-disk kie entry holds anything other than an env
+# reference, it is replaced with the env reference. The old value is never
+# echoed, logged, or written anywhere else.
+scrubbed_literal = isinstance(existing_key, str) and not env_ref_pattern.match(existing_key.strip())
+auth["kie"] = {"type": "api", "key": env_ref}
 if not dry:
-    auth["kie"] = {"type": "api", "key": kie_key}
     auth_path.write_text(json.dumps(auth, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-print("opencode_auth_kie=True")
+print("opencode_auth_kie=env_ref")
+print(f"opencode_auth_kie_literal_scrubbed={str(scrubbed_literal).lower()}")
 print("opencode_auth_providers=" + ",".join(sorted(auth.keys()) if auth else ["kie"]))
 
 # --- Zed ---

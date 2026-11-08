@@ -129,6 +129,13 @@ function Test-ClientConfig {
   $forbiddenLower = @($ForbiddenServers | ForEach-Object { $_.ToLowerInvariant() })
   $presentForbidden = @(
     $servers | Where-Object {
+      # Per-client operator-approved extras ($AllowedExtraServers) supersede the
+      # generic forbidden-direct list for this client's own config only, e.g. the
+      # five ZCode host-native companions approved under
+      # AUTH-2026-10-31-ZCODE_DIRECT_MCP_COMPANIONS
+      # (audits/ZCODE_DIRECT_MCP_COMPANIONS_2026-10-31.md). They stay forbidden
+      # for every client that has not received the same operator approval.
+      if ($allowed -contains $_) { return $false }
       $serverLower = $_.ToLowerInvariant()
       ($forbiddenLower -contains $serverLower) -or
       ($serverLower -match "postgres|postgre|psql|pgvector|database|mcp[_-]?docker|swarmrecall|swarmvault|global.memory.gateway|context7|composio|hostinger|openrouter")
@@ -211,7 +218,13 @@ $jsonClients = @(
   @{ name = "Mavis"; contract_key = "minimax"; path = "C:\Users\ynotf\.mavis\mcp\mcp.json"; process = "Mavis"; allowed = @("matrix", "cu", "trash") },
   @{ name = "Antigravity Gemini"; contract_key = "antigravity"; path = "C:\Users\ynotf\.gemini\config\mcp_config.json"; process = "Antigravity"; allowed = @("notebooks", "visualization", "data-agent-kit") },
   @{ name = "Antigravity IDE Roaming"; contract_key = "antigravity"; path = "C:\Users\ynotf\AppData\Roaming\Antigravity IDE\User\mcp.json"; process = "Antigravity"; allowed = @() },
-  @{ name = "ZCode"; contract_key = "zcode"; path = "C:\Users\ynotf\.zcode\cli\config.json"; process = "ZCode"; allowed = @() },
+  # ZCode companions allowlist — the five host-native stdio servers approved and
+  # version-pinned in AUTH-2026-10-31-ZCODE_DIRECT_MCP_COMPANIONS
+  # (audits/ZCODE_DIRECT_MCP_COMPANIONS_2026-10-31.md):
+  # playwright 0.0.78, sequential-thinking 2.0.0, filesystem 2.1.0,
+  # github 2025.4.8, postgres 0.6.2. agentcore-gateway remains the only AgentCore
+  # memory/governance front door; these are ZCode-only host-native exceptions.
+  @{ name = "ZCode"; contract_key = "zcode"; path = "C:\Users\ynotf\.zcode\cli\config.json"; process = "ZCode"; allowed = @("playwright", "sequential-thinking", "filesystem", "github", "postgres") },
   @{ name = "Open Interpreter"; contract_key = "open-interpreter"; path = "C:\Users\ynotf\AppData\Roaming\interpreter\config.json"; process = "Interpreter|Open Interpreter"; allowed = @() },
   @{ name = "Devin"; contract_key = "devin"; path = "C:\Users\ynotf\AppData\Roaming\devin\mcp_config.json"; process = "Devin"; allowed = @("devin/github-mcp-server", "devin/vercel") },
   @{ name = "Claude Desktop"; contract_key = "claude-desktop"; path = "C:\Users\ynotf\AppData\Roaming\Claude\claude_desktop_config.json"; process = "Claude"; allowed = @("GitKraken") }

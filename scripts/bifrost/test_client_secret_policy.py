@@ -203,3 +203,42 @@ def test_direct_companion_policy_is_evidence_gated_not_zoo_code_only() -> None:
         "rollback proof",
     ):
         assert required in combined
+
+
+def test_apply_kie_never_writes_plaintext_secret_into_opencode_auth_json() -> None:
+    script = (REPO / "ops" / "bifrost" / "Apply-KieProviderPriority.ps1").read_text(encoding="utf-8")
+
+    # The resolved secret must never be bound to a variable that can reach auth.json.
+    assert "kie_key" not in script
+    # The auth.json kie entry must be an env reference, not the resolved value.
+    assert 'auth["kie"] = {"type": "api", "key": env_ref}' in script
+    assert 'env_ref = "{env:KIE_API_KEY}"' in script
+    # A literal-shaped key already on disk must be scrubbed to the env reference.
+    assert "env_ref_pattern" in script
+    assert "scrubbed_literal" in script
+    # The env-var presence check must stay (runtime resolution requirement).
+    assert 'raise SystemExit("KIE_API_KEY missing in process environment")' in script
+
+
+def test_live_adoption_zcode_companion_allowlist_matches_auth_pins() -> None:
+    validator = (REPO / "ops" / "Test-AgentCoreLiveClientAdoption.ps1").read_text(encoding="utf-8")
+    profile = yaml.safe_load(
+        (REPO / "ide-profiles" / "zcode" / "IDE_PROFILE.yaml").read_text(encoding="utf-8")
+    )
+    auth_pins = {
+        server["name"]: server["pin"]
+        for server in profile["host_native_companions"]["servers"]
+    }
+    assert auth_pins == {
+        "playwright": "0.0.78",
+        "sequential-thinking": "2.0.0",
+        "filesystem": "2.1.0",
+        "github": "2025.4.8",
+        "postgres": "0.6.2",
+    }
+    assert "AUTH-2026-10-31-ZCODE_DIRECT_MCP_COMPANIONS" in validator
+    zcode_line = next(
+        line for line in validator.splitlines() if '"ZCode"' in line and "allowed" in line
+    )
+    for name in auth_pins:
+        assert f'"{name}"' in zcode_line

@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PROXY = ROOT / "ops" / "bifrost" / "agentcore-builder-compat-proxy.cjs"
 RESOLVER = ROOT / "ops" / "bifrost" / "Resolve-AgentCoreBuilderCaller.ps1"
 LAUNCHER = ROOT / "ops" / "bifrost" / "Launch-AgentCoreBifrostGateway.ps1"
+STARTER = ROOT / "ops" / "bifrost" / "Start-AgentCoreBifrostGateway.ps1"
 STOPPER = ROOT / "ops" / "bifrost" / "Stop-AgentCoreBifrostGateway.ps1"
 ADOPTION_VALIDATOR = ROOT / "ops" / "Test-AgentCoreLiveClientAdoption.ps1"
 GATEWAY_CONTRACT = ROOT / "contracts" / "agentcore-gateway-client.json"
@@ -69,6 +70,30 @@ def test_gateway_lifecycle_owns_proxy_without_command_line_secret() -> None:
     assert "$compatScript = Join-Path $PSScriptRoot" in stop
     assert "Test-AgentCoreBuilderProxyProcess" in stop
     assert "ExpectedNode $node -ExpectedScript $compatScript" in stop
+
+
+def test_start_path_brings_builder_compat_proxy_up() -> None:
+    start = STARTER.read_text(encoding="utf-8")
+    assert "BuilderCompatPort = 18082" in start
+    assert "agentcore-builder-compat-proxy.cjs" in start
+    assert "Resolve-AgentCoreBuilderCaller.ps1" in start
+    assert "/healthz" in start
+    assert "Ensure-BuilderCompatProxyForStart" in start
+    # Every real (non-probe, non-test-mode) start path must ensure the proxy:
+    # the early-return "gateway already listening" path, the scheduled-task
+    # path, and the direct-launcher path.
+    early_return = start.index("if ($existing) {")
+    scheduled_task = start.index("if (-not $Direct) {")
+    direct_launcher = start.index("$launchScript = Join-Path $PSScriptRoot")
+    assert start.index("Ensure-BuilderCompatProxyForStart", early_return) < scheduled_task
+    assert start.index("Ensure-BuilderCompatProxyForStart", scheduled_task) < direct_launcher
+    assert "Ensure-BuilderCompatProxyForStart" in start[direct_launcher:]
+    # A foreign process on the compat port must fail closed, never be killed.
+    assert "owned by a non-AgentCore process" in start
+    # Test mode must never mutate proxy state (watchdog tests run against stubs).
+    assert "if ($TestMode) { return }" in start
+    # Probe-only reports proxy health without mutating state.
+    assert "Builder compatibility proxy healthz healthy=" in start
 
 
 def test_proxy_failure_is_degraded_and_cannot_block_core_gateway_loop() -> None:

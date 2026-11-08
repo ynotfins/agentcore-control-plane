@@ -13,6 +13,7 @@ param(
   [string]$RuntimeRoot = 'F:\AgentCore\runtime\bifrost',
   [string]$HostAddress = '127.0.0.1',
   [int]$Port = 8080,
+  [int]$BuilderCompatPort = 18082,
   [int]$MaxDependencyWaitSeconds = 180,
   [switch]$RequireRedisVectorStore,
   [long]$MaxLogBytes = 50MB,
@@ -82,28 +83,67 @@ function Wait-ForRedisVectorStore([string]$Endpoint) {
   return $false
 }
 
-function Test-AgentCoreOwnedProcess([int]$ProcessId, [string]$ExpectedExe, [string]$ExpectedRuntimeRoot) {
+function ConvertTo-AgentCoreCanonicalPath([string]$Path) {
+  if ([string]::IsNullOrWhiteSpace($Path)) { return '' }
+  try { return [IO.Path]::GetFullPath($Path).TrimEnd('\', '/') } catch { return '' }
+}
+
+function Get-AgentCoreCommandLineArgument([string]$CommandLine, [string]$Name) {
+  if ([string]::IsNullOrWhiteSpace($CommandLine) -or [string]::IsNullOrWhiteSpace($Name)) { return $null }
+  $pattern = '(?i)(?:^|\s)-' + [regex]::Escape($Name) + '(?:\s+|=)(?:"([^"]*)"|(\S+))'
+  $match = [regex]::Match($CommandLine, $pattern)
+  if (-not $match.Success) { return $null }
+  if ($match.Groups[1].Success) { return $match.Groups[1].Value }
+  return $match.Groups[2].Value
+}
+
+function Test-AgentCoreCommandLineArgument([string]$CommandLine, [string]$Name, [string]$ExpectedValue, [switch]$PathValue) {
+  $actual = Get-AgentCoreCommandLineArgument -CommandLine $CommandLine -Name $Name
+  if ($null -eq $actual) { return $false }
+  if ($PathValue) {
+    $actual = ConvertTo-AgentCoreCanonicalPath $actual
+    $ExpectedValue = ConvertTo-AgentCoreCanonicalPath $ExpectedValue
+  }
+  return (-not [string]::IsNullOrWhiteSpace($actual)) -and
+    [string]::Equals($actual, $ExpectedValue, [StringComparison]::OrdinalIgnoreCase)
+}
+
+function Test-AgentCoreLauncherProcess($Process, [string]$ExpectedLauncherScript, [string]$ExpectedRuntimeRoot, [string]$ExpectedHostAddress, [int]$ExpectedPort) {
+  if ($null -eq $Process) { return $false }
+  $parentExe = ConvertTo-AgentCoreCanonicalPath ([string]$Process.ExecutablePath)
+  if (-not [string]::Equals([IO.Path]::GetFileName($parentExe), 'pwsh.exe', [StringComparison]::OrdinalIgnoreCase)) { return $false }
+  $commandLine = [string]$Process.CommandLine
+  return (Test-AgentCoreCommandLineArgument $commandLine 'File' $ExpectedLauncherScript -PathValue) -and
+    (Test-AgentCoreCommandLineArgument $commandLine 'RuntimeRoot' $ExpectedRuntimeRoot -PathValue) -and
+    (Test-AgentCoreCommandLineArgument $commandLine 'HostAddress' $ExpectedHostAddress) -and
+    (Test-AgentCoreCommandLineArgument $commandLine 'Port' ([string]$ExpectedPort))
+}
+
+function Test-AgentCoreOwnedProcess([int]$ProcessId, [string]$ExpectedExe, [string]$ExpectedRuntimeRoot, [string]$ExpectedHostAddress, [int]$ExpectedPort, [string]$ExpectedLauncherScript) {
   try {
     $process = Get-CimInstance Win32_Process -Filter "ProcessId = $ProcessId" -ErrorAction Stop
-  } catch {
-    return $false
-  }
+  } catch { return $false }
   if ($null -eq $process) { return $false }
-  $actualExe = [string]$process.ExecutablePath
+  $actualExe = ConvertTo-AgentCoreCanonicalPath ([string]$process.ExecutablePath)
+  $expectedExePath = ConvertTo-AgentCoreCanonicalPath $ExpectedExe
+  if (-not [string]::Equals($actualExe, $expectedExePath, [StringComparison]::OrdinalIgnoreCase)) { return $false }
+
   $commandLine = [string]$process.CommandLine
-  if ((-not [string]::IsNullOrWhiteSpace($actualExe)) -and
-      ([string]::Equals($actualExe, $ExpectedExe, [System.StringComparison]::OrdinalIgnoreCase))) {
-    return $true
-  }
-  if ((-not [string]::IsNullOrWhiteSpace($commandLine)) -and
-      ($commandLine.IndexOf($ExpectedRuntimeRoot, [System.StringComparison]::OrdinalIgnoreCase) -ge 0)) {
-    return $true
-  }
-  return $false
+  if (-not (Test-AgentCoreCommandLineArgument $commandLine 'app-dir' $ExpectedRuntimeRoot -PathValue)) { return $false }
+  if (-not (Test-AgentCoreCommandLineArgument $commandLine 'host' $ExpectedHostAddress)) { return $false }
+  if (-not (Test-AgentCoreCommandLineArgument $commandLine 'port' ([string]$ExpectedPort))) { return $false }
+
+  $parentId = [int]$process.ParentProcessId
+  if ($parentId -le 0) { return $false }
+  try {
+    $parent = Get-CimInstance Win32_Process -Filter "ProcessId = $parentId" -ErrorAction Stop
+  } catch { return $false }
+  return Test-AgentCoreLauncherProcess $parent $ExpectedLauncherScript $ExpectedRuntimeRoot $ExpectedHostAddress $ExpectedPort
 }
 
 function Stop-AgentCoreOwnedProcess([int]$ProcessId, [string]$Reason) {
-  if (-not (Test-AgentCoreOwnedProcess -ProcessId $ProcessId -ExpectedExe $exe -ExpectedRuntimeRoot $RuntimeRoot)) {
+  if (-not (Test-AgentCoreOwnedProcess -ProcessId $ProcessId -ExpectedExe $exe -ExpectedRuntimeRoot $RuntimeRoot `
+      -ExpectedHostAddress $HostAddress -ExpectedPort $Port -ExpectedLauncherScript $launchScriptPath)) {
     throw "Refusing to stop non-AgentCore process PID=$ProcessId reason=$Reason port=$Port"
   }
   Write-AgentCoreLog "Stopping AgentCore-owned process PID=$ProcessId reason=$Reason"
@@ -155,6 +195,7 @@ function Get-NextRestartBackoff([int]$CurrentBackoff, [double]$RuntimeSeconds) {
 
 $stateDir = Join-Path $RuntimeRoot 'state'
 $logDir = Join-Path $RuntimeRoot 'logs'
+$launchScriptPath = $PSCommandPath
 New-Item -ItemType Directory -Force -Path $stateDir | Out-Null
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $maintenanceMarker = Join-Path $stateDir 'bifrost-maintenance.marker'
@@ -165,6 +206,40 @@ $stderrLog = Join-Path $logDir 'bifrost-gateway.stderr.log'
 # with an environment snapshot that predates AgentCore VK/profile variables.
 [Environment]::GetEnvironmentVariables('User').GetEnumerator() | ForEach-Object {
   Set-Item -Path ("Env:{0}" -f $_.Key) -Value ([string]$_.Value) -Force
+}
+
+function Ensure-BuilderCompatProxy {
+  $proxyScript = Join-Path $PSScriptRoot 'agentcore-builder-compat-proxy.cjs'
+  $callerResolver = Join-Path $PSScriptRoot 'Resolve-AgentCoreBuilderCaller.ps1'
+  $node = 'C:\Users\ynotf\AppData\Local\pnpm\bin\node.exe'
+  if (-not (Test-Path -LiteralPath $proxyScript -PathType Leaf) -or
+      -not (Test-Path -LiteralPath $callerResolver -PathType Leaf) -or
+      -not (Test-Path -LiteralPath $node -PathType Leaf)) {
+    throw 'Builder compatibility proxy runtime is incomplete.'
+  }
+  if ([string]::IsNullOrWhiteSpace($env:BIFROST_MCP_VIRTUAL_KEY)) {
+    throw 'Builder compatibility proxy identity is unavailable.'
+  }
+  $listener = Get-NetTCPConnection -LocalPort $BuilderCompatPort -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($listener) {
+    $process = Get-CimInstance Win32_Process -Filter "ProcessId=$($listener.OwningProcess)" -ErrorAction Stop
+    if (([string]$process.CommandLine).IndexOf($proxyScript, [StringComparison]::OrdinalIgnoreCase) -lt 0) {
+      throw "Port $BuilderCompatPort is owned by a non-AgentCore process."
+    }
+    return
+  }
+  $env:AGENTCORE_BUILDER_COMPAT_PORT = [string]$BuilderCompatPort
+  Start-Process -FilePath $node -ArgumentList @($proxyScript) -WorkingDirectory $PSScriptRoot `
+    -WindowStyle Hidden -RedirectStandardOutput (Join-Path $logDir 'builder-compat.stdout.log') `
+    -RedirectStandardError (Join-Path $logDir 'builder-compat.stderr.log') | Out-Null
+  $deadline = (Get-Date).AddSeconds(15)
+  do {
+    Start-Sleep -Milliseconds 250
+    try {
+      if ((Invoke-WebRequest -Uri "http://127.0.0.1:$BuilderCompatPort/healthz" -UseBasicParsing -TimeoutSec 2).StatusCode -eq 200) { return }
+    } catch {}
+  } while ((Get-Date) -lt $deadline)
+  throw 'Builder compatibility proxy did not become healthy.'
 }
 
 $env:CURSOR_API_URL = if ($env:CURSOR_API_URL) { $env:CURSOR_API_URL } else { 'https://api.cursor.com' }
@@ -205,6 +280,13 @@ $bifrostArgs = @(
 
 $restartBackoffSeconds = $InitialRestartBackoffSeconds
 
+try {
+  Ensure-BuilderCompatProxy
+  Write-AgentCoreLog "BUILDER_COMPAT_PROXY_READY port=$BuilderCompatPort"
+} catch {
+  Write-AgentCoreLog "BUILDER_COMPAT_PROXY_DEGRADED port=$BuilderCompatPort reason=$($_.Exception.Message)"
+}
+
 while ($true) {
   if (Test-StopMaintenanceMarker) {
     Write-AgentCoreLog 'LAUNCH_SUPPRESSED maintenance_marker'
@@ -223,9 +305,6 @@ while ($true) {
         Stop-AgentCoreOwnedProcess -ProcessId $_.OwningProcess -Reason "listener:${Port}"
       }
     }
-  Get-Process -Name bifrost-http -ErrorAction SilentlyContinue | ForEach-Object {
-    Stop-AgentCoreOwnedProcess -ProcessId $_.Id -Reason 'bifrost-http-name'
-  }
   Start-Sleep -Seconds 1
   Invoke-LogRotation
 
