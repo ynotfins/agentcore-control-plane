@@ -245,7 +245,7 @@ def _parse_options(options: list[str]) -> dict[str, Any]:
             parsed[token.lstrip("-")] = options[index + 1]
             index += 2
             continue
-        if token in ("--allow-env", "--static-env"):
+        if token in ("--allow-env", "--static-env", "--alias-env"):
             if index + 1 >= len(options):
                 raise SystemExit(f"{token} requires a value")
             parsed.setdefault(token.lstrip("-"), []).append(options[index + 1])
@@ -316,10 +316,18 @@ def main(argv: list[str] | None = None) -> int:
         except (AttributeError, ValueError):
             pass
 
+    static_env = _parse_static_env(list(options.get("static-env") or []))
+    parent_env = {name.upper(): value for name, value in os.environ.items()}
+    for child_name, parent_name in _parse_static_env(list(options.get("alias-env") or [])).items():
+        # CHILD=PARENT: copy the parent process value into the child name.
+        # Values are never logged.
+        value = parent_env.get(parent_name.upper())
+        if value:
+            static_env[child_name] = value
     proc = launch_upstream(
         child_argv,
         declared_env_names=list(options.get("allow-env") or []),
-        static_env=_parse_static_env(list(options.get("static-env") or [])),
+        static_env=static_env,
     )
 
     relay = Relay(server_id, resolver)
