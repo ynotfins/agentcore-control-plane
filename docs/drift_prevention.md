@@ -47,7 +47,7 @@ The designated maintenance agent should:
 
 1. Run `D:\github\agentcore-control-plane\ops\Test-AgentCoreDrift.ps1`.
 2. Review new `project_facts` versions.
-3. If a change reflects an intended architecture decision, update relevant docs and store a compact memory through `global-memory-gateway`.
+3. If a change reflects an intended architecture decision, update relevant docs and store a compact memory through `agentcore-gateway` → `agentcore-memory` (`global-memory-gateway` is retired).
 4. If a change is unintended, stop and notify the user.
 5. Never silently rewrite facts to hide drift.
 
@@ -55,9 +55,11 @@ The designated maintenance agent should:
 
 Windows scheduled task:
 
-- Task: `AgentCore\DailyDriftCheck`
-- Time: `04:00`
-- Command: `D:\github\agentcore-control-plane\ops\Test-AgentCoreDrift.ps1`
+- Task: `\AgentCore\DailyDriftCheck`
+- Status: **DISABLED** (leave disabled unless replaced by a silent, correct, evidence-logging job). Do **not** re-enable the old popup path.
+- What it was: Context Fabric–named daily drift scan wired to `ops/Test-AgentCoreDrift.ps1` (legacy MCP Control Plane / PG16 evidence path). Last observed run 2026-11-08 04:00 exit 1 with no retained `drift-*.log`.
+- Historical time (when enabled): `04:00` (M8 registry also listed `06:00` — both obsolete while Disabled).
+- Command (manual only): `D:\github\agentcore-control-plane\ops\Test-AgentCoreDrift.ps1`
 
 Related readiness task:
 

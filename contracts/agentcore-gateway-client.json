@@ -290,7 +290,8 @@
       "notes": [
         "xAI Grok Bot desktop (SpaceXAI / WinGet xAI.GrokBot). Trust Class A with dedicated profile and User-scope BIFROST_MCP_VK_GROKBOT.",
         "Preferred local template URL: http://127.0.0.1:8080/mcp with Authorization: Bearer ${BIFROST_MCP_VK_GROKBOT}. Prefer env expansion or secure secret card; never paste the resolved key into chat.",
-        "Grok Bot remote MCP is invoked from Cursor servers, not the desktop process. Loopback 127.0.0.1 does not reach ChaosCentral Bifrost from the cloud computer. Prefer Tailscale MagicDNS (chaoscentral.tailb71e7e.ts.net:8080) for tailnet clients; use Cloudflare Tunnel only when the Grok cloud computer cannot join the tailnet. Do not publish Bifrost on a public marketing domain without Access controls.",
+        "Canonical Grok cloud MCP: https://agentcore-grokbot.4axe.com/mcp with HTTP header x-bf-vk = raw BIFROST_MCP_VK_GROKBOT (no Bearer prefix in the Grok UI value). Client ID blank. Do NOT use OAuth Connect. Scheduled task \\AgentCore-Grokbot-Cloudflare-Tunnel (Hidden). Proof: F:\\AgentCore\\runtime\\bifrost\\logs\\bifrost-gateway.stdout.log shows Cursor/1.0.0 POST /mcp to 200.",
+        "Tailnet alternate: https://chaoscentral.tailb71e7e.ts.net/mcp (Tailscale Serve). Do not use MagicDNS :8080. Funnel is optional fallback only when Cloudflare is unavailable.",
         "MCP connectors are account-wide on the shared Bot computer. Configure agentcore-gateway for the primary Bot (Chief of Staff) and disable the server for specialist Bots that must not touch AgentCore tools.",
         "Exactly one AgentCore MCP entry: agentcore-gateway. No Swarm, no Bifrost admin, no agentcore-project-router, no raw OpenRouter MCP, no cursor-agent-mcp.",
         "C:\\Users\\ynotf\\.grokbot is live mutable client state and must not be enrolled as an AgentCore project root."
@@ -307,6 +308,6 @@
     "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT supersedes the Zoo-Code-only limit: a host-native direct MCP companion requires a documented Bifrost parity failure, exact host/tool scope, security review, rollback, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes.",
     "Raven is an enabled dedicated-profile client on http://127.0.0.1:8080/mcp with BIFROST_MCP_VK_RAVEN; it is not Trust Class A.",
     "Never enroll C:\\Users\\ynotf\\.raven or C:\\Users\\ynotf\\.dsh; Raven data root is I:\\LocalApps\\Raven.",
-    "Grok Bot is Trust Class A with dedicated BIFROST_MCP_VK_GROKBOT; cloud MCP must use Tailscale MagicDNS or an approved private tunnel, not an unprotected public-domain Bifrost."
+    "Grok Bot is Trust Class A with dedicated BIFROST_MCP_VK_GROKBOT; cloud MCP uses approved Cloudflare hostname https://agentcore-grokbot.4axe.com/mcp with x-bf-vk (AUTH-2026-11-08-GROKBOT-MCP-CLOUDFLARE-LIVE), not an unprotected public-domain Bifrost."
   ]
 }

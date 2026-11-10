@@ -2,7 +2,7 @@
   "client": "grokbot",
   "version": "0.79.3",
   "configPath": "C:\\Users\\ynotf\\.grokbot\\settings.json",
-  "status": "source_ready_live_unverified",
+  "status": "source_ready_cloud_validated",
   "merge": {
     "mcp": {
       "servers": {
@@ -18,9 +18,19 @@
       }
     }
   },
+  "canonical_cloud_mcp": {
+    "url": "https://agentcore-grokbot.4axe.com/mcp",
+    "header_key": "x-bf-vk",
+    "header_value_mode": "raw_env",
+    "env": "BIFROST_MCP_VK_GROKBOT",
+    "client_id": "",
+    "oauth": false,
+    "scheduled_task": "\\AgentCore-Grokbot-Cloudflare-Tunnel",
+    "proof_log": "F:\\AgentCore\\runtime\\bifrost\\logs\\bifrost-gateway.stdout.log"
+  },
   "notes": [
-    "Local template uses loopback. Grok Bot cloud MCP must use Tailscale MagicDNS http://chaoscentral.tailb71e7e.ts.net:8080/mcp or an approved Cloudflare Tunnel hostname — never a public marketing domain without Access.",
-    "Never paste the resolved virtual key into chat."
+    "Local template uses loopback + Authorization Bearer. Live Grok cloud MCP uses https://agentcore-grokbot.4axe.com/mcp with header x-bf-vk = raw BIFROST_MCP_VK_GROKBOT (no Bearer prefix in Grok UI).",
+    "Tailnet alternate: https://chaoscentral.tailb71e7e.ts.net/mcp. Never MagicDNS :8080. Never paste the resolved virtual key into chat."
   ],
   "removeDirectServerNames": [
     "swarmrecall",

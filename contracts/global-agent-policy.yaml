@@ -272,7 +272,11 @@ mandatory_rules:
       generated client files, billing/entitlement packages, design token files,
       environment/config files, or any authority-bundle file), the session MUST invoke the
       docs-guardian sub-agent (run_in_background:false) as the final step before reporting
-      the task complete. docs-guardian edits normal_workstream docs directly, proposes
+      the task complete. The following paths ALWAYS count as material for this gate even
+      when the change looks like a small wording tweak: MASTER_CONFIG_AND_PROMPT.md,
+      ide-profiles/**, and contracts/agentcore-gateway-client.json (use AUTH + documentation
+      maintainer path when those targets are governed_mutable / operator_locked; docs-guardian
+      still must run). docs-guardian edits normal_workstream docs directly, proposes
       governed_mutable / operator_locked changes through the documentation-governance
       workflow with an operator <<< >>> banner and a docs/drift-ledger.md entry, and flags
       generated_read_only projections for regeneration. The task is not complete while

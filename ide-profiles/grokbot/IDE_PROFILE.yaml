@@ -1,3 +1,7 @@
+# Grok Bot (xAI desktop) — AgentCore IDE profile
+# Authority: contracts/agentcore-gateway-client.json → client_render_hints.grokbot
+# Do not enroll C:\Users\ynotf\.grokbot as a project root.
+
 ide_id: grokbot
 display_name: Grok Bot
 installed_version: '0.79.3'
@@ -5,6 +9,14 @@ ownership: operator_local
 governed_product_root: 'C:\Program Files\Grok Bot'
 data_root: 'C:\Users\ynotf\.grokbot'
 excluded_live_state_root: 'C:\Users\ynotf\.grokbot'
+trust_class: A
+vk_env: BIFROST_MCP_VK_GROKBOT
+gateway_url_local: http://127.0.0.1:8080/mcp
+gateway_url_cloud: https://agentcore-grokbot.4axe.com/mcp
+cloud_header: x-bf-vk
+cloud_header_value_mode: raw_env
+cloud_oauth: false
+scheduled_task: '\AgentCore-Grokbot-Cloudflare-Tunnel'
 installation_mode: UI_only
 rule_mechanism: manual_import_primary_bot_custom_rules
 mcp_schema: grokbot_json
@@ -18,7 +30,7 @@ editability:
 certification: source_ready
 notes:
   - Trust Class A with dedicated BIFROST_MCP_VK_GROKBOT and grokbot capability profile.
-  - Remote MCP originates on Cursor servers; use Tailscale MagicDNS or approved private tunnel for Bifrost reachability.
+  - Canonical cloud MCP: https://agentcore-grokbot.4axe.com/mcp with header x-bf-vk = raw BIFROST_MCP_VK_GROKBOT (no Bearer prefix in Grok UI; Client ID blank; no OAuth). Task \AgentCore-Grokbot-Cloudflare-Tunnel. Local/loopback uses Authorization Bearer; Tailnet Serve alternate; Funnel is fallback only.
   - MCP connectors are account-wide; enable for primary Bot only when possible.
   - Do not enroll C:\Users\ynotf\.grokbot as a project root.
 dimensions:

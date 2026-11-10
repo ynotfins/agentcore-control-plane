@@ -63,11 +63,11 @@ Profiles select which upstream MCP servers (and, where implemented, which tools)
 - **Servers:** builder set minus `cursor-agent-mcp` (includes agentcore-memory, arabold-docs, sequential-thinking, research/browser Code Mode clients, etc.)
 - **Policy:** allow_permitted
 - **VK:** `BIFROST_MCP_VK_GROKBOT`
-- **Notes:** Account-wide MCP is shared across Bots; configure primary Bot first. Cloud MCP needs Tailscale MagicDNS or an approved private tunnel.
+- **Notes:** Account-wide MCP is shared across Bots; configure primary Bot first. Canonical cloud MCP: `https://agentcore-grokbot.4axe.com/mcp` with header `x-bf-vk` = raw VK (Client ID blank; no OAuth). Local/loopback still uses `Authorization: Bearer`. Task `\AgentCore-Grokbot-Cloudflare-Tunnel`. Proof log `F:\AgentCore\runtime\bifrost\logs\bifrost-gateway.stdout.log`.
 
 ## Trust classes
 
-- **Trust Class A:** exactly Cursor, Codex, Devin, Antigravity, ZCode, MiniMax coding clients, Open Interpreter, and xAI Grok Bot (desktop). These clients use the builder profile or a dedicated Trust Class A profile and host-native capability under the existing authority, secret, database, and Swarm boundaries. Header-capable clients reference their env-backed key at `:8080`; approved header-hostile clients use the process-attested `:18082` route selected by `gateway_url` and `gateway_auth_mode`, with no persisted bearer. ZCode is distinct from Zoo-Code. Grok Bot uses `BIFROST_MCP_VK_GROKBOT`, not the shared Cursor builder key.
+- **Trust Class A:** exactly Cursor, Codex, Devin, Antigravity, ZCode, MiniMax coding clients, Open Interpreter, and xAI Grok Bot (desktop). These clients use the builder profile or a dedicated Trust Class A profile and host-native capability under the existing authority, secret, database, and Swarm boundaries. Header-capable clients reference their env-backed key at `:8080`; approved header-hostile clients use the process-attested `:18082` route selected by `gateway_url` and `gateway_auth_mode`, with no persisted bearer. ZCode is distinct from Zoo-Code. Grok Bot uses `BIFROST_MCP_VK_GROKBOT`, not the shared Cursor builder key. **Grok cloud is not the loopback `:8080` Bearer path** — canonical enrollment is Cloudflare `https://agentcore-grokbot.4axe.com/mcp` with raw `x-bf-vk` (see `## grokbot` above); `:8080` Bearer remains local-only.
 - **Trust Class B:** retains its normal executable profile and receives the two-tool `agentcore-capability-catalog` discovery surface. Elevated execution uses the existing operator authority path and fails closed without it.
 
 ## Rules

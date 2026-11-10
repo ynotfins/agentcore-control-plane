@@ -13,5 +13,13 @@
     }
   },
   "alternate_tailnet_mcp_url": "https://chaoscentral.tailb71e7e.ts.net/mcp",
-  "notes": "Bifrost listens on 127.0.0.1:8080 only. Tailscale Serve already proxies /mcp on the tailnet. Grok cloud MCP needs Funnel or Cloudflare Tunnel."
+  "canonical_cloud_mcp": {
+    "url": "https://agentcore-grokbot.4axe.com/mcp",
+    "header_key": "x-bf-vk",
+    "header_value": "${BIFROST_MCP_VK_GROKBOT}",
+    "header_value_notes": "Grok UI: paste raw sk-bf- key only (no Bearer prefix). Client ID blank. Do not use OAuth Connect.",
+    "scheduled_task": "\AgentCore-Grokbot-Cloudflare-Tunnel",
+    "proof_log": "F:\AgentCore\runtime\bifrost\logs\bifrost-gateway.stdout.log"
+  },
+  "notes": "Bifrost listens on 127.0.0.1:8080 only. Local template uses Authorization Bearer. Live Grok cloud connector uses Cloudflare https://agentcore-grokbot.4axe.com/mcp with header x-bf-vk = raw BIFROST_MCP_VK_GROKBOT."
 }

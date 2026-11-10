@@ -300,7 +300,7 @@ Supported AgentCore / enrolled non-Swarm clients (last client-specific evidence 
 | Claude Desktop | `ide-profiles/claude-desktop/` | unsupported | disabled / `unverified`; no approved secure credential route. Prior credential-bearing configuration is historical drift. |
 | MiniMax Agent Classic | `ide-profiles/minimax-classic/` | unsupported | disabled / `unverified`; no approved credential-free, native-token, environment-backed, or scoped-broker route. Do not create a cloud custom-MCP entry. |
 | Zoo-Code / Roo-Code | `ide-profiles/zoo-code/` | compatible VS Code-family extension hosts only | installed and working in Cursor; not an MCP upstream and not portable to every IDE |
-| Grok Bot (xAI desktop) | `ide-profiles/grokbot/` | UI_only + manual_import | Trust Class A; dedicated `BIFROST_MCP_VK_GROKBOT`; cloud MCP: Tailscale Serve for tailnet; Funnel or Cloudflare Tunnel for Grok cloud (not unprotected public domain). Shared Bot computer — enable for primary Bot first. |
+| Grok Bot (xAI desktop) | `ide-profiles/grokbot/` | UI_only + manual_import | Trust Class A; dedicated `BIFROST_MCP_VK_GROKBOT`; cloud MCP live: `https://agentcore-grokbot.4axe.com/mcp` with header `x-bf-vk` = raw VK (Client ID blank; no OAuth). Tailnet Serve alternate; Funnel only if Cloudflare unavailable. Shared Bot computer — enable for primary Bot first. |
 
 `@C:\Users\ynotf\.mavis` is a junction to `@C:\Users\ynotf\.minimax` (same MiniMax Code data root). It is not a separate executable Mavis client and does not receive its own managed profile. **MiniMax Code and MiniMax Agent Classic are distinct products** with distinct profiles, paths, and enrollment mechanisms; do not conflate them.
 
@@ -358,11 +358,12 @@ Open both together via `@D:\github\agentcore-control-plane\agentcore-and-postgre
    - Same PC / local process: `http://127.0.0.1:8080/mcp`
    - Header-hostile Trust Class A: `http://127.0.0.1:18082/mcp` (no stored bearer)
    - Tailnet devices (phones/PCs already on Tailscale): use existing Tailscale Serve `https://chaoscentral.tailb71e7e.ts.net/mcp` (proxies to loopback Bifrost; Bifrost itself stays on `127.0.0.1`).
-   - Grok Bot cloud computer (not on the tailnet): enable Tailscale Funnel for `/mcp` only, or Cloudflare Tunnel — Bearer still required. **Do not** publish Bifrost on a public marketing domain without Access controls.
+   - Grok Bot cloud computer (not on the tailnet): canonical live URL `https://agentcore-grokbot.4axe.com/mcp` with header `x-bf-vk` = raw `BIFROST_MCP_VK_GROKBOT` (no Bearer prefix in the Grok UI value; Client ID blank; do not use OAuth Connect). Task `\AgentCore-Grokbot-Cloudflare-Tunnel`. Proof log `F:\AgentCore\runtime\bifrost\logs\bifrost-gateway.stdout.log`. Funnel is optional fallback only. **Do not** publish Bifrost on a public marketing domain without Access controls.
 6. Validate with the host’s `VALIDATION.md` and the ten-tool `agentcore-memory` surface.
 7. Enroll any new project path in `@D:\github\agentcore-control-plane\contracts\agentcore-project-enrollment.json` before claiming memory continuity.
 
 **Grok Bot field cheat-sheet:** see `@D:\github\agentcore-control-plane\ide-profiles\grokbot\MCP_ENROLLMENT_UI.md`.
+**Dual-plane continuity cookbook:** see `@D:\github\agentcore-control-plane\docs\prompts\dual-control-plane-continuity.md`.
 
 ---
 
