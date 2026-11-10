@@ -1,0 +1,29 @@
+---
+description: After every completed task, commit task-owned changes and run docs-guardian when docs/contracts changed
+alwaysApply: true
+---
+
+# Commit + docs after every task (all projects)
+
+Applies to every repo on this workstation. Do not wait for a second “please commit” prompt when a task slice is done.
+
+## When a task is complete
+
+1. **Validate** what the task owns (tests/linters/contracts as applicable).
+2. **Stage only task-owned paths** — never `git add -A` on a dirty mega-tree; never stage secrets, `.env`, dumps, caches, rollback trees, or unrelated WIP.
+3. **Commit** with a concise why-focused message on the active task branch.
+4. **Docs sub-agent:** if the task touched documentation, authority docs, IDE profiles, gateway/client contracts, AGENTS/CLAUDE, runbooks, or operator prompts, run the `docs-guardian` subagent with `run_in_background: false` before claiming done.
+5. **Push** only when the open repo’s AGENTS.md / Git policy says to push after task completion, or when the operator explicitly asks. Do not force-push.
+
+## Stop / ask instead
+
+- Irreversible, external, security-sensitive, or secret-bearing changes
+- Unclear ownership of files in a large dirty tree (inventory first; commit only the classified task set)
+- Operator explicitly said not to commit this slice
+
+## Anti-patterns
+
+- Leaving a finished task uncommitted
+- Bundling unrelated dirty files into the task commit
+- Skipping docs-guardian after material doc/contract/profile edits
+- Weakening Stage B / enrollment / device assertion to make commits easier

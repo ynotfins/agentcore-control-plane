@@ -138,6 +138,13 @@
       "paths": [
         "D:\\\\open-design"
       ]
+    },
+    {
+      "project_key": "postgresql18-control-plane",
+      "name": "PostgreSQL 18 Database Control Plane",
+      "paths": [
+        "D:\\postgreSQL18-control-plane"
+      ]
     }
   ],
   "approved_path_prefix_parents": [

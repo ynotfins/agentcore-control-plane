@@ -189,6 +189,39 @@
         "Dedicated virtual key: env.BIFROST_MCP_VK_IDE",
         "Use for governed IDE/proxy clients that should mirror the builder MCP surface without sharing the builder key literal."
       ]
+    },
+    "grokbot": {
+      "display_name": "Grok Bot",
+      "purpose": "Trust Class A xAI Grok Bot desktop surface; builder-equivalent without cursor-agent-mcp.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "agentcore-memory",
+        "apify-research",
+        "arabold-docs",
+        "context7",
+        "depwire",
+        "exa-research",
+        "figma-framelink-mcp",
+        "firecrawl-research",
+        "github-mcp",
+        "mcp-debugger",
+        "mcp-prompt-optimizer",
+        "morph-mcp",
+        "nia",
+        "pi-agents",
+        "playwright",
+        "sequential-thinking",
+        "serena",
+        "skills-hub",
+        "tavily-research",
+        "tentra"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Dedicated virtual key: env.BIFROST_MCP_VK_GROKBOT",
+        "Trust Class A. Account-wide MCP is shared across Bots on the same xAI account\u2014configure primary Bot only.",
+        "Excludes cursor-agent-mcp. Exclude Swarm and raw OpenRouter MCP."
+      ]
     }
   },
   "servers": {
@@ -220,7 +253,8 @@
         "database-validator",
         "docs-knowledge",
         "operator",
-        "chatgpt"
+        "chatgpt",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -349,7 +383,8 @@
         "database-validator",
         "operator",
         "chatgpt",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -418,7 +453,8 @@
       "denied_tools": [],
       "capability_profiles": [
         "builder",
-        "operator"
+        "operator",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -579,7 +615,8 @@
         "reviewer",
         "docs-knowledge",
         "chatgpt",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -766,7 +803,8 @@
       "denied_tools": [],
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -864,7 +902,8 @@
         "attach_to_process"
       ],
       "capability_profiles": [
-        "builder"
+        "builder",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -932,7 +971,8 @@
       "denied_tools": [],
       "capability_profiles": [
         "builder",
-        "ide"
+        "ide",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -1169,7 +1209,8 @@
       "denied_tools": [],
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -1469,7 +1510,8 @@
       },
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -1881,7 +1923,8 @@
       "denied_tools": [],
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -2154,7 +2197,8 @@
         "database-validator",
         "operator",
         "chatgpt",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -2442,7 +2486,8 @@
       "capability_profiles": [
         "builder",
         "chatgpt",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -2952,7 +2997,8 @@
       "denied_tools": [],
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "is_code_mode_client": true,
       "logging_policy": {
@@ -3019,7 +3065,8 @@
         "abort-actor-run"
       ],
       "capability_profiles": [
-        "builder"
+        "builder",
+        "grokbot"
       ],
       "is_code_mode_client": true,
       "logging_policy": {
@@ -3070,7 +3117,8 @@
       ],
       "denied_tools": [],
       "capability_profiles": [
-        "builder"
+        "builder",
+        "grokbot"
       ],
       "is_code_mode_client": true,
       "logging_policy": {
@@ -3125,7 +3173,8 @@
       ],
       "denied_tools": [],
       "capability_profiles": [
-        "builder"
+        "builder",
+        "grokbot"
       ],
       "is_code_mode_client": true,
       "logging_policy": {
@@ -3269,7 +3318,8 @@
       ],
       "capability_profiles": [
         "builder",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "is_code_mode_client": true,
       "auth_type": "none",
@@ -3326,7 +3376,8 @@
       ],
       "denied_tools": [],
       "capability_profiles": [
-        "builder"
+        "builder",
+        "grokbot"
       ],
       "is_code_mode_client": true,
       "logging_policy": {
@@ -3501,7 +3552,8 @@
         "docs-knowledge",
         "reviewer",
         "operator",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -3573,7 +3625,8 @@
         "builder",
         "docs-knowledge",
         "operator",
-        "openclaw"
+        "openclaw",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,
@@ -4626,7 +4679,8 @@
       ],
       "denied_tools": [],
       "capability_profiles": [
-        "builder"
+        "builder",
+        "grokbot"
       ],
       "logging_policy": {
         "log_invocations": true,

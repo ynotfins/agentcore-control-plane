@@ -47,7 +47,7 @@ The designated maintenance agent should:
 
 1. Run `D:\github\agentcore-control-plane\ops\Test-AgentCoreDrift.ps1`.
 2. Review new `project_facts` versions.
-3. If a change reflects an intended architecture decision, update relevant docs and store a compact memory through `global-memory-gateway`.
+3. If a change reflects an intended architecture decision, update relevant docs and store a compact memory through `agentcore-gateway` → `agentcore-memory` (`global-memory-gateway` is retired).
 4. If a change is unintended, stop and notify the user.
 5. Never silently rewrite facts to hide drift.
 
@@ -57,6 +57,7 @@ Windows scheduled task:
 
 - Task: `AgentCore\DailyDriftCheck`
 - Time: `04:00`
+- Status: **DISABLED** (leave disabled unless replaced by a silent, correct, evidence-logging job). Do **not** re-enable the old popup path.
 - Command: `D:\github\agentcore-control-plane\ops\Test-AgentCoreDrift.ps1`
 
 Related readiness task:
