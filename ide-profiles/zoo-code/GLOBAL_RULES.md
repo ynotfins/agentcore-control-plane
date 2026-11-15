@@ -74,7 +74,7 @@
 
 ## Product-specific notes and omissions
 
-- Limitation: Zoo-Code has no approved environment-backed header expansion or process-attested AgentCore route. Repository templates intentionally contain no active AgentCore gateway entry.
+- Limitation: Zoo-Code's global/extension-level settings (mcp_settings.json) have no approved environment-backed header expansion or process-attested AgentCore route. As of 2026-11-15, the project-scoped vibe-profile bundle (ide-profiles/zoo-code/vibe-profile/.roo/mcp.json, installed per-workspace by setup-zoocode-workspace.ps1) is an approved exception, shipping an active `agentcore-gateway` entry that uses the `${env:BIFROST_MCP_VIRTUAL_KEY}` env-backed header, scoped to workspaces where the operator runs the install script. This does not change the global/extension settings route, which remains unapproved. See audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md.
 - Limitation: A prior Zoo-Code global MCP entry was recorded on 2026-08-20 using a credential-bearing persisted configuration. That state is legacy drift, not an approved current enrollment instruction; this task does not inspect or mutate it.
 - Limitation: Zoo Code is a VS Code/Open VSX extension installed locally in Cursor; its UI, agent side panel, provider account, and model execution remain Zoo-owned.
 - Limitation: Zoo Code is not installed as a Zed extension. Neither Zoo-Code nor Zed currently has an approved AgentCore gateway credential route.
