@@ -1,0 +1,72 @@
+# IDE profile - source-controlled facts for this managed client.
+# Do not guess values: use 'unverified' until evidence exists.
+
+
+ide_id: vscodium
+display_name: VSCodium
+swarm_managed: false
+installed_version: '1.143.17232 (VSCodium.exe, observed 2026-11-15)'
+live_global_rule_target: 'workspace AGENTS.md; Zoo Code custom modes remain Zoo-owned extension state'
+live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\VSCodium\User\mcp.json
+live_alternate_mcp_targets:
+- C:\Users\ynotf\AppData\Roaming\VSCodium\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json
+rule_mechanism: workspace AGENTS.md plus Zoo Code (zoocodeorganization.zoo-code) settings inside VSCodium
+mcp_schema: vscodium_mcp_json
+mcp_transport: http/streamable
+env_var_handling: supports ${env:VAR} expansion in MCP headers
+restart_behavior: MCP reload from VSCodium or Zoo Code settings; full restart after Windows env-var changes
+editability:
+  global_rules: manual_import
+  project_rules: direct_write
+  mcp_config: direct_write
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: unverified
+mcp_template_source: renderers/gateway-clients/vscodium.json
+known_limitations:
+- Native VSCodium MCP lives at User/mcp.json. Zoo Code inside VSCodium reads its own mcp_settings.json; both should carry the same agentcore-gateway env-backed entry.
+- This profile does not enroll Zoo-Code-in-Cursor. That remains the separate zoo-code client.
+- Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VIRTUAL_KEY} only.
+- Fresh native VSCodium/Zoo Code memory-lifecycle acceptance is still required before live_validated.
+semantic_parity_gaps:
+- Global User Rules delivery is manual_import until a host-native ruled path is proven.
+dimensions:
+  application_launch:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  gateway_configuration:
+    status: configured_restart_required
+    evidence_path: audits/VSCODIUM_AGENTCORE_ENROLLMENT_2026-11-15.md
+    evidence_ts: '2026-11-15T01:00:00-05:00'
+    superseded_by: null
+  gateway_discovery:
+    status: unverified
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  native_memory_lifecycle:
+    status: unverified
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  fresh_chat_recovery:
+    status: unverified
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  persistence_after_restart:
+    status: configured_restart_required
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  operator_gate:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+m8_enrollment: configured_restart_required
+m8_notes: 'Source profile and sanitized templates added 2026-11-15. Live VSCodium MCP files may be updated only under explicit operator approval, with timestamped backups and env-backed Authorization. Native VSCodium/Zoo Code lifecycle remains unverified until a fresh host task proves tools/list and memory session flow.'
