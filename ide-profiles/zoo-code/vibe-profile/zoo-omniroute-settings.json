@@ -1,0 +1,59 @@
+{
+  "providerProfiles": {
+    "currentApiConfigName": "omniroute-daily",
+    "apiConfigs": {
+      "omniroute-daily": {
+        "id": "omniroute-daily",
+        "apiProvider": "openai",
+        "openAiBaseUrl": "http://127.0.0.1:20128/v1",
+        "openAiApiKey": "omniroute-local",
+        "openAiModelId": "default-deepseek-v4-pro"
+      },
+      "omniroute-fast": {
+        "id": "omniroute-fast",
+        "apiProvider": "openai",
+        "openAiBaseUrl": "http://127.0.0.1:20128/v1",
+        "openAiApiKey": "omniroute-local",
+        "openAiModelId": "deepseek-v4.1-flash"
+      },
+      "omniroute-heavy-sol": {
+        "id": "omniroute-heavy-sol",
+        "apiProvider": "openai",
+        "openAiBaseUrl": "http://127.0.0.1:20128/v1",
+        "openAiApiKey": "omniroute-local",
+        "openAiModelId": "sol-kie-heavy"
+      },
+      "omniroute-forensic-opus": {
+        "id": "omniroute-forensic-opus",
+        "apiProvider": "openai",
+        "openAiBaseUrl": "http://127.0.0.1:20128/v1",
+        "openAiApiKey": "omniroute-local",
+        "openAiModelId": "dva/claude-opus-4-8-high"
+      }
+    },
+    "modeApiConfigs": {
+      "architect": "omniroute-heavy-sol",
+      "code": "omniroute-daily",
+      "debug": "omniroute-forensic-opus",
+      "ask": "omniroute-fast",
+      "doc-master": "omniroute-fast",
+      "omniroute-ops": "omniroute-fast",
+      "orchestrator": "omniroute-heavy-sol"
+    }
+  },
+  "globalSettings": {
+    "autoApprovalEnabled": true,
+    "alwaysAllowReadOnly": true,
+    "alwaysAllowReadOnlyOutsideWorkspace": false,
+    "alwaysAllowWrite": true,
+    "alwaysAllowWriteOutsideWorkspace": false,
+    "alwaysAllowWriteProtected": false,
+    "alwaysAllowExecute": true,
+    "alwaysAllowMcp": true,
+    "alwaysAllowModeSwitch": true,
+    "alwaysAllowSubtasks": true,
+    "alwaysApproveResubmit": true,
+    "allowedCommands": ["npm", "npx", "pnpm", "pip", "python", "pytest", "node", "dotnet", "flutter", "dart", "git status", "git diff", "git log", "git add", "git commit", "omniroute health", "omniroute status", "omniroute quota", "omniroute cost", "omniroute simulate", "omniroute models", "omniroute combo list"],
+    "deniedCommands": ["rm -rf /", "rm -rf ~", "Remove-Item -Recurse -Force C:\\", "format", "diskpart", "git push --force", "git push -f", "git reset --hard", "git clean -fdx", "reg delete", "DROP ", "TRUNCATE ", "omniroute auth", "omniroute serve", "omniroute autostart", "Get-ChildItem Env:", "printenv", "set "]
+  }
+}

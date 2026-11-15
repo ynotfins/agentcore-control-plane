@@ -4,7 +4,7 @@
 # Schema: contracts/schemas/global-agent-policy.schema.json
 
 policy_id: agentcore-global-agent-policy
-policy_revision: "2026-11-01-knowledge-library-authority-v1"
+policy_revision: "2026-11-15-first-class-apps-omniroute-v1"
 authority_repo: 'D:\github\agentcore-control-plane'
 
 mandatory_rules:
@@ -72,7 +72,11 @@ mandatory_rules:
     title: Operator-defined AgentCore client trust classes
     rule: >-
       Trust Class A consists exactly of Cursor, Codex, Devin, Antigravity, ZCode,
-      MiniMax coding clients, and Open Interpreter. For these clients, every technically
+      MiniMax coding clients, Open Interpreter, VSCodium, Zoo Code (in Cursor or VSCodium),
+      OpenCode, Zed, Eigent, Reasonix, Cherry Studio, Open Design, OpenHands, and OpenMausBot
+      (operator decision 2026-11-15; SwarmClaw is excluded by Swarm isolation). Every Trust Class
+      A client reaches PostgreSQL only through agentcore-gateway; no client receives a direct
+      database MCP or database credential. For these clients, every technically
       compatible AgentCore-managed engineering capability is discoverable and executable
       through the builder profile or the client's host-native tools; Code Mode and selective
       signature loading minimize context without reducing authority. Trust Class A may perform

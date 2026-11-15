@@ -1,0 +1,71 @@
+ide_id: vscodium
+display_name: VSCodium
+swarm_managed: false
+installed_version: unverified
+live_global_rule_target: C:\Users\ynotf\.roo\skills (Zoo Code in VSCodium) and project AGENTS.md
+live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\VSCodium\User\mcp.json
+rule_mechanism: VS Code-family host; Zoo Code extension rules (.roo/rules-*) and project AGENTS.md
+mcp_schema: vscode_mcp_json
+mcp_transport: http/streamable
+env_var_handling: Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY} (VS Code-family env expansion); process-attested
+  :18082 fallback via VSCodium.exe ancestry
+gateway_url: http://127.0.0.1:8080/mcp
+gateway_auth_mode: env_header
+restart_behavior: restart client after MCP or provider config changes
+editability:
+  global_rules: manual_import
+  project_rules: unverified
+  mcp_config: direct_write
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: '2026-11-15'
+mcp_template_source: ide-profiles/vscodium/MCP_CONFIG_TEMPLATE.json
+known_limitations:
+- Registered Trust Class A on 2026-11-15 by operator decision; caller identity resolves to %LOCALAPPDATA%\Programs\VSCodium\VSCodium.exe.
+- Database access only through agentcore-gateway -> agentcore-memory; no direct PostgreSQL MCP or credentials.
+- Model inference routes through OmniRoute loopback http://127.0.0.1:20128/v1 (separate plane from MCP); provider
+  secrets stay in Windows User env.
+semantic_parity_gaps:
+- Signed automatic AgentCore lifecycle capture is not yet certified for VSCodium.
+dimensions:
+  application_launch:
+    status: unverified
+    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
+    evidence_ts: '2026-11-15T23:00:00Z'
+    superseded_by: null
+  gateway_configuration:
+    status: unverified
+    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
+    evidence_ts: '2026-11-15T23:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: unverified
+    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
+    evidence_ts: '2026-11-15T23:00:00Z'
+    superseded_by: null
+  native_memory_lifecycle:
+    status: unverified
+    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
+    evidence_ts: '2026-11-15T23:00:00Z'
+    superseded_by: null
+  fresh_chat_recovery:
+    status: unverified
+    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
+    evidence_ts: '2026-11-15T23:00:00Z'
+    superseded_by: null
+  persistence_after_restart:
+    status: unverified
+    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
+    evidence_ts: '2026-11-15T23:00:00Z'
+    superseded_by: null
+  operator_gate:
+    status: unverified
+    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
+    evidence_ts: '2026-11-15T23:00:00Z'
+    superseded_by: null
+m8_enrollment: configured_restart_required
+gateway_enrollment_status: env_header
+m8_notes: Trust Class A registration 2026-11-15. Live gateway entry must use the gateway_url above with no literal
+  bearer. Restart client after reconcile.

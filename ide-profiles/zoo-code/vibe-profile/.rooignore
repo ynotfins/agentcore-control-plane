@@ -1,0 +1,14 @@
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+secrets/
+node_modules/
+.venv/
+dist/
+build/
+.agentcore/rollback/
+*.sqlite
+*.db
+*.dump
