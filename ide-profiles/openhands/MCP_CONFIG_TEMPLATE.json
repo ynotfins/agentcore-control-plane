@@ -1,0 +1,28 @@
+{
+  "agent_settings": {
+    "mcp_config": {
+      "agentcore-gateway": {
+        "url": "http://127.0.0.1:8080/mcp",
+        "transport": "http",
+        "timeout": 120.0,
+        "auth": {"strategy": "bearer", "value": "<enter BIFROST_MCP_VIRTUAL_KEY via OpenHands UI; stored encrypted by the app>"},
+        "enabled": true
+      }
+    }
+  },
+  "llm_profile_omniroute_default": {
+    "model": "openai/default",
+    "base_url": "http://127.0.0.1:20128/v1",
+    "api_key": "os.environ/OMNIROUTE_API_KEY"
+  },
+  "conversation_settings": {"confirmation_mode": false},
+  "_agentcore": {
+    "renderer": "openhands",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Sanitized renderer. Never commit resolved virtual key or encrypted values.",
+      "Single agentcore-gateway entry only; progressive Code Mode surface (see governance/proposals/2026-11-15-gateway-progressive-tool-surface-enforcement.md).",
+      "LLM through local OmniRoute; Codex must not be added to OmniRoute."
+    ]
+  }
+}

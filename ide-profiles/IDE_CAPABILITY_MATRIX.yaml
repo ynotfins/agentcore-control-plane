@@ -1016,9 +1016,17 @@ managed_candidates:
     note: No native support or configuration path is verified.
   openhands:
     display_name: OpenHands
-    ownership: agentcore_candidate
-    certification: unverified
-    note: No native support or configuration path is verified; do not modify an NFA-specific runtime.
+    ownership: agentcore
+    certification: configured_restart_required
+    trust_class_requested: A
+    ide_profile: ide-profiles/openhands
+    config_path: C:\Users\ynotf\.openhands\settings.json
+    gateway_url: http://127.0.0.1:8080/mcp
+    gateway_auth_mode: bearer_encrypted_in_app_settings
+    capability_profile: builder
+    llm_route: OmniRoute http://127.0.0.1:20128/v1 (profile omniroute-default)
+    approvals: auto-approve (confirmation_mode false) per Tony t321u 2026-11-15
+    note: First-class enrollment 2026-11-15 (audits/OPENHANDS_AGENTCORE_ENROLLMENT_2026-11-15.md). Trust Class A requires acceptance of governance/proposals/2026-11-15-openhands-trust-class-a.md. Do not run against NFA runtimes or nfa-platform without separate authorization. Native lifecycle unverified.
   zcode:
     display_name: ZCode
     ownership: agentcore
