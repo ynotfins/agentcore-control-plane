@@ -15,7 +15,7 @@
     "notes": [
       "Sanitized renderer \u2014 never commit resolved virtual key values.",
       "Baseline AgentCore entry only; preserve other already-present non-AgentCore servers in live files.",
-      "Native VSCodium MCP and the in-VSCodium Zoo Code mcp_settings.json use the same sanitized entry."
+      "Native VSCodium built-in chat MCP only (I:\\LocalApps\\VSCodium\\user-data\\User\\mcp.json). Hosted extensions use their own renderers (zoo-code-vscodium, cline, continue)."
     ]
   }
 }

@@ -1,0 +1,25 @@
+{
+  "mcpServers": [
+    {
+      "name": "agentcore-gateway",
+      "type": "streamable-http",
+      "url": "http://127.0.0.1:8080/mcp",
+      "requestOptions": {
+        "headers": {
+          "Authorization": "Bearer ${{ secrets.BIFROST_MCP_VIRTUAL_KEY }}"
+        }
+      },
+      "connectionTimeout": 300000
+    }
+  ],
+  "_agentcore": {
+    "renderer": "continue",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Sanitized renderer \u2014 never commit resolved virtual key values.",
+      "Baseline AgentCore entry only; preserve other already-present non-AgentCore servers in live files.",
+      "Live target: C:\\Users\\ynotf\\.continue\\config.yaml"
+    ]
+  },
+  "_template_note": "DERIVED from renderers/gateway-clients/continue.json (source contract: contracts/agentcore-gateway-client.json). Do not hand-edit; regenerate from the renderer/template pair."
+}

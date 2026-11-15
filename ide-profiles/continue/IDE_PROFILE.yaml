@@ -1,0 +1,77 @@
+# IDE profile - source-controlled facts for this managed client.
+# Do not guess values: use 'unverified' until evidence exists.
+
+
+ide_id: continue
+display_name: Continue (VSCodium extension)
+swarm_managed: false
+host_application: vscodium
+installed_version: "2.0.0 (continue.continue-2.0.0-win32-x64 in I:\\LocalApps\\VSCodium\\extensions, observed 2026-11-15)"
+live_global_rule_target: "Continue rules/prompts under C:\\Users\\ynotf\\.continue; workspace AGENTS.md"
+live_mcp_config_target: C:\Users\ynotf\.continue\config.yaml
+live_alternate_mcp_targets: []
+rule_mechanism: "Continue config.yaml rules/prompts plus workspace AGENTS.md; extension hosted in VSCodium"
+mcp_schema: continue_config_yaml
+mcp_transport: http/streamable
+env_var_handling: "supports ${{ secrets.NAME }} resolved from ~/.continue/.env, workspace .continue/.env and .env, then the editor process environment"
+restart_behavior: "Continue reloads config.yaml on save; reload VSCodium window after Windows env-var changes"
+requested_trust_class: A
+effective_trust_class: pending_authority_admission
+trust_class_proposal: governance/proposals/2026-11-15-continue-cline-zoo-trust-class-a.md
+editability:
+  global_rules: manual_import
+  project_rules: direct_write
+  mcp_config: direct_write
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: unverified
+mcp_template_source: renderers/gateway-clients/continue.json
+known_limitations:
+- "Continue reads %USERPROFILE%\\.continue (CONTINUE_GLOBAL_DIR unset). I:\\LocalApps\\VSCodium\\user-data\\User\\.continue\\config.yaml is not read by Continue 2.0.0."
+- "config.yaml is YAML; the renderer stores the same mcpServers list as JSON. Live files keep other non-AgentCore servers (serena)."
+- "MCP tools are only offered in Continue agent mode; OpenAI-compatible models need capabilities: [tool_use] for agent mode."
+- "OmniRoute chat models use provider openai, apiBase http://127.0.0.1:20128/v1 and apiKey ${{ secrets.OMNIROUTE_API_KEY }}; OmniRoute is a model provider, not an MCP route."
+- "Do not persist a resolved AgentCore virtual key. Use Bearer ${{ secrets.BIFROST_MCP_VIRTUAL_KEY }} only."
+semantic_parity_gaps:
+- Global rules delivery is manual_import until a host-native ruled path is proven.
+- Trust Class A is requested by the operator but contracts/global-agent-policy.yaml (governed_mutable) still lists Trust Class A exactly; see governance/proposals/2026-11-15-continue-cline-zoo-trust-class-a.md.
+dimensions:
+  application_launch:
+    status: unverified
+    evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+    evidence_ts: '2026-11-15T14:00:00-05:00'
+    superseded_by: null
+  gateway_configuration:
+    status: configured_restart_required
+    evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+    evidence_ts: '2026-11-15T14:00:00-05:00'
+    superseded_by: null
+  gateway_discovery:
+    status: unverified
+    evidence_path: ide-profiles/continue/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  native_memory_lifecycle:
+    status: unverified
+    evidence_path: ide-profiles/continue/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  fresh_chat_recovery:
+    status: unverified
+    evidence_path: ide-profiles/continue/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  persistence_after_restart:
+    status: configured_restart_required
+    evidence_path: ide-profiles/continue/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  operator_gate:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/continue/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+m8_enrollment: configured_restart_required
+m8_notes: 'Source profile and sanitized template added 2026-11-15 under operator approval. Live config written with a timestamped backup and env-backed Authorization; authenticated tools/list probe returned 168 tools. Native in-extension discovery and memory lifecycle remain unverified until a fresh host session proves them.'

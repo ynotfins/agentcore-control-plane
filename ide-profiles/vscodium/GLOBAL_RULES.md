@@ -11,7 +11,7 @@
 | IDE overlay source | ide-profiles/vscodium/IDE_PROFILE.yaml |
 | Model context profiles | contracts/model-context-profiles.json (model-aware; no durable-memory cap) |
 | Live global-rule target | workspace AGENTS.md; Zoo Code custom modes remain Zoo-owned extension state |
-| Live MCP config target | C:\Users\ynotf\AppData\Roaming\VSCodium\User\mcp.json |
+| Live MCP config target | I:\LocalApps\VSCodium\user-data\User\mcp.json |
 | Cursor may edit global rules | no (manual_import) |
 | Cursor may edit MCP config | yes (direct_write; live edits remain approval-gated by policy) |
 | Installation mode | generated_prompt |
@@ -74,7 +74,8 @@
 
 ## Product-specific notes and omissions
 
-- Limitation: Native VSCodium MCP lives at User/mcp.json. Zoo Code inside VSCodium reads its own mcp_settings.json; both should carry the same agentcore-gateway env-backed entry.
+- Limitation: VSCodium is launched by I:\LocalApps\VSCodium\Launch-VSCodium.cmd with --user-data-dir I:\LocalApps\VSCodium\user-data and --extensions-dir I:\LocalApps\VSCodium\extensions. %APPDATA%\VSCodium is not the live profile (corrected 2026-11-15).
+- Limitation: VSCodium built-in chat reads only User/mcp.json. Hosted extensions keep separate MCP lists (see ide-profiles/zoo-code-vscodium, ide-profiles/cline, ide-profiles/continue).
 - Limitation: This profile does not enroll Zoo-Code-in-Cursor. That remains the separate zoo-code client.
 - Limitation: Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VIRTUAL_KEY} only.
 - Limitation: Fresh native VSCodium/Zoo Code memory-lifecycle acceptance is still required before live_validated.

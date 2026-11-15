@@ -16,8 +16,8 @@ README = REPO / "ide-profiles" / "README.md"
 
 EXPECTED_URL = "http://127.0.0.1:8080/mcp"
 EXPECTED_AUTH = "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
-NATIVE_PATH = r"C:\Users\ynotf\AppData\Roaming\VSCodium\User\mcp.json"
-ZOO_PATH = r"C:\Users\ynotf\AppData\Roaming\VSCodium\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json"
+NATIVE_PATH = r"I:\LocalApps\VSCodium\user-data\User\mcp.json"
+ZOO_PATH = r"I:\LocalApps\VSCodium\user-data\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json"
 SECRETISH = re.compile(r"(sk-bf-|sk-or-|ghp_|github_pat_|xai-|Bearer [A-Za-z0-9]{16,})")
 
 
@@ -38,7 +38,7 @@ def test_vscodium_profile_paths_and_schema() -> None:
     assert profile["ide_id"] == "vscodium"
     assert profile["swarm_managed"] is False
     assert profile["live_mcp_config_target"] == NATIVE_PATH
-    assert ZOO_PATH in profile.get("live_alternate_mcp_targets", [])
+    assert ZOO_PATH not in profile.get("live_alternate_mcp_targets", [])  # moved to zoo-code-vscodium
     assert profile["mcp_schema"] == "vscodium_mcp_json"
     assert profile["mcp_transport"] == "http/streamable"
     assert "${env:VAR}" in profile["env_var_handling"]
@@ -98,4 +98,3 @@ def test_vscodium_contract_hint_is_proposed_not_required() -> None:
     assert hint["config_path"] == NATIVE_PATH
     assert hint.get("gateway_url", EXPECTED_URL) == EXPECTED_URL
     assert hint.get("gateway_auth_mode") == "bearer_env"
-    assert ZOO_PATH in hint.get("alternate_config_paths", [])
