@@ -14,6 +14,15 @@
 - **Requires:** authority_maintainer + AUTH id + rollback + validators (`python scripts/validate_authority_lock.py`, `python scripts/bifrost/validate_contracts.py`) + independent review
 - **Status:** APPLIED 2026-11-15 on operator approval in chat ("Yes I approve changing the locked docs omniroute version"). Follow-up: arabold re-ingest of omniroute@3.8.53 docs pending (DOC_AUTHORITY pin now 3.8.53).
 
+## 2026-11-08 — grokbot-mcp-live
+
+- **Item:** xAI Grok Bot MCP connector live on Cloudflare tunnel `https://agentcore-grokbot.4axe.com/mcp` with `x-bf-vk` header (Cursor/1.0.0 POST /mcp -> 200 observed in `bifrost-gateway.stdout.log`).
+- **AUTH:** `AUTH-2026-11-08-GROKBOT-MCP-CLOUDFLARE-LIVE`
+- **Classification:** `governed_mutable`
+- **Status:** `APPLIED`
+- **Source:** live Bifrost gateway log + Task Scheduler `\AgentCore-Grokbot-Cloudflare-Tunnel`
+- **Action:** Reconciled `ide-profiles/grokbot/`, `contracts/agentcore-gateway-client.json`, `docs/bifrost/CAPABILITY_PROFILES.md`, and `MASTER_CONFIG_AND_PROMPT.md` so the canonical cloud recipe is Cloudflare 4axe + `x-bf-vk` (no OAuth). Tailscale Serve/Funnel retained as non-canonical fallback/testing only.
+
 ## 2026-10-21 — G: second-copy headroom
 
 - **Cleared (normal_workstream):** retention policy, backup/PITR runbook, drive-write boundary, global agent rules, automation ops, database overview WAL note, M8 lifecycle registry.

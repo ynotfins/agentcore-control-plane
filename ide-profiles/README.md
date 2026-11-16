@@ -43,7 +43,10 @@ All mandatory rules from the canonical policy are present in every rendered `GLO
 | antigravity | unverified | unverified | one gateway entry (unvalidated) | unverified |
 | open-interpreter | generated_prompt | `manual_import` via profile system message | one gateway entry; VK materialized live-only | partial — depends on operator import |
 | cherry-studio | UI_only | `manual_import` via AgentCore Workspace Agent prompt | Local Storage LevelDB (enrollment script) | live validated 2026-07-20 |
-| vscodium | generated_prompt | `manual_import` | :8080 env-ref entry present; see `audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md` | unverified — registered Trust Class A 2026-11-15, all dimensions pending a live session |
+| vscodium | generated_prompt | workspace AGENTS.md `direct_write`; global rules `manual_import` | one gateway entry (env-backed :8080 template; native lifecycle unverified) | pending live VSCodium/Zoo Code session validation |
+| continue | generated_prompt | workspace AGENTS.md `direct_write`; Continue rules `manual_import` | one gateway entry in `~/.continue/config.yaml` (`${{ secrets.BIFROST_MCP_VIRTUAL_KEY }}`) | pending live Continue agent-mode validation |
+| cline | generated_prompt | workspace AGENTS.md `direct_write`; Cline rules `manual_import` | one gateway entry in `~/.cline/data/settings/cline_mcp_settings.json` (`${env:BIFROST_MCP_VIRTUAL_KEY}`) | pending live Cline session validation |
+| zoo-code-vscodium | generated_prompt | workspace AGENTS.md `direct_write`; Zoo modes `manual_import` | one gateway entry in VSCodium-hosted Zoo `mcp_settings.json` (`${env:BIFROST_MCP_VIRTUAL_KEY}`) | pending live Zoo Code (VSCodium) session validation |
 | openhands | generated_prompt | `manual_import` | :8080 via host.docker.internal | unverified — registered Trust Class A 2026-11-15, all dimensions pending a live session |
 | openmausbot | generated_prompt | `manual_import` | :8080 entry disabled; OmniRoute MCP present | unverified — registered Trust Class A 2026-11-15, all dimensions pending a live session |
 | open-design | generated_prompt | `manual_import` | Cursor-only host-native product MCP companion (approved exception) | unverified — registered Trust Class A 2026-11-15, all dimensions pending a live session |

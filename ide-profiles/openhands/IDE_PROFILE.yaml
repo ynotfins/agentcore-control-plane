@@ -1,71 +1,61 @@
+# IDE profile: source-controlled facts for this managed client.
+# Do not guess values. Use 'unverified' until evidence exists.
+
 ide_id: openhands
-display_name: OpenHands (Agent Canvas, Docker)
+display_name: OpenHands (Agent Canvas GUI + CLI)
 swarm_managed: false
-installed_version: ghcr.io/openhands/agent-canvas:1.13.0
-live_global_rule_target: I:\LocalApps\OpenHands\state (agent skills)
-live_mcp_config_target: I:\LocalApps\OpenHands\state\settings.json
-rule_mechanism: OpenHands agent settings and repository microagents
-mcp_schema: openhands_settings_json
-mcp_transport: http
-env_var_handling: Container receives its per-app key BIFROST_MCP_VK_APP_OPENHANDS from Windows User env via docker-compose; settings.json
-  must not store a literal bearer
-gateway_url: http://host.docker.internal:8080/mcp
-gateway_auth_mode: env_header
-restart_behavior: restart client after MCP or provider config changes
+trust_class_requested: A   # highest tier; pending Tony's acceptance of governance/proposals/2026-11-15-openhands-trust-class-a.md
+installed_version: 'openhands-agent-server 1.59.0, openhands-sdk 1.59.0, openhands-automation 1.26.1 (uvx, observed 2026-11-15)'
+runtime_ports:
+  agent_server: 127.0.0.1:18000
+  automation: 127.0.0.1:18001
+live_settings_target: C:\Users\ynotf\.openhands\settings.json
+live_llm_profiles_dir: C:\Users\ynotf\.openhands\profiles
+live_agent_profile: C:\Users\ynotf\.openhands\agent-profiles\default.json
+live_cli_config: C:\Users\ynotf\.openhands\config.toml
+live_skills_dir: C:\Users\ynotf\.openhands\skills
+live_mcp_config_target: settings.json -> agent_settings.mcp_config.agentcore-gateway
+mcp_schema: openhands_settings_mcp_config
+mcp_transport: http (streamable)
+gateway_url: http://127.0.0.1:8080/mcp
+gateway_auth_mode: bearer_encrypted_in_app_settings   # value entered from BIFROST_MCP_VK_APP_OPENHANDS via the OpenHands UI; the app stores it Fernet-encrypted
+capability_profile: builder
+tool_surface: progressive Code Mode (27 eager tools on 2026-11-15; listToolFiles -> readToolFile -> getToolDocs -> executeToolCode)
+llm_route:
+  provider: OmniRoute (local, loopback)
+  base_url: http://127.0.0.1:20128/v1
+  api_key_ref: os.environ/OMNIROUTE_API_KEY
+  default_profile: omniroute-default        # model openai/default (OmniRoute combo "default")
+  extra_profiles: [omniroute-sol-kie-heavy, omniroute-agent-glm, omniroute-review]
+  codex_in_omniroute: forbidden
+approvals:
+  confirmation_mode: false                  # Tony t321u: auto-approve everything incl. terminal
+  cli_security_confirmation_mode: false
+  operator_warning_acknowledged: '2026-11-15 (Tony was told auto-approve lets agents run any command on ChaosCentral)'
+skills:
+  - agentcore-project-lifecycle
+  - agentcore-tool-discovery
+  - omniroute: [cli-setup, cli-health, omni-inference, omni-combos-routing]
 editability:
   global_rules: manual_import
-  project_rules: unverified
-  mcp_config: direct_write
-installation_mode: generated_prompt
+  project_rules: direct_write
+  mcp_config: manual_import
+# mcp_config is UI/API only because OpenHands encrypts secret fields; LLM profile files may be written directly with env references only.
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-11-15'
-mcp_template_source: ide-profiles/openhands/MCP_CONFIG_TEMPLATE.json
+last_validation_date: unverified
+mcp_template_source: renderers/gateway-clients/openhands.json
 known_limitations:
-- Registered Trust Class A on 2026-11-15 by operator decision; caller identity resolves to docker container openhands-local-8003.
-- Database access only through agentcore-gateway -> agentcore-memory; no direct PostgreSQL MCP or credentials.
-- Model inference routes through OmniRoute loopback http://127.0.0.1:20128/v1 (separate plane from MCP); provider
-  secrets stay in Windows User env.
-semantic_parity_gaps:
-- Signed automatic AgentCore lifecycle capture is not yet certified for OpenHands (Agent Canvas, Docker).
+- The agent-server REST API (/api/profiles, /api/settings) needs the app session key. Agents must not extract it, so profile activation can also be done in the UI.
+- Live settings.json is about 1 MB. The running GUI may overwrite file edits. Restart OpenHands after file changes.
+- Must never run against nfa-platform or NFA runtimes unless a separate task authorizes it (excluded root).
 dimensions:
-  application_launch:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
-    superseded_by: null
-  gateway_configuration:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
-    superseded_by: null
-  gateway_discovery:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
-    superseded_by: null
-  native_memory_lifecycle:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
-    superseded_by: null
-  fresh_chat_recovery:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
-    superseded_by: null
-  persistence_after_restart:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
-    superseded_by: null
-  operator_gate:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
-    superseded_by: null
+  application_launch: {status: observed_running, evidence_path: audits/OPENHANDS_AGENTCORE_ENROLLMENT_2026-11-15.md, evidence_ts: '2026-11-15T14:40:00-05:00', superseded_by: null}
+  gateway_configuration: {status: configured_restart_required, evidence_path: audits/OPENHANDS_AGENTCORE_ENROLLMENT_2026-11-15.md, evidence_ts: '2026-11-15T16:12:00-05:00', superseded_by: null}
+  gateway_discovery: {status: unverified, evidence_path: ide-profiles/openhands/VALIDATION.md, evidence_ts: null, superseded_by: null}
+  native_memory_lifecycle: {status: unverified, evidence_path: ide-profiles/openhands/VALIDATION.md, evidence_ts: null, superseded_by: null}
+  fresh_chat_recovery: {status: unverified, evidence_path: ide-profiles/openhands/VALIDATION.md, evidence_ts: null, superseded_by: null}
+  persistence_after_restart: {status: configured_restart_required, evidence_path: ide-profiles/openhands/VALIDATION.md, evidence_ts: null, superseded_by: null}
+  operator_gate: {status: awaiting_trust_class_acceptance, evidence_path: governance/proposals/2026-11-15-openhands-trust-class-a.md, evidence_ts: null, superseded_by: null}
 m8_enrollment: configured_restart_required
-gateway_enrollment_status: env_header
-m8_notes: Trust Class A registration 2026-11-15. Live gateway entry must use the gateway_url above with no literal
-  bearer. Restart client after reconcile.

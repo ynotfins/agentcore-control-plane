@@ -1,71 +1,72 @@
+# IDE profile - source-controlled facts for this managed client.
+# Do not guess values: use 'unverified' until evidence exists.
+
+
 ide_id: vscodium
 display_name: VSCodium
 swarm_managed: false
-installed_version: unverified
-live_global_rule_target: C:\Users\ynotf\.roo\skills (Zoo Code in VSCodium) and project AGENTS.md
-live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\VSCodium\User\mcp.json
-rule_mechanism: VS Code-family host; Zoo Code extension rules (.roo/rules-*) and project AGENTS.md
-mcp_schema: vscode_mcp_json
+installed_version: '1.143.17232 (VSCodium.exe, observed 2026-11-15)'
+live_global_rule_target: 'workspace AGENTS.md; Zoo Code custom modes remain Zoo-owned extension state'
+live_mcp_config_target: I:\LocalApps\VSCodium\user-data\User\mcp.json
+live_alternate_mcp_targets: []
+rule_mechanism: workspace AGENTS.md; hosted extensions (Zoo Code, Cline, Continue) have their own profiles
+mcp_schema: vscodium_mcp_json
 mcp_transport: http/streamable
-env_var_handling: Authorization Bearer ${env:BIFROST_MCP_VK_APP_VSCODIUM} (per-app key; VS Code-family env expansion); process-attested
-  :18082 fallback via VSCodium.exe ancestry
-gateway_url: http://127.0.0.1:8080/mcp
-gateway_auth_mode: env_header
-restart_behavior: restart client after MCP or provider config changes
+env_var_handling: supports ${env:VAR} expansion in MCP headers
+restart_behavior: MCP reload from VSCodium or Zoo Code settings; full restart after Windows env-var changes
 editability:
   global_rules: manual_import
-  project_rules: unverified
+  project_rules: direct_write
   mcp_config: direct_write
 installation_mode: generated_prompt
 backup_required: true
 validation_required: true
 restart_required: true
-last_validation_date: '2026-11-15'
-mcp_template_source: ide-profiles/vscodium/MCP_CONFIG_TEMPLATE.json
+last_validation_date: unverified
+mcp_template_source: renderers/gateway-clients/vscodium.json
 known_limitations:
-- Registered Trust Class A on 2026-11-15 by operator decision; caller identity resolves to %LOCALAPPDATA%\Programs\VSCodium\VSCodium.exe.
-- Database access only through agentcore-gateway -> agentcore-memory; no direct PostgreSQL MCP or credentials.
-- Model inference routes through OmniRoute loopback http://127.0.0.1:20128/v1 (separate plane from MCP); provider
-  secrets stay in Windows User env.
+- VSCodium is launched by I:\LocalApps\VSCodium\Launch-VSCodium.cmd with --user-data-dir I:\LocalApps\VSCodium\user-data and --extensions-dir I:\LocalApps\VSCodium\extensions. %APPDATA%\VSCodium is not the live profile (corrected 2026-11-15).
+- "VSCodium built-in chat reads only User/mcp.json. Hosted extensions keep separate MCP lists (see ide-profiles/zoo-code-vscodium, ide-profiles/cline, ide-profiles/continue)."
+- This profile does not enroll Zoo-Code-in-Cursor. That remains the separate zoo-code client.
+- Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VK_APP_VSCODIUM} only.
+- Fresh native VSCodium/Zoo Code memory-lifecycle acceptance is still required before live_validated.
 semantic_parity_gaps:
-- Signed automatic AgentCore lifecycle capture is not yet certified for VSCodium.
+- Global User Rules delivery is manual_import until a host-native ruled path is proven.
 dimensions:
   application_launch:
     status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
+    evidence_path: null
+    evidence_ts: null
     superseded_by: null
   gateway_configuration:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
+    status: configured_restart_required
+    evidence_path: audits/VSCODIUM_AGENTCORE_ENROLLMENT_2026-11-15.md
+    evidence_ts: '2026-11-15T01:00:00-05:00'
     superseded_by: null
   gateway_discovery:
     status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
     superseded_by: null
   native_memory_lifecycle:
     status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
     superseded_by: null
   fresh_chat_recovery:
     status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
     superseded_by: null
   persistence_after_restart:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
+    status: configured_restart_required
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
     superseded_by: null
   operator_gate:
-    status: unverified
-    evidence_path: audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md
-    evidence_ts: '2026-11-15T23:00:00Z'
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/vscodium/VALIDATION.md
+    evidence_ts: null
     superseded_by: null
 m8_enrollment: configured_restart_required
-gateway_enrollment_status: env_header
-m8_notes: Trust Class A registration 2026-11-15. Live gateway entry must use the gateway_url above with no literal
-  bearer. Restart client after reconcile.
+m8_notes: 'Source profile and sanitized templates added 2026-11-15. Live VSCodium MCP files may be updated only under explicit operator approval, with timestamped backups and env-backed Authorization. Native VSCodium/Zoo Code lifecycle remains unverified until a fresh host task proves tools/list and memory session flow.'

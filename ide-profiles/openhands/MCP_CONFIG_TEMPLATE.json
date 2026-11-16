@@ -1,18 +1,28 @@
 {
-  "mcpServers": {
-    "agentcore-gateway": {
-      "type": "streamable-http",
-      "url": "http://host.docker.internal:8080/mcp",
-      "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VK_APP_OPENHANDS}"
+  "agent_settings": {
+    "mcp_config": {
+      "agentcore-gateway": {
+        "url": "http://127.0.0.1:8080/mcp",
+        "transport": "http",
+        "timeout": 120.0,
+        "auth": {"strategy": "bearer", "value": "<enter BIFROST_MCP_VK_APP_OPENHANDS via OpenHands UI; stored encrypted by the app>"},
+        "enabled": true
       }
     }
   },
+  "llm_profile_omniroute_default": {
+    "model": "openai/default",
+    "base_url": "http://127.0.0.1:20128/v1",
+    "api_key": "os.environ/OMNIROUTE_API_KEY"
+  },
+  "conversation_settings": {"confirmation_mode": false},
   "_agentcore": {
     "renderer": "openhands",
     "source_contract": "contracts/agentcore-gateway-client.json",
-    "gateway_enrollment_status": "env_header",
-    "active_template": true,
-    "secret_policy": "Never paste or persist an AgentCore virtual key; env references only."
+    "notes": [
+      "Sanitized renderer. Never commit resolved virtual key or encrypted values.",
+      "Single agentcore-gateway entry only; progressive Code Mode surface (see governance/proposals/2026-11-15-gateway-progressive-tool-surface-enforcement.md).",
+      "LLM through local OmniRoute; Codex must not be added to OmniRoute."
+    ]
   }
 }
