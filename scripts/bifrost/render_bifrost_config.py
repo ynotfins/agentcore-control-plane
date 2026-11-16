@@ -68,6 +68,7 @@ SECRET_ENV_NAMES = {
     "BIFROST_MCP_VK_OPERATOR",
     "BIFROST_MCP_VK_CHATGPT",
     "BIFROST_MCP_VK_OPENCLAW",
+    "BIFROST_MCP_VK_GROKBOT",
 }
 
 
@@ -521,6 +522,13 @@ def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
             "is_active": True,
             "mcp_configs": profile_mcp_configs(registry, "openclaw"),
         },
+        {
+            "id": "vk-agentcore-grokbot",
+            "name": "grokbot",
+            "value": "env.BIFROST_MCP_VK_GROKBOT",
+            "is_active": True,
+            "mcp_configs": profile_mcp_configs(registry, "grokbot"),
+        },
     ]
 
 
@@ -681,6 +689,7 @@ def build_sanitized_sidecar(
             "BIFROST_MCP_VK_OPERATOR",
             "BIFROST_MCP_VK_CHATGPT",
             "BIFROST_MCP_VK_OPENCLAW",
+            "BIFROST_MCP_VK_GROKBOT",
         ],
         "oauth_state_note": (
             "Bifrost v2 persists oauth_config_id in config.db and ignores config-file "

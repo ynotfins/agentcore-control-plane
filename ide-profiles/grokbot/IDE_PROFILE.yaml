@@ -1,0 +1,61 @@
+# Grok Bot (xAI desktop) — AgentCore IDE profile
+# Authority: contracts/agentcore-gateway-client.json → client_render_hints.grokbot
+# Do not enroll C:\Users\ynotf\.grokbot as a project root.
+
+ide_id: grokbot
+display_name: Grok Bot
+installed_version: '0.79.3'
+ownership: operator_local
+governed_product_root: 'C:\Program Files\Grok Bot'
+data_root: 'C:\Users\ynotf\.grokbot'
+excluded_live_state_root: 'C:\Users\ynotf\.grokbot'
+trust_class: A
+vk_env: BIFROST_MCP_VK_GROKBOT
+gateway_url_local: http://127.0.0.1:8080/mcp
+gateway_url_cloud: https://agentcore-grokbot.4axe.com/mcp
+cloud_header: x-bf-vk
+cloud_header_value_mode: raw_env
+cloud_oauth: false
+scheduled_task: '\AgentCore-Grokbot-Cloudflare-Tunnel'
+installation_mode: UI_only
+rule_mechanism: manual_import_primary_bot_custom_rules
+mcp_schema: grokbot_json
+mcp_transport: streamable-http
+env_var_handling: preferred-dollar-brace-expansion
+restart_behavior: full-app-restart
+editability:
+  global_rules: manual_import
+  project_rules: unsupported
+  mcp_config: UI_only
+certification: source_ready
+notes:
+  - Trust Class A with dedicated BIFROST_MCP_VK_GROKBOT and grokbot capability profile.
+  - Canonical cloud MCP: https://agentcore-grokbot.4axe.com/mcp with header x-bf-vk = raw BIFROST_MCP_VK_GROKBOT (no Bearer prefix in Grok UI; Client ID blank; no OAuth). Task \AgentCore-Grokbot-Cloudflare-Tunnel. Local/loopback uses Authorization Bearer; Tailnet Serve alternate; Funnel is fallback only.
+  - MCP connectors are account-wide; enable for primary Bot only when possible.
+  - Do not enroll C:\Users\ynotf\.grokbot as a project root.
+dimensions:
+  application_launch:
+    status: verified_local_install
+    evidence_path: null
+    evidence_ts: '2026-11-07'
+    superseded_by: null
+  gateway_configuration:
+    status: source_ready
+    evidence_path: ide-profiles/grokbot/MCP_CONFIG_TEMPLATE.json
+    evidence_ts: '2026-11-07T00:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  native_memory_lifecycle:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  persistence_after_restart:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null

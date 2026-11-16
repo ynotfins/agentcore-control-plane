@@ -120,29 +120,23 @@ $r = Invoke-WebRequest -Uri 'http://127.0.0.1:8080/mcp' -UseBasicParsing -ErrorA
 
 | Property | Value |
 |----------|-------|
-| **Component** | Daily context fabric drift detection |
+| **Component** | Legacy daily drift scan (historically labeled Context Fabric; script is `ops/Test-AgentCoreDrift.ps1`) |
 | **Mechanism** | Windows Scheduled Task |
 | **Task path** | `\AgentCore\DailyDriftCheck` |
-| **Schedule** | Daily at 06:00 local time |
-| **Script** | `ops/Test-AgentCoreDrift.ps1` (or context-fabric cf_drift) |
-| **Log location** | `F:\AgentCore\runtime\service-logs\drift-*.log` |
+| **Schedule** | Was daily (docs conflicted 04:00 vs 06:00); **now DISABLED** |
+| **Script** | `ops/Test-AgentCoreDrift.ps1` (legacy MCP Control Plane / PG16 evidence — not a modern Context Fabric CLI) |
+| **Log location** | Intended `F:\AgentCore\runtime\service-logs\drift-*.log` (often absent on failure) |
+| **Policy** | Keep **Disabled**. Do not re-enable the old popup path. Replace only with a silent, correct, evidence-logging job if needed. |
 
-**Start (manual trigger):**
-```powershell
-Start-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'DailyDriftCheck'
-```
-
-**Stop (running instance):**
-```powershell
-Stop-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'DailyDriftCheck'
-```
-
-**Status:**
+**Status (manual check):**
 ```powershell
 Get-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'DailyDriftCheck' | Select State, LastRunTime, LastTaskResult
 ```
 
-**Restart-on-failure policy:** Task runs daily; failures logged but do not restart automatically (idempotent check).
+**Start (manual trigger — not recommended while Disabled):**
+```powershell
+Start-ScheduledTask -TaskPath '\AgentCore\' -TaskName 'DailyDriftCheck'
+```
 
 ---
 
