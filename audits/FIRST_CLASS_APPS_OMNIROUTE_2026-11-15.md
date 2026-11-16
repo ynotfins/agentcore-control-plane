@@ -85,3 +85,17 @@ were already headless. Not changed: `Startup\Swarm Stack.cmd` (Swarm-owned; Swar
   value is the local placeholder); `agentcore-gateway` plugin via `mcp-remote` with env-referenced bearer.
 - Open Interpreter: unknown top-level `model_provider = "omniroute"` triggered re-onboarding; reverted top-level to
   OpenRouter V4.1 Flash and added an app profile `agentcore:omniroute-deepseek-v4-1-flash` as `default_profile_id`.
+
+## Per-app virtual keys (2026-11-15, operator request)
+
+- 17 builder-profile virtual keys `vk-agentcore-app-<client>` with values from Windows User env
+  `BIFROST_MCP_VK_APP_<CLIENT>` (cursor, codex, devin, antigravity, zcode, minimax-code, open-interpreter-desktop,
+  vscodium, zoo-code, opencode, zed, eigent, reasonix, cherry-studio, open-design, openhands, openmausbot).
+  Live config.json patched (backup `*.bak-appvk-*`), Bifrost restarted; all 17 keys and the builder key return
+  HTTP 200 on `initialize`.
+- `:18082` proxy now injects the caller's own app key (by attested client id), falling back to the builder key.
+- Env-header clients moved to their own key: Cursor, VSCodium, Zoo Code (Cursor + VSCodium), Reasonix desktop/Studio,
+  OpenHands (container env + settings).
+- Builder key `BIFROST_MCP_VIRTUAL_KEY` stays for scripts, renderers, and fallback.
+- Pre-existing test failures unchanged: `test_builder_compat_proxy.py::test_proxy_denies_untrusted_loopback_but_accepts_existing_bearer`,
+  `test_stdio_env_isolation.py::test_agentcore_memory_declarations_cover_its_runtime_source_inventory` (fail on main too).

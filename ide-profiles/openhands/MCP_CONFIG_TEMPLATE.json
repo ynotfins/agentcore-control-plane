@@ -4,7 +4,7 @@
       "type": "streamable-http",
       "url": "http://host.docker.internal:8080/mcp",
       "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+        "Authorization": "Bearer ${env:BIFROST_MCP_VK_APP_OPENHANDS}"
       }
     }
   },

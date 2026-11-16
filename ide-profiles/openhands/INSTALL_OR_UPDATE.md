@@ -16,7 +16,7 @@ authorization, a timestamped backup, and post-change validation.
 1. Template: `ide-profiles/openhands/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/openhands.json`).
 2. Live target: `I:\LocalApps\OpenHands\state\settings.json` — exactly one AgentCore entry named `agentcore-gateway`. A host-native direct MCP companion is allowed only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback proof, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes. Historical Zoo-Code approval remains subject to this current policy.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
-4. Env handling: Container receives BIFROST_MCP_VIRTUAL_KEY from Windows User env via docker-compose; settings.json must not store a literal bearer.
+4. Env handling: Container receives its per-app key BIFROST_MCP_VK_APP_OPENHANDS from Windows User env via docker-compose; settings.json must not store a literal bearer.
 5. Restart behavior: restart client after MCP or provider config changes.
 
 ## CLIENT-LOCAL EXECUTION SCOPE

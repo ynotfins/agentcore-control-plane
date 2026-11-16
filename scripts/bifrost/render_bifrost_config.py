@@ -435,8 +435,33 @@ def profile_mcp_configs(registry: dict[str, Any], profile_id: str) -> list[dict[
     return configs
 
 
-def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
+APP_VIRTUAL_KEY_CLIENTS = (
+    "cursor", "codex", "devin", "antigravity", "zcode", "minimax-code",
+    "open-interpreter-desktop", "vscodium", "zoo-code", "opencode", "zed", "eigent",
+    "reasonix", "cherry-studio", "open-design", "openhands", "openmausbot",
+)
+
+
+def app_virtual_key_env(client: str) -> str:
+    return "BIFROST_MCP_VK_APP_" + client.upper().replace("-", "_")
+
+
+def build_app_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
+    """One builder-profile virtual key per Trust Class A app (operator decision 2026-11-15)."""
     return [
+        {
+            "id": f"vk-agentcore-app-{client}",
+            "name": f"app-{client}",
+            "value": f"env.{app_virtual_key_env(client)}",
+            "is_active": True,
+            "mcp_configs": profile_mcp_configs(registry, "builder"),
+        }
+        for client in APP_VIRTUAL_KEY_CLIENTS
+    ]
+
+
+def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
+    return build_app_virtual_keys(registry) + [
         {
             "id": "vk-agentcore-builder",
             "name": "builder",

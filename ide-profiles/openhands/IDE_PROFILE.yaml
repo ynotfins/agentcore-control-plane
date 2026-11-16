@@ -7,7 +7,7 @@ live_mcp_config_target: I:\LocalApps\OpenHands\state\settings.json
 rule_mechanism: OpenHands agent settings and repository microagents
 mcp_schema: openhands_settings_json
 mcp_transport: http
-env_var_handling: Container receives BIFROST_MCP_VIRTUAL_KEY from Windows User env via docker-compose; settings.json
+env_var_handling: Container receives its per-app key BIFROST_MCP_VK_APP_OPENHANDS from Windows User env via docker-compose; settings.json
   must not store a literal bearer
 gateway_url: http://host.docker.internal:8080/mcp
 gateway_auth_mode: env_header

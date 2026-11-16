@@ -18,13 +18,19 @@ if (!virtualKey) {
   process.exit(1);
 }
 
-function cleanHeaders(headers) {
+function clientVirtualKey(client) {
+  if (typeof client !== 'string' || !/^[a-z0-9-]+$/.test(client)) return virtualKey;
+  const name = `BIFROST_MCP_VK_APP_${client.toUpperCase().replace(/-/g, '_')}`;
+  return process.env[name] || virtualKey;
+}
+
+function cleanHeaders(headers, client) {
   const result = { ...headers };
   for (const name of ['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade']) {
     delete result[name];
   }
   delete result.authorization;
-  result.authorization = `Bearer ${virtualKey}`;
+  result.authorization = `Bearer ${clientVirtualKey(client)}`;
   result.host = target.host;
   return result;
 }
@@ -83,9 +89,11 @@ const server = http.createServer(async (request, response) => {
     response.end('forbidden');
     return;
   }
+  let client = null;
   if (!hasValidAuthorization(request.headers)) {
     try {
       const identity = await resolveSocketIdentity(request.socket);
+      client = identity.client;
       process.stderr.write(
         `[builder-compat-proxy] admitted client=${identity.client} client_pid=${identity.client_pid} matched_pid=${identity.matched_pid}\n`,
       );
@@ -101,7 +109,7 @@ const server = http.createServer(async (request, response) => {
     port: target.port,
     method: request.method,
     path: `${url.pathname}${url.search}`,
-    headers: cleanHeaders(request.headers),
+    headers: cleanHeaders(request.headers, client),
   }, (upstreamResponse) => {
     response.writeHead(upstreamResponse.statusCode || 502, upstreamResponse.headers);
     upstreamResponse.pipe(response);

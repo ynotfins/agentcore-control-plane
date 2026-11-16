@@ -7,7 +7,7 @@ live_mcp_config_target: C:\Users\ynotf\AppData\Roaming\VSCodium\User\mcp.json
 rule_mechanism: VS Code-family host; Zoo Code extension rules (.roo/rules-*) and project AGENTS.md
 mcp_schema: vscode_mcp_json
 mcp_transport: http/streamable
-env_var_handling: Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY} (VS Code-family env expansion); process-attested
+env_var_handling: Authorization Bearer ${env:BIFROST_MCP_VK_APP_VSCODIUM} (per-app key; VS Code-family env expansion); process-attested
   :18082 fallback via VSCodium.exe ancestry
 gateway_url: http://127.0.0.1:8080/mcp
 gateway_auth_mode: env_header

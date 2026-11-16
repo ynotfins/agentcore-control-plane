@@ -16,7 +16,7 @@ authorization, a timestamped backup, and post-change validation.
 1. Template: `ide-profiles/vscodium/MCP_CONFIG_TEMPLATE.json` (derived from `renderers/gateway-clients/vscodium.json`).
 2. Live target: `C:\Users\ynotf\AppData\Roaming\VSCodium\User\mcp.json` — exactly one AgentCore entry named `agentcore-gateway`. A host-native direct MCP companion is allowed only after a documented Bifrost parity failure, exact host/tool scope, security review, rollback proof, and proof that it does not duplicate AgentCore memory, database, Swarm, administrative, or upstream-registry routes. Historical Zoo-Code approval remains subject to this current policy.
 3. Follow `docs/prompts/install-agentcore-gateway-in-ide.md` for the approved live-change procedure (backup first).
-4. Env handling: Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY} (VS Code-family env expansion); process-attested :18082 fallback via VSCodium.exe ancestry.
+4. Env handling: Authorization Bearer ${env:BIFROST_MCP_VK_APP_VSCODIUM} (per-app key; VS Code-family env expansion); process-attested :18082 fallback via VSCodium.exe ancestry.
 5. Restart behavior: restart client after MCP or provider config changes.
 
 ## CLIENT-LOCAL EXECUTION SCOPE
