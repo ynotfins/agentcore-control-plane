@@ -18,7 +18,7 @@ live_mcp_config_target: settings.json -> agent_settings.mcp_config.agentcore-gat
 mcp_schema: openhands_settings_mcp_config
 mcp_transport: http (streamable)
 gateway_url: http://127.0.0.1:8080/mcp
-gateway_auth_mode: bearer_encrypted_in_app_settings   # value entered from BIFROST_MCP_VIRTUAL_KEY via the OpenHands UI; the app stores it Fernet-encrypted
+gateway_auth_mode: bearer_encrypted_in_app_settings   # value entered from BIFROST_MCP_VK_APP_OPENHANDS via the OpenHands UI; the app stores it Fernet-encrypted
 capability_profile: builder
 tool_surface: progressive Code Mode (27 eager tools on 2026-11-15; listToolFiles -> readToolFile -> getToolDocs -> executeToolCode)
 llm_route:

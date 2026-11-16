@@ -1222,7 +1222,20 @@ managed_candidates:
     display_name: Open Design
     ownership: agentcore_candidate
     certification: unverified
-    note: 'Project enrolled AUTH-2026-10-26-OPEN-DESIGN-ENROLLMENT at D:\open-design only. Not a Bifrost upstream. Cursor-only host-native product MCP companion is an approved exception; desktop must be running. No PG18. No AppData enrollment. Official plugins/skills only. See audits/OPEN_DESIGN_CONTROL_PLANE_ENROLLMENT_2026-10-26.md.'
+    ide_profile: ide-profiles/open-design
+    note: 'Project enrolled AUTH-2026-10-26-OPEN-DESIGN-ENROLLMENT at D:\open-design only. Not a Bifrost upstream. Cursor-only host-native product MCP companion is an approved exception; desktop must be running. No PG18. No AppData enrollment. Official plugins/skills only. Registered Trust Class A 2026-11-15 (contracts/global-agent-policy.yaml); database access only through agentcore-gateway -> agentcore-memory. All dimensions unverified pending a live session. See audits/OPEN_DESIGN_CONTROL_PLANE_ENROLLMENT_2026-10-26.md and audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md.'
+  vscodium:
+    display_name: VSCodium
+    ownership: agentcore_candidate
+    certification: unverified
+    ide_profile: ide-profiles/vscodium
+    note: Registered Trust Class A 2026-11-15 (contracts/global-agent-policy.yaml); :18082 process attestation added for VSCodium.exe (ops/bifrost/Resolve-AgentCoreBuilderCaller.ps1), live effect requires merge + Bifrost restart. Database access only through agentcore-gateway -> agentcore-memory. All dimensions unverified pending a live session. See audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md.
+  openmausbot:
+    display_name: OpenMausBot
+    ownership: agentcore_candidate
+    certification: unverified
+    ide_profile: ide-profiles/openmausbot
+    note: Registered Trust Class A 2026-11-15 (contracts/global-agent-policy.yaml); :18082 process attestation added for OpenMausBot.exe (ops/bifrost/Resolve-AgentCoreBuilderCaller.ps1), live effect requires merge + Bifrost restart. Database access only through agentcore-gateway -> agentcore-memory. All dimensions unverified pending a live session. See audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md.
   autogpt:
     display_name: AutoGPT
     ownership: agentcore_candidate

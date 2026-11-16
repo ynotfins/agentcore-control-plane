@@ -33,7 +33,7 @@ known_limitations:
 - "Toggling a server in the Cline UI can rewrite ${env:...} references with resolved values (cline/cline#9065). Change disabled state by editing the file, then re-check for resolved secrets."
 - "type must be streamableHttp; an omitted type falls back to legacy SSE."
 - "Cline provider API keys live in Cline secret storage and do not support env interpolation; the OmniRoute key must be pasted in the Cline provider UI."
-- "Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VIRTUAL_KEY} only."
+- "Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VK_APP_CLINE} only."
 semantic_parity_gaps:
 - Global rules delivery is manual_import until a host-native ruled path is proven.
 - Trust Class A is requested by the operator but contracts/global-agent-policy.yaml (governed_mutable) still lists Trust Class A exactly; see governance/proposals/2026-11-15-continue-cline-zoo-trust-class-a.md.

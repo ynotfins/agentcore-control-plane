@@ -61,7 +61,11 @@ $trustedExecutables = @(
   [pscustomobject]@{ client = 'open-interpreter-desktop'; path = (Join-Path $programFiles 'Interpreter\Interpreter.exe') },
   [pscustomobject]@{ client = 'zcode'; path = (Join-Path $programFiles 'ZCode\ZCode.exe') },
   [pscustomobject]@{ client = 'zed'; path = (Join-Path $localAppData 'Programs\Zed\Zed.exe') },
-  [pscustomobject]@{ client = 'opencode'; path = (Join-Path $env:APPDATA 'npm\node_modules\opencode-ai\bin\opencode.exe') }
+  [pscustomobject]@{ client = 'opencode'; path = (Join-Path $env:APPDATA 'npm\node_modules\opencode-ai\bin\opencode.exe') },
+  [pscustomobject]@{ client = 'vscodium'; path = (Join-Path $localAppData 'Programs\VSCodium\VSCodium.exe') },
+  [pscustomobject]@{ client = 'cherry-studio'; path = (Join-Path $localAppData 'Programs\Cherry Studio\Cherry Studio.exe') },
+  [pscustomobject]@{ client = 'open-design'; path = (Join-Path $localAppData 'Programs\Open Design\Open Design.exe') },
+  [pscustomobject]@{ client = 'openmausbot'; path = (Join-Path $localAppData 'Programs\openmausbot\OpenMausBot.exe') }
 ) | ForEach-Object {
   [pscustomobject]@{ client = $_.client; path = (Get-CanonicalPath $_.path) }
 }

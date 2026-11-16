@@ -25,19 +25,19 @@ CLIENTS = {
     "continue": {
         "path": r"C:\Users\ynotf\.continue\config.yaml",
         "schema": "continue_config_yaml",
-        "auth": "Bearer ${{ secrets.BIFROST_MCP_VIRTUAL_KEY }}",
+        "auth": "Bearer ${{ secrets.BIFROST_MCP_VK_APP_CONTINUE }}",
         "type": "streamable-http",
     },
     "cline": {
         "path": r"C:\Users\ynotf\.cline\data\settings\cline_mcp_settings.json",
         "schema": "cline_mcp_json",
-        "auth": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}",
+        "auth": "Bearer ${env:BIFROST_MCP_VK_APP_CLINE}",
         "type": "streamableHttp",
     },
     "zoo-code-vscodium": {
         "path": r"I:\LocalApps\VSCodium\user-data\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json",
         "schema": "zoo_code_mcp_json",
-        "auth": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}",
+        "auth": "Bearer ${env:BIFROST_MCP_VK_APP_ZOO_CODE}",
         "type": "streamable-http",
     },
 }

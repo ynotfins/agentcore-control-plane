@@ -4,7 +4,7 @@
       "type": "streamableHttp",
       "url": "http://127.0.0.1:8080/mcp",
       "headers": {
-        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+        "Authorization": "Bearer ${env:BIFROST_MCP_VK_APP_CLINE}"
       },
       "disabled": false,
       "timeout": 300

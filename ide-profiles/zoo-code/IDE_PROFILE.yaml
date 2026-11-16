@@ -42,8 +42,12 @@ restart_required: false
 last_validation_date: '2026-10-20'
 mcp_template_source: renderers/gateway-clients/zoo-code.json
 known_limitations:
-- Zoo-Code has no approved environment-backed header expansion or process-attested AgentCore route. Repository templates
-  intentionally contain no active AgentCore gateway entry.
+- Zoo-Code's global/extension-level settings (mcp_settings.json) have no approved environment-backed header expansion
+  or process-attested AgentCore route. As of 2026-11-15, the project-scoped vibe-profile bundle
+  (ide-profiles/zoo-code/vibe-profile/.roo/mcp.json, installed per-workspace by setup-zoocode-workspace.ps1) is an
+  approved exception, shipping an active `agentcore-gateway` entry that uses the `${env:BIFROST_MCP_VIRTUAL_KEY}`
+  env-backed header, scoped to workspaces where the operator runs the install script. This does not change the
+  global/extension settings route, which remains unapproved. See audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md.
 - A prior Zoo-Code global MCP entry was recorded on 2026-08-20 using a credential-bearing persisted configuration.
   That state is legacy drift, not an approved current enrollment instruction; this task does not inspect or mutate
   it.

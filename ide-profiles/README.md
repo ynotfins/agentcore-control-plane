@@ -47,6 +47,11 @@ All mandatory rules from the canonical policy are present in every rendered `GLO
 | continue | generated_prompt | workspace AGENTS.md `direct_write`; Continue rules `manual_import` | one gateway entry in `~/.continue/config.yaml` (`${{ secrets.BIFROST_MCP_VIRTUAL_KEY }}`) | pending live Continue agent-mode validation |
 | cline | generated_prompt | workspace AGENTS.md `direct_write`; Cline rules `manual_import` | one gateway entry in `~/.cline/data/settings/cline_mcp_settings.json` (`${env:BIFROST_MCP_VIRTUAL_KEY}`) | pending live Cline session validation |
 | zoo-code-vscodium | generated_prompt | workspace AGENTS.md `direct_write`; Zoo modes `manual_import` | one gateway entry in VSCodium-hosted Zoo `mcp_settings.json` (`${env:BIFROST_MCP_VIRTUAL_KEY}`) | pending live Zoo Code (VSCodium) session validation |
+| openhands | generated_prompt | `manual_import` | :8080 via host.docker.internal | unverified — registered Trust Class A 2026-11-15, all dimensions pending a live session |
+| openmausbot | generated_prompt | `manual_import` | :8080 entry disabled; OmniRoute MCP present | unverified — registered Trust Class A 2026-11-15, all dimensions pending a live session |
+| open-design | generated_prompt | `manual_import` | Cursor-only host-native product MCP companion (approved exception) | unverified — registered Trust Class A 2026-11-15, all dimensions pending a live session |
+
+Rows above the 2026-07-22 line are from the original semantic parity pass and have not all been re-verified since; see each `IDE_PROFILE.yaml` for current evidence. The four rows added 2026-11-15 reflect `audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md` only.
 
 `C:\Users\ynotf\.mavis` is a junction to `C:\Users\ynotf\.minimax` (same MiniMax Code data root); it is not a separate executable Mavis client and does not receive its own managed profile.
 

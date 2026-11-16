@@ -31,7 +31,7 @@ mcp_template_source: renderers/gateway-clients/zoo-code-vscodium.json
 known_limitations:
 - "Distinct from the Cursor-hosted zoo-code profile, which is unchanged by this enrollment."
 - "Provider profiles (OmniRoute OpenAI-compatible) and their API keys are Zoo-owned secret storage; the auto-import file omniroute-roo-settings.json carries only a placeholder key."
-- "Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VIRTUAL_KEY} only."
+- "Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VK_APP_ZOO_CODE} only."
 semantic_parity_gaps:
 - Global rules delivery is manual_import until a host-native ruled path is proven.
 - Trust Class A is requested by the operator but contracts/global-agent-policy.yaml (governed_mutable) still lists Trust Class A exactly; see governance/proposals/2026-11-15-continue-cline-zoo-trust-class-a.md.

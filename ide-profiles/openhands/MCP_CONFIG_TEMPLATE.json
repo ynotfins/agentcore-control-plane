@@ -5,7 +5,7 @@
         "url": "http://127.0.0.1:8080/mcp",
         "transport": "http",
         "timeout": 120.0,
-        "auth": {"strategy": "bearer", "value": "<enter BIFROST_MCP_VIRTUAL_KEY via OpenHands UI; stored encrypted by the app>"},
+        "auth": {"strategy": "bearer", "value": "<enter BIFROST_MCP_VK_APP_OPENHANDS via OpenHands UI; stored encrypted by the app>"},
         "enabled": true
       }
     }

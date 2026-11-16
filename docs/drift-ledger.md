@@ -1,5 +1,19 @@
 # Documentation drift ledger
 
+## 2026-11-15 — governed-doc-drift: OmniRoute version pin stale (3.8.49 → 3.8.53)
+
+- **ID:** `governed-doc-drift-2026-11-15-omniroute-version-3.8.53`
+- **Class:** `governed_mutable` (`contracts/authority-lock.yaml`)
+- **Files:** `AGENTS.md:61`, `CONTEXT_BLOCK.md:163,178`, `DOC_AUTHORITY.md:192`
+- **Current:** all three state `OmniRoute 3.8.49`.
+- **Proposed:** bump to `OmniRoute 3.8.53` (and note the launcher now runs `--tray` in `AGENTS.md`/`CONTEXT_BLOCK.md`).
+- **Source:** `audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md:11,13,16` — machine-state reinstall of `omniroute@3.8.53`, launcher flag change to `--tray`, `omniroute health` verified at `3.8.53`.
+- **Why it matters:** these three governed docs are read as current-state authority; a stale version pin could cause an agent to distrust a correctly-running `3.8.53` install or attempt an unnecessary downgrade/reinstall.
+- **Cleared (normal_workstream):** `ide-profiles/IDE_CAPABILITY_MATRIX.yaml` (new `vscodium`/`openmausbot` entries added, `openhands`/`open-design` candidate notes updated to reflect the new `ide-profiles/*` bundles instead of "no native support... is verified"), `ide-profiles/README.md` (parity table extended with the four 2026-11-15 profiles), `ide-profiles/zoo-code/IDE_PROFILE.yaml` (clarified that the new project-scoped vibe-profile `.roo/mcp.json` is an approved env-backed-header exception, distinct from the still-unapproved global/extension settings route).
+- **Proposal:** `governance/proposals/2026-11-15-omniroute-version-bump.md`
+- **Requires:** authority_maintainer + AUTH id + rollback + validators (`python scripts/validate_authority_lock.py`, `python scripts/bifrost/validate_contracts.py`) + independent review
+- **Status:** APPLIED 2026-11-15 on operator approval in chat ("Yes I approve changing the locked docs omniroute version"). Follow-up: arabold re-ingest of omniroute@3.8.53 docs pending (DOC_AUTHORITY pin now 3.8.53).
+
 ## 2026-11-08 — grokbot-mcp-live
 
 - **Item:** xAI Grok Bot MCP connector live on Cloudflare tunnel `https://agentcore-grokbot.4axe.com/mcp` with `x-bf-vk` header (Cursor/1.0.0 POST /mcp -> 200 observed in `bifrost-gateway.stdout.log`).

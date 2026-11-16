@@ -28,7 +28,7 @@ known_limitations:
 - VSCodium is launched by I:\LocalApps\VSCodium\Launch-VSCodium.cmd with --user-data-dir I:\LocalApps\VSCodium\user-data and --extensions-dir I:\LocalApps\VSCodium\extensions. %APPDATA%\VSCodium is not the live profile (corrected 2026-11-15).
 - "VSCodium built-in chat reads only User/mcp.json. Hosted extensions keep separate MCP lists (see ide-profiles/zoo-code-vscodium, ide-profiles/cline, ide-profiles/continue)."
 - This profile does not enroll Zoo-Code-in-Cursor. That remains the separate zoo-code client.
-- Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VIRTUAL_KEY} only.
+- Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VK_APP_VSCODIUM} only.
 - Fresh native VSCodium/Zoo Code memory-lifecycle acceptance is still required before live_validated.
 semantic_parity_gaps:
 - Global User Rules delivery is manual_import until a host-native ruled path is proven.

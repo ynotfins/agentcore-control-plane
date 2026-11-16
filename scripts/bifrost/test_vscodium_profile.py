@@ -15,7 +15,7 @@ MATRIX = REPO / "ide-profiles" / "IDE_CAPABILITY_MATRIX.yaml"
 README = REPO / "ide-profiles" / "README.md"
 
 EXPECTED_URL = "http://127.0.0.1:8080/mcp"
-EXPECTED_AUTH = "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+EXPECTED_AUTH = "Bearer ${env:BIFROST_MCP_VK_APP_VSCODIUM}"
 NATIVE_PATH = r"I:\LocalApps\VSCodium\user-data\User\mcp.json"
 ZOO_PATH = r"I:\LocalApps\VSCodium\user-data\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json"
 SECRETISH = re.compile(r"(sk-bf-|sk-or-|ghp_|github_pat_|xai-|Bearer [A-Za-z0-9]{16,})")

@@ -6,7 +6,7 @@
       "url": "http://127.0.0.1:8080/mcp",
       "requestOptions": {
         "headers": {
-          "Authorization": "Bearer ${{ secrets.BIFROST_MCP_VIRTUAL_KEY }}"
+          "Authorization": "Bearer ${{ secrets.BIFROST_MCP_VK_APP_CONTINUE }}"
         }
       },
       "connectionTimeout": 300000

@@ -33,7 +33,7 @@ known_limitations:
 - "config.yaml is YAML; the renderer stores the same mcpServers list as JSON. Live files keep other non-AgentCore servers (serena)."
 - "MCP tools are only offered in Continue agent mode; OpenAI-compatible models need capabilities: [tool_use] for agent mode."
 - "OmniRoute chat models use provider openai, apiBase http://127.0.0.1:20128/v1 and apiKey ${{ secrets.OMNIROUTE_API_KEY }}; OmniRoute is a model provider, not an MCP route."
-- "Do not persist a resolved AgentCore virtual key. Use Bearer ${{ secrets.BIFROST_MCP_VIRTUAL_KEY }} only."
+- "Do not persist a resolved AgentCore virtual key. Use Bearer ${{ secrets.BIFROST_MCP_VK_APP_CONTINUE }} only."
 semantic_parity_gaps:
 - Global rules delivery is manual_import until a host-native ruled path is proven.
 - Trust Class A is requested by the operator but contracts/global-agent-policy.yaml (governed_mutable) still lists Trust Class A exactly; see governance/proposals/2026-11-15-continue-cline-zoo-trust-class-a.md.
