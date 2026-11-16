@@ -189,7 +189,7 @@ Call arabold-docs **through** `agentcore-gateway` (no direct `user-arabold-docs`
 | `context-fabric` | `1.0.7` | <https://github.com/VIKAS9793/context-fabric> |
 | `cursor` / `cursor-subagents` | `3.14.7` | <https://cursor.com/docs/subagents> |
 | `hindsight` / `hindsight-cookbook` | `0.7.0` | <https://hindsight.vectorize.io/best-practices>, <https://hindsight.vectorize.io/cookbook/applications/crewai-memory> |
-| `omniroute` / `omniroute-rtk` / `omniroute-compression` | `3.8.49` | release-pinned upstream README and compression guides |
+| `omniroute` / `omniroute-rtk` / `omniroute-compression` | `3.8.53` | release-pinned upstream README and compression guides |
 | `graphify` | `0.9.22` | release-pinned upstream README / MCP guidance |
 | `crewai` | `1.15.10` | <https://docs.crewai.com/en/concepts/memory> |
 | `sequential-thinking` | `2026.7.4` | npm `@modelcontextprotocol/server-sequential-thinking` |

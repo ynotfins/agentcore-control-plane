@@ -12,7 +12,7 @@
 - **Cleared (normal_workstream):** `ide-profiles/IDE_CAPABILITY_MATRIX.yaml` (new `vscodium`/`openmausbot` entries added, `openhands`/`open-design` candidate notes updated to reflect the new `ide-profiles/*` bundles instead of "no native support... is verified"), `ide-profiles/README.md` (parity table extended with the four 2026-11-15 profiles), `ide-profiles/zoo-code/IDE_PROFILE.yaml` (clarified that the new project-scoped vibe-profile `.roo/mcp.json` is an approved env-backed-header exception, distinct from the still-unapproved global/extension settings route).
 - **Proposal:** `governance/proposals/2026-11-15-omniroute-version-bump.md`
 - **Requires:** authority_maintainer + AUTH id + rollback + validators (`python scripts/validate_authority_lock.py`, `python scripts/bifrost/validate_contracts.py`) + independent review
-- **Status:** OPEN — awaiting operator/authority_maintainer adjudication. Memory proposal: `NOT_AVAILABLE` (agentcore-memory gateway not reachable from this Devin session).
+- **Status:** APPLIED 2026-11-15 on operator approval in chat ("Yes I approve changing the locked docs omniroute version"). Follow-up: arabold re-ingest of omniroute@3.8.53 docs pending (DOC_AUTHORITY pin now 3.8.53).
 
 ## 2026-10-21 — G: second-copy headroom
 

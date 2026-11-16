@@ -34,7 +34,7 @@
     "modeApiConfigs": {
       "architect": "omniroute-heavy-sol",
       "code": "omniroute-daily",
-      "debug": "omniroute-forensic-opus",
+      "debug": "omniroute-heavy-sol",
       "ask": "omniroute-fast",
       "doc-master": "omniroute-fast",
       "omniroute-ops": "omniroute-fast",

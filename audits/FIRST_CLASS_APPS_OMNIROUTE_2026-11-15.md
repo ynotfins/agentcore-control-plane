@@ -53,3 +53,23 @@ were already headless. Not changed: `Startup\Swarm Stack.cmd` (Swarm-owned; Swar
 | OpenMausBot | :8080 entry disabled | OmniRoute MCP present |
 | OpenHands | :8080 via host.docker.internal, literal bearer in settings.json | not set (Ollama/OpenRouter) |
 | Devin | n/a | not set (Devin uses its own models) |
+
+## Follow-up 2026-11-15 (evening)
+
+- Key rotation: the OpenHands literal bearer equalled Windows User env `BIFROST_MCP_VIRTUAL_KEY` (builder VK,
+  `vk-agentcore-builder`). The value had also been copied into chat transcripts and several app backups.
+  New value generated and set in User env; Bifrost stopped/started via `ops/bifrost/Stop-/Start-AgentCoreBifrostGateway.ps1`
+  (config.db backup `F:\AgentCore\runtime\bifrost\backups\vk-rotate-20261115-184537`). Verified: new key HTTP 200,
+  old key HTTP 401 on `http://127.0.0.1:8080/mcp`. Old value scrubbed from OpenHands and Cherry backups written in this task.
+- Live `:18082` resolver: same allowlist edit applied to `D:\github\agentcore-control-plane\ops\bifrost\Resolve-AgentCoreBuilderCaller.ps1`
+  (uncommitted there; identical to this PR).
+- OpenHands: LLM -> OmniRoute `openai/default-deepseek-v4-pro` via `host.docker.internal:20128` (reachability 200 from
+  container); gateway bearer updated to the rotated value (OpenHands has no verified env-ref support; value stays in its own
+  state file on I:, not Git). Container restarted.
+- Reasonix: `[providers.omniroute]`; default `omniroute/default-deepseek-v4-pro`, subagent `omniroute/deepseek-v4.1-flash`.
+- Open Interpreter: `[model_providers.omniroute]`; default and `sandboxed` profile -> `default-deepseek-v4-pro`.
+- OpenMausBot: `agentcore-gateway` enabled on `:18082` with no headers. Model provider is UI-owned (OpenAI-compatible).
+- Cherry Studio: MCP import JSON now `:18082`, no bearer. Live settings are LevelDB/UI-owned.
+- Open Design: no file-owned MCP/provider config; it runs local agents that use their own configs.
+- Zoo import file (stable copy): `I:\LocalApps\ZooCode\zoo-omniroute-settings.json`; debug mode -> `sol-kie-heavy`.
+- Governed docs bumped to OmniRoute 3.8.53 on operator approval (AGENTS.md, CONTEXT_BLOCK.md, DOC_AUTHORITY.md).

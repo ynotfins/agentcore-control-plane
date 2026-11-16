@@ -160,7 +160,7 @@ Required alignment corpus:
 | Cursor | `3.14.7` | Subagents, hooks, rules, MCP lifecycle |
 | Context Fabric | `1.0.7` | Capture/drift behavior |
 | Hindsight | `0.7.0` | Future learning/reflection evaluation only |
-| OmniRoute | `3.8.49` | Live Job-B companion on `127.0.0.1:20128` (data `I:\LocalApps\OmniRoute`); MCP via Bifrost VK `BIFROST_MCP_VK_OMNIROUTE` |
+| OmniRoute | `3.8.53` | Live Job-B companion on `127.0.0.1:20128` (data `I:\LocalApps\OmniRoute`); MCP via Bifrost VK `BIFROST_MCP_VK_OMNIROUTE` |
 | Graphify | `0.9.22` | Future structural code-atlas evaluation only |
 | CrewAI | `1.15.10` | Future bounded LangGraph worker evaluation only |
 
@@ -175,7 +175,7 @@ Only successfully indexed official sources may be marked current in `DOC_AUTHORI
 | Hindsight | Derived learning/reflection using isolated project/agent banks | It cannot become canonical/lossless memory or silently retain untrusted raw data |
 | CrewAI | A/B-tested bounded worker inside selected LangGraph nodes | It cannot become a second top-level workflow/checkpoint authority |
 
-No component above is installed, started, enrolled, or added to the Context Engine by this alignment. OmniRoute `3.8.49` is enrolled as a Job-B loopback companion (`127.0.0.1:20128`, BelowNormal) under `AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE`; it is not the IDE MCP front door. Graphify/Hindsight remain separately gated.
+No component above is installed, started, enrolled, or added to the Context Engine by this alignment. OmniRoute `3.8.53` is enrolled as a Job-B loopback companion (`127.0.0.1:20128`, BelowNormal) under `AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE`; it is not the IDE MCP front door. Graphify/Hindsight remain separately gated.
 
 ## 7. Execution ownership
 
