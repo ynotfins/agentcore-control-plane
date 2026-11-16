@@ -1,14 +1,7 @@
 {
   "providerProfiles": {
-    "currentApiConfigName": "omniroute-daily",
+    "currentApiConfigName": "omniroute-fast",
     "apiConfigs": {
-      "omniroute-daily": {
-        "id": "omniroute-daily",
-        "apiProvider": "openai",
-        "openAiBaseUrl": "http://127.0.0.1:20128/v1",
-        "openAiApiKey": "omniroute-local",
-        "openAiModelId": "default-deepseek-v4-pro"
-      },
       "omniroute-fast": {
         "id": "omniroute-fast",
         "apiProvider": "openai",
@@ -33,7 +26,7 @@
     },
     "modeApiConfigs": {
       "architect": "omniroute-heavy-sol",
-      "code": "omniroute-daily",
+      "code": "omniroute-fast",
       "debug": "omniroute-heavy-sol",
       "ask": "omniroute-fast",
       "doc-master": "omniroute-fast",
@@ -53,7 +46,49 @@
     "alwaysAllowModeSwitch": true,
     "alwaysAllowSubtasks": true,
     "alwaysApproveResubmit": true,
-    "allowedCommands": ["npm", "npx", "pnpm", "pip", "python", "pytest", "node", "dotnet", "flutter", "dart", "git status", "git diff", "git log", "git add", "git commit", "omniroute health", "omniroute status", "omniroute quota", "omniroute cost", "omniroute simulate", "omniroute models", "omniroute combo list"],
-    "deniedCommands": ["rm -rf /", "rm -rf ~", "Remove-Item -Recurse -Force C:\\", "format", "diskpart", "git push --force", "git push -f", "git reset --hard", "git clean -fdx", "reg delete", "DROP ", "TRUNCATE ", "omniroute auth", "omniroute serve", "omniroute autostart", "Get-ChildItem Env:", "printenv", "set "]
+    "allowedCommands": [
+      "npm",
+      "npx",
+      "pnpm",
+      "pip",
+      "python",
+      "pytest",
+      "node",
+      "dotnet",
+      "flutter",
+      "dart",
+      "git status",
+      "git diff",
+      "git log",
+      "git add",
+      "git commit",
+      "omniroute health",
+      "omniroute status",
+      "omniroute quota",
+      "omniroute cost",
+      "omniroute simulate",
+      "omniroute models",
+      "omniroute combo list"
+    ],
+    "deniedCommands": [
+      "rm -rf /",
+      "rm -rf ~",
+      "Remove-Item -Recurse -Force C:\\",
+      "format",
+      "diskpart",
+      "git push --force",
+      "git push -f",
+      "git reset --hard",
+      "git clean -fdx",
+      "reg delete",
+      "DROP ",
+      "TRUNCATE ",
+      "omniroute auth",
+      "omniroute serve",
+      "omniroute autostart",
+      "Get-ChildItem Env:",
+      "printenv",
+      "set "
+    ]
   }
 }

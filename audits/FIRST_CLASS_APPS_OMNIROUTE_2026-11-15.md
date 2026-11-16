@@ -73,3 +73,15 @@ were already headless. Not changed: `Startup\Swarm Stack.cmd` (Swarm-owned; Swar
 - Open Design: no file-owned MCP/provider config; it runs local agents that use their own configs.
 - Zoo import file (stable copy): `I:\LocalApps\ZooCode\zoo-omniroute-settings.json`; debug mode -> `sol-kie-heavy`.
 - Governed docs bumped to OmniRoute 3.8.53 on operator approval (AGENTS.md, CONTEXT_BLOCK.md, DOC_AUTHORITY.md).
+
+## Follow-up 2026-11-15 (night, after PC restart)
+
+- OmniRoute default: mappings `default`, `auto`, `auto/best-coding` -> combo `deepseek-v4.1-flash`; active combo
+  switched to `deepseek-v4.1-flash`. Live check: `model=default` answered by `deepseek/deepseek-v4.1-flash-1017` via
+  OpenRouter (`x-omniroute-decision: strategy=priority; provider=openrouter`). Explicit `deepseek-v4-pro` still routes to V4 Pro.
+- V4 Pro -> V4.1 Flash defaults: Zoo bundle (code/ask/docs/ops), Reasonix CLI workspace, Reasonix desktop/Studio
+  (`%APPDATA%\reasonix\config.toml` default + planner), OpenHands, Continue.
+- Reasonix desktop/Studio: OmniRoute provider shown (provider_access), `api_key_env = OMNIROUTE_API_KEY` (User env,
+  value is the local placeholder); `agentcore-gateway` plugin via `mcp-remote` with env-referenced bearer.
+- Open Interpreter: unknown top-level `model_provider = "omniroute"` triggered re-onboarding; reverted top-level to
+  OpenRouter V4.1 Flash and added an app profile `agentcore:omniroute-deepseek-v4-1-flash` as `default_profile_id`.
