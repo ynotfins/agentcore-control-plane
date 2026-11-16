@@ -4,7 +4,7 @@
 # Configuration mode summary: the normal way this client receives its AgentCore baseline.
 # Do not guess values — 'unverified' until evidence exists.
 
-matrix_revision: '2026-09-14-cursor-configuration-provenance'
+matrix_revision: '2026-11-15-vscodium-enrollment'
 policy_source: contracts/global-agent-policy.yaml
 model_context_profile_source: contracts/model-context-profiles.json
 self_enrollment_contract:
@@ -984,6 +984,62 @@ managed_ides:
       operator_gate:
         status: unverified
         evidence_path: null
+        evidence_ts: null
+        superseded_by: null
+  vscodium:
+    installed_version: 1.143.17232 (VSCodium.exe, observed 2026-11-15)
+    configuration_mode: generated_prompt
+    rule_mechanism: workspace AGENTS.md plus Zoo Code settings inside VSCodium
+    mcp_schema: vscodium_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: mcp-reload-or-restart
+    editability:
+      global_rules: manual_import
+      project_rules: direct_write
+      mcp_config: direct_write
+    last_validated: never
+    last_observed: '2026-11-15'
+    current_observation_evidence: audits/VSCODIUM_AGENTCORE_ENROLLMENT_2026-11-15.md
+    m8_enrollment: configured_restart_required
+    m8_notes: Native MCP path is %APPDATA%\VSCodium\User\mcp.json; Zoo Code on this host also reads
+      globalStorage/zoocodeorganization.zoo-code/settings/mcp_settings.json. Templates use
+      http://127.0.0.1:8080/mcp with Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}. Distinct from
+      the Cursor-hosted zoo-code profile. Native memory lifecycle remains unverified.
+    dimensions:
+      application_launch:
+        status: unverified
+        evidence_path: audits/VSCODIUM_AGENTCORE_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T01:00:00-05:00'
+        superseded_by: null
+      gateway_configuration:
+        status: configured_restart_required
+        evidence_path: audits/VSCODIUM_AGENTCORE_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T01:00:00-05:00'
+        superseded_by: null
+      gateway_discovery:
+        status: unverified
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      native_memory_lifecycle:
+        status: unverified
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      fresh_chat_recovery:
+        status: unverified
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      persistence_after_restart:
+        status: configured_restart_required
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      operator_gate:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
         evidence_ts: null
         superseded_by: null
 managed_candidates:

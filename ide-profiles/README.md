@@ -43,6 +43,7 @@ All mandatory rules from the canonical policy are present in every rendered `GLO
 | antigravity | unverified | unverified | one gateway entry (unvalidated) | unverified |
 | open-interpreter | generated_prompt | `manual_import` via profile system message | one gateway entry; VK materialized live-only | partial — depends on operator import |
 | cherry-studio | UI_only | `manual_import` via AgentCore Workspace Agent prompt | Local Storage LevelDB (enrollment script) | live validated 2026-07-20 |
+| vscodium | generated_prompt | workspace AGENTS.md `direct_write`; global rules `manual_import` | one gateway entry (env-backed :8080 template; native lifecycle unverified) | pending live VSCodium/Zoo Code session validation |
 
 `C:\Users\ynotf\.mavis` is a junction to `C:\Users\ynotf\.minimax` (same MiniMax Code data root); it is not a separate executable Mavis client and does not receive its own managed profile.
 
