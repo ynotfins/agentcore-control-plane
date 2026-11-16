@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "agentcore-gateway": {
+      "type": "streamableHttp",
+      "url": "http://127.0.0.1:8080/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}"
+      },
+      "disabled": false,
+      "timeout": 300
+    }
+  },
+  "_agentcore": {
+    "renderer": "cline",
+    "source_contract": "contracts/agentcore-gateway-client.json",
+    "notes": [
+      "Sanitized renderer \u2014 never commit resolved virtual key values.",
+      "Baseline AgentCore entry only; preserve other already-present non-AgentCore servers in live files.",
+      "Live target: C:\\Users\\ynotf\\.cline\\data\\settings\\cline_mcp_settings.json"
+    ]
+  }
+}
