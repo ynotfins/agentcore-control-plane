@@ -436,100 +436,125 @@ def profile_mcp_configs(registry: dict[str, Any], profile_id: str) -> list[dict[
     return configs
 
 
-def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
+# AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT
+# Every virtual key receives the same provider grant set: OpenAI, OpenRouter, and the
+# local OmniRoute router. Models stay ["*"] because the model catalogue is owned by the
+# provider; the key, not this contract, decides which provider is reachable.
+PROVIDER_GRANTS: tuple[str, ...] = ("openai", "openrouter", "omniroute")
+
+# App virtual keys. A client reaches its key either through the process-attested :18082
+# proxy (resolved client name -> BIFROST_MCP_VK_APP_<CLIENT>) or through a direct :8080
+# bearer header. Each app key mirrors the builder MCP surface; eager exposure is still
+# only the four classic servers plus the Code Mode meta-tools, so breadth is free.
+APP_VIRTUAL_KEYS: tuple[str, ...] = (
+    "app-antigravity",
+    "app-cherry-studio",
+    "app-cline",
+    "app-codex",
+    "app-continue",
+    "app-cursor",
+    "app-devin",
+    "app-eigent",
+    "app-grok-cli",
+    "app-minimax-code",
+    "app-open-design",
+    "app-open-interpreter-desktop",
+    "app-openhands",
+    "app-openmausbot",
+    "app-opencode",
+    "app-reasonix",
+    "app-vscodium",
+    "app-zcode",
+    "app-zed",
+    "app-zoo-code",
+)
+
+# OmniRoute's own agent surface: continuous memory, official docs, reasoning, and the
+# router itself. Deliberately narrower than the builder clone.
+OMNIROUTE_SERVER_IDS: tuple[str, ...] = (
+    "agentcore-capability-catalog",
+    "agentcore-memory",
+    "arabold-docs",
+    "omniroute",
+    "sequential-thinking",
+)
+
+
+def _provider_configs() -> list[dict[str, Any]]:
     return [
-        {
-            "id": "vk-agentcore-builder",
-            "name": "builder",
-            "value": "env.BIFROST_MCP_VIRTUAL_KEY",
-            "is_active": True,
-            "mcp_configs": profile_mcp_configs(registry, "builder"),
-            "provider_configs": [
-                {
-                    "provider": "openai",
-                    "allowed_models": ["*"],
-                    "key_ids": ["*"],
-                    "weight": 1,
-                },
-                {
-                    "provider": "openrouter",
-                    "allowed_models": ["*"],
-                    "key_ids": ["*"],
-                    "weight": 1,
-                },
-            ],
-        },
-        {
-            "id": "vk-agentcore-reviewer",
-            "name": "reviewer",
-            "value": "env.BIFROST_MCP_VK_REVIEWER",
-            "is_active": True,
-            "mcp_configs": profile_mcp_configs(registry, "reviewer"),
-        },
-        {
-            "id": "vk-agentcore-ide",
-            "name": "ide",
-            "value": "env.BIFROST_MCP_VK_IDE",
-            "is_active": True,
-            "mcp_configs": profile_mcp_configs(registry, "ide"),
-            "provider_configs": [
-                {
-                    "provider": "openai",
-                    "allowed_models": ["*"],
-                    "key_ids": ["*"],
-                    "weight": 1,
-                },
-                {
-                    "provider": "openrouter",
-                    "allowed_models": ["*"],
-                    "key_ids": ["*"],
-                    "weight": 1,
-                },
-            ],
-        },
-        {
-            "id": "vk-agentcore-database-validator",
-            "name": "database-validator",
-            "value": "env.BIFROST_MCP_VK_DATABASE_VALIDATOR",
-            "is_active": True,
-            "mcp_configs": profile_mcp_configs(registry, "database-validator"),
-        },
-        {
-            "id": "vk-agentcore-docs-knowledge",
-            "name": "docs-knowledge",
-            "value": "env.BIFROST_MCP_VK_DOCS_KNOWLEDGE",
-            "is_active": True,
-            "mcp_configs": profile_mcp_configs(registry, "docs-knowledge"),
-        },
-        {
-            "id": "vk-agentcore-operator",
-            "name": "operator",
-            "value": "env.BIFROST_MCP_VK_OPERATOR",
-            "is_active": True,
-            "mcp_configs": profile_mcp_configs(registry, "operator"),
-        },
-        {
-            "id": "vk-agentcore-chatgpt",
-            "name": "chatgpt",
-            "value": "env.BIFROST_MCP_VK_CHATGPT",
-            "is_active": True,
-            "mcp_configs": profile_mcp_configs(registry, "chatgpt"),
-        },
-        {
-            "id": "vk-agentcore-openclaw",
-            "name": "openclaw",
-            "value": "env.BIFROST_MCP_VK_OPENCLAW",
-            "is_active": True,
-            "mcp_configs": profile_mcp_configs(registry, "openclaw"),
-        },
-        {
-            "id": "vk-agentcore-grokbot",
-            "name": "grokbot",
-            "value": "env.BIFROST_MCP_VK_GROKBOT",
-            "is_active": True,
-            "mcp_configs": profile_mcp_configs(registry, "grokbot"),
-        },
+        {"provider": provider, "allowed_models": ["*"], "key_ids": ["*"], "weight": 1}
+        for provider in PROVIDER_GRANTS
     ]
+
+
+def _virtual_key(
+    vk_id: str,
+    name: str,
+    env_var: str,
+    mcp_configs: list[dict[str, Any]],
+    *,
+    providers: bool = True,
+) -> dict[str, Any]:
+    entry: dict[str, Any] = {
+        "id": vk_id,
+        "name": name,
+        "value": f"env.{env_var}",
+        "is_active": True,
+        "mcp_configs": mcp_configs,
+    }
+    if providers:
+        entry["provider_configs"] = _provider_configs()
+    return entry
+
+
+def build_virtual_keys(registry: dict[str, Any]) -> list[dict[str, Any]]:
+    keys = [
+        _virtual_key("vk-agentcore-builder", "builder", "BIFROST_MCP_VIRTUAL_KEY", profile_mcp_configs(registry, "builder")),
+        _virtual_key("vk-agentcore-reviewer", "reviewer", "BIFROST_MCP_VK_REVIEWER", profile_mcp_configs(registry, "reviewer")),
+        _virtual_key("vk-agentcore-ide", "ide", "BIFROST_MCP_VK_IDE", profile_mcp_configs(registry, "ide")),
+        _virtual_key(
+            "vk-agentcore-database-validator",
+            "database-validator",
+            "BIFROST_MCP_VK_DATABASE_VALIDATOR",
+            profile_mcp_configs(registry, "database-validator"),
+        ),
+        _virtual_key(
+            "vk-agentcore-docs-knowledge",
+            "docs-knowledge",
+            "BIFROST_MCP_VK_DOCS_KNOWLEDGE",
+            profile_mcp_configs(registry, "docs-knowledge"),
+        ),
+        _virtual_key("vk-agentcore-operator", "operator", "BIFROST_MCP_VK_OPERATOR", profile_mcp_configs(registry, "operator")),
+        _virtual_key("vk-agentcore-chatgpt", "chatgpt", "BIFROST_MCP_VK_CHATGPT", profile_mcp_configs(registry, "chatgpt")),
+        _virtual_key("vk-agentcore-openclaw", "openclaw", "BIFROST_MCP_VK_OPENCLAW", profile_mcp_configs(registry, "openclaw")),
+        _virtual_key("vk-agentcore-grokbot", "grokbot", "BIFROST_MCP_VK_GROKBOT", profile_mcp_configs(registry, "grokbot")),
+    ]
+
+    builder_configs = profile_mcp_configs(registry, "builder")
+    for name in APP_VIRTUAL_KEYS:
+        keys.append(
+            _virtual_key(
+                f"vk-agentcore-{name}",
+                name,
+                f"BIFROST_MCP_VK_{name.upper().replace('-', '_')}",
+                [dict(config) for config in builder_configs],
+            )
+        )
+
+    wanted = {
+        registry["servers"][server_id]["bifrost_client_name"]
+        for server_id in OMNIROUTE_SERVER_IDS
+        if server_id in registry["servers"] and registry["servers"][server_id].get("enabled")
+    }
+    keys.append(
+        _virtual_key(
+            "vk-agentcore-omniroute",
+            "omniroute",
+            "BIFROST_MCP_VK_OMNIROUTE",
+            [dict(config) for config in builder_configs if config["mcp_client_name"] in wanted],
+        )
+    )
+    return keys
 
 
 def build_bifrost_config(
@@ -599,6 +624,40 @@ def build_bifrost_config(
                         "weight": 1,
                     }
                 ]
+            },
+            # AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT
+            # Local OmniRoute router as an OpenAI-compatible custom provider. Chat and
+            # Responses only: OmniRoute is a routing plane, not an embeddings/speech host,
+            # so advertising the other request types would produce dead routes.
+            "omniroute": {
+                "keys": [
+                    {
+                        "name": "omniroute-local",
+                        "value": "env.OMNIROUTE_API_KEY",
+                        "models": ["*"],
+                        "weight": 1,
+                    }
+                ],
+                "network_config": {
+                    "base_url": "http://127.0.0.1:20128/v1",
+                },
+                "custom_provider_config": {
+                    "base_provider_type": "openai",
+                    "allowed_requests": {
+                        "list_models": True,
+                        "text_completion": False,
+                        "text_completion_stream": False,
+                        "chat_completion": True,
+                        "chat_completion_stream": True,
+                        "responses": True,
+                        "responses_stream": True,
+                        "embedding": False,
+                        "speech": False,
+                        "speech_stream": False,
+                        "transcription": False,
+                        "transcription_stream": False,
+                    },
+                },
             },
         },
         "mcp": {

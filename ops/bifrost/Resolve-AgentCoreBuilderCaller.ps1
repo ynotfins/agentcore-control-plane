@@ -61,7 +61,18 @@ $trustedExecutables = @(
   [pscustomobject]@{ client = 'open-interpreter-desktop'; path = (Join-Path $programFiles 'Interpreter\Interpreter.exe') },
   [pscustomobject]@{ client = 'zcode'; path = (Join-Path $programFiles 'ZCode\ZCode.exe') },
   [pscustomobject]@{ client = 'zed'; path = (Join-Path $localAppData 'Programs\Zed\Zed.exe') },
-  [pscustomobject]@{ client = 'opencode'; path = (Join-Path $env:APPDATA 'npm\node_modules\opencode-ai\bin\opencode.exe') }
+  [pscustomobject]@{ client = 'opencode'; path = (Join-Path $env:APPDATA 'npm\node_modules\opencode-ai\bin\opencode.exe') },
+  [pscustomobject]@{ client = 'vscodium'; path = (Join-Path $localAppData 'Programs\VSCodium\VSCodium.exe') },
+  [pscustomobject]@{ client = 'cherry-studio'; path = (Join-Path $localAppData 'Programs\Cherry Studio\Cherry Studio.exe') },
+  [pscustomobject]@{ client = 'open-design'; path = (Join-Path $localAppData 'Programs\Open Design\Open Design.exe') },
+  [pscustomobject]@{ client = 'openmausbot'; path = (Join-Path $localAppData 'Programs\openmausbot\OpenMausBot.exe') },
+  # AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: apps that previously had no
+  # credential-free route. Reasonix was authenticating with the builder key; OpenHands and
+  # Grok CLI had no gateway entry at all.
+  [pscustomobject]@{ client = 'reasonix'; path = (Join-Path $localAppData 'Programs\Reasonix\Reasonix.exe') },
+  [pscustomobject]@{ client = 'openhands'; path = (Join-Path $env:USERPROFILE '.local\bin\openhands.exe') },
+  [pscustomobject]@{ client = 'openhands'; path = (Join-Path $env:USERPROFILE '.local\bin\openhands-acp.exe') },
+  [pscustomobject]@{ client = 'grok-cli'; path = (Join-Path $env:USERPROFILE '.grok\bin\grok.exe') }
 ) | ForEach-Object {
   [pscustomobject]@{ client = $_.client; path = (Get-CanonicalPath $_.path) }
 }
