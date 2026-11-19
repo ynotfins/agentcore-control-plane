@@ -52,7 +52,10 @@
         "skills-hub",
         "tavily-research",
         "tentra",
-        "omniroute"
+        "omniroute",
+        "kie-media",
+        "eye2byte",
+        "windows-mcp"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -151,7 +154,8 @@
         "sequential-thinking",
         "skills-hub",
         "tentra",
-        "omniroute"
+        "omniroute",
+        "kie-media"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -185,7 +189,10 @@
         "skills-hub",
         "tavily-research",
         "tentra",
-        "omniroute"
+        "omniroute",
+        "kie-media",
+        "eye2byte",
+        "windows-mcp"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -218,7 +225,8 @@
         "skills-hub",
         "tavily-research",
         "tentra",
-        "omniroute"
+        "omniroute",
+        "kie-media"
       ],
       "default_tools_policy": "allow_permitted",
       "notes": [
@@ -4891,7 +4899,10 @@
       "connection_type": "stdio",
       "executable_or_url": "C:/Users/ynotf/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/LocalCache/local-packages/Python312/Scripts/eye2byte-mcp.exe",
       "arguments": [],
-      "env_var_names": [],
+      "env_var_names": [
+        "FASTMCP_SHOW_SERVER_BANNER",
+        "FASTMCP_DISABLE_UPDATE_CHECK"
+      ],
       "timeout_seconds": 120,
       "health_check_type": "mcp_ping",
       "project_scope": "global",
@@ -4978,9 +4989,9 @@
         ]
       },
       "rollback_route": "Set enabled=false, remove from capability_profiles, re-render, restart Bifrost. Screen/desktop automation is optional for engineering work.",
-      "enabled": false,
+      "enabled": true,
       "bifrost_client_name": "eye2byte",
-      "status": "catalogued_unverified",
+      "status": "active",
       "notes": [
         "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: re-admitted from live config.db, where it existed with no registry entry.",
         "Code Mode only: 63 tools must never be eager.",
@@ -5003,7 +5014,10 @@
         "windows-mcp==0.8.8",
         "serve"
       ],
-      "env_var_names": [],
+      "env_var_names": [
+        "FASTMCP_SHOW_SERVER_BANNER",
+        "FASTMCP_DISABLE_UPDATE_CHECK"
+      ],
       "timeout_seconds": 120,
       "health_check_type": "mcp_ping",
       "project_scope": "global",
@@ -5049,14 +5063,73 @@
         ]
       },
       "rollback_route": "Set enabled=false, remove from capability_profiles, re-render, restart Bifrost. Screen/desktop automation is optional for engineering work.",
-      "enabled": false,
+      "enabled": true,
       "bifrost_client_name": "windows_mcp",
-      "status": "catalogued_unverified",
+      "status": "active",
       "notes": [
         "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: re-admitted from live config.db, where it existed with no registry entry.",
         "Code Mode only.",
         "PowerShell, Registry and FileSystem tools are broad host authority: builder/ide only, never cloud or bot profiles.",
         "2026-11-18: launch spec restored from the pre-render live config, but Bifrost tool discovery returns zero tools on restart (both spawn cleanly by hand). Held disabled until discovery is proven; do not assume these tools are available."
+      ],
+      "is_code_mode_client": true
+    },
+    "kie-media": {
+      "canonical_id": "kie-media",
+      "display_name": "KIE Media (image / video / audio)",
+      "purpose": "KIE's discounted image, video-editing and audio models through the KIE job API, which is not OpenAI-compatible and therefore cannot be served by OmniRoute or Bifrost as a model provider.",
+      "owner": "agentcore",
+      "pinned_version": "0.1.0",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+      "arguments": [
+        "-u",
+        "D:\\github\\agentcore-control-plane\\scripts\\kie_media\\server.py"
+      ],
+      "env_var_names": [
+        "KIE_API_KEY"
+      ],
+      "timeout_seconds": 300,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "kie_models",
+        "kie_model_schema",
+        "kie_create_task",
+        "kie_task_status",
+        "kie_wait_task",
+        "kie_upload_file"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "ide",
+        "grokbot",
+        "openclaw"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false, remove from capability_profiles, re-render, restart Bifrost. Media generation is optional for engineering work.",
+      "enabled": true,
+      "bifrost_client_name": "kie_media",
+      "status": "active",
+      "notes": [
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: KIE media is job-based, not OpenAI-compatible.",
+        "Code Mode only. Six tools, no wildcard.",
+        "Billing is per call; kie_task_status reports creditsConsumed so cost stays visible.",
+        "KIE_API_KEY from Windows User env only; never logged or returned.",
+        "Loopback-free: talks to api.kie.ai directly. No local port, no listener."
       ],
       "is_code_mode_client": true
     }

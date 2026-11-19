@@ -450,6 +450,10 @@
             "--server",
             "eye2byte",
             "--no-transform",
+            "--allow-env",
+            "FASTMCP_SHOW_SERVER_BANNER",
+            "--allow-env",
+            "FASTMCP_DISABLE_UPDATE_CHECK",
             "--",
             "C:/Users/ynotf/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/LocalCache/local-packages/Python312/Scripts/eye2byte-mcp.exe"
           ],
@@ -726,6 +730,38 @@
         ],
         "auth_type": "none",
         "is_ping_available": false,
+        "is_code_mode_client": true
+      },
+      {
+        "name": "kie_media",
+        "connection_type": "stdio",
+        "stdio_config": {
+          "command": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+          "args": [
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\bifrost\\mcp_output_schema_adapter.py",
+            "--server",
+            "kie-media",
+            "--no-transform",
+            "--allow-env",
+            "KIE_API_KEY",
+            "--",
+            "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+            "-u",
+            "D:\\github\\agentcore-control-plane\\scripts\\kie_media\\server.py"
+          ],
+          "envs": []
+        },
+        "tools_to_execute": [
+          "kie_models",
+          "kie_model_schema",
+          "kie_create_task",
+          "kie_task_status",
+          "kie_wait_task",
+          "kie_upload_file"
+        ],
+        "auth_type": "none",
+        "is_ping_available": true,
         "is_code_mode_client": true
       },
       {
@@ -1241,6 +1277,10 @@
             "--server",
             "windows-mcp",
             "--no-transform",
+            "--allow-env",
+            "FASTMCP_SHOW_SERVER_BANNER",
+            "--allow-env",
+            "FASTMCP_DISABLE_UPDATE_CHECK",
             "--",
             "C:/Users/ynotf/.local/bin/uvx.exe",
             "--python",
@@ -1598,6 +1638,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -2340,6 +2391,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -3232,6 +3294,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -3729,6 +3802,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -4355,6 +4439,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -5010,6 +5105,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -5659,6 +5765,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -6314,6 +6431,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -6963,6 +7091,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -7618,6 +7757,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -8267,6 +8417,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -8922,6 +9083,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -9571,6 +9743,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -10226,6 +10409,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -10875,6 +11069,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -11530,6 +11735,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -12179,6 +12395,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -12834,6 +13061,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -13483,6 +13721,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -14138,6 +14387,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -14787,6 +15047,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -15442,6 +15713,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -16094,6 +16376,17 @@
             ]
           },
           {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
+            ]
+          },
+          {
             "mcp_client_name": "mcp_prompt_optimizer",
             "tools_to_execute": [
               "analyze_prompt",
@@ -16743,6 +17036,17 @@
               "update_pull_request_draft_state",
               "update_pull_request_state",
               "update_pull_request_title"
+            ]
+          },
+          {
+            "mcp_client_name": "kie_media",
+            "tools_to_execute": [
+              "kie_models",
+              "kie_model_schema",
+              "kie_create_task",
+              "kie_task_status",
+              "kie_wait_task",
+              "kie_upload_file"
             ]
           },
           {
@@ -17411,6 +17715,7 @@
         "figma-framelink-mcp",
         "firecrawl-research",
         "github-mcp",
+        "kie-media",
         "mcp-prompt-optimizer",
         "morph-mcp",
         "playwright",

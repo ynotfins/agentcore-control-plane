@@ -342,6 +342,13 @@
       "notes": [
         "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: stdio upstream re-admitted with native MCP output, no envelope normalizer."
       ]
+    },
+    "kie-media": {
+      "adapter": "upstream_native",
+      "default_profile": "external",
+      "notes": [
+        "AUTH-2026-11-18: stdio upstream returning native MCP text results. No envelope normalizer."
+      ]
     }
   }
 }
