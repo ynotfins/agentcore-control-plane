@@ -1,0 +1,5137 @@
+{
+  "schema_version": "2026-07-12",
+  "gateway_id": "agentcore-gateway",
+  "authority": "D:\\github\\agentcore-control-plane",
+  "runtime_root": "F:\\AgentCore\\runtime\\bifrost",
+  "swarm_exclusion": [
+    "swarmrecall",
+    "swarmvault",
+    "swarmclaw",
+    "SwarmRecall",
+    "SwarmVault",
+    "AgentSwarm",
+    "F:\\AgentCore\\agentmemory"
+  ],
+  "output_schema_adapter": {
+    "enabled": true,
+    "interpreter": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+    "script": "scripts\\bifrost\\mcp_output_schema_adapter.py",
+    "contract": "contracts\\mcp-tool-output-schemas.json",
+    "notes": [
+      "MCP 2025-06-18+ outputSchema/structuredContent normalizer. Bifrost is a passthrough gateway and does not synthesize schemas, so normalization is injected in front of each stdio upstream by scripts/bifrost/render_bifrost_config.py.",
+      "Adds no MCP route, no gateway front door, and no tool. Per-server applicability is declared in contracts/mcp-tool-output-schemas.json (adapter: stdio_envelope | upstream_native | unsupported).",
+      "Rollback: set enabled=false (or render with --no-output-adapter), re-render, restart Bifrost. Upstream stdio launches revert to their raw command and outputSchema disappears.",
+      "Fail-open by design: if the contract cannot be loaded the normalizer relays raw JSON-RPC unchanged."
+    ]
+  },
+  "tool_lifecycle_note": "NO ACTIVE WILDCARD EXPOSURE: enabled default-profile servers use named permitted_tools inventories. Disabled/dormant project-scoped entries may retain transitional permitted_tools [\"*\"] placeholders because they do not render into live Bifrost clients. M6 PostgreSQL capability leases + scripts/bifrost/jit_vk_bridge.py remain live for exact OpenRouter named groups (docs/operations/OPENROUTER_MCP.md). Do not extend wildcard grants to new active servers without review.",
+  "capability_profiles": {
+    "builder": {
+      "display_name": "Builder",
+      "purpose": "Trust Class A AgentCore engineering surface with broad execution and progressive disclosure.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "agentcore-memory",
+        "apify-research",
+        "arabold-docs",
+        "context7",
+        "cursor-agent-mcp",
+        "depwire",
+        "exa-research",
+        "figma-framelink-mcp",
+        "firecrawl-research",
+        "github-mcp",
+        "mcp-debugger",
+        "mcp-prompt-optimizer",
+        "morph-mcp",
+        "nia",
+        "pi-agents",
+        "playwright",
+        "sequential-thinking",
+        "serena",
+        "skills-hub",
+        "tavily-research",
+        "tentra",
+        "omniroute",
+        "kie-media",
+        "eye2byte",
+        "windows-mcp"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Primary virtual key: env.BIFROST_MCP_VIRTUAL_KEY"
+      ]
+    },
+    "reviewer": {
+      "display_name": "Reviewer",
+      "purpose": "Read-focused review surface; deny debugger attach and admin write tools.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "arabold-docs",
+        "context7",
+        "sequential-thinking",
+        "agentcore-memory"
+      ],
+      "default_tools_policy": "profile_override",
+      "notes": [
+        "mcp-debugger attach tools denied",
+        "Virtual key stub: env.BIFROST_MCP_VK_REVIEWER"
+      ]
+    },
+    "database-validator": {
+      "display_name": "Database Validator",
+      "purpose": "Health and status checks against AgentCore memory/database contracts without credential exposure.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "agentcore-memory",
+        "arabold-docs"
+      ],
+      "default_tools_policy": "deny_by_default",
+      "notes": [
+        "Virtual key stub: env.BIFROST_MCP_VK_DATABASE_VALIDATOR"
+      ]
+    },
+    "docs-knowledge": {
+      "display_name": "Docs Knowledge",
+      "purpose": "Documentation lookup and durable note retrieval.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "arabold-docs",
+        "context7",
+        "sequential-thinking",
+        "nia"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Virtual key stub: env.BIFROST_MCP_VK_DOCS_KNOWLEDGE"
+      ]
+    },
+    "operator": {
+      "display_name": "Operator",
+      "purpose": "Operational gateway administration and project routing.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "agentcore-project-router",
+        "agentcore-memory",
+        "arabold-docs",
+        "context7",
+        "nia",
+        "serena"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Virtual key stub: env.BIFROST_MCP_VK_OPERATOR"
+      ]
+    },
+    "chatgpt": {
+      "display_name": "ChatGPT",
+      "purpose": "Narrow read-focused surface for ChatGPT secure tunnel.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "arabold-docs",
+        "sequential-thinking",
+        "agentcore-memory",
+        "skills-hub"
+      ],
+      "default_tools_policy": "deny_by_default",
+      "notes": [
+        "Dedicated virtual key: env.BIFROST_MCP_VK_CHATGPT"
+      ]
+    },
+    "openclaw": {
+      "display_name": "OpenClaw",
+      "purpose": "Dedicated AgentCore gateway surface for the verified host-native OpenClaw client.",
+      "allowed_server_ids": [
+        "agentcore-memory",
+        "arabold-docs",
+        "context7",
+        "figma-framelink-mcp",
+        "github-mcp",
+        "mcp-prompt-optimizer",
+        "morph-mcp",
+        "nia",
+        "playwright",
+        "sequential-thinking",
+        "skills-hub",
+        "tentra",
+        "omniroute",
+        "kie-media"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Dedicated virtual key: env.BIFROST_MCP_VK_OPENCLAW",
+        "Excludes agentcore-project-router and cursor-agent-mcp."
+      ]
+    },
+    "ide": {
+      "display_name": "IDE",
+      "purpose": "Process-attested IDE compatibility surface that mirrors the builder engineering toolset without operator/project-router exposure.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "agentcore-memory",
+        "apify-research",
+        "arabold-docs",
+        "context7",
+        "cursor-agent-mcp",
+        "depwire",
+        "exa-research",
+        "figma-framelink-mcp",
+        "firecrawl-research",
+        "github-mcp",
+        "mcp-debugger",
+        "mcp-prompt-optimizer",
+        "morph-mcp",
+        "nia",
+        "pi-agents",
+        "playwright",
+        "sequential-thinking",
+        "serena",
+        "skills-hub",
+        "tavily-research",
+        "tentra",
+        "omniroute",
+        "kie-media",
+        "eye2byte",
+        "windows-mcp"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Dedicated virtual key: env.BIFROST_MCP_VK_IDE",
+        "Use for governed IDE/proxy clients that should mirror the builder MCP surface without sharing the builder key literal."
+      ]
+    },
+    "grokbot": {
+      "display_name": "Grok Bot",
+      "purpose": "Trust Class A xAI Grok Bot desktop surface; builder-equivalent without cursor-agent-mcp.",
+      "allowed_server_ids": [
+        "agentcore-capability-catalog",
+        "agentcore-memory",
+        "apify-research",
+        "arabold-docs",
+        "context7",
+        "depwire",
+        "exa-research",
+        "figma-framelink-mcp",
+        "firecrawl-research",
+        "github-mcp",
+        "mcp-debugger",
+        "mcp-prompt-optimizer",
+        "morph-mcp",
+        "nia",
+        "pi-agents",
+        "playwright",
+        "sequential-thinking",
+        "serena",
+        "skills-hub",
+        "tavily-research",
+        "tentra",
+        "omniroute",
+        "kie-media"
+      ],
+      "default_tools_policy": "allow_permitted",
+      "notes": [
+        "Dedicated virtual key: env.BIFROST_MCP_VK_GROKBOT",
+        "Trust Class A. Account-wide MCP is shared across Bots on the same xAI account—configure primary Bot only.",
+        "Excludes cursor-agent-mcp. Exclude Swarm and raw OpenRouter MCP."
+      ]
+    }
+  },
+  "servers": {
+    "agentcore-capability-catalog": {
+      "canonical_id": "agentcore-capability-catalog",
+      "display_name": "AgentCore Capability Catalog",
+      "purpose": "Compact read-only discovery of the full AgentCore capability universe and existing elevation routes.",
+      "owner": "agentcore",
+      "pinned_version": "0.1.0",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+      "arguments": [
+        "-u",
+        "D:\\github\\agentcore-control-plane\\scripts\\capability_catalog\\server.py"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 30,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "get_capability_detail",
+        "list_capabilities"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "database-validator",
+        "docs-knowledge",
+        "operator",
+        "chatgpt",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable the catalog client; capability execution and existing profiles remain unchanged.",
+      "enabled": true,
+      "bifrost_client_name": "agentcore_capability_catalog",
+      "status": "active",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "repo_owned",
+          "identifier": "scripts/capability_catalog/server.py",
+          "version": "0.1.0",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "D:\\github\\agentcore-control-plane\\scripts\\capability_catalog\\server.py",
+          "documentation_url": "D:\\github\\agentcore-control-plane\\contracts\\global-agent-policy.yaml",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "LicenseRef-AgentCore-Internal",
+          "status": "verified",
+          "source_url": "D:\\github\\agentcore-control-plane"
+        },
+        "tool_inventory": {
+          "status": "verified",
+          "source": "Repository-owned focused MCP contract tests",
+          "tools": [
+            "get_capability_detail",
+            "list_capabilities"
+          ],
+          "reported_tool_count": 2
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "not_required",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "none",
+          "status": "not_applicable",
+          "candidate_roots": [],
+          "forbidden_roots": []
+        },
+        "code_mode": {
+          "decision": "classic",
+          "rationale": "Two compact read-only discovery tools are the permanent small surface for Trust Class B."
+        },
+        "protected_resources": {
+          "classes": [],
+          "default_access": "read_only",
+          "policy": "Returns allowlisted registry metadata only; no commands, environment names or values, headers, or raw schemas."
+        },
+        "default_disposition": {
+          "state": "active_profile",
+          "replacement_route": "Read the canonical registry directly during operator maintenance.",
+          "activation_requirements": [
+            "Exact two-tool read-only inventory",
+            "No secret or raw-schema projection"
+          ]
+        },
+        "canary": {
+          "status": "passed",
+          "probes": [
+            "Search capability metadata and resolve the operator elevation route"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "AUTH-2026-11-04-LOCKED-DOC-HARDENING-OMNIROUTE"
+        ],
+        "unresolved_gaps": []
+      },
+      "notes": [
+        "Read-only capability existence and elevation metadata; execution remains in the owning profile."
+      ]
+    },
+    "arabold-docs": {
+      "canonical_id": "arabold-docs",
+      "display_name": "Arabold Docs MCP",
+      "purpose": "Local/current library and framework documentation on machine-global F: store; Context7 is same-turn public-miss bridge while scrape runs.",
+      "owner": "agentcore",
+      "pinned_version": "2.4.2",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "arguments": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\arabold-docs-mcp\\node_modules\\@arabold\\docs-mcp-server\\dist\\index.js",
+        "mcp"
+      ],
+      "env_var_names": [
+        "OPENAI_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "cancel_job",
+        "fetch_url",
+        "find_version",
+        "get_job_info",
+        "list_jobs",
+        "list_libraries",
+        "refresh_version",
+        "remove_docs",
+        "scrape_docs",
+        "search_docs"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "docs-knowledge",
+        "database-validator",
+        "operator",
+        "chatgpt",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Disable arabold_docs in Bifrost mcp.client_configs and restore direct IDE entry only under explicit operator approval.",
+      "enabled": true,
+      "bifrost_client_name": "arabold_docs",
+      "is_code_mode_client": false,
+      "status": "active",
+      "notes": [
+        "Vendored package path under ~/.cursor/vendor/arabold-docs-mcp",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. enabled=true is authoritative for Bifrost launch; do not disable to chase startup latency — arabold-docs is mandatory for exact-version docs.",
+        "2026-08-30: classic mode restored; DOCS_MCP_STORE_PATH=F:\\AgentCore\\runtime\\docs-store\\arabold via STATIC_ENV_VALUES.",
+        "Mandatory ingest: miss then scrape_docs official URL then wait until searchable then CATALOG.json; Context7 only during wait for public libs.",
+        "2026-08-30: launch with pnpm Node 24 (ABI 137) + mcp subcommand; better-sqlite3 prebuild node-v137; DOCS_MCP_STORE_PATH on F:.",
+        "2026-11-04 LocalApps: I:\\LocalApps\\AraboldDocs pin 2.4.2 (live Bifrost still uses ~/.cursor/vendor path)"
+      ]
+    },
+    "serena": {
+      "canonical_id": "serena",
+      "display_name": "Serena",
+      "purpose": "Project-scoped semantic code intelligence, symbol navigation, and refactors via HTTP session shim.",
+      "owner": "agentcore",
+      "pinned_version": "1.5.4.dev0",
+      "connection_type": "http",
+      "executable_or_url": "http://127.0.0.1:18090/mcp",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "replace_content",
+        "replace_in_files",
+        "replace_symbol_body",
+        "insert_after_symbol",
+        "insert_before_symbol",
+        "search_for_pattern",
+        "get_symbols_overview",
+        "find_symbol",
+        "find_referencing_symbols",
+        "find_implementations",
+        "find_declaration",
+        "get_diagnostics_for_file",
+        "rename_symbol",
+        "safe_delete_symbol",
+        "write_memory",
+        "read_memory",
+        "list_memories",
+        "delete_memory",
+        "rename_memory",
+        "edit_memory",
+        "open_dashboard"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "operator",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false; re-render Bifrost config; restart Bifrost. Fall back to host-owned Serena.",
+      "enabled": true,
+      "bifrost_client_name": "serena",
+      "status": "active",
+      "is_code_mode_client": true,
+      "allowed_extra_headers": [
+        "x-agentcore-project",
+        "x-bf-session-id",
+        "x-session-id",
+        "x-bf-vk"
+      ],
+      "admission_evidence": {
+        "artifact": {
+          "kind": "python_package",
+          "identifier": "serena-agent",
+          "version": "1.5.4.dev0",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://github.com/oraios/serena",
+          "documentation_url": "https://oraios.github.io/serena/",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "MIT",
+          "status": "verified",
+          "source_url": "https://github.com/oraios/serena/blob/main/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "verified",
+          "source": "Arabold serena@1.5.4 official documentation & runtime verification",
+          "tools": [
+            "replace_content",
+            "replace_in_files",
+            "replace_symbol_body",
+            "insert_after_symbol",
+            "insert_before_symbol",
+            "search_for_pattern",
+            "get_symbols_overview",
+            "find_symbol",
+            "find_referencing_symbols",
+            "find_implementations",
+            "find_declaration",
+            "get_diagnostics_for_file",
+            "rename_symbol",
+            "safe_delete_symbol",
+            "write_memory",
+            "read_memory",
+            "list_memories",
+            "delete_memory",
+            "rename_memory",
+            "edit_memory",
+            "open_dashboard"
+          ],
+          "reported_tool_count": 21
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "not_required",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "project_local",
+          "status": "verified",
+          "candidate_roots": [
+            "exact enrolled project root resolved by Serena HTTP session shim"
+          ],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "enabled",
+          "rationale": "Admitted into Code Mode via HTTP session shim. 21 tool definitions stay out of eager context and are accessed on demand."
+        },
+        "protected_resources": {
+          "classes": [
+            "project_source",
+            "project_local_memory"
+          ],
+          "default_access": "none",
+          "policy": "Bound strictly to enrolled project root via scripts/bifrost/serena_session_shim.py; Swarm roots refused."
+        },
+        "default_disposition": {
+          "state": "active_profile",
+          "replacement_route": "Serena HTTP session shim (scripts/bifrost/serena_session_shim.py) routing to isolated per-project child processes.",
+          "activation_requirements": [
+            "Trustworthy per-session project identity",
+            "Exact tools/list inventory",
+            "Project isolation canary"
+          ]
+        },
+        "canary": {
+          "status": "passed",
+          "probes": [
+            "Concurrent multi-IDE isolation canary in scripts/bifrost/test_serena_session_shim.py"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Arabold serena@1.5.4",
+          "SERENA.md",
+          "docs/adr/ADR-2026-09-09-serena-http-session-shim.md",
+          "scripts/bifrost/test_serena_session_shim.py"
+        ],
+        "unresolved_gaps": []
+      },
+      "notes": [
+        "2026-09-09: Admitted to Bifrost in Code Mode via HTTP session shim (scripts/bifrost/serena_session_shim.py).",
+        "Bifrost connects to http://127.0.0.1:18090/mcp with allowed_extra_headers: x-agentcore-project, x-bf-session-id, x-session-id.",
+        "Shim resolves project against contracts/agentcore-project-enrollment.json (default-deny; Swarm refuse) and routes to dedicated isolated child process.",
+        "Zero cross-project leakage verified by scripts/bifrost/test_serena_session_shim.py canary test.",
+        "Shared sticky STDIO is permanently retired.",
+        "2026-11-04 LocalApps: I:\\LocalApps\\Serena README; HTTP shim 127.0.0.1:18090 unchanged"
+      ]
+    },
+    "sequential-thinking": {
+      "canonical_id": "sequential-thinking",
+      "display_name": "Sequential Thinking",
+      "purpose": "Approved structured planning and multi-step reasoning MCP.",
+      "owner": "agentcore",
+      "pinned_version": "2026.7.4",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking@2026.7.4"
+      ],
+      "env_var_names": [
+        "DISABLE_THOUGHT_LOGGING"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "sequentialthinking"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "docs-knowledge",
+        "chatgpt",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Disable sequential_thinking client in Bifrost; do not restore thinking-patterns.",
+      "enabled": true,
+      "bifrost_client_name": "sequential_thinking",
+      "status": "active",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "@modelcontextprotocol/server-sequential-thinking",
+          "version": "2026.7.4",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://www.npmjs.com/package/@modelcontextprotocol/server-sequential-thinking",
+          "documentation_url": "https://www.npmjs.com/package/@modelcontextprotocol/server-sequential-thinking",
+          "verification": "arabold_exact"
+        },
+        "license": {
+          "spdx": "MIT",
+          "status": "verified",
+          "source_url": "https://github.com/modelcontextprotocol/servers/blob/main/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "verified",
+          "source": "Arabold sequential-thinking@2026.7.4 official package documentation",
+          "tools": [
+            "sequentialthinking"
+          ],
+          "reported_tool_count": 1
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "not_required",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "none",
+          "status": "not_applicable",
+          "candidate_roots": [],
+          "forbidden_roots": []
+        },
+        "code_mode": {
+          "decision": "classic",
+          "rationale": "The exact surface is one read-only planning tool, so Code Mode adds no context benefit."
+        },
+        "protected_resources": {
+          "classes": [],
+          "default_access": "read_only",
+          "policy": "No filesystem, database, credential, or external mutation surface."
+        },
+        "default_disposition": {
+          "state": "active_profile",
+          "replacement_route": "Disable the client and perform bounded local planning if the upstream is unhealthy.",
+          "activation_requirements": [
+            "Exact one-tool inventory",
+            "Thought logging remains disabled"
+          ]
+        },
+        "canary": {
+          "status": "passed",
+          "probes": [
+            "One bounded sequentialthinking call"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Arabold sequential-thinking@2026.7.4"
+        ],
+        "unresolved_gaps": []
+      },
+      "notes": [
+        "Set DISABLE_THOUGHT_LOGGING=true in Bifrost stdio envs.",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled — required for architecture/recovery decisions.",
+        "2026-08-05: wildcard replaced with exact one-tool inventory; remains classic mode.",
+        "2026-11-04 LocalApps: I:\\LocalApps\\SequentialThinking pin 2026.7.4"
+      ]
+    },
+    "cursor-agent-mcp": {
+      "canonical_id": "cursor-agent-mcp",
+      "display_name": "Cursor Agent MCP",
+      "purpose": "Cursor agent bridge for cloud agent orchestration.",
+      "owner": "agentcore",
+      "pinned_version": "1.0.5",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "cursor-agent-mcp@1.0.5"
+      ],
+      "env_var_names": [
+        "CURSOR_API_KEY",
+        "CURSOR_API_URL"
+      ],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "addFollowup",
+        "createAgent",
+        "deleteAgent",
+        "getAgent",
+        "getAgentConversation",
+        "getMe",
+        "listAgents",
+        "listModels",
+        "listRepositories"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable cursor_agent_mcp; keep CURSOR_API_KEY in Windows User env only.",
+      "enabled": true,
+      "bifrost_client_name": "cursor_agent_mcp",
+      "status": "active",
+      "notes": [
+        "CURSOR_API_URL fixed to https://api.cursor.com in renderer env map (non-secret).",
+        "Phase 2 (2026-07-24): status corrected from stale 'disabled' to 'active'. Keep enabled for Cursor cloud-agent orchestration.",
+        "2026-08-05: wildcard replaced with live named inventory.",
+        "2026-09-14: Code Mode enabled (is_code_mode_client=true) with global code_mode_binding_level=tool. Discovery path: listToolFiles -> readToolFile -> executeToolCode; missing tools/list prefixes for Code Mode clients are discovery failures, not missing admissions."
+      ],
+      "is_code_mode_client": true
+    },
+    "mcp-prompt-optimizer": {
+      "canonical_id": "mcp-prompt-optimizer",
+      "display_name": "MCP Prompt Optimizer",
+      "purpose": "Local prompt analysis and optimization tools exposed through the single AgentCore gateway.",
+      "owner": "agentcore",
+      "pinned_version": "git:317e83a1685253085972dcb60b60618362c19182+mcp==0.9.1",
+      "connection_type": "stdio",
+      "executable_or_url": "uv",
+      "arguments": [
+        "run",
+        "--no-project",
+        "--directory",
+        "D:\\github\\vendor\\mcp-prompt-optimizer",
+        "--with",
+        "mcp==0.9.1",
+        "python",
+        "prompt_optimizer.py"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "analyze_prompt",
+        "optimize_prompt",
+        "auto_optimize",
+        "get_prompt_template",
+        "advanced_optimize",
+        "get_domain_template",
+        "list_domain_templates"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove from capability_profiles.builder.allowed_server_ids; re-render Bifrost config; restart Bifrost. Cursor remains gateway-only.",
+      "enabled": true,
+      "bifrost_client_name": "mcp_prompt_optimizer",
+      "status": "active",
+      "notes": [
+        "2026-09-08: Code Mode enabled (is_code_mode_client=true) with global code_mode_binding_level=tool.",
+        "Source clone: D:\\github\\vendor\\mcp-prompt-optimizer.",
+        "The upstream git package build path fails with setuptools flat-layout discovery; launch direct script path instead.",
+        "Pinned to mcp==0.9.1 because current mcp 2.x removes the Server.list_tools decorator API used by upstream.",
+        "No secrets, no database, no durable app data, and no direct IDE MCP entry."
+      ],
+      "is_code_mode_client": true
+    },
+    "context-fabric": {
+      "canonical_id": "context-fabric",
+      "display_name": "Context Fabric",
+      "purpose": "Git-backed project continuity, drift checks, and post-commit context capture.",
+      "owner": "agentcore",
+      "pinned_version": "1.0.7",
+      "connection_type": "router",
+      "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
+      "arguments": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\context-fabric-mcp\\node_modules\\context-fabric\\dist\\index.js"
+      ],
+      "wrapper_script": "scripts/project_router/wrappers/context-fabric.cmd",
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "cf_capture",
+        "cf_drift",
+        "cf_health",
+        "cf_log_decision",
+        "cf_query"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable context_fabric wrapper; do not initialize Context Fabric under F:\\AgentCore\\agentmemory.",
+      "enabled": false,
+      "bifrost_client_name": "context_fabric",
+      "status": "dormant_project_scoped",
+      "notes": [
+        "Dormant in shared Bifrost profiles because calls lack trustworthy per-session project identity. Use the repository-local hook/CLI; reject Swarm and agentmemory roots.",
+        "Phase 7: permitted_tools named inventory from live tools/list (context_fabric-* → unprefixed)."
+      ]
+    },
+    "mcp-debugger": {
+      "canonical_id": "mcp-debugger",
+      "display_name": "MCP Debugger",
+      "purpose": "Runtime debugging session tools for builder surfaces.",
+      "owner": "agentcore",
+      "pinned_version": "0.0.78",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "mcp-debugger@0.0.78"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "admin",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [
+        "attach_to_process"
+      ],
+      "capability_profiles": [
+        "builder",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable mcp_debugger; reviewer profile must keep attach tools denied.",
+      "enabled": false,
+      "bifrost_client_name": "mcp_debugger",
+      "status": "disabled",
+      "notes": [
+        "Pinned mcp-debugger@0.0.78. Deny attach tools in reviewer profile."
+      ],
+      "deferred": true
+    },
+    "depwire": {
+      "canonical_id": "depwire",
+      "display_name": "DepWire Local",
+      "purpose": "Deterministic dependency graph, blast radius, simulate/verify change, architecture health.",
+      "owner": "agentcore",
+      "pinned_version": "1.8.2",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "arguments": [
+        "I:\\LocalApps\\Depwire\\node_modules\\depwire-cli\\dist\\index.js",
+        "mcp"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "claim_files",
+        "connect_repo",
+        "find_dead_code",
+        "get_active_claims",
+        "get_architecture_summary",
+        "get_decisions",
+        "get_dependencies",
+        "get_dependents",
+        "get_file_context",
+        "get_health_score",
+        "get_project_docs",
+        "get_symbol_info",
+        "get_temporal_graph",
+        "impact_analysis",
+        "list_files",
+        "record_decision",
+        "release_files",
+        "search_symbols",
+        "security_scan",
+        "simulate_change",
+        "update_project_docs",
+        "verify_change",
+        "visualize_graph"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "ide",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Remove depwire from builder/ide, set enabled=false, re-render Bifrost config, and rely on the exact-cwd local CLI until project isolation is stronger.",
+      "enabled": true,
+      "bifrost_client_name": "depwire",
+      "status": "active",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "depwire-cli",
+          "version": "1.8.2",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://www.npmjs.com/package/depwire-cli",
+          "documentation_url": "https://depwire.dev/",
+          "verification": "arabold_exact"
+        },
+        "license": {
+          "spdx": "BUSL-1.1",
+          "status": "verified",
+          "source_url": "https://www.npmjs.com/package/depwire-cli"
+        },
+        "tool_inventory": {
+          "status": "verified",
+          "source": "AgentCore gateway Depwire 1.8.2 tool definitions",
+          "tools": [
+            "claim_files",
+            "connect_repo",
+            "find_dead_code",
+            "get_active_claims",
+            "get_architecture_summary",
+            "get_decisions",
+            "get_dependencies",
+            "get_dependents",
+            "get_file_context",
+            "get_health_score",
+            "get_project_docs",
+            "get_symbol_info",
+            "get_temporal_graph",
+            "impact_analysis",
+            "list_files",
+            "record_decision",
+            "release_files",
+            "search_symbols",
+            "security_scan",
+            "simulate_change",
+            "update_project_docs",
+            "verify_change",
+            "visualize_graph"
+          ],
+          "reported_tool_count": 23
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "not_required",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "project_local",
+          "status": "pending_review",
+          "candidate_roots": [
+            "exact project cwd supplied to the local CLI"
+          ],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "required_if_admitted",
+          "rationale": "The 23-tool graph surface is large, but the shared client remains dormant until per-session project identity is trustworthy."
+        },
+        "protected_resources": {
+          "classes": [
+            "project_source",
+            "project_graph",
+            "remote_clone"
+          ],
+          "default_access": "none",
+          "policy": "Use the local CLI with an explicit cwd; remote clone and write-capable MCP tools are not default IDE routes."
+        },
+        "default_disposition": {
+          "state": "scoped_active_builder_ide_only",
+          "replacement_route": "Run depwire 1.8.2 locally with the exact project cwd if the scoped gateway exposure must be rolled back.",
+          "activation_requirements": [
+            "Trustworthy per-session project identity before broader/shared exposure"
+          ]
+        },
+        "canary": {
+          "status": "required_for_shared_broader_exposure",
+          "probes": [
+            "Read-only architecture summary for the exact enrolled project"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Arabold depwire@1.8.2",
+          "depwire --version and explicit-cwd parse"
+        ],
+        "unresolved_gaps": [
+          "Shared MCP per-session project identity"
+        ],
+        "operator_notes": [
+          "2026-11-05: Follow-up safety fix — active/live with pinned node.exe launcher, but virtual-key exposure is limited to builder+ide until project isolation is stronger."
+        ]
+      },
+      "notes": [
+        "Launch the packaged dist/index.js through the pinned Windows node.exe so Bifrost stdio spawn is CreateProcess-safe.",
+        "Project-scoped and write-capable: active/live only for builder+ide, not openclaw, operator, or broader shared exposure, until project isolation is stronger.",
+        "Telemetry remains enabled; do not set DEPWIRE_NO_TELEMETRY.",
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: is_code_mode_client recorded in the registry. It existed only in the live config.db, so every render silently promoted this server to eager exposure."
+      ],
+      "is_code_mode_client": true
+    },
+    "depwire-cloud": {
+      "canonical_id": "depwire-cloud",
+      "display_name": "DepWire Cloud",
+      "purpose": "Hosted DepWire graph queries for cloud-connected repositories.",
+      "owner": "agentcore",
+      "pinned_version": "cloud-mcp",
+      "connection_type": "http",
+      "executable_or_url": "https://api.depwire.dev/mcp",
+      "arguments": [],
+      "env_var_names": [
+        "DEPWIRE_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "http_get",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "http_5xx"
+        ]
+      },
+      "rollback_route": "Keep enabled=false until cloud connectivity is verified; never hardcode DEPWIRE_API_KEY.",
+      "enabled": false,
+      "bifrost_client_name": "depwire_cloud",
+      "auth_type": "headers",
+      "headers": {
+        "Authorization": "Bearer env.DEPWIRE_API_KEY"
+      },
+      "status": "disabled",
+      "deferred": true,
+      "notes": [
+        "enabled=false until verified against api.depwire.dev",
+        "Auth via Authorization Bearer from DEPWIRE_API_KEY"
+      ]
+    },
+    "tentra": {
+      "canonical_id": "tentra",
+      "display_name": "Tentra",
+      "purpose": "Project-local knowledge/index MCP with data under AgentRuntime.",
+      "owner": "agentcore",
+      "pinned_version": "1.3.3",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "arguments": [
+        "I:\\LocalApps\\Tentra\\node_modules\\tentra-mcp\\dist\\index.js",
+        "--local"
+      ],
+      "env_var_names": [
+        "TENTRA_DATA_DIR"
+      ],
+      "timeout_seconds": 180,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "create_architecture",
+        "update_architecture",
+        "get_architecture",
+        "list_architectures",
+        "analyze_codebase",
+        "lint_architecture",
+        "sync_architecture",
+        "get_spec_alignment",
+        "export_architecture",
+        "create_flow",
+        "index_code",
+        "index_code_continue",
+        "record_semantic_node",
+        "get_index_job",
+        "query_symbols",
+        "find_references",
+        "safe_rename",
+        "explain_codebase",
+        "get_symbol_neighbors",
+        "get_service_code_graph",
+        "explain_code_path",
+        "find_similar_code",
+        "record_embedding",
+        "list_god_nodes",
+        "get_quality_hotspots",
+        "list_snapshots",
+        "diff_snapshots",
+        "set_service_mapping",
+        "set_domain_membership",
+        "record_contract",
+        "bind_contract",
+        "record_decision",
+        "link_decision",
+        "get_ownership",
+        "get_decisions_for",
+        "get_contracts"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Remove tentra from builder/openclaw, set enabled=false, re-render Bifrost config, and fall back to the explicit-project local workflow if needed.",
+      "enabled": true,
+      "bifrost_client_name": "tentra",
+      "status": "active",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "tentra-mcp",
+          "version": "1.3.3",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://github.com/rdanieli/tentra-mcp",
+          "documentation_url": "https://github.com/rdanieli/tentra-mcp",
+          "verification": "arabold_exact"
+        },
+        "license": {
+          "spdx": "MIT",
+          "status": "verified",
+          "source_url": "https://github.com/rdanieli/tentra-mcp/blob/main/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "verified",
+          "source": "tentra-mcp 1.3.3 README and src/index.ts local-mode surface",
+          "tools": [
+            "create_architecture",
+            "update_architecture",
+            "get_architecture",
+            "list_architectures",
+            "analyze_codebase",
+            "lint_architecture",
+            "sync_architecture",
+            "get_spec_alignment",
+            "export_architecture",
+            "create_flow",
+            "index_code",
+            "index_code_continue",
+            "record_semantic_node",
+            "get_index_job",
+            "query_symbols",
+            "find_references",
+            "safe_rename",
+            "explain_codebase",
+            "get_symbol_neighbors",
+            "get_service_code_graph",
+            "explain_code_path",
+            "find_similar_code",
+            "record_embedding",
+            "list_god_nodes",
+            "get_quality_hotspots",
+            "list_snapshots",
+            "diff_snapshots",
+            "set_service_mapping",
+            "set_domain_membership",
+            "record_contract",
+            "bind_contract",
+            "record_decision",
+            "link_decision",
+            "get_ownership",
+            "get_decisions_for",
+            "get_contracts"
+          ],
+          "reported_tool_count": 36
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "not_required",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "agentcore_runtime",
+          "status": "verified",
+          "candidate_roots": [
+            "F:\\AgentCore\\runtime\\tentra\\data"
+          ],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "required_if_admitted",
+          "rationale": "The reported 36-tool surface warrants progressive disclosure; local project identity must be solved first."
+        },
+        "protected_resources": {
+          "classes": [
+            "project_source",
+            "project_graph",
+            "local_sqlite"
+          ],
+          "default_access": "none",
+          "policy": "Local explicit-project mode only; no init, hook installation, hosted fallback, or shared implicit-project route."
+        },
+        "default_disposition": {
+          "state": "scoped_active_builder_openclaw_only",
+          "replacement_route": "Run Tentra through the approved explicit-project local workflow if the scoped gateway exposure must be rolled back.",
+          "activation_requirements": [
+            "Trustworthy per-session project identity before broader/shared exposure"
+          ]
+        },
+        "canary": {
+          "status": "required_for_shared_broader_exposure",
+          "probes": [
+            "Read-only local graph query against the exact enrolled project"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Arabold tentra-mcp@1.3.3",
+          "contracts/bifrost-upstream-mcp-registry.json local-mode contract"
+        ],
+        "unresolved_gaps": [
+          "Shared MCP per-session project identity"
+        ],
+        "operator_notes": [
+          "2026-11-05: Follow-up safety fix — active/live with exact 1.3.3 tool inventory and pinned node.exe launcher; broader shared exposure still waits on stronger project isolation."
+        ]
+      },
+      "notes": [
+        "Launch the packaged dist/index.js through the pinned Windows node.exe so Bifrost stdio spawn is CreateProcess-safe.",
+        "Local mode only. Do not run tentra-mcp init or init --hook.",
+        "Data path expected under F:\\AgentCore\\runtime\\tentra\\data via TENTRA_DATA_DIR.",
+        "Project-scoped: active/live for builder/openclaw while exact tool exposure is pinned; broader shared exposure still waits on stronger project isolation.",
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: is_code_mode_client recorded in the registry. It existed only in the live config.db, so every render silently promoted this server to eager exposure."
+      ],
+      "is_code_mode_client": true
+    },
+    "obsidian-vault": {
+      "canonical_id": "obsidian-vault",
+      "display_name": "Obsidian Vault",
+      "purpose": "Long-form notes, decisions, runbooks, and durable handoffs.",
+      "owner": "agentcore",
+      "pinned_version": "local-wrapper",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\PowerShell\\7\\pwsh.EXE",
+      "arguments": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "C:\\Users\\ynotf\\.openclaw\\start-obsidian-mcp-server.ps1"
+      ],
+      "env_var_names": [
+        "OBSIDIAN_API_KEY",
+        "OBSIDIAN_LOCAL_REST_API",
+        "OBSIDIAN_BASE_URL",
+        "OBSIDIAN_VERIFY_SSL"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "*"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Re-enable obsidian_vault client_config + VK grants; leave vault files untouched.",
+      "enabled": false,
+      "bifrost_client_name": "obsidian_vault",
+      "status": "disabled",
+      "notes": [
+        "OBSIDIAN_* names only — never embed key values.",
+        "Non-secret defaults may set OBSIDIAN_BASE_URL=https://127.0.0.1:27124 and OBSIDIAN_VERIFY_SSL=false in renderer."
+      ]
+    },
+    "playwright": {
+      "canonical_id": "playwright",
+      "display_name": "Playwright MCP",
+      "purpose": "Bounded local browser automation and UI verification.",
+      "owner": "agentcore",
+      "pinned_version": "0.0.78",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "@playwright/mcp@0.0.78"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 300,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "browser_click",
+        "browser_close",
+        "browser_console_messages",
+        "browser_drag",
+        "browser_drop",
+        "browser_evaluate",
+        "browser_file_upload",
+        "browser_fill_form",
+        "browser_find",
+        "browser_handle_dialog",
+        "browser_hover",
+        "browser_navigate",
+        "browser_navigate_back",
+        "browser_network_request",
+        "browser_network_requests",
+        "browser_press_key",
+        "browser_resize",
+        "browser_run_code_unsafe",
+        "browser_select_option",
+        "browser_snapshot",
+        "browser_tabs",
+        "browser_take_screenshot",
+        "browser_type",
+        "browser_wait_for"
+      ],
+      "denied_tools": [],
+      "tool_groups": {
+        "playwright-inspection": {
+          "tools": [
+            "browser_console_messages",
+            "browser_find",
+            "browser_network_request",
+            "browser_network_requests",
+            "browser_snapshot",
+            "browser_take_screenshot"
+          ],
+          "access_policy": "default_profile",
+          "description": "Read-only inspection tools available through the existing builder Code Mode client."
+        },
+        "playwright-interaction": {
+          "tools": [
+            "browser_click",
+            "browser_close",
+            "browser_drag",
+            "browser_drop",
+            "browser_evaluate",
+            "browser_fill_form",
+            "browser_handle_dialog",
+            "browser_hover",
+            "browser_navigate",
+            "browser_navigate_back",
+            "browser_press_key",
+            "browser_resize",
+            "browser_select_option",
+            "browser_tabs",
+            "browser_type",
+            "browser_wait_for"
+          ],
+          "access_policy": "default_profile",
+          "description": "Trust Class A interaction tools are executable through Code Mode and are never auto-executed.",
+          "lease_defaults": {
+            "max_duration_seconds": 1800,
+            "max_invocations": 100,
+            "requires_approval": false
+          }
+        },
+        "playwright-high-risk": {
+          "tools": [
+            "browser_file_upload",
+            "browser_run_code_unsafe"
+          ],
+          "access_policy": "default_profile",
+          "description": "Trust Class A may execute these tools after task intent is established; they are never auto-executed.",
+          "lease_defaults": {
+            "max_duration_seconds": 600,
+            "max_invocations": 5,
+            "requires_approval": false
+          },
+          "upload_policy": {
+            "forbid": [
+              "repository_files",
+              "secrets",
+              "private_records",
+              "unrelated_context"
+            ],
+            "trust_class_on_result": "raw_untrusted"
+          }
+        }
+      },
+      "capability_profiles": [
+        "builder",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable playwright client; leave browser profiles untouched.",
+      "enabled": true,
+      "bifrost_client_name": "playwright",
+      "is_code_mode_client": true,
+      "status": "active",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "@playwright/mcp",
+          "version": "0.0.78",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://github.com/microsoft/playwright-mcp",
+          "documentation_url": "https://github.com/microsoft/playwright-mcp/wiki",
+          "verification": "arabold_exact"
+        },
+        "license": {
+          "spdx": "Apache-2.0",
+          "status": "verified",
+          "source_url": "https://github.com/microsoft/playwright-mcp/blob/main/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "verified",
+          "source": "Arabold playwright-mcp@0.0.78 official wiki inventory",
+          "tools": [
+            "browser_click",
+            "browser_close",
+            "browser_console_messages",
+            "browser_drag",
+            "browser_drop",
+            "browser_evaluate",
+            "browser_file_upload",
+            "browser_fill_form",
+            "browser_find",
+            "browser_handle_dialog",
+            "browser_hover",
+            "browser_navigate",
+            "browser_navigate_back",
+            "browser_network_request",
+            "browser_network_requests",
+            "browser_press_key",
+            "browser_resize",
+            "browser_run_code_unsafe",
+            "browser_select_option",
+            "browser_snapshot",
+            "browser_tabs",
+            "browser_take_screenshot",
+            "browser_type",
+            "browser_wait_for"
+          ],
+          "reported_tool_count": 24
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "not_required",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "project_local",
+          "status": "pending_review",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "enabled",
+          "rationale": "The 24-tool browser surface is heavy; Bifrost 2.0.0 Code Mode keeps schemas progressively discoverable while preserving named VK filtering."
+        },
+        "protected_resources": {
+          "classes": [
+            "browser_session",
+            "network",
+            "filesystem_upload",
+            "arbitrary_code_execution"
+          ],
+          "default_access": "bounded_write",
+          "policy": "All 24 tools are executable for Trust Class A through Code Mode; no Playwright tool is configured for automatic execution."
+        },
+        "default_disposition": {
+          "state": "active_profile",
+          "replacement_route": "Use host-native browser inspection when a JIT interaction lease is unavailable.",
+          "activation_requirements": [
+            "Named tool inventory remains exact",
+            "Code Mode remains enabled",
+            "All groups remain Code Mode and non-auto-executing"
+          ]
+        },
+        "canary": {
+          "status": "passed",
+          "probes": [
+            "Read-only browser snapshot and screenshot through Code Mode"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Arabold playwright-mcp@0.0.78",
+          "contracts/bifrost-upstream-mcp-registry.json pre-change inventory"
+        ],
+        "unresolved_gaps": [
+          "Generic JIT bridge enforcement for non-OpenRouter groups remains a later runtime slice"
+        ]
+      },
+      "notes": [
+        "Bounded automation only — no Swarm or agentmemory roots.",
+        "2026-09-08: all 24 exact tools are executable for Trust Class A through Code Mode; none are auto-executed."
+      ]
+    },
+    "filesystem": {
+      "canonical_id": "filesystem",
+      "display_name": "Filesystem (Project Router)",
+      "purpose": "Project-scoped filesystem MCP limited to registered worktree roots.",
+      "owner": "agentcore",
+      "pinned_version": "2026.7.10",
+      "connection_type": "router",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@2026.7.10"
+      ],
+      "wrapper_script": "scripts/project_router/wrappers/filesystem.cmd",
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "read_file",
+        "read_text_file",
+        "read_media_file",
+        "read_multiple_files",
+        "write_file",
+        "edit_file",
+        "create_directory",
+        "list_directory",
+        "list_directory_with_sizes",
+        "directory_tree",
+        "move_file",
+        "search_files",
+        "get_file_info",
+        "list_allowed_directories"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable filesystem wrapper; never restore home-directory-wide filesystem roots in gateway mode.",
+      "enabled": false,
+      "bifrost_client_name": "filesystem",
+      "status": "dormant_project_scoped",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "@modelcontextprotocol/server-filesystem",
+          "version": "2026.7.10",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem",
+          "documentation_url": "https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem",
+          "verification": "arabold_exact"
+        },
+        "license": {
+          "spdx": "MIT",
+          "status": "verified",
+          "source_url": "https://github.com/modelcontextprotocol/servers/blob/main/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "verified",
+          "source": "Arabold mcp-filesystem@2026.7.10 official package inventory",
+          "tools": [
+            "create_directory",
+            "directory_tree",
+            "edit_file",
+            "get_file_info",
+            "list_allowed_directories",
+            "list_directory",
+            "list_directory_with_sizes",
+            "move_file",
+            "read_file",
+            "read_media_file",
+            "read_multiple_files",
+            "read_text_file",
+            "search_files",
+            "write_file"
+          ],
+          "reported_tool_count": 14
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "not_required",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "project_local",
+          "status": "pending_review",
+          "candidate_roots": [
+            "exact enrolled project root supplied by a trustworthy per-session router"
+          ],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "home-directory-wide roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "required_if_admitted",
+          "rationale": "The mixed read/write filesystem surface requires progressive disclosure after exact per-session roots are trustworthy."
+        },
+        "protected_resources": {
+          "classes": [
+            "filesystem",
+            "project_source"
+          ],
+          "default_access": "none",
+          "policy": "Shared Bifrost exposure stays off until roots are exact and session-bound; whole-drive and home-wide access remain forbidden."
+        },
+        "default_disposition": {
+          "state": "dormant_zero_profile",
+          "replacement_route": "Use the IDE host's project-local filesystem surface.",
+          "activation_requirements": [
+            "Trustworthy per-session project roots",
+            "Read and write tool groups",
+            "Cross-project negative canary"
+          ]
+        },
+        "canary": {
+          "status": "required_before_activation",
+          "probes": [
+            "list_allowed_directories returns only the exact enrolled project root"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Arabold mcp-filesystem@2026.7.10",
+          "contracts/bifrost-upstream-mcp-registry.json named inventory"
+        ],
+        "unresolved_gaps": [
+          "Shared MCP per-session Roots propagation"
+        ]
+      },
+      "notes": [
+        "Dormant until a per-session project identity can be injected; native IDE filesystem access remains project-local.",
+        "Phase 7: permitted_tools named inventory from live tools/list (filesystem-* → unprefixed)."
+      ]
+    },
+    "github-mcp": {
+      "canonical_id": "github-mcp",
+      "display_name": "GitHub MCP",
+      "purpose": "GitHub repository, issue, PR, and remote workflow access.",
+      "owner": "agentcore",
+      "pinned_version": "1.3.0",
+      "connection_type": "stdio",
+      "executable_or_url": "docker",
+      "arguments": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server:1.3.0@sha256:5c83359327a0bacc3d34db730bea6557d39d341cee0bf6c58c9a896e33150e80"
+      ],
+      "env_var_names": [
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "GITHUB_PAT_TOKEN"
+      ],
+      "timeout_seconds": 180,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "actions_get",
+        "actions_list",
+        "actions_run_trigger",
+        "add_comment_to_pending_review",
+        "add_issue_comment",
+        "add_pull_request_review_comment",
+        "add_reply_to_pull_request_comment",
+        "add_sub_issue",
+        "assign_copilot_to_issue",
+        "create_branch",
+        "create_gist",
+        "create_issue",
+        "create_or_update_file",
+        "create_pull_request",
+        "create_pull_request_review",
+        "create_repository",
+        "delete_file",
+        "delete_pending_pull_request_review",
+        "discussion_comment_write",
+        "dismiss_notification",
+        "fork_repository",
+        "get_code_scanning_alert",
+        "get_commit",
+        "get_dependabot_alert",
+        "get_discussion",
+        "get_discussion_comments",
+        "get_file_blame",
+        "get_file_contents",
+        "get_gist",
+        "get_global_security_advisory",
+        "get_job_logs",
+        "get_label",
+        "get_latest_release",
+        "get_me",
+        "get_notification_details",
+        "get_release_by_tag",
+        "get_repository_tree",
+        "get_secret_scanning_alert",
+        "get_tag",
+        "get_team_members",
+        "get_teams",
+        "issue_read",
+        "issue_write",
+        "label_write",
+        "list_branches",
+        "list_code_scanning_alerts",
+        "list_commits",
+        "list_dependabot_alerts",
+        "list_discussion_categories",
+        "list_discussions",
+        "list_gists",
+        "list_global_security_advisories",
+        "list_issue_fields",
+        "list_issue_types",
+        "list_issues",
+        "list_label",
+        "list_notifications",
+        "list_org_repository_security_advisories",
+        "list_pull_requests",
+        "list_releases",
+        "list_repository_collaborators",
+        "list_repository_security_advisories",
+        "list_secret_scanning_alerts",
+        "list_starred_repositories",
+        "list_tags",
+        "manage_notification_subscription",
+        "manage_repository_notification_subscription",
+        "mark_all_notifications_read",
+        "merge_pull_request",
+        "projects_get",
+        "projects_list",
+        "projects_write",
+        "pull_request_read",
+        "pull_request_review_write",
+        "push_files",
+        "remove_sub_issue",
+        "reprioritize_sub_issue",
+        "request_copilot_review",
+        "request_pull_request_reviewers",
+        "resolve_review_thread",
+        "search_code",
+        "search_commits",
+        "search_issues",
+        "search_orgs",
+        "search_pull_requests",
+        "search_repositories",
+        "search_users",
+        "set_issue_fields",
+        "star_repository",
+        "sub_issue_write",
+        "submit_pending_pull_request_review",
+        "unresolve_review_thread",
+        "unstar_repository",
+        "update_gist",
+        "update_issue_assignees",
+        "update_issue_body",
+        "update_issue_labels",
+        "update_issue_milestone",
+        "update_issue_state",
+        "update_issue_title",
+        "update_issue_type",
+        "update_pull_request",
+        "update_pull_request_body",
+        "update_pull_request_branch",
+        "update_pull_request_draft_state",
+        "update_pull_request_state",
+        "update_pull_request_title"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove github-mcp from builder/openclaw, set enabled=false, re-render Bifrost config, and fall back to approved task-scoped GitHub tooling.",
+      "enabled": true,
+      "bifrost_client_name": "github_mcp",
+      "status": "active",
+      "deferred": false,
+      "admission_evidence": {
+        "artifact": {
+          "kind": "container_image",
+          "identifier": "ghcr.io/github/github-mcp-server",
+          "version": "1.3.0",
+          "digest": "sha256:5c83359327a0bacc3d34db730bea6557d39d341cee0bf6c58c9a896e33150e80"
+        },
+        "source": {
+          "primary_url": "https://github.com/github/github-mcp-server",
+          "documentation_url": "https://github.com/github/github-mcp-server",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "MIT",
+          "status": "verified",
+          "source_url": "https://github.com/github/github-mcp-server/blob/main/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "verified",
+          "source": "github-mcp-server v1.3.0 source tree pkg/github/__toolsnaps__/*.snap",
+          "tools": [
+            "actions_get",
+            "actions_list",
+            "actions_run_trigger",
+            "add_comment_to_pending_review",
+            "add_issue_comment",
+            "add_pull_request_review_comment",
+            "add_reply_to_pull_request_comment",
+            "add_sub_issue",
+            "assign_copilot_to_issue",
+            "create_branch",
+            "create_gist",
+            "create_issue",
+            "create_or_update_file",
+            "create_pull_request",
+            "create_pull_request_review",
+            "create_repository",
+            "delete_file",
+            "delete_pending_pull_request_review",
+            "discussion_comment_write",
+            "dismiss_notification",
+            "fork_repository",
+            "get_code_scanning_alert",
+            "get_commit",
+            "get_dependabot_alert",
+            "get_discussion",
+            "get_discussion_comments",
+            "get_file_blame",
+            "get_file_contents",
+            "get_gist",
+            "get_global_security_advisory",
+            "get_job_logs",
+            "get_label",
+            "get_latest_release",
+            "get_me",
+            "get_notification_details",
+            "get_release_by_tag",
+            "get_repository_tree",
+            "get_secret_scanning_alert",
+            "get_tag",
+            "get_team_members",
+            "get_teams",
+            "issue_read",
+            "issue_write",
+            "label_write",
+            "list_branches",
+            "list_code_scanning_alerts",
+            "list_commits",
+            "list_dependabot_alerts",
+            "list_discussion_categories",
+            "list_discussions",
+            "list_gists",
+            "list_global_security_advisories",
+            "list_issue_fields",
+            "list_issue_types",
+            "list_issues",
+            "list_label",
+            "list_notifications",
+            "list_org_repository_security_advisories",
+            "list_pull_requests",
+            "list_releases",
+            "list_repository_collaborators",
+            "list_repository_security_advisories",
+            "list_secret_scanning_alerts",
+            "list_starred_repositories",
+            "list_tags",
+            "manage_notification_subscription",
+            "manage_repository_notification_subscription",
+            "mark_all_notifications_read",
+            "merge_pull_request",
+            "projects_get",
+            "projects_list",
+            "projects_write",
+            "pull_request_read",
+            "pull_request_review_write",
+            "push_files",
+            "remove_sub_issue",
+            "reprioritize_sub_issue",
+            "request_copilot_review",
+            "request_pull_request_reviewers",
+            "resolve_review_thread",
+            "search_code",
+            "search_commits",
+            "search_issues",
+            "search_orgs",
+            "search_pull_requests",
+            "search_repositories",
+            "search_users",
+            "set_issue_fields",
+            "star_repository",
+            "sub_issue_write",
+            "submit_pending_pull_request_review",
+            "unresolve_review_thread",
+            "unstar_repository",
+            "update_gist",
+            "update_issue_assignees",
+            "update_issue_body",
+            "update_issue_labels",
+            "update_issue_milestone",
+            "update_issue_state",
+            "update_issue_title",
+            "update_issue_type",
+            "update_pull_request",
+            "update_pull_request_body",
+            "update_pull_request_branch",
+            "update_pull_request_draft_state",
+            "update_pull_request_state",
+            "update_pull_request_title"
+          ],
+          "reported_tool_count": 107
+        },
+        "authentication": {
+          "mode": "headers",
+          "status": "env_present_user_scope",
+          "credential_storage": "windows_user_env",
+          "env_var_names": [
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "GITHUB_PAT_TOKEN"
+          ],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "container_managed",
+          "status": "pending_review",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "required_if_admitted",
+          "rationale": "GitHub has a large write-capable inventory; admission requires exact named tools and progressive disclosure."
+        },
+        "protected_resources": {
+          "classes": [
+            "remote_repositories",
+            "issues",
+            "pull_requests",
+            "workflows",
+            "credentials"
+          ],
+          "default_access": "none",
+          "policy": "No tools are exposed until named read/write groupings, container health proof, and credential-scope review pass."
+        },
+        "default_disposition": {
+          "state": "active_builder_openclaw_only",
+          "replacement_route": "Use task-scoped Git CLI or approved GitHub tooling if the active gateway exposure must be rolled back.",
+          "activation_requirements": [
+            "Operator-approved credential scope before broader/shared exposure"
+          ]
+        },
+        "canary": {
+          "status": "monitor_after_activation",
+          "probes": [
+            "Authenticated read-only repository metadata call against a non-protected test repository"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "GHCR manifest ghcr.io/github/github-mcp-server:1.3.0",
+          "https://github.com/github/github-mcp-server"
+        ],
+        "unresolved_gaps": [
+          "Credential-scope review",
+          "Container health canary"
+        ],
+        "operator_notes": [
+          "2026-11-05: Follow-up safety fix — exact 1.3.0 tool inventory pinned from source and kept active/live for builder/openclaw only."
+        ]
+      },
+      "notes": [
+        "2026-09-08: Code Mode pre-flagged (is_code_mode_client=true) and now kept active/live for builder/openclaw with an exact named inventory.",
+        "Exact multi-architecture image pin verified without changing the digest.",
+        "Do not expand beyond builder/openclaw without a separate credential-scope review.",
+        "2026-11-05 follow-up: exact 1.3.0 tool inventory pinned from source; PR remains AUTH-gated for merge."
+      ],
+      "is_code_mode_client": true
+    },
+    "agentcore-memory": {
+      "canonical_id": "agentcore-memory",
+      "display_name": "AgentCore Memory Gateway",
+      "purpose": "Model-aware active context over effectively-unbounded durable local project history; no raw DB/admin tools exposed.",
+      "owner": "agentcore",
+      "pinned_version": "0.9.1",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+      "arguments": [
+        "-u",
+        "D:\\github\\agentcore-control-plane\\scripts\\agentcore_memory\\server.py"
+      ],
+      "env_var_names": [
+        "AGENTCORE_COGNEE_DB_PASSWORD",
+        "AGENTCORE_COGNEE_DB_USERNAME",
+        "AGENTCORE_COGNEE_DISABLED",
+        "AGENTCORE_COGNEE_ROOT",
+        "AGENTCORE_COGNEE_VENV",
+        "AGENTCORE_HOT_ARTIFACT_ROOT",
+        "AGENTCORE_MEMORY_CURSOR_KEY",
+        "AGENTCORE_MEMORY_DEFAULT_ACTIVE_LIMIT",
+        "AGENTCORE_MEMORY_DEFAULT_PAGE_SIZE",
+        "AGENTCORE_MEMORY_MAX_ACTIVE_LIMIT",
+        "AGENTCORE_MEMORY_RESPONSE_TEXT_LIMIT",
+        "AGENTCORE_PG_DATABASE",
+        "AGENTCORE_PG_HOST",
+        "AGENTCORE_PG_PORT",
+        "AGENTCORE_PG_USER",
+        "AGENTCORE_PROJECT_ENROLLMENT_CONTRACT",
+        "AGENTCORE_RECALL_API_URL",
+        "AGENTCORE_RECALL_PROJECT_KEYS_JSON",
+        "AGENTCORE_REPO_PATH",
+        "AGENT_CORE_POSTGRES_PASSWORD"
+      ],
+      "timeout_seconds": 30,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "memory_status",
+        "startup_context",
+        "retrieve_context",
+        "append_event",
+        "propose_fact",
+        "expand_source",
+        "session_open",
+        "session_close",
+        "build_handoff",
+        "docs_search"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "reviewer",
+        "database-validator",
+        "operator",
+        "chatgpt",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Restore scripts/agentcore_memory/server.py from pre-M4 commit and re-render Bifrost config; IDE configs unchanged.",
+      "enabled": true,
+      "bifrost_client_name": "agentcore_memory",
+      "status": "active",
+      "notes": [
+        "Stable server identity: agentcore-memory",
+        "Stable 10-tool surface; bounded active packets and recovery pages never cap or delete durable project history.",
+        "v0.7.0 added backward-compatible cryptographic device assertions to existing tool schemas.",
+        "v0.9.0 requires an exact enrolled project_key plus project_root on every project-scoped call, identity-binds session_key reuse, and validates all opaque references including contradicts_event_id. Tool names/count and database ownership remain unchanged.",
+        "v0.9.1 binds resumed sessions to device, user, canonical repository, and worktree identity; preserves source identity across reopen; and prevents unsigned legacy-compatible recovery reads from recording recovery writes.",
+        "retrieve_context supports stable chronological pagination and recovery modes; expand_source resolves exact originals and governed F:/E: AgentCore artifacts; build_handoff reconstructs current project state.",
+        "Model context profiles are governed by contracts/model-context-profiles.json; 4096 is legacy/acceptance-only and one million is not a durable-memory cap.",
+        "PostgreSQL reachability remains implemented internally and is reported through memory_status, not exposed as a separate normal-agent tool.",
+        "Uses PostgreSQL 18 agent_core on 127.0.0.1:55433 internally via Windows env var credentials; IDE agents receive no DB credentials.",
+        "Hybrid retrieval uses PostgreSQL metadata filters, full-text search, pg_trgm, exact pgvector baseline, and Cognee-curated rows only through KnowledgeMemoryPort.",
+        "Reports Cognee availability/degradation truthfully. LangGraph M6 workflow is integrated via AgentCore-managed nodes and shared gateway MCP client (see docs/operations/AUTONOMOUS_WORKFLOW_AND_STUDIO.md); memory surface remains the locked ten-tool identity."
+      ]
+    },
+    "openrouter": {
+      "canonical_id": "openrouter",
+      "display_name": "OpenRouter MCP",
+      "purpose": "Live model discovery, context-window verification, provider availability, pricing, benchmark comparisons, routing research, OpenRouter documentation, and operator-scoped account functions. Not an LLM provider route for normal IDE inference — does not change any IDE default model or provider.",
+      "owner": "agentcore",
+      "pinned_version": "live-remote",
+      "connection_type": "http",
+      "executable_or_url": "https://mcp.openrouter.ai/mcp",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "list-models",
+        "get-model",
+        "list-model-endpoints",
+        "list-providers",
+        "list-daily-model-rankings",
+        "list-app-rankings",
+        "list-benchmarks",
+        "list-task-classifications",
+        "get-endpoint-uptime-history",
+        "search-docs",
+        "ping",
+        "get-preset",
+        "list-presets",
+        "get-credits",
+        "get-generation",
+        "send-feedback",
+        "generate-speech",
+        "transcribe-audio"
+      ],
+      "denied_tools": [
+        "send-message",
+        "generate-image",
+        "install-ori-harness",
+        "spawn-ori-eval"
+      ],
+      "tool_groups": {
+        "openrouter-discovery-read": {
+          "tools": [
+            "list-models",
+            "get-model",
+            "list-model-endpoints",
+            "list-providers",
+            "list-daily-model-rankings",
+            "list-app-rankings",
+            "list-benchmarks",
+            "list-task-classifications",
+            "get-endpoint-uptime-history",
+            "search-docs",
+            "ping",
+            "get-preset",
+            "list-presets"
+          ],
+          "access_policy": "jit_short",
+          "description": "Read-only model catalog, presets, benchmarks, docs, and metadata. Short project/task-scoped JIT lease. Zero default exposure.",
+          "lease_defaults": {
+            "max_duration_seconds": 3600,
+            "max_invocations": 100,
+            "requires_approval": false
+          }
+        },
+        "openrouter-account": {
+          "tools": [
+            "get-credits",
+            "get-generation",
+            "send-feedback"
+          ],
+          "access_policy": "operator_scope",
+          "description": "Account-sensitive reads and feedback write. Requires operator scope and approval.",
+          "lease_defaults": {
+            "max_duration_seconds": 1800,
+            "max_invocations": 20,
+            "requires_approval": true
+          }
+        },
+        "openrouter-media-generation": {
+          "tools": [
+            "generate-speech"
+          ],
+          "access_policy": "billable_approval",
+          "description": "Cost-sensitive media generation. Operator-approved JIT only with invocation and cost bounds. Never auto-activate. Never include repository source, secrets, or private content.",
+          "lease_defaults": {
+            "max_duration_seconds": 900,
+            "max_invocations": 5,
+            "requires_approval": true
+          },
+          "content_trust_class": "raw_untrusted"
+        },
+        "openrouter-transcription": {
+          "tools": [
+            "transcribe-audio"
+          ],
+          "access_policy": "billable_approval",
+          "description": "Sensitive external file upload plus potentially billable processing. Operator-approved JIT only. Uploaded/transcribed content is raw_untrusted unless explicitly promoted. Never upload repository files, secrets, private records, or unrelated context.",
+          "lease_defaults": {
+            "max_duration_seconds": 900,
+            "max_invocations": 3,
+            "requires_approval": true
+          },
+          "content_trust_class": "raw_untrusted",
+          "upload_policy": {
+            "forbid": [
+              "repository_files",
+              "secrets",
+              "private_records",
+              "unrelated_context"
+            ],
+            "trust_class_on_result": "raw_untrusted"
+          }
+        },
+        "openrouter-billable": {
+          "tools": [
+            "send-message",
+            "generate-image",
+            "install-ori-harness",
+            "spawn-ori-eval"
+          ],
+          "access_policy": "billable_approval",
+          "description": "Billable inference/image calls. Remain in denied_tools — never grant from discovery leases. Requires operator approval, declared cost ceiling, invocation bound, expiry, and per-action confirmation.",
+          "lease_defaults": {
+            "max_duration_seconds": 900,
+            "max_invocations": 5,
+            "requires_approval": true
+          }
+        }
+      },
+      "auth_type": "oauth",
+      "oauth_config": {
+        "server_url": "https://openrouter.ai",
+        "scopes": [
+          "mcp"
+        ]
+      },
+      "capability_profiles": [
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 3,
+        "retry_on": [
+          "http_5xx",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; confirm no direct per-IDE entries; re-render Bifrost config; restart via \\AgentCore\\AgentCore-Bifrost-Gateway. OAuth token revocable at openrouter.ai/keys.",
+      "enabled": true,
+      "bifrost_client_name": "openrouter",
+      "status": "dormant",
+      "notes": [
+        "2026-09-08: Code Mode enabled (is_code_mode_client=true) with global code_mode_binding_level=tool. Zero default tool exposure unchanged — tools still require M6 lease + JIT VK bridge.",
+        "LIFECYCLE: installed_dormant -> ready_auth_on_first_use -> authenticated_dormant (OAuth connected) -> jit_leased. Registry status remains 'dormant' by validator contract because tools require a live M6 lease.",
+        "COMPLETION STRING (2026-07-20): OPENROUTER MCP AVAILABLE THROUGH AGENTCORE-GATEWAY — OAuth authorized, client connected, discovery lease proofs passed. See audits/OPENROUTER_MCP_OAUTH_BIND_2026-07-20.md.",
+        "ENCRYPTION: BIFROST_ENCRYPTION_KEY required in Windows User scope; OAuth token stored encrypted in data/config.db.",
+        "OAUTH BINDING: Bifrost v2 persists oauth_config_id and OAuth tokens in data/config.db. Runtime state F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json may mirror oauth_config_id + mcp_client_id as operator evidence only; rendered config.json must keep oauth_config public params and must not emit oauth_config_id.",
+        "RENDERER BEHAVIOR: Git/sanitized/runtime renderers embed oauth_config public params. Runtime oauth_config_id values are config.db-owned metadata and are never copied into Git renderers, runtime config.json, IDE configs, or logs (OR-10).",
+        "ZERO TOOLS exposed without a live M6 capability lease + Bifrost VK mcp_configs grant via scripts/bifrost/jit_vk_bridge.py. capability_profiles: [operator] is JIT-eligible reference only.",
+        "openrouter must NOT appear in capability_profiles[*].allowed_server_ids — enforced by validator.",
+        "JIT governance: M6 PostgreSQL capability_leases. VK updates MUST preserve existing mcp_configs[].id fields or Bifrost returns 409. Failure leaves tools hidden.",
+        "denied_tools send-message/generate-image/install-ori-harness/spawn-ori-eval stay ungated; never grant from discovery leases.",
+        "generate-speech classified openrouter-media-generation (operator-approved JIT). transcribe-audio classified openrouter-transcription (operator-approved JIT; results raw_untrusted). get-preset/list-presets join openrouter-discovery-read.",
+        "config.db MUST be treated as secret-bearing. Backups to E:/G: secure paths only.",
+        "Official endpoint: https://mcp.openrouter.ai/mcp. Transport: Streamable HTTP (MCP 2025-03-26 spec).",
+        "AUTHENTICATED LIVE INVENTORY updated 2026-08-05: 22 tools observed through Bifrost. All 22 live tools classified (18 permitted + 4 denied). get-endpoint-uptime-history added to discovery-read; view-skills no longer observed live; install-ori-harness and spawn-ori-eval denied by default.",
+        "OpenRouter MCP != OpenRouter LLM provider. Does not affect any IDE model or provider configuration.",
+        "No OPENROUTER_MCP_KEY in Windows env — OAuth token managed by Bifrost config.db only.",
+        "oauth_config_id is Bifrost config.db-owned metadata. If mirrored in F:\\AgentCore\\runtime\\bifrost\\state\\oauth-clients.json, treat it as runtime-only evidence. Never commit it to Git, source renderers, runtime config.json, IDE configs, or logs."
+      ],
+      "is_code_mode_client": true
+    },
+    "agentcore-project-router": {
+      "canonical_id": "agentcore-project-router",
+      "display_name": "AgentCore Project Router",
+      "purpose": "Activate and clear registered project worktrees for project-scoped upstream MCP servers.",
+      "owner": "agentcore",
+      "pinned_version": "0.1.0",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+      "arguments": [
+        "-u",
+        "D:\\github\\agentcore-control-plane\\scripts\\project_router\\server.py"
+      ],
+      "env_var_names": [
+        "BIFROST_ADMIN_KEY"
+      ],
+      "timeout_seconds": 30,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "project_list",
+        "project_activate",
+        "project_status",
+        "project_clear"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "operator"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Disable agentcore_project_router; clear F:\\AgentCore\\runtime\\bifrost\\state\\active-project.json manually.",
+      "enabled": true,
+      "bifrost_client_name": "agentcore_project_router",
+      "status": "active",
+      "notes": [
+        "State file: F:\\AgentCore\\runtime\\bifrost\\state\\active-project.json",
+        "Allowed roots scanned from D:\\github git repos with Swarm path rejection.",
+        "Global project mutation is operator-only. Shared IDE profiles must use project-explicit tools and may not depend on this machine-global state."
+      ]
+    },
+    "skills-hub": {
+      "canonical_id": "skills-hub",
+      "display_name": "Skills-Hub MCP",
+      "purpose": "Dynamic skill search and metadata retrieval from the Skills-Hub public registry via an isolated process-local home. All registry content is raw_untrusted. install_skill is explicitly denied.",
+      "owner": "agentcore",
+      "pinned_version": "0.1.7",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\node.EXE",
+      "arguments": [
+        "F:\\AgentCore\\runtime\\skills-hub\\start.mjs"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 30,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "search_skills",
+        "get_skill_detail",
+        "list_installed_skills"
+      ],
+      "denied_tools": [
+        "install_skill"
+      ],
+      "capability_profiles": [
+        "builder",
+        "chatgpt",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove from VK mcp_configs; restart Bifrost. Skills-Hub content cannot override AgentCore authority. Rollback leaves isolated home dir intact.",
+      "enabled": true,
+      "bifrost_client_name": "skills_hub",
+      "status": "active",
+      "notes": [
+        "ISOLATION: Launched via F:\\AgentCore\\runtime\\skills-hub\\start.mjs which sets process.env.USERPROFILE/HOME/HOMEDRIVE/HOMEPATH to F:\\AgentCore\\runtime\\skills-hub\\home before import.",
+        "ISOLATION PROVEN 2026-07-24 Phase 4B: process-local HOME/USERPROFILE/HOMEDRIVE/HOMEPATH -> F:\\AgentCore\\runtime\\skills-hub\\home; FS access audit showed zero reads of real user skill roots; Bifrost list_installed saw only isolated sentinel; sentinel removed afterward.",
+        "SECURITY: @hono/node-server pinned 2.0.11 via npm overrides (GHSA-frvp-7c67-39w9). npm audit 0 vulnerabilities after lock reinstall.",
+        "HONO REACHABILITY: STDIO entry dist/index.js uses StdioServerTransport only; streamableHttp.js (imports @hono/node-server) not in import graph; no HTTP listener; serveStatic unreachable.",
+        "INSTALL: @skills-hub-ai/mcp@0.1.7 (0.1.8-0.1.10 blocked: @skills-hub-ai/installer@0.1.0 not on npm).",
+        "CLI: @skills-hub-ai/cli@0.3.5 installed but NOT exposed through Bifrost.",
+        "REMOTE HTTP: https://api.skills-hub.ai/mcp blocked by Cloudflare 403/1010. Local STDIO used.",
+        "DENIED TOOL: install_skill is explicitly denied. search_skills and get_skill_detail query the remote skills-hub.ai API; responses are raw_untrusted.",
+        "CONTENT TRUST: All retrieved skill content classified raw_untrusted. Cannot override AgentCore authority.",
+        "Package source control: D:\\github\\agentcore-control-plane\\tools\\skills-hub\\",
+        "Runtime: F:\\AgentCore\\runtime\\skills-hub\\",
+        "License: MIT. Repository: https://github.com/tinh2/skills-hub",
+        "2026-09-14: Code Mode enabled (is_code_mode_client=true) with global code_mode_binding_level=tool. Discovery path: listToolFiles -> readToolFile -> executeToolCode; missing tools/list prefixes for Code Mode clients are discovery failures, not missing admissions."
+      ],
+      "is_code_mode_client": true
+    },
+    "firebase-mcp": {
+      "canonical_id": "firebase-mcp",
+      "display_name": "Firebase MCP (firebase-tools)",
+      "purpose": "Official Firebase MCP server covering Firebase projects, Firestore read/write, Firebase Auth, Realtime Database, and Firebase Data Connect. Operates via firebase-tools CLI auth or FIREBASE_TOKEN env var.",
+      "owner": "agentcore",
+      "pinned_version": "15.24.0",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "firebase-tools@15.24.0",
+        "mcp"
+      ],
+      "env_var_names": [
+        "FIREBASE_TOKEN",
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "GCLOUD_PROJECT"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "project",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "firestore_get_document",
+        "firestore_get_documents",
+        "firestore_list_collections",
+        "firestore_query_collection",
+        "firestore_add_document",
+        "firestore_update_document",
+        "firestore_delete_document",
+        "firestore_get_database",
+        "auth_get_user",
+        "auth_list_users",
+        "firebase_get_project"
+      ],
+      "denied_tools": [
+        "firebase_init",
+        "firebase_deploy"
+      ],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove from VK mcp_configs. Firebase data unchanged; CLI auth token unaffected.",
+      "enabled": false,
+      "bifrost_client_name": "firebase_mcp",
+      "status": "dormant_project_scoped",
+      "deferred": true,
+      "notes": [
+        "DORMANT PROJECT-SCOPED: Removed from live Bifrost client_configs and builder VK default exposure. No Firebase tool is visible without a future JIT project lease.",
+        "Auth: firebase CLI login already complete (firebase login completed as ynotfins@gmail.com). No global FIREBASE_PROJECT_ID set (cleared User-scope 2026-07-24 Phase 4B).",
+        "License: MIT. Official Google/Firebase tool (firebase-tools@15.24.0).",
+        "AUTH SETUP: Use firebase CLI login state. Do not set machine-global FIREBASE_PROJECT_ID. Future lease must resolve project identity from agentcore-project-router and launch with --dir <validated project directory>.",
+        "Future wrapper requirements: launch with --dir <project-dir> and --only <features>; resolve project identity from agentcore-project-router; one bounded process per project/worktree; prevent cross-project state reuse; separate read and mutation tools; operator-gate deploy/delete/admin operations.",
+        "Firestore tools: get, query, add, update, delete documents and list collections.",
+        "Auth tools: get/list Firebase Auth users.",
+        "Apps Script: NOT covered by Firebase MCP. No official MCP for Apps Script as of 2026-07-24.",
+        "firebase_init and firebase_deploy explicitly denied to prevent accidental project mutation.",
+        "firestore_create_database and admin DDL intentionally excluded from permitted_tools."
+      ]
+    },
+    "google-sheets-mcp": {
+      "canonical_id": "google-sheets-mcp",
+      "display_name": "Google Sheets Remote MCP (Official)",
+      "purpose": "Official Google Sheets remote MCP server for reading and writing Google Sheets data. Requires Google Cloud project with sheetsmcp.googleapis.com API enabled and OAuth 2.0 access token.",
+      "owner": "agentcore",
+      "pinned_version": "remote-v1",
+      "connection_type": "http",
+      "executable_or_url": "https://sheetsmcp.googleapis.com/mcp/v1",
+      "arguments": [],
+      "env_var_names": [
+        "GOOGLE_SHEETS_OAUTH_CLIENT_ID",
+        "GOOGLE_SHEETS_OAUTH_CLIENT_SECRET"
+      ],
+      "auth_type": "oauth",
+      "headers": {},
+      "timeout_seconds": 60,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "sheets.get_values",
+        "sheets.get_spreadsheet",
+        "sheets.update_values",
+        "sheets.update_formulas",
+        "sheets.insert_dimension",
+        "sheets.update_spreadsheet"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 3,
+        "retry_on": [
+          "http_5xx",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove from VK mcp_configs. Google Sheets data unchanged. Revoke OAuth at Google Cloud credentials console.",
+      "enabled": false,
+      "bifrost_client_name": "google_sheets_mcp",
+      "status": "developer_preview_oauth_pending",
+      "deferred": true,
+      "notes": [
+        "STATUS: developer_preview_oauth_pending. Zero default exposure. Not in any capability_profiles.",
+        "Official Google remote MCP. Endpoint: https://sheetsmcp.googleapis.com/mcp/v1. Transport: HTTP. Auth: OAuth 2.0 client flow with renewable credential state (not a manually copied short-lived access token).",
+        "APPS SCRIPT: No official dedicated MCP as of 2026-07-24. Keep deferred; do not implement custom wrapper; do not create credentials/endpoints/tools for Apps Script in this phase.",
+        "FORBIDDEN: Do not request or store GOOGLE_SHEETS_ACCESS_TOKEN as a persistent Windows User variable. Short-lived access tokens are not durable authentication.",
+        "Required before activation: (1) Prove Bifrost OAuth 2.0 compatibility with Google OAuth flow; (2) consent/scopes approved; (3) credential storage protected (not plain Windows env var); (4) refresh behavior passes; (5) read/write capability profiles separated (sheets-read / sheets-write); (6) prompt-injection risk documented; (7) operator approves activation.",
+        "Target capability split: sheets-read (get_values, get_spreadsheet) and sheets-write (update_values, update_formulas, insert_dimension, update_spreadsheet) as separate JIT-leased groups.",
+        "Sheet content never logged by Bifrost (log_content=false)."
+      ]
+    },
+    "clasp-mcp": {
+      "canonical_id": "clasp-mcp",
+      "display_name": "Google Clasp MCP",
+      "purpose": "Quarantined official Google clasp MCP candidate. No tools render through Bifrost because every upstream tool either accepts or derives filesystem paths outside a proxy's pre-operation control.",
+      "owner": "agentcore",
+      "pinned_version": "3.4.1",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\PowerShell\\7\\pwsh.EXE",
+      "arguments": [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-File",
+        "D:\\github\\agentcore-control-plane\\ops\\bifrost\\wrappers\\Start-AgentCoreClaspMcp.ps1"
+      ],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "write_capable",
+      "permitted_tools": [],
+      "denied_tools": [
+        "create_project",
+        "push_files",
+        "pull_files",
+        "clone_project",
+        "list_projects"
+      ],
+      "tool_groups": {
+        "clasp-project-discovery": {
+          "tools": [
+            "list_projects"
+          ],
+          "access_policy": "operator_scope",
+          "description": "Project discovery is denied through Bifrost because upstream searches parent directories for .clasp.json before listing remote projects.",
+          "lease_defaults": {
+            "max_duration_seconds": 3600,
+            "max_invocations": 100,
+            "requires_approval": false
+          }
+        },
+        "clasp-source-sync": {
+          "tools": [
+            "pull_files",
+            "clone_project"
+          ],
+          "access_policy": "operator_scope",
+          "description": "Destructive local source synchronization. Denied through Bifrost until a safe write adapter validates provider-returned Windows filenames before filesystem access.",
+          "lease_defaults": {
+            "max_duration_seconds": 900,
+            "max_invocations": 1,
+            "requires_approval": true
+          }
+        },
+        "clasp-remote-write": {
+          "tools": [
+            "push_files"
+          ],
+          "access_policy": "operator_scope",
+          "description": "Remote whole-project source replacement. Denied through the gateway until AgentCore has a caller-bound, consumable per-invocation approval path; operators retain the installed clasp CLI fallback.",
+          "lease_defaults": {
+            "max_duration_seconds": 900,
+            "max_invocations": 1,
+            "requires_approval": true
+          }
+        }
+      },
+      "capability_profiles": [],
+      "is_code_mode_client": false,
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Already fail-closed: keep enabled=false, keep clasp-mcp out of every capability profile, and re-render if drift appears. Leave the global clasp package, OAuth credentials, and Apps Script source unchanged.",
+      "enabled": false,
+      "bifrost_client_name": "clasp_mcp",
+      "status": "quarantine",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "@google/clasp",
+          "version": "3.4.1",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://github.com/google/clasp/tree/v3.4.1",
+          "documentation_url": "https://raw.githubusercontent.com/google/clasp/v3.4.1/README.md",
+          "verification": "arabold_exact"
+        },
+        "license": {
+          "spdx": "Apache-2.0",
+          "status": "verified",
+          "source_url": "https://github.com/google/clasp/blob/v3.4.1/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "verified",
+          "source": "Arabold @google/clasp@3.4.1 tagged src/mcp/server.ts and focused STDIO tools/list test",
+          "tools": [
+            "push_files",
+            "pull_files",
+            "create_project",
+            "clone_project",
+            "list_projects"
+          ],
+          "reported_tool_count": 5
+        },
+        "authentication": {
+          "mode": "oauth",
+          "status": "verified",
+          "credential_storage": "provider_managed",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "project_local",
+          "status": "rejected",
+          "candidate_roots": [
+            "D:\\github\\apps-script"
+          ],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "paths outside D:\\github\\apps-script",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "classic",
+          "rationale": "No clasp tool is exposed. list_projects implicitly searches parent directories for project configuration, and write tools perform filesystem work before proxy response validation."
+        },
+        "protected_resources": {
+          "classes": [
+            "apps_script_source",
+            "google_oauth_credentials",
+            "remote_google_project"
+          ],
+          "default_access": "rejected",
+          "policy": "All five upstream tools are denied by the registry and clasp guard, and clasp-mcp is disabled with zero profiles. Operator CLI use is an explicit host procedure outside Bifrost enforcement, not a gateway lease."
+        },
+        "default_disposition": {
+          "state": "rejected",
+          "replacement_route": "Use the globally installed clasp 3.4.1 CLI manually from D:\\github\\apps-script for explicitly operator-approved list, pull, clone, create, or push operations; no clasp MCP tool is exposed.",
+          "activation_requirements": [
+            "Exact global clasp.cmd path",
+            "Exact clasp 3.4.1 runtime version",
+            "Exact five-tool upstream inventory",
+            "Zero-tool, zero-profile default exposure",
+            "Isolation adapter that prevents parent configuration discovery before any future list_projects grant",
+            "Safe write adapter before any future gateway pull_files or clone_project grant",
+            "Caller-bound consumable approval enforcement before any future gateway push_files grant"
+          ]
+        },
+        "canary": {
+          "status": "rejected",
+          "probes": [
+            "Wrapper initialize and tools/list without Google API mutation",
+            "Provider-authenticated clasp list completed read-only; project names were not retained",
+            "Guarded denial of all five upstream tools before dispatch",
+            "Adversarial Windows path, reparse, configuration, provider-filename, hard-link, and implicit parent-discovery analysis"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Arabold @google/clasp@3.4.1",
+          "https://raw.githubusercontent.com/google/clasp/v3.4.1/src/mcp/server.ts",
+          "scripts/bifrost/test_clasp_mcp_contract.py"
+        ],
+        "unresolved_gaps": [
+          "No Google API mutation was invoked in this repo-only change",
+          "list_projects searches parent directories for .clasp.json, so it is denied until isolated from filesystem discovery",
+          "No safe pre-write interception exists for provider-returned Windows filenames, so pull_files and clone_project are denied through the gateway",
+          "No caller-bound consumable approval primitive currently exists for clasp push_files, so the gateway denies it"
+        ]
+      },
+      "notes": [
+        "Wrapper fails closed unless C:\\Users\\ynotf\\AppData\\Roaming\\npm\\clasp.cmd exists and reports exactly 3.4.1, then launches the AgentCore JSON-RPC guard rooted at D:\\github\\apps-script.",
+        "The wrapper emits no routine stdout before exec; stdout remains reserved for MCP JSON-RPC.",
+        "Official clasp MCP uses existing clasp OAuth credentials. No credential value or credential file is copied into Bifrost or Git.",
+        "No auto-execution: Bifrost mcp_disable_auto_tool_inject and tool-manager disable_auto_tool_inject remain true.",
+        "list_projects implicitly searches for .clasp.json above its working directory, so it is denied through the gateway despite being remote-read-only.",
+        "pull_files and clone_project are destructive and non-idempotent and can receive Windows-unsafe filenames from the provider before proxy response validation; both are denied through the gateway.",
+        "push_files is destructive and non-idempotent in the official 3.4.1 tool annotations and replaces the remote project content; it is denied through the gateway and guard until a caller-bound consumable approval path is implemented."
+      ]
+    },
+    "pipedream-google-sheets": {
+      "canonical_id": "pipedream-google-sheets",
+      "display_name": "Pipedream Google Sheets MCP Candidate",
+      "purpose": "Separate OAuth-pending Pipedream v2 candidate for a future named Google Sheets-only tool surface; does not replace the existing official Google Sheets preview entry.",
+      "owner": "agentcore",
+      "pinned_version": "remote-v2",
+      "connection_type": "http",
+      "executable_or_url": "https://mcp.pipedream.net/v2",
+      "arguments": [],
+      "env_var_names": [],
+      "auth_type": "oauth",
+      "timeout_seconds": 60,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this disabled candidate entry and its output-schema binding; the existing google-sheets-mcp entry, Pipedream account state, and Google Sheets data remain unchanged.",
+      "enabled": false,
+      "bifrost_client_name": "pipedream_google_sheets",
+      "status": "developer_preview_oauth_pending",
+      "deferred": true,
+      "admission_evidence": {
+        "artifact": {
+          "kind": "remote_endpoint",
+          "identifier": "https://mcp.pipedream.net/v2",
+          "version": "remote-v2",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://mcp.pipedream.net/v2",
+          "documentation_url": "https://pipedream.com/docs/connect/mcp/users",
+          "verification": "arabold_exact"
+        },
+        "license": {
+          "spdx": "LicenseRef-Pipedream-Service",
+          "status": "not_applicable",
+          "source_url": "https://pipedream.com/terms"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "Official Pipedream v2 end-user documentation says tools are app-specific and dynamically provided; no authenticated tools/list was performed",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "oauth",
+          "status": "pending_review",
+          "credential_storage": "provider_managed",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "remote_provider",
+          "status": "pending_review",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "repository source",
+            "credential files",
+            "database exports",
+            "Swarm-owned data"
+          ]
+        },
+        "code_mode": {
+          "decision": "required_if_admitted",
+          "rationale": "The general Pipedream endpoint can expose thousands of dynamic tools; any future Sheets-only admission requires exact authenticated inventory and narrow filtering."
+        },
+        "protected_resources": {
+          "classes": [
+            "google_sheets_data",
+            "pipedream_account",
+            "oauth_credentials",
+            "remote_saas_actions"
+          ],
+          "default_access": "none",
+          "policy": "No OAuth enrollment, tool discovery, or calls in this change. Do not use display labels as allowlists; admit exact tool identifiers only after authenticated tools/list."
+        },
+        "default_disposition": {
+          "state": "dormant_zero_profile",
+          "replacement_route": "Keep the existing google-sheets-mcp preview entry unchanged and use no Pipedream route until OAuth and named inventory are approved.",
+          "activation_requirements": [
+            "Operator-approved Bifrost OAuth enrollment",
+            "Authenticated exact tools/list inventory",
+            "Google Sheets-only named permitted_tools",
+            "Read and write classification for every admitted tool",
+            "Output-schema proof for the HTTP upstream",
+            "Separate read and user-approved write groups"
+          ]
+        },
+        "canary": {
+          "status": "required_before_activation",
+          "probes": [
+            "OAuth initialize and exact tools/list without executing a tool",
+            "One approved read-only Google Sheets canary after filtering"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Arabold pipedream-mcp@2.0.0 indexed from the official v2 end-user documentation"
+        ],
+        "unresolved_gaps": [
+          "Bifrost OAuth enrollment",
+          "Exact authenticated Google Sheets tool identifiers",
+          "HTTP outputSchema preservation",
+          "Per-tool read/write and approval policy"
+        ]
+      },
+      "notes": [
+        "Disabled because the current source contract cannot safely expose an OAuth-pending HTTP client without a named authenticated tool inventory and output-schema proof.",
+        "Zero profile and zero permitted tools. No Pipedream client is rendered.",
+        "This is separate from and does not replace google-sheets-mcp at https://sheetsmcp.googleapis.com/mcp/v1.",
+        "Activation delta: complete OAuth enrollment; capture exact tools/list; set only verified Google Sheets identifiers in permitted_tools; add read and user-approved write groups; prove HTTP outputSchema; set enabled=true; add only the approved profile; re-render and validate."
+      ]
+    },
+    "morph-mcp": {
+      "canonical_id": "morph-mcp",
+      "display_name": "Morph MCP",
+      "purpose": "Fast Apply edits, semantic codebase search, real GitHub code search, and Reflex classification for builder surfaces.",
+      "owner": "agentcore",
+      "pinned_version": "0.8.211",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "@morphllm/morphmcp@0.8.211"
+      ],
+      "env_var_names": [
+        "MORPH_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "edit_file",
+        "codebase_search",
+        "github_codebase_search",
+        "reflex_list",
+        "reflex_predict",
+        "reflex_summary",
+        "reflex_traces"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "openclaw",
+        "grokbot"
+      ],
+      "is_code_mode_client": true,
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false and re-render Bifrost config; remove morph-mcp from capability_profiles.builder.allowed_server_ids; restart bifrost-http.",
+      "enabled": true,
+      "bifrost_client_name": "morph_mcp",
+      "status": "active",
+      "notes": [
+        "Pinned to @morphllm/morphmcp@0.8.211 (entry point dist/index.js, bin: morph-mcp).",
+        "All 7 canonical tools exposed; clients may suppress per-tool via their own profile.",
+        "MORPH_API_KEY is set in Windows User-scope env (length 51). Never commit value.",
+        "Optional env: MORPH_API_URL (default https://api.morphllm.com), MORPH_WARP_GREP_TIMEOUT (default 30000ms).",
+        "Gated to 'builder' capability profile. Reviewer/operator/chatgpt/database-validator do NOT get Morph tools.",
+        "SECURITY SHAPE (B1, 2026-08-16): stdio child has full filesystem access for the OS user. Tool-level scoping (repo_path in codebase_search, path in edit_file) is enforced by agent discretion, not Bifrost. This is the cost of 'one config, all IDEs' - Pattern A (dormant + host-owned explicit-cwd local process) is the alternative for tighter scoping.",
+        "Pattern B chosen 2026-08-16 by operator; per-request cwd is not injectable through stdio so per-project scope is best-effort via repo_path/path params.",
+        "Compaction (the 10,500 tok/s 'flow uninterrupted' feature) is not exposed via MCP - only available through the @morphllm/opencode-morph-plugin per upstream docs."
+      ]
+    },
+    "apify-research": {
+      "canonical_id": "apify-research",
+      "display_name": "Apify Research MCP",
+      "purpose": "Authenticated Actor discovery, bounded Actor execution, and Apify documentation retrieval for trusted AgentCore builders.",
+      "owner": "agentcore",
+      "pinned_version": "0.15.4",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.exe",
+      "arguments": [
+        "F:\\AgentCore\\runtime\\mcp-processes\\research-mcp\\node_modules\\@apify\\actors-mcp-server\\dist\\stdio.js",
+        "--tools",
+        "search-actors,fetch-actor-details,call-actor,search-apify-docs,fetch-apify-docs",
+        "--telemetry-enabled=false",
+        "--ui=default"
+      ],
+      "env_var_names": [],
+      "env_aliases": {
+        "APIFY_TOKEN": "APIFY_API_KEY"
+      },
+      "timeout_seconds": 300,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [
+        "search-actors",
+        "fetch-actor-details",
+        "call-actor",
+        "search-apify-docs",
+        "fetch-apify-docs"
+      ],
+      "denied_tools": [
+        "get-actor-run",
+        "get-dataset-items",
+        "get-key-value-store-record",
+        "abort-actor-run"
+      ],
+      "capability_profiles": [
+        "builder",
+        "grokbot"
+      ],
+      "is_code_mode_client": true,
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove apify-research from the builder profile; re-render Bifrost. Leave APIFY_API_KEY unchanged.",
+      "enabled": true,
+      "bifrost_client_name": "apify_research",
+      "status": "active",
+      "notes": [
+        "Exact package lock: @apify/actors-mcp-server 0.15.4 under tools/research-mcp.",
+        "The stdio adapter maps child APIFY_TOKEN from parent APIFY_API_KEY by environment-variable name; no secret value enters argv or source.",
+        "The upstream auto-injects four run/storage helpers when call-actor is selected. Bifrost exposes only the exact five-tool allowlist and denies those helpers.",
+        "call-actor is intentionally executable for the trusted builder profile but is never auto-executed. Telemetry and MCP Apps mode are disabled explicitly."
+      ]
+    },
+    "exa-research": {
+      "canonical_id": "exa-research",
+      "display_name": "Exa Research MCP",
+      "purpose": "Read-only web search and document retrieval through Exa.",
+      "owner": "agentcore",
+      "pinned_version": "3.4.1",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.exe",
+      "arguments": [
+        "F:\\AgentCore\\runtime\\mcp-processes\\research-mcp\\node_modules\\exa-mcp-server\\dist\\stdio.cjs"
+      ],
+      "env_var_names": [
+        "EXA_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "web_search_exa",
+        "web_fetch_exa"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "grokbot"
+      ],
+      "is_code_mode_client": true,
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove exa-research from the builder profile; re-render Bifrost. Leave EXA_API_KEY unchanged.",
+      "enabled": true,
+      "bifrost_client_name": "exa_research",
+      "status": "active",
+      "notes": [
+        "Exact package lock: exa-mcp-server 3.4.1 under tools/research-mcp.",
+        "Only the two read-only 3.4.1 tools are allowed. Code Mode keeps their schemas out of the eager builder tool list."
+      ]
+    },
+    "firecrawl-research": {
+      "canonical_id": "firecrawl-research",
+      "display_name": "Firecrawl Research MCP",
+      "purpose": "Read-only web, paper, and public-code research through Firecrawl.",
+      "owner": "agentcore",
+      "pinned_version": "3.24.0",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.exe",
+      "arguments": [
+        "F:\\AgentCore\\runtime\\mcp-processes\\research-mcp\\node_modules\\firecrawl-mcp\\dist\\index.js"
+      ],
+      "env_var_names": [
+        "FIRECRAWL_API_KEY"
+      ],
+      "timeout_seconds": 300,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "firecrawl_search",
+        "firecrawl_scrape",
+        "firecrawl_map",
+        "firecrawl_research_search_papers",
+        "firecrawl_research_inspect_paper",
+        "firecrawl_research_related_papers",
+        "firecrawl_research_read_paper",
+        "firecrawl_research_search_github"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "grokbot"
+      ],
+      "is_code_mode_client": true,
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove firecrawl-research from the builder profile; re-render Bifrost. Leave FIRECRAWL_API_KEY unchanged.",
+      "enabled": true,
+      "bifrost_client_name": "firecrawl_research",
+      "status": "active",
+      "notes": [
+        "Exact package lock: firecrawl-mcp 3.24.0 under tools/research-mcp.",
+        "The upstream advertises a broader catalog; Bifrost allows only the exact read-only web, paper, and public-code research subset."
+      ]
+    },
+    "figma-mcp": {
+      "canonical_id": "figma-mcp",
+      "display_name": "Figma MCP (Official Remote)",
+      "purpose": "Official Figma remote MCP for design-context extraction and design-system lookup through AgentCore Bifrost Code Mode.",
+      "owner": "agentcore",
+      "pinned_version": "remote-live",
+      "connection_type": "http",
+      "executable_or_url": "https://mcp.figma.com/mcp",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "download_assets",
+        "get_code_connect_map",
+        "get_code_connect_suggestions",
+        "get_context_for_code_connect",
+        "get_design_context",
+        "get_figjam",
+        "get_generative_plugin",
+        "get_libraries",
+        "get_metadata",
+        "get_motion_context",
+        "get_screenshot",
+        "get_shader",
+        "get_variable_defs",
+        "list_file_shaders",
+        "list_generative_plugins",
+        "list_shaders",
+        "search_design_system",
+        "whoami"
+      ],
+      "denied_tools": [
+        "add_code_connect_map",
+        "create_generative_plugin",
+        "create_new_file",
+        "create_shader",
+        "generate_diagram",
+        "generate_figma_design",
+        "send_code_connect_mappings",
+        "update_generative_plugin",
+        "update_shader",
+        "upload_assets",
+        "use_figma",
+        "weave_cancel_tool_run",
+        "weave_get_tool_inputs",
+        "weave_get_tool_run_output",
+        "weave_list_tools",
+        "weave_run_tool",
+        "weave_upload_asset"
+      ],
+      "capability_profiles": [],
+      "is_code_mode_client": true,
+      "auth_type": "oauth",
+      "oauth_config": {
+        "server_url": "https://mcp.figma.com",
+        "scopes": []
+      },
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 3,
+        "retry_on": [
+          "http_5xx",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove figma-mcp from capability_profiles allowed_server_ids; re-render Bifrost config; restart \\AgentCore\\AgentCore-Bifrost-Gateway. Revoke OAuth at Figma account settings if needed.",
+      "enabled": false,
+      "bifrost_client_name": "figma_mcp",
+      "status": "developer_preview_oauth_pending",
+      "notes": [
+        "Official remote endpoint https://mcp.figma.com/mcp registered 2026-09-11 for Bifrost Code Mode admission.",
+        "LIVE BIND STOP (2026-09-11): Bifrost initiate-verification Dynamic Client Registration returned HTTP 403 Forbidden from Figma (\"Please provide client_id manually\"). Figma remote MCP currently restricts OAuth clients; Bifrost is not an auto-approved catalog client.",
+        "Do not paste Figma into IDE mcp.json. Keep zero profile exposure until OAuth client_id is supplied or Figma approves this gateway client.",
+        "Named read-only permitted_tools inventory retained from official tools-and-prompts docs. Write/Weave tools remain denied.",
+        "Activation delta: set oauth_config.client_id to a Figma-approved OAuth client; complete Bifrost initiate-verification; set enabled=true; add builder+openclaw profiles; re-render; restart; prove listToolFiles servers/figma_mcp.",
+        "Optional interim (operator ACCEPT required): PAT-backed community stdio server is a different surface and is not the official remote MCP.",
+        "INTERIM ACTIVE (2026-09-11 operator ACCEPT): live design reads use figma-framelink-mcp (Framelink PAT stdio). This official remote entry remains deferred until OAuth client_id."
+      ],
+      "deferred": true
+    },
+    "figma-framelink-mcp": {
+      "canonical_id": "figma-framelink-mcp",
+      "display_name": "Figma Framelink MCP (Interim PAT)",
+      "purpose": "Interim PAT-backed Figma design-data reads through Bifrost Code Mode until official remote OAuth client_id is approved.",
+      "owner": "agentcore",
+      "pinned_version": "0.13.2",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Program Files\\nodejs\\npx.cmd",
+      "arguments": [
+        "-y",
+        "figma-developer-mcp@0.13.2",
+        "--stdio",
+        "--skip-image-downloads",
+        "--no-telemetry"
+      ],
+      "env_var_names": [],
+      "env_aliases": {
+        "FIGMA_API_KEY": "FIGMA_ACCESS_TOKEN"
+      },
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "get_figma_data"
+      ],
+      "denied_tools": [
+        "download_figma_images"
+      ],
+      "capability_profiles": [
+        "builder",
+        "openclaw",
+        "grokbot"
+      ],
+      "is_code_mode_client": true,
+      "auth_type": "none",
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove figma-framelink-mcp from capability_profiles.builder and openclaw allowed_server_ids; re-render Bifrost config; restart \\AgentCore\\AgentCore-Bifrost-Gateway. Revoke FIGMA_ACCESS_TOKEN at Figma settings if needed.",
+      "enabled": true,
+      "bifrost_client_name": "figma_framelink_mcp",
+      "status": "active",
+      "notes": [
+        "Operator ACCEPT interim PAT path 2026-09-11. Windows User-scope FIGMA_ACCESS_TOKEN maps to Framelink FIGMA_API_KEY via env_aliases; never commit or print the value.",
+        "Pinned figma-developer-mcp@0.13.2 (Framelink/GLips). This is NOT the official https://mcp.figma.com/mcp OAuth surface.",
+        "--skip-image-downloads keeps the admitted surface read-only (get_figma_data only). download_figma_images remains denied.",
+        "Do not paste Figma into IDE mcp.json. Discovery is agentcore-gateway Code Mode listToolFiles -> servers/figma_framelink_mcp.",
+        "Replace with official figma-mcp remote when Figma-approved OAuth client_id binds; then disable this interim entry.",
+        "auth_type=none because Bifrost schema has no pat enum; credential is FIGMA_ACCESS_TOKEN via env_aliases to FIGMA_API_KEY."
+      ]
+    },
+    "tavily-research": {
+      "canonical_id": "tavily-research",
+      "display_name": "Tavily Research MCP",
+      "purpose": "Read-only web search, extraction, crawling, mapping, and research through Tavily.",
+      "owner": "agentcore",
+      "pinned_version": "0.2.22",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.exe",
+      "arguments": [
+        "F:\\AgentCore\\runtime\\mcp-processes\\research-mcp\\node_modules\\tavily-mcp\\build\\index.js"
+      ],
+      "env_var_names": [
+        "TAVILY_API_KEY"
+      ],
+      "timeout_seconds": 300,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "tavily_search",
+        "tavily_extract",
+        "tavily_crawl",
+        "tavily_map",
+        "tavily_research"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "grokbot"
+      ],
+      "is_code_mode_client": true,
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove tavily-research from the builder profile; re-render Bifrost. Leave TAVILY_API_KEY unchanged.",
+      "enabled": true,
+      "bifrost_client_name": "tavily_research",
+      "status": "active",
+      "notes": [
+        "Exact package lock: tavily-mcp 0.2.22 under tools/research-mcp.",
+        "Only the five documented read-only tools are allowed. Code Mode keeps their schemas out of the eager builder tool list."
+      ]
+    },
+    "brightdata-research": {
+      "canonical_id": "brightdata-research",
+      "display_name": "Bright Data Research MCP",
+      "purpose": "Catalogued Bright Data research candidate; dormant because startup can create provider zones.",
+      "owner": "agentcore",
+      "pinned_version": "2.11.1",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.exe",
+      "arguments": [
+        "F:\\AgentCore\\runtime\\mcp-processes\\research-mcp\\node_modules\\@brightdata\\mcp\\server.js"
+      ],
+      "env_var_names": [],
+      "env_aliases": {
+        "API_TOKEN": "BRIGHTDATA_API_KEY"
+      },
+      "timeout_seconds": 300,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "bounded_write",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "is_code_mode_client": true,
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remain enabled=false and profileless. The package is not part of the research runtime lock or installation.",
+      "enabled": false,
+      "bifrost_client_name": "brightdata_research",
+      "status": "catalogued_unverified",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "@brightdata/mcp",
+          "version": "2.11.1",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://github.com/brightdata/brightdata-mcp",
+          "documentation_url": "https://github.com/brightdata/brightdata-mcp",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "MIT",
+          "status": "verified",
+          "source_url": "https://github.com/brightdata/brightdata-mcp/blob/main/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "No startup or tools/list call was permitted because 2.11.1 startup may create provider zones.",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "pending_review",
+          "credential_storage": "windows_user_env",
+          "env_var_names": [
+            "BRIGHTDATA_API_KEY"
+          ],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "remote_provider",
+          "status": "pending_review",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "required_if_admitted",
+          "rationale": "The catalog is large and must remain progressively disclosed if a future provider-side-effect review admits it."
+        },
+        "protected_resources": {
+          "classes": [
+            "remote_provider_account",
+            "provider_zones",
+            "network"
+          ],
+          "default_access": "none",
+          "policy": "No install, startup, tool discovery, or provider mutation until startup side effects and exact tools are accepted."
+        },
+        "default_disposition": {
+          "state": "dormant_zero_profile",
+          "replacement_route": "Use the admitted Exa, Tavily, Firecrawl, and Apify clients.",
+          "activation_requirements": [
+            "Provider-zone creation behavior reviewed",
+            "Exact authenticated tools/list inventory",
+            "Named read and mutation groups",
+            "Rollback for provider-side resources"
+          ]
+        },
+        "canary": {
+          "status": "required_before_activation",
+          "probes": [
+            "Isolated startup and tools/list against a disposable provider account"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "@brightdata/mcp 2.11.1 package tarball"
+        ],
+        "unresolved_gaps": [
+          "Startup may create provider zones",
+          "Exact authenticated tool inventory",
+          "Provider-side rollback"
+        ]
+      },
+      "notes": [
+        "API_TOKEN would be derived from BRIGHTDATA_API_KEY by env alias if a future admission enables the client.",
+        "The package is deliberately absent from tools/research-mcp/package.json and package-lock.json."
+      ]
+    },
+    "context7": {
+      "canonical_id": "context7",
+      "display_name": "Context7 Docs MCP",
+      "purpose": "Public-library docs bridge. Arabold first; Context7 only on public miss while scrape runs.",
+      "owner": "agentcore",
+      "pinned_version": "4.0.4",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\pnpm\\bin\\node.EXE",
+      "arguments": [
+        "C:\\Users\\ynotf\\.cursor\\vendor\\context7-mcp\\node_modules\\@upstash\\context7-mcp\\dist\\index.js"
+      ],
+      "env_var_names": [
+        "CONTEXT7_API_KEY"
+      ],
+      "timeout_seconds": 60,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "resolve-library-id",
+        "query-docs"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "docs-knowledge",
+        "reviewer",
+        "operator",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; restore PROJECT_ANCHOR forbidden list if retiring.",
+      "enabled": true,
+      "bifrost_client_name": "context7",
+      "is_code_mode_client": true,
+      "status": "active",
+      "notes": [
+        "AUTH-2026-08-30-GLOBAL-LOCAL-DOCS-INGEST: arabold-first Context7 bridge.",
+        "Never paste into IDE mcp.json.",
+        "pnpm Node 24 launch.",
+        "2026-11-04 LocalApps: I:\\LocalApps\\Context7 pin 4.0.4; CONTEXT7_API_KEY currently ABSENT — rate-limited free tier until Tony sets it",
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: is_code_mode_client recorded in the registry. It existed only in the live config.db, so every render silently promoted this server to eager exposure."
+      ]
+    },
+    "nia": {
+      "canonical_id": "nia",
+      "display_name": "Nia MCP",
+      "purpose": "Agentic search and retrieval for indexed repositories, documentation, research papers, packages, local folders, and cross-agent context through the Nia cloud MCP endpoint.",
+      "owner": "agentcore",
+      "pinned_version": "remote-live; cli @nozomioai/nia@0.5.2",
+      "connection_type": "http",
+      "executable_or_url": "https://apigcp.trynia.ai/mcp",
+      "arguments": [],
+      "env_var_names": [
+        "NIA_API_KEY",
+        "NIA_AUTHORIZATION"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [
+        "index",
+        "search",
+        "nia_read",
+        "nia_grep",
+        "nia_explore",
+        "nia_research",
+        "nia_advisor",
+        "context",
+        "nia_package_search_hybrid",
+        "tracer",
+        "nia_vault_list",
+        "nia_vault_search"
+      ],
+      "denied_tools": [
+        "manage_resource",
+        "auto_subscribe_dependencies",
+        "nia_write",
+        "nia_rm",
+        "nia_mv",
+        "nia_mkdir",
+        "nia_vault_create",
+        "nia_vault_run"
+      ],
+      "capability_profiles": [
+        "builder",
+        "docs-knowledge",
+        "operator",
+        "openclaw",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 2,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "http_5xx",
+          "timeout"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove nia from capability_profiles allowed_server_ids; re-render and restart Bifrost. Nia account data and Windows User NIA_API_KEY remain unchanged.",
+      "enabled": true,
+      "bifrost_client_name": "nia",
+      "auth_type": "headers",
+      "headers": {
+        "Authorization": "env.NIA_AUTHORIZATION"
+      },
+      "status": "active",
+      "notes": [
+        "Live MCP preflight on 2026-09-05 returned 20 tools over https://apigcp.trynia.ai/mcp with NIA_API_KEY from Windows User env.",
+        "Bifrost MCP header values use whole-value env references, so NIA_AUTHORIZATION is maintained as the complete Authorization header value derived from NIA_API_KEY.",
+        "Default exposure is non-destructive intelligence: indexing, search, read, grep, explore, research/advisor, context, package search, tracer, and vault list/search.",
+        "Destructive mutation, resource management, auto-subscribe, file write/delete/move/mkdir, vault create, and vault workflow run stay denied by default.",
+        "Nia CLI is installed globally as @nozomioai/nia@0.5.2 and verified with env-sourced authentication. Do not run nia auth login in AgentCore; it may write ~/.config/nia/api_key, while AgentCore stores secrets only in Windows User environment variables.",
+        "Nia skill source on this host is C:\\Users\\ynotf\\.agents\\skills\\nia; publish through ops/bifrost/Sync-AgentCoreBifrostSkillsRepository.ps1, not by copying secrets or user-global skill trees into the repo.",
+        "2026-09-14: Code Mode enabled (is_code_mode_client=true) with global code_mode_binding_level=tool. Discovery path: listToolFiles -> readToolFile -> executeToolCode; missing tools/list prefixes for Code Mode clients are discovery failures, not missing admissions."
+      ],
+      "is_code_mode_client": true
+    },
+    "shadcn": {
+      "canonical_id": "shadcn",
+      "display_name": "Shadcn MCP Candidate",
+      "purpose": "Candidate project-scoped component discovery and installation workflow.",
+      "owner": "candidate_unverified",
+      "pinned_version": "4.21.0",
+      "connection_type": "stdio",
+      "executable_or_url": "not-configured",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "project",
+      "write_classification": "write_capable",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this disabled catalog record; no package, config, or runtime state was installed.",
+      "enabled": false,
+      "bifrost_client_name": "shadcn",
+      "status": "catalogued_unverified",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "shadcn",
+          "version": "4.21.0",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://www.npmjs.com/package/shadcn/v/4.21.0",
+          "documentation_url": "https://ui.shadcn.com/docs/mcp",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "MIT",
+          "status": "verified",
+          "source_url": "https://github.com/shadcn-ui/ui/blob/main/LICENSE.md"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "Official exact-version MCP inventory is not indexed in Arabold",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "unresolved",
+          "credential_storage": "unresolved",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "project_local",
+          "status": "pending_review",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "unresolved",
+          "rationale": "Exact tool count and schema inventory must be captured before choosing classic or Code Mode."
+        },
+        "protected_resources": {
+          "classes": [
+            "project_source",
+            "package_manifest",
+            "component_registry"
+          ],
+          "default_access": "none",
+          "policy": "No component or package writes until exact project identity and named tools are reviewed."
+        },
+        "default_disposition": {
+          "state": "catalogued_zero_profile",
+          "replacement_route": "Use the project-owned shadcn CLI manually within the exact repository when explicitly requested.",
+          "activation_requirements": [
+            "Arabold exact official docs",
+            "Complete named tool inventory",
+            "Project write-boundary review",
+            "Safe canary"
+          ]
+        },
+        "canary": {
+          "status": "required_before_activation",
+          "probes": [
+            "Read-only component discovery in a disposable non-protected project"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Operator-verified shadcn@4.21.0 finding"
+        ],
+        "unresolved_gaps": [
+          "Arabold exact docs",
+          "Tool inventory",
+          "Authentication behavior",
+          "Storage side effects"
+        ]
+      },
+      "notes": [
+        "Catalog only. Not installed, rendered, profiled, or activated."
+      ]
+    },
+    "posthog": {
+      "canonical_id": "posthog",
+      "display_name": "PostHog MCP Candidate",
+      "purpose": "Candidate remote PostHog analytics and project-inspection surface.",
+      "owner": "candidate_unverified",
+      "pinned_version": "remote-unversioned",
+      "connection_type": "http",
+      "executable_or_url": "https://mcp.posthog.com/mcp",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this disabled catalog record; no OAuth binding or remote project connection exists.",
+      "enabled": false,
+      "bifrost_client_name": "posthog",
+      "status": "catalogued_unverified",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "remote_endpoint",
+          "identifier": "https://mcp.posthog.com/mcp",
+          "version": "remote-unversioned",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://mcp.posthog.com/mcp",
+          "documentation_url": "https://posthog.com/docs/model-context-protocol",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "UNRESOLVED",
+          "status": "unresolved",
+          "source_url": "https://posthog.com/docs/model-context-protocol"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "No authenticated exact inventory accepted",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "unresolved",
+          "status": "unresolved",
+          "credential_storage": "unresolved",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "remote_provider",
+          "status": "unresolved",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "local database roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "unresolved",
+          "rationale": "Tool count and schemas are unknown until authenticated discovery is approved."
+        },
+        "protected_resources": {
+          "classes": [
+            "analytics_data",
+            "remote_project",
+            "account_credentials"
+          ],
+          "default_access": "none",
+          "policy": "No account bind or analytics mutation before scope, auth, retention, and inventory review."
+        },
+        "default_disposition": {
+          "state": "catalogued_zero_profile",
+          "replacement_route": "Use the existing PostHog UI or approved project SDK path.",
+          "activation_requirements": [
+            "Arabold exact official docs",
+            "License and auth review",
+            "Complete named inventory",
+            "Retention review",
+            "Safe read-only canary"
+          ]
+        },
+        "canary": {
+          "status": "required_before_activation",
+          "probes": [
+            "Read-only metadata call against an operator-selected test project"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Operator-verified official endpoint finding"
+        ],
+        "unresolved_gaps": [
+          "Version pin",
+          "License",
+          "Authentication",
+          "Tool inventory",
+          "Remote retention"
+        ]
+      },
+      "notes": [
+        "Catalog only. Not installed, OAuth-bound, rendered, profiled, or activated."
+      ]
+    },
+    "agentmail": {
+      "canonical_id": "agentmail",
+      "display_name": "AgentMail MCP Candidate",
+      "purpose": "Candidate agent inbox and email workflow surface.",
+      "owner": "candidate_unverified",
+      "pinned_version": "1.0.2",
+      "connection_type": "stdio",
+      "executable_or_url": "not-configured",
+      "arguments": [],
+      "env_var_names": [
+        "AGENTMAIL_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this disabled catalog record; no package, API key binding, inbox, or message was created.",
+      "enabled": false,
+      "bifrost_client_name": "agentmail",
+      "status": "catalogued_unverified",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "agentmail-mcp",
+          "version": "1.0.2",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://www.npmjs.com/package/agentmail-mcp/v/1.0.2",
+          "documentation_url": "https://docs.agentmail.to/",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "MIT",
+          "status": "verified",
+          "source_url": "https://www.npmjs.com/package/agentmail-mcp/v/1.0.2"
+        },
+        "tool_inventory": {
+          "status": "reported_unverified",
+          "source": "Operator-supplied package finding; names not authenticated",
+          "tools": [],
+          "reported_tool_count": 27
+        },
+        "authentication": {
+          "mode": "headers",
+          "status": "pending_review",
+          "credential_storage": "windows_user_env",
+          "env_var_names": [
+            "AGENTMAIL_API_KEY"
+          ],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "remote_provider",
+          "status": "pending_review",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "local mail archives",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "required_if_admitted",
+          "rationale": "The reported 27-tool surface is large enough for Code Mode after exact inventory verification."
+        },
+        "protected_resources": {
+          "classes": [
+            "email_content",
+            "attachments",
+            "recipient_addresses",
+            "outbound_messages",
+            "account_credentials"
+          ],
+          "default_access": "none",
+          "policy": "Draft and read scopes must be separated from send/delete actions; outbound sends require explicit approval."
+        },
+        "default_disposition": {
+          "state": "catalogued_zero_profile",
+          "replacement_route": "Use the existing human-controlled email workflow until auth, retention, and send policy pass.",
+          "activation_requirements": [
+            "Arabold exact official docs",
+            "Authenticated 27-tool inventory",
+            "Auth and retention review",
+            "Draft-over-send policy",
+            "Safe inbox-list canary"
+          ]
+        },
+        "canary": {
+          "status": "required_before_activation",
+          "probes": [
+            "List a dedicated test inbox without sending or deleting mail"
+          ]
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Operator-verified agentmail-mcp@1.0.2 package finding"
+        ],
+        "unresolved_gaps": [
+          "Arabold exact docs",
+          "Named tool inventory",
+          "Auth scope",
+          "Retention policy"
+        ]
+      },
+      "notes": [
+        "Catalog only. Not installed, authenticated, rendered, profiled, or activated."
+      ]
+    },
+    "fetch-mcp": {
+      "canonical_id": "fetch-mcp",
+      "display_name": "Fetch MCP Rejected Candidate",
+      "purpose": "Rejected generic network fetch server candidate.",
+      "owner": "rejected_candidate",
+      "pinned_version": "unresolved",
+      "connection_type": "stdio",
+      "executable_or_url": "not-configured",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this rejected catalog record; no package or listener exists.",
+      "enabled": false,
+      "bifrost_client_name": "fetch_mcp",
+      "status": "rejected",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "python_package",
+          "identifier": "mcp-server-fetch",
+          "version": "unresolved",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://pypi.org/project/mcp-server-fetch/",
+          "documentation_url": "https://pypi.org/project/mcp-server-fetch/",
+          "verification": "unresolved"
+        },
+        "license": {
+          "spdx": "UNRESOLVED",
+          "status": "unresolved",
+          "source_url": "https://pypi.org/project/mcp-server-fetch/"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "Conflicting package versions and inventories",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "unresolved",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "none",
+          "status": "rejected",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "private network targets",
+            "metadata endpoints",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "rejected",
+          "rationale": "Code Mode cannot mitigate redundant capability, provenance ambiguity, or SSRF risk."
+        },
+        "protected_resources": {
+          "classes": [
+            "network",
+            "private_endpoints",
+            "credentials"
+          ],
+          "default_access": "rejected",
+          "policy": "Generic arbitrary URL fetch is not admitted."
+        },
+        "default_disposition": {
+          "state": "rejected",
+          "replacement_route": "Use Arabold fetch_url for documentation or the host's governed browser/web fetch path.",
+          "activation_requirements": []
+        },
+        "canary": {
+          "status": "rejected",
+          "probes": []
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Operator-verified conflicting-version and SSRF finding"
+        ],
+        "unresolved_gaps": [
+          "Exact artifact provenance",
+          "License",
+          "Named tool inventory"
+        ]
+      },
+      "notes": [
+        "Rejected and default-off because the capability is redundant and creates SSRF risk."
+      ]
+    },
+    "wcgw": {
+      "canonical_id": "wcgw",
+      "display_name": "wcgw Rejected Candidate",
+      "purpose": "Rejected unrestricted shell and WSL execution candidate.",
+      "owner": "rejected_candidate",
+      "pinned_version": "5.6.5",
+      "connection_type": "stdio",
+      "executable_or_url": "not-configured",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "admin",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this rejected catalog record; no package, WSL process, or shell was started.",
+      "enabled": false,
+      "bifrost_client_name": "wcgw",
+      "status": "rejected",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "python_package",
+          "identifier": "wcgw",
+          "version": "5.6.5",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://pypi.org/project/wcgw/5.6.5/",
+          "documentation_url": "https://github.com/rusiaaman/wcgw",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "Apache-2.0",
+          "status": "verified",
+          "source_url": "https://github.com/rusiaaman/wcgw/blob/main/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "No admitted named inventory; unrestricted shell capability is sufficient to reject",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "not_required",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "unrestricted_host",
+          "status": "rejected",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "whole-drive roots",
+            "home-directory-wide roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "rejected",
+          "rationale": "Schema compression does not constrain unrestricted host shell or WSL authority."
+        },
+        "protected_resources": {
+          "classes": [
+            "shell",
+            "wsl",
+            "filesystem",
+            "processes",
+            "network"
+          ],
+          "default_access": "rejected",
+          "policy": "Unrestricted shell and WSL execution are forbidden as a normal IDE MCP surface."
+        },
+        "default_disposition": {
+          "state": "rejected",
+          "replacement_route": "Use host-native exec_command scoped to the exact workspace and task.",
+          "activation_requirements": []
+        },
+        "canary": {
+          "status": "rejected",
+          "probes": []
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Operator-verified wcgw@5.6.5 capability and license finding"
+        ],
+        "unresolved_gaps": [
+          "Named tool inventory not needed for rejected disposition"
+        ]
+      },
+      "notes": [
+        "Rejected and default-off; no shell or WSL process may be started from this record."
+      ]
+    },
+    "docker-mcp-toolkit": {
+      "canonical_id": "docker-mcp-toolkit",
+      "display_name": "Docker MCP Toolkit Rejected Candidate",
+      "purpose": "Rejected second MCP aggregator candidate.",
+      "owner": "rejected_candidate",
+      "pinned_version": "0.43.1",
+      "connection_type": "stdio",
+      "executable_or_url": "not-configured",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "admin",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this rejected catalog record; no Docker MCP gateway or catalog was started.",
+      "enabled": false,
+      "bifrost_client_name": "docker_mcp_toolkit",
+      "status": "rejected",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "local_wrapper",
+          "identifier": "Docker MCP Toolkit",
+          "version": "0.43.1",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/",
+          "documentation_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "UNRESOLVED",
+          "status": "unresolved",
+          "source_url": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "Second-aggregator catalog is intentionally not activated",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "unresolved",
+          "status": "unresolved",
+          "credential_storage": "unresolved",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "container_managed",
+          "status": "rejected",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "Docker Desktop global state",
+            "whole-drive roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "rejected",
+          "rationale": "A second aggregator conflicts with Bifrost ownership and cannot be made acceptable by Code Mode."
+        },
+        "protected_resources": {
+          "classes": [
+            "containers",
+            "images",
+            "volumes",
+            "networks",
+            "mcp_aggregation"
+          ],
+          "default_access": "rejected",
+          "policy": "Bifrost remains the sole normal AgentCore MCP aggregator."
+        },
+        "default_disposition": {
+          "state": "rejected",
+          "replacement_route": "Use agentcore-gateway for MCP aggregation and task-scoped native Docker CLI only when separately authorized.",
+          "activation_requirements": []
+        },
+        "canary": {
+          "status": "rejected",
+          "probes": []
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Operator-verified Docker MCP Toolkit 0.43.1 finding"
+        ],
+        "unresolved_gaps": [
+          "License and inventory intentionally unresolved because second-gateway architecture is rejected"
+        ]
+      },
+      "notes": [
+        "Rejected and default-off because it would create a second normal MCP aggregator."
+      ]
+    },
+    "postgresql-mcp": {
+      "canonical_id": "postgresql-mcp",
+      "display_name": "Raw PostgreSQL MCP Rejected Candidate",
+      "purpose": "Rejected direct database query server candidate.",
+      "owner": "rejected_candidate",
+      "pinned_version": "0.6.2",
+      "connection_type": "stdio",
+      "executable_or_url": "not-configured",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "admin",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this rejected catalog record; no DSN, role, database, or process was created.",
+      "enabled": false,
+      "bifrost_client_name": "postgresql_mcp",
+      "status": "rejected",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "npm_package",
+          "identifier": "@modelcontextprotocol/server-postgres",
+          "version": "0.6.2",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://www.npmjs.com/package/@modelcontextprotocol/server-postgres/v/0.6.2",
+          "documentation_url": "https://github.com/modelcontextprotocol/servers-archived/tree/main/src/postgres",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "MIT",
+          "status": "verified",
+          "source_url": "https://github.com/modelcontextprotocol/servers-archived/blob/main/LICENSE"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "Deprecated raw database server is rejected without discovery",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "unresolved",
+          "status": "unresolved",
+          "credential_storage": "unresolved",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "unresolved",
+          "status": "rejected",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "AgentCore PostgreSQL data roots",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "rejected",
+          "rationale": "Code Mode does not make raw database credentials or unrestricted SQL acceptable."
+        },
+        "protected_resources": {
+          "classes": [
+            "database",
+            "database_credentials",
+            "raw_sql",
+            "schema_mutation"
+          ],
+          "default_access": "rejected",
+          "policy": "Normal IDEs receive no raw SQL, DSNs, database credentials, or write tools."
+        },
+        "default_disposition": {
+          "state": "rejected",
+          "replacement_route": "Use agentcore-memory for governed reads and the owning migration workflow for approved database changes.",
+          "activation_requirements": []
+        },
+        "canary": {
+          "status": "rejected",
+          "probes": []
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Operator-verified deprecated @modelcontextprotocol/server-postgres@0.6.2 finding"
+        ],
+        "unresolved_gaps": [
+          "No gaps can override the direct-database prohibition"
+        ]
+      },
+      "notes": [
+        "Rejected and default-off; no normal IDE database write tools or direct DSN route."
+      ]
+    },
+    "sqlite-mcp": {
+      "canonical_id": "sqlite-mcp",
+      "display_name": "SQLite MCP Rejected Candidate",
+      "purpose": "Rejected unresolved raw SQLite server candidate.",
+      "owner": "rejected_candidate",
+      "pinned_version": "unresolved",
+      "connection_type": "stdio",
+      "executable_or_url": "not-configured",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "project",
+      "write_classification": "admin",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this rejected catalog record; no package, database path, or process was created.",
+      "enabled": false,
+      "bifrost_client_name": "sqlite_mcp",
+      "status": "rejected",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "unresolved",
+          "identifier": "sqlite MCP server",
+          "version": "unresolved",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "unresolved",
+          "documentation_url": "unresolved",
+          "verification": "unresolved"
+        },
+        "license": {
+          "spdx": "UNRESOLVED",
+          "status": "unresolved",
+          "source_url": "unresolved"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "Artifact provenance and tool inventory are unresolved",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "none",
+          "status": "unresolved",
+          "credential_storage": "none",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "unresolved",
+          "status": "rejected",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "AgentCore runtime databases",
+            "application databases",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "rejected",
+          "rationale": "Code Mode cannot resolve provenance, license, database path, or raw query authority."
+        },
+        "protected_resources": {
+          "classes": [
+            "database",
+            "database_files",
+            "raw_sql",
+            "schema_mutation"
+          ],
+          "default_access": "rejected",
+          "policy": "No unresolved raw database MCP is available to normal IDEs."
+        },
+        "default_disposition": {
+          "state": "rejected",
+          "replacement_route": "Use an owning application's governed API or migration workflow; do not expose SQLite files through MCP.",
+          "activation_requirements": []
+        },
+        "canary": {
+          "status": "rejected",
+          "probes": []
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Operator-verified unresolved SQLite provenance and license finding"
+        ],
+        "unresolved_gaps": [
+          "Official artifact",
+          "Version",
+          "License",
+          "Tool inventory",
+          "Database path policy"
+        ]
+      },
+      "notes": [
+        "Rejected and default-off because provenance, license, inventory, and storage scope are unresolved."
+      ]
+    },
+    "ref-mcp": {
+      "canonical_id": "ref-mcp",
+      "display_name": "Ref MCP Rejected Candidate",
+      "purpose": "Rejected redundant remote documentation MCP candidate.",
+      "owner": "rejected_candidate",
+      "pinned_version": "remote-unversioned",
+      "connection_type": "http",
+      "executable_or_url": "https://api.ref.tools/mcp",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 120,
+      "health_check_type": "none",
+      "project_scope": "global",
+      "write_classification": "read_only",
+      "permitted_tools": [],
+      "denied_tools": [],
+      "capability_profiles": [],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 0,
+        "backoff_seconds": 0,
+        "retry_on": []
+      },
+      "rollback_route": "Remove this rejected catalog record; no remote auth or provider state exists.",
+      "enabled": false,
+      "bifrost_client_name": "ref_mcp",
+      "status": "rejected",
+      "admission_evidence": {
+        "artifact": {
+          "kind": "remote_endpoint",
+          "identifier": "https://api.ref.tools/mcp",
+          "version": "remote-unversioned",
+          "digest": null
+        },
+        "source": {
+          "primary_url": "https://api.ref.tools/mcp",
+          "documentation_url": "https://ref.tools/docs/mcp",
+          "verification": "operator_verified"
+        },
+        "license": {
+          "spdx": "UNRESOLVED",
+          "status": "unresolved",
+          "source_url": "https://ref.tools/docs/mcp"
+        },
+        "tool_inventory": {
+          "status": "unresolved",
+          "source": "No authenticated named inventory accepted",
+          "tools": [],
+          "reported_tool_count": null
+        },
+        "authentication": {
+          "mode": "unresolved",
+          "status": "unresolved",
+          "credential_storage": "unresolved",
+          "env_var_names": [],
+          "dsn_references": []
+        },
+        "storage": {
+          "classification": "remote_provider",
+          "status": "rejected",
+          "candidate_roots": [],
+          "forbidden_roots": [
+            "private repositories",
+            "credential stores",
+            "Swarm-owned roots"
+          ]
+        },
+        "code_mode": {
+          "decision": "rejected",
+          "rationale": "The unresolved remote surface duplicates the admitted Arabold-first documentation route."
+        },
+        "protected_resources": {
+          "classes": [
+            "remote_content",
+            "repository_context",
+            "account_credentials"
+          ],
+          "default_access": "rejected",
+          "policy": "No remote repository or documentation upload until provenance, auth, inventory, and retention are resolved."
+        },
+        "default_disposition": {
+          "state": "rejected",
+          "replacement_route": "Use Arabold exact-version docs first and Context7 only as the existing same-turn public fallback.",
+          "activation_requirements": []
+        },
+        "canary": {
+          "status": "rejected",
+          "probes": []
+        },
+        "database_allowlist": [],
+        "evidence_sources": [
+          "Operator-verified Ref endpoint and unresolved admission finding"
+        ],
+        "unresolved_gaps": [
+          "License",
+          "Authentication",
+          "Named tool inventory",
+          "Remote retention"
+        ]
+      },
+      "notes": [
+        "Rejected and default-off as unresolved and redundant with the governed docs route."
+      ]
+    },
+    "pi-agents": {
+      "canonical_id": "pi-agents",
+      "display_name": "Pi Parallel Subagents",
+      "purpose": "Project-scoped Pi parallel subagents via HTTP session shim with enrolled cwd injection.",
+      "owner": "agentcore",
+      "pinned_version": "1.4.0",
+      "connection_type": "http",
+      "executable_or_url": "http://127.0.0.1:18091/mcp",
+      "arguments": [],
+      "env_var_names": [
+        "OPENROUTER_API_KEY"
+      ],
+      "timeout_seconds": 300,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "pi_list_agents",
+        "pi_run_agent",
+        "pi_parallel_agents",
+        "pi_chain_workflow"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false; remove pi-agents from builder.allowed_server_ids; re-render; stop listener on 18091. Host-native stdio remains the fallback.",
+      "enabled": true,
+      "bifrost_client_name": "pi_agents",
+      "status": "active",
+      "notes": [
+        "AUTH-2026-10-23-PI-BIFROST-HTTP-SHIM: HTTP shim on 127.0.0.1:18091 injects enrolled cwd. Sticky STDIO remains forbidden.",
+        "Engine pin: @earendil-works/pi-coding-agent@1.4.0. OPENROUTER_API_KEY from Windows User env only.",
+        "Direct-launch only via ops/bifrost/Start-AgentCorePiSessionShim.ps1. No AgentCore-Pi scheduled task.",
+        "Not the foreign Swarm ecosystem (SwarmClaw/SwarmVault)."
+      ],
+      "is_code_mode_client": true,
+      "allowed_extra_headers": [
+        "x-agentcore-project",
+        "x-bf-session-id",
+        "x-session-id",
+        "x-bf-vk"
+      ]
+    },
+    "omniroute": {
+      "canonical_id": "omniroute",
+      "display_name": "OmniRoute Model Router",
+      "purpose": "Local multi-provider model routing plane (combos, quotas, cost, resilience) exposed to agents through Code Mode so its 63-tool surface costs ~0 eager context.",
+      "owner": "agentcore",
+      "pinned_version": "3.8.53",
+      "connection_type": "http",
+      "executable_or_url": "http://127.0.0.1:20128/api/mcp/stream",
+      "arguments": [],
+      "env_var_names": [
+        "OMNIROUTE_API_KEY"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "omniroute-gamification_anomalies",
+        "omniroute-gamification_badges",
+        "omniroute-gamification_invite",
+        "omniroute-gamification_leaderboard",
+        "omniroute-gamification_profile",
+        "omniroute-gamification_rank",
+        "omniroute-gamification_servers",
+        "omniroute-gamification_transfer",
+        "omniroute-local_corpus_read",
+        "omniroute-local_corpus_search",
+        "omniroute-local_corpus_status",
+        "omniroute-notion_append_blocks",
+        "omniroute-notion_get_database",
+        "omniroute-notion_get_page",
+        "omniroute-notion_list_block_children",
+        "omniroute-notion_query_database",
+        "omniroute-notion_search",
+        "omniroute-obsidian_append_note",
+        "omniroute-obsidian_check_status",
+        "omniroute-obsidian_delete_note",
+        "omniroute-obsidian_execute_command",
+        "omniroute-obsidian_get_active_file",
+        "omniroute-obsidian_get_document_map",
+        "omniroute-obsidian_get_note_metadata",
+        "omniroute-obsidian_get_periodic_note",
+        "omniroute-obsidian_get_tags",
+        "omniroute-obsidian_list_commands",
+        "omniroute-obsidian_list_vault",
+        "omniroute-obsidian_move_note",
+        "omniroute-obsidian_open_file",
+        "omniroute-obsidian_patch_note",
+        "omniroute-obsidian_read_note",
+        "omniroute-obsidian_search_simple",
+        "omniroute-obsidian_search_structured",
+        "omniroute-obsidian_sync_conflicts",
+        "omniroute-obsidian_sync_resolve_conflict",
+        "omniroute-obsidian_sync_status",
+        "omniroute-obsidian_sync_trigger",
+        "omniroute-obsidian_write_note",
+        "omniroute-omniroute_agent_skills_coverage",
+        "omniroute-omniroute_agent_skills_get",
+        "omniroute-omniroute_agent_skills_list",
+        "omniroute-omniroute_best_combo_for_task",
+        "omniroute-omniroute_browser_pool_status",
+        "omniroute-omniroute_cache_flush",
+        "omniroute-omniroute_cache_stats",
+        "omniroute-omniroute_ccr_delete",
+        "omniroute-omniroute_ccr_inspect",
+        "omniroute-omniroute_ccr_list",
+        "omniroute-omniroute_ccr_retrieve",
+        "omniroute-omniroute_ccr_stats",
+        "omniroute-omniroute_ccr_store",
+        "omniroute-omniroute_check_quota",
+        "omniroute-omniroute_compression_combo_stats",
+        "omniroute-omniroute_compression_configure",
+        "omniroute-omniroute_compression_status",
+        "omniroute-omniroute_cost_report",
+        "omniroute-omniroute_create_combo",
+        "omniroute-omniroute_db_health_check",
+        "omniroute-omniroute_explain_route",
+        "omniroute-omniroute_get_combo_metrics",
+        "omniroute-omniroute_get_health",
+        "omniroute-omniroute_get_provider_metrics",
+        "omniroute-omniroute_get_session_snapshot",
+        "omniroute-omniroute_github_skills_install",
+        "omniroute-omniroute_github_skills_scan",
+        "omniroute-omniroute_github_skills_search",
+        "omniroute-omniroute_list_combos",
+        "omniroute-omniroute_list_compression_combos",
+        "omniroute-omniroute_list_models_catalog",
+        "omniroute-omniroute_memory_add",
+        "omniroute-omniroute_memory_clear",
+        "omniroute-omniroute_memory_search",
+        "omniroute-omniroute_oneproxy_fetch",
+        "omniroute-omniroute_oneproxy_rotate",
+        "omniroute-omniroute_oneproxy_stats",
+        "omniroute-omniroute_pick_fastest_model",
+        "omniroute-omniroute_pool_health",
+        "omniroute-omniroute_pool_reset",
+        "omniroute-omniroute_pool_sessions",
+        "omniroute-omniroute_pool_status",
+        "omniroute-omniroute_pool_warm",
+        "omniroute-omniroute_radar_catalog",
+        "omniroute-omniroute_route_request",
+        "omniroute-omniroute_rtk_discover",
+        "omniroute-omniroute_rtk_learn",
+        "omniroute-omniroute_set_budget_guard",
+        "omniroute-omniroute_set_compression_engine",
+        "omniroute-omniroute_set_resilience_profile",
+        "omniroute-omniroute_set_routing_strategy",
+        "omniroute-omniroute_simulate_route",
+        "omniroute-omniroute_skills_enable",
+        "omniroute-omniroute_skills_execute",
+        "omniroute-omniroute_skills_executions",
+        "omniroute-omniroute_skills_list",
+        "omniroute-omniroute_switch_combo",
+        "omniroute-omniroute_sync_pricing",
+        "omniroute-omniroute_test_combo",
+        "omniroute-omniroute_tool_search",
+        "omniroute-omniroute_web_fetch",
+        "omniroute-omniroute_web_search",
+        "omniroute-omniroute_x_search",
+        "omniroute-plugin_activate",
+        "omniroute-plugin_configure",
+        "omniroute-plugin_deactivate",
+        "omniroute-plugin_executions",
+        "omniroute-plugin_install",
+        "omniroute-plugin_list",
+        "omniroute-plugin_scan",
+        "omniroute-plugin_uninstall"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "ide",
+        "grokbot",
+        "openclaw"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false, remove omniroute from the four capability profiles, re-render, restart Bifrost. Clients fall back to direct OmniRoute inference only; no MCP surface is lost because routing is also reachable over the OpenAI-compatible API.",
+      "enabled": true,
+      "bifrost_client_name": "omniroute",
+      "status": "active",
+      "notes": [
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: supersedes ADR-2026-11-04 non-goal 'not a Bifrost upstream MCP server'.",
+        "Code Mode is mandatory here: the HTTP MCP surface is 110 tools (~90 KB schema) and would otherwise cost ~25k eager tokens per agent.",
+        "Named permitted_tools inventory only. No wildcard grant.",
+        "Dedicated virtual key: env.BIFROST_MCP_VK_OMNIROUTE.",
+        "Loopback only. OmniRoute is neutral local infrastructure, not Trust Class A and not a second canonical store.",
+        "Transport is the streamable-http MCP endpoint /api/mcp/stream. The stdio 'omniroute --mcp' server exposes a different, smaller 63-tool surface; do not mix the two inventories."
+      ],
+      "is_code_mode_client": true
+    },
+    "eye2byte": {
+      "canonical_id": "eye2byte",
+      "display_name": "Eye2Byte Screen Context",
+      "purpose": "Local screen capture, OCR summarisation, window control and macro replay so an agent can see and act on the desktop.",
+      "owner": "agentcore",
+      "pinned_version": "0.0.0-local",
+      "connection_type": "stdio",
+      "executable_or_url": "C:/Users/ynotf/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0/LocalCache/local-packages/Python312/Scripts/eye2byte-mcp.exe",
+      "arguments": [],
+      "env_var_names": [
+        "FASTMCP_SHOW_SERVER_BANNER",
+        "FASTMCP_DISABLE_UPDATE_CHECK"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "add_macro_assertion",
+        "app_specific_hotkeys",
+        "auto_tile",
+        "capture_and_summarize",
+        "capture_with_voice",
+        "click_element",
+        "delete_macro",
+        "distraction_dimmer",
+        "eventghost_bridge",
+        "eventghost_execute_script",
+        "eventghost_get_all_values",
+        "eventghost_get_value",
+        "eventghost_set_value",
+        "eventghost_status",
+        "eventghost_trigger",
+        "find_and_click",
+        "find_element",
+        "focus_lock",
+        "focus_window",
+        "get_context_timeline",
+        "get_event_listeners",
+        "get_events",
+        "get_frame_buffer_status",
+        "get_latest_frame",
+        "get_pixel_color",
+        "get_playbook",
+        "get_recent_context",
+        "get_runtime_capabilities",
+        "get_screen_elements",
+        "hot_corners",
+        "keep_awake",
+        "key_to_mouse",
+        "list_macros",
+        "list_playbooks",
+        "list_windows",
+        "minimize_window",
+        "move_window",
+        "pin_window",
+        "powertoys_fancy_zones",
+        "powertoys_file_locksmith",
+        "powertoys_image_resize",
+        "powertoys_peek",
+        "powertoys_status",
+        "press_key",
+        "record_clip_and_summarize",
+        "replay_macro",
+        "scroll_screen",
+        "search_context_history",
+        "set_volume",
+        "set_window_opacity",
+        "speak",
+        "start_event_listener",
+        "start_frame_buffer",
+        "start_macro_recording",
+        "stop_event_listener",
+        "stop_frame_buffer",
+        "stop_macro_recording",
+        "summarize_screenshot",
+        "text_expander",
+        "transcribe_audio",
+        "type_text",
+        "unpin_window"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "ide"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false, remove from capability_profiles, re-render, restart Bifrost. Screen/desktop automation is optional for engineering work.",
+      "enabled": true,
+      "bifrost_client_name": "eye2byte",
+      "status": "active",
+      "notes": [
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: re-admitted from live config.db, where it existed with no registry entry.",
+        "Code Mode only: 63 tools must never be eager.",
+        "Desktop control is builder/ide only. Never granted to cloud or bot profiles.",
+        "2026-11-18: launch spec restored from the pre-render live config, but Bifrost tool discovery returns zero tools on restart (both spawn cleanly by hand). Held disabled until discovery is proven; do not assume these tools are available."
+      ],
+      "is_code_mode_client": true
+    },
+    "windows-mcp": {
+      "canonical_id": "windows-mcp",
+      "display_name": "Windows Desktop MCP",
+      "purpose": "Native Windows desktop automation: app control, screenshots, input, clipboard, process and registry inspection.",
+      "owner": "agentcore",
+      "pinned_version": "0.0.0-local",
+      "connection_type": "stdio",
+      "executable_or_url": "C:/Users/ynotf/.local/bin/uvx.exe",
+      "arguments": [
+        "--python",
+        "3.14",
+        "windows-mcp==0.8.8",
+        "serve"
+      ],
+      "env_var_names": [
+        "FASTMCP_SHOW_SERVER_BANNER",
+        "FASTMCP_DISABLE_UPDATE_CHECK"
+      ],
+      "timeout_seconds": 120,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "ControlStatus",
+        "App",
+        "DisplayInventory",
+        "PowerShell",
+        "FileSystem",
+        "Snapshot",
+        "Screenshot",
+        "Click",
+        "Type",
+        "Scroll",
+        "Move",
+        "Shortcut",
+        "Wait",
+        "WaitFor",
+        "Scrape",
+        "MultiSelect",
+        "MultiEdit",
+        "Clipboard",
+        "Process",
+        "Notification",
+        "Registry"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "ide"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 1,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false, remove from capability_profiles, re-render, restart Bifrost. Screen/desktop automation is optional for engineering work.",
+      "enabled": true,
+      "bifrost_client_name": "windows_mcp",
+      "status": "active",
+      "notes": [
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: re-admitted from live config.db, where it existed with no registry entry.",
+        "Code Mode only.",
+        "PowerShell, Registry and FileSystem tools are broad host authority: builder/ide only, never cloud or bot profiles.",
+        "2026-11-18: launch spec restored from the pre-render live config, but Bifrost tool discovery returns zero tools on restart (both spawn cleanly by hand). Held disabled until discovery is proven; do not assume these tools are available."
+      ],
+      "is_code_mode_client": true
+    },
+    "kie-media": {
+      "canonical_id": "kie-media",
+      "display_name": "KIE Media (image / video / audio)",
+      "purpose": "KIE's discounted image, video-editing and audio models through the KIE job API, which is not OpenAI-compatible and therefore cannot be served by OmniRoute or Bifrost as a model provider.",
+      "owner": "agentcore",
+      "pinned_version": "0.1.0",
+      "connection_type": "stdio",
+      "executable_or_url": "C:\\Users\\ynotf\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE",
+      "arguments": [
+        "-u",
+        "D:\\github\\agentcore-control-plane\\scripts\\kie_media\\server.py"
+      ],
+      "env_var_names": [
+        "KIE_API_KEY"
+      ],
+      "timeout_seconds": 300,
+      "health_check_type": "mcp_ping",
+      "project_scope": "global",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "kie_models",
+        "kie_model_schema",
+        "kie_create_task",
+        "kie_task_status",
+        "kie_wait_task",
+        "kie_upload_file"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "ide",
+        "grokbot",
+        "openclaw"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false, remove from capability_profiles, re-render, restart Bifrost. Media generation is optional for engineering work.",
+      "enabled": true,
+      "bifrost_client_name": "kie_media",
+      "status": "active",
+      "notes": [
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: KIE media is job-based, not OpenAI-compatible.",
+        "Code Mode only. Six tools, no wildcard.",
+        "Billing is per call; kie_task_status reports creditsConsumed so cost stays visible.",
+        "KIE_API_KEY from Windows User env only; never logged or returned.",
+        "Loopback-free: talks to api.kie.ai directly. No local port, no listener."
+      ],
+      "is_code_mode_client": true
+    }
+  }
+}

@@ -24,7 +24,7 @@ Current memory/context shorthand: **SwarmRecall is the PC-native semantic memory
 | Repository | `D:\github\agentcore-control-plane`, active branch `setup/zoo-code-qdrant-nfa-20260820`; CE024 canary runtime attested commit `8afd852aba86165edc9b8f55d88b3caa7a092f53` | Git; current task and inherited Langfuse/M6-M8/IDE-rule/registry WIP remain dirty and must be staged separately |
 | Bifrost | Native `2.0.0` under `F:\AgentCore\runtime\bifrost`; scheduled owner `\AgentCore\AgentCore-Bifrost-Gateway`; `127.0.0.1:8080/health` healthy | Live status and gateway acceptance pass |
 | IDE MCP front door | Exactly one `agentcore-gateway` at `http://127.0.0.1:8080/mcp` | Cursor live config: one entry, environment-backed bearer, no MCP_DOCKER |
-| Pi parallel subagents | Bifrost HTTP shim `pi-agents` on 127.0.0.1:18091; builder/Code Mode; host-native fallback; not foreign Swarm | AUTH-2026-10-23-PI-BIFROST-HTTP-SHIM; see docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md |
+| Local sub-agents (`agent-dispatch`) | Bifrost HTTP MCP on 127.0.0.1:18092; six tools (`agents_list`, `agent_run`, `agents_parallel`, `job_status`, `job_result`, `job_cancel`) fronting Pi, OpenHands, OpenCode, Codex, M6 LangGraph and Paperclip; builder/ide/grokbot; Code Mode; host-native fallback; not foreign Swarm | AUTH-2026-11-20-AGENT-DISPATCH-LIVE; see docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md |
 | Gateway surface | Exact ten-tool `agentcore-memory` identity retained; ordinary profiles exclude the operator router | Live authenticated probes are required for mutable totals; do not copy a point-in-time aggregate tool count into client configuration |
 | AgentCore memory facade | source and live `agentcore-memory` `0.9.1`; PG18 reachable at `127.0.0.1:55433`; neutral SwarmRecall is the semantic target behind the bounded adapter | Every scoped call requires exact enrolled `project_key` + `project_root`; task sessions are also bound to client, agent, device, user, canonical repository, and worktree; ten-tool identity unchanged |
 | Project enrollment | `contracts/agentcore-project-enrollment.json`; default deny; exact key + exact repository/worktree path | Includes `open-design` at `D:\open-design` only (`AUTH-2026-10-26-OPEN-DESIGN-ENROLLMENT`). OmniRoute runtime data at `I:\LocalApps\OmniRoute` is not a memory project enrollment. Ordinary IDEs cannot mutate enrollment/router state. |
@@ -82,7 +82,7 @@ agentcore-memory
 | Current upstream documentation | Arabold Docs | Required candidate corpus indexed and retrieval-proven; Bifrost corpus has an explicit metadata limitation |
 | Semantic code intelligence | Native IDE/project-local tools; Serena catalogued | Shared Bifrost Serena dormant until explicit per-session routing exists |
 | Production autonomy | LangGraph | CE024 controlled production canary certified; operational residuals remain before unattended commercial launch |
-| Bounded implementation/review | Cursor project subagents | Seven project roles present with current frontmatter, including authority-drift, Bifrost diagnosis, and MCP-contract roles |
+| Bounded implementation/review | Devin (with Codex framing/review) | Operator decision 2026-11-19: Devin replaced Cursor as the bounded-implementation and Bifrost MCP primary; Cursor project subagents remain defined but are no longer the assigned surface |
 
 ### Separate MCP and inference planes
 
@@ -180,8 +180,8 @@ No component above is installed, started, enrolled, or added to the Context Engi
 ## 7. Execution ownership
 
 - The AgentCore authority-maintainer owns architecture, protected contracts, Bifrost/runtime integration, security, acceptance, and Git. Codex is the execution lead for this alignment and Bifrost production hardening.
-- Cursor receives bounded tasks where full repository context or a fresh independent context is the advantage: contract implementation, targeted code changes, tests, and independent review.
-- Cursor subagents do not determine architecture. They follow `PROJECT_ANCHOR.md`, `DOC_AUTHORITY.md`, `BLUEPRINT.md`, this file, and current acceptance evidence.
+- Devin receives bounded tasks where full repository context or a fresh independent context is the advantage: contract implementation, targeted code changes, Bifrost MCP live apply, tests, and independent review.
+- Devin subagents do not determine architecture. They follow `PROJECT_ANCHOR.md`, `DOC_AUTHORITY.md`, `BLUEPRINT.md`, this file, and current acceptance evidence.
 - The parent task controls model/cost. Custom project subagents default to `model: inherit`; use high-cost models only where task complexity justifies them.
 
 ## 8. Storage and ecosystem boundaries

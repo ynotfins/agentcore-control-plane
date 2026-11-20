@@ -30,6 +30,7 @@
       "display_name": "Builder",
       "purpose": "Trust Class A AgentCore engineering surface with broad execution and progressive disclosure.",
       "allowed_server_ids": [
+        "agent-dispatch",
         "agentcore-capability-catalog",
         "agentcore-memory",
         "apify-research",
@@ -45,7 +46,6 @@
         "mcp-prompt-optimizer",
         "morph-mcp",
         "nia",
-        "pi-agents",
         "playwright",
         "sequential-thinking",
         "serena",
@@ -167,6 +167,7 @@
       "display_name": "IDE",
       "purpose": "Process-attested IDE compatibility surface that mirrors the builder engineering toolset without operator/project-router exposure.",
       "allowed_server_ids": [
+        "agent-dispatch",
         "agentcore-capability-catalog",
         "agentcore-memory",
         "apify-research",
@@ -182,7 +183,6 @@
         "mcp-prompt-optimizer",
         "morph-mcp",
         "nia",
-        "pi-agents",
         "playwright",
         "sequential-thinking",
         "serena",
@@ -204,6 +204,7 @@
       "display_name": "Grok Bot",
       "purpose": "Trust Class A xAI Grok Bot desktop surface; builder-equivalent without cursor-agent-mcp.",
       "allowed_server_ids": [
+        "agent-dispatch",
         "agentcore-capability-catalog",
         "agentcore-memory",
         "apify-research",
@@ -218,7 +219,6 @@
         "mcp-prompt-optimizer",
         "morph-mcp",
         "nia",
-        "pi-agents",
         "playwright",
         "sequential-thinking",
         "serena",
@@ -4712,14 +4712,15 @@
         ]
       },
       "rollback_route": "Set enabled=false; remove pi-agents from builder.allowed_server_ids; re-render; stop listener on 18091. Host-native stdio remains the fallback.",
-      "enabled": true,
+      "enabled": false,
       "bifrost_client_name": "pi_agents",
-      "status": "active",
+      "status": "disabled",
       "notes": [
         "AUTH-2026-10-23-PI-BIFROST-HTTP-SHIM: HTTP shim on 127.0.0.1:18091 injects enrolled cwd. Sticky STDIO remains forbidden.",
         "Engine pin: @earendil-works/pi-coding-agent@1.4.0. OPENROUTER_API_KEY from Windows User env only.",
         "Direct-launch only via ops/bifrost/Start-AgentCorePiSessionShim.ps1. No AgentCore-Pi scheduled task.",
-        "Not the foreign Swarm ecosystem (SwarmClaw/SwarmVault)."
+        "Not the foreign Swarm ecosystem (SwarmClaw/SwarmVault).",
+        "2026-11-20 (AUTH-2026-11-20-AGENT-DISPATCH-LIVE): retired in favour of agent-dispatch agent_run(agent=\"pi\"). Shim on :18091 no longer started by Start-AgentCoreBifrostGateway.ps1. Rollback: set enabled=true and re-add to builder/ide/grokbot."
       ],
       "is_code_mode_client": true,
       "allowed_extra_headers": [
@@ -5132,6 +5133,63 @@
         "Loopback-free: talks to api.kie.ai directly. No local port, no listener."
       ],
       "is_code_mode_client": true
+    },
+    "agent-dispatch": {
+      "canonical_id": "agent-dispatch",
+      "display_name": "AgentCore Agent Dispatch",
+      "purpose": "Async sub-agent jobs (Pi, OpenHands, OpenCode, Codex, M6 LangGraph, Paperclip) behind six tools.",
+      "owner": "agentcore",
+      "pinned_version": "0.1.0",
+      "connection_type": "http",
+      "executable_or_url": "http://127.0.0.1:18092/mcp",
+      "arguments": [],
+      "env_var_names": [],
+      "timeout_seconds": 60,
+      "health_check_type": "mcp_ping",
+      "project_scope": "project",
+      "write_classification": "write_capable",
+      "permitted_tools": [
+        "agents_list",
+        "agent_run",
+        "agents_parallel",
+        "job_status",
+        "job_result",
+        "job_cancel"
+      ],
+      "denied_tools": [],
+      "capability_profiles": [
+        "builder",
+        "ide",
+        "grokbot"
+      ],
+      "logging_policy": {
+        "log_invocations": true,
+        "log_content": false,
+        "redact_secrets": true
+      },
+      "retry_policy": {
+        "max_attempts": 1,
+        "backoff_seconds": 2,
+        "retry_on": [
+          "spawn_failure"
+        ]
+      },
+      "rollback_route": "Set enabled=false; re-render; Start-AgentCoreAgentDispatch.ps1 -Stop.",
+      "enabled": true,
+      "bifrost_client_name": "agent_dispatch",
+      "status": "active",
+      "notes": [
+        "AUTH-2026-11-20-AGENT-DISPATCH-LIVE: loopback HTTP MCP on 127.0.0.1:18092, direct launch only (no scheduled task).",
+        "Reuses bifrost.session_identity default-deny enrollment; x-agentcore-project header binds jobs to the caller's project.",
+        "Replaces pi-agents for Pi and fronts OpenHands/OpenCode/Codex/M6/Paperclip. Models via OmniRoute except Codex (subscription).",
+        "Not the foreign Swarm ecosystem (SwarmClaw/SwarmVault)."
+      ],
+      "is_code_mode_client": true,
+      "allowed_extra_headers": [
+        "x-agentcore-project",
+        "x-bf-session-id",
+        "x-session-id"
+      ]
     }
   }
 }

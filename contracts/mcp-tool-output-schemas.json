@@ -349,6 +349,14 @@
       "notes": [
         "AUTH-2026-11-18: stdio upstream returning native MCP text results. No envelope normalizer."
       ]
+    },
+    "agent-dispatch": {
+      "adapter": "upstream_native",
+      "default_profile": "external",
+      "notes": [
+        "agent-dispatch loopback MCP; job summaries and agent text are external_untrusted.",
+        "job_result detail=full returns log paths plus up to 20000 chars of agent output."
+      ]
     }
   }
 }

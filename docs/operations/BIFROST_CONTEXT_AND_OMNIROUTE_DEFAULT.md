@@ -36,7 +36,7 @@ Measured eager cost per virtual key (JSON-RPC `tools/list`, bytes ÷ 4):
 
 The eager set is deliberately only four servers — `agentcore-capability-catalog`, `agentcore-memory`,
 `arabold-docs`, `sequential-thinking` — plus the four Code Mode meta-tools. Everything else (serena,
-context7, depwire, tentra, github, playwright, morph, nia, tavily, firecrawl, exa, apify, pi-agents,
+context7, depwire, tentra, github, playwright, morph, nia, tavily, firecrawl, exa, apify, agent-dispatch,
 cursor-agent, skills-hub, figma-framelink, mcp-prompt-optimizer, omniroute) is reached through
 `listToolFiles → readToolFile → executeToolCode`.
 

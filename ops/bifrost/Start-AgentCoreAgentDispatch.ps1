@@ -5,7 +5,7 @@ param(
   [string]$RepoRoot = 'D:\github\agentcore-control-plane',
   [string]$RuntimeRoot = 'I:\LocalApps\AgentDispatch',
   [int]$Port = 18092,
-  [string]$PythonExe = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe',
+  [string]$PythonExe = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\pythonw.exe',
   [switch]$ProbeOnly,
   [switch]$Stop
 )
@@ -49,4 +49,5 @@ for ($i = 0; $i -lt 20; $i++) {
   Start-Sleep -Seconds 1
   if (Test-DispatchReady) { Write-Host "[Start] agent-dispatch ready on ${HostAddress}:$Port (pid $($p.Id)); no scheduled task created"; exit 0 }
 }
+if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
 throw "agent-dispatch did not become ready on ${HostAddress}:$Port"
