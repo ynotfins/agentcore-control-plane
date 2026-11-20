@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import threading
 from contextlib import contextmanager
@@ -559,8 +560,9 @@ def test_watchdog_task_arguments_survive_windows_command_line_parsing(
 ) -> None:
     runtime_root = tmp_path / "runtime"
     arguments = installer_task_specs(runtime_root)["watchdog"]["action"]["arguments"]
+    pwsh_tail = re.match(r'--headless "[^"]+" (.*)$', arguments).group(1)
     result = run_watchdog_command_line(
-        f'pwsh {arguments} -TestMode -TestHealthResult Unhealthy '
+        f'pwsh {pwsh_tail} -TestMode -TestHealthResult Unhealthy '
         "-GatewayStartedAtUtc 2000-01-01T00:00:00Z"
     )
 
@@ -1079,7 +1081,10 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
     specs = installer_task_specs(runtime_root)
 
     assert not runtime_root.exists()
-    assert specs["gateway"]["action"]["executable"] == "test-pwsh.exe"
+    assert specs["gateway"]["action"]["executable"].endswith("conhost.exe")
+    assert specs["gateway"]["action"]["arguments"].startswith(
+        '--headless "test-pwsh.exe" -NoProfile -NonInteractive -WindowStyle Hidden'
+    )
     assert "Launch-AgentCoreBifrostGateway.ps1" in specs["gateway"]["action"]["arguments"]
     assert specs["gateway"]["trigger"] == {"type": "logon", "user": os.environ["USERNAME"]}
     assert specs["gateway"]["settings"] == {
@@ -1119,6 +1124,10 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
         "run_level": "Highest",
     }
     assert "Invoke-AgentCoreBifrostWatchdog.ps1" in specs["watchdog"]["action"]["arguments"]
+    assert specs["watchdog"]["action"]["executable"].endswith("conhost.exe")
+    assert specs["watchdog"]["action"]["arguments"].startswith(
+        '--headless "test-pwsh.exe" -NoProfile -NonInteractive -WindowStyle Hidden'
+    )
     assert '-TaskPath "\\AgentCore"' in specs["watchdog"]["action"]["arguments"]
     assert '-TaskPath "\\AgentCore\\"' not in specs["watchdog"]["action"]["arguments"]
     assert "-FailureThreshold 2" in specs["watchdog"]["action"]["arguments"]
@@ -1142,13 +1151,17 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
     launch_script = REPO_ROOT / "ops" / "bifrost" / "Launch-AgentCoreBifrostGateway.ps1"
     watchdog_script = REPO_ROOT / "ops" / "bifrost" / "Invoke-AgentCoreBifrostWatchdog.ps1"
     assert by_scope_and_command[("gateway", "New-ScheduledTaskAction")] == {
-        "Execute": "test-pwsh.exe",
+        "Execute": by_scope_and_command[("gateway", "New-ScheduledTaskAction")]["Execute"],
         "Argument": (
-            f'-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "{launch_script}" '
+            f'--headless "test-pwsh.exe" -NoProfile -NonInteractive -WindowStyle Hidden '
+            f'-ExecutionPolicy Bypass -File "{launch_script}" '
             f'-RuntimeRoot "{runtime_root}" -HostAddress 127.0.0.1 -Port 18080'
         ),
         "WorkingDirectory": str(runtime_root),
     }
+    assert by_scope_and_command[("gateway", "New-ScheduledTaskAction")][
+        "Execute"
+    ].endswith("conhost.exe")
     gateway_trigger_calls = [
         call
         for call in calls
@@ -1175,9 +1188,10 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         "RunLevel": "Limited",
     }
     assert by_scope_and_command[("watchdog", "New-ScheduledTaskAction")] == {
-        "Execute": "test-pwsh.exe",
+        "Execute": by_scope_and_command[("watchdog", "New-ScheduledTaskAction")]["Execute"],
         "Argument": (
-            f'-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "{watchdog_script}" '
+            f'--headless "test-pwsh.exe" -NoProfile -NonInteractive -WindowStyle Hidden '
+            f'-ExecutionPolicy Bypass -File "{watchdog_script}" '
             f'-RuntimeRoot "{runtime_root}" -GatewayUrl http://127.0.0.1:18080 '
             '-TaskPath "\\AgentCore" -TaskName "AgentCore-Bifrost-Gateway" -FailureThreshold 2 '
             '-ListeningFailureThreshold 2 -StartupGraceSeconds 60 '
@@ -1185,6 +1199,9 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         ),
         "WorkingDirectory": str(runtime_root),
     }
+    assert by_scope_and_command[("watchdog", "New-ScheduledTaskAction")][
+        "Execute"
+    ].endswith("conhost.exe")
     assert by_scope_and_command[("watchdog", "New-ScheduledTaskSettingsSet")] == {
         "AllowStartIfOnBatteries": True,
         "DontStopIfGoingOnBatteries": True,

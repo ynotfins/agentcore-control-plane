@@ -93,14 +93,25 @@ function Test-ScheduledTaskNotFoundError($ErrorRecord) {
   return ($errorText -match '(?i)not found|cannot find|does not exist|0x80070002|CmdletizationQuery_NotFound|ObjectNotFound')
 }
 
+function New-BifrostConhostPath {
+  $candidate = Join-Path $env:Windir 'System32\conhost.exe'
+  if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+  return 'C:\Windows\System32\conhost.exe'
+}
+
+function New-BifrostSilentActionArguments([string]$PowerShellPath, [string]$Tail) {
+  return "--headless `"$PowerShellPath`" -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass $Tail"
+}
+
 function New-BifrostTaskSpecs([string]$PowerShellPath) {
   $launchScript = Join-Path $PSScriptRoot 'Launch-AgentCoreBifrostGateway.ps1'
   $watchdogScript = Join-Path $PSScriptRoot 'Invoke-AgentCoreBifrostWatchdog.ps1'
+  $conhostPath = New-BifrostConhostPath
   return [ordered]@{
     gateway = [ordered]@{
       action = [ordered]@{
-        executable = $PowerShellPath
-        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$launchScript`" -RuntimeRoot `"$RuntimeRoot`" -HostAddress $HostAddress -Port $Port"
+        executable = $conhostPath
+        arguments = New-BifrostSilentActionArguments $PowerShellPath "-File `"$launchScript`" -RuntimeRoot `"$RuntimeRoot`" -HostAddress $HostAddress -Port $Port"
         working_directory = $RuntimeRoot
       }
       trigger = [ordered]@{ type = 'logon'; user = $env:USERNAME }
@@ -122,8 +133,8 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
     }
     watchdog = [ordered]@{
       action = [ordered]@{
-        executable = $PowerShellPath
-        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$($TaskPath.TrimEnd('\'))`" -TaskName `"$TaskName`" -FailureThreshold 2 -ListeningFailureThreshold 2 -StartupGraceSeconds 60 -RecycleRetryBackoffSeconds 30 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
+        executable = $conhostPath
+        arguments = New-BifrostSilentActionArguments $PowerShellPath "-File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$($TaskPath.TrimEnd('\'))`" -TaskName `"$TaskName`" -FailureThreshold 2 -ListeningFailureThreshold 2 -StartupGraceSeconds 60 -RecycleRetryBackoffSeconds 30 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
         working_directory = $RuntimeRoot
       }
       trigger = [ordered]@{
