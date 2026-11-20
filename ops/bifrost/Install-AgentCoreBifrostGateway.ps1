@@ -123,7 +123,7 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
     watchdog = [ordered]@{
       action = [ordered]@{
         executable = $PowerShellPath
-        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$TaskPath`" -TaskName `"$TaskName`" -FailureThreshold 2 -ListeningFailureThreshold 2 -StartupGraceSeconds 60 -RecycleRetryBackoffSeconds 30 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
+        arguments = "-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watchdogScript`" -RuntimeRoot `"$RuntimeRoot`" -GatewayUrl http://${HostAddress}:${Port} -TaskPath `"$($TaskPath.TrimEnd('\'))`" -TaskName `"$TaskName`" -FailureThreshold 2 -ListeningFailureThreshold 2 -StartupGraceSeconds 60 -RecycleRetryBackoffSeconds 30 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180"
         working_directory = $RuntimeRoot
       }
       trigger = [ordered]@{
@@ -135,7 +135,7 @@ function New-BifrostTaskSpecs([string]$PowerShellPath) {
       settings = [ordered]@{
         allow_start_if_on_batteries = $true
         dont_stop_if_going_on_batteries = $true
-        execution_time_limit_seconds = 180
+        execution_time_limit_seconds = 60
         restart_count = 0
         start_when_available = $true
         multiple_instances = 'IgnoreNew'
@@ -184,14 +184,14 @@ function New-InstallerLogonTrigger($Spec) {
 }
 
 
-function New-InstallerBootTrigger([int]$DelaySeconds = 30) {
+function New-InstallerBootTrigger([int]$DelaySeconds = 30, [string]$Scope = 'gateway') {
   $parameters = [ordered]@{ AtStartup = $true }
   if ($DelaySeconds -gt 0) {
     # RandomDelay is accepted by New-ScheduledTaskTrigger -AtStartup on supported hosts
     try { $parameters.RandomDelay = [TimeSpan]::FromSeconds($DelaySeconds) } catch {}
   }
   if ($TestMode) {
-    Add-TestScheduledTaskCall 'gateway' 'New-ScheduledTaskTrigger' ([ordered]@{ AtStartup = $true; DelaySeconds = $DelaySeconds })
+    Add-TestScheduledTaskCall $Scope 'New-ScheduledTaskTrigger' ([ordered]@{ AtStartup = $true; DelaySeconds = $DelaySeconds })
     return [pscustomobject]@{ trigger = 'boot' }
   }
   $t = New-ScheduledTaskTrigger -AtStartup
@@ -304,7 +304,7 @@ function New-InstallerScheduledTasks($TaskSpecs) {
   $gatewaySettings = New-InstallerScheduledTaskSettings $TaskSpecs.gateway.settings 'gateway'
   $watchdogAction = New-InstallerScheduledTaskAction $TaskSpecs.watchdog.action 'watchdog'
   $watchdogDailyTrigger = New-InstallerRepeatingDailyTrigger $TaskSpecs.watchdog.trigger
-  $watchdogBootTrigger = New-InstallerBootTrigger 45
+  $watchdogBootTrigger = New-InstallerBootTrigger 45 'watchdog'
   $watchdogSettings = New-InstallerScheduledTaskSettings $TaskSpecs.watchdog.settings 'watchdog'
   $gatewayPrincipal = New-InstallerScheduledTaskPrincipal $TaskSpecs.gateway.principal 'gateway'
   $watchdogPrincipal = New-InstallerScheduledTaskPrincipal $TaskSpecs.watchdog.principal 'watchdog'
