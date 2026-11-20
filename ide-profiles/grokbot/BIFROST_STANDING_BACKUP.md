@@ -1,6 +1,6 @@
 # Bifrost standing backup — Grok Bot (operator decision 1B)
 
-Use when **Cursor is unavailable** (operator says so or Cursor IDE is not usable) and Bifrost / control-plane recovery is needed. Cursor remains **primary** when healthy.
+Use when **Devin is unavailable** (operator says so or Devin is not usable) and Bifrost / control-plane recovery is needed. Devin remains **primary** when healthy (operator decision 2026-11-19; Cursor no longer holds this role).
 
 ## Authority
 
@@ -30,7 +30,7 @@ pwsh -NoProfile -File D:\github\agentcore-control-plane\ops\bifrost\Invoke-Agent
 
 Log: `F:\AgentCore\runtime\bifrost\logs\grokbot-lifecycle.log`.
 
-When Cursor returns, hand off to Cursor for primary acceptance per `AGENTS.md`.
+When Devin returns, hand off to Devin for primary acceptance per `AGENTS.md`.
 
 ## Cloud connector
 

@@ -5,9 +5,9 @@ file only adds Claude-specific emphasis. If they diverge, `PROJECT_ANCHOR.md` wi
 
 For gateway, MCP registry, client enrollment, Code Mode, capability-profile, or Bifrost runtime work, read `GATEWAY_AND_BIFROST_DEVELOPER_GUIDE.md` after the authority files and machine-readable contracts.
 
-## Bifrost MCP ownership (2026-09-08)
+## Bifrost MCP ownership (2026-11-19, superseding 2026-09-08)
 
-Cursor is the sole primary owner of the Bifrost MCP contract plane
+Devin is the sole primary owner of the Bifrost MCP contract plane (Cursor no longer holds this role)
 (`contracts/bifrost-upstream-mcp-registry.json`, `contracts/agentcore-gateway-client.json`,
 `scripts/bifrost/render_bifrost_config.py` + Bifrost validators/tests, `renderers/bifrost/*`,
 `ops/bifrost` live apply/restart/acceptance). Codex is independent reviewer / challenge only for

@@ -5,6 +5,8 @@ Status: PROPOSED — apply bounded repo artifacts; AGENTS.md wording remains pro
 AUTH id: `AUTH-2026-11-09-GROKBOT-STANDING-BIFROST-BACKUP`  
 Capability: `authority_maintainer` (Cursor remains sole primary when available)
 
+> **Superseded in part (2026-11-19, `AUTH-2026-11-19-DEVIN-BIFROST-OWNERSHIP`):** Devin replaced Cursor as sole primary for the Bifrost MCP contract plane. Read every "Cursor" primary or availability reference below as "Devin". The Grok Bot backup scope is unchanged, and Stage B stays Cursor-only.
+
 ## Decision summary (1B)
 
 | Role | When | Scope |
