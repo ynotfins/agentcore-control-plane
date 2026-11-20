@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-19
 **Status:** Proposed. Code and live loopback smoke tests are on branch `feat/agent-dispatch`. Not yet registered in Bifrost.
-**Owner for apply:** Cursor (sole primary owner of the Bifrost MCP contract plane, per `AGENTS.md`). Codex reviews.
+**Owner for apply:** Devin (sole primary owner of the Bifrost MCP contract plane once `AUTH-2026-11-19-DEVIN-BIFROST-OWNERSHIP` is merged; it was Cursor before). Codex reviews.
 **Rollback:** set the registry entry `enabled=false`, re-render, run `ops/bifrost/Start-AgentCoreAgentDispatch.ps1 -Stop`. Nothing else on the PC changes.
 
 ## Why
@@ -36,7 +36,7 @@ Every gateway client (Grok Bot, Cursor, Codex, ZCode, VSCodium/Cline/Continue, O
 3. **Through Bifrost Code Mode the six tools cost close to nothing up front.** Clients find them with `listToolFiles` / `readToolFile` instead of loading every schema.
 4. **Summaries come from each agent's own final message, cut to 300 words.** No extra model call is spent on summarising.
 
-## Requested changes (locked; need Cursor apply + Codex review)
+## Requested changes (locked; need Devin apply + Codex review)
 
 ### P1. Register the upstream in `contracts/bifrost-upstream-mcp-registry.json`
 
