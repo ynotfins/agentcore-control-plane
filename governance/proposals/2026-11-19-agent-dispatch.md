@@ -75,6 +75,8 @@ Also add `agent-dispatch` to `allowed_server_ids` for `builder`, `ide` and `grok
 
 After P1 has been accepted live: set `pi-agents` to `enabled=false`, remove it from `builder` and `grokbot`, and stop launching `:18091` from `Start-AgentCoreBifrostGateway.ps1`. Pi stays reachable as `agent_run(agent="pi")`.
 
+Docs to update in the same P1/P2 apply commit (all locked; docs-guardian 2026-11-19, verdict CLEAR for this PR): `CONTEXT_BLOCK.md` (the Pi parallel subagents row, `pi-agents` on `:18091`), `contracts/global-agent-policy.yaml`, `docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md`, `docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md`, `docs/operations/BIFROST_CONTEXT_AND_OMNIROUTE_DEFAULT.md`.
+
 ### P3. Start with the gateway
 
 In `ops/bifrost/Start-AgentCoreBifrostGateway.ps1`, call `Start-AgentCoreAgentDispatch.ps1` the same way it calls the Pi shim today. This adds no scheduled task and no service.
