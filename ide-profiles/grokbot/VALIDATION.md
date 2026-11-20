@@ -11,4 +11,4 @@ Mark `live_validated` only when all pass:
 7. No Swarm, project-router, Bifrost admin, or raw OpenRouter tools appear.
 8. Primary Bot can `session_open` / `retrieve_context` on an enrolled project (`agentcore-control-plane` or `postgresql18-control-plane`) without cross-writing the other key.
 9. Specialist Bots that must not use AgentCore have the server disabled.
-10. (Standing backup 1B) With Cursor unavailable, primary Bot can follow `BIFROST_STANDING_BACKUP.md`, run `Invoke-AgentCoreBifrostLifecycleForGrokbot.ps1 -Action Status` without errors, and still passes checks 1–7 without Grokbot MCP profile widening.
+10. (Standing backup 1B) With Devin unavailable, primary Bot can follow `BIFROST_STANDING_BACKUP.md`, run `Invoke-AgentCoreBifrostLifecycleForGrokbot.ps1 -Action Status` without errors, and still passes checks 1–7 without Grokbot MCP profile widening.
