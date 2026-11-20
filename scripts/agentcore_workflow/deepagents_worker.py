@@ -244,7 +244,8 @@ def _acquire_vram_slot(*, heavy_gpu: bool, timeout_sec: float = 2.0) -> Iterator
 
 
 OPENROUTER_API_V1 = "https://openrouter.ai/api/v1"
-DEFAULT_WORKER_MODEL_SPEC = "gemini:gemini-3.6-flash"
+OMNIROUTE_API_V1 = os.environ.get("AGENTCORE_OMNIROUTE_BASE_URL", "http://127.0.0.1:20128/v1")
+DEFAULT_WORKER_MODEL_SPEC = "omniroute:deepseek-v4-pro"
 
 
 def _chat_openrouter(model_id: str):
@@ -264,10 +265,27 @@ def _chat_openrouter(model_id: str):
     )
 
 
+def _chat_omniroute(model_id: str):
+    """OpenAI-compatible OmniRoute client (loopback). OpenRouter is opt-in only."""
+    from langchain_openai import ChatOpenAI
+
+    timeout_sec = float(os.environ.get("AGENTCORE_OMNIROUTE_TIMEOUT_SEC", "300"))
+    return ChatOpenAI(
+        model=model_id,
+        base_url=OMNIROUTE_API_V1,
+        api_key=os.environ.get("OMNIROUTE_API_KEY", "omniroute-loopback"),
+        timeout=timeout_sec,
+        max_retries=0,
+    )
+
+
 def _resolve_model(model: str):
     """Resolve a 'provider:model' spec into a chat model instance or pass-through spec.
 
-    For 'openrouter:<model-id>' specs, construct ChatOpenRouter with an explicit
+    For 'omniroute:<model-id>' specs (the default), construct an OpenAI-compatible
+    ChatOpenAI against the loopback OmniRoute at 127.0.0.1:20128/v1.
+
+    For 'openrouter:<model-id>' specs (explicit opt-in), construct ChatOpenRouter with an explicit
     /api/v1 base URL: the machine-level OPENROUTER_API_BASE env var points at the
     site root (HTML), which langchain_openrouter would otherwise inherit.
     openrouter/auto is rejected — explicit model IDs only.
@@ -275,6 +293,11 @@ def _resolve_model(model: str):
     For 'gemini:<model-name>' specs, route through OpenRouter as google/<model-name>
     (e.g. gemini:gemini-3.6-flash -> google/gemini-3.6-flash).
     """
+    if isinstance(model, str) and model.startswith("omniroute:"):
+        model_id = model.split(":", 1)[1]
+        if not model_id:
+            raise ValueError("omniroute requires an explicit model ID")
+        return _chat_omniroute(model_id)
     if isinstance(model, str) and model.startswith("openrouter:"):
         model_id = model.split(":", 1)[1]
         if not model_id or model_id == "openrouter/auto":
