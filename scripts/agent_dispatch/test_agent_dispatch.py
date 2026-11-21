@@ -146,6 +146,28 @@ def test_paperclip_gate(agent, ok, why):
     assert paperclip.runnable(agent) == (ok, why)
 
 
+def test_paperclip_omniroute_connection_binding(monkeypatch):
+    agent = {"status": "idle", "adapterType": "opencode_local",
+             "adapterConfig": {"model": "paperclip/deepseek-v4-pro"},
+             "runtimeConfig": {"aiConnection": {"mode": "shared", "provider": "openai",
+                                                "connectionId": "conn-omni", "grantId": "g"}}}
+    monkeypatch.setattr(paperclip, "company_id", lambda: "cid")
+    monkeypatch.setattr(paperclip, "_omniroute_connection_ids", lambda cid: frozenset({"conn-omni"}))
+    assert paperclip.routing(agent) == "omniroute"
+    assert paperclip.runnable(agent) == (True, "")
+
+
+def test_paperclip_non_omniroute_connection_binding(monkeypatch):
+    agent = {"status": "idle", "adapterType": "opencode_local",
+             "adapterConfig": {"model": "openrouter/deepseek/deepseek-v4-pro"},
+             "runtimeConfig": {"aiConnection": {"mode": "shared", "provider": "openrouter",
+                                                "connectionId": "conn-or", "grantId": "g"}}}
+    monkeypatch.setattr(paperclip, "company_id", lambda: "cid")
+    monkeypatch.setattr(paperclip, "_omniroute_connection_ids", lambda cid: frozenset({"conn-omni"}))
+    assert paperclip.routing(agent) == "direct_provider"
+    assert paperclip.runnable(agent) == (False, "routing_not_omniroute")
+
+
 def test_mcp_roundtrip(manager):
     server.MANAGER = manager
     init = server.handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}, {})
