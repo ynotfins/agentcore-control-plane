@@ -94,7 +94,7 @@ MCP tool traffic is `IDE -> agentcore-gateway/Bifrost -> approved MCP upstreams`
 
 ### Execution ownership
 
-The AgentCore authority-maintainer owns architecture, protected contracts, live runtime wiring, security boundaries, final validation, and Git integration. Cursor is used for bounded implementation and independent review through focused project subagents. Cursor does not receive authority to redesign the stack or activate future candidates from this enrollment package.
+The AgentCore authority-maintainer owns architecture, protected contracts, live runtime wiring, security boundaries, final validation, and Git integration. Devin is used for bounded implementation, Bifrost MCP live apply, and independent review through focused project subagents (operator decision 2026-11-19; Cursor no longer holds this role). Devin does not receive authority to redesign the stack or activate future candidates from this enrollment package.
 
 LangGraph operator commands use the repository-owned runtime at `@D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe` from the `@D:\github\agentcore-control-plane\scripts` working directory. Create or repair it with `@D:\github\agentcore-control-plane\scripts\bootstrap-runtime.ps1`. Bare system Python is not the production operator contract.
 

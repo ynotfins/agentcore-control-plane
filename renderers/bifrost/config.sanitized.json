@@ -91,6 +91,26 @@
   "mcp": {
     "client_configs": [
       {
+        "name": "agent_dispatch",
+        "connection_type": "http",
+        "connection_string": "http://127.0.0.1:18092/mcp",
+        "tools_to_execute": [
+          "agents_list",
+          "agent_run",
+          "agents_parallel",
+          "job_status",
+          "job_result",
+          "job_cancel"
+        ],
+        "auth_type": "none",
+        "is_code_mode_client": true,
+        "allowed_extra_headers": [
+          "x-agentcore-project",
+          "x-bf-session-id",
+          "x-session-id"
+        ]
+      },
+      {
         "name": "agentcore_capability_catalog",
         "connection_type": "stdio",
         "stdio_config": {
@@ -1013,25 +1033,6 @@
         }
       },
       {
-        "name": "pi_agents",
-        "connection_type": "http",
-        "connection_string": "http://127.0.0.1:18091/mcp",
-        "tools_to_execute": [
-          "pi_list_agents",
-          "pi_run_agent",
-          "pi_parallel_agents",
-          "pi_chain_workflow"
-        ],
-        "auth_type": "none",
-        "is_code_mode_client": true,
-        "allowed_extra_headers": [
-          "x-agentcore-project",
-          "x-bf-session-id",
-          "x-session-id",
-          "x-bf-vk"
-        ]
-      },
-      {
         "name": "playwright",
         "connection_type": "stdio",
         "stdio_config": {
@@ -1340,6 +1341,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -1805,15 +1817,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -2093,6 +2096,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -2558,15 +2572,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -3585,6 +3590,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -3972,15 +3988,6 @@
             ]
           },
           {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
-            ]
-          },
-          {
             "mcp_client_name": "playwright",
             "tools_to_execute": [
               "browser_click",
@@ -4140,6 +4147,17 @@
         "value": "env.BIFROST_MCP_VK_APP_ANTIGRAVITY",
         "is_active": true,
         "mcp_configs": [
+          {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
           {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
@@ -4606,15 +4624,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -4804,6 +4813,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -5269,15 +5289,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -5467,6 +5478,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -5932,15 +5954,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -6130,6 +6143,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -6595,15 +6619,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -6793,6 +6808,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -7258,15 +7284,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -7456,6 +7473,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -7921,15 +7949,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -8119,6 +8138,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -8584,15 +8614,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -8782,6 +8803,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -9247,15 +9279,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -9445,6 +9468,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -9910,15 +9944,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -10108,6 +10133,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -10573,15 +10609,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -10771,6 +10798,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -11236,15 +11274,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -11434,6 +11463,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -11899,15 +11939,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -12097,6 +12128,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -12562,15 +12604,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -12760,6 +12793,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -13225,15 +13269,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -13423,6 +13458,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -13888,15 +13934,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -14086,6 +14123,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -14551,15 +14599,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -14749,6 +14788,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -15214,15 +15264,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -15412,6 +15453,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -15877,15 +15929,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -16075,6 +16118,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -16540,15 +16594,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
@@ -16738,6 +16783,17 @@
         "is_active": true,
         "mcp_configs": [
           {
+            "mcp_client_name": "agent_dispatch",
+            "tools_to_execute": [
+              "agents_list",
+              "agent_run",
+              "agents_parallel",
+              "job_status",
+              "job_result",
+              "job_cancel"
+            ]
+          },
+          {
             "mcp_client_name": "agentcore_capability_catalog",
             "tools_to_execute": [
               "get_capability_detail",
@@ -17203,15 +17259,6 @@
               "omniroute-plugin_list",
               "omniroute-plugin_scan",
               "omniroute-plugin_uninstall"
-            ]
-          },
-          {
-            "mcp_client_name": "pi_agents",
-            "tools_to_execute": [
-              "pi_list_agents",
-              "pi_run_agent",
-              "pi_parallel_agents",
-              "pi_chain_workflow"
             ]
           },
           {
