@@ -620,9 +620,9 @@ def cmd_start(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 2
-    if args.provider and args.provider not in ("openrouter", "gemini"):
+    if args.provider and args.provider not in ("omniroute", "openrouter", "gemini"):
         print(
-            f"ERROR: --provider {args.provider!r} is not supported. Use 'openrouter' or 'gemini'.",
+            f"ERROR: --provider {args.provider!r} is not supported. Use 'omniroute', 'openrouter', or 'gemini'.",
             file=sys.stderr,
         )
         return 2
