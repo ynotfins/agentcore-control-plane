@@ -22,6 +22,19 @@ function Test-DispatchHealthy {
   } catch { return $false }
 }
 
+# Budget failsafe: clear zero-cost unpriced Paperclip usage so the company cannot
+# sit budget-paused. Runs every cycle; silent, best-effort, never blocks the check.
+try {
+  $guard = 'D:\github\agentcore-control-plane\scripts\agent_dispatch\paperclip_guard.py'
+  $py = 'D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe'
+  if ((Test-Path -LiteralPath $guard) -and (Test-Path -LiteralPath $py)) {
+    $out = & $py $guard 2>&1
+    Write-Log ("paperclip guard: {0}" -f ($out -join ' '))
+  }
+} catch {
+  Write-Log ("paperclip guard failed: {0}" -f $_.Exception.Message)
+}
+
 if (Test-DispatchHealthy) { Write-Log 'ok'; exit 0 }
 
 $stampFile = Join-Path $RuntimeRoot 'watchdog.last-restart'
