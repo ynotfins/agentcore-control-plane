@@ -955,6 +955,8 @@ def node_da_builder(state: WorkflowState) -> dict:
     model_spec = DEFAULT_WORKER_MODEL_SPEC
     if execution_profile.get("model_id"):
         model_spec = str(execution_profile["model_id"])
+    elif state.get("provider") == "omniroute" and state.get("model"):
+        model_spec = f"omniroute:{state['model']}"
     elif state.get("provider") == "openrouter" and state.get("model"):
         model_spec = f"openrouter:{state['model']}"
     elif state.get("provider") == "gemini" and state.get("model"):
@@ -1149,6 +1151,8 @@ def node_da_critic(state: WorkflowState) -> dict:
     model_spec = DEFAULT_WORKER_MODEL_SPEC
     if execution_profile.get("model_id"):
         model_spec = str(execution_profile["model_id"])
+    elif state.get("provider") == "omniroute" and state.get("model"):
+        model_spec = f"omniroute:{state['model']}"
     elif state.get("provider") == "openrouter" and state.get("model"):
         model_spec = f"openrouter:{state['model']}"
     elif state.get("provider") == "gemini" and state.get("model"):
@@ -1404,6 +1408,8 @@ def node_ab_alternate(state: WorkflowState) -> dict:
         execution_profile = state.get("resolved_execution_profile") or {}
         if execution_profile.get("model_id"):
             model_spec = str(execution_profile["model_id"])
+        elif state.get("provider") == "omniroute" and state.get("model"):
+            model_spec = f"omniroute:{state['model']}"
         elif state.get("provider") == "openrouter" and state.get("model"):
             model_spec = f"openrouter:{state['model']}"
         elif state.get("provider") == "gemini" and state.get("model"):

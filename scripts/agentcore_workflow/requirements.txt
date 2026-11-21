@@ -9,6 +9,9 @@ langgraph==1.2.5
 # PostgreSQL checkpointer for LangGraph
 langgraph-checkpoint-postgres==3.1.0
 
+# OmniRoute (OpenAI-compatible loopback) default provider path — AUTH-2026-11-20-AGENT-DISPATCH-LIVE
+langchain-openai==1.7.4
+
 # PostgreSQL adapter (already required by agentcore_memory)
 psycopg[binary,pool]>=3.3.4,<4.0
 
