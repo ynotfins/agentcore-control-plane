@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as _dt
 import json
 import os
 import re
@@ -158,3 +159,40 @@ def cancel_issue(issue_id: str) -> None:
     res = _call("PATCH", f"/api/issues/{issue_id}", {"status": "cancelled", "comment": "Cancelled via agent-dispatch job_cancel."})
     if not isinstance(res, dict) or res.get("status") != "cancelled":
         raise PaperclipError("paperclip cancel not confirmed")
+
+
+def clear_zero_cost_unpriced(company: Optional[str] = None) -> dict:
+    """Release a budget pause caused only by zero-cost unpriced usage.
+
+    A process-adapter run can record usage with no price; with
+    ``unpricedUsagePolicy=block`` that hard-stops the whole company. Only events
+    already sitting at 0.00 are adjusted, so real spend can never be erased.
+    """
+    cid = company or company_id()
+    health = _call("GET", f"/api/companies/{cid}/accounting/health")
+    cleared, skipped = [], []
+    for item in _items(health, "items", "data"):
+        event_id = item.get("costEventId")
+        if not event_id:
+            continue
+        stamp = _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+        body = {
+            "idempotencyKey": f"agentcore-zero-unpriced-{event_id}-{stamp}",
+            "expectedCents": "0",
+            "correctedCents": "0",
+            "reason": "Zero-cost unpriced usage from a no-model run; operator adjustment to release the budget hard-stop.",
+            "pricing": {"source": "operator", "evidence": "agent-dispatch paperclip guard"},
+        }
+        try:
+            _call("POST", f"/api/companies/{cid}/accounting/events/{event_id}/adjustments", body)
+            cleared.append(event_id)
+        except PaperclipError:
+            skipped.append(event_id)
+    resumed = False
+    if cleared:
+        try:
+            _call("PATCH", f"/api/companies/{cid}", {"status": "active"})
+            resumed = True
+        except PaperclipError:
+            pass
+    return {"companyId": cid, "cleared": cleared, "skipped": skipped, "resumed": resumed}

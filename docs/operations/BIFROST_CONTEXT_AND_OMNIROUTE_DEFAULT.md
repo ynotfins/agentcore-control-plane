@@ -17,7 +17,7 @@
 | Bifrost inference providers | openai, openrouter | + `omniroute` custom provider (`127.0.0.1:20128/v1`, chat + responses only) |
 | OmniRoute MCP | direct stdio/HTTP entry in every app (63–110 tools eager) | one Bifrost Code Mode upstream, 110 named tools, ~0 eager tokens |
 | Code Mode flags | 4 in the registry, 20 in the live DB | 20 in the registry (drift closed) |
-| Machine default model | `openrouter/z-ai/glm-5.3` | `deepseek-v4.1-flash` via OmniRoute |
+| Machine default model | `openrouter/z-ai/glm-5.3` | `deepseek/deepseek-v4.1-flash-1017` via OmniRoute |
 | Context budget | 128k capability-class fallback | `deepseek-v4-flash-1m` (1,048,576) for agent clients |
 | Eager gateway surface | 27 tools / ~7.7k tokens | 27 tools / ~7.7k tokens (unchanged, now guaranteed by the registry) |
 
@@ -70,7 +70,7 @@ registry in the same change.
 
 ## 4. OmniRoute routing
 
-- Inference: `POST http://127.0.0.1:20128/v1/chat/completions`, canonical model id `deepseek-v4.1-flash`
+- Inference: `POST http://127.0.0.1:20128/v1/chat/completions`, canonical model id `deepseek/deepseek-v4.1-flash-1017`
   (combo: OpenRouter → Together → DeepInfra). `default` and `auto` also resolve to it.
 - The direct `ds` connection (api.deepseek.com) is **out of credit** and returns 402. Nothing should pin
   a model to `ds/*`; use the combo alias.

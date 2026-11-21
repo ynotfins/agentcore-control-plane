@@ -29,7 +29,7 @@ every agent, and no tool schema loaded that the current task does not need.
    direct `:20128` stays allowed for clients that cannot carry a Bifrost header.
 3. Every virtual key receives provider grants for openai, openrouter and omniroute, so no agent is
    limited by which key it happens to hold.
-4. `deepseek-v4.1-flash` is the machine default model, resolved through OmniRoute's combo chain
+4. `deepseek/deepseek-v4.1-flash-1017` is the machine default model, resolved through OmniRoute's combo chain
    (OpenRouter → Together → DeepInfra). The direct `ds` connection stays out of credit and must not be
    pinned.
 5. OmniRoute stays loopback-only. Containers cannot reach it and that is accepted; the bind address is

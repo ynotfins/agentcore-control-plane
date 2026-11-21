@@ -138,7 +138,7 @@ def _invoke_with_recursion_failsafe(
 ) -> dict[str, Any]:
     """Invoke a worker; on a super-step blowout retry once with a bigger budget.
 
-    Chatty models (deepseek-v4.1-flash) can exhaust the derived recursion limit
+    Chatty models (deepseek/deepseek-v4.1-flash-1017) can exhaust the derived recursion limit
     before finishing. The wall-clock timeout still bounds the retry, and the
     retry is nudged to return its final answer without more tool calls.
     """

@@ -7,7 +7,7 @@
         "apiProvider": "openai",
         "openAiBaseUrl": "http://127.0.0.1:20128/v1",
         "openAiApiKey": "omniroute-local",
-        "openAiModelId": "deepseek-v4.1-flash"
+        "openAiModelId": "deepseek/deepseek-v4.1-flash-1017"
       },
       "omniroute-heavy-sol": {
         "id": "omniroute-heavy-sol",

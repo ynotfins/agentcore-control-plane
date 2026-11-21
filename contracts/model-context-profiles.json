@@ -13,7 +13,7 @@
     {
       "profile_name": "deepseek-v4-flash-1m",
       "provider": "omniroute",
-      "model_id": "deepseek-v4.1-flash",
+      "model_id": "deepseek/deepseek-v4.1-flash-1017",
       "client_ids": [
         "cursor",
         "codex",
@@ -51,7 +51,7 @@
       "retrieval_page_size": 1000,
       "tokenizer": "provider-reported-model-tokenizer",
       "last_validated_date": "2026-11-18",
-      "validation_source": "Measured: OmniRoute /v1/models reports deepseek-v4.1-flash context_length=1048576, max_input_tokens=1048576, tool_calling=true, reasoning=true.",
+      "validation_source": "Measured: OmniRoute /v1/models reports deepseek/deepseek-v4.1-flash-1017 context_length=1048576, max_input_tokens=1048576, tool_calling=true, reasoning=true.",
       "production_profile": true
     },
     {

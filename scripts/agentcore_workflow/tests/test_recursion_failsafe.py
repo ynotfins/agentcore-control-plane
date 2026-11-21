@@ -1,4 +1,4 @@
-"""Recursion-blowout failsafe for DA workers (deepseek-v4.1-flash loops)."""
+"""Recursion-blowout failsafe for DA workers (deepseek/deepseek-v4.1-flash-1017 loops)."""
 
 from __future__ import annotations
 

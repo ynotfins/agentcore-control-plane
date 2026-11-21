@@ -179,3 +179,44 @@ def test_mcp_roundtrip(manager):
     bad = server.handle({"jsonrpc": "2.0", "id": 3, "method": "tools/call",
                          "params": {"name": "job_status", "arguments": {"job_id": "missing"}}}, {})
     assert bad["result"]["isError"] is True
+
+
+def test_preflight_fails_loudly_when_omniroute_down(monkeypatch):
+    import urllib.request
+
+    def _boom(*_a, **_k):
+        raise OSError("connection refused")
+
+    monkeypatch.setattr(urllib.request, "urlopen", _boom)
+    with pytest.raises(SystemExit) as exc:
+        server.preflight_inference(timeout=1)
+    assert "OmniRoute unreachable" in str(exc.value)
+
+
+def test_preflight_accepts_auth_protected_endpoint(monkeypatch):
+    import urllib.error
+    import urllib.request
+
+    def _unauth(*_a, **_k):
+        raise urllib.error.HTTPError("http://x", 401, "auth", {}, None)
+
+    monkeypatch.setattr(urllib.request, "urlopen", _unauth)
+    assert "auth required" in server.preflight_inference(timeout=1)
+
+
+def test_paperclip_guard_only_touches_zero_cent_events(monkeypatch):
+    calls = []
+
+    def fake_call(method, path, body=None, timeout=15):
+        calls.append((method, path, body))
+        if path.endswith("/accounting/health"):
+            return {"items": [{"costEventId": "evt-zero"}, {"costEventId": "evt-real"}]}
+        if path.endswith("/evt-real/adjustments"):
+            raise paperclip.PaperclipError("expectedCents mismatch")
+        return {"ok": True}
+
+    monkeypatch.setattr(paperclip, "_call", fake_call)
+    monkeypatch.setattr(paperclip, "company_id", lambda: "cid")
+    out = paperclip.clear_zero_cost_unpriced()
+    assert out["cleared"] == ["evt-zero"] and out["skipped"] == ["evt-real"]
+    assert out["resumed"] is True
