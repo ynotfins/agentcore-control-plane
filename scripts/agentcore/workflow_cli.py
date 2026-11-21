@@ -557,6 +557,11 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 def cmd_start(args: argparse.Namespace) -> int:
     """Start a new workflow run against a registered project."""
+    # Model routing: OmniRoute (loopback :20128) is the default; OpenRouter is opt-in
+    # only via --provider openrouter. AUTH-2026-11-20-AGENT-DISPATCH-LIVE.
+    if not getattr(args, "provider", None):
+        args.provider = os.environ.get("AGENTCORE_WORKFLOW_PROVIDER", "omniroute")
+        args.model = args.model or os.environ.get("AGENTCORE_WORKFLOW_MODEL", "deepseek-v4-pro")
     project_key = args.project_key
     if not project_key and args.project:
         # Resolve project key from root path if --project is a path, otherwise use it as key
@@ -1386,7 +1391,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_start.add_argument("--budget-profile", default=None,
                          help="Budget profile alias (also accepted as risk/budget hint)")
     p_start.add_argument("--milestone", default="M6")
-    p_start.add_argument("--provider", default=None, help="LLM provider (e.g., 'openrouter', 'gemini')")
+    p_start.add_argument("--provider", default=None, help="LLM provider: omniroute (default), openrouter, or gemini")
     p_start.add_argument("--model", default=None, help="Selected model ID")
     p_start.add_argument("--json", action="store_true")
     p_start.set_defaults(func=cmd_start)

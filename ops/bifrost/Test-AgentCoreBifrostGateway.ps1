@@ -413,7 +413,7 @@ if (Test-Path -LiteralPath $CursorMcpPath) {
     Assert-True ($serverNames -contains 'agentcore-gateway') 'Cursor global MCP contains agentcore-gateway'
     Assert-True ($serverNames -notcontains 'MCP_DOCKER') 'Cursor global MCP does not contain MCP_DOCKER'
     Assert-True ($cursorJson.mcpServers.'agentcore-gateway'.url -eq "$BaseUrl/mcp") 'Cursor global MCP endpoint matches gateway'
-    Assert-True ($cursorRaw -match '\$\{env:BIFROST_MCP_VIRTUAL_KEY\}') 'Cursor global MCP uses env placeholder'
+    Assert-True ($cursorRaw -match '\$\{env:BIFROST_MCP_(VIRTUAL_KEY|VK_[A-Z0-9_]+)\}') 'Cursor global MCP uses env placeholder'
     Assert-True ($cursorRaw -notmatch 'sk-[A-Za-z0-9_-]{20,}') 'Cursor global MCP has no obvious secret literal'
   } catch {
     Write-Host "FAIL  Cursor MCP config validation: $($_.Exception.Message)"

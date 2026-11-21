@@ -14,7 +14,7 @@ param(
   [string]$HostAddress = '127.0.0.1',
   [int]$Port = 8080,
   [int]$BuilderCompatPort = 18082,
-  [int]$MaxDependencyWaitSeconds = 180,
+  [int]$MaxDependencyWaitSeconds = 30,
   [switch]$RequireRedisVectorStore,
   [long]$MaxLogBytes = 50MB,
   [int]$InitialRestartBackoffSeconds = 2,

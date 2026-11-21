@@ -43,6 +43,7 @@ $ErrorActionPreference = 'Stop'
 $stateDir = Join-Path $RuntimeRoot 'state'
 $logDir = Join-Path $RuntimeRoot 'logs'
 $statePath = Join-Path $stateDir 'bifrost-watchdog.json'
+$alarmPath = Join-Path $stateDir 'bifrost-alarm.json'
 $maintenanceMarker = Join-Path $stateDir 'bifrost-maintenance.marker'
 
 function Get-Now {
@@ -62,6 +63,67 @@ function Write-WatchdogLog([string]$Message) {
   Write-Host $line
   New-Item -ItemType Directory -Force -Path $logDir | Out-Null
   Add-Content -LiteralPath (Join-Path $logDir 'bifrost-watchdog.log') -Value $line -Encoding utf8
+}
+
+function Save-WatchdogAlarm([string]$Reason, [int]$FailureCount, [string]$Outcome) {
+  New-Item -ItemType Directory -Force -Path $stateDir | Out-Null
+  $existed = Test-Path -LiteralPath $alarmPath
+  $alarm = [ordered]@{
+    schema = 'agentcore.bifrost.alarm.v1'
+    raised_at_utc = (Get-Now).ToString('o')
+    reason = $Reason
+    consecutive_failures = $FailureCount
+    last_recycle_outcome = $Outcome
+    task_path = $TaskPath
+    task_name = $TaskName
+  }
+  $alarm | ConvertTo-Json -Compress | Set-Content -LiteralPath $alarmPath -Encoding utf8
+  if ($existed) { return }
+  Write-WatchdogLog "WATCHDOG_ALARM_RAISED reason=$Reason count=$FailureCount outcome=$Outcome"
+  if ($TestMode) { return }
+  try {
+    if (-not [System.Diagnostics.EventLog]::SourceExists('AgentCore-Bifrost-Watchdog')) {
+      New-EventLog -LogName Application -Source 'AgentCore-Bifrost-Watchdog'
+    }
+    Write-EventLog -LogName Application -Source 'AgentCore-Bifrost-Watchdog' -EventId 5100 -EntryType Error `
+      -Message "AgentCore Bifrost gateway recovery failed: reason=$Reason failures=$FailureCount outcome=$Outcome task=$TaskPath$TaskName"
+  } catch {
+    Write-WatchdogLog ("WATCHDOG_ALARM_EVENTLOG_FAILED reason={0}" -f (($_.Exception.Message ?? '') -replace '[\r\n]+', ' '))
+  }
+}
+
+function Clear-WatchdogAlarm {
+  if (-not (Test-Path -LiteralPath $alarmPath)) { return }
+  Remove-Item -LiteralPath $alarmPath -Force
+  Write-WatchdogLog 'WATCHDOG_ALARM_CLEARED'
+}
+
+# Windows command-line parsing treats `\"` as an escaped quote, so a task
+# argument ending in a backslash (`-TaskPath "\AgentCore\"`) swallows every
+# later argument, including TaskName. Normalize the identity here so a stale
+# or mis-quoted task definition can never silently disable recovery again.
+$rawTaskPath = $TaskPath
+$rawTaskName = $TaskName
+$pathMalformed = [string]::IsNullOrWhiteSpace($rawTaskPath) -or
+  $rawTaskPath.Contains('"') -or
+  $rawTaskPath.Contains(' ') -or
+  ($rawTaskPath.Trim() -ne $rawTaskPath)
+$nameMalformed = [string]::IsNullOrWhiteSpace($rawTaskName) -or $rawTaskName.Contains('"')
+$repairedLeaf = (($TaskPath -split '"')[0]).Trim().Trim('\')
+if ([string]::IsNullOrWhiteSpace($repairedLeaf)) { $repairedLeaf = 'AgentCore' }
+$TaskPath = '\' + $repairedLeaf + '\'
+if ($nameMalformed) {
+  $TaskName = 'AgentCore-Bifrost-Gateway'
+}
+if ($pathMalformed -or $nameMalformed) {
+  $logPath = (($rawTaskPath ?? '') -replace '[\r\n]+', ' ').Trim()
+  $logName = (($rawTaskName ?? '') -replace '[\r\n]+', ' ').Trim()
+  if ($logPath.Length -gt 120) { $logPath = $logPath.Substring(0, 120) }
+  if ($logName.Length -gt 120) { $logName = $logName.Substring(0, 120) }
+  Write-WatchdogLog "WATCHDOG_CONFIG_REPAIRED raw_task_path=$logPath raw_task_name=$logName task_path=$TaskPath task_name=$TaskName"
+}
+if ($TestMode) {
+  Write-WatchdogLog "WATCHDOG_IDENTITY task_path=$TaskPath task_name=$TaskName"
 }
 
 function Get-WatchdogState {
@@ -208,6 +270,9 @@ function Invoke-ControlledRecycle([int]$FailureCount) {
     }
   } else {
     Write-WatchdogLog "WATCHDOG_RECYCLE_STOP_SKIPPED task_state=$taskState"
+    if ($taskState -eq 'Unknown') {
+      Write-WatchdogLog "WATCHDOG_TASK_MISSING task=$TaskPath$TaskName"
+    }
   }
   if (-not $TestMode) {
     for ($attempt = 0; $attempt -lt 30; $attempt++) {
@@ -270,6 +335,7 @@ if (Test-GatewayHealth) {
   $state.last_recycle_outcome = 'healthy'
   $state.last_recycle_attempt_epoch = 0
   Save-WatchdogState $state
+  Clear-WatchdogAlarm
   Write-WatchdogLog 'WATCHDOG_HEALTHY'
   exit 0
 }
@@ -314,4 +380,7 @@ if ($result.outcome -in @('maintenance_marker_before_stop', 'maintenance_marker_
   $state.recycle_attempted = $false
 }
 Save-WatchdogState $state
-if (-not $result.success) { exit 1 }
+if (-not $result.success) {
+  Save-WatchdogAlarm -Reason 'recycle_failed' -FailureCount $state.consecutive_failures -Outcome $result.outcome
+  exit 1
+}

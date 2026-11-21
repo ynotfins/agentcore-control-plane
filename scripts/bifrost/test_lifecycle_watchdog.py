@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import threading
 from contextlib import contextmanager
@@ -331,6 +332,12 @@ def run_watchdog(
     )
 
 
+def run_watchdog_command_line(arguments: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        arguments, shell=True, capture_output=True, text=True, check=False
+    )
+
+
 def test_watchdog_debounces_failures_and_recycles_once_per_incident(tmp_path: Path) -> None:
     runtime_root = tmp_path / "runtime"
     started_at = "2000-01-01T00:00:00Z"
@@ -433,7 +440,7 @@ def test_watchdog_expires_orphaned_stop_and_start_markers_quickly(tmp_path: Path
     assert not start_expired_marker.exists()
 
 
-def test_watchdog_expires_stale_maintenance_marker_and_honors_exact_120_second_grace(
+def test_watchdog_expires_stale_maintenance_marker_and_honors_exact_60_second_grace(
     tmp_path: Path,
 ) -> None:
     runtime_root = tmp_path / "runtime"
@@ -457,22 +464,22 @@ def test_watchdog_expires_stale_maintenance_marker_and_honors_exact_120_second_g
     assert "WATCHDOG_FAILURE count=1" in stale.stdout
     assert not marker.exists()
 
-    at_119 = run_watchdog(
-        tmp_path / "grace-119",
+    at_59 = run_watchdog(
+        tmp_path / "grace-59",
         "Unhealthy",
         "2026-08-08T00:00:00Z",
         "-NowUtc",
-        "2026-08-08T00:01:59Z",
+        "2026-08-08T00:00:59Z",
     )
-    at_120 = run_watchdog(
-        tmp_path / "grace-120",
+    at_60 = run_watchdog(
+        tmp_path / "grace-60",
         "Unhealthy",
         "2026-08-08T00:00:00Z",
         "-NowUtc",
-        "2026-08-08T00:02:00Z",
+        "2026-08-08T00:01:00Z",
     )
-    assert "WATCHDOG_SKIP startup_grace" in at_119.stdout
-    assert "WATCHDOG_FAILURE count=1" in at_120.stdout
+    assert "WATCHDOG_SKIP startup_grace" in at_59.stdout
+    assert "WATCHDOG_FAILURE count=1" in at_60.stdout
 
     marker.write_text("operator_hold", encoding="utf-8")
     os.utime(marker, (created_at, created_at))
@@ -546,6 +553,71 @@ def test_watchdog_rechecks_maintenance_and_persists_recycle_failure(tmp_path: Pa
     suppressed_stop_failure = run_watchdog(runtime_root, "Unhealthy", started_at)
     assert suppressed_stop_failure.returncode == 1
     assert "outcome=stop_failed" in suppressed_stop_failure.stdout
+
+
+def test_watchdog_task_arguments_survive_windows_command_line_parsing(
+    tmp_path: Path,
+) -> None:
+    runtime_root = tmp_path / "runtime"
+    arguments = installer_task_specs(runtime_root)["watchdog"]["action"]["arguments"]
+    pwsh_tail = re.match(r'--headless "[^"]+" (.*)$', arguments).group(1)
+    result = run_watchdog_command_line(
+        f'pwsh {pwsh_tail} -TestMode -TestHealthResult Unhealthy '
+        "-GatewayStartedAtUtc 2000-01-01T00:00:00Z"
+    )
+
+    assert result.returncode == 0, (result.stdout, result.stderr)
+    assert "WATCHDOG_CONFIG_REPAIRED" not in result.stdout
+    assert (
+        "WATCHDOG_IDENTITY task_path=\\AgentCore\\ task_name=AgentCore-Bifrost-Gateway"
+        in result.stdout
+    )
+    assert "WATCHDOG_FAILURE count=1" in result.stdout
+
+
+def test_watchdog_repairs_legacy_trailing_backslash_task_path(tmp_path: Path) -> None:
+    runtime_root = tmp_path / "runtime"
+    result = run_watchdog_command_line(
+        f'pwsh -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{WATCHDOG}" '
+        f'-RuntimeRoot "{runtime_root}" -GatewayUrl http://127.0.0.1:1 '
+        "-TestMode -TestHealthResult Healthy "
+        '-TaskPath "\\AgentCore\\" -TaskName "AgentCore-Bifrost-Gateway" '
+        "-FailureThreshold 2 -ListeningFailureThreshold 2 -StartupGraceSeconds 60 "
+        "-RecycleRetryBackoffSeconds 30 -StopRequestedMarkerTtlSeconds 120 "
+        "-StartRequestedMarkerTtlSeconds 180"
+    )
+
+    assert result.returncode == 0, (result.stdout, result.stderr)
+    assert "WATCHDOG_CONFIG_REPAIRED" in result.stdout
+    assert (
+        "WATCHDOG_IDENTITY task_path=\\AgentCore\\ task_name=AgentCore-Bifrost-Gateway"
+        in result.stdout
+    )
+
+
+def test_watchdog_raises_and_clears_recovery_alarm(tmp_path: Path) -> None:
+    runtime_root = tmp_path / "runtime"
+    started_at = "2000-01-01T00:00:00Z"
+    alarm = runtime_root / "state" / "bifrost-alarm.json"
+
+    assert run_watchdog(runtime_root, "Unhealthy", started_at).returncode == 0
+    failed = run_watchdog(
+        runtime_root, "Unhealthy", started_at, "-TestRecycleOutcome", "StartFailure"
+    )
+
+    assert failed.returncode == 1
+    assert "WATCHDOG_ALARM_RAISED" in failed.stdout
+    assert alarm.exists()
+    payload = json.loads(alarm.read_text())
+    assert payload["reason"] == "recycle_failed"
+    assert payload["last_recycle_outcome"] == "start_failed"
+    assert payload["task_path"] == "\\AgentCore\\"
+    assert payload["task_name"] == "AgentCore-Bifrost-Gateway"
+
+    healthy = run_watchdog(runtime_root, "Healthy", started_at)
+    assert healthy.returncode == 0
+    assert "WATCHDOG_ALARM_CLEARED" in healthy.stdout
+    assert not alarm.exists()
 
 
 def test_start_preflight_and_authenticated_health_do_not_clear_marker_early(tmp_path: Path) -> None:
@@ -1009,7 +1081,10 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
     specs = installer_task_specs(runtime_root)
 
     assert not runtime_root.exists()
-    assert specs["gateway"]["action"]["executable"] == "test-pwsh.exe"
+    assert specs["gateway"]["action"]["executable"].endswith("conhost.exe")
+    assert specs["gateway"]["action"]["arguments"].startswith(
+        '--headless "test-pwsh.exe" -NoProfile -NonInteractive -WindowStyle Hidden'
+    )
     assert "Launch-AgentCoreBifrostGateway.ps1" in specs["gateway"]["action"]["arguments"]
     assert specs["gateway"]["trigger"] == {"type": "logon", "user": os.environ["USERNAME"]}
     assert specs["gateway"]["settings"] == {
@@ -1049,6 +1124,12 @@ def test_installer_task_specs_are_deterministic_and_non_mutating(tmp_path: Path)
         "run_level": "Highest",
     }
     assert "Invoke-AgentCoreBifrostWatchdog.ps1" in specs["watchdog"]["action"]["arguments"]
+    assert specs["watchdog"]["action"]["executable"].endswith("conhost.exe")
+    assert specs["watchdog"]["action"]["arguments"].startswith(
+        '--headless "test-pwsh.exe" -NoProfile -NonInteractive -WindowStyle Hidden'
+    )
+    assert '-TaskPath "\\AgentCore"' in specs["watchdog"]["action"]["arguments"]
+    assert '-TaskPath "\\AgentCore\\"' not in specs["watchdog"]["action"]["arguments"]
     assert "-FailureThreshold 2" in specs["watchdog"]["action"]["arguments"]
     assert "-StopRequestedMarkerTtlSeconds 120" in specs["watchdog"]["action"]["arguments"]
     assert "-StartRequestedMarkerTtlSeconds 180" in specs["watchdog"]["action"]["arguments"]
@@ -1070,17 +1151,27 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
     launch_script = REPO_ROOT / "ops" / "bifrost" / "Launch-AgentCoreBifrostGateway.ps1"
     watchdog_script = REPO_ROOT / "ops" / "bifrost" / "Invoke-AgentCoreBifrostWatchdog.ps1"
     assert by_scope_and_command[("gateway", "New-ScheduledTaskAction")] == {
-        "Execute": "test-pwsh.exe",
+        "Execute": by_scope_and_command[("gateway", "New-ScheduledTaskAction")]["Execute"],
         "Argument": (
-            f'-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "{launch_script}" '
+            f'--headless "test-pwsh.exe" -NoProfile -NonInteractive -WindowStyle Hidden '
+            f'-ExecutionPolicy Bypass -File "{launch_script}" '
             f'-RuntimeRoot "{runtime_root}" -HostAddress 127.0.0.1 -Port 18080'
         ),
         "WorkingDirectory": str(runtime_root),
     }
-    assert by_scope_and_command[("gateway", "New-ScheduledTaskTrigger")] == {
-        "AtLogOn": True,
-        "User": os.environ["USERNAME"],
-    }
+    assert by_scope_and_command[("gateway", "New-ScheduledTaskAction")][
+        "Execute"
+    ].endswith("conhost.exe")
+    gateway_trigger_calls = [
+        call
+        for call in calls
+        if call["scope"] == "gateway"
+        and call["command"] == "New-ScheduledTaskTrigger"
+    ]
+    assert [call["parameters"] for call in gateway_trigger_calls] == [
+        {"AtLogOn": True, "User": os.environ["USERNAME"]},
+        {"AtStartup": True, "DelaySeconds": 30},
+    ]
     assert by_scope_and_command[("gateway", "New-ScheduledTaskSettingsSet")] == {
         "AllowStartIfOnBatteries": True,
         "DontStopIfGoingOnBatteries": True,
@@ -1097,15 +1188,20 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         "RunLevel": "Limited",
     }
     assert by_scope_and_command[("watchdog", "New-ScheduledTaskAction")] == {
-        "Execute": "test-pwsh.exe",
+        "Execute": by_scope_and_command[("watchdog", "New-ScheduledTaskAction")]["Execute"],
         "Argument": (
-            f'-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "{watchdog_script}" '
+            f'--headless "test-pwsh.exe" -NoProfile -NonInteractive -WindowStyle Hidden '
+            f'-ExecutionPolicy Bypass -File "{watchdog_script}" '
             f'-RuntimeRoot "{runtime_root}" -GatewayUrl http://127.0.0.1:18080 '
-            '-TaskPath "\\AgentCore\\" -TaskName "AgentCore-Bifrost-Gateway" -FailureThreshold 2 '
-            '-RecycleRetryBackoffSeconds 60 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180'
+            '-TaskPath "\\AgentCore" -TaskName "AgentCore-Bifrost-Gateway" -FailureThreshold 2 '
+            '-ListeningFailureThreshold 2 -StartupGraceSeconds 60 '
+            '-RecycleRetryBackoffSeconds 30 -StopRequestedMarkerTtlSeconds 120 -StartRequestedMarkerTtlSeconds 180'
         ),
         "WorkingDirectory": str(runtime_root),
     }
+    assert by_scope_and_command[("watchdog", "New-ScheduledTaskAction")][
+        "Execute"
+    ].endswith("conhost.exe")
     assert by_scope_and_command[("watchdog", "New-ScheduledTaskSettingsSet")] == {
         "AllowStartIfOnBatteries": True,
         "DontStopIfGoingOnBatteries": True,
@@ -1134,15 +1230,17 @@ def test_installer_behaviorally_constructs_tasks_and_logging_from_specs(tmp_path
         if call["scope"] == "watchdog"
         and call["command"] == "New-ScheduledTaskTrigger"
     ]
-    assert len(watchdog_trigger_calls) == 2
-    daily, repetition = watchdog_trigger_calls
+    assert len(watchdog_trigger_calls) == 3
+    daily, repetition, boot = watchdog_trigger_calls
     assert daily["parameters"]["Daily"] is True
     assert repetition["parameters"] == {
         "Once": True,
         "At": daily["parameters"]["At"],
         "RepetitionIntervalSeconds": 60,
-        "RepetitionDurationSeconds": 86400,
+        "RepetitionDurationSeconds": 0,
+        "StopAtDurationEnd": False,
     }
+    assert boot["parameters"] == {"AtStartup": True, "DelaySeconds": 45}
     trigger_at = datetime.fromisoformat(daily["parameters"]["At"].replace("Z", "+00:00"))
     assert started_at + timedelta(seconds=55) <= trigger_at
     assert trigger_at <= finished_at + timedelta(seconds=65)

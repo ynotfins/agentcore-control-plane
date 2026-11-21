@@ -319,6 +319,44 @@
       "notes": [
         "Pi HTTP session shim; raw subagent output is external_untrusted."
       ]
+    },
+    "omniroute": {
+      "adapter": "upstream_native",
+      "default_profile": "external",
+      "notes": [
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: HTTP Code Mode upstream at 127.0.0.1:20128/api/mcp/stream.",
+        "OmniRoute emits native MCP tool results with no outputSchema, so no stdio envelope normalizer applies.",
+        "Routing, quota, cost and pool data are external_untrusted evidence, never authority."
+      ]
+    },
+    "eye2byte": {
+      "adapter": "upstream_native",
+      "default_profile": "external",
+      "notes": [
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: stdio upstream re-admitted with native MCP output, no envelope normalizer."
+      ]
+    },
+    "windows-mcp": {
+      "adapter": "upstream_native",
+      "default_profile": "code_intel",
+      "notes": [
+        "AUTH-2026-11-18-BIFROST-CONTEXT-AND-OMNIROUTE-DEFAULT: stdio upstream re-admitted with native MCP output, no envelope normalizer."
+      ]
+    },
+    "kie-media": {
+      "adapter": "upstream_native",
+      "default_profile": "external",
+      "notes": [
+        "AUTH-2026-11-18: stdio upstream returning native MCP text results. No envelope normalizer."
+      ]
+    },
+    "agent-dispatch": {
+      "adapter": "upstream_native",
+      "default_profile": "external",
+      "notes": [
+        "agent-dispatch loopback MCP; job summaries and agent text are external_untrusted.",
+        "job_result detail=full returns log paths plus up to 20000 chars of agent output."
+      ]
     }
   }
 }

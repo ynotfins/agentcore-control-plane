@@ -1,0 +1,52 @@
+[
+  {
+    "Path": "contracts/bifrost-upstream-mcp-registry.json",
+    "SHA256": "D99EF62994F80EC3E6C20234F6FFC64459B2D2DF0A8F78B7428912E704B3BE40",
+    "ReadOnly": false
+  },
+  {
+    "Path": "contracts/global-agent-policy.yaml",
+    "SHA256": "82D703A7B10A6C0102E00151C82393FB5D869C92A9938C7F701D1EF77F0ED96E",
+    "ReadOnly": false
+  },
+  {
+    "Path": "contracts/mcp-tool-output-schemas.json",
+    "SHA256": "A78CC3C22AC83DAB8CD39595E74D80963C91A8B35199049575BAFD516FEDAD80",
+    "ReadOnly": false
+  },
+  {
+    "Path": "CONTEXT_BLOCK.md",
+    "SHA256": "BEFDF593B1464C74C3A1DCFB244B4680DB2684F7662A8F68062E6352EE46FA9B",
+    "ReadOnly": false
+  },
+  {
+    "Path": "MASTER_CONFIG_AND_PROMPT.md",
+    "SHA256": "1719C6FADA8AE0590E1C66DE304237702786F671D22A9B8A0C03861DCEA81C91",
+    "ReadOnly": false
+  },
+  {
+    "Path": "docs/operations/WORKSTATION_PARALLEL_SUBAGENT_INFRASTRUCTURE.md",
+    "SHA256": "39F83BE7C1BC40B83046CAF5DF938DF52FA0E0E85D0270173A997DDA18CC9309",
+    "ReadOnly": false
+  },
+  {
+    "Path": "docs/operations/DORMANT_MCP_CAPABILITY_CATALOG.md",
+    "SHA256": "F2300EC126F45854C2C718DA2C6FCFE78BB7BF57755BE246CDD42CFE87568158",
+    "ReadOnly": false
+  },
+  {
+    "Path": "docs/operations/BIFROST_CONTEXT_AND_OMNIROUTE_DEFAULT.md",
+    "SHA256": "6001AB3246DED3BF1C7877BB5AF1BF6AB31A9B9FE64D19E0F828B1AD848602CD",
+    "ReadOnly": false
+  },
+  {
+    "Path": "ops/bifrost/Start-AgentCoreBifrostGateway.ps1",
+    "SHA256": "6A0E99CC7308BDB32E1638E2520D6577B15D8747CEADE9F3997796B5AF8CDDC7",
+    "ReadOnly": false
+  },
+  {
+    "Path": "ops/bifrost/Start-AgentCoreAgentDispatch.ps1",
+    "SHA256": "3D11834416C87D5E6FA7C72AFAC10F5C3DC400ECFF8DB66B838A0B0B5CF15FC5",
+    "ReadOnly": false
+  }
+]
