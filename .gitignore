@@ -153,3 +153,9 @@ spool_acl.txt
 hp_*.pdf
 hp_pages/
 hp-9125e-repair/
+
+# One-off local probes and vendored third-party skill payloads
+scan_pdf.py
+scan_chapter.py
+apply-opt-in-path-prefix.ps1
+tech-leads-club-agent-skills-cursor-subagent-creator/
