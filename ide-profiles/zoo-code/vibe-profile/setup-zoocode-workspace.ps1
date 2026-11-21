@@ -21,7 +21,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $source = $PSScriptRoot
 $items = @('.roomodes', '.rooignore', '.roo')
-$requiredModels = @('deepseek-v4.1-flash', 'sol-kie-heavy')
+$requiredModels = @('deepseek/deepseek-v4.1-flash-1017', 'sol-kie-heavy')
 $requiredEnv = @('BIFROST_MCP_VK_APP_ZOO_CODE', 'OPENROUTER_API_KEY', 'DEEPINFRA_API_KEY', 'TOGETHER_API_KEY', 'KIE_API_KEY')
 
 function Write-Step([string]$Message, [string]$Status = 'OK') {

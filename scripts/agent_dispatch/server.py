@@ -155,15 +155,39 @@ class Handler(BaseHTTPRequestHandler):
         return self._send(200, res) if res is not None else self._send(202)
 
 
+def preflight_inference(timeout: float = 3.0) -> str:
+    """Fail loudly when the OmniRoute endpoint is unreachable.
+
+    Every non-Codex backend sends model traffic to the loopback OmniRoute. Starting
+    the dispatcher with that endpoint down only burns runs, so refuse to serve.
+    """
+    import urllib.error
+    import urllib.request
+
+    url = os.environ.get("AGENTCORE_DISPATCH_OMNIROUTE_HEALTH", "http://127.0.0.1:20128/v1/models")
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as r:
+            return f"omniroute reachable ({r.status})"
+    except urllib.error.HTTPError as exc:
+        if exc.code in (401, 403):
+            return f"omniroute reachable ({exc.code}: auth required, endpoint alive)"
+        raise SystemExit(f"agent-dispatch preflight failed: {url} -> HTTP {exc.code}")
+    except Exception as exc:  # noqa: BLE001 — any transport failure is fatal here
+        raise SystemExit(f"agent-dispatch preflight failed: OmniRoute unreachable at {url} ({exc})")
+
+
 def main() -> int:
     global MANAGER
     ap = argparse.ArgumentParser(description="AgentCore agent-dispatch MCP server")
     ap.add_argument("--host", default=DEFAULT_HOST)
     ap.add_argument("--port", type=int, default=DEFAULT_PORT)
+    ap.add_argument("--skip-preflight", action="store_true", help="start even if OmniRoute is down (debug only)")
     a = ap.parse_args()
     if a.host not in ("127.0.0.1", "localhost", "::1"):
         raise SystemExit("agent-dispatch is loopback-only")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [agent-dispatch] %(message)s")
+    if not a.skip_preflight:
+        log.info(preflight_inference())
     MANAGER = JobManager()
     srv = ThreadingHTTPServer((a.host, a.port), Handler)
     srv.daemon_threads = True
