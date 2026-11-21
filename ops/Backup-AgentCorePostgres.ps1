@@ -2,7 +2,7 @@ param(
   [string]$PgRoot = "F:\PostgreSQL18",
   [string]$DataDir = "F:\PostgreSQL18\data",
   [string]$PrimaryRoot = "E:\AgentCoreArchive\agentcore-memory\backups\pg18",
-  [string]$SecondaryRoot = "G:\AgentCoreArchive\agentcore-memory\backups\pg18",
+  [string]$SecondaryRoot = "I:\AgentCoreArchive\agentcore-memory\backups\pg18",
   [string]$HostName = "127.0.0.1",
   [int]$Port = 55433,
   [string[]]$Databases = @("agent_core", "cognee_core", "paperclip"),
@@ -222,12 +222,40 @@ $manifest = [pscustomobject]@{
 $manifestPath = Join-Path $runRoot "backup-manifest.json"
 $manifest | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $manifestPath -Encoding utf8
 
-if (Test-Path -LiteralPath (Split-Path -Qualifier $SecondaryRoot)) {
-  New-Item -ItemType Directory -Path $SecondaryRoot -Force | Out-Null
-  $secondaryRunRoot = Join-Path $SecondaryRoot $stamp
-  Copy-Item -LiteralPath $runRoot -Destination $secondaryRunRoot -Recurse -Force
-  $manifest.secondary_path = $secondaryRunRoot
+# Second copy (contracts/secondary-backup-drive-policy.json). Optional and non-fatal:
+# copied only when the volume at the secondary drive letter matches the approved volume
+# identity and stays within the headroom caps; otherwise skipped with a warning and the
+# primary E: backup still succeeds. Never creates folders on a non-matching volume.
+$secondaryStatus = "skipped"
+$secondaryReason = $null
+try {
+  . (Join-Path $RepoRoot "ops\AgentCoreSecondaryBackupRetention.ps1")
+  $secondaryLetter = (Split-Path -Qualifier $SecondaryRoot).TrimEnd(":")
+  $identity = Test-SecondaryVolumeIdentity -DriveLetter $secondaryLetter
+  if (-not $identity.match) {
+    $secondaryReason = "volume identity: $($identity.reason) ($($identity.drive))"
+  } else {
+    $runBytes = [int64]((Get-ChildItem -LiteralPath $runRoot -Recurse -File | Measure-Object Length -Sum).Sum)
+    $headroom = Get-SecondaryDriveHeadroom -DriveLetter $secondaryLetter -AdditionalBytes $runBytes
+    if (-not $headroom.within_policy) {
+      $secondaryReason = "headroom: $($headroom.reason)"
+    } else {
+      New-Item -ItemType Directory -Path $SecondaryRoot -Force | Out-Null
+      $secondaryRunRoot = Join-Path $SecondaryRoot $stamp
+      $manifest.secondary_path = $secondaryRunRoot
+      $manifest | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $manifestPath -Encoding utf8
+      Copy-Item -LiteralPath $runRoot -Destination $secondaryRunRoot -Recurse -Force
+      $secondaryStatus = "copied"
+    }
+  }
+} catch {
+  $secondaryStatus = "failed"
+  $secondaryReason = $_.Exception.Message
+  $manifest.secondary_path = $null
   $manifest | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $manifestPath -Encoding utf8
+}
+if ($secondaryStatus -ne "copied") {
+  Write-Warning ("secondary backup copy {0}: {1}" -f $secondaryStatus, $secondaryReason)
 }
 
 $manifest | ConvertTo-Json -Depth 12

@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentcore.local/schemas/bifrost-skills-publication.schema.json",
+  "title": "Bifrost Skills Publication Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "skills"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/skill"
+      }
+    }
+  },
+  "$defs": {
+    "skill": {
+      "type": "object",
+      "required": [
+        "name",
+        "source_root",
+        "source_path",
+        "version",
+        "source_sha256",
+        "license",
+        "review",
+        "compatibility",
+        "served_state",
+        "hash_policy",
+        "status",
+        "publication_allowed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "source_root": {
+          "enum": [
+            "repository_skills",
+            "user_skills"
+          ]
+        },
+        "source_path": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "license": {
+          "type": "object",
+          "required": [
+            "status",
+            "spdx_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": [
+                "reviewed",
+                "pending"
+              ]
+            },
+            "spdx_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "review": {
+          "type": "object",
+          "required": [
+            "status",
+            "authority"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": [
+                "approved",
+                "pending"
+              ]
+            },
+            "authority": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "compatibility": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "served_state": {
+          "enum": [
+            "enabled",
+            "planned"
+          ]
+        },
+        "hash_policy": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "scope"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "algorithm": {
+              "const": "sha256"
+            },
+            "scope": {
+              "const": "published_files"
+            }
+          }
+        },
+        "status": {
+          "enum": [
+            "approved",
+            "planned"
+          ]
+        },
+        "publication_allowed": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "license": {
+                "properties": {
+                  "status": {
+                    "const": "reviewed"
+                  },
+                  "spdx_id": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "review": {
+                "properties": {
+                  "status": {
+                    "const": "approved"
+                  },
+                  "authority": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "served_state": {
+                "const": "enabled"
+              },
+              "publication_allowed": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "planned"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "served_state": {
+                "const": "planned"
+              },
+              "publication_allowed": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

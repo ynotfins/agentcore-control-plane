@@ -1,0 +1,135 @@
+{
+  "results": {
+    "ts": "20260827-004907",
+    "steps": [
+      {
+        "step": "oi_cli_live",
+        "ok": true,
+        "detail": "backup=config.toml.bak-20260827-004907; gateway_only=True"
+      },
+      {
+        "step": "oi_cli_template",
+        "ok": true,
+        "detail": "backup=cli-config.toml.bak-20260827-004907; gateway_only=True"
+      },
+      {
+        "step": "oi_desktop_live",
+        "ok": true,
+        "detail": "backup=config.toml.bak-20260827-004907"
+      },
+      {
+        "step": "oi_desktop_template",
+        "ok": true,
+        "detail": "backup=desktop-config.toml.bak-20260827-004907"
+      },
+      {
+        "step": "opencode",
+        "ok": true,
+        "detail": "backup=opencode.json.bak-20260827-004907; gateway_only=True; vk_materialized=True"
+      },
+      {
+        "step": "cursor_verify",
+        "ok": true,
+        "detail": "keys=['agentcore-gateway']; gateway_only=True"
+      },
+      {
+        "step": "zoo_code_verify",
+        "ok": true,
+        "detail": "keys=['agentcore-gateway']; gateway_only=True"
+      },
+      {
+        "step": "codex_verify_only",
+        "ok": true,
+        "detail": "has_gateway=True; extra_mcp=['morph-mcp', 'node_repl', 'cheap-workers']; edited=false"
+      },
+      {
+        "step": "repo_enrollment_status_md",
+        "ok": true,
+        "detail": "D:\\github\\agentcore-control-plane\\scripts\\maf_recall\\repo_enrollment_status.md"
+      },
+      {
+        "step": "devin_copy_Dockerfile",
+        "ok": true,
+        "detail": "I:LocalApps\\Devin\\outpost-worker\\Dockerfile"
+      },
+      {
+        "step": "devin_copy_README.md",
+        "ok": true,
+        "detail": "I:LocalApps\\Devin\\outpost-worker\\README.md"
+      },
+      {
+        "step": "devin_outpost_layer",
+        "ok": true,
+        "detail": "token_status=blocked_on_operator_token; name_present=False"
+      },
+      {
+        "step": "maf_host_import",
+        "ok": true,
+        "detail": "PIP_INSTALL_START | Collecting agent-framework==1.15.0 (from -r D:\\github\\agentcore-control-plane\\scripts\\maf_recall\\maf_host\\requirements.txt (line 1)) |   Downloading agent_framework-1.15.0-py3-none-any.whl.metadata (9.6 kB) | Collecting agent-framework-core==1.15.0 (from agent-framework-core[all]==1.15.0->agent-framework==1.15.0->-r D:\\github\\agentcore-control-plane\\scripts\\maf_recall\\maf_host\\requirements.txt (line 1)) |   Downloading agent_framework_core-1.15.0-py3-none-any.whl.metadata (11"
+      },
+      {
+        "step": "maf_host_8080_guard",
+        "ok": false,
+        "detail": "PIP_INSTALL_START | Collecting agent-framework==1.15.0 (from -r D:\\github\\agentcore-control-plane\\scripts\\maf_recall\\maf_host\\requirements.txt (line 1)) |   Downloading agent_framework-1.15.0-py3-none-any.whl.metadata (9.6 kB) | Collecting agent-framework-core==1.15.0 (from agent-framework-core[all]"
+      },
+      {
+        "step": "foundry_notes",
+        "ok": true,
+        "detail": "updated"
+      },
+      {
+        "step": "ide_inventory_update",
+        "ok": true,
+        "detail": "post_enroll_status written"
+      },
+      {
+        "step": "audit_json",
+        "ok": true,
+        "detail": "completed_with_followups"
+      },
+      {
+        "step": "post_build_and_handoff",
+        "ok": true,
+        "detail": "completed_with_followups"
+      }
+    ]
+  },
+  "post_status": {
+    "open-interpreter-cli": {
+      "status": "gateway-only"
+    },
+    "open-interpreter-desktop": {
+      "status": "gateway-only",
+      "note": "removed morph-mcp"
+    },
+    "open-interpreter": {
+      "status": "gateway-only"
+    },
+    "opencode": {
+      "status": "gateway-only",
+      "note": "removed context7 and MCP_DOCKER"
+    },
+    "cursor": {
+      "status": "gateway-only",
+      "action": "verify-only"
+    },
+    "zoo-code": {
+      "status": "gateway-only",
+      "action": "verify-only"
+    },
+    "codex": {
+      "status": "deferred",
+      "action": "verify-only-not-edited"
+    },
+    "devin": {
+      "status": "deferred",
+      "note": "outpost layer written; token gate"
+    }
+  },
+  "overall": "completed_with_followups",
+  "followups": [
+    "devin_token",
+    "foundry_install",
+    "codex_extras"
+  ]
+}

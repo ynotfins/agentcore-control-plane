@@ -1,0 +1,46 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "RGDS Material 3 interactive state layer. Themes override tint/border for light vs dark hover brightening.",
+  "md": {
+    "sys": {
+      "state": {
+        "hover": {
+          "surfaceTint": {
+            "$value": "oklch(100% 0 0)",
+            "$type": "color",
+            "$description": "color-mix tint blended into card/button surfaces on hover"
+          },
+          "surfaceTintAmount": {
+            "$value": "10%",
+            "$type": "percentage"
+          },
+          "borderColor": {
+            "$value": "{md.sys.color.outline}",
+            "$type": "color"
+          },
+          "borderAlpha": {
+            "$value": "0.65",
+            "$type": "number"
+          },
+          "elevation": {
+            "$value": "{md.sys.elevation.level3}",
+            "$type": "shadow"
+          },
+          "saturate": {
+            "$value": "1.08",
+            "$type": "number",
+            "$description": "Subtle filter saturate boost for vibrancy on hover"
+          }
+        },
+        "focus": {
+          "outlineColor": { "$value": "{md.sys.color.primary}", "$type": "color" },
+          "outlineWidth": { "$value": "2px", "$type": "dimension" },
+          "outlineOffset": { "$value": "2px", "$type": "dimension" }
+        },
+        "pressed": {
+          "scale": { "$value": "0.98", "$type": "number" }
+        }
+      }
+    }
+  }
+}

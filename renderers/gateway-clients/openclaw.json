@@ -1,0 +1,31 @@
+{
+  "client": "openclaw",
+  "version": "2026.6.10",
+  "configPath": "C:\\Users\\ynotf\\.openclaw\\openclaw.json",
+  "status": "source_ready_live_unverified",
+  "merge": {
+    "mcp": {
+      "servers": {
+        "agentcore-gateway": {
+          "url": "http://127.0.0.1:8080/mcp",
+          "transport": "streamable-http",
+          "connectionTimeoutMs": 300000,
+          "requestTimeoutMs": 300000,
+          "supportsParallelToolCalls": true,
+          "headers": {
+            "Authorization": "Bearer ${BIFROST_MCP_VK_OPENCLAW}"
+          }
+        }
+      }
+    }
+  },
+  "removeDirectServerNames": [
+    "swarmrecall",
+    "swarmvault",
+    "filesystem"
+  ],
+  "preserveOnlyAfterParityProof": [
+    "eye2byte",
+    "obsidian-vault"
+  ]
+}

@@ -1,0 +1,14 @@
+# Source renderer for Open Interpreter CLI. The desktop JSON route is defined
+# separately in renderers/gateway-clients/open-interpreter.json.
+[mcp_servers.agentcore-gateway]
+url = "http://127.0.0.1:8080/mcp"
+bearer_token_env_var = "BIFROST_MCP_VIRTUAL_KEY"
+enabled = true
+startup_timeout_sec = 300
+tool_timeout_sec = 300
+
+# A host-native direct MCP companion is allowed only after a documented Bifrost
+# parity failure, exact host/tool scope, security review, rollback proof, and
+# proof that it does not duplicate AgentCore memory, database, Swarm,
+# administrative, or upstream-registry routes. Historical Zoo-Code approval is
+# subject to this current policy and is not a blanket exception.

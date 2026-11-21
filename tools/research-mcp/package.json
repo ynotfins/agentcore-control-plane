@@ -1,0 +1,15 @@
+{
+  "name": "agentcore-research-mcp-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Exact source lock for AgentCore's governed research MCP processes.",
+  "engines": {
+    "node": "24.16.0"
+  },
+  "dependencies": {
+    "@apify/actors-mcp-server": "0.15.4",
+    "exa-mcp-server": "3.4.1",
+    "firecrawl-mcp": "3.24.0",
+    "tavily-mcp": "0.2.22"
+  }
+}
