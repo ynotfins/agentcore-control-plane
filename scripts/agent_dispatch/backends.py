@@ -16,6 +16,7 @@ HOME = Path(os.environ.get("USERPROFILE", str(Path.home())))
 NODE = os.environ.get("AGENTCORE_DISPATCH_NODE", r"C:\Program Files\nodejs\node.exe")
 OMNIROUTE_V1 = os.environ.get("AGENTCORE_DISPATCH_OMNIROUTE", "http://127.0.0.1:20128/v1")
 DEFAULT_MODEL = os.environ.get("AGENTCORE_DISPATCH_DEFAULT_MODEL", "deepseek-v4-pro")
+LANGGRAPH_MODEL = os.environ.get("AGENTCORE_DISPATCH_LANGGRAPH_MODEL", "deepseek-v4.1-flash")
 CODEX_MODEL = os.environ.get("AGENTCORE_DISPATCH_CODEX_MODEL", "gpt-5.6-terra")
 PI_AGENT_DIR = RUNTIME_ROOT / "pi-agent"
 WORKFLOW_PY = Path(r"D:\github\agentcore-control-plane\scripts\.venv\Scripts\python.exe")
@@ -52,6 +53,7 @@ class Backend:
     parse: Callable[[Path], Parsed]
     model_label: Callable[[str], str] = lambda m: f"omniroute/{m}"
     available: Callable[[], bool] = lambda: True
+    default_model: str = ""
 
 
 def _read(p: Path) -> str:
@@ -151,8 +153,10 @@ def _lg_build(task, workdir, model, jobdir):
 
     res = EnrollmentRegistry().resolve(candidate_path=str(workdir))
     project = res.project_key or str(workdir)
+    m = model or LANGGRAPH_MODEL
     return Launch(
-        argv=[str(WORKFLOW_PY), "-m", "agentcore", "workflow", "start", "--project", project, "--goal", task, "--json"],
+        argv=[str(WORKFLOW_PY), "-m", "agentcore", "workflow", "start", "--project", project,
+              "--goal", task, "--provider", "omniroute", "--model", m, "--json"],
         cwd=WORKFLOW_CWD,
         env={"LANGSMITH_TRACING": "false", "LANGGRAPH_CLI_NO_ANALYTICS": "1"},
     )
@@ -178,8 +182,9 @@ BACKENDS: dict[str, Backend] = {
         Backend("opencode", "General coding tasks; good tool use, reports tokens/cost.", 20, 60, _oc_build, _oc_parse),
         Backend("codex", "Hard coding/debugging on the Codex subscription (not OmniRoute).", 30, 90,
                 _codex_build, _codex_parse, model_label=lambda m: f"codex/{m if m and m != DEFAULT_MODEL else CODEX_MODEL}"),
-        Backend("langgraph", "Governed M6 milestone workflow on an enrolled repo; OmniRoute deepseek-v4-pro default. Slow.",
-                60, 180, _lg_build, _lg_parse, model_label=lambda m: "m6-workflow-default",
-                available=lambda: WORKFLOW_PY.exists()),
+        Backend("langgraph", "Governed M6 milestone workflow on an enrolled repo; OmniRoute deepseek-v4.1-flash default. Slow.",
+                60, 180, _lg_build, _lg_parse,
+                model_label=lambda m: f"omniroute/{m or LANGGRAPH_MODEL}",
+                available=lambda: WORKFLOW_PY.exists(), default_model=LANGGRAPH_MODEL),
     ]
 }
