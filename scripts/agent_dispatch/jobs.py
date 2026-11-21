@@ -130,7 +130,7 @@ class JobManager:
         if caller_project and project and caller_project != project:
             raise WorkdirError("project_identity_mismatch")
         minutes = max(1, min(int(budget or backend.default_minutes), backend.max_minutes))
-        m = (model or DEFAULT_MODEL).strip()
+        m = (model or backend.default_model or DEFAULT_MODEL).strip()
         job = dict(base, backend="cli", status="queued", workdir=str(wd), project_key=project,
                    model=backend.model_label(m), budget_minutes=minutes)
         self.save(job)
