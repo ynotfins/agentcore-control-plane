@@ -178,8 +178,8 @@ BACKENDS: dict[str, Backend] = {
         Backend("opencode", "General coding tasks; good tool use, reports tokens/cost.", 20, 60, _oc_build, _oc_parse),
         Backend("codex", "Hard coding/debugging on the Codex subscription (not OmniRoute).", 30, 90,
                 _codex_build, _codex_parse, model_label=lambda m: f"codex/{m if m and m != DEFAULT_MODEL else CODEX_MODEL}"),
-        Backend("langgraph", "Governed M6 milestone workflow on an enrolled repo; slow. Off: M6 calls OpenRouter directly.",
+        Backend("langgraph", "Governed M6 milestone workflow on an enrolled repo; OmniRoute deepseek-v4-pro default. Slow.",
                 60, 180, _lg_build, _lg_parse, model_label=lambda m: "m6-workflow-default",
-                available=lambda: ALLOW_DIRECT_OPENROUTER and WORKFLOW_PY.exists()),
+                available=lambda: WORKFLOW_PY.exists()),
     ]
 }

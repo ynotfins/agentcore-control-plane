@@ -56,13 +56,51 @@ def slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
+_OMNIROUTE_CACHE: dict[str, tuple[float, frozenset]] = {}
+_OMNIROUTE_TTL_SEC = 60.0
+
+
+def _omniroute_connection_ids(cid: str) -> frozenset:
+    """AI-connection IDs that route to the loopback OmniRoute endpoint (:20128)."""
+    import time
+
+    now = time.time()
+    hit = _OMNIROUTE_CACHE.get(cid)
+    if hit and now - hit[0] < _OMNIROUTE_TTL_SEC:
+        return hit[1]
+    ids = set()
+    try:
+        payload = _call("GET", f"/api/companies/{cid}/ai-connections")
+        for c in _items(payload, "connections", "aiConnections", "data"):
+            if not isinstance(c, dict):
+                continue
+            base = str((c.get("routing") or {}).get("baseUrl") or "")
+            name = str(c.get("name") or "")
+            if ":20128" in base or "omniroute" in (base + " " + name).lower():
+                if c.get("id"):
+                    ids.add(c["id"])
+    except PaperclipError:
+        pass
+    frozen = frozenset(ids)
+    _OMNIROUTE_CACHE[cid] = (now, frozen)
+    return frozen
+
+
 def routing(agent: dict) -> str:
     adapter = agent.get("adapterType") or ""
     model = str((agent.get("adapterConfig") or {}).get("model") or "")
     if adapter == "process":
         return "no_model"
+    binding = ((agent.get("runtimeConfig") or {}).get("aiConnection") or {})
+    conn_id = binding.get("connectionId")
     if model.startswith("omniroute/"):
         return "omniroute"
+    if conn_id:
+        try:
+            if conn_id in _omniroute_connection_ids(company_id()):
+                return "omniroute"
+        except PaperclipError:
+            pass
     if adapter == "codex_local":
         return "subscription"
     return "direct_provider"
