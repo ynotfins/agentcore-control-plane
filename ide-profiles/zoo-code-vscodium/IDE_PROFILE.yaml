@@ -1,0 +1,75 @@
+# IDE profile - source-controlled facts for this managed client.
+# Do not guess values: use 'unverified' until evidence exists.
+
+
+ide_id: zoo-code-vscodium
+display_name: Zoo Code (VSCodium-hosted)
+swarm_managed: false
+host_application: vscodium
+installed_version: "3.95.100736 (zoocodeorganization.zoo-code in I:\\LocalApps\\VSCodium\\extensions, observed 2026-11-15)"
+live_global_rule_target: "Zoo Code custom modes/instructions remain Zoo-owned extension state; workspace AGENTS.md"
+live_mcp_config_target: I:\LocalApps\VSCodium\user-data\User\globalStorage\zoocodeorganization.zoo-code\settings\mcp_settings.json
+live_alternate_mcp_targets: []
+rule_mechanism: "Zoo Code modes/custom instructions inside VSCodium plus workspace AGENTS.md"
+mcp_schema: zoo_code_mcp_json
+mcp_transport: http/streamable
+env_var_handling: "supports ${env:VAR} expansion in MCP headers"
+restart_behavior: "Zoo Code MCP refresh from its MCP panel; reload VSCodium window after Windows env-var changes"
+requested_trust_class: A
+effective_trust_class: pending_authority_admission
+trust_class_proposal: governance/proposals/2026-11-15-continue-cline-zoo-trust-class-a.md
+editability:
+  global_rules: manual_import
+  project_rules: direct_write
+  mcp_config: direct_write
+installation_mode: generated_prompt
+backup_required: true
+validation_required: true
+restart_required: true
+last_validation_date: unverified
+mcp_template_source: renderers/gateway-clients/zoo-code-vscodium.json
+known_limitations:
+- "Distinct from the Cursor-hosted zoo-code profile, which is unchanged by this enrollment."
+- "Provider profiles (OmniRoute OpenAI-compatible) and their API keys are Zoo-owned secret storage; the auto-import file omniroute-roo-settings.json carries only a placeholder key."
+- "Do not persist a resolved AgentCore virtual key. Use Bearer ${env:BIFROST_MCP_VK_APP_ZOO_CODE} only."
+semantic_parity_gaps:
+- Global rules delivery is manual_import until a host-native ruled path is proven.
+- Trust Class A is requested by the operator but contracts/global-agent-policy.yaml (governed_mutable) still lists Trust Class A exactly; see governance/proposals/2026-11-15-continue-cline-zoo-trust-class-a.md.
+dimensions:
+  application_launch:
+    status: unverified
+    evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+    evidence_ts: '2026-11-15T14:00:00-05:00'
+    superseded_by: null
+  gateway_configuration:
+    status: configured_restart_required
+    evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+    evidence_ts: '2026-11-15T14:00:00-05:00'
+    superseded_by: null
+  gateway_discovery:
+    status: unverified
+    evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  native_memory_lifecycle:
+    status: unverified
+    evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  fresh_chat_recovery:
+    status: unverified
+    evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  persistence_after_restart:
+    status: configured_restart_required
+    evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+  operator_gate:
+    status: awaiting_operator_import
+    evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+    evidence_ts: null
+    superseded_by: null
+m8_enrollment: configured_restart_required
+m8_notes: 'Source profile and sanitized template added 2026-11-15 under operator approval. Live config written with a timestamped backup and env-backed Authorization; authenticated tools/list probe returned 168 tools. Native in-extension discovery and memory lifecycle remain unverified until a fresh host session proves them.'

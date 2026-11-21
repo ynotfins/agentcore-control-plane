@@ -4,7 +4,7 @@
 # Configuration mode summary: the normal way this client receives its AgentCore baseline.
 # Do not guess values — 'unverified' until evidence exists.
 
-matrix_revision: '2026-09-14-cursor-configuration-provenance'
+matrix_revision: '2026-11-15-vscodium-extension-clients'
 policy_source: contracts/global-agent-policy.yaml
 model_context_profile_source: contracts/model-context-profiles.json
 self_enrollment_contract:
@@ -986,6 +986,230 @@ managed_ides:
         evidence_path: null
         evidence_ts: null
         superseded_by: null
+  vscodium:
+    installed_version: 1.143.17232 (VSCodium.exe, observed 2026-11-15)
+    configuration_mode: generated_prompt
+    rule_mechanism: workspace AGENTS.md plus Zoo Code settings inside VSCodium
+    mcp_schema: vscodium_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: mcp-reload-or-restart
+    editability:
+      global_rules: manual_import
+      project_rules: direct_write
+      mcp_config: direct_write
+    last_validated: never
+    last_observed: '2026-11-15'
+    current_observation_evidence: audits/VSCODIUM_AGENTCORE_ENROLLMENT_2026-11-15.md
+    m8_enrollment: configured_restart_required
+    m8_notes: Native MCP path is I:\LocalApps\VSCodium\user-data\User\mcp.json (VSCodium launches with --user-data-dir
+      I:\LocalApps\VSCodium\user-data); Zoo Code, Cline and Continue are separate profiles. Templates use
+      http://127.0.0.1:8080/mcp with Authorization Bearer ${env:BIFROST_MCP_VIRTUAL_KEY}. Distinct from
+      the Cursor-hosted zoo-code profile. Native memory lifecycle remains unverified.
+    dimensions:
+      application_launch:
+        status: unverified
+        evidence_path: audits/VSCODIUM_AGENTCORE_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T01:00:00-05:00'
+        superseded_by: null
+      gateway_configuration:
+        status: configured_restart_required
+        evidence_path: audits/VSCODIUM_AGENTCORE_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T01:00:00-05:00'
+        superseded_by: null
+      gateway_discovery:
+        status: unverified
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      native_memory_lifecycle:
+        status: unverified
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      fresh_chat_recovery:
+        status: unverified
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      persistence_after_restart:
+        status: configured_restart_required
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      operator_gate:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+  continue:
+    installed_version: "2.0.0 (continue.continue-2.0.0-win32-x64 in I:\\LocalApps\\VSCodium\\extensions, observed 2026-11-15)"
+    host_application: vscodium
+    configuration_mode: generated_prompt
+    rule_mechanism: "Continue config.yaml rules/prompts plus workspace AGENTS.md; extension hosted in VSCodium"
+    mcp_schema: continue_config_yaml
+    mcp_transport: http/streamable
+    env_var_handling: secrets-template-supported
+    restart_behavior: mcp-reload-or-restart
+    requested_trust_class: A
+    effective_trust_class: pending_authority_admission
+    editability:
+      global_rules: manual_import
+      project_rules: direct_write
+      mcp_config: direct_write
+    last_validated: never
+    last_observed: '2026-11-15'
+    current_observation_evidence: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+    m8_enrollment: configured_restart_required
+    m8_notes: "Live MCP target C:\\Users\\ynotf\\.continue\\config.yaml; agentcore-gateway at http://127.0.0.1:8080/mcp with env-backed bearer. Native memory lifecycle unverified."
+    dimensions:
+      application_launch:
+        status: unverified
+        evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T14:00:00-05:00'
+        superseded_by: null
+      gateway_configuration:
+        status: configured_restart_required
+        evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T14:00:00-05:00'
+        superseded_by: null
+      gateway_discovery:
+        status: unverified
+        evidence_path: ide-profiles/continue/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      native_memory_lifecycle:
+        status: unverified
+        evidence_path: ide-profiles/continue/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      fresh_chat_recovery:
+        status: unverified
+        evidence_path: ide-profiles/continue/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      persistence_after_restart:
+        status: configured_restart_required
+        evidence_path: ide-profiles/continue/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      operator_gate:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/continue/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+  cline:
+    installed_version: "4.1.26 (saoudrizwan.claude-dev-4.1.26-universal in I:\\LocalApps\\VSCodium\\extensions, observed 2026-11-15)"
+    host_application: vscodium
+    configuration_mode: generated_prompt
+    rule_mechanism: "Cline .clinerules / global rules plus workspace AGENTS.md; extension hosted in VSCodium"
+    mcp_schema: cline_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: mcp-reload-or-restart
+    requested_trust_class: A
+    effective_trust_class: pending_authority_admission
+    editability:
+      global_rules: manual_import
+      project_rules: direct_write
+      mcp_config: direct_write
+    last_validated: never
+    last_observed: '2026-11-15'
+    current_observation_evidence: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+    m8_enrollment: configured_restart_required
+    m8_notes: "Live MCP target C:\\Users\\ynotf\\.cline\\data\\settings\\cline_mcp_settings.json; agentcore-gateway at http://127.0.0.1:8080/mcp with env-backed bearer. Native memory lifecycle unverified."
+    dimensions:
+      application_launch:
+        status: unverified
+        evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T14:00:00-05:00'
+        superseded_by: null
+      gateway_configuration:
+        status: configured_restart_required
+        evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T14:00:00-05:00'
+        superseded_by: null
+      gateway_discovery:
+        status: unverified
+        evidence_path: ide-profiles/cline/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      native_memory_lifecycle:
+        status: unverified
+        evidence_path: ide-profiles/cline/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      fresh_chat_recovery:
+        status: unverified
+        evidence_path: ide-profiles/cline/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      persistence_after_restart:
+        status: configured_restart_required
+        evidence_path: ide-profiles/cline/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      operator_gate:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/cline/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+  zoo-code-vscodium:
+    installed_version: "3.95.100736 (zoocodeorganization.zoo-code in I:\\LocalApps\\VSCodium\\extensions, observed 2026-11-15)"
+    host_application: vscodium
+    configuration_mode: generated_prompt
+    rule_mechanism: "Zoo Code modes/custom instructions inside VSCodium plus workspace AGENTS.md"
+    mcp_schema: zoo_code_mcp_json
+    mcp_transport: http/streamable
+    env_var_handling: env-headers-supported
+    restart_behavior: mcp-reload-or-restart
+    requested_trust_class: A
+    effective_trust_class: pending_authority_admission
+    editability:
+      global_rules: manual_import
+      project_rules: direct_write
+      mcp_config: direct_write
+    last_validated: never
+    last_observed: '2026-11-15'
+    current_observation_evidence: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+    m8_enrollment: configured_restart_required
+    m8_notes: "Live MCP target I:\\LocalApps\\VSCodium\\user-data\\User\\globalStorage\\zoocodeorganization.zoo-code\\settings\\mcp_settings.json; agentcore-gateway at http://127.0.0.1:8080/mcp with env-backed bearer. Native memory lifecycle unverified."
+    dimensions:
+      application_launch:
+        status: unverified
+        evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T14:00:00-05:00'
+        superseded_by: null
+      gateway_configuration:
+        status: configured_restart_required
+        evidence_path: audits/VSCODIUM_EXTENSION_CLIENTS_ENROLLMENT_2026-11-15.md
+        evidence_ts: '2026-11-15T14:00:00-05:00'
+        superseded_by: null
+      gateway_discovery:
+        status: unverified
+        evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      native_memory_lifecycle:
+        status: unverified
+        evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      fresh_chat_recovery:
+        status: unverified
+        evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      persistence_after_restart:
+        status: configured_restart_required
+        evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
+      operator_gate:
+        status: awaiting_operator_import
+        evidence_path: ide-profiles/zoo-code-vscodium/VALIDATION.md
+        evidence_ts: null
+        superseded_by: null
 managed_candidates:
   opencode:
     display_name: OpenCode
@@ -998,7 +1222,20 @@ managed_candidates:
     display_name: Open Design
     ownership: agentcore_candidate
     certification: unverified
-    note: 'Project enrolled AUTH-2026-10-26-OPEN-DESIGN-ENROLLMENT at D:\open-design only. Not a Bifrost upstream. Cursor-only host-native product MCP companion is an approved exception; desktop must be running. No PG18. No AppData enrollment. Official plugins/skills only. See audits/OPEN_DESIGN_CONTROL_PLANE_ENROLLMENT_2026-10-26.md.'
+    ide_profile: ide-profiles/open-design
+    note: 'Project enrolled AUTH-2026-10-26-OPEN-DESIGN-ENROLLMENT at D:\open-design only. Not a Bifrost upstream. Cursor-only host-native product MCP companion is an approved exception; desktop must be running. No PG18. No AppData enrollment. Official plugins/skills only. Registered Trust Class A 2026-11-15 (contracts/global-agent-policy.yaml); database access only through agentcore-gateway -> agentcore-memory. All dimensions unverified pending a live session. See audits/OPEN_DESIGN_CONTROL_PLANE_ENROLLMENT_2026-10-26.md and audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md.'
+  vscodium:
+    display_name: VSCodium
+    ownership: agentcore_candidate
+    certification: unverified
+    ide_profile: ide-profiles/vscodium
+    note: Registered Trust Class A 2026-11-15 (contracts/global-agent-policy.yaml); :18082 process attestation added for VSCodium.exe (ops/bifrost/Resolve-AgentCoreBuilderCaller.ps1), live effect requires merge + Bifrost restart. Database access only through agentcore-gateway -> agentcore-memory. All dimensions unverified pending a live session. See audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md.
+  openmausbot:
+    display_name: OpenMausBot
+    ownership: agentcore_candidate
+    certification: unverified
+    ide_profile: ide-profiles/openmausbot
+    note: Registered Trust Class A 2026-11-15 (contracts/global-agent-policy.yaml); :18082 process attestation added for OpenMausBot.exe (ops/bifrost/Resolve-AgentCoreBuilderCaller.ps1), live effect requires merge + Bifrost restart. Database access only through agentcore-gateway -> agentcore-memory. All dimensions unverified pending a live session. See audits/FIRST_CLASS_APPS_OMNIROUTE_2026-11-15.md.
   autogpt:
     display_name: AutoGPT
     ownership: agentcore_candidate
@@ -1016,9 +1253,17 @@ managed_candidates:
     note: No native support or configuration path is verified.
   openhands:
     display_name: OpenHands
-    ownership: agentcore_candidate
-    certification: unverified
-    note: No native support or configuration path is verified; do not modify an NFA-specific runtime.
+    ownership: agentcore
+    certification: configured_restart_required
+    trust_class_requested: A
+    ide_profile: ide-profiles/openhands
+    config_path: C:\Users\ynotf\.openhands\settings.json
+    gateway_url: http://127.0.0.1:8080/mcp
+    gateway_auth_mode: bearer_encrypted_in_app_settings
+    capability_profile: builder
+    llm_route: OmniRoute http://127.0.0.1:20128/v1 (profile omniroute-default)
+    approvals: auto-approve (confirmation_mode false) per Tony t321u 2026-11-15
+    note: First-class enrollment 2026-11-15 (audits/OPENHANDS_AGENTCORE_ENROLLMENT_2026-11-15.md). Trust Class A requires acceptance of governance/proposals/2026-11-15-openhands-trust-class-a.md. Do not run against NFA runtimes or nfa-platform without separate authorization. Native lifecycle unverified.
   zcode:
     display_name: ZCode
     ownership: agentcore

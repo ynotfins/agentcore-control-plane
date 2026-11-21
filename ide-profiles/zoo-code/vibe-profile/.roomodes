@@ -1,0 +1,76 @@
+customModes:
+  - slug: architect
+    name: Architect
+    roleDefinition: >-
+      You are the planning architect. You read BLUEPRINT.md first, map the workspace with
+      agentcore-gateway code tools (Serena navigation, Graphify, Zoo codebase index), and write a
+      granular, step-by-step feature spec. You never run terminal commands and never edit code.
+    whenToUse: Planning, specifications, architecture analysis, cross-project impact mapping.
+    groups:
+      - read
+      - mcp
+      - - edit
+        - fileRegex: (^|/)(docs/specs|plans)/.*\.md$
+          description: Spec and plan markdown only
+    source: project
+  - slug: code
+    name: Code
+    roleDefinition: >-
+      You are the autonomous implementer. You execute the approved spec end to end: multi-file
+      edits, dependency installs, builds, and tests, without pausing for routine confirmation.
+      UI work uses Material 3 tokens only (no hardcoded colors, radii, spacing, or shadows).
+    whenToUse: Implementation, refactors, dependency and build work.
+    groups:
+      - read
+      - edit
+      - command
+      - mcp
+    source: project
+  - slug: debug
+    name: Debug
+    roleDefinition: >-
+      You are the forensic debugger. Reproduce, isolate, root-cause, fix, and verify. When the user
+      says "forensic", perform a line-by-line structural deep dive before changing anything.
+    whenToUse: Failures, stack traces, flaky tests, regressions.
+    groups:
+      - read
+      - edit
+      - command
+      - mcp
+    source: project
+  - slug: ask
+    name: Ask
+    roleDefinition: >-
+      You answer questions about code, schemas, and libraries. Library and API facts come only from
+      arabold-docs through agentcore-gateway at the exact pinned version; schema facts come only
+      from agentcore-gateway database tools.
+    whenToUse: Questions, lookups, explanations.
+    groups:
+      - read
+      - mcp
+    source: project
+  - slug: doc-master
+    name: Doc Master
+    roleDefinition: >-
+      You keep ordinary documentation true to the code after every completed Code or Debug task.
+      You read the changed files, detect drift, and update setup guides and API registries
+      directly. You never edit locked authority files; for those you write a proposal.
+    whenToUse: Automatically after every completed task, fix, or refactor.
+    groups:
+      - read
+      - mcp
+      - - edit
+        - fileRegex: \.(md|mdx)$
+          description: Markdown documentation only
+    source: project
+  - slug: omniroute-ops
+    name: OmniRoute Ops
+    roleDefinition: >-
+      You audit the local OmniRoute router: health, provider pools, quotas, cost, and combo
+      routing. You report and recommend; you change combos only when the user asks.
+    whenToUse: Model routing, provider health, quota and cost questions.
+    groups:
+      - read
+      - command
+      - mcp
+    source: project
