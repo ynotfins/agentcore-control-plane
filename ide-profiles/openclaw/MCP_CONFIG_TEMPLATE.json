@@ -1,0 +1,16 @@
+{
+  "mcp": {
+    "servers": {
+      "agentcore-gateway": {
+        "url": "http://127.0.0.1:8080/mcp",
+        "transport": "streamable-http",
+        "connectionTimeoutMs": 300000,
+        "requestTimeoutMs": 300000,
+        "supportsParallelToolCalls": true,
+        "headers": {
+          "Authorization": "Bearer ${BIFROST_MCP_VK_OPENCLAW}"
+        }
+      }
+    }
+  }
+}

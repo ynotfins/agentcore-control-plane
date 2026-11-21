@@ -1,0 +1,15 @@
+{
+  "schema": "agentcore-project-docs-checkpoint/v1",
+  "store": "F:\\AgentCore\\runtime\\docs-store",
+  "updated_at": "2026-11-01T19:50:00-05:00",
+  "note": "Lightweight pin record only. Official snapshots stay on F:. Do not copy the corpus into Git.",
+  "libraries": [
+    {
+      "library": "bifrost",
+      "resolved_version": "2.0.0",
+      "official_url": "https://docs.getbifrost.ai",
+      "catalog_status": "verified",
+      "last_verified": "2026-11-01"
+    }
+  ]
+}

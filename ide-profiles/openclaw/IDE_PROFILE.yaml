@@ -1,0 +1,50 @@
+ide_id: openclaw
+display_name: OpenClaw / ClawX
+installed_version: 2026.6.10
+ownership: agentcore
+governed_product_root: 'D:\github\open--claw'
+windows_operations_root: 'D:\openclaw'
+live_state_root: 'C:\Users\ynotf\.openclaw'
+installation_mode: manual_import
+rule_mechanism: OpenClaw global instructions and agent profiles
+mcp_schema: openclaw_mcp_registry
+mcp_transport: streamable-http
+env_var_handling: native-dollar-brace-expansion
+restart_behavior: full-gateway-and-agent-restart
+editability:
+  global_rules: manual_import
+  project_rules: direct_write
+  mcp_config: manual_import
+certification: source_ready
+notes:
+  - OpenClaw and ClawX are AgentCore-owned under AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT.
+  - The live state root is secret-bearing and is never an AgentCore project enrollment root.
+  - SwarmClaw, SwarmRecall, and SwarmVault are excluded.
+  - Use the dedicated BIFROST_MCP_VK_OPENCLAW variable; never commit its value.
+  - Live enrollment remains unverified until backup, static validation, probe, fresh task, lifecycle, and restart persistence pass.
+dimensions:
+  application_launch:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  gateway_configuration:
+    status: source_ready
+    evidence_path: ide-profiles/openclaw/MCP_CONFIG_TEMPLATE.json
+    evidence_ts: '2026-09-05T00:00:00Z'
+    superseded_by: null
+  gateway_discovery:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  native_memory_lifecycle:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null
+  persistence_after_restart:
+    status: unverified
+    evidence_path: null
+    evidence_ts: null
+    superseded_by: null

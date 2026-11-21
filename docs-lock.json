@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-05T19:43:40-04:00",
+  "libraries": {
+    "bifrost": {
+      "installed_version": "2.0.0",
+      "documentation_version": "2.0.0",
+      "source_url": "https://docs.getbifrost.ai",
+      "local_provider": "arabold-docs",
+      "local_store": "F:\\AgentCore\\runtime\\docs-store",
+      "version_resolution": "exact",
+      "retrieval_verified": true,
+      "verified_queries": [
+        "Code Mode",
+        "Skills Repository",
+        "MCP tool filtering",
+        "virtual keys",
+        "routing rules",
+        "semantic caching"
+      ],
+      "refresh_status": "failed_upstream_missing_root",
+      "refresh_error_url": "https://docs.getbifrost.ai/openapi/openapi.yaml",
+      "refresh_job_ids": [
+        "a34fae91-c146-4b47-bc5f-10574d656c0f",
+        "9814e4d3-a884-4055-bcde-6b2618e28afc"
+      ],
+      "installed_binary": "F:\\AgentCore\\runtime\\bifrost\\bin\\bifrost-http.exe",
+      "installed_binary_sha256": "AC0001ED6FA96446222669182EAF63EC690F13192A515872EAFD78930532F833"
+    },
+    "openclaw": {
+      "installed_version": "2026.6.10",
+      "documentation_version": "2026.6.10",
+      "source_url": "https://docs.openclaw.ai/cli/mcp",
+      "local_provider": "arabold-docs",
+      "local_store": "F:\\AgentCore\\runtime\\docs-store",
+      "version_resolution": "exact",
+      "retrieval_verified": true,
+      "verified_queries": [
+        "MCP client registry",
+        "streamable-http",
+        "environment variable headers",
+        "tool filters",
+        "doctor and probe"
+      ],
+      "refresh_status": "exact_page_ingested",
+      "refresh_job_ids": [
+        "69635503-83d3-44e9-be15-165c33ed9b51",
+        "665ff6d8-ca5e-4a31-a48a-ccb8f858b9c9"
+      ],
+      "full_site_refresh_note": "The full-site crawl failed on multilingual child pages; the exact official MCP page required by this rollout was ingested successfully."
+    }
+  }
+}

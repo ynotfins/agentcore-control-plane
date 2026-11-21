@@ -1,0 +1,59 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\\github\\agentcore-control-plane\\.codex\\hooks\\agentcore-hook.ps1' -Event sessionStart",
+            "timeout": 90
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\\github\\agentcore-control-plane\\.codex\\hooks\\agentcore-hook.ps1' -Event beforeSubmitPrompt",
+            "timeout": 90
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\\github\\agentcore-control-plane\\.codex\\hooks\\agentcore-hook.ps1' -Event preToolUse",
+            "timeout": 90
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\\github\\agentcore-control-plane\\.codex\\hooks\\agentcore-hook.ps1' -Event postToolUse",
+            "timeout": 90
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\\github\\agentcore-control-plane\\.codex\\hooks\\agentcore-hook.ps1' -Event stop",
+            "timeout": 90
+          }
+        ]
+      }
+    ]
+  }
+}

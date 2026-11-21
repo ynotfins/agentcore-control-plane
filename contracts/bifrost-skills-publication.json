@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0.0",
+  "skills": [
+    {
+      "name": "agentcore-project-lifecycle",
+      "source_root": "repository_skills",
+      "source_path": "agentcore-project-lifecycle",
+      "version": "1.0.1",
+      "source_sha256": "d230ca65d0ca91a7afc2ef4e35c12fd5688b4c907b2bd52450198baec85904a2",
+      "license": {
+        "status": "reviewed",
+        "spdx_id": "LicenseRef-AgentCore-Internal"
+      },
+      "review": {
+        "status": "approved",
+        "authority": "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT"
+      },
+      "compatibility": [
+        "Codex",
+        "Claude Code"
+      ],
+      "served_state": "enabled",
+      "hash_policy": {
+        "algorithm": "sha256",
+        "scope": "published_files"
+      },
+      "status": "approved",
+      "publication_allowed": true
+    },
+    {
+      "name": "langfuse",
+      "source_root": "repository_skills",
+      "source_path": "langfuse",
+      "version": "1.0.1",
+      "source_sha256": "cd0d16603dcd7840aa00238860e84f03b246e97554b19360201d433bc6fddf65",
+      "license": {
+        "status": "reviewed",
+        "spdx_id": "LicenseRef-AgentCore-Internal"
+      },
+      "review": {
+        "status": "approved",
+        "authority": "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT"
+      },
+      "compatibility": [
+        "Codex",
+        "Claude Code"
+      ],
+      "served_state": "enabled",
+      "hash_policy": {
+        "algorithm": "sha256",
+        "scope": "published_files"
+      },
+      "status": "approved",
+      "publication_allowed": true
+    },
+    {
+      "name": "nia",
+      "source_root": "user_skills",
+      "source_path": "nia",
+      "version": "1.0.0",
+      "source_sha256": "19b25ebd2339cd547154c07f115be9be478ac342b5dca419db2fc886ebec5ab2",
+      "license": {
+        "status": "reviewed",
+        "spdx_id": "MIT"
+      },
+      "review": {
+        "status": "approved",
+        "authority": "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT"
+      },
+      "compatibility": [
+        "Codex",
+        "Claude Code"
+      ],
+      "served_state": "enabled",
+      "hash_policy": {
+        "algorithm": "sha256",
+        "scope": "published_files"
+      },
+      "status": "approved",
+      "publication_allowed": true
+    },
+    {
+      "name": "agentcore-tool-discovery",
+      "source_root": "repository_skills",
+      "source_path": "agentcore-tool-discovery",
+      "version": "1.0.1",
+      "source_sha256": "08abfa098b0c46879bda881604a2d9417c53e49881a26bf77e1aa179f0fbcf44",
+      "license": {
+        "status": "reviewed",
+        "spdx_id": "LicenseRef-AgentCore-Internal"
+      },
+      "review": {
+        "status": "approved",
+        "authority": "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT"
+      },
+      "compatibility": [
+        "Codex",
+        "Claude Code"
+      ],
+      "served_state": "enabled",
+      "hash_policy": {
+        "algorithm": "sha256",
+        "scope": "published_files"
+      },
+      "status": "approved",
+      "publication_allowed": true
+    },
+    {
+      "name": "morph-source-workflows",
+      "source_root": "repository_skills",
+      "source_path": "morph-source-workflows",
+      "version": "1.0.0",
+      "source_sha256": "e7d5864cae928df01bccddcd8f87838dd50daee9979782cff5b233d60811fd66",
+      "license": {
+        "status": "reviewed",
+        "spdx_id": "LicenseRef-AgentCore-Internal"
+      },
+      "review": {
+        "status": "approved",
+        "authority": "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT"
+      },
+      "compatibility": [
+        "Codex",
+        "Claude Code"
+      ],
+      "served_state": "enabled",
+      "hash_policy": {
+        "algorithm": "sha256",
+        "scope": "published_files"
+      },
+      "status": "approved",
+      "publication_allowed": true
+    },
+    {
+      "name": "zoo-roo-code-workflows",
+      "source_root": "repository_skills",
+      "source_path": "zoo-roo-code-workflows",
+      "version": "1.0.0",
+      "source_sha256": "bafc0816ee107e002869111d9a92f57040e6a2764585347c15ebea9368564d46",
+      "license": {
+        "status": "reviewed",
+        "spdx_id": "LicenseRef-AgentCore-Internal"
+      },
+      "review": {
+        "status": "approved",
+        "authority": "AUTH-2026-09-05-UNIVERSAL-IDE-BIFROST-SKILLS-ALIGNMENT"
+      },
+      "compatibility": [
+        "Codex",
+        "Claude Code"
+      ],
+      "served_state": "enabled",
+      "hash_policy": {
+        "algorithm": "sha256",
+        "scope": "published_files"
+      },
+      "status": "approved",
+      "publication_allowed": true
+    }
+  ]
+}

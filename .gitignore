@@ -125,3 +125,31 @@ langsmith-projects/
 **/dispatch_logs/
 **/incident-reports/
 **/incident_reports/
+
+# Rollback and backup copies (never source of truth; kept outside history)
+.agentcore/rollback/
+*.bak-*
+*.bak.[0-9]*
+
+# Agent scratch, session spillover and one-off probes
+.agent/
+.agentcore/*.log
+.codex-remote-attachments/
+.worktrees/
+.tmp_*
+.todo.json
+todo.md
+
+# Generated research, exports and vendor build output
+research/
+out/
+plugins/**/node_modules/
+plugins/**/dist/
+terminal_logs/
+store_hpapp.json
+spool_acl.txt
+
+# Printer-manual reference downloads (operator hardware docs, not project source)
+hp_*.pdf
+hp_pages/
+hp-9125e-repair/

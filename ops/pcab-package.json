@@ -1,0 +1,23 @@
+{
+  "name": "@agentcore/paperclip-automation-board",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "paperclipPlugin": {
+    "manifest": "./dist/manifest.js",
+    "worker": "./dist/worker.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --pretty false && node ./scripts/build-ui.mjs"
+  },
+  "dependencies": {
+    "@paperclipai/plugin-sdk": "2026.1023.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "esbuild": "^0.25.0",
+    "react": "^19.0.0",
+    "typescript": "^5.9.0"
+  }
+}

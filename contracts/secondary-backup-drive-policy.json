@@ -1,0 +1,42 @@
+{
+  "schema": "agentcore-secondary-backup-drive-policy/v1",
+  "drive_letter": "I",
+  "role": "second_backup_copy_only",
+  "volume_note": "I: (AgentCore_Staging, internal, always mounted) is the second-copy target, not the primary archive. Moved from removable G: on 2026-11-17 with Tony's explicit approval because G: was assigned to whatever USB drive was plugged in. Unbounded WAL mirroring is forbidden.",
+  "volume_identity": {
+    "required": true,
+    "match_on": "volume_guid",
+    "volume_guid": "\\\\?\\Volume{ac27f734-60e4-4783-a6ec-6e9f922ad9d1}\\",
+    "volume_serial_hex": "A60FC108",
+    "volume_serial_decimal": 2786050312,
+    "volume_label": "AgentCore_Staging",
+    "on_mismatch": "skip_copy_and_prune_with_warning; never create folders on a non-matching volume; never fail archive_command or the nightly backup"
+  },
+  "max_used_percent": 75,
+  "min_free_gb": 8,
+  "wal_copy_optional": true,
+  "wal_copy_must_not_fail_archive_command": true,
+  "backup_set_copy_optional": true,
+  "backup_set_copy_must_not_fail_nightly_backup": true,
+  "retention": {
+    "keep_daily": 7,
+    "keep_weekly": 4,
+    "keep_monthly": 12,
+    "wal_floor": "oldest_retained_daily_backup"
+  },
+  "never_delete_prefixes": [
+    "E:\\AgentCoreArchive",
+    "E:\\AgentCore",
+    "F:\\PostgreSQL18",
+    "F:\\AgentCore"
+  ],
+  "allowed_delete_prefixes": [
+    "I:\\AgentCoreArchive\\agentcore-memory\\backups\\pg18",
+    "I:\\AgentCoreArchive\\agentcore-memory\\wal\\pg18"
+  ],
+  "primary_backup_root": "E:\\AgentCoreArchive\\agentcore-memory\\backups\\pg18",
+  "primary_wal_root": "E:\\AgentCoreArchive\\agentcore-memory\\wal\\pg18",
+  "secondary_backup_root": "I:\\AgentCoreArchive\\agentcore-memory\\backups\\pg18",
+  "secondary_wal_root": "I:\\AgentCoreArchive\\agentcore-memory\\wal\\pg18",
+  "scheduled_task": "\\AgentCore\\SecondaryBackupHeadroom"
+}
