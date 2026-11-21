@@ -44,7 +44,7 @@ import threading
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Resource ceilings — defaults sized for CHAOSCENTRAL
@@ -121,6 +121,37 @@ except ImportError:
     FilesystemPermission = None  # type: ignore[misc, assignment]
     create_deep_agent = None  # type: ignore[misc, assignment]
     HumanMessage = None  # type: ignore[misc, assignment]
+
+try:
+    from langgraph.errors import GraphRecursionError
+except ImportError:  # pragma: no cover - langgraph is present wherever deepagents is
+    class GraphRecursionError(Exception):  # type: ignore[no-redef]
+        pass
+
+
+def _invoke_with_recursion_failsafe(
+    make_invoke: Callable[[dict[str, Any], bool], Callable[[], dict[str, Any]]],
+    invoke_config: dict[str, Any],
+    *,
+    timeout_sec: int,
+    on_timeout: dict[str, Any],
+) -> dict[str, Any]:
+    """Invoke a worker; on a super-step blowout retry once with a bigger budget.
+
+    Chatty models (deepseek-v4.1-flash) can exhaust the derived recursion limit
+    before finishing. The wall-clock timeout still bounds the retry, and the
+    retry is nudged to return its final answer without more tool calls.
+    """
+    limit = int(invoke_config.get("recursion_limit") or 0)
+    try:
+        return _run_with_timeout(make_invoke(invoke_config, False), timeout_sec=timeout_sec, on_timeout=on_timeout)
+    except GraphRecursionError:
+        cap = max(limit, int(os.environ.get("AGENTCORE_DA_RECURSION_MAX", "400")))
+        bumped = min(cap, max(limit * 3, limit + 64))
+        if bumped <= limit:
+            raise
+        retry_config = dict(invoke_config, recursion_limit=bumped)
+        return _run_with_timeout(make_invoke(retry_config, True), timeout_sec=timeout_sec, on_timeout=on_timeout)
 
 
 def _now() -> str:
@@ -803,15 +834,26 @@ def run_builder_worker(
                 )
             )
 
-            def _invoke_builder() -> dict[str, Any]:
-                with worker_prompt_context(langfuse_prompt):
-                    return agent.invoke(
-                        {"messages": [HumanMessage(content=task)]},
-                        config=invoke_config,
+            def _make_invoke_builder(cfg: dict[str, Any], nudge: bool) -> Callable[[], dict[str, Any]]:
+                prompt = task
+                if nudge:
+                    prompt = (
+                        f"{task}\n\nSTEP BUDGET EXHAUSTED: stop exploring and stop calling tools. "
+                        "Apply the smallest correct change, then return your final summary now."
                     )
 
-            result = _run_with_timeout(
-                _invoke_builder,
+                def _invoke_builder() -> dict[str, Any]:
+                    with worker_prompt_context(langfuse_prompt):
+                        return agent.invoke(
+                            {"messages": [HumanMessage(content=prompt)]},
+                            config=cfg,
+                        )
+
+                return _invoke_builder
+
+            result = _invoke_with_recursion_failsafe(
+                _make_invoke_builder,
+                invoke_config,
                 timeout_sec=timeout_sec,
                 on_timeout={
                     "status": "failed",
@@ -986,15 +1028,26 @@ def run_critic_worker(
                 )
             )
 
-            def _invoke_critic() -> dict[str, Any]:
-                with worker_prompt_context(langfuse_prompt):
-                    return agent.invoke(
-                        {"messages": [HumanMessage(content=f"Please review: {task}")]},
-                        config=invoke_config,
+            def _make_invoke_critic(cfg: dict[str, Any], nudge: bool) -> Callable[[], dict[str, Any]]:
+                prompt = f"Please review: {task}"
+                if nudge:
+                    prompt = (
+                        f"{prompt}\n\nSTEP BUDGET EXHAUSTED: stop exploring and stop calling tools. "
+                        "Return your verdict, score and findings now."
                     )
 
-            result = _run_with_timeout(
-                _invoke_critic,
+                def _invoke_critic() -> dict[str, Any]:
+                    with worker_prompt_context(langfuse_prompt):
+                        return agent.invoke(
+                            {"messages": [HumanMessage(content=prompt)]},
+                            config=cfg,
+                        )
+
+                return _invoke_critic
+
+            result = _invoke_with_recursion_failsafe(
+                _make_invoke_critic,
+                invoke_config,
                 timeout_sec=timeout_sec,
                 on_timeout={
                     "status": "failed",
