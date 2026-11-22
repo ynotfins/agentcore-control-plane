@@ -40,6 +40,15 @@ New-Item -ItemType Directory -Force -Path (Join-Path $RuntimeRoot 'logs'), (Join
 $server = Join-Path $RepoRoot 'scripts\agent_dispatch\server.py'
 if (-not (Test-Path $server)) { throw "server not found: $server" }
 $env:AGENTCORE_DISPATCH_ROOT = $RuntimeRoot
+
+# Model credentials come from the User environment. The watchdog/scheduled launch
+# does not inherit them, so pass them explicitly or every backend returns 401.
+foreach ($name in @('OMNIROUTE_API_KEY','OPENROUTER_API_KEY')) {
+  if (-not [Environment]::GetEnvironmentVariable($name, 'Process')) {
+    $value = [Environment]::GetEnvironmentVariable($name, 'User')
+    if ($value) { Set-Item -Path ("env:{0}" -f $name) -Value $value }
+  }
+}
 $p = Start-Process -FilePath $PythonExe -ArgumentList @('-u', $server, '--host', $HostAddress, '--port', [string]$Port) `
   -WorkingDirectory $RuntimeRoot -WindowStyle Hidden -PassThru `
   -RedirectStandardOutput (Join-Path $RuntimeRoot 'logs\agent-dispatch.stdout.log') `
