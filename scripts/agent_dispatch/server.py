@@ -38,7 +38,7 @@ _TASK_PROPS = {
     "task": {"type": "string", "description": "Self-contained instructions."},
     "workdir": {"type": "string", "description": "Enrolled repo or D:\\agentcore-worktrees path. Omit for a scratch dir."},
     "budget": {"type": "integer", "description": "Wall-clock minutes (capped per agent)."},
-    "model": {"type": "string", "description": "Optional OmniRoute model; default deepseek-v4-pro."},
+    "model": {"type": "string", "description": "Optional OmniRoute model; default deepseek/deepseek-v4.1-flash-1017."},
 }
 TOOLS = [
     {"name": "agents_list", "description": "List local sub-agents, what each is good at, and whether it is runnable.",
