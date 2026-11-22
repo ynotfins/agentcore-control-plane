@@ -15,7 +15,7 @@ from .policy import RUNTIME_ROOT
 HOME = Path(os.environ.get("USERPROFILE", str(Path.home())))
 NODE = os.environ.get("AGENTCORE_DISPATCH_NODE", r"C:\Program Files\nodejs\node.exe")
 OMNIROUTE_V1 = os.environ.get("AGENTCORE_DISPATCH_OMNIROUTE", "http://127.0.0.1:20128/v1")
-DEFAULT_MODEL = os.environ.get("AGENTCORE_DISPATCH_DEFAULT_MODEL", "deepseek-v4-pro")
+DEFAULT_MODEL = os.environ.get("AGENTCORE_DISPATCH_DEFAULT_MODEL", "deepseek/deepseek-v4.1-flash-1017")
 LANGGRAPH_MODEL = os.environ.get("AGENTCORE_DISPATCH_LANGGRAPH_MODEL", "deepseek/deepseek-v4.1-flash-1017")
 CODEX_MODEL = os.environ.get("AGENTCORE_DISPATCH_CODEX_MODEL", "gpt-5.6-terra")
 PI_AGENT_DIR = RUNTIME_ROOT / "pi-agent"
