@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { PluginPageProps } from "@paperclipai/plugin-sdk/ui";
-import { PLUGIN_ID } from "./constants.js";
+import { usePluginAction, usePluginData } from "@paperclipai/plugin-sdk/ui";
 
 type TaskRow = {
   task_name: string;
@@ -27,29 +27,14 @@ function formatWhen(value: string | null | undefined): string {
 }
 
 export function AutomationBoardPage(_props: PluginPageProps) {
-  const apiBase = `/api/plugins/${PLUGIN_ID}/api`;
-  const [catalog, setCatalog] = useState<CatalogPayload | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Use the SDK bridge rather than the scoped HTTP route. The bridge carries the
+  // host's company context, which the scoped route cannot resolve for a board
+  // actor without a companyResolution declaration (it answers 400).
+  const { data: catalog, loading, error: loadError, refresh } = usePluginData<CatalogPayload>("catalog");
+  const repairSilent = usePluginAction("repair-silent");
+  const repairDisable = usePluginAction("repair-disable");
   const [error, setError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${apiBase}/catalog`, { credentials: "include" });
-      if (!res.ok) throw new Error(`catalog HTTP ${res.status}`);
-      setCatalog((await res.json()) as CatalogPayload);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load catalog");
-    } finally {
-      setLoading(false);
-    }
-  }, [apiBase]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
 
   const rows = useMemo(() => catalog?.tasks ?? [], [catalog]);
 
@@ -60,14 +45,8 @@ export function AutomationBoardPage(_props: PluginPageProps) {
     setBusyKey(key);
     setError(null);
     try {
-      const res = await fetch(`${apiBase}${path}`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task_name: row.task_name, task_path: row.task_path ?? undefined }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body?.error ? String(body.error) : `HTTP ${res.status}`);
+      const action = path === "/repair/silent" ? repairSilent : repairDisable;
+      await action({ task_name: row.task_name, task_path: row.task_path ?? undefined });
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
@@ -85,6 +64,7 @@ export function AutomationBoardPage(_props: PluginPageProps) {
         </div>
         <button type="button" onClick={() => void refresh()} disabled={loading}>Refresh</button>
       </div>
+      {loadError ? <div style={{ color: "#dc2626" }}>catalog: {loadError.message}</div> : null}
       {error ? <div style={{ color: "#dc2626" }}>{error}</div> : null}
       {loading && !catalog ? <div>Loading catalog…</div> : null}
       <div style={{ overflowX: "auto" }}>

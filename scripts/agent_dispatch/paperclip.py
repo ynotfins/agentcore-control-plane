@@ -44,10 +44,28 @@ def _items(payload: Any, *keys: str) -> list:
     return []
 
 
+_COMPANY_ID_CACHE: dict[str, str] = {}
+
+
 def company_id() -> str:
-    if COMPANY:
-        return COMPANY
-    active = [c for c in _items(_call("GET", "/api/companies"), "companies", "data") if c.get("status") == "active"]
+    """Resolve the configured company to its id.
+
+    ``AGENTCORE_DISPATCH_PAPERCLIP_COMPANY`` may be a company id or a company
+    name; every API path needs the id, so a name is resolved once and cached.
+    """
+    key = COMPANY.strip()
+    if key and key in _COMPANY_ID_CACHE:
+        return _COMPANY_ID_CACHE[key]
+    companies = _items(_call("GET", "/api/companies"), "companies", "data")
+    if key:
+        for c in companies:
+            if key == c.get("id") or key.lower() == str(c.get("name") or "").strip().lower():
+                _COMPANY_ID_CACHE[key] = c["id"]
+                return c["id"]
+        raise PaperclipError(
+            f"AGENTCORE_DISPATCH_PAPERCLIP_COMPANY '{COMPANY}' matches no company id or name"
+        )
+    active = [c for c in companies if c.get("status") == "active"]
     if len(active) != 1:
         raise PaperclipError("set AGENTCORE_DISPATCH_PAPERCLIP_COMPANY (need exactly one active company)")
     return active[0]["id"]
